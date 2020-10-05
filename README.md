@@ -12,7 +12,6 @@ $ cmake -G Ninja
 $ ninja
 ```
 
-
 # Architecture
 
 How to add something to d4.

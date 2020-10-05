@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
@@ -11,6 +11,8 @@ file(GLOB INCLUDES ./**.hpp)
 set(SRCS ${SOURCES})
 set(HEADERS ${INCLUDES})
 
+FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # flags
 if(${DEBUG_MODE})
@@ -21,7 +23,7 @@ if(${DEBUG_MODE})
   message("Debug mode activated")
   set(CMAKE_BUILD_TYPE Debug)
   target_compile_options(d4_debug PUBLIC -std=c++11 -Wall -lz -pg -lgmpxx -lgmp -O2)
-  target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O2)
+  target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O2 ${Boost_LIBRARIES})
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug
     DESTINATION bin
@@ -31,8 +33,8 @@ else()
   add_executable(d4 ${SRCS} ${HEADERS})
 
   message("Classical mode activated")
-  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -static)
-  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp -static)
+  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp)
+  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES})
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
     DESTINATION bin

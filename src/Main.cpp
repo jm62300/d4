@@ -3,6 +3,20 @@
 
 #include <boost/program_options.hpp>
 
+#include <boost/multiprecision/cpp_int.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/multiprecision/cpp_bin_float.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/multiprecision/cpp_bin_float.hpp>
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <iterator>
+
+using namespace boost::program_options;
+
 void on_age(int age)
 {
   std::cout << "On age: " << age << '\n';
@@ -14,7 +28,6 @@ void on_age(int age)
  */
 int main(int argc, char** argv)
 {
-#if 0
   try
     {
       options_description desc{"Options"};
@@ -38,6 +51,6 @@ int main(int argc, char** argv)
     {
       std::cerr << ex.what() << '\n';
     }
-#endif
+
   return 0;
 }// main
