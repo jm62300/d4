@@ -1,15 +1,15 @@
+cmake_minimum_required(VERSION 3.0)
+
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# source files
-set(SRCS
-  Main.cpp
-  )
+# source/include files
+file(GLOB SOURCES ./**.cpp)
+file(GLOB INCLUDES ./**.hpp)
 
-# header files
-set(HEADERS
-  )
+set(SRCS ${SOURCES})
+set(HEADERS ${INCLUDES})
 
 
 # flags

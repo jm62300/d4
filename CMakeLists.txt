@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.0)
 # set the project name and version
 project(D4 VERSION 0.1)
 
-
-
 add_custom_target(clean-cmake-files
    COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
 )
