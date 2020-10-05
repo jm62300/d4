@@ -7,6 +7,11 @@ Description of the different methods supported by d4.
 
 # How to Compile
 
+```console
+$ cmake -G Ninja
+$ ninja
+```
+
 
 # Architecture
 
