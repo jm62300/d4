@@ -11,29 +11,28 @@ void on_age(int age)
 
 /**
    The main function!
- */
+*/
 int main(int argc, char** argv)
 {
   try
-    {
-      boost::program_options::options_description desc{"Options"};
-      desc.add_options()
-        ("help,h", "Help screen")
-        ("pi", boost::program_options::value<float>()->default_value(3.14f), "Pi")
-        ("age", boost::program_options::value<int>()->notifier(on_age), "Age");
+  {
+    namespace po = boost::program_options;
+    po::options_description desc{"Options"};
+    desc.add_options()
+#include "option.dsc"
+        ;
 
-      boost::program_options::variables_map vm;
-      boost::program_options::store(parse_command_line(argc, argv, desc), vm);
-      boost::program_options::notify(vm);
+    po::variables_map vm;
+    po::store(parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
 
-      if (vm.count("help")) std::cout << desc << '\n';
-      else if (vm.count("age")) std::cout << "Age: " << vm["age"].as<int>() << '\n';
-      else if (vm.count("pi")) std::cout << "Pi: " << vm["pi"].as<float>() << '\n';
-    }
+    if (vm.count("help")) std::cout << desc << '\n';    
+    std::cout << "input file: " << vm["input"].as<std::string>() << '\n';
+  }
   catch (const boost::program_options::error &ex)
-    {
-      std::cerr << ex.what() << '\n';
-    }
+  {
+    std::cerr << ex.what() << '\n';
+  }
 
   return 0;
 }// main
