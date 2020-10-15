@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # source/include files
-file(GLOB SOURCES ./**.cpp)
-file(GLOB INCLUDES ./**.hpp)
+file(GLOB_RECURSE SOURCES ./**.cpp)
+file(GLOB_RECURSE INCLUDES ./**.hpp)
 
 set(SRCS ${SOURCES})
 set(HEADERS ${INCLUDES})

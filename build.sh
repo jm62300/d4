@@ -20,3 +20,4 @@ done
 mkdir -p build
 cd build
 cmake -GNinja $* .. -DDEBUG_MODE=$opt
+ninja 
