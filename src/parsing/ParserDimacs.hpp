@@ -21,7 +21,6 @@ class ParserDimacs
   int parse_DIMACS_main(BufferRead &in, std::vector< std::vector<int> > &clauses);
 
  public:
-  ParserDimacs();  
   int parse_DIMACS(std::string input_stream, std::vector< std::vector<int> > &clauses);
 };
 } // d4

@@ -1,21 +1,9 @@
 #include <iostream>
 #include <cassert>
-#include <vector> 
-
+#include <vector>
 #include <boost/program_options.hpp>
 
-#include "circuit/Circuit.hpp"
-#include "parsing/ParserDimacs.hpp"
-
-
-#include "circuit/ClauseGate.hpp"
-#include "circuit/AndGate.hpp"
-
-void on_age(int age)
-{
-  std::cout << "On age: " << age << '\n';
-}
-
+#include "problem/ProblemManager.hpp"
 
 /**
    The main function!
@@ -49,22 +37,9 @@ int main(int argc, char** argv)
     std::cout << desc << '\n';
     exit(!vm.count("help"));
   }
-
-    
-  std::cout << "input file: " << vm["input"].as<std::string>() << '\n';
-
-
-  int tab1[] = {1,2,3}, tab2[] = {4,2,3};
-  std::vector<int> v1(std::begin(tab1), std::end(tab1));
-  std::vector<int> v2(std::begin(tab2), std::end(tab2));
-
-  std::vector<d4::Circuit *> av;
-  av.push_back(new d4::ClauseGate(v1));
-  av.push_back(new d4::ClauseGate(v1));
-  d4::Circuit *ac = new d4::AndGate(av);
-
-  std::cout << (*ac) << "\n";
-  delete ac;
+  
+  d4::ProblemManager *p = d4::ProblemManager::makeProblemManager(vm);
+  p->display(std::cout);
   
   return 0;
 }// main
