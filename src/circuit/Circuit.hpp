@@ -11,6 +11,7 @@ class Circuit
   virtual std::ostream &print(std::ostream &os) = 0;
   
  private:
+  int counterFather = 0;
 
  public:
   virtual ~Circuit(){ }
@@ -19,6 +20,10 @@ class Circuit
   {
     return c.print(os);
   }
+
+  inline int getCounter(){return counterFather;}
+  inline int incCounter(){return ++counterFather;}
+  inline int decCounter(){return --counterFather;}
 };
 }
 

@@ -10,13 +10,13 @@ namespace d4
  */
 AndGate::AndGate(std::vector<Circuit *> children) : children_(children)
 {
-  
+  for(auto s : children_) s->incCounter();
 } // constructor
 
 
 AndGate::~AndGate()
 {
-  for(auto n : children_) delete n;
+  for(auto n : children_) if(!n->decCounter()) delete n;
 } // destructor
 
 
