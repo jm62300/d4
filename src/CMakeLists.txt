@@ -22,7 +22,7 @@ if(${DEBUG_MODE})
   # PROFILE
   message("Debug mode activated")
   set(CMAKE_BUILD_TYPE Debug)
-  target_compile_options(d4_debug PUBLIC -std=c++11 -Wall -lz -pg -lgmpxx -lgmp -O2)
+  target_compile_options(d4_debug PUBLIC -std=c++11 -Wall -lz -pg -lgmpxx -lgmp -O2 -Wno-class-memaccess)
   target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O2 ${Boost_LIBRARIES})
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug
@@ -33,7 +33,7 @@ else()
   add_executable(d4 ${SRCS} ${HEADERS})
 
   message("Classical mode activated")
-  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp)
+  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES})
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
