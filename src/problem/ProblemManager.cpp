@@ -1,5 +1,5 @@
 #include "ProblemManager.hpp"
-#include "ProblemManagerCnf.hpp"
+#include "cnf/ProblemManagerCnf.hpp"
 
 #include <iostream>
 

@@ -1,5 +1,5 @@
 #include "ProblemManagerCnf.hpp"
-#include "../parsing/ParserDimacs.hpp"
+#include "ParserDimacs.hpp"
 
 namespace d4
 {

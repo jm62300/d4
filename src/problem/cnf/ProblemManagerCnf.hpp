@@ -3,7 +3,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "ProblemManager.hpp"
+#include "../ProblemManager.hpp"
 
 namespace d4
 {
