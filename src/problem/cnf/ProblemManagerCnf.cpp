@@ -3,7 +3,6 @@
 
 namespace d4
 {
-
 /**
    Constructor. Take as arguments on the options.
 
