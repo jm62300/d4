@@ -1,5 +1,5 @@
-#ifndef d4_problem_ProblemManager_hpp
-#define d4_problem_ProblemManager_hpp
+#ifndef d4_src_problem_ProblemManager_hpp
+#define d4_src_problem_ProblemManager_hpp
 
 #include <boost/program_options.hpp>
 

@@ -3,7 +3,9 @@
 
 #include <boost/program_options.hpp>
 
+#include "../ProblemTypes.hpp"
 #include "../ProblemManager.hpp"
+#include "../../solvers/minisat/Solver.hpp"
 
 namespace d4
 {
@@ -13,7 +15,8 @@ class ProblemManagerCnf : public ProblemManager
 {
  private:
   int nbVars;
-  std::vector< std::vector<int> > clauses;
+  std::vector< std::vector<Lit> > clauses;
+  minisat::Solver s;
   
  public:
   ProblemManagerCnf(po::variables_map &vm);

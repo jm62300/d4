@@ -23,7 +23,7 @@ int main(int argc, char** argv)
   {    
     po::notify(vm);
   }
-  catch (const boost::program_options::error &ex)
+  catch (const po::error &ex)
   {
     std::cerr << ex.what() << '\n';
     exit(1);

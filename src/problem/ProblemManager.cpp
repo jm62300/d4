@@ -22,6 +22,6 @@ ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm)
   if(extension == "cnf" || extension == "dimacs") return new ProblemManagerCnf(vm);
   
   return NULL;
-}
+} // makeProblemManager
 
 }

@@ -2,9 +2,9 @@
 
 namespace d4
 {
-int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<int> > &clauses)
+int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<Lit> > &clauses)
 {
-  std::vector<int> lits;
+  std::vector<Lit> lits;
   std::string s;
 
   int nbVars = 0;
@@ -34,7 +34,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<int
       do
       {
         v = in.nextInt();
-        if(v) lits.push_back(v);
+        if(v) lits.push_back((v > 0) ? Lit(v) : Lit(-v, true));
       } while(v);
 
       assert(lits.size());
@@ -47,7 +47,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<int
 
 
 
-int ParserDimacs::parse_DIMACS(std::string input_stream, std::vector< std::vector<int> > &clauses)
+int ParserDimacs::parse_DIMACS(std::string input_stream, std::vector< std::vector<Lit> > &clauses)
 {
   BufferRead in(input_stream);
   return parse_DIMACS_main(in, clauses);

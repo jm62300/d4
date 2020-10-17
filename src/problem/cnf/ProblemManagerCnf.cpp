@@ -12,6 +12,14 @@ ProblemManagerCnf::ProblemManagerCnf(po::variables_map &vm)
 {
   ParserDimacs parser;
   nbVars = parser.parse_DIMACS(vm["input"].as<std::string>(), clauses);
+
+  // call the preproc and collect units and clauses
+  
+  // add the clauses+units to the solver.
+  
+  // initialize the occurence manager: clauses + units
+
+  
 } // constructor
 
 
@@ -35,7 +43,7 @@ void ProblemManagerCnf::display(std::ostream &out)
   out << "p cnf " << nbVars << " " << clauses.size() << "\n";
   for(auto cl : clauses)
   {
-    for(auto l : cl) out << l << " ";
+    for(auto &l : cl) out << l << " ";
     out << "0\n";
   }
 } // diplay

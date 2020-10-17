@@ -33,7 +33,7 @@ else()
   add_executable(d4 ${SRCS} ${HEADERS})
 
   message("Classical mode activated")
-  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess)
+  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess -Wfatal-errors)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES})
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
