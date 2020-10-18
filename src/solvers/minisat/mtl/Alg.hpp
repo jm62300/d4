@@ -23,7 +23,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "Vec.hpp"
 
-
+namespace minisat
+{
 //=================================================================================================
 // Useful functions on vector-like types:
 
@@ -76,6 +77,6 @@ static inline void copy(const vec<T>& from, vec<T>& to, bool append = false)
 
 template<class T>
 static inline void append(const vec<T>& from, vec<T>& to){ copy(from, to, true); }
-
+}
 
 #endif

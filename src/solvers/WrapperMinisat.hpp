@@ -15,6 +15,8 @@ class WrapperMinisat : public WrapperSolver
   
  public:
   void initSolver(ProblemManager &p);
+  bool solve();
+  void getSimplifiedFormula(ProblemManager &p);
 };
 }
 

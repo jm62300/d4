@@ -965,6 +965,9 @@ public:
       }
   }// intToLit
 
+
+  inline bool isUndef(Lit l){return value(l) == l_Undef;}
+  inline bool isSAT(Lit l){return value(l) == l_True;}
  };
 
 

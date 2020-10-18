@@ -27,6 +27,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 // Default hash/equals functions
 //
 
+namespace minisat
+{
+
 template<class K> struct Hash  { uint32_t operator()(const K& k)               const { return hash(k);  } };
 template<class K> struct Equal { bool     operator()(const K& k1, const K& k2) const { return k1 == k2; } };
 
@@ -184,5 +187,6 @@ public:
   // NOTE: given a bit more time, I could make a more C++-style iterator out of this:
   const vec<Pair>& bucket(int i) const { return table[i]; }
 };
+}
 
 #endif

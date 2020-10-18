@@ -33,6 +33,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 //
 // NOTE! Don't use this vector on datatypes that cannot be re-located in memory (with realloc)
 
+namespace minisat
+{
 template<class T>
 class vec {
   T*  data;
@@ -147,7 +149,7 @@ template<class T> bool vec<T>::removeElt(const T &elem)
   data[pos] = data[--sz];
   return pos != -1;
 }
-
+}
 
 //=================================================================================================
 

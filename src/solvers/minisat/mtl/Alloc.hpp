@@ -24,6 +24,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "XAlloc.hpp"
 #include "Vec.hpp"
 
+namespace minisat
+{
 //=================================================================================================
 // Simple Region-based memory allocator:
 
@@ -120,6 +122,7 @@ RegionAllocator<T>::alloc(int size)
     throw OutOfMemoryException();
 
   return prev_sz;
+}
 }
 
 #endif

@@ -14,8 +14,12 @@ class WrapperSolver
 
  public:
   static WrapperSolver *makeWrapperSolver(po::variables_map &vm);
+  static WrapperSolver *makeWrapperSolverPreproc(po::variables_map &vm);
 
+  virtual ~WrapperSolver(){}
   virtual void initSolver(ProblemManager &p) = 0;
+  virtual bool solve() = 0;
+  virtual void getSimplifiedFormula(ProblemManager &p) = 0;
 };
 } // d4
 

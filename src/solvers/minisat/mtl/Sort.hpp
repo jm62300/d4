@@ -23,6 +23,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "Vec.hpp"
 
+namespace minisat
+{
 //=================================================================================================
 // Some sorting algorithms for vec's
 
@@ -89,6 +91,6 @@ template <class T, class LessThan> void sort(vec<T>& v, LessThan lt) {
 template <class T> void sort(vec<T>& v) {
     sort(v, LessThan_default<T>()); }
 
-
+}
 
 #endif

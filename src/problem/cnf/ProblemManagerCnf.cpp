@@ -1,3 +1,4 @@
+#include "../../preprocs/PreprocManager.hpp"
 #include "ProblemManagerCnf.hpp"
 #include "ParserDimacs.hpp"
 
@@ -13,10 +14,14 @@ ProblemManagerCnf::ProblemManagerCnf(po::variables_map &vm)
   ParserDimacs parser;
   nbVars = parser.parse_DIMACS(vm["input"].as<std::string>(), clauses);
 
-  // call the preproc and collect units and clauses
+  // call the preproc and collect clauses and unit literals.
+  PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
+  preproc->run(*this);
   
   // add the clauses+units to the solver.
-  
+  ws = WrapperSolver::makeWrapperSolver(vm);
+  ws->initSolver(*this);
+        
   // initialize the occurence manager: clauses + units
 
   

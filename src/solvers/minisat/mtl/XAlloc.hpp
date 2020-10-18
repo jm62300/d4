@@ -24,6 +24,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <errno.h>
 #include <stdlib.h>
 
+namespace minisat
+{
 //=================================================================================================
 // Simple layer on top of malloc/realloc to catch out-of-memory situtaions and provide some typing:
 
@@ -36,6 +38,6 @@ static inline void* xrealloc(void *ptr, size_t size)
     }else
         return mem;
 }
-
+}
 
 #endif
