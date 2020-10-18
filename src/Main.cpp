@@ -40,6 +40,7 @@ int main(int argc, char** argv)
   
   d4::ProblemManager *p = d4::ProblemManager::makeProblemManager(vm);
   p->display(std::cout);
+  delete p;
   
   return 0;
 }// main

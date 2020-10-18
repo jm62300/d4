@@ -17,6 +17,7 @@ ProblemManagerCnf::ProblemManagerCnf(po::variables_map &vm)
   // call the preproc and collect clauses and unit literals.
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
   preproc->run(*this);
+  delete preproc;
   
   // add the clauses+units to the solver.
   ws = WrapperSolver::makeWrapperSolver(vm);
@@ -35,6 +36,8 @@ ProblemManagerCnf::~ProblemManagerCnf()
 {
   clauses.clear();
   nbVars = 0;
+
+  delete ws;
 } // destructor
 
 

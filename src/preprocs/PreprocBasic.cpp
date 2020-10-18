@@ -16,6 +16,14 @@ PreprocBasic::PreprocBasic(po::variables_map &vm)
 
 
 /**
+   Destructor.
+ */
+PreprocBasic::~PreprocBasic()
+{
+  delete ws;
+} // destructor
+
+/**
    The preprocessing itself.
 
    @param[out] p, the problem we want to preprocess.

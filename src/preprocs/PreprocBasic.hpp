@@ -18,6 +18,7 @@ class PreprocBasic : public PreprocManager
   
  public:
   PreprocBasic(po::variables_map &vm);
+  ~PreprocBasic();
   void run(ProblemManager &p);
 };
 
