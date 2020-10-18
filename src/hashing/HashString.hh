@@ -1,9 +1,9 @@
-#ifndef d4_hashing_HashCnh_hpp
-#define d4_hashing_HashCnh_hpp
+#ifndef d4_src_hashing_HashString_hpp
+#define d4_src_hashing_HashString_hpp
 
 namespace d4
 {
-class HashCnf
+class HashString
 {
  public:
   inline unsigned hash(char *key, unsigned len)
