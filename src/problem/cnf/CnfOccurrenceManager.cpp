@@ -106,15 +106,17 @@ int CnfOccurrenceManager::connectedToLit(Lit l, std::vector<int> &v,
    of the formula.
 
    @param[out] varCo, the different connected components found
-   @param[in] setOfVar, the current set of variables
-   @param[out] freeVar, the set of variables that are present in setOfVar but not in the problem anymore
+   @param[in] setOfVar, the current set of variables   
+   @param[out] freeVar, the set of variables that are present in setOfVar but
+   not in the problem anymore
    @param[out] notFreeVar, the difference between setOfVar and freeVar
 
    \return the number of component found
  */
 int CnfOccurrenceManager::computeConnectedComponent(std::vector< std::vector<Var> > &varCo,
                                                     std::vector<Var> &setOfVar,
-                                                    std::vector<Var> &freeVar, std::vector<Var> &notFreeVar)
+                                                    std::vector<Var> &freeVar,
+                                                    std::vector<Var> &notFreeVar)
 {
   freeVar.clear();
   int nbComponent = 0;
@@ -213,8 +215,8 @@ inline bool CnfOccurrenceManager::isSatisfiedClause(std::vector<Lit> &c)
 
    \return true if the clause is satisfied, false otherwise.
  */
-inline bool CnfOccurrenceManager::isNotSatisfiedClauseAndInComponent(int idx,
-                                                                     std::vector<bool> &inCurrentComponent)
+bool CnfOccurrenceManager::isNotSatisfiedClauseAndInComponent(int idx,
+                                                              std::vector<bool> &inCurrentComponent)
 {
   if(nbSat[idx]) return false;
   assert(watcher[idx] != lit_Undef);
@@ -223,7 +225,8 @@ inline bool CnfOccurrenceManager::isNotSatisfiedClauseAndInComponent(int idx,
 }// isSatisfiedClause
 
 
-void CnfOccurrenceManager::getCurrentClauses(std::vector<int> &idxClauses, std::vector<bool> &inComponent)
+void CnfOccurrenceManager::getCurrentClauses(std::vector<int> &idxClauses,
+                                             std::vector<bool> &inComponent)
 {
   idxClauses.resize(0);
   for(int i = 0 ; i<currentSize ; i++)
