@@ -9,9 +9,6 @@
 #include "../problem/ProblemTypes.hpp"
 #include "CachedBucket.hpp"
 
-#define ALL 0
-#define NB 1
-#define NT 2
 
 #define ONE_OCTET 2
 #define TWO_OCTET 3
@@ -31,7 +28,8 @@ protected:
   CachedBucket<T> bucket;
 
  public:
-  std::vector<std::vector<char *>> freeSpace;  // freespace[i][j] points to a free memory space of size i
+  // freespace[i][j] points to a free memory space of size i
+  std::vector<std::vector<char *>> freeSpace;  
   unsigned long int allMemory;
   unsigned long int freeMemory;
   unsigned long int pageData;
@@ -44,8 +42,9 @@ protected:
     allocateData.clear();
   }
 
-  inline int nbOctetToEncodeInt(unsigned int v) // we know that we cannot have more than 1<<32 variables
+  inline int nbOctetToEncodeInt(unsigned int v) 
   {
+    // we know that we cannot have more than 1<<32 variables
     if(v < (1<<8)) return 1;
     if(v < (1<<16)) return 2;
     return 4;

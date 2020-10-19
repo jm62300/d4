@@ -57,6 +57,7 @@ void DynamicOccurrenceManager::initFormula(ProblemManager &p)
   }
 }// initFormula
 
+
 /**
    Update the occurrence list w.r.t. a new set of assigned variables.
    It's important that the order is conserved between the moment where
