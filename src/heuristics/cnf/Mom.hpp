@@ -16,8 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics__cnf_Mom_hpp
-#define d4_src_heuristics__cnf_Mom_hpp
+#ifndef d4_src_heuristics_cnf_Mom_hpp
+#define d4_src_heuristics_cnf_Mom_hpp
 
 #include <specs/cnf/SpecManagerCnf.hpp>
 #include "../ScoringMethod.hpp"
@@ -26,10 +26,10 @@ namespace d4
 {
 class Mom : public ScoringMethod
 {
-  private:
+ private:
   SpecManagerCnf &om;
   
-public:
+ public:
   Mom(SpecManagerCnf &om);
   double computeScore(Var v);  
 };

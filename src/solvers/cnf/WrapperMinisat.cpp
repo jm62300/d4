@@ -16,12 +16,13 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "WrapperMinisat.hpp"
-
 #include <iostream>
 #include <typeinfo>       
 
-#include "../problem/cnf/ProblemManagerCnf.hpp"
+#include "WrapperMinisat.hpp"
+
+#include <problem/cnf/ProblemManagerCnf.hpp>
+
 #include "minisat/Solver.hpp"
 #include "minisat/SolverTypes.hpp"
 #include "minisat/mtl/Vec.hpp"
@@ -29,8 +30,8 @@
 namespace d4
 {
 /**
-   This function initializes the SAT solver with a given problem.
-   Warning: we suppose that p is a CNF, otherwise a bad_cast exception is threw.
+   This function initializes the SAT solver with a given problem.  Warning: we
+   suppose that p is a CNF, otherwise a bad_cast exception is threw.
 
    @param[in] p, the problem we want to link with the SAT solver.
  */
@@ -114,5 +115,10 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
   }
 } // getSimplifiedFormula
 
+
+double WrapperMinisat::getActivity(Var v)
+{
+  return s.activity[v];
+} // getActivity
 
 } // d4

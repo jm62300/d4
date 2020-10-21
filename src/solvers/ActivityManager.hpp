@@ -16,35 +16,18 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef d4_src_solvers_ActivityManager_hpp
+#define d4_src_solvers_ActivityManager_hpp
 
-#include "Mom.hpp"
+#include <problem/ProblemTypes.hpp>
 
 namespace d4
 {
-/**
-   Constructor.
-
-   @param[in] o, the specification of a CNF problem.
- */
-Mom::Mom(SpecManagerCnf &o) : om(o)
+class ActivityManager
 {
-  
-} // constructor
-
-
-/**
-   Compute the score following the well-known MOM heuristic.
-     
-   D. Pretolani. Efficiency and stability of hypergraph sat
-   algorithms. In D. S.  Johnson and M. A. Trick, editors, Second
-   DIMACS Implementation Challenge.  American Mathematical Society,
-   1993.
-
-   @param[in] v, the variable we want the score.
-*/
-double Mom::computeScore(Var v)
-{
-  return om.getNbBinaryClause(v) * 0.25;
-} // computeScore
-
+ public:
+  virtual double getActivity(Var v) = 0;
+};
 }
+
+#endif

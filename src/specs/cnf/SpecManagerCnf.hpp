@@ -75,7 +75,8 @@ class SpecManagerCnf : public SpecManager
   SpecManagerCnf(ProblemManager &p);
 
   int computeConnectedComponent(std::vector< std::vector<Var> > &varConnected,
-                                std::vector<Var> &setOfVar, std::vector<Var> &freeVar,
+                                std::vector<Var> &setOfVar,
+                                std::vector<Var> &freeVar,
                                 std::vector<Var> &notFreeVar) override;
 
   void initFormula(ProblemManager &p) override;
@@ -105,6 +106,9 @@ class SpecManagerCnf : public SpecManager
   
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
+
+  int getInitSize(int i){return clauses[i].size() - nbUnsat[i];}
+  int getCurrentSize(int i){return clauses[i].size() - nbUnsat[i];}
 
   
   inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}

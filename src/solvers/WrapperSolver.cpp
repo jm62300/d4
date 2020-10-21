@@ -17,7 +17,7 @@
 */
 
 #include "WrapperSolver.hpp"
-#include "WrapperMinisat.hpp"
+#include "cnf/WrapperMinisat.hpp"
 
 namespace d4
 {

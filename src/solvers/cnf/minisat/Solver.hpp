@@ -30,8 +30,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace minisat
 {
-class ScoringMethod; // forward declaration
-  
 struct Watcher {
   CRef cref;
   Lit  blocker;
@@ -927,11 +925,6 @@ public:
   }// showAttachedClause
 
 
-  void showFormulaDotDual(vec<Var> &setOfVar, vec<int> &cutSet);
-  void showFormulaDotPrimal(vec<Var> &setOfVar, vec<Var> &priority, ScoringMethod *sm);
-  void showFormulaDotIncidence(vec<Var> &setOfVar, vec<Var> &priority, ScoringMethod *sm);
-  void showHyperGraph(vec<Var> &setOfVar);
-    
   ////////////////////////// Stuff part /////////////////////////////////////    
     
   inline void showDiff(vec<Lit> &v1, vec<Lit> &v2)

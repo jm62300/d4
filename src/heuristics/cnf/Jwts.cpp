@@ -16,35 +16,48 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "Mom.hpp"
+#include "Jwts.hpp"
 
 namespace d4
 {
+
 /**
    Constructor.
 
-   @param[in] o, the specification of a CNF problem.
+   @param[in] om, the manager that give information about the CNF formula.
  */
-Mom::Mom(SpecManagerCnf &o) : om(o)
+Jwts::Jwts(SpecManagerCnf &o) : om(o)
 {
   
 } // constructor
 
 
 /**
-   Compute the score following the well-known MOM heuristic.
+   This scoring function favorises the varaibles which appear in
+   most clauses.
      
-   D. Pretolani. Efficiency and stability of hypergraph sat
-   algorithms. In D. S.  Johnson and M. A. Trick, editors, Second
-   DIMACS Implementation Challenge.  American Mathematical Society,
-   1993.
-
+   R. G. Jeroslow and J. Wang. Solving propositional satisfiability
+   problems. Annals of Mathematics and Artificial Intelligence,
+   1:167–187, 1990.
+   
    @param[in] v, the variable we want the score.
-*/
-double Mom::computeScore(Var v)
+ */
+double Jwts::computeScore(Var v)
 {
-  return om.getNbBinaryClause(v) * 0.25;
+  Lit lp = Lit(v, false);
+      
+  double res = 0;
+  for(int sign = 0 ; sign<2 ; sign++)
+  { 
+    for(auto &idx : om.getVecIdxClause(sign ? lp : ~lp))
+    {
+      assert(!om.isSatisfiedClause(idx));
+      if(om.getInitSize(idx) > 5) continue;      
+      res += ((double) 1.0) / (1<<om.getCurrentSize(idx));
+    }
+  }
+      
+  return res;
 } // computeScore
 
-}
+} // d4

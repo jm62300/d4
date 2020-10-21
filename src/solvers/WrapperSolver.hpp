@@ -16,17 +16,20 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_solvers_WrapperSolver_hpp
-#define d4_src_solvers_WrapperSolver_hpp
+#ifndef d4_src_solvers_cnf_minisat_WrapperSolver_hpp
+#define d4_src_solvers_cnf_minisat_WrapperSolver_hpp
 
-#include "../problem/ProblemTypes.hpp"
-#include "../problem/ProblemManager.hpp"
 #include <boost/program_options.hpp>
+
+#include <problem/ProblemTypes.hpp>
+#include <problem/ProblemManager.hpp>
+
+#include "ActivityManager.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
-class WrapperSolver
+class WrapperSolver : public ActivityManager
 {
   private:
 

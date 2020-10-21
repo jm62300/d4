@@ -16,35 +16,35 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "Mom.hpp"
+#include "Vsads.hpp"
 
 namespace d4
 {
+
 /**
    Constructor.
 
    @param[in] o, the specification of a CNF problem.
+   @param[in] a, an activity manager linked to a solver.
  */
-Mom::Mom(SpecManagerCnf &o) : om(o)
+Vsads::Vsads(SpecManagerCnf &o, ActivityManager &a) : om(o), activity(a)
 {
   
 } // constructor
 
 
 /**
-   Compute the score following the well-known MOM heuristic.
-     
-   D. Pretolani. Efficiency and stability of hypergraph sat
-   algorithms. In D. S.  Johnson and M. A. Trick, editors, Second
-   DIMACS Implementation Challenge.  American Mathematical Society,
-   1993.
+   The well-known VSADS heuristic.
+
+   Sang, T.; Beame, P.; and Kautz, H. Heuristics for Fast
+   Exact Model Counting. In Proceedings of the 8th International
+   Conference on Theory and Applications of Satisfiability Testing.
 
    @param[in] v, the variable we want the score.
-*/
-double Mom::computeScore(Var v)
+ */
+double Vsads::computeScore(Var v)
 {
-  return om.getNbBinaryClause(v) * 0.25;
-} // computeScore
-
+  return activity.getActivity(v) + om.getNbClause(v);
 }
+
+} // d4

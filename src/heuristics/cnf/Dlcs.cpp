@@ -16,26 +16,30 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_solvers_WrapperMnisat_hpp
-#define d4_src_solvers_WrapperMnisat_hpp
-
-#include "WrapperSolver.hpp"
-#include "../problem/ProblemTypes.hpp"
-#include "../problem/ProblemManager.hpp"
-#include "minisat/Solver.hpp"
+#include "Dlcs.hpp"
 
 namespace d4
 {
-class WrapperMinisat : public WrapperSolver
+
+/**
+   Constructor.
+
+   @param[in] om, the manager that give information about the CNF formula.
+ */
+Dlcs::Dlcs(SpecManagerCnf &o) : om(o)
 {
- private:
-  minisat::Solver s;
   
- public:
-  void initSolver(ProblemManager &p);
-  bool solve();
-  void getSimplifiedFormula(ProblemManager &p);
-};
+} // constructor
+
+/**
+   This scoring function favorises the variables which appear in
+   most clauses.
+
+   @param[in] v, the variable we want the score.
+ */
+double Dlcs::computeScore(Var v)
+{
+  return om.getNbClause(v);
 }
 
-#endif
+} // d4

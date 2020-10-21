@@ -17,8 +17,11 @@
 */
 #include "ScoringMethod.hpp"
 
-
 #include "cnf/Mom.hpp"
+#include "cnf/Dlcs.hpp"
+#include "cnf/Vsids.hpp"
+#include "cnf/Jwts.hpp"
+#include "cnf/Vsads.hpp"
 
 namespace d4
 {
@@ -31,7 +34,7 @@ namespace d4
 
    \return the scoring method
  */
-ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManager &p)
+ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManager &p, ActivityManager &am)
 {
   std::string in = vm["input"].as<std::string>();
   std::string extension = in.substr(in.find_last_of(".") + 1);
@@ -45,8 +48,11 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManag
       SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf&>(p);
 
       if(meth == "mom") return new Mom(ps);
-      return NULL;
-    
+      if(meth == "dlcs") return new Dlcs(ps);
+      if(meth == "vsids") return new Vsids(am);
+      if(meth == "vsads") return new Vsads(ps, am);
+      if(meth == "jwts") return new Jwts(ps);
+      return NULL;    
     }
     catch (std::bad_cast& bc)
     {

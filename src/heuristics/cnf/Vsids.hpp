@@ -16,20 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics__cnf_Vsids_hpp
-#define d4_src_heuristics__cnf_Vsids_hpp
+#ifndef d4_src_heuristics_cnf_Vsids_hpp
+#define d4_src_heuristics_cnf_Vsids_hpp
 
 #include <problem/cnf/ProblemManagerCnf.hpp>
+#include <solvers/ActivityManager.hpp>
 #include "../ScoringMethod.hpp"
 
 namespace d4
 {
 class Vsids : public ScoringMethod
 {
-  private:
+ private:
+  ActivityManager &activity;
   
-public:
-  Vsids();
+ public:
+  Vsids(ActivityManager &a);
   double computeScore(Var v);  
 };
 }
