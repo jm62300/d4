@@ -22,22 +22,22 @@
 #include <vector>
 #include <cassert>
 
-#include "../ProblemTypes.hpp"
-#include "../ProblemManager.hpp"
+#include <problem/ProblemTypes.hpp>
+#include <problem/ProblemManager.hpp>
 
-#include "CnfOccurrenceManager.hpp"
+#include "SpecManagerCnf.hpp"
 
 
 namespace d4
 {
-class DynamicOccurrenceManager : public CnfOccurrenceManager
+class SpecManagerCnfDyn : public SpecManagerCnf
 {
  private:
   void initClauses(std::vector<std::vector<Lit> > &clauses);
 
  public:
-  DynamicOccurrenceManager(int nbClause, int nbVar, int maxClauseSize);
-  DynamicOccurrenceManager(ProblemManager &p);
+  SpecManagerCnfDyn(int nbClause, int nbVar, int maxClauseSize);
+  SpecManagerCnfDyn(ProblemManager &p);
 
   void preUpdate(std::vector<Lit> &lits);
   void postUpdate(std::vector<Lit> &lits);

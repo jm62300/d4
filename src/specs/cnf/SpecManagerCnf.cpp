@@ -19,38 +19,15 @@
 #include <iostream>
 #include <algorithm>    // std::sort
 
-#include "CnfOccurrenceManager.hpp"
-#include "DynamicOccurrenceManager.hpp"
+#include "SpecManagerCnf.hpp"
+#include "SpecManagerCnfDyn.hpp"
 
 namespace d4
 {
 /**
-   Generate an occurrence manager regarding the options given as parameter.
-
-   @param[in] vm, the arguments on the command line.
-   @param[in] p, a problem manager.
-   
-   \return the occurrence manager that fits the command line.
- */
-CnfOccurrenceManager *CnfOccurrenceManager::makeCnfOccurrenceManager(po::variables_map &vm, ProblemManager &p)
-{
-  std::string in = vm["input"].as<std::string>();
-  std::string extension = in.substr(in.find_last_of(".") + 1);
-
-  if(extension == "cnf" || extension == "dimacs")
-  {
-    std::string meth = vm["occurrence-manager"].as<std::string>();
-    if(meth == "dynamic") return new DynamicOccurrenceManager(p);
-    return NULL;
-  }
-  
-  return NULL;
-} // makeOccurrenceManager
-
-/**
    Constructor.
  */
-CnfOccurrenceManager::CnfOccurrenceManager(int nbClause, int _nbVar, int _maxSizeClause) :
+SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _maxSizeClause) :
     nbVar(_nbVar), maxSizeClause(_maxSizeClause)
 {
   for(unsigned i = 0 ; i<nbVar ; i++)
@@ -78,7 +55,7 @@ CnfOccurrenceManager::CnfOccurrenceManager(int nbClause, int _nbVar, int _maxSiz
 /**
    Constructor.
  */
-CnfOccurrenceManager::CnfOccurrenceManager(ProblemManager &p) : nbVar(p.getNbVar())
+SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : nbVar(p.getNbVar())
 {
   initFormula(p);
 
@@ -112,8 +89,8 @@ CnfOccurrenceManager::CnfOccurrenceManager(ProblemManager &p) : nbVar(p.getNbVar
    @param[in] l, the considered literal
    WARNING: varConnected references tmpVecVar. Thus, it is already allocate.
 */
-int CnfOccurrenceManager::connectedToLit(Lit l, std::vector<int> &v,
-                                         std::vector<Var> &varComponent, int nbComponent)
+int SpecManagerCnf::connectedToLit(Lit l, std::vector<int> &v,
+                                   std::vector<Var> &varComponent, int nbComponent)
 {
   int cpt = 0;
   for(auto &idx : occList[l.intern()])
@@ -154,10 +131,10 @@ int CnfOccurrenceManager::connectedToLit(Lit l, std::vector<int> &v,
 
    \return the number of component found
  */
-int CnfOccurrenceManager::computeConnectedComponent(std::vector< std::vector<Var> > &varCo,
-                                                    std::vector<Var> &setOfVar,
-                                                    std::vector<Var> &freeVar,
-                                                    std::vector<Var> &notFreeVar)
+int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &varCo,
+                                              std::vector<Var> &setOfVar,
+                                              std::vector<Var> &freeVar,
+                                              std::vector<Var> &notFreeVar)
 {
   freeVar.clear();
   int nbComponent = 0;
@@ -216,7 +193,7 @@ int CnfOccurrenceManager::computeConnectedComponent(std::vector< std::vector<Var
 
    \return true if the clause is satisfied, false otherwise.
  */
-inline bool CnfOccurrenceManager::isSatisfiedClause(unsigned idx)
+inline bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
 {
   assert(idx < clauses.size());
   return nbSat[idx];
@@ -231,7 +208,7 @@ inline bool CnfOccurrenceManager::isSatisfiedClause(unsigned idx)
 
    \return true if the clause is satisfied, false otherwise.
  */
-inline bool CnfOccurrenceManager::isSatisfiedClause(std::vector<Lit> &c)
+inline bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
 {
   for(auto &l : c)
     {
@@ -256,8 +233,9 @@ inline bool CnfOccurrenceManager::isSatisfiedClause(std::vector<Lit> &c)
 
    \return true if the clause is satisfied, false otherwise.
  */
-bool CnfOccurrenceManager::isNotSatisfiedClauseAndInComponent(int idx,
-                                                              std::vector<bool> &inCurrentComponent)
+bool
+SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
+                                                   std::vector<bool> &inCurrentComponent)
 {
   if(nbSat[idx]) return false;
   assert(watcher[idx] != lit_Undef);
@@ -266,7 +244,7 @@ bool CnfOccurrenceManager::isNotSatisfiedClauseAndInComponent(int idx,
 }// isSatisfiedClause
 
 
-void CnfOccurrenceManager::getCurrentClauses(std::vector<int> &idxClauses,
+void SpecManagerCnf::getCurrentClauses(std::vector<int> &idxClauses,
                                              std::vector<bool> &inComponent)
 {
   idxClauses.resize(0);
@@ -281,7 +259,7 @@ void CnfOccurrenceManager::getCurrentClauses(std::vector<int> &idxClauses,
 }// getCurrentclauses
 
 
-void CnfOccurrenceManager::updateCurrentClauseSet(std::vector<Var> &component)
+void SpecManagerCnf::updateCurrentClauseSet(std::vector<Var> &component)
 {
   for(auto &v : component) inCurrentComponent[v] = true;
 
@@ -303,7 +281,7 @@ void CnfOccurrenceManager::updateCurrentClauseSet(std::vector<Var> &component)
 }// updatecurrentclauseset
 
 
-void CnfOccurrenceManager::popPreviousClauseSet()
+void SpecManagerCnf::popPreviousClauseSet()
 {
   assert(stackSize.size());
   currentSize = stackSize.back();
@@ -311,7 +289,7 @@ void CnfOccurrenceManager::popPreviousClauseSet()
 }// poppreviousclauseset
 
 
-void CnfOccurrenceManager::initFormula(ProblemManager &p) 
+void SpecManagerCnf::initFormula(ProblemManager &p) 
 {
   try
   {

@@ -16,30 +16,34 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ProblemManager.hpp"
-#include "cnf/ProblemManagerCnf.hpp"
-
-#include <iostream>
+#include "SpecManager.hpp"
+#include "cnf/SpecManagerCnfDyn.hpp"
 
 
 namespace d4
 {
 
 /**
-   Select from the arguments store in vm the good problem manager and return it.
+   Generate an occurrence manager regarding the options given as parameter.
 
    @param[in] vm, the arguments on the command line.
-
-   \return the problem manager that fits the command line.
+   @param[in] p, a problem manager.
+   
+   \return the occurrence manager that fits the command line.
  */
-ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm)
+SpecManager *SpecManager::makeSpecManager(po::variables_map &vm, ProblemManager &p)
 {
   std::string in = vm["input"].as<std::string>();
   std::string extension = in.substr(in.find_last_of(".") + 1);
 
-  if(extension == "cnf" || extension == "dimacs") return new ProblemManagerCnf(in);
+  if(extension == "cnf" || extension == "dimacs")
+  {
+    std::string meth = vm["occurrence-manager"].as<std::string>();
+    if(meth == "dynamic") return new SpecManagerCnfDyn(p);
+    return NULL;
+  }
   
   return NULL;
-} // makeProblemManager
+} // makeSpecManager
 
 }

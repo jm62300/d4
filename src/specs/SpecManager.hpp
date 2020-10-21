@@ -16,35 +16,37 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_problem_OccurrenceManager_hpp
-#define d4_src_problem_OccurrenceManager_hpp
+#ifndef d4_src_problem_SpecManager_hpp
+#define d4_src_problem_SpecManager_hpp
 
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "ProblemTypes.hpp"
-#include "ProblemManager.hpp"
+#include "../problem/ProblemTypes.hpp"
+#include "../problem/ProblemManager.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
-class OccurrenceManager
+class SpecManager
 {
 public:
-  OccurrenceManager *makeOccurrenceManager(po::variables_map &vm, ProblemManager &p);
+  SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p);
   
-  virtual ~OccurrenceManager(){}
+  virtual ~SpecManager(){}
   virtual bool litIsAssigned(Lit l) = 0;
   virtual bool litIsAssignedToTrue(Lit l) = 0;
   virtual bool varIsAssigned(Var v) = 0;
-  virtual int computeConnectedComponent(std::vector<std::vector<Var> > &varConnected, std::vector<Var> &setOfVar,
-                                        std::vector<Var> &freeVar, std::vector<Var> &notFreeVar) = 0;
+  virtual int computeConnectedComponent(std::vector<std::vector<Var> > &varConnected,
+                                        std::vector<Var> &setOfVar,
+                                        std::vector<Var> &freeVar,
+                                        std::vector<Var> &notFreeVar) = 0;
   virtual void preUpdate(std::vector<Lit> &lits) = 0;
   virtual void postUpdate(std::vector<Lit> &lits) = 0;
   virtual void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) = 0;
   virtual void showFormula(std::ostream &out) = 0;
   virtual void initFormula(ProblemManager &p) = 0;
-  virtual bool byPass(int mode, int idx) = 0;
+  // virtual bool byPass(int mode, int idx) = 0;
 };
 }
 #endif

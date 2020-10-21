@@ -72,13 +72,15 @@ bool WrapperMinisat::solve()
 
 
 /**
-   Get the problem from the solver and store the result in p.
+   Get the problem from the solver and store the result in pout.
+
+   @param[out] pout, save the formulat in pout
  */
-void WrapperMinisat::getSimplifiedFormula(ProblemManager &p)
+void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
 {
   try
   {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);      
+    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(pout);
     std::vector<std::vector<Lit> > &ret = pcnf.getClauses();
     ret.clear();
 

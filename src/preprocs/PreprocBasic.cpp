@@ -47,13 +47,14 @@ PreprocBasic::~PreprocBasic()
 
    @param[out] p, the problem we want to preprocess.
  */
-void PreprocBasic::run(ProblemManager &p)
+void PreprocBasic::run(ProblemManager &pin, ProblemManager &pout)
 {  
-  ws->initSolver(p);
-
+  ws->initSolver(pin);
+  pout.setNbVar(pin.getNbVar());
+  
   try
-  {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);      
+  {    
+    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(pout); 
     
     if(!ws->solve()) // p is UNSAT 
     {
@@ -71,7 +72,7 @@ void PreprocBasic::run(ProblemManager &p)
     }
     else // SAT: extract the clauses from the solver.
     {
-      ws->getSimplifiedFormula(p);
+      ws->getSimplifiedFormula(pout);
     }
   }
   catch (std::bad_cast& bc)

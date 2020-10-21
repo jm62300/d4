@@ -14,6 +14,8 @@ add_subdirectory(src)
 
 file(GLOB cmake_generated ${CMAKE_SOURCE_DIR}/src/*~)
 
+
+
 foreach(file ${cmake_generated})
 
   if (EXISTS ${file})

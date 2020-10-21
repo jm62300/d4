@@ -26,12 +26,15 @@ namespace d4
 namespace po = boost::program_options;
 class ProblemManager
 {
- private:
+ protected:
+  int nbVars;
+  
  public:
   static ProblemManager *makeProblemManager(po::variables_map &vm);
   
   virtual ~ProblemManager(){;}
-  virtual int getNbVar() = 0;
+  int getNbVar(){return nbVars;}
+  void setNbVar(int n){nbVars = n;}
   virtual void display(std::ostream &out) = 0;
 };
 }

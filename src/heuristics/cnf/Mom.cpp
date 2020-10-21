@@ -17,7 +17,32 @@
 */
 
 
+#include "Mom.hpp"
+
 namespace d4
 {
+/**
+   Constructor.
+
+   @param[in] p, a problem used to get the occurrence manager
+ */
+Mom::Mom(SpecManagerCnf &o) : om(o)
+{
+  
+} // constructor
+
+
+/**
+   Compute the score following the well-known MOM heuristic.
+     
+   D. Pretolani. Efficiency and stability of hypergraph sat
+   algorithms. In D. S.  Johnson and M. A. Trick, editors, Second
+   DIMACS Implementation Challenge.  American Mathematical Society,
+   1993.
+*/
+double Mom::computeScore(Var v)
+{
+  return om.getNbBinaryClause(v) * 0.25;
+} // computeScore
 
 }

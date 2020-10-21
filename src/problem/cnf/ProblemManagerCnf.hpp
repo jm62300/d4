@@ -23,8 +23,7 @@
 
 #include "../ProblemTypes.hpp"
 #include "../ProblemManager.hpp"
-#include "CnfOccurrenceManager.hpp"
-#include "../../solvers/WrapperSolver.hpp"
+#include <solvers/WrapperSolver.hpp>
 
 namespace d4
 {
@@ -36,19 +35,13 @@ class CnfOccurrenceManager;
 class ProblemManagerCnf : public ProblemManager
 {
  private:
-  int nbVars;
   std::vector< std::vector<Lit> > clauses;
-  WrapperSolver *ws;
-  CnfOccurrenceManager *om;
   
  public:
-  ProblemManagerCnf(po::variables_map &vm);
-  ~ProblemManagerCnf();
-
-  int getNbVar(){return nbVars;}
+  ProblemManagerCnf();
+  ProblemManagerCnf(std::string &nameFile);
+  ~ProblemManagerCnf();  
   void display(std::ostream &out);
-  inline CnfOccurrenceManager *getOccurrenceManager(){return om;}
-
   std::vector< std::vector<Lit> > &getClauses(){return clauses;}  
 };
   

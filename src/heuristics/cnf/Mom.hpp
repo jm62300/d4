@@ -19,7 +19,7 @@
 #ifndef d4_src_heuristics__cnf_Mom_hpp
 #define d4_src_heuristics__cnf_Mom_hpp
 
-#include "../../problem/cnf/CnfOccurrenceManager.hpp"
+#include <specs/cnf/SpecManagerCnf.hpp>
 #include "../ScoringMethod.hpp"
 
 namespace d4
@@ -27,10 +27,11 @@ namespace d4
 class Mom : public ScoringMethod
 {
   private:
-  CnfOccurrenceManager *om;
+  SpecManagerCnf &om;
   
 public:
-  Mom(CnfOccurrenceManager *_om);
+  Mom(SpecManagerCnf &om);
+  double computeScore(Var v);  
 };
 }
 

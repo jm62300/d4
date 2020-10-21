@@ -16,8 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "CnfOccurrenceManager.hpp"
-#include "DynamicOccurrenceManager.hpp"
+#include "SpecManagerCnf.hpp"
+#include "SpecManagerCnfDyn.hpp"
 
 namespace d4
 {
@@ -29,10 +29,10 @@ namespace d4
    @param[in] nbV, the number of variables in the problem
    @param[in] maxClSz, the largest clause size
  */
-DynamicOccurrenceManager::DynamicOccurrenceManager(int nbC, int nbV, int maxClSz) :
-    CnfOccurrenceManager(nbC, nbV, maxClSz)
+SpecManagerCnfDyn::SpecManagerCnfDyn(int nbC, int nbV, int maxClSz) :
+    SpecManagerCnf(nbC, nbV, maxClSz)
 {
-}// DynamicOccurrenceManager
+}// SpecManagerCnfDyn
 
 /**
    OccurrenceManager constructor. This function initialized the
@@ -41,20 +41,20 @@ DynamicOccurrenceManager::DynamicOccurrenceManager(int nbC, int nbV, int maxClSz
    @param[in] _clauses, the set of clauses
    @param[in] _nbVar, the number of variables in the problem
  */
-DynamicOccurrenceManager::DynamicOccurrenceManager(ProblemManager &p) : CnfOccurrenceManager(p)
+SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p)
 {
   // create the occurrence list
   for(unsigned i = 0 ; i<clauses.size() ; i++)
     for(auto &l : clauses[i]) occList[l.intern()].push_back(i);
-}// DynamicOccurrenceManager
+}// SpecManagerCnfDyn
 
 
 /**
    Initiliaze the occurrence manager with a new set of clauses.
  */
-void DynamicOccurrenceManager::initFormula(ProblemManager &p)
+void SpecManagerCnfDyn::initFormula(ProblemManager &p)
 {
-  CnfOccurrenceManager::initFormula(p);
+  SpecManagerCnf::initFormula(p);
   
   // clear the occurrence list
   for(auto &list : occList) list.clear();
@@ -84,7 +84,7 @@ void DynamicOccurrenceManager::initFormula(ProblemManager &p)
 
    @param[in] lits, the new assigned variables
  */
-void DynamicOccurrenceManager::preUpdate(std::vector<Lit> &lits)
+void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits)
 {
   std::vector<int> reviewWatcher;
 
@@ -145,7 +145,7 @@ void DynamicOccurrenceManager::preUpdate(std::vector<Lit> &lits)
 
    @param[in] lits, the new assigned variables
  */
-void DynamicOccurrenceManager::postUpdate(std::vector<Lit> &lits)
+void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits)
 {
   for(int i = lits.size() - 1 ; i >= 0 ; i--)
     {
@@ -173,7 +173,7 @@ void DynamicOccurrenceManager::postUpdate(std::vector<Lit> &lits)
 /**
    Remove a value from a vector.
 */
-void DynamicOccurrenceManager::removeIdxFromOccList(std::vector<int> &o, int idx)
+void SpecManagerCnfDyn::removeIdxFromOccList(std::vector<int> &o, int idx)
 {
   assert(o.size());
 

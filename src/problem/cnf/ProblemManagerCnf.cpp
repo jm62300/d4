@@ -16,38 +16,30 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../../preprocs/PreprocManager.hpp"
-#include "CnfOccurrenceManager.hpp"
 #include "ProblemManagerCnf.hpp"
 #include "ParserDimacs.hpp"
 
 namespace d4
 {
 /**
-   Constructor. Take as arguments on the options.
+   Constructor.
 
-   @param[in] vm, the arguments on the command line.
+   @param[in] nameFile, parse the instance from a file
  */
-ProblemManagerCnf::ProblemManagerCnf(po::variables_map &vm)
+ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile)
 {
   ParserDimacs parser;
-  nbVars = parser.parse_DIMACS(vm["input"].as<std::string>(), clauses);
+  nbVars = parser.parse_DIMACS(nameFile, clauses);
+} // constructor
 
-  // call the preproc and collect clauses and unit literals.
-  PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
-  assert(preproc);
-  preproc->run(*this);
-  delete preproc;
-  
-  // add the clauses+units to the solver.
-  ws = WrapperSolver::makeWrapperSolver(vm);
-  assert(ws);
-  ws->initSolver(*this);
-        
-  // initialize the occurence manager: clauses + units
-  om = CnfOccurrenceManager::makeCnfOccurrenceManager(vm, *this);
-  assert(om);
-  
+
+/**
+   Constructor.
+   Construct an empty formula.
+ */
+ProblemManagerCnf::ProblemManagerCnf()
+{
+  nbVars = 0;
 } // constructor
 
 
@@ -58,8 +50,6 @@ ProblemManagerCnf::~ProblemManagerCnf()
 {
   clauses.clear();
   nbVars = 0;
-
-  delete ws;
 } // destructor
 
 

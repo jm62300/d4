@@ -22,7 +22,9 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "../problem/ProblemTypes.hpp"
+#include <solvers/WrapperSolver.hpp>
+#include <problem/ProblemTypes.hpp>
+#include <specs/SpecManager.hpp>
 
 namespace d4
 {
@@ -30,7 +32,7 @@ namespace po = boost::program_options;
 class ScoringMethod
 {    
  public: 
-  ScoringMethod *makeScoringMethod(po::variables_map &vm);
+  static ScoringMethod *makeScoringMethod(po::variables_map &vm, SpecManager &p);
   virtual ~ScoringMethod(){;}
   virtual double computeScore(Var v) = 0;
 };

@@ -16,19 +16,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_problem_cnf_CnfOccurrenceManager_hpp
-#define d4_src_problem_cnf_CnfOccurrenceManager_hpp
+#ifndef d4_src_problem_cnf_SpecManagerCnf_hpp
+#define d4_src_problem_cnf_SpecManagerCnf_hpp
 
-#include "../ProblemManager.hpp"
-#include "ProblemManagerCnf.hpp"
+#include <problem/ProblemManager.hpp>
+#include <problem/cnf/ProblemManagerCnf.hpp>
 
-#include "../OccurrenceManager.hpp"
-#include "ProblemManagerCnf.hpp"
+#include "../SpecManager.hpp"
+
 
 namespace d4
 {
 using namespace std;
-class CnfOccurrenceManager : public OccurrenceManager
+class SpecManagerCnf : public SpecManager
 {
  protected:
   std::vector<std::vector<Lit> > clauses;
@@ -67,20 +67,18 @@ class CnfOccurrenceManager : public OccurrenceManager
     mustUnMark.resize(0);
   }// resetUnMark
 
-  int connectedToLit(Lit l, std::vector<int> &v, std::vector<Var> &varComponent, int nbComponent);
+  int connectedToLit(Lit l, std::vector<int> &v, std::vector<Var> &varComponent,
+                     int nbComponent);
 
  public:
-  static CnfOccurrenceManager *makeCnfOccurrenceManager(po::variables_map &vm, ProblemManager &p);
-  
-  CnfOccurrenceManager(int nbClause, int nbVar, int maxClauseSize);
-  CnfOccurrenceManager(ProblemManager &p);
+  SpecManagerCnf(int nbClause, int nbVar, int maxClauseSize);
+  SpecManagerCnf(ProblemManager &p);
 
   int computeConnectedComponent(std::vector< std::vector<Var> > &varConnected,
                                 std::vector<Var> &setOfVar, std::vector<Var> &freeVar,
                                 std::vector<Var> &notFreeVar) override;
 
   void initFormula(ProblemManager &p) override;
-  
 
   inline int getNbBinaryClause(Lit l)
   {

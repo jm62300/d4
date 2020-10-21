@@ -18,6 +18,8 @@
 #include "ScoringMethod.hpp"
 
 
+#include "cnf/Mom.hpp"
+
 namespace d4
 {
 
@@ -25,10 +27,11 @@ namespace d4
    Select from the arguments store in vm the good scoring method and return it.
 
    @param[in] vm, the arguments on the command line.
+   @pararm[in] p, the problem manager.
 
    \return the scoring method
  */
-ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm)
+ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManager &p)
 {
   std::string in = vm["input"].as<std::string>();
   std::string extension = in.substr(in.find_last_of(".") + 1);
@@ -36,8 +39,20 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm)
   if(extension == "cnf" || extension == "dimacs")
   {
     std::string meth = vm["scoring-method"].as<std::string>();
+
+    try
+    {
+      SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf&>(p);
+
+      if(meth == "mom") return new Mom(ps);
+      return NULL;
     
-    return NULL;
+    }
+    catch (std::bad_cast& bc)
+    {
+      std::cerr << "bad_cast caught: " << bc.what() << '\n';
+      std::cerr << "A CNF formula was expeted\n";
+    }    
   }
   
   return NULL;
