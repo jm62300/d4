@@ -51,6 +51,7 @@ double Jwts::computeScore(Var v)
   { 
     for(auto &idx : om.getVecIdxClause(sign ? lp : ~lp))
     {
+      if(om.isSatisfiedClause(idx)) std::cout << "beuh\n";
       assert(!om.isSatisfiedClause(idx));
       if(om.getInitSize(idx) > 5) continue;      
       res += ((double) 1.0) / (1<<om.getCurrentSize(idx));

@@ -24,6 +24,8 @@
 #include <problem/ProblemManager.hpp>
 #include <preprocs/PreprocManager.hpp>
 #include <specs/SpecManager.hpp>
+#include <heuristics/ScoringMethod.hpp>
+#include <solvers/WrapperSolver.hpp>
 
 /**
    The main function!
@@ -74,7 +76,16 @@ int main(int argc, char** argv)
   specManager->showCurrentFormula(std::cout);
   specManager->postUpdate(l);
   specManager->showCurrentFormula(std::cout);
+
+
+  d4::WrapperSolver *solver = d4::WrapperSolver::makeWrapperSolver(vm);
+  solver->initSolver(*problem);
   
+  d4::ScoringMethod *sm = d4::ScoringMethod::makeScoringMethod(vm, *specManager, *solver);
+  assert(sm);
+  std::cout << sm->computeScore(2) << "\n";
+  
+  delete sm;
   delete problem;
   delete preprocProblem;
   delete preproc;

@@ -22,7 +22,6 @@
 #include <specs/cnf/SpecManagerCnf.hpp>
 #include "../ScoringMethod.hpp"
 
-
 namespace d4
 {
 class Jwts : public ScoringMethod
