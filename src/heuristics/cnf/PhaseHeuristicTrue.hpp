@@ -16,23 +16,17 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_cnf_Vsids_hpp
-#define d4_src_heuristics_cnf_Vsids_hpp
+#ifndef d4_src_heuristics_cnf_PhaseHeuristicFalse_hpp
+#define d4_src_heuristics_cnf_PhaseHeuristicFalse_hpp
 
-#include <problem/cnf/ProblemManagerCnf.hpp>
-#include <solvers/ActivityManager.hpp>
-#include "../ScoringMethod.hpp"
+#include "../PhaseHeuristic.hpp"
 
 namespace d4
 {
-class Vsids : public ScoringMethod
+class PhaseHeuristicTrue : public PhaseHeuristic
 {
- private:
-  ActivityManager &activity;
-  
  public:
-  Vsids(ActivityManager &a);
-  double computeScore(Var v);  
+  bool selectPhase(Var v);
 };
 }
 

@@ -121,4 +121,11 @@ double WrapperMinisat::getActivity(Var v)
   return s.activity[v];
 } // getActivity
 
+
+bool WrapperMinisat::getPolarity(Var v)
+{
+  return s.polarity[v];
+}
+
+
 } // d4

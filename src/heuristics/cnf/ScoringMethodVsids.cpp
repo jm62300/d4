@@ -16,30 +16,32 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_solvers_cnf_WrapperMnisat_hpp
-#define d4_src_solvers_cnf_WrapperMnisat_hpp
-
-#include "../WrapperSolver.hpp"
-
-#include <problem/ProblemTypes.hpp>
-#include <problem/ProblemManager.hpp>
-
-#include "minisat/Solver.hpp"
+#include "ScoringMethodVsids.hpp"
 
 namespace d4
 {
-class WrapperMinisat : public WrapperSolver
+/**
+   We bind the activity manager of a solver with the scoring method.
+
+   @param[in] a, the activity manager.
+ */
+ScoringMethodVsids::ScoringMethodVsids(ActivityManager &a) : activity(a)
 {
- private:
-  minisat::Solver s;
   
- public:
-  void initSolver(ProblemManager &p);
-  bool solve();
-  void getSimplifiedFormula(ProblemManager &p);
-  double getActivity(Var v);
-  bool getPolarity(Var v);
-};
 }
 
-#endif
+/**
+   The classical VSIDS heuristic.
+     
+   Matthew W. Moskewicz, Conor F. Madigan, Ying Zhao, Lintao Zhang,
+   and Sharad Malik. Chaff: Engineering an Efficient SAT Solver. In
+   Proceedings of the 38th Design Automation Conference (DAC’01), 2001
+
+   @param[in] v, the variable we want the score.
+*/
+double ScoringMethodVsids::computeScore(Var v)
+{
+  return activity.getActivity(v);
+} // computeScore
+
+} // d4

@@ -16,23 +16,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_cnf_Jwts_hpp
-#define d4_src_heuristics_cnf_Jwts_hpp
-
-#include <specs/cnf/SpecManagerCnf.hpp>
-#include "../ScoringMethod.hpp"
+#include "PhaseHeuristicFalse.hpp"
 
 namespace d4
 {
-class Jwts : public ScoringMethod
+
+/**
+   We assign the next varaible to false.
+   
+   @param[in] v, the variable we want to select the phase.
+ */
+bool PhaseHeuristicFalse::selectPhase(Var v)
 {
- private:
-  SpecManagerCnf &om;
+  return false;
+} // selectPhase
 
- public:
-  Jwts(SpecManagerCnf &om);
-  double computeScore(Var v);
-};
-} // d4
-
-#endif
+}

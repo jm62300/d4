@@ -16,33 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_solvers_cnf_minisat_WrapperSolver_hpp
-#define d4_src_solvers_cnf_minisat_WrapperSolver_hpp
+#ifndef d4_src_heuristics_PhaseHeuristic_hpp
+#define d4_src_heuristics_PhaseHeuristic_hpp
 
 #include <boost/program_options.hpp>
 
 #include <problem/ProblemTypes.hpp>
-#include <problem/ProblemManager.hpp>
-
-#include "ActivityManager.hpp"
-#include "PolarityManager.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
-class WrapperSolver : public ActivityManager, public PolarityManager
+class PhaseHeuristic
 {
-  private:
-
  public:
-  static WrapperSolver *makeWrapperSolver(po::variables_map &vm);
-  static WrapperSolver *makeWrapperSolverPreproc(po::variables_map &vm);
-
-  virtual ~WrapperSolver(){}
-  virtual void initSolver(ProblemManager &p) = 0;
-  virtual bool solve() = 0;
-  virtual void getSimplifiedFormula(ProblemManager &p) = 0;
+  static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm);
+  virtual bool selectPhase(Var v) = 0;
 };
-} // d4
+}
 
 #endif

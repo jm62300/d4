@@ -16,35 +16,18 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Vsads.hpp"
+#ifndef d4_src_solvers_PolarityManager_hpp
+#define d4_src_solvers_PolarityManager_hpp
+
+#include <problem/ProblemTypes.hpp>
 
 namespace d4
 {
-
-/**
-   Constructor.
-
-   @param[in] o, the specification of a CNF problem.
-   @param[in] a, an activity manager linked to a solver.
- */
-Vsads::Vsads(SpecManagerCnf &o, ActivityManager &a) : om(o), activity(a)
+class PolarityManager
 {
-  
-} // constructor
-
-
-/**
-   The well-known VSADS heuristic.
-
-   Sang, T.; Beame, P.; and Kautz, H. Heuristics for Fast
-   Exact Model Counting. In Proceedings of the 8th International
-   Conference on Theory and Applications of Satisfiability Testing.
-
-   @param[in] v, the variable we want the score.
- */
-double Vsads::computeScore(Var v)
-{
-  return activity.getActivity(v) + om.getNbClause(v);
-}
-
+ public:
+  virtual bool getPolarity(Var v) = 0;
+};
 } // d4
+
+#endif

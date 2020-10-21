@@ -16,30 +16,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Dlcs.hpp"
+#include "PhaseHeuristicTrue.hpp"
 
 namespace d4
 {
 
 /**
-   Constructor.
-
-   @param[in] om, the manager that give information about the CNF formula.
+   We assign the next varaible to false.
+   
+   @param[in] v, the variable we want to select the phase.
  */
-Dlcs::Dlcs(SpecManagerCnf &o) : om(o)
+bool PhaseHeuristicTrue::selectPhase(Var v)
 {
-  
-} // constructor
+  return true;
+} // selectPhase
 
-/**
-   This scoring function favorises the variables which appear in
-   most clauses.
-
-   @param[in] v, the variable we want the score.
- */
-double Dlcs::computeScore(Var v)
-{
-  return om.getNbClause(v);
 }
-
-} // d4

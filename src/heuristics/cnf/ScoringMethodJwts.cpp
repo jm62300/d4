@@ -16,7 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Jwts.hpp"
+#include "ScoringMethodJwts.hpp"
 
 namespace d4
 {
@@ -26,7 +26,7 @@ namespace d4
 
    @param[in] om, the manager that give information about the CNF formula.
  */
-Jwts::Jwts(SpecManagerCnf &o) : om(o)
+ScoringMethodJwts::ScoringMethodJwts(SpecManagerCnf &o) : om(o)
 {
   
 } // constructor
@@ -42,7 +42,7 @@ Jwts::Jwts(SpecManagerCnf &o) : om(o)
    
    @param[in] v, the variable we want the score.
  */
-double Jwts::computeScore(Var v)
+double ScoringMethodJwts::computeScore(Var v)
 {
   Lit lp = Lit(v, false);
       

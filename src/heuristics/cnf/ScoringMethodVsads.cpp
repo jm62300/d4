@@ -16,23 +16,35 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_cnf_Mom_hpp
-#define d4_src_heuristics_cnf_Mom_hpp
-
-#include <specs/cnf/SpecManagerCnf.hpp>
-#include "../ScoringMethod.hpp"
+#include "ScoringMethodVsads.hpp"
 
 namespace d4
 {
-class Mom : public ScoringMethod
+
+/**
+   Constructor.
+
+   @param[in] o, the specification of a CNF problem.
+   @param[in] a, an activity manager linked to a solver.
+ */
+ScoringMethodVsads::ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a) : om(o), activity(a)
 {
- private:
-  SpecManagerCnf &om;
   
- public:
-  Mom(SpecManagerCnf &om);
-  double computeScore(Var v);  
-};
+} // constructor
+
+
+/**
+   The well-known VSADS heuristic.
+
+   Sang, T.; Beame, P.; and Kautz, H. Heuristics for Fast
+   Exact Model Counting. In Proceedings of the 8th International
+   Conference on Theory and Applications of Satisfiability Testing.
+
+   @param[in] v, the variable we want the score.
+ */
+double ScoringMethodVsads::computeScore(Var v)
+{
+  return activity.getActivity(v) + om.getNbClause(v);
 }
 
-#endif
+} // d4

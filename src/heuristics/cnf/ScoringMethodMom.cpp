@@ -16,30 +16,35 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_solvers_cnf_WrapperMnisat_hpp
-#define d4_src_solvers_cnf_WrapperMnisat_hpp
 
-#include "../WrapperSolver.hpp"
-
-#include <problem/ProblemTypes.hpp>
-#include <problem/ProblemManager.hpp>
-
-#include "minisat/Solver.hpp"
+#include "ScoringMethodMom.hpp"
 
 namespace d4
 {
-class WrapperMinisat : public WrapperSolver
-{
- private:
-  minisat::Solver s;
-  
- public:
-  void initSolver(ProblemManager &p);
-  bool solve();
-  void getSimplifiedFormula(ProblemManager &p);
-  double getActivity(Var v);
-  bool getPolarity(Var v);
-};
-}
+/**
+   Constructor.
 
-#endif
+   @param[in] o, the specification of a CNF problem.
+ */
+ScoringMethodMom::ScoringMethodMom(SpecManagerCnf &o) : om(o)
+{
+  
+} // constructor
+
+
+/**
+   Compute the score following the well-known MOM heuristic.
+     
+   D. Pretolani. Efficiency and stability of hypergraph sat
+   algorithms. In D. S.  Johnson and M. A. Trick, editors, Second
+   DIMACS Implementation Challenge.  American Mathematical Society,
+   1993.
+
+   @param[in] v, the variable we want the score.
+*/
+double ScoringMethodMom::computeScore(Var v)
+{
+  return om.getNbBinaryClause(v) * 0.25;
+} // computeScore
+
+}

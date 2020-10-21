@@ -17,11 +17,11 @@
 */
 #include "ScoringMethod.hpp"
 
-#include "cnf/Mom.hpp"
-#include "cnf/Dlcs.hpp"
-#include "cnf/Vsids.hpp"
-#include "cnf/Jwts.hpp"
-#include "cnf/Vsads.hpp"
+#include "cnf/ScoringMethodMom.hpp"
+#include "cnf/ScoringMethodDlcs.hpp"
+#include "cnf/ScoringMethodVsids.hpp"
+#include "cnf/ScoringMethodJwts.hpp"
+#include "cnf/ScoringMethodVsads.hpp"
 
 namespace d4
 {
@@ -47,11 +47,11 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManag
     {
       SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf&>(p);
 
-      if(meth == "mom") return new Mom(ps);
-      if(meth == "dlcs") return new Dlcs(ps);
-      if(meth == "vsids") return new Vsids(am);
-      if(meth == "vsads") return new Vsads(ps, am);
-      if(meth == "jwts") return new Jwts(ps);
+      if(meth == "mom") return new ScoringMethodMom(ps);
+      if(meth == "dlcs") return new ScoringMethodDlcs(ps);
+      if(meth == "vsids") return new ScoringMethodVsids(am);
+      if(meth == "vsads") return new ScoringMethodVsads(ps, am);
+      if(meth == "jwts") return new ScoringMethodJwts(ps);
       return NULL;    
     }
     catch (std::bad_cast& bc)

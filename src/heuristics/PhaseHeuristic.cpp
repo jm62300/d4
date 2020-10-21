@@ -17,34 +17,24 @@
 */
 
 
-#include "Mom.hpp"
+#include "PhaseHeuristic.hpp"
+#include "cnf/PhaseHeuristicFalse.hpp"
+#include "cnf/PhaseHeuristicTrue.hpp"
 
 namespace d4
 {
-/**
-   Constructor.
 
-   @param[in] o, the specification of a CNF problem.
+/**
+   Create a phase heuristic object able to select the value of a given variable.
+
+   @param[in] vm, the set of options.
  */
-Mom::Mom(SpecManagerCnf &o) : om(o)
+PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm)
 {
-  
-} // constructor
-
-
-/**
-   Compute the score following the well-known MOM heuristic.
-     
-   D. Pretolani. Efficiency and stability of hypergraph sat
-   algorithms. In D. S.  Johnson and M. A. Trick, editors, Second
-   DIMACS Implementation Challenge.  American Mathematical Society,
-   1993.
-
-   @param[in] v, the variable we want the score.
-*/
-double Mom::computeScore(Var v)
-{
-  return om.getNbBinaryClause(v) * 0.25;
-} // computeScore
+  std::string meth = vm["phase-heuristic"].as<std::string>();
+  if(meth == "false") return new PhaseHeuristicFalse();
+  if(meth == "true") return new PhaseHeuristicFalse();
+  return NULL;
+} // makePhaseHeuristic
 
 }

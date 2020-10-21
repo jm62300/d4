@@ -16,23 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_cnf_Dlcs_hpp
-#define d4_src_heuristics_cnf_Dlcs_hpp
+#ifndef d4_src_heuristics_cnf_Jwts_hpp
+#define d4_src_heuristics_cnf_Jwts_hpp
 
 #include <specs/cnf/SpecManagerCnf.hpp>
 #include "../ScoringMethod.hpp"
 
 namespace d4
 {
-class Dlcs : public ScoringMethod
+class ScoringMethodJwts : public ScoringMethod
 {
  private:
   SpecManagerCnf &om;
 
  public:
-  Dlcs(SpecManagerCnf &om);
-  inline double computeScore(Var v);
-
+  ScoringMethodJwts(SpecManagerCnf &om);
+  double computeScore(Var v);
 };
 } // d4
 

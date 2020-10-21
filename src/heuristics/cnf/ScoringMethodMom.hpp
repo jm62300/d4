@@ -16,21 +16,23 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <specs/cnf/SpecManagerCnf.hpp>
-#include <solvers/ActivityManager.hpp>
-#include "../ScoringMethod.hpp"
+#ifndef d4_src_heuristics_cnf_Mom_hpp
+#define d4_src_heuristics_cnf_Mom_hpp
 
+#include <specs/cnf/SpecManagerCnf.hpp>
+#include "../ScoringMethod.hpp"
 
 namespace d4
 {
-class Vsads : public ScoringMethod
+class ScoringMethodMom : public ScoringMethod
 {
  private:
   SpecManagerCnf &om;
-  ActivityManager &activity;
   
  public:
-  Vsads(SpecManagerCnf &o, ActivityManager &a);
+  ScoringMethodMom(SpecManagerCnf &om);
   double computeScore(Var v);  
 };
-} // d4
+}
+
+#endif
