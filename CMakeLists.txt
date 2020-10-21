@@ -21,3 +21,13 @@ foreach(file ${cmake_generated})
   endif()
 
 endforeach(file)
+
+#
+# Testing
+#
+
+enable_testing()
+
+include(cmake_includes/AddGoogleTest.cmake)
+add_executable(HashString_test tests/HashString_test.cpp)
+add_gtest(HashString_test)
