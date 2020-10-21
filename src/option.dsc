@@ -3,7 +3,6 @@
 ("method,m", boost::program_options::value<std::string>(), "(required) The method we run (mc for model counting, dec-DNNF for decision DNNF compilation).")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")
 ("preproc-solver,ps", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use in the preproc")
-("preproc,p",
-boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use.")
-
-
+("preproc,p",boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use.")
+("scoring-method,sm",boost::program_options::value<std::string>()->default_value("vsads"),"The scoring method used for selecting the next variable. [add a description of the available method]")
+("occurrence-manager,om",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used. [add a description]")

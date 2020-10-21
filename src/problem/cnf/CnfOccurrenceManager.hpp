@@ -20,13 +20,14 @@
 #define d4_src_problem_cnf_CnfOccurrenceManager_hpp
 
 #include "../ProblemManager.hpp"
+#include "ProblemManagerCnf.hpp"
+
 #include "../OccurrenceManager.hpp"
 #include "ProblemManagerCnf.hpp"
 
 namespace d4
 {
 using namespace std;
-
 class CnfOccurrenceManager : public OccurrenceManager
 {
  protected:
@@ -69,6 +70,8 @@ class CnfOccurrenceManager : public OccurrenceManager
   int connectedToLit(Lit l, std::vector<int> &v, std::vector<Var> &varComponent, int nbComponent);
 
  public:
+  static CnfOccurrenceManager *makeCnfOccurrenceManager(po::variables_map &vm, ProblemManager &p);
+  
   CnfOccurrenceManager(int nbClause, int nbVar, int maxClauseSize);
   CnfOccurrenceManager(ProblemManager &p);
 
@@ -76,27 +79,7 @@ class CnfOccurrenceManager : public OccurrenceManager
                                 std::vector<Var> &setOfVar, std::vector<Var> &freeVar,
                                 std::vector<Var> &notFreeVar) override;
 
-  inline void initFormula(ProblemManager &p) override
-  {
-    try
-    {
-      ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);
-      clauses = pcnf.getClauses();
-    }
-    catch (std::bad_cast& bc)
-    {
-      std::cerr << "bad_cast caught: " << bc.what() << '\n';
-      std::cerr << "A CNF formula was expeted\n";
-    }
-    
-    currentIdx.clear();
-
-    for(unsigned i = 0 ; i<clauses.size() ; i++) currentIdx.push_back(i);
-
-    currentSize = clauses.size();
-    stackSize.clear();
-    for(auto &val : currentValue) val = l_Undef;
-  }// initFormula
+  void initFormula(ProblemManager &p) override;
   
 
   inline int getNbBinaryClause(Lit l)

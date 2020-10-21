@@ -20,14 +20,19 @@
 #define d4_src_problem_OccurrenceManager_hpp
 
 #include <vector>
+#include <boost/program_options.hpp>
+
 #include "ProblemTypes.hpp"
 #include "ProblemManager.hpp"
 
 namespace d4
 {
+namespace po = boost::program_options;
 class OccurrenceManager
 {
 public:
+  OccurrenceManager *makeOccurrenceManager(po::variables_map &vm, ProblemManager &p);
+  
   virtual ~OccurrenceManager(){}
   virtual bool litIsAssigned(Lit l) = 0;
   virtual bool litIsAssignedToTrue(Lit l) = 0;

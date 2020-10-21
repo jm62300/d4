@@ -17,6 +17,7 @@
 */
 
 #include "../../preprocs/PreprocManager.hpp"
+#include "CnfOccurrenceManager.hpp"
 #include "ProblemManagerCnf.hpp"
 #include "ParserDimacs.hpp"
 
@@ -34,15 +35,18 @@ ProblemManagerCnf::ProblemManagerCnf(po::variables_map &vm)
 
   // call the preproc and collect clauses and unit literals.
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
+  assert(preproc);
   preproc->run(*this);
   delete preproc;
   
   // add the clauses+units to the solver.
   ws = WrapperSolver::makeWrapperSolver(vm);
+  assert(ws);
   ws->initSolver(*this);
         
   // initialize the occurence manager: clauses + units
-
+  om = CnfOccurrenceManager::makeCnfOccurrenceManager(vm, *this);
+  assert(om);
   
 } // constructor
 

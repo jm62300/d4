@@ -16,42 +16,24 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_problem_cnf_ProblemManagerCnf_hpp
-#define d4_problem_cnf_ProblemManagerCnf_hpp
+#ifndef d4_src_heuristics_ScoringMethod_hpp
+#define d4_src_heuristics_ScoringMethod_hpp
 
+#include <vector>
 #include <boost/program_options.hpp>
 
-#include "../ProblemTypes.hpp"
-#include "../ProblemManager.hpp"
-#include "CnfOccurrenceManager.hpp"
-#include "../../solvers/WrapperSolver.hpp"
+#include "../problem/ProblemTypes.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
-
-// forward declaration
-class CnfOccurrenceManager;
-
-class ProblemManagerCnf : public ProblemManager
-{
- private:
-  int nbVars;
-  std::vector< std::vector<Lit> > clauses;
-  WrapperSolver *ws;
-  CnfOccurrenceManager *om;
-  
- public:
-  ProblemManagerCnf(po::variables_map &vm);
-  ~ProblemManagerCnf();
-
-  int getNbVar(){return nbVars;}
-  void display(std::ostream &out);
-  inline CnfOccurrenceManager *getOccurrenceManager(){return om;}
-
-  std::vector< std::vector<Lit> > &getClauses(){return clauses;}  
+class ScoringMethod
+{    
+ public: 
+  ScoringMethod *makeScoringMethod(po::variables_map &vm);
+  virtual ~ScoringMethod(){;}
+  virtual double computeScore(Var v) = 0;
 };
-  
-} // d4
+}
 
 #endif

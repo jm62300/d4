@@ -20,10 +20,33 @@
 #include <algorithm>    // std::sort
 
 #include "CnfOccurrenceManager.hpp"
-#include "CnfOccurrenceManager.hpp"
+#include "DynamicOccurrenceManager.hpp"
 
 namespace d4
 {
+/**
+   Generate an occurrence manager regarding the options given as parameter.
+
+   @param[in] vm, the arguments on the command line.
+   @param[in] p, a problem manager.
+   
+   \return the occurrence manager that fits the command line.
+ */
+CnfOccurrenceManager *CnfOccurrenceManager::makeCnfOccurrenceManager(po::variables_map &vm, ProblemManager &p)
+{
+  std::string in = vm["input"].as<std::string>();
+  std::string extension = in.substr(in.find_last_of(".") + 1);
+
+  if(extension == "cnf" || extension == "dimacs")
+  {
+    std::string meth = vm["occurrence-manager"].as<std::string>();
+    if(meth == "dynamic") return new DynamicOccurrenceManager(p);
+    return NULL;
+  }
+  
+  return NULL;
+} // makeOccurrenceManager
+
 /**
    Constructor.
  */
@@ -286,5 +309,29 @@ void CnfOccurrenceManager::popPreviousClauseSet()
   currentSize = stackSize.back();
   stackSize.pop_back();
 }// poppreviousclauseset
+
+
+void CnfOccurrenceManager::initFormula(ProblemManager &p) 
+{
+  try
+  {
+    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);
+    clauses = pcnf.getClauses();
+  }
+  catch (std::bad_cast& bc)
+  {
+    std::cerr << "bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "A CNF formula was expeted\n";
+  }
+    
+  currentIdx.clear();
+
+  for(unsigned i = 0 ; i<clauses.size() ; i++) currentIdx.push_back(i);
+
+  currentSize = clauses.size();
+  stackSize.clear();
+  for(auto &val : currentValue) val = l_Undef;
+}// initFormula
+  
 
 }
