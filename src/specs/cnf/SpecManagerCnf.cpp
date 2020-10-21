@@ -30,7 +30,7 @@ namespace d4
 SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _maxSizeClause) :
     nbVar(_nbVar), maxSizeClause(_maxSizeClause)
 {
-  for(unsigned i = 0 ; i<nbVar ; i++)
+  for(unsigned i = 0 ; i <= nbVar ; i++)
     {
       inCurrentComponent.push_back(false);
       currentValue.push_back(l_Undef);
@@ -59,7 +59,7 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : nbVar(p.getNbVar())
 {
   initFormula(p);
 
-  for(unsigned i = 0 ; i<nbVar ; i++)
+  for(unsigned i = 0 ; i <= nbVar ; i++)
     {
       currentValue.push_back(l_Undef);
       idxComponent.push_back(0);
@@ -245,7 +245,7 @@ SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
 
 
 void SpecManagerCnf::getCurrentClauses(std::vector<int> &idxClauses,
-                                             std::vector<bool> &inComponent)
+                                       std::vector<bool> &inComponent)
 {
   idxClauses.resize(0);
   for(int i = 0 ; i<currentSize ; i++)
@@ -310,6 +310,29 @@ void SpecManagerCnf::initFormula(ProblemManager &p)
   stackSize.clear();
   for(auto &val : currentValue) val = l_Undef;
 }// initFormula
-  
+
+
+void SpecManagerCnf::showFormula(std::ostream &out)
+{
+  out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
+  for(auto &cl : clauses)
+  {      
+    showListLit(out, cl);
+    out << "0\n";
+  }
+}// showFormula
+
+
+void SpecManagerCnf::showCurrentFormula(std::ostream &out)
+{ 
+  out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
+  for(unsigned i = 0 ; i<clauses.size(); i++)
+  {
+    if(nbSat[i]) continue;    
+    for(auto &l : clauses[i]) if(!litIsAssigned(l)) out << l << " ";
+    out << "0\n";
+  }
+}// showFormula
+
 
 }

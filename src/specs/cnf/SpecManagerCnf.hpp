@@ -103,11 +103,8 @@ class SpecManagerCnf : public SpecManager
   } // showOccList
 
   
-  inline void showFormula(std::ostream &out) override
-  {
-    printf("Occurrence Managaer: print formula\n");
-    for(auto &cl : clauses) showListLit(out, cl);
-  }// showFormula
+  void showFormula(std::ostream &out) override;
+  void showCurrentFormula(std::ostream &out) override;
 
   
   inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}

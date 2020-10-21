@@ -21,7 +21,9 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "problem/ProblemManager.hpp"
+#include <problem/ProblemManager.hpp>
+#include <preprocs/PreprocManager.hpp>
+#include <specs/SpecManager.hpp>
 
 /**
    The main function!
@@ -56,9 +58,27 @@ int main(int argc, char** argv)
     exit(!vm.count("help"));
   }
   
-  d4::ProblemManager *p = d4::ProblemManager::makeProblemManager(vm);
-  p->display(std::cout);
-  delete p;
+  d4::ProblemManager *problem = d4::ProblemManager::makeProblemManager(vm);
+  problem->display(std::cout);
+
+  d4::PreprocManager *preproc = d4::PreprocManager::makePreprocManager(vm);  
+  d4::ProblemManager *preprocProblem = preproc->run(*problem);
+  preprocProblem->display(std::cout);
+
+  d4::SpecManager *specManager = d4::SpecManager::makeSpecManager(vm, *problem);
+  specManager->showFormula(std::cout);
+
+  std::vector<d4::Lit> l;
+  l.push_back(d4::Lit(1,false));
+  specManager->preUpdate(l);
+  specManager->showCurrentFormula(std::cout);
+  specManager->postUpdate(l);
+  specManager->showCurrentFormula(std::cout);
+  
+  delete problem;
+  delete preprocProblem;
+  delete preproc;
+  delete specManager;
   
   return 0;
 }// main

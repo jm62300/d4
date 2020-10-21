@@ -44,6 +44,16 @@ ProblemManagerCnf::ProblemManagerCnf()
 
 
 /**
+   Constructor.
+   Construct an empty formula.
+ */
+ProblemManagerCnf::ProblemManagerCnf(int nbVar) 
+{
+  nbVars = nbVar;
+} // constructor
+
+
+/**
    Destructor.
  */
 ProblemManagerCnf::~ProblemManagerCnf()

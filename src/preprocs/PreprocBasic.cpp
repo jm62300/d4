@@ -47,14 +47,14 @@ PreprocBasic::~PreprocBasic()
 
    @param[out] p, the problem we want to preprocess.
  */
-void PreprocBasic::run(ProblemManager &pin, ProblemManager &pout)
+ProblemManager *PreprocBasic::run(ProblemManager &pin)
 {  
   ws->initSolver(pin);
-  pout.setNbVar(pin.getNbVar());
+  ProblemManagerCnf *pout = new ProblemManagerCnf(pin.getNbVar());
   
   try
   {    
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(pout); 
+    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(*pout); 
     
     if(!ws->solve()) // p is UNSAT 
     {
@@ -72,7 +72,7 @@ void PreprocBasic::run(ProblemManager &pin, ProblemManager &pout)
     }
     else // SAT: extract the clauses from the solver.
     {
-      ws->getSimplifiedFormula(pout);
+      ws->getSimplifiedFormula(*pout);
     }
   }
   catch (std::bad_cast& bc)
@@ -80,6 +80,8 @@ void PreprocBasic::run(ProblemManager &pin, ProblemManager &pout)
     std::cerr << "bad_cast caught: " << bc.what() << '\n';
     std::cerr << "A CNF formula was expeted\n";
   }
+
+  return pout;
 } // run
 
 }

@@ -39,6 +39,7 @@ class ProblemManagerCnf : public ProblemManager
   
  public:
   ProblemManagerCnf();
+  ProblemManagerCnf(int nbVar);
   ProblemManagerCnf(std::string &nameFile);
   ~ProblemManagerCnf();  
   void display(std::ostream &out);

@@ -45,7 +45,8 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p)
 {
   // create the occurrence list
   for(unsigned i = 0 ; i<clauses.size() ; i++)
-    for(auto &l : clauses[i]) occList[l.intern()].push_back(i);
+    for(auto &l : clauses[i])
+      occList[l.intern()].push_back(i);
 }// SpecManagerCnfDyn
 
 
@@ -56,9 +57,6 @@ void SpecManagerCnfDyn::initFormula(ProblemManager &p)
 {
   SpecManagerCnf::initFormula(p);
   
-  // clear the occurrence list
-  for(auto &list : occList) list.clear();
-
   // construct the occurrence list
   for(unsigned i = 0 ; i<clauses.size() ; i++)
   {

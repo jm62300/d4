@@ -31,7 +31,7 @@ namespace po = boost::program_options;
 class SpecManager
 {
 public:
-  SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p);
+  static SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p);
   
   virtual ~SpecManager(){}
   virtual bool litIsAssigned(Lit l) = 0;
@@ -45,6 +45,7 @@ public:
   virtual void postUpdate(std::vector<Lit> &lits) = 0;
   virtual void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) = 0;
   virtual void showFormula(std::ostream &out) = 0;
+  virtual void showCurrentFormula(std::ostream &out) = 0;
   virtual void initFormula(ProblemManager &p) = 0;
   // virtual bool byPass(int mode, int idx) = 0;
 };

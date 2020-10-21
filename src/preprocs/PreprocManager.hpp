@@ -37,7 +37,7 @@ class PreprocManager
   virtual ~PreprocManager(){}
 
   /* The preprocessing is directly applied on pin and the result is save in pout  */
-  virtual void run(ProblemManager &pin, ProblemManager &pout) = 0;
+  virtual ProblemManager *run(ProblemManager &pin) = 0;
 };
 }
 
