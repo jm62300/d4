@@ -193,7 +193,7 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
 
    \return true if the clause is satisfied, false otherwise.
  */
-inline bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
+bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
 {
   assert(idx < clauses.size());
   return nbSat[idx];
@@ -208,7 +208,7 @@ inline bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
 
    \return true if the clause is satisfied, false otherwise.
  */
-inline bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
+bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
 {
   for(auto &l : c)
     {
@@ -233,9 +233,8 @@ inline bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
 
    \return true if the clause is satisfied, false otherwise.
  */
-bool
-SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
-                                                   std::vector<bool> &inCurrentComponent)
+bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
+                               std::vector<bool> &inCurrentComponent)
 {
   if(nbSat[idx]) return false;
   assert(watcher[idx] != lit_Undef);
@@ -333,6 +332,4 @@ void SpecManagerCnf::showCurrentFormula(std::ostream &out)
     out << "0\n";
   }
 }// showFormula
-
-
-}
+} // d4

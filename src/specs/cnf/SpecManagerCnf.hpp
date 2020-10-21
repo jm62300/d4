@@ -110,6 +110,14 @@ class SpecManagerCnf : public SpecManager
   int getInitSize(int i){return clauses[i].size() - nbUnsat[i];}
   int getCurrentSize(int i){return clauses[i].size() - nbUnsat[i];}
 
+  bool isSatisfiedClause(unsigned idx);
+  bool isSatisfiedClause(std::vector<Lit> &c);
+  bool isNotSatisfiedClauseAndInComponent(int idx, std::vector<bool> &inCurrentComponent);
+  void getCurrentClauses(std::vector<int> &idxClauses, std::vector<bool> &inCurrentComponent);
+  void updateCurrentClauseSet(std::vector<Var> &component);
+  void popPreviousClauseSet();
+
+  
   
   inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}
   inline int getNbBinaryClause(Var v)
@@ -142,15 +150,8 @@ class SpecManagerCnf : public SpecManager
     for(auto &cl : clauses) sum += cl.size();
     return sum;
   }// getSumSizeClauses
-
-  bool isSatisfiedClause(unsigned idx);
-  bool isSatisfiedClause(std::vector<Lit> &c);
-  bool isNotSatisfiedClauseAndInComponent(int idx, std::vector<bool> &inCurrentComponent);
-  void getCurrentClauses(std::vector<int> &idxClauses, std::vector<bool> &inCurrentComponent);
-  void updateCurrentClauseSet(std::vector<Var> &component);
-  void popPreviousClauseSet();
 };
 
-}
+} // d4
 
 #endif
