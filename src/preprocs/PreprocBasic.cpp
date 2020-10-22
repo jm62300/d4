@@ -16,7 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../problem/cnf/ProblemManagerCnf.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "PreprocBasic.hpp"
 
 namespace d4

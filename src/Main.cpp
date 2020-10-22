@@ -21,12 +21,13 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include <problem/ProblemManager.hpp>
-#include <preprocs/PreprocManager.hpp>
-#include <specs/SpecManager.hpp>
-#include <heuristics/ScoringMethod.hpp>
-#include <heuristics/PhaseHeuristic.hpp>
-#include <solvers/WrapperSolver.hpp>
+#include <src/problem/ProblemManager.hpp>
+#include <src/preprocs/PreprocManager.hpp>
+#include <src/specs/SpecManager.hpp>
+#include <src/heuristics/ScoringMethod.hpp>
+#include <src/heuristics/PhaseHeuristic.hpp>
+#include <src/heuristics/PartitioningHeuristic.hpp>
+#include <src/solvers/WrapperSolver.hpp>
 
 /**
    The main function!
@@ -89,7 +90,11 @@ int main(int argc, char** argv)
   d4::PhaseHeuristic *phase = d4::PhaseHeuristic::makePhaseHeuristic(vm, *specManager, *solver);
   assert(phase);
   std::cout << phase->selectPhase(2) << "\n";
-  
+
+  d4::PartitioningHeuristic *partition = d4::PartitioningHeuristic::makePartitioningHeuristic(vm, *specManager);
+  assert(partition);
+
+  delete partition;
   delete phase;
   delete sm;
   delete problem;

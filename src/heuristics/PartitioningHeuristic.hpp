@@ -16,28 +16,27 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_preprocs_PreprocManager_hpp
-#define d4_src_preprocs_PreprocManager_hpp
+#ifndef d4_src_heuristics_PartitioningHeuristic_hpp
+#define d4_src_heuristics_PartitioningHeuristic_hpp
 
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "src/problem/ProblemTypes.hpp"
-#include "src/problem/ProblemManager.hpp"
+#include <src/specs/SpecManager.hpp>
+#include <src/problem/ProblemTypes.hpp>
 
 namespace d4
 {
 namespace po = boost::program_options;
-class PreprocManager
+class PartitioningHeuristic
 {
- private:
  public:
-  static PreprocManager *makePreprocManager(po::variables_map &vm);
-
-  virtual ~PreprocManager(){}
-
-  /* The preprocessing is directly applied on pin and the result is save in pout  */
-  virtual ProblemManager *run(ProblemManager &pin) = 0;
+  virtual ~PartitioningHeuristic(){}
+  static PartitioningHeuristic *makePartitioningHeuristic(po::variables_map &vm,
+                                                      SpecManager &s);
+  
+  virtual void computePartition(std::vector<Var> &component,
+                                std::vector<Var> &cutSet) = 0;
 };
 }
 

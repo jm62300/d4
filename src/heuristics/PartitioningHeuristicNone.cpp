@@ -16,29 +16,21 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_preprocs_PreprocManager_hpp
-#define d4_src_preprocs_PreprocManager_hpp
-
-#include <vector>
-#include <boost/program_options.hpp>
-
-#include "src/problem/ProblemTypes.hpp"
-#include "src/problem/ProblemManager.hpp"
+#include "PartitioningHeuristicNone.hpp"
 
 namespace d4
 {
-namespace po = boost::program_options;
-class PreprocManager
-{
- private:
- public:
-  static PreprocManager *makePreprocManager(po::variables_map &vm);
 
-  virtual ~PreprocManager(){}
+/**
+   We do not use the partitioning process, then we return the component.
 
-  /* The preprocessing is directly applied on pin and the result is save in pout  */
-  virtual ProblemManager *run(ProblemManager &pin) = 0;
-};
+   @param[in] component, the set of variables of the component we want to cut.
+   @param[out] cutSet, the cut set we compute.
+ */
+void PartitioningHeuristicNone::computePartition(
+    std::vector<Var> &component, std::vector<Var> &cutSet)
+{ 
+  cutSet = component;
+} //component
+
 }
-
-#endif

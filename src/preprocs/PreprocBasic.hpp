@@ -22,8 +22,8 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "../problem/ProblemTypes.hpp"
-#include "../solvers/WrapperSolver.hpp"
+#include "src/problem/ProblemTypes.hpp"
+#include "src/solvers/WrapperSolver.hpp"
 #include "PreprocManager.hpp"
 
 namespace d4

@@ -19,8 +19,8 @@
 #ifndef d4_src_heuristics_cnf_Vsids_hpp
 #define d4_src_heuristics_cnf_Vsids_hpp
 
-#include <problem/cnf/ProblemManagerCnf.hpp>
-#include <solvers/ActivityManager.hpp>
+#include <src/problem/cnf/ProblemManagerCnf.hpp>
+#include <src/solvers/ActivityManager.hpp>
 #include "../ScoringMethod.hpp"
 
 namespace d4

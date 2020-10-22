@@ -19,7 +19,7 @@
 #ifndef d4_src_heuristics_PhaseHeuristicPolarity_hpp
 #define d4_src_heuristics_PhaseHeuristicPolarity_hpp
 
-#include <solvers/PolarityManager.hpp>
+#include <src/solvers/PolarityManager.hpp>
 #include "PhaseHeuristic.hpp"
 
 namespace d4

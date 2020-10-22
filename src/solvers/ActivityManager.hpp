@@ -19,7 +19,7 @@
 #ifndef d4_src_solvers_ActivityManager_hpp
 #define d4_src_solvers_ActivityManager_hpp
 
-#include <problem/ProblemTypes.hpp>
+#include <src/problem/ProblemTypes.hpp>
 
 namespace d4
 {

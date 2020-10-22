@@ -16,8 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <specs/cnf/SpecManagerCnf.hpp>
-#include <solvers/ActivityManager.hpp>
+#include <src/specs/cnf/SpecManagerCnf.hpp>
+#include <src/solvers/ActivityManager.hpp>
 #include "../ScoringMethod.hpp"
 
 

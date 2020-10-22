@@ -19,8 +19,8 @@
 #ifndef d4_src_problem_cnf_SpecManagerCnf_hpp
 #define d4_src_problem_cnf_SpecManagerCnf_hpp
 
-#include <problem/ProblemManager.hpp>
-#include <problem/cnf/ProblemManagerCnf.hpp>
+#include <src/problem/ProblemManager.hpp>
+#include <src/problem/cnf/ProblemManagerCnf.hpp>
 
 #include "../SpecManager.hpp"
 

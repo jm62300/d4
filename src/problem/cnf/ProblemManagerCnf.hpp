@@ -23,7 +23,7 @@
 
 #include "../ProblemTypes.hpp"
 #include "../ProblemManager.hpp"
-#include <solvers/WrapperSolver.hpp>
+#include <src/solvers/WrapperSolver.hpp>
 
 namespace d4
 {

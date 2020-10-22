@@ -7,3 +7,4 @@
 ("scoring-method,sm",boost::program_options::value<std::string>()->default_value("vsads"),"The scoring method used for selecting the next variable. [add a description of the available methods]")
 ("occurrence-manager,om",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used. [add a description]")
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected. [add a description for the available methods]")
+("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("bipartition"),"The method used to compute a cut. [add a description for the available methods]")

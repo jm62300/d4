@@ -22,10 +22,10 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include <solvers/WrapperSolver.hpp>
-#include <solvers/ActivityManager.hpp>
-#include <problem/ProblemTypes.hpp>
-#include <specs/SpecManager.hpp>
+#include <src/solvers/WrapperSolver.hpp>
+#include <src/solvers/ActivityManager.hpp>
+#include <src/problem/ProblemTypes.hpp>
+#include <src/specs/SpecManager.hpp>
 
 namespace d4
 {

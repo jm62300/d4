@@ -19,7 +19,7 @@
 #ifndef d4_src_heuristics_cnf_Dlcs_hpp
 #define d4_src_heuristics_cnf_Dlcs_hpp
 
-#include <specs/cnf/SpecManagerCnf.hpp>
+#include <src/specs/cnf/SpecManagerCnf.hpp>
 #include "../ScoringMethod.hpp"
 
 namespace d4

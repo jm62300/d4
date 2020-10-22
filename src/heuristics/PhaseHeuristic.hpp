@@ -21,9 +21,9 @@
 
 #include <boost/program_options.hpp>
 
-#include <specs/SpecManager.hpp>
-#include <solvers/PolarityManager.hpp>
-#include <problem/ProblemTypes.hpp>
+#include <src/specs/SpecManager.hpp>
+#include <src/solvers/PolarityManager.hpp>
+#include <src/problem/ProblemTypes.hpp>
 
 namespace d4
 {

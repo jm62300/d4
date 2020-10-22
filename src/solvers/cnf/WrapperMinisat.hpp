@@ -21,8 +21,8 @@
 
 #include "../WrapperSolver.hpp"
 
-#include <problem/ProblemTypes.hpp>
-#include <problem/ProblemManager.hpp>
+#include <src/problem/ProblemTypes.hpp>
+#include <src/problem/ProblemManager.hpp>
 
 #include "minisat/Solver.hpp"
 

@@ -21,7 +21,7 @@
 
 #include "WrapperMinisat.hpp"
 
-#include <problem/cnf/ProblemManagerCnf.hpp>
+#include <src/problem/cnf/ProblemManagerCnf.hpp>
 
 #include "minisat/Solver.hpp"
 #include "minisat/SolverTypes.hpp"

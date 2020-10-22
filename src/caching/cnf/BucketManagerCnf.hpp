@@ -23,12 +23,11 @@
 #include <vector>
 #include <iostream>
 
-#include "../../problem/cnf/CnfOccurrenceManager.hpp"
-#include "../../problem/ProblemTypes.hpp"
+#include "src/problem/cnf/CnfOccurrenceManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 #include "../BucketManager.hpp"
 #include "../CachedBucket.hpp"
-
 
 #define ALL 0
 #define NB 1

@@ -24,7 +24,7 @@
 #include <vector>
 #include <string.h>
 
-#include "../problem/ProblemTypes.hpp"
+#include "src/problem/ProblemTypes.hpp"
 #include "CachedBucket.hpp"
 
 

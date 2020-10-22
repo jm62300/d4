@@ -19,7 +19,6 @@
 #include "SpecManager.hpp"
 #include "cnf/SpecManagerCnfDyn.hpp"
 
-
 namespace d4
 {
 
