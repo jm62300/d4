@@ -25,6 +25,7 @@
 #include <preprocs/PreprocManager.hpp>
 #include <specs/SpecManager.hpp>
 #include <heuristics/ScoringMethod.hpp>
+#include <heuristics/PhaseHeuristic.hpp>
 #include <solvers/WrapperSolver.hpp>
 
 /**
@@ -84,12 +85,18 @@ int main(int argc, char** argv)
   d4::ScoringMethod *sm = d4::ScoringMethod::makeScoringMethod(vm, *specManager, *solver);
   assert(sm);
   std::cout << sm->computeScore(2) << "\n";
+
+  d4::PhaseHeuristic *phase = d4::PhaseHeuristic::makePhaseHeuristic(vm, *specManager, *solver);
+  assert(phase);
+  std::cout << phase->selectPhase(2) << "\n";
   
+  delete phase;
   delete sm;
   delete problem;
   delete preprocProblem;
   delete preproc;
   delete specManager;
-  
+  delete solver;
+
   return 0;
 }// main

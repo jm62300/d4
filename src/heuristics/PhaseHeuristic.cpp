@@ -16,10 +16,11 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "PhaseHeuristic.hpp"
-#include "cnf/PhaseHeuristicFalse.hpp"
-#include "cnf/PhaseHeuristicTrue.hpp"
+#include "PhaseHeuristicFalse.hpp"
+#include "PhaseHeuristicTrue.hpp"
+#include "PhaseHeuristicOccurrence.hpp"
+#include "PhaseHeuristicPolarity.hpp"
 
 namespace d4
 {
@@ -29,11 +30,15 @@ namespace d4
 
    @param[in] vm, the set of options.
  */
-PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm)
+PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm,
+                                                   SpecManager &s,
+                                                   PolarityManager &p)
 {
   std::string meth = vm["phase-heuristic"].as<std::string>();
   if(meth == "false") return new PhaseHeuristicFalse();
-  if(meth == "true") return new PhaseHeuristicFalse();
+  if(meth == "true") return new PhaseHeuristicTrue();
+  if(meth == "polarity") return new PhaseHeuristicPolarity(p);
+  if(meth == "occurrence") return new PhaseHeuristicOccurrence(s);
   return NULL;
 } // makePhaseHeuristic
 

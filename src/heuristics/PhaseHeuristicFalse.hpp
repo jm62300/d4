@@ -16,27 +16,17 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_PhaseHeuristic_hpp
-#define d4_src_heuristics_PhaseHeuristic_hpp
+#ifndef d4_src_heuristics_PhaseHeuristicFalse_hpp
+#define d4_src_heuristics_PhaseHeuristicFalse_hpp
 
-#include <boost/program_options.hpp>
-
-#include <specs/SpecManager.hpp>
-#include <solvers/PolarityManager.hpp>
-#include <problem/ProblemTypes.hpp>
+#include "PhaseHeuristic.hpp"
 
 namespace d4
 {
-namespace po = boost::program_options;
-class PhaseHeuristic
+class PhaseHeuristicFalse : public PhaseHeuristic
 {
  public:
-  virtual ~PhaseHeuristic() {}
-  static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm,
-                                            SpecManager &s,
-                                            PolarityManager &p);
-  
-  virtual bool selectPhase(Var v) = 0;
+  bool selectPhase(Var v);
 };
 }
 

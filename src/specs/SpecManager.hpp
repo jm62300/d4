@@ -47,6 +47,8 @@ public:
   virtual void showFormula(std::ostream &out) = 0;
   virtual void showCurrentFormula(std::ostream &out) = 0;
   virtual void initFormula(ProblemManager &p) = 0;
+  virtual int getNbOccurrence(Lit l) = 0;
+  
   // virtual bool byPass(int mode, int idx) = 0;
 };
 }

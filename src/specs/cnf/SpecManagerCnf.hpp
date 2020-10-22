@@ -143,6 +143,7 @@ class SpecManagerCnf : public SpecManager
   }  
 
   inline int getMaxSizeClause(){return maxSizeClause;}
+  inline int getNbOccurrence(Lit l){return getNbClause(l);}
 
   virtual inline int getSumSizeClauses()
   {

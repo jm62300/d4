@@ -16,18 +16,25 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_cnf_PhaseHeuristicFalse_hpp
-#define d4_src_heuristics_cnf_PhaseHeuristicFalse_hpp
+#ifndef d4_src_heuristics_PhaseHeuristicPolarity_hpp
+#define d4_src_heuristics_PhaseHeuristicPolarity_hpp
 
-#include "../PhaseHeuristic.hpp"
+#include <solvers/PolarityManager.hpp>
+#include "PhaseHeuristic.hpp"
 
 namespace d4
 {
-class PhaseHeuristicTrue : public PhaseHeuristic
+
+class PhaseHeuristicPolarity : public PhaseHeuristic
 {
+ private:
+  PolarityManager &pm;
+  
  public:
+  PhaseHeuristicPolarity(PolarityManager &p);
   bool selectPhase(Var v);
 };
+
 }
 
 #endif

@@ -16,18 +16,29 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_cnf_PhaseHeuristicFalse_hpp
-#define d4_src_heuristics_cnf_PhaseHeuristicFalse_hpp
-
-#include "../PhaseHeuristic.hpp"
+#include "PhaseHeuristicOccurrence.hpp"
 
 namespace d4
 {
-class PhaseHeuristicFalse : public PhaseHeuristic
-{
- public:
-  bool selectPhase(Var v);
-};
-}
 
-#endif
+/**
+   Constructor.
+
+   @param[in] s, the manager that give information about the formula.
+ */
+PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s) : sm(s)
+{
+  
+} // constructor
+
+
+/**
+   Assign the next decision variable regarding the number of occurrence of the
+   variable in the formula.
+ */
+bool PhaseHeuristicOccurrence::selectPhase(Var v)
+{
+  return sm.getNbOccurrence(Lit(v, false)) < sm.getNbOccurrence(Lit(v, true));
+} // selectPhase
+
+}

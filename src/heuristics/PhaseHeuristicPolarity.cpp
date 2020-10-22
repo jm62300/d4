@@ -16,28 +16,31 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_PhaseHeuristic_hpp
-#define d4_src_heuristics_PhaseHeuristic_hpp
-
-#include <boost/program_options.hpp>
-
-#include <specs/SpecManager.hpp>
-#include <solvers/PolarityManager.hpp>
-#include <problem/ProblemTypes.hpp>
+#include "PhaseHeuristicPolarity.hpp"
 
 namespace d4
 {
-namespace po = boost::program_options;
-class PhaseHeuristic
-{
- public:
-  virtual ~PhaseHeuristic() {}
-  static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm,
-                                            SpecManager &s,
-                                            PolarityManager &p);
-  
-  virtual bool selectPhase(Var v) = 0;
-};
-}
 
-#endif
+/**
+   Constructor.
+
+   @param[in] p, a polarity manager.
+ */
+PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p) : pm(p)
+{
+  
+} // constructor
+
+
+/**
+   We assign the next varaible regarding the polarity given by a solver.  We
+   hope in this way to consider in priority satisfiable part of the problem.
+   
+   @param[in] v, the variable we want to select the phase.
+ */
+bool PhaseHeuristicPolarity::selectPhase(Var v)
+{
+  return pm.getPolarity(v);
+} // selectPhase
+
+}

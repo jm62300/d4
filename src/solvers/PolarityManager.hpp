@@ -19,6 +19,7 @@
 #ifndef d4_src_solvers_PolarityManager_hpp
 #define d4_src_solvers_PolarityManager_hpp
 
+#include <specs/SpecManager.hpp>
 #include <problem/ProblemTypes.hpp>
 
 namespace d4
