@@ -29,10 +29,15 @@ namespace d4
  */
 WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm)
 {
+  std::string in = vm["input"].as<std::string>();
+  std::string extension = in.substr(in.find_last_of(".") + 1);
   std::string s = vm["solver"].as<std::string>();
 
-  if(s == "minisat") return new WrapperMinisat();
-  
+  if(extension == "cnf" || extension == "dimacs")
+  {    
+    if(s == "minisat") return new WrapperMinisat();
+    return NULL;
+  }
   return NULL;
 } // makeWrapperSolver
 

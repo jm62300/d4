@@ -18,6 +18,7 @@
 
 #include "PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicNone.hpp"
+#include "cnf/PartitioningHeuristicBipartite.hpp"
 
 namespace d4
 {
@@ -33,10 +34,19 @@ namespace d4
 PartitioningHeuristic *
 PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
                                                SpecManager &s)
-{
+{  
   std::string meth = vm["partitioning-heuristic"].as<std::string>();
   if(meth == "none") return new PartitioningHeuristicNone();
-  if(meth == "bipartition") return new PartitioningHeuristicNone();
+
+  std::string in = vm["input"].as<std::string>();
+  std::string extension = in.substr(in.find_last_of(".") + 1);
+
+  if(extension == "cnf" || extension == "dimacs")
+  {    
+    if(meth == "bipartition") return new PartitioningHeuristicBipartite();
+    return NULL;
+  }
+  
   return NULL;
 } // makePartitioningHeuristic
 
