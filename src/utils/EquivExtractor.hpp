@@ -33,7 +33,9 @@ class EquivExtractor
   std::vector<bool> markedVarInter;
   
  public:
-  EquivExtractor(int nbVar);
+  EquivExtractor(){;} // empty constructor 
+  EquivExtractor(int nbVar);  
+  void initEquivExtractor(int nbVar);  
   bool interCollectUnit(WrapperSolver &s, Var v, std::vector<Var> &listVarPU);
   void searchEquiv(WrapperSolver &s,
                    std::vector<Var> &v,

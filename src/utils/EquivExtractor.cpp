@@ -29,9 +29,20 @@ namespace d4
  */
 EquivExtractor::EquivExtractor(int nbVar)
 {
+  initEquivExtractor(nbVar);
+} // constructor
+
+
+/**
+   Init the structure with the good number of variables.
+
+   @param[in] nbVar, the number of variables.   
+ */
+void EquivExtractor::initEquivExtractor(int nbVar)
+{
   markedVar.resize(nbVar, false);
   markedVarInter.resize(nbVar, false);  
-} // constructor
+} // initEquivExtractor
 
 
 /**
@@ -94,6 +105,5 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
   
   for(auto &v : reinit) markedVar[v] = false;
 } // searchEquiv
-
 
 } // d4

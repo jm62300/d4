@@ -28,6 +28,7 @@
 #include <src/heuristics/PhaseHeuristic.hpp>
 #include <src/heuristics/PartitioningHeuristic.hpp>
 #include <src/solvers/WrapperSolver.hpp>
+#include <src/utils/EquivExtractor.hpp>
 
 /**
    The main function!
@@ -94,6 +95,7 @@ int main(int argc, char** argv)
   d4::PartitioningHeuristic *partition = d4::PartitioningHeuristic::makePartitioningHeuristic(vm, *specManager);
   assert(partition);
 
+  
   delete partition;
   delete phase;
   delete sm;
