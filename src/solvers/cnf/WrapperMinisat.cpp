@@ -116,16 +116,59 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
 } // getSimplifiedFormula
 
 
+/**
+   An accessor on the activity of a variable.
+
+   @param[in] v, the variable we want the activity.
+ */
 double WrapperMinisat::getActivity(Var v)
 {
   return s.activity[v];
 } // getActivity
 
 
+/**
+   An accessort on the polarity of a variable.
+
+   @param[in] v, the variable we want the polarity.
+ */
 bool WrapperMinisat::getPolarity(Var v)
 {
   return s.polarity[v];
-}
+} // getPolarity
 
+
+/**
+   Collect the unit literal from the affectation of the literal l to the
+   formula.
+
+   @param[in] l, the literal we want to branch on.
+   @param[out] units, the unit literals
+
+   \return true if assign l and propagate does not give a conflict, false otherwise.
+ */
+bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
+{
+  int posTrail = (s.trail).size();
+  s.newDecisionLevel();
+  s.uncheckedEnqueue(minisat::mkLit(l.intern(), l.sign()));
+  minisat::CRef confl = s.propagate();
+
+  if(confl != minisat::CRef_Undef) // unit literal
+  {
+    int bt;
+    minisat::vec<minisat::Lit> learnt_clause;
+    s.analyzeLastUIP(confl, learnt_clause, bt);
+    s.cancelUntil(s.decisionLevel() - 1);
+    assert(learnt_clause[0] == ~l);
+    s.insertClauseAndPropagate(learnt_clause);
+    return false;
+  }
+      
+  for(int j = posTrail + 1 ; j<s.trail.size() ; j++)
+    units.push_back(Lit(var(s.trail[j]), sign(s.trail[j])));
+  s.cancelUntil(s.decisionLevel() - 1);
+  return true;
+} // decideAndComputeUnit
 
 } // d4

@@ -16,29 +16,29 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_ScoringMethod_hpp
-#define d4_src_heuristics_ScoringMethod_hpp
+#ifndef d4_src_utils_EquivExtractor_hpp
+#define d4_src_utils_EquivExtractor_hpp
 
 #include <vector>
-#include <boost/program_options.hpp>
 
 #include <src/solvers/WrapperSolver.hpp>
-#include <src/solvers/ActivityManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
-#include <src/specs/SpecManager.hpp>
 
 namespace d4
 {
-namespace po = boost::program_options;
-class ScoringMethod
-{    
- public: 
-  static ScoringMethod *makeScoringMethod(po::variables_map &vm,
-                                          SpecManager &p,
-                                          ActivityManager &am);
-  virtual ~ScoringMethod(){;}
-  virtual double computeScore(Var v) = 0;
+class EquivExtractor
+{
+ private:
+  std::vector<bool> markedVar;
+  std::vector<bool> markedVarInter;
+  
+ public:
+  EquivExtractor(int nbVar);
+  bool interCollectUnit(WrapperSolver &s, Var v, std::vector<Var> &listVarPU);
+  void searchEquiv(WrapperSolver &s,
+                   std::vector<Var> &v,
+                   std::vector< std::vector<Var> > &equivVar);
 };
-}
+} // d4
 
 #endif

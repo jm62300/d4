@@ -16,8 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_BufferReader_hpp
-#define d4_BufferReader_hpp
+#ifndef d4_src_utils_BufferReader_hpp
+#define d4_src_utils_BufferReader_hpp
 
 #include <iostream>
 
