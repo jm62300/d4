@@ -25,7 +25,7 @@ if(${DEBUG_MODE})
   message("Debug mode activated")
   set(CMAKE_BUILD_TYPE Debug)
   target_compile_options(d4_debug PUBLIC -std=c++11 -Wall -lz -pg -lgmpxx -lgmp -O2 -Wno-class-memaccess)
-  target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O2 ${Boost_LIBRARIES})
+  target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O2 ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug
     DESTINATION bin
@@ -36,7 +36,7 @@ else()
 
   message("Classical mode activated")
   target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess -Wfatal-errors)
-  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES})
+  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
     DESTINATION bin

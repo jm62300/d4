@@ -171,4 +171,23 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
   return true;
 } // decideAndComputeUnit
 
+
+/**
+   Fill the vector units with the literal l that are units such that l.var() is
+   in component.
+
+   @param[in] component, the set of variables we search for.
+   @param[out] units, the place where we store the literals found.
+ */
+void WrapperMinisat::whichAreUnits(std::vector<Var> &component,
+                                   std::vector<Lit> &units)
+{
+  for(auto &v : component)
+  {
+    if(!s.isAssigned(v)) continue;
+    minisat::Lit l = s.litAssigned(v);
+    units.push_back(Lit(var(l), sign(l)));
+  }
+} // whichAreUnits
+
 } // d4

@@ -641,6 +641,12 @@ public:
   */
   void collectUnit(vec<Var> &setOfVar, vec<Lit> &unitsLit, Lit dec = lit_Undef);
 
+  inline bool isAssigned(Var v){return value(v) != l_Undef;}
+  inline Lit litAssigned(Var v)
+  {
+    if(value(v) == l_Undef) return lit_Undef;
+    return mkLit(v, value(v) == l_False);
+  }
   
   vec<int> saveFree;
   vec<lbool> currentModel;
