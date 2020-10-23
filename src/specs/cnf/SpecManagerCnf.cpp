@@ -58,7 +58,7 @@ SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _maxSizeClause) :
 SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : nbVar(p.getNbVar())
 {
   initFormula(p);
-
+  
   for(unsigned i = 0 ; i <= nbVar ; i++)
     {
       currentValue.push_back(l_Undef);

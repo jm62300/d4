@@ -33,17 +33,19 @@ namespace d4
  */
 PartitioningHeuristic *
 PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
-                                               SpecManager &s)
-{  
-  std::string meth = vm["partitioning-heuristic"].as<std::string>();
+                                                 SpecManager &s,
+                                                 WrapperSolver &ws)
+{
+  unsigned options = vm["partitioning-heuristic-options"].as<unsigned>();
+  std::string meth = vm["partitioning-heuristic"].as<std::string>();  
   if(meth == "none") return new PartitioningHeuristicNone();
-
+  
   std::string in = vm["input"].as<std::string>();
   std::string extension = in.substr(in.find_last_of(".") + 1);
-
   if(extension == "cnf" || extension == "dimacs")
   {    
-    if(meth == "bipartition") return new PartitioningHeuristicBipartite();
+    if(meth == "bipartition")
+      return new PartitioningHeuristicBipartite(ws, s, options);
     return NULL;
   }
   

@@ -160,7 +160,7 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
     minisat::vec<minisat::Lit> learnt_clause;
     s.analyzeLastUIP(confl, learnt_clause, bt);
     s.cancelUntil(s.decisionLevel() - 1);
-    assert(learnt_clause[0] == ~l);
+    assert(learnt_clause[0] == minisat::mkLit(l.intern(), !l.sign()));
     s.insertClauseAndPropagate(learnt_clause);
     return false;
   }

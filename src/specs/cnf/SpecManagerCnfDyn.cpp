@@ -70,7 +70,9 @@ void SpecManagerCnfDyn::initFormula(ProblemManager &p)
     if(markView.size() > i) markView[i] = false; else markView.push_back(false);
     if(nbUnsat.size() > i) nbUnsat[i] = 0; else nbUnsat.push_back(0);
     if(nbSat.size() > i) nbSat[i] = 0; else nbSat.push_back(0);
-    if(watcher.size() > i) watcher[i] = clauses[i][0]; else watcher.push_back(clauses[i][0]);
+    if(watcher.size() > i)
+      watcher[i] = clauses[i][0];
+    else watcher.push_back(clauses[i][0]);
   }
 }// initFormula
 

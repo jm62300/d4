@@ -93,9 +93,8 @@ int main(int argc, char** argv)
   assert(phase);
   std::cout << phase->selectPhase(2) << "\n";
 
-  d4::PartitioningHeuristic *partition = d4::PartitioningHeuristic::makePartitioningHeuristic(vm, *specManager);
+  d4::PartitioningHeuristic *partition = d4::PartitioningHeuristic::makePartitioningHeuristic(vm, *specManager, *solver);
   assert(partition);
-
   
   delete partition;
   delete phase;

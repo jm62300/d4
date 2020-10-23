@@ -22,6 +22,7 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
+#include <src/solvers/WrapperSolver.hpp>
 #include <src/specs/SpecManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 
@@ -33,7 +34,8 @@ class PartitioningHeuristic
  public:
   virtual ~PartitioningHeuristic(){}
   static PartitioningHeuristic *makePartitioningHeuristic(po::variables_map &vm,
-                                                      SpecManager &s);
+                                                          SpecManager &sm,
+                                                          WrapperSolver &ws);
   
   virtual void computePartition(std::vector<Var> &component,
                                 std::vector<Var> &cutSet) = 0;

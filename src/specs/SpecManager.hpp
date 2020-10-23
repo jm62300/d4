@@ -29,8 +29,9 @@ namespace d4
 {
 namespace po = boost::program_options;
 class SpecManager
-{
-public:
+{ 
+  
+ public:
   static SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p);
   
   virtual ~SpecManager(){}
