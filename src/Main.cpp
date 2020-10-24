@@ -21,14 +21,14 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include <src/problem/ProblemManager.hpp>
-#include <src/preprocs/PreprocManager.hpp>
-#include <src/specs/SpecManager.hpp>
-#include <src/heuristics/ScoringMethod.hpp>
-#include <src/heuristics/PhaseHeuristic.hpp>
-#include <src/heuristics/PartitioningHeuristic.hpp>
-#include <src/solvers/WrapperSolver.hpp>
+#if 0
+
+
 #include <src/utils/EquivExtractor.hpp>
+#endif
+
+#include <src/methods/MethodManager.hpp>
+
 
 /**
    The main function!
@@ -63,38 +63,12 @@ int main(int argc, char** argv)
     std::cout << desc << '\n';
     exit(!vm.count("help"));
   }
-  
-  d4::ProblemManager *problem = d4::ProblemManager::makeProblemManager(vm);
-  problem->display(std::cout);
 
-  d4::PreprocManager *preproc = d4::PreprocManager::makePreprocManager(vm);  
-  d4::ProblemManager *preprocProblem = preproc->run(*problem);
-  preprocProblem->display(std::cout);
+  d4::MethodManager *method = d4::MethodManager::makeMethodManager(vm);
+  method->run();
+  delete method;
 
-  d4::SpecManager *specManager = d4::SpecManager::makeSpecManager(vm, *problem);
-  specManager->showFormula(std::cout);
-
-  std::vector<d4::Lit> l;
-  l.push_back(d4::Lit(1,false));
-  specManager->preUpdate(l);
-  specManager->showCurrentFormula(std::cout);
-  specManager->postUpdate(l);
-  specManager->showCurrentFormula(std::cout);
-
-
-  d4::WrapperSolver *solver = d4::WrapperSolver::makeWrapperSolver(vm);
-  solver->initSolver(*problem);
-  
-  d4::ScoringMethod *sm = d4::ScoringMethod::makeScoringMethod(vm, *specManager, *solver);
-  assert(sm);
-  std::cout << sm->computeScore(2) << "\n";
-
-  d4::PhaseHeuristic *phase = d4::PhaseHeuristic::makePhaseHeuristic(vm, *specManager, *solver);
-  assert(phase);
-  std::cout << phase->selectPhase(2) << "\n";
-
-  d4::PartitioningHeuristic *partition = d4::PartitioningHeuristic::makePartitioningHeuristic(vm, *specManager, *solver);
-  assert(partition);
+#if 0
   
   delete partition;
   delete phase;
@@ -104,6 +78,7 @@ int main(int argc, char** argv)
   delete preproc;
   delete specManager;
   delete solver;
-
+#endif
+  
   return 0;
 }// main
