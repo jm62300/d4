@@ -21,6 +21,27 @@
 namespace d4
 {
 
+/**
+   Constructor.
+ */
+DataInfoCnf::DataInfoCnf(unsigned szData,         
+                         unsigned nbVar,          
+                         unsigned nbLit,          
+                         unsigned nbClause,       
+                         unsigned nbOctetsData,   
+                         unsigned nbOctetsVar,    
+                         unsigned nbOctetsDistrib,
+                         unsigned count) :
+    DataInfo(szData, nbVar, nbOctetsData, nbOctetsVar, count)
+{
+  info1 = info1 |
+          ((uint64_t) nbLit << 21) |
+          ((uint64_t) nbClause << 42);
+  info2 = info2 |
+          ((uint32_t) nbOctetsDistrib);
+} // constructor
+
+
 void DataInfoCnf::print(char *data, std::ostream &out)
 {
   out << "Bucket size = " << szData() << "\n" 

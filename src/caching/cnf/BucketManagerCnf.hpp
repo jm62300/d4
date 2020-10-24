@@ -23,8 +23,9 @@
 #include <vector>
 #include <iostream>
 
-#include "src/problem/cnf/CnfOccurrenceManager.hpp"
-#include "src/problem/ProblemTypes.hpp"
+#include <src/caching/cnf/DataInfoCnf.hpp>
+#include <src/specs/cnf/SpecManagerCnf.hpp>
+#include <src/problem/ProblemTypes.hpp>
 
 #include "../BucketManager.hpp"
 #include "../CachedBucket.hpp"
@@ -32,7 +33,6 @@
 #define ALL 0
 #define NB 1
 #define NT 2
-
 
 #define BIT_VECTOR 1
 #define ONE_OCTET 2
@@ -47,15 +47,17 @@
 
 namespace d4
 {
-template<class T> class BucketManagerCnf : public BucketManager<T>
-{
- protected:
-  CnfOccurrenceManager *occManager;
+template<class T> class BucketManager;
 
+template<class T> class BucketManagerCnf : public BucketManager<T>
+{  
+ protected:
+  SpecManagerCnf &specManager;
+  
   int modeStore;
   int nbClauseCnf;
   int nbVarCnf;
-  int strategyCache;
+  int maxSizeClause;
 
  public:
   /**
@@ -65,19 +67,19 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
      @param[in] mdStore, the storing mode for the clause
      @param[in] strCache, the strategy used for caching
   */
-  BucketManagerCnf(CnfOccurrenceManager *occM, int mdStore, int strCache) 
+  BucketManagerCnf(SpecManagerCnf &occM, int mdStore, unsigned sizePage) :
+      specManager(occM)
   {
-    occManager = occM;
-    assert(occM);    
-    modeStore = mdStore;    
-    strategyCache = strCache;
-    updateOccManager(occM->getNbClause(), occM->getNbVariable(), occM->getMaxSizeClause());    
+    modeStore = mdStore;
+    nbClauseCnf = occM.getNbClause();
+    nbVarCnf = occM.getNbVariable();
+    maxSizeClause = occM.getMaxSizeClause();
+
+    this->init(sizePage);
   }// BucketManager
 
   
   virtual ~BucketManagerCnf() {;}
-
-  virtual void updateOccManager(int nbClause, int nbVar, int maxSizeClause) = 0;
   virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;  
 };
 

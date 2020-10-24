@@ -11,3 +11,6 @@
 ("partitioning-heuristic-options,pvho",boost::program_options::value<unsigned>()->default_value(-1),"The option given to the partitioner. We are limited in 32 options given by the bytes of the parameter.")
 ("method,m", boost::program_options::value<std::string>()->default_value("counting"), "The method we use (counting or dDNNF)")
 ("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("expectation"), "The strategy used to reduce the cache structure.")
+("cache-size-page,csp", boost::program_options::value<unsigned>()->default_value((1<<29)), "The block size of memory allocated for each page of the cache structure.")
+("cache-store-strategy,css", boost::program_options::value<std::string>()->default_value("not-touched"), "The strategy used to store the clause in a bucket (all, not-binary and not-touched).")
+("cache-clause-representation,ccr", boost::program_options::value<std::string>()->default_value("clause"), "The way the clause are reprensented in the cache (clause and index).")

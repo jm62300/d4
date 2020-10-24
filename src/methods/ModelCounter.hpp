@@ -70,7 +70,7 @@ template <class T> class ModelCounter : public MethodManager
   ScoringMethod *heuristicVar;
   PhaseHeuristic *heuristicPhase;
   PartitioningHeuristic * heuristicPartition;
-  BucketManager<T> *bm;
+  BucketManager<T> *bucketManager;
   TmpEntry<T> NULL_CACHE_ENTRY;  
   Cache<T> *cache;
 
@@ -110,7 +110,7 @@ template <class T> class ModelCounter : public MethodManager
     assert(heuristicVar && heuristicPhase && heuristicPartition);
 
     cache = new Cache<T>(vm);
-    
+    bucketManager = BucketManager<T>::makeBucketManager(vm, *specs);
     
     // we delete the useless objects.
     delete initProblem;

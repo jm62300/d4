@@ -29,8 +29,6 @@ namespace d4
 {
 namespace po = boost::program_options;
 
-// forward declaration
-class CnfOccurrenceManager;
 
 class ProblemManagerCnf : public ProblemManager
 {

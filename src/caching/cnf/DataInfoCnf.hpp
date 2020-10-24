@@ -25,6 +25,16 @@ namespace d4
 {
 class DataInfoCnf : public DataInfo
 {
+ public:
+  DataInfoCnf(unsigned szData,         
+              unsigned nbVar,          
+              unsigned nbLit,          
+              unsigned nbClause,       
+              unsigned nbOctetsData,   
+              unsigned nbOctetsVar,    
+              unsigned nbOctetsDistrib,
+              unsigned count);
+  
   void print(char *data, std::ostream &out);
 
   unsigned nbOctetsDistrib(){return info2 & ((1<<2) - 1);}
@@ -35,7 +45,8 @@ class DataInfoCnf : public DataInfo
   unsigned nbDiffSize()
   {
     if(!nbOctetsDistrib()) return 0;
-    return (szData() - nbLit() * nbOctetsData() - nbVar() * nbOctetsVar()) / nbOctetsDistrib();
+    return (szData() - nbLit() * nbOctetsData() - nbVar() *
+            nbOctetsVar()) / nbOctetsDistrib();
   }
 };
 }

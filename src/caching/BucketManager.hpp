@@ -24,9 +24,14 @@
 #include <vector>
 #include <string.h>
 
-#include "src/problem/ProblemTypes.hpp"
-#include "CachedBucket.hpp"
+#include <boost/program_options.hpp>
 
+#include <src/problem/ProblemTypes.hpp>
+#include <src/specs/SpecManager.hpp>
+
+#include "CachedBucket.hpp"
+#include "cnf/BucketManagerCnf.hpp"
+#include "cnf/BucketManagerCnfCl.hpp"
 
 #define ONE_OCTET 2
 #define TWO_OCTET 3
@@ -37,6 +42,8 @@
 
 namespace d4
 {
+namespace po = boost::program_options;
+
 template<class T> class BucketManager
 {
  protected:
@@ -44,7 +51,7 @@ template<class T> class BucketManager
   char *data;
   unsigned long int sizeData, posInData;
   CachedBucket<T> bucket;
-
+  
  public:
   // freespace[i][j] points to a free memory space of size i
   std::vector<std::vector<char *>> freeSpace;  
@@ -52,11 +59,27 @@ template<class T> class BucketManager
   unsigned long int freeMemory;
   unsigned long int pageData;
 
-  virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;
+  static BucketManager<T> *makeBucketManager(po::variables_map &vm,
+                                             SpecManager &s)
+  {
+    std::string css = vm["cache-store-strategy"].as<std::string>();
+    std::string ccr = vm["cache-clause-representation"].as<std::string>();
+    unsigned sizePage = vm["cache-size-page"].as<unsigned>();
 
+    int modeStore = ALL;
+    if(css == "NB") modeStore = NB;
+    if(css == "NT") modeStore = NT;
+    
+    SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
+    if(css == "clause") return new BucketManagerCnfCl<T>(scnf, modeStore, sizePage);
+    
+    return NULL;
+  } // makeBucketManager
+
+  
   virtual ~BucketManager()
   {
-    for(int i = 0 ; i<allocateData.size() ; i++) delete[](allocateData[i]);
+    for(unsigned i = 0 ; i<allocateData.size() ; i++) delete[](allocateData[i]);
     allocateData.clear();
   }
 
@@ -96,7 +119,7 @@ template<class T> class BucketManager
      Get a pointer on an available array where we can store the data we want to
      save into the bucket.
   */
-  char *getArray(int size)
+  char *getArray(unsigned size)
   {
     char *ret = NULL;
 
@@ -111,7 +134,7 @@ template<class T> class BucketManager
     // go futher to see if we cannot split some entry
     if((size << 1) < freeSpace.size())
     {
-      int pos = size << 1;
+      unsigned pos = size << 1;
       while(pos < freeSpace.size() && !freeSpace[pos].size()) pos++;
 
       // split an entry
@@ -128,7 +151,7 @@ template<class T> class BucketManager
     // take a fresh entry
     if(posInData + size > sizeData)
     {
-      int rSz = sizeData - posInData;
+      unsigned rSz = sizeData - posInData;
       if(freeSpace.size() <= rSz) freeSpace.resize(rSz, std::vector<char *>());
       freeSpace[rSz].push_back(&data[posInData]);
       freeMemory += rSz;
@@ -173,6 +196,9 @@ template<class T> class BucketManager
     storeFormula(component, bucket);
     return &bucket;
   }// collectBuckect
+
+
+  virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;
 };
 }
 

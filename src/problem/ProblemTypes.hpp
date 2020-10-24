@@ -37,7 +37,8 @@ class Lit
 {
  public:
   int x;
-  
+
+  Lit(){x = 0;}
   Lit(Var v, bool sign = false);
 
   inline bool sign(){return x&1;}

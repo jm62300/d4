@@ -31,19 +31,21 @@ DataInfo::DataInfo()
 
 /**
    Constructor.
-
-   We always at least have the following distribution:
-   For info1 => |free (43 bytes)|nb var (21 bytes)|
-   For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb octets var (2 bytes)| free (2 bytes)|
-
+   
    @param[in] i1, the information place 1.
    @param[in] i2, the information place 2.
    @param[in] count, the counter value for initialization.
 */
-DataInfo::DataInfo(uint64_t i1, uint32_t i2, unsigned count)
+DataInfo::DataInfo(unsigned szData,         
+                   unsigned nbVar,          
+                   unsigned nbOctetsData,   
+                   unsigned nbOctetsVar,
+                   unsigned count)
 {
-  info1 = i1;
-  info2 = i2;
+  info1 = (uint64_t) nbVar;
+  info2 = ((uint32_t) nbOctetsData << 4) |
+          ((uint32_t) nbOctetsVar << 2) |
+          ((uint32_t) szData << 6);
   stats = {count, 0};
 } // constructor
 

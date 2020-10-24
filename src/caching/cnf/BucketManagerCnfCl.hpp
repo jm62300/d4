@@ -19,15 +19,16 @@
 #ifndef d4_src_caching_cnf_BucketManagerCnfCl_hpp
 #define d4_src_caching_cnf_BucketManagerCnfCl_hpp
 
+#include <src/problem/ProblemTypes.hpp>
 #include "BucketManagerCnf.hpp"
 
 namespace d4
 {
-typedef struct{ int start; int end;} bucketSortInfo;
+typedef struct{ unsigned start; unsigned end;} bucketSortInfo;
 
 template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 {
- public:
+ private:
   std::vector<bucketSortInfo> vecBucketSortIntervalle;
   std::vector<int> refCutBucket;
   std::vector<unsigned long int> mapVar;
@@ -37,37 +38,39 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
   std::vector<bool> markView;
   std::vector<int> markIdx;
-  std::vector<int> distribClauseNbVar;
+  std::vector<unsigned> distribClauseNbVar;
   int lastSize;
   
-  using BucketManagerCnf<T>::occManager;
+  using BucketManagerCnf<T>::specManager;
   using BucketManagerCnf<T>::modeStore;
   using BucketManagerCnf<T>::nbClauseCnf;
   using BucketManagerCnf<T>::nbVarCnf;
-  using BucketManagerCnf<T>::strategyCache;
+  using BucketManagerCnf<T>::maxSizeClause;
 
+ public:
   /**
-     Update the bucket manager to considere a new occurrence manager.
-
-     @param[in] occM, the new occurrence manager
+     Function called in order to initialized variables before using
   */
-  void updateOccManager(int nbClause, int nbVar, int maxSizeClause)
+  BucketManagerCnfCl(SpecManagerCnf &occM, int mdStore, unsigned sizePage) :
+      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizePage)
   {
-    nbClauseCnf = nbClause;
-    nbVarCnf = nbVar;
-
-    occInfoPos.resize(nbVarCnf, -1);    
-    tmpKey = (unsigned long int*) realloc(tmpKey, (nbVarCnf + (nbClauseCnf<<1)) *
-                                          sizeof(unsigned long int));
+    occInfoPos.resize(nbVarCnf, -1);
+    tmpKey = new unsigned long int[nbVarCnf + (nbClauseCnf<<1)];
     mapVar.resize(nbVarCnf, 0);
     markView.resize(nbClauseCnf, false);
     markIdx.resize(nbClauseCnf, -1);
     distribClauseNbVar.resize(maxSizeClause, 0);
-    
-    this->init(nbVar, nbClause, maxSizeClause, strategyCache);
-  }// updateOccManager
+  }// BucketManagerCnfCl
 
+  ~BucketManagerCnfCl()
+  {
+    delete[] tmpKey;
+    distrib.resize(nbClauseCnf);
+    for(auto &d : distrib) d.clear();
+    distrib.clear();
+  }
 
+  
   /**
      It is used in order to construct a sorted residual formula.
 
@@ -76,15 +79,15 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   void createDistribWrTLit(Lit l)
   {
     assert(occManager);
-    std::vector<int> &idxClauses = occManager->getVecIdxClause(l);
+    std::vector<int> &idxClauses = specManager.getVecIdxClause(l);
     int ownBucket = -1;
 
-    for(int j = 0 ; j<idxClauses.size() ; j++)
+    for(unsigned j = 0 ; j<idxClauses.size() ; j++)
     {
       int idx = idxClauses[j];
 
-      if(modeStore == NT && !occManager->getNbUnsat(idx)) continue;
-      std::vector<Lit> &c = occManager->getClause(idx);
+      if(modeStore == NT && !specManager.getNbUnsat(idx)) continue;
+      std::vector<Lit> &c = specManager.getClause(idx);
       if(modeStore == NB && c.size() <= 2) continue;
 
       assert(idx < markIdx.size());
@@ -96,12 +99,13 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
         if(ownBucket == -1) // create its own bucket
         {
           ownBucket = vecBucketSortIntervalle.size();
-          vecBucketSortIntervalle.push_back((bucketSortInfo) {distrib.size(), distrib.size()});
+          vecBucketSortIntervalle.push_back((bucketSortInfo)
+              {(unsigned)distrib.size(), (unsigned) distrib.size()});
           refCutBucket.push_back(ownBucket);
         }
 
         markIdx[idx] = ownBucket;
-        distrib.push_back();
+        distrib.push_back(std::vector<Lit>());
         (distrib.back()).resize(0);
         (distrib.back()).push_back(l);
         vecBucketSortIntervalle[ownBucket].end++;
@@ -129,7 +133,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       }
     }
 
-    for(int j = 0 ; j<refCutBucket.size() ; j++) refCutBucket[j] = j;
+    for(unsigned j = 0 ; j<refCutBucket.size() ; j++) refCutBucket[j] = j;
   }// createDistribWrTLit
 
 
@@ -150,8 +154,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   std::vector<int> mustUnMark;
   inline void resetUnMark()
   {
-    for(int i = 0 ; i<mustUnMark.size() ; i++) markView[mustUnMark[i]] = false;
-    mustUnMark.resize(0);
+    for(auto &u : mustUnMark) markView[u] = false;
+    mustUnMark.clear();
   }// resetUnMark
 
   /**
@@ -165,7 +169,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     // sort the set of clauses
     for(unsigned i = 0 ; i<component.size() ; i++)
     {
-      if(occManager->varIsAssigned(component[i])) continue;
+      if(specManager.varIsAssigned(component[i])) continue;
       Lit l = Lit(component[i], false);
       createDistribWrTLit(l);
       createDistribWrTLit(~l);
@@ -174,21 +178,20 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
 
     // remove redondant clauses
-    for(int i = 0 ; i<vecBucketSortIntervalle.size() ; i++)
+    for(unsigned i = 0 ; i<vecBucketSortIntervalle.size() ; i++)
     {
       bucketSortInfo &c = vecBucketSortIntervalle[i];
-      for(int j = c.start + 1 ; j<c.end ; j++) distrib[j].resize(0);
+      for(unsigned j = c.start + 1 ; j<c.end ; j++) distrib[j].resize(0);
     }
   }// collectDistrib
 
 
-  inline void getInfoClDistrib(unsigned &nbLit, unsigned &nbDiffSize, unsigned &nbClause,
+  inline void getInfoClDistrib(unsigned &nbLit, unsigned &nbDiffSize,
+                               unsigned &nbClause,
                                unsigned &maxDistribSz)
   {
-    for(int i = 0 ; i<distribClauseNbVar.size() ; i++) assert(distribClauseNbVar[i] == 0);
-
     maxDistribSz = 0;
-    for(int i = 0 ; i<distrib.size() ; i++)
+    for(unsigned i = 0 ; i<distrib.size() ; i++)
     {
       if(!distrib[i].size()) continue;
       nbLit += distrib[i].size();
@@ -201,7 +204,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       if(distribClauseNbVar[i])
       {
         nbDiffSize++;
-        if(distribClauseNbVar[i] > maxDistribSz) maxDistribSz = distribClauseNbVar[i];
+        if(distribClauseNbVar[i] > maxDistribSz)
+          maxDistribSz = distribClauseNbVar[i];
         if(i > maxDistribSz) maxDistribSz = i;
         lastSize = i;
       }
@@ -212,7 +216,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   /**
      Compute the number of bytes requiered to store the data.
    */
-  inline unsigned computeNeededBytes(int nBv, int nBda, int nBdi, int nbVar, int nbLit, int nbDiffS)
+  inline unsigned computeNeededBytes(int nBv, int nBda, int nBdi,
+                                     int nbVar, int nbLit, int nbDiffS)
   {
     return (nBv * nbVar) + (nBda * nbLit) + (2 * nBdi * nbDiffS);
   }
@@ -224,7 +229,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
      @param[]
    */
-  template <typename U> void *storeVariables(void *data, std::vector<Var> &component)
+  template <typename U> void *storeVariables(void *data,
+                                             std::vector<Var> &component)
   {
     U *p = static_cast<U *>(data);
     for(unsigned i = 0 ; i<component.size() ; i++)
@@ -248,7 +254,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
      \return a pointer to the end of the data we added
    */
-  template <typename U> void *storeDistribInfo(void *data, std::vector<int> &distribInfo, int last)
+  template <typename U> void *storeDistribInfo(void *data,
+                                               std::vector<unsigned> &distribInfo,
+                                               int last)
   {
     U *p = static_cast<U *>(data);
     for(int i = 0 ; i <= last ; i++)
@@ -277,9 +285,11 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
      \return a pointer to the end of the data we added
   */
-  template <typename U> void *storeClauses(void *data, std::vector< std::vector<Lit> > &d,
+  template <typename U> void *storeClauses(void *data,
+                                           std::vector< std::vector<Lit> > &d,
                                            std::vector<Var> &component,
-                                           std::vector<int> &distribInfo, int lastSz)
+                                           std::vector<unsigned> &distribInfo,
+                                           int lastSz)
   {
     assert(nbVarCnf <= mapVar.size());
     for(unsigned i = 0 ; i<component.size() ; i++) mapVar[component[i]] = i;
@@ -371,28 +381,13 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     for(int i = 0 ; i <= lastSize ; i++) distribClauseNbVar[i] = 0;
 
     // put the information into the bucket
-    b.set(data, szData, component.size(), nbLit, nbClause, nbDiffSize<<1, nbOData, nbOVar, nbODistrib);
+    DataInfoCnf di(szData, component.size(), nbLit, nbClause,
+                   nbDiffSize<<1, nbOData, nbOVar, nbODistrib);
+    b.set(data, di);
   }// storeFormula
 
 
  public:
-  /**
-     Function called in order to initialized variables before using
-  */
-  BucketManagerCnfCl(CnfOccurrenceManager *occM, int mdStore, int strCache) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, strCache)
-  {
-    tmpKey = NULL;
-  }// BucketManager
-
-  ~BucketManagerCnfCl()
-  {
-    if(tmpKey) free(tmpKey);
-    distrib.resize(nbClauseCnf);
-    for(int i = 0 ; i<distrib.size() ; i++) distrib[i].clear();
-    distrib.clear();
-  }
-
 
   inline void printData(std::vector<Var> &component)
   {

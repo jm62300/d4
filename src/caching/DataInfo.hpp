@@ -33,6 +33,10 @@ class DataInfo
 {
  protected:
   // we reserve 96 bytes to store information in the cached bucket
+  //   We always at least have the following distribution:
+  // For info1 => |free (43 bytes)|nb var (21 bytes)|
+  // For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb octets var (2 bytes)| free (2 bytes)|
+
   uint64_t info1;
   uint32_t info2;
   
@@ -45,12 +49,19 @@ class DataInfo
 
  public:
   DataInfo();
-  DataInfo(uint64_t i1, uint32_t i2, unsigned count);  
+  DataInfo(unsigned szData,         
+           unsigned nbVar,          
+           unsigned nbOctetsData,   
+           unsigned nbOctetsVar,
+           unsigned count);  
 
   inline void reinitCount(int v = 0) {stats.count = v;}
   inline void incCount(int v = 1){stats.count += v;}
   inline void divCount(){stats.count >>= 1;}
-  inline void decCount(int v = 1){if(v > stats.count) stats.count = 0; else stats.count -= v;}
+  inline void decCount(int v = 1)
+  {
+    if(v > stats.count) stats.count = 0; else stats.count -= v;
+  }
   inline int count() {return stats.count;}
 
   inline int dirty() {return stats.dirty;}
@@ -68,7 +79,10 @@ class DataInfo
   virtual ~DataInfo(){}
 
   inline unsigned szData(){return info2 >> 6;}
-  inline void szData(unsigned sz){info2 = (info2&((1<<6) - 1)) | ((uint32_t) sz << 6);}
+  inline void szData(unsigned sz)
+  {
+    info2 = (info2&((1<<6) - 1)) | ((uint32_t) sz << 6);
+  }
   inline unsigned nbOctetsVar(){return (info2>>2) & ((1<<2) - 1);}
   inline unsigned nbOctetsData(){return (info2>>4) & ((1<<2) - 1);}
   inline unsigned nbVar(){return info1 & ((1<<21) - 1);}
