@@ -39,7 +39,7 @@ namespace d4
 {
 template<class T> class BucketManager
 {
-protected:
+ protected:
   std::vector<char *> allocateData;
   char *data;
   unsigned long int sizeData, posInData;
@@ -78,7 +78,7 @@ protected:
   /**
      Initialize the data structure regarding the configuration (ie. number of
      variables, maximum number of clauses and the lenght of the largest clause).
-   */
+  */
   void init(int _sizeData)
   {
     allMemory = freeMemory = posInData = 0;
@@ -95,7 +95,7 @@ protected:
   /**
      Get a pointer on an available array where we can store the data we want to
      save into the bucket.
-   */
+  */
   char *getArray(int size)
   {
     char *ret = NULL;
@@ -129,7 +129,7 @@ protected:
     if(posInData + size > sizeData)
     {
       int rSz = sizeData - posInData;
-      while(freeSpace.size() <= rSz) freeSpace.push_back();
+      if(freeSpace.size() <= rSz) freeSpace.resize(rSz, std::vector<char *>());
       freeSpace[rSz].push_back(&data[posInData]);
       freeMemory += rSz;
 
@@ -153,7 +153,7 @@ protected:
 
      @param[in] m, the memory we want to release
      @param[in] size, the size of the memory block
-   */
+  */
   inline void releaseMemory(char *m, int size)
   {
     while(freeSpace.size() <= size) freeSpace.push_back(std::vector<char *>());

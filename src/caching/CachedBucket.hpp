@@ -62,10 +62,7 @@ public:
   inline int nbVar(){return header.nbVar();}
   inline void print(std::ostream &os){header.print(data, os);}
   
-  inline bool sameHeader(CacheBucket<T> &b)
-  {
-    return header == b.header;
-  }
+  inline bool sameHeader(CachedBucket<T> &b){return header == b.header;}
 };
 
 }
