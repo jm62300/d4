@@ -108,6 +108,9 @@ template <class T> class ModelCounter : public MethodManager
     heuristicPartition = PartitioningHeuristic::
                          makePartitioningHeuristic(vm, *specs, *solver);
     assert(heuristicVar && heuristicPhase && heuristicPartition);
+
+    cache = new Cache<T>(vm);
+    
     
     // we delete the useless objects.
     delete initProblem;

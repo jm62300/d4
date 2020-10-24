@@ -22,12 +22,14 @@
 #define SIZE_HASH 999331
 
 #include <vector>
+#include <boost/program_options.hpp>
 
 #include "CachedBucket.hpp"
 #include <src/hashing/HashString.hpp>
 
 namespace d4
 {
+namespace po = boost::program_options;
 template<class T> class Cache
 {
  private:
@@ -56,22 +58,25 @@ template<class T> class Cache
   std::vector<bool> deadSize;
 
   unsigned maxSize;
-  unsigned callReduceCache;
-  unsigned strategyRedCache;
   unsigned long int sumDataSize;
+
+  unsigned strategyRedCache; // 0 no cache
   
   HashString hashMethod;
   
  public:
-  Cache(int rdCache, int strCache)
+  Cache(po::variables_map &vm)
   {
     sumDataSize = nbEntry = nbCreationBucket = 0;
-    strategyRedCache = strCache;
-    callReduceCache = rdCache;
     nbPositiveHit = nbNegativeHit = 0;
     nbFailedInCache = 1;
     nbRemoveEntry = nbReduceCall = sumAffectedHitCache = 0;
     verb = 0;
+
+    std::string strategyCacheOpt = vm["cache-reduction-strategy"].as<std::string>();
+    if(strategyCacheOpt == "none") strategyRedCache = 0;
+    else if(strategyCacheOpt == "expectation") strategyRedCache = 3;
+    else assert(0);
   }// CacheCNF
 
   ~Cache()
@@ -104,10 +109,11 @@ template<class T> class Cache
     
     switch(strategyRedCache)
     {
-      case 0 : cbIn.reinitCount(cb.nbVar()); break;
+      case 0 : break;
+      case 1 : cbIn.reinitCount(cb.nbVar()); break;
         // case 0 : cbIn.reinitCount(nbPositiveHit + nbNegativeHit); break;
-      case 1 : ;
-      case 2 : cbIn.reinitCount(nbPositiveHit + nbNegativeHit);
+      case 2 : ;
+      case 3 : cbIn.reinitCount(nbPositiveHit + nbNegativeHit);
     }
     assert(cbIn.count());
     nbEntry++;
@@ -160,9 +166,10 @@ template<class T> class Cache
   {
     switch(strategyRedCache)
     {
-      case 0 : reduceCacheStr0(bm); break;
-      case 1 : reduceCacheStr1(bm); break;
+      case 0 : break;
+      case 1 : reduceCacheStr0(bm); break;
       case 2 : reduceCacheStr1(bm); break;
+      case 3 : reduceCacheStr1(bm); break;
     }
   } // callCleaningStrategy
 
@@ -178,7 +185,7 @@ template<class T> class Cache
   */
   TmpEntry<T> searchInCache(std::vector<Var> &varConnected, BucketManager<T> *bm)
   {
-    if(callReduceCache) callCleaningStrategy(bm);
+    if(strategyRedCache) callCleaningStrategy(bm);
 
     CachedBucket<T> *formulaBucket = bm->collectBuckect(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
@@ -190,9 +197,9 @@ template<class T> class Cache
     {
       switch(strategyRedCache)
       {
-        case 1 : cacheBucket->reinitCount(nbPositiveHit + nbNegativeHit); break;
+        case 2 : cacheBucket->reinitCount(nbPositiveHit + nbNegativeHit); break;
           // case 0 : cacheBucket->reinitCount(nbPositiveHit + nbNegativeHit); break;
-        case 0 : cacheBucket->incCount(1); break;
+        case 1 : cacheBucket->incCount(1); break;
       }
       bm->releaseMemory(formulaBucket->data, formulaBucket->szData());
       return TmpEntry<T>(*cacheBucket, hashValue, true);
@@ -334,9 +341,9 @@ template<class T> class Cache
   */
   void reduceCacheStr1(BucketManager<T> *bm)
   {
-    if(!callReduceCache) return;
-    if(strategyRedCache == 1 && (bm->remainingMemory() > 0.1)) return;
-    if(strategyRedCache == 2 && nbEntry < (10 * (1<<21))) return;
+    if(!strategyRedCache) return;
+    if(strategyRedCache == 2 && (bm->remainingMemory() > 0.1)) return;
+    if(strategyRedCache == 3 && nbEntry < (10 * (1<<21))) return;
 
     nbReduceCall++;
     std::vector<int> vecCount;
@@ -352,8 +359,8 @@ template<class T> class Cache
 
 
     int limit = 0;
-    if(strategyRedCache == 1) limit = vecCount[vecCount.size() >> 1];
-    if(strategyRedCache == 2)
+    if(strategyRedCache == 2) limit = vecCount[vecCount.size() >> 1];
+    if(strategyRedCache == 3)
       limit = vecCount[(vecCount.size() >> 1) + (vecCount.size() >> 2)];
 
     for(int i = 0 ; i<hashTable.size() ; i++)
@@ -389,7 +396,7 @@ template<class T> class Cache
   */
   void reduceCacheStr0(BucketManager<T> *bm)
   {
-    if(!(callReduceCache && !(nbFailedInCache & ((1<<callReduceCache) - 1)))) return;
+    if(!strategyRedCache) return;
     int dec = ((unsigned long int) nbEntry *
                (unsigned long int) (nbInitVar)) >>
               (38 - (int) log2(sumDataSize / nbCreationBucket));
