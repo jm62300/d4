@@ -258,7 +258,7 @@ void SpecManagerCnf::getCurrentClauses(std::vector<int> &idxClauses,
 }// getCurrentclauses
 
 
-void SpecManagerCnf::updateCurrentClauseSet(std::vector<Var> &component)
+void SpecManagerCnf::updateCurrentFormula(std::vector<Var> &component)
 {
   for(auto &v : component) inCurrentComponent[v] = true;
 
@@ -280,7 +280,7 @@ void SpecManagerCnf::updateCurrentClauseSet(std::vector<Var> &component)
 }// updatecurrentclauseset
 
 
-void SpecManagerCnf::popPreviousClauseSet()
+void SpecManagerCnf::popPreviousFormula()
 {
   assert(stackSize.size());
   currentSize = stackSize.back();

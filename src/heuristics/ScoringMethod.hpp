@@ -38,6 +38,9 @@ class ScoringMethod
                                           ActivityManager &am);
   virtual ~ScoringMethod(){;}
   virtual double computeScore(Var v) = 0;
+
+  Var selectVariable(std::vector<Var> &vars,
+                     SpecManager &s);
 };
 }
 

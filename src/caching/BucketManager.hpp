@@ -177,7 +177,7 @@ template<class T> class BucketManager
      @param[in] m, the memory we want to release
      @param[in] size, the size of the memory block
   */
-  inline void releaseMemory(char *m, int size)
+  inline void releaseMemory(char *m, unsigned size)
   {
     while(freeSpace.size() <= size) freeSpace.push_back(std::vector<char *>());
     freeSpace[size].push_back(m);

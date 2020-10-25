@@ -24,8 +24,9 @@
 namespace d4
 {
 class PhaseHeuristicTrue : public PhaseHeuristic
-{
+{ 
  public:
+  PhaseHeuristicTrue(bool isReversed);
   bool selectPhase(Var v);
 };
 }

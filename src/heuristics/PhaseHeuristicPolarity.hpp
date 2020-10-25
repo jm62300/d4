@@ -31,7 +31,7 @@ class PhaseHeuristicPolarity : public PhaseHeuristic
   PolarityManager &pm;
   
  public:
-  PhaseHeuristicPolarity(PolarityManager &p);
+  PhaseHeuristicPolarity(PolarityManager &p, bool isReversed);
   bool selectPhase(Var v);
 };
 

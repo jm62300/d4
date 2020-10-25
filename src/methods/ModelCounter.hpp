@@ -59,9 +59,7 @@ template <class T> class ModelCounter : public MethodManager
   unsigned nbSplit;
   unsigned callEquiv;
   unsigned callPartitioner;
-  unsigned limitCacheDyn;
   unsigned nbDecisionNode;
-  unsigned freqLimitDyn;
   unsigned optCached;
   unsigned stampIdx;
   
@@ -127,9 +125,17 @@ template <class T> class ModelCounter : public MethodManager
     // other variable initialization.
     currentTime = clock();
 
-    showRun(std::cout);
-    showInter(std::cout);
-    printFinalStats(std::cout);
+    // weight
+    weightLit.resize((specs->getNbVariable() + 1) << 1, 1);
+    weightVar.resize(specs->getNbVariable(), 2);
+    
+    optCached = vm["cache-activated"].as<bool>();
+    callPartitioner = callEquiv = 0;
+    nbSplit = nbCallCall = 0;    
+    nbDecisionNode = nbNodeInCall = 0;
+
+    stampIdx = 0;
+    stampVar.resize(specs->getNbVariable(), 0);    
   } // constructor
 
 
@@ -180,7 +186,6 @@ template <class T> class ModelCounter : public MethodManager
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << callEquiv
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << limitCacheDyn
         << "|\n";
   } // showInter
 
@@ -210,11 +215,10 @@ template <class T> class ModelCounter : public MethodManager
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "Mem(MB)" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#equivCall" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#Dec. Node" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#partioner" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "limitDyn" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter"
         << "|\n";
     separator(out);
   } // showHeader
@@ -253,8 +257,50 @@ template <class T> class ModelCounter : public MethodManager
     out << "c\n";
   } // printFinalStat
 
+
+  /**
+     Initialize the assumption in order to compute the number of model
+     under this one.
+
+     @param[in] assums, the assumption
+  */
+  inline void initAssumption(std::vector<Lit> &assums)
+  {
+    solver->restart();
+    solver->setAssumption(assums);
+  } // initAssumption
+
+
+  /**
+     Return the weight of a given variable.
+
+     @param[in] v, the variable.
+
+     \return weightVar[v], that is the weight of v     
+   */
+  inline T getWeightVar(Var v)
+  {
+    return T(weightVar[v]);
+  }
+
+  /**
+     Compute the value for free and unit variables.
+
+     @param[in] units, the units variables
+     @param[in] frees, the free variables
+
+     \return the right value
+  */
+  inline T computeWeightUnitFree(std::vector<Lit> &units,
+                                 std::vector<Var> &frees)
+  {
+    T tmp = 1;
+    for(auto &l : units) tmp *= T(weightLit[l.intern()]);
+    for(auto &v : frees) tmp *= T(weightVar[v]);
+    return tmp;
+  } // computeValue
   
-#if 0  
+
   /**
      Call the CNF formula into a D-FPiBDD.
 
@@ -273,315 +319,127 @@ template <class T> class ModelCounter : public MethodManager
                     std::vector<Var> &priorityVar,
                     std::ostream &out)
   {
-    showRun(); nbCallCall++;
-    s.rebuildWithConnectedComponent(setOfVar);
-
-    if(!s.solveWithAssumptions()) return 0;
-    s.collectUnit(setOfVar, unitsLit); // collect unit literals
-
-    occManager->preUpdate(unitsLit);
-
-    // compute the connected composant
-    vec<Var> reallyPresent;
-    vec< vec<Var> > varConnected;
-    int nbComponent = occManager->computeConnectedComponent(varConnected, setOfVar, freeVariable, reallyPresent);
+    showRun(out); nbCallCall++;
+    
+    solver->inputVar(setOfVar);
+    if(!solver->solve()) return 0;
+    
+    solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
+    specs->preUpdate(unitsLit);
 
     T ret = 1, curr;
+    
+    // compute the connected composant
+    std::vector<Var> reallyPresent;
+    std::vector< std::vector<Var> > varConnected;
+    int nbComponent = specs->computeConnectedComponent(
+        varConnected, setOfVar, freeVariable, reallyPresent);
+    // consider each connected component.
     if(nbComponent)
     {
       nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
-        vec<Var> &connected = varConnected[cp];
-        bool localCache = optCached == 1 || (optCached > 1 && !cache->shouldNotCache(connected.size(), bm));
+        std::vector<Var> &connected = varConnected[cp];
+        specs->updateCurrentFormula(connected);
+        TmpEntry<T> cb = optCached ?
+                         cache->searchInCache(connected, bucketManager):
+                         NULL_CACHE_ENTRY;
 
-        occManager->updateCurrentClauseSet(connected);
-        TmpEntry<T> cb = localCache ? cache->searchInCache(connected, bm) : NULL_CACHE_ENTRY;
-
-        if(localCache && cb.defined) ret *= cb.getValue();
+        if(optCached && cb.defined) ret *= cb.getValue();
         else
         {
           // recursive call
-          vec<Var> currPriority;
+          std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
-          ret *= (curr = computeDecisionNode(connected, currPriority));
+          ret *= (curr = computeDecisionNode(connected, currPriority, out));
 
-          if(localCache) cache->addInCache(cb, curr);
+          if(optCached) cache->addInCache(cb, curr);
         }
-        occManager->popPreviousClauseSet();
+        specs->popPreviousFormula();
       }
     }// else we have a tautology
 
-    occManager->postUpdate(unitsLit);
+    specs->postUpdate(unitsLit);    
     return ret;
   }// computeNbModel_
-
 
 
   /**
      This function select a variable and compile a decision node.
 
-     @param[in] connected, the set of variable present in the current problem
-     \return the compiled formula
+     @param[in] connected, the set of variable present in the current problem.
+     @param[in] priorityVar, a list of variable we want to branch first.
+     
+     \return the compiled formula.
   */
-  T computeDecisionNode(vec<Var> &connected, vec<Var> &priorityVar)
+  T computeDecisionNode(std::vector<Var> &connected,
+                        std::vector<Var> &priorityVar,
+                        std::ostream &out)
   {
-    if(pv && !priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
+    if(!priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
       {
-        vec<int> cutSet;
-        pv->computePartition(connected, cutSet, priorityVar, vs->getScoringFunction());
+        heuristicPartition->computePartition(connected, priorityVar);
+        assert(priorityVar.size());
         callPartitioner++;
       }
 
-    Var v = var_Undef;
-    if(priorityVar.size()) v = vs->selectVariable(priorityVar); else v = vs->selectVariable(connected);
+    // search the next variable to branch on
+    std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;    
+    Var v = heuristicVar->selectVariable(inVars, *specs);    
     if(v == var_Undef) return 1;
 
-    Lit l = mkLit(v, optReversePolarity - vs->selectPhase(v));
+    
+    Lit l = Lit(v, heuristicPhase->selectPhase(v));
     nbDecisionNode++;
-
+    
     // compile the formula where l is assigned to true
-    vec<Lit> unitLitPos, unitLitNeg;
-    vec<Var> freeVarPos, freeVarNeg;
+    std::vector<Lit> unitLitPos, unitLitNeg;
+    std::vector<Var> freeVarPos, freeVarNeg;
 
-    (s.assumptions).push(l);
-    T pos = computeNbModel_(connected, unitLitPos, freeVarPos, priorityVar);
+    solver->pushAssumption(l);
+    T pos = computeNbModel_(connected, unitLitPos, freeVarPos, priorityVar, out);
     pos *= computeWeightUnitFree(unitLitPos, freeVarPos);
-    (s.assumptions).pop();
-    (s.cancelUntil)((s.assumptions).size());
-
-    (s.assumptions).push(~l);
-    T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar);
+    solver->popAssumption();
+    
+    solver->pushAssumption(~l);
+    T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar, out);
     neg *= computeWeightUnitFree(unitLitNeg, freeVarNeg);
-    (s.assumptions).pop();
-    (s.cancelUntil)((s.assumptions).size());
-
+    solver->popAssumption();
+    
     return neg + pos;
   }// computeDecisionNode
 
-
-
-  inline void init(int nbClauses, int maxSizeClause, vec<double> &wl, OptionManager &optList,
-                   vec<bool> &isProjectedVar)
-  {
-    wl.copyTo(weightLit);
-    for(int i = 0 ; i<wl.size()>>1 ; i++) s.newVar();
-    for(int i = 0 ; i<s.nVars() ; i++)
-    {
-      weightVar.push(weightLit[i<<1] + weightLit[(i<<1) | 1]);
-    }
-    limitCacheDyn = s.nVars();
-
-    callPartitioner = callEquiv = 0;
-    optCached = optList.optCache;
-    optReversePolarity = optList.reversePolarity;
-
-    optList.printOptions();
-
-    // initialized the data structure
-    prepareVecClauses(clauses, s);
-    occManager = new DynamicOccurrenceManager(0, s.nVars(), 0);
-
-    cache = new CacheCNF<T>(optList.reduceCache, optList.strategyRedCache);
-    cache->initHashTable(occManager->getNbVariable(), nbClauses, maxSizeClause);
-
-    vs = new VariableHeuristicInterface(s, occManager, optList.varHeuristic,
-                                        optList.phaseHeuristic, isProjectedVar);
-
-    if(!strcmp(optList.cacheRepresentation, "CL"))
-      bm = new BucketManager<T>(occManager, nbClauses, s.nVars(), maxSizeClause, optList.strategyRedCache);
-    else if(!strcmp(optList.cacheRepresentation, "HC"))
-      bm = new BucketManagerHC<T>(occManager, nbClauses, s.nVars(), maxSizeClause, optList.strategyRedCache);
-    else bm = new BucketManagerSym<T>(occManager, nbClauses, s.nVars(), maxSizeClause, optList.strategyRedCache);
-
-    pv = PartitionerInterface::getPartitioner(s, occManager, optList);
-    bm->setFixeFormula(optList.cacheStore);
-
-    // statistics initialization
-    nbSplit = nbCallCall = 0;
-    currentTime = cpuTime();
-    nbDecisionNode = nbNodeInCall = 0;
-
-    stampIdx = 0;
-    stampVar.initialize(s.nVars(), 0);
-    em.initEquivManager(s.nVars());
-  }// init
-
-public:
-
-  T getWeightVar(Var v){return T(weightVar[v]);}
-
-  /**
-     Compute the value for free and unit variables.
-
-     @param[in] units, the units variables
-     @param[in] frees, the free variables
-
-     \return the right value
-   */
-  inline T computeWeightUnitFree(vec<Lit> &units, vec<Var> &frees)
-  {
-    T tmp = 1;
-    for(int i = 0 ; i<units.size() ; i++)
-      if(vs->isProjected(var(units[i]))) tmp *= T(weightLit[toInt(units[i])]);
-    for(int i = 0 ; i<frees.size() ; i++)
-      if(vs->isProjected(frees[i])) tmp *= T(weightVar[frees[i]]);
-    return tmp;
-  } // computeValue
-
-
-
-
-  /**
-     Constructor of model counter that does not take a formula as
-     input (the formula is given later).
-
-     @param[in] fWeights, the vector of literal's weight
-     @param[in] optList, the options
-     @param[in] isProjectedVar, boolean vector used to decide if a variable is projected (true) or not (false)
-  */
-  ModelCounter(int nbClauses, int maxSizeClause, vec<double> &wl, OptionManager &optList,
-               vec<bool> &isProjectedVar)
-  {
-    init(nbClauses, maxSizeClause, wl, optList, isProjectedVar);
-  } // ModelCounter
-
-
-  /**
-     Constructor of model counter.
-
-     @param[in] cnf, set of clauses
-     @param[in] fWeights, the vector of literal's weight
-     @param[in] optList, the options
-     @param[in] isProjectedVar, boolean vector used to decide if a variable is projected (true) or not (false)
-  */
-  ModelCounter(vec<vec<Lit> > &cnf, vec<double> &wl, OptionManager &optList, vec<bool> &isProjectedVar)
-  {
-    // init the model counter's date structures
-    int maxSizeClause = 0;
-    for(int i = 0 ; i<cnf.size() ; i++) if(cnf[i].size() > maxSizeClause) maxSizeClause = cnf[i].size();
-    init(cnf.size(), maxSizeClause, wl, optList, isProjectedVar);
-
-    // init the solver
-    for(int i = 0 ; i<cnf.size() ; i++) s.addClause_(cnf[i]);
-
-    // test the satifiability of the input formula
-    if(!s.solveWithAssumptions()){printf("c The formula is unsatisfiable\ns 0\n"); exit(0);}
-    s.simplify();
-    s.remove_satisfied = false;
-    s.setNeedModel(false);
-
-    // add the clauses to the occurrence manager
-    vec<vec<Lit> > reduceCnf;
-    for(int i = 0 ; i<cnf.size() ; i++)
-    {
-      bool isSAT = false;
-      reduceCnf.push();
-      vec<Lit> &cl = cnf[i], &redCl = reduceCnf.last();
-
-      for(int j = 0 ; !isSAT && j<cl.size() ; j++)
-      {
-        if(s.value(cl[j]) == l_Undef) redCl.push(cl[j]);
-        isSAT = isSAT || s.value(cl[j]) == l_True;
-      }
-
-
-      if(isSAT) reduceCnf.pop();
-      else assert(redCl.size());
-    }
-
-    freqLimitDyn = optList.freqLimitDyn;
-    occManager->initFormula(reduceCnf);
-    cache->setInfoFormula(s.nVars(), reduceCnf.size(), occManager->getMaxSizeClause());
-  }// ModelCounter
-
-  ~ModelCounter()
-  {
-    if(pv) delete pv;
-    delete cache; delete vs; delete bm;
-    delete occManager;
-  }
-
-  /**
-     Initialize the assumption in order to compute the number of model
-     under this one.
-
-     @param[in] assums, the assumption
-   */
-  void initAssumption(vec<Lit> &assums)
-  {
-    s.cancelUntil(0);
-    assums.copyTo(s.assumptions);
-  }// initAssumption
-
-
+  
   /**
      Compute the number of model using the trace of a SAT solver.
 
      \return the number of models
   */
-  T computeNbModel(bool verb = true)
+  T computeNbModel(std::ostream &out)
   {
-    vec<Var> freeVariable, setOfVar, priorityVar;
-    vec<Lit> unitsLit;
+    std::vector<Var> freeVariable, setOfVar, priorityVar;
+    std::vector<Lit> unitsLit;
 
-    for(int i = 0 ; i<s.nVars() ; i++) setOfVar.push(i);
-    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar);
-
-    if(verb) printFinalStatsCache();
+    for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
+    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);
 
     T computeWeight = 1;
-    for(int i = 0 ; i<freeVariable.size() ; i++)
-      if(vs->isProjected(freeVariable[i])) computeWeight *= T(weightVar[freeVariable[i]]);
-    for(int i = 0 ; i<unitsLit.size() ; i++)
-      if(vs->isProjected(var(unitsLit[i]))) computeWeight *= T(weightLit[toInt(unitsLit[i])]);
+    for(auto &v : freeVariable) computeWeight *= T(weightVar[v]);
+    for(auto &l : unitsLit) computeWeight *= T(weightLit[l.intern()]);
 
     return d * computeWeight;
   }// computeNbModel
 
-
-  /**
-     Compute the number of model using the trace of a SAT solver.
-
-     \return the number of models
-  */
-  T computeNbModel(vec<Var> &setOfVar, bool verb = true)
-  {
-    vec<Var> freeVariable, priorityVar;
-    vec<Lit> unitsLit;
-
-    // we need to collect the variabels they are in the assumption and not in setOfVar
-    vec<Lit> assumsLit;
-    vec<bool> markedVar;
-
-    for(int i = 0 ; i<s.nVars() ; i++) markedVar.push(false);
-    for(int i = 0 ; i<setOfVar.size() ; i++) markedVar[setOfVar[i]] = true;
-    for(int i = 0 ; i<s.assumptions.size() ; i++)
-      if(!markedVar[var(s.assumptions[i])]) assumsLit.push(s.assumptions[i]);
-
-    occManager->preUpdate(assumsLit);
-    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar);
-    occManager->postUpdate(assumsLit);
-
-    if(verb) printFinalStatsCache();
-
-    T computeWeight = 1;
-    for(int i = 0 ; i<freeVariable.size() ; i++)
-      if(vs->isProjected(freeVariable[i])) computeWeight *= T(weightVar[freeVariable[i]]);
-    for(int i = 0 ; i<unitsLit.size() ; i++)
-      if(vs->isProjected(var(unitsLit[i]))) computeWeight *= T(weightLit[toInt(unitsLit[i])]);
-
-    return d * computeWeight;
-  }// computeNbModel
-#endif
-
+ public:
   
   /**
      The method called to run the model counter.
    */
   void run()
   {
-    
+    T nbModels = computeNbModel(std::cout);
+    std::cout << nbModels << "\n"; 
   } // run
   
 };

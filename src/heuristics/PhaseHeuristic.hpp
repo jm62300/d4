@@ -30,6 +30,9 @@ namespace d4
 namespace po = boost::program_options;
 class PhaseHeuristic
 {
+ protected:
+  bool isReversed;
+  
  public:
   virtual ~PhaseHeuristic() {}
   static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm,

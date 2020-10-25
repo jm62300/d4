@@ -30,7 +30,7 @@ class PhaseHeuristicOccurrence : public PhaseHeuristic
   SpecManager &sm;
   
  public:
-  PhaseHeuristicOccurrence(SpecManager &s);
+  PhaseHeuristicOccurrence(SpecManager &s, bool isRev);
   bool selectPhase(Var v);
 };
 

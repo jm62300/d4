@@ -35,10 +35,12 @@ PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm,
                                                    PolarityManager &p)
 {
   std::string meth = vm["phase-heuristic"].as<std::string>();
-  if(meth == "false") return new PhaseHeuristicFalse();
-  if(meth == "true") return new PhaseHeuristicTrue();
-  if(meth == "polarity") return new PhaseHeuristicPolarity(p);
-  if(meth == "occurrence") return new PhaseHeuristicOccurrence(s);
+  bool rev = vm["phase-heuristic-reversed"].as<bool>();
+  
+  if(meth == "false") return new PhaseHeuristicFalse(rev);
+  if(meth == "true") return new PhaseHeuristicTrue(rev);
+  if(meth == "polarity") return new PhaseHeuristicPolarity(p, rev);
+  if(meth == "occurrence") return new PhaseHeuristicOccurrence(s, rev);
   return NULL;
 } // makePhaseHeuristic
 

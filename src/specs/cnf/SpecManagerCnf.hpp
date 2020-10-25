@@ -112,10 +112,14 @@ class SpecManagerCnf : public SpecManager
 
   bool isSatisfiedClause(unsigned idx);
   bool isSatisfiedClause(std::vector<Lit> &c);
-  bool isNotSatisfiedClauseAndInComponent(int idx, std::vector<bool> &inCurrentComponent);
-  void getCurrentClauses(std::vector<int> &idxClauses, std::vector<bool> &inCurrentComponent);
-  void updateCurrentClauseSet(std::vector<Var> &component);
-  void popPreviousClauseSet();
+  bool isNotSatisfiedClauseAndInComponent(int idx,
+                                          std::vector<bool> &inCurrentComponent);
+  
+  void getCurrentClauses(std::vector<int> &idxClauses,
+                         std::vector<bool> &inCurrentComponent);
+  
+  void updateCurrentFormula(std::vector<Var> &component);
+  void popPreviousFormula();
 
   
   

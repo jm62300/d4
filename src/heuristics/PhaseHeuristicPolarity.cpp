@@ -26,9 +26,10 @@ namespace d4
 
    @param[in] p, a polarity manager.
  */
-PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p) : pm(p)
+PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p,
+                                               bool isRev) : pm(p)
 {
-  
+  isReversed = isRev;
 } // constructor
 
 
@@ -40,7 +41,7 @@ PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p) : pm(p)
  */
 bool PhaseHeuristicPolarity::selectPhase(Var v)
 {
-  return pm.getPolarity(v);
+  return (pm.getPolarity(v) + 1) & 1;
 } // selectPhase
 
 }

@@ -41,6 +41,11 @@ class WrapperMinisat : public WrapperSolver
   bool getPolarity(Var v);
   bool decideAndComputeUnit(Lit l, std::vector<Lit> &units);
   void whichAreUnits(std::vector<Var> &component, std::vector<Lit> &units);
+  void restart();
+  void setAssumption(std::vector<Lit> &assums);
+  void inputVar(std::vector<Var> &setOfVar);
+  void pushAssumption(Lit l);
+  void popAssumption();
 };
 }
 

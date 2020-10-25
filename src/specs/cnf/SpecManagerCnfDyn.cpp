@@ -166,7 +166,7 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits)
       currentValue[l.var()] = l_Undef;
     }
 
-  popPreviousClauseSet();
+  popPreviousFormula();
 }// postUpdate
 
 

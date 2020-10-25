@@ -22,13 +22,23 @@ namespace d4
 {
 
 /**
+   Constructor.
+
+   @param[in] isReserved, specify if the polarity is reversed or not.
+ */
+PhaseHeuristicTrue::PhaseHeuristicTrue(bool isRev)
+{
+  isReversed = isRev;
+} // constructor
+
+/**
    We assign the next varaible to false.
    
    @param[in] v, the variable we want to select the phase.
  */
 bool PhaseHeuristicTrue::selectPhase(Var v)
 {
-  return true;
+  return (true + isReversed) & 1;
 } // selectPhase
 
 }

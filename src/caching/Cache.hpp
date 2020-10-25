@@ -135,9 +135,8 @@ template<class T> class Cache
     char *refData = cb.data;
     std::vector<CachedBucket<T> > &listCollision = hashTable[hashValue % SIZE_HASH];
 
-    for(int i = 0 ; i<listCollision.size() ; i++)
-    {
-      CachedBucket<T> &cbi = listCollision[i];
+    for(auto &cbi : listCollision)
+      {
       if(!cb.sameHeader(cbi)) continue;
 
       if(!memcmp(refData, cbi.data, cbi.szData()))
@@ -187,7 +186,7 @@ template<class T> class Cache
   {
     if(strategyRedCache) callCleaningStrategy(bm);
 
-    CachedBucket<T> *formulaBucket = bm->collectBuckect(varConnected);
+    CachedBucket<T> *formulaBucket = bm->collectBucket(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
     assert(nbTestCache.size() > varConnected.size());
@@ -348,11 +347,8 @@ template<class T> class Cache
     nbReduceCall++;
     std::vector<int> vecCount;
 
-    for(int i = 0 ; i<hashTable.size() ; i++)
-    {
-      std::vector< CachedBucket<T> > &v = hashTable[i];
+    for(auto &v : hashTable)
       for(auto b : v) vecCount.push_back(b.count());
-    }
 
     if(!vecCount.size()) return;
     std::sort(vecCount.begin(), vecCount.end());
@@ -363,11 +359,9 @@ template<class T> class Cache
     if(strategyRedCache == 3)
       limit = vecCount[(vecCount.size() >> 1) + (vecCount.size() >> 2)];
 
-    for(int i = 0 ; i<hashTable.size() ; i++)
+    for(auto &v : hashTable)
     {
-      std::vector< CachedBucket<T> > &v = hashTable[i];
-
-      for(int j = 0 ; j<v.size() ; )
+      for(unsigned j = 0 ; j<v.size() ; )
       {
         CachedBucket<T> &cb = v[j];
         if(cb.count() < limit)
@@ -403,11 +397,11 @@ template<class T> class Cache
     nbFailedInCache++;
     nbReduceCall++;
 
-    for(int i = 0 ; i<hashTable.size() ; i++)
+    for(unsigned i = 0 ; i<hashTable.size() ; i++)
     {
       std::vector< CachedBucket<T> > &v = hashTable[i];
-
-      for(int j = 0 ; j<v.size() ; )
+      
+      for(unsigned j = 0 ; j<v.size() ; )
       {
         CachedBucket<T> &cb = v[j];
         double ratio = (double) sizeVarCacheHit[cb.nbVar()] /

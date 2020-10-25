@@ -160,7 +160,7 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
     minisat::vec<minisat::Lit> learnt_clause;
     s.analyzeLastUIP(confl, learnt_clause, bt);
     s.cancelUntil(s.decisionLevel() - 1);
-    assert(learnt_clause[0] == minisat::mkLit(l.intern(), !l.sign()));
+    assert(learnt_clause[0] == minisat::mkLit(l.var(), !l.sign()));
     s.insertClauseAndPropagate(learnt_clause);
     return false;
   }
@@ -189,5 +189,65 @@ void WrapperMinisat::whichAreUnits(std::vector<Var> &component,
     units.push_back(Lit(var(l), sign(l)));
   }
 } // whichAreUnits
+
+
+/**
+   Restart the solver.
+ */
+void WrapperMinisat::restart()
+{
+  s.cancelUntil(0);
+} // restart
+
+
+/**
+   Transfer to the solver the fact we have a set of assumption variables we want
+   to consider.
+
+   @param[in] assums, the set of assumptions
+ */
+void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
+{
+  minisat::vec<minisat::Lit> &assumptions = s.assumptions;
+  assumptions.clear();
+  for(auto &l : assums) assumptions.push(minisat::mkLit(l.var(), l.sign()));
+} // setAssumption
+
+
+/**
+   Say yo the SAT solver that we search for a model only with a set of given
+   variables. That means, if all variables of setOfvar are assigned, then the
+   problem is say to be satisfiable.
+
+   @param[in] setOfvar, the set of considered variables.
+ */
+void WrapperMinisat::inputVar(std::vector<Var> &setOfVar)
+{
+  minisat::vec<minisat::Var> setOfVar_m;
+  for(auto &v : setOfVar) setOfVar_m.push(v);
+  s.rebuildWithConnectedComponent(setOfVar_m);
+} // inputVar
+
+
+/**
+   Push a new assumption.
+
+   @param[in] l, the literal we want to push.
+ */
+void WrapperMinisat::pushAssumption(Lit l)
+{
+  (s.assumptions).push(minisat::mkLit(l.var(), l.sign()));
+} // pushAssumption
+
+
+/**
+   Remove the last assumption and cancelUntil.
+ */
+void WrapperMinisat::popAssumption()
+{
+  (s.assumptions).pop();
+  (s.cancelUntil)((s.assumptions).size());  
+} // popAssumption
+
 
 } // d4

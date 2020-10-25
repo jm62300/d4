@@ -26,9 +26,10 @@ namespace d4
 
    @param[in] s, the manager that give information about the formula.
  */
-PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s) : sm(s)
+PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s,
+                                                   bool isRev) : sm(s)
 {
-  
+  isReversed = isRev;
 } // constructor
 
 
@@ -38,7 +39,8 @@ PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s) : sm(s)
  */
 bool PhaseHeuristicOccurrence::selectPhase(Var v)
 {
-  return sm.getNbOccurrence(Lit(v, false)) < sm.getNbOccurrence(Lit(v, true));
+  bool ret = sm.getNbOccurrence(Lit(v, false)) < sm.getNbOccurrence(Lit(v, true));
+  return (ret + isReversed) & 1;
 } // selectPhase
 
 }

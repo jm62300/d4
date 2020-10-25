@@ -63,4 +63,33 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManag
   
   return NULL;
 } // makeScoringMethod
+
+
+/**
+   Select the best variable in vars and return it.
+
+   \param[in] vars, the set of variables we search in.
+
+   \return the best variable if exists, var_Undef otherwise.
+ */
+Var ScoringMethod::selectVariable(std::vector<Var> &vars,
+                                  SpecManager &s)
+{
+  Var ret = var_Undef;
+  double bestScore = -1;
+
+  for(auto &v : vars)
+  {
+    if(s.varIsAssigned(v)) continue;
+    
+    if(ret == var_Undef || computeScore(v) > bestScore)
+    {
+      ret = v;
+      bestScore = computeScore(v);
+    }
+  }
+  
+  return ret;
+} // selectVariable
+
 }
