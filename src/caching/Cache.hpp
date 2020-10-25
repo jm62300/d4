@@ -87,13 +87,13 @@ template<class T> class Cache
   inline int getNbPositiveHit(){return nbPositiveHit;}
   inline int getNbNegativeHit(){return nbNegativeHit;}
 
-  inline void printCacheInformation()
+  inline void printCacheInformation(std::ostream &out)
   {
-    printf("c \033[1m\033[34mCache Information\033[0m\n");
-    printf("c Number of positive hit: %d\n", nbPositiveHit);
-    printf("c Number of negative hit: %d\n", nbNegativeHit);
-    printf("c Number of reduceCall: %d\n", nbReduceCall);
-    printf("c\n");
+    out << "c \033[1m\033[34mCache Information\033[0m\n";
+    out << "c Number of positive hit: " << nbPositiveHit << "\n";
+    out << "c Number of negative hit: " << nbNegativeHit << "\n";
+    out << "c Number of reduceCall: " << nbReduceCall << "\n";
+    out << "c\n";
   }// printCacheInformation
 
 
