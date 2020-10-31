@@ -29,7 +29,7 @@ namespace d4
 ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile)
 {
   ParserDimacs parser;
-  nbVars = parser.parse_DIMACS(nameFile, clauses);
+  m_nbVar = parser.parse_DIMACS(nameFile, m_clauses);
 } // constructor
 
 
@@ -39,7 +39,7 @@ ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile)
  */
 ProblemManagerCnf::ProblemManagerCnf()
 {
-  nbVars = 0;
+  m_nbVar = 0;
 } // constructor
 
 
@@ -49,7 +49,7 @@ ProblemManagerCnf::ProblemManagerCnf()
  */
 ProblemManagerCnf::ProblemManagerCnf(int nbVar) 
 {
-  nbVars = nbVar;
+  m_nbVar = nbVar;
 } // constructor
 
 
@@ -58,8 +58,8 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar)
  */
 ProblemManagerCnf::~ProblemManagerCnf()
 {
-  clauses.clear();
-  nbVars = 0;
+  m_clauses.clear();
+  m_nbVar = 0;
 } // destructor
 
 
@@ -70,8 +70,8 @@ ProblemManagerCnf::~ProblemManagerCnf()
  */
 void ProblemManagerCnf::display(std::ostream &out)
 {
-  out << "p cnf " << nbVars << " " << clauses.size() << "\n";
-  for(auto cl : clauses)
+  out << "p cnf " << m_nbVar << " " << m_clauses.size() << "\n";
+  for(auto cl : m_clauses)
   {
     for(auto &l : cl) out << l << " ";
     out << "0\n";

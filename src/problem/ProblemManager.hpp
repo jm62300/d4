@@ -26,14 +26,14 @@ namespace po = boost::program_options;
 class ProblemManager
 {
  protected:
-  int nbVars;
+  int m_nbVar;
   
  public:
   static ProblemManager *makeProblemManager(po::variables_map &vm);
   
   virtual ~ProblemManager(){;}
-  int getNbVar(){return nbVars;}
-  void setNbVar(int n){nbVars = n;}
+  int getNbVar(){return m_nbVar;}
+  void setNbVar(int n){m_nbVar = n;}
   virtual void display(std::ostream &out) = 0;
 };
 }

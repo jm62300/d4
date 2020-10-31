@@ -15,15 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_problem_cnf_ProblemManagerCnf_hpp
-#define d4_problem_cnf_ProblemManagerCnf_hpp
+#pragma once
 
 #include <boost/program_options.hpp>
 
 #include "../ProblemTypes.hpp"
 #include "../ProblemManager.hpp"
-#include <src/solvers/WrapperSolver.hpp>
+#include "src/solvers/WrapperSolver.hpp"
 
 namespace d4
 {
@@ -33,7 +31,7 @@ namespace po = boost::program_options;
 class ProblemManagerCnf : public ProblemManager
 {
  private:
-  std::vector< std::vector<Lit> > clauses;
+  std::vector< std::vector<Lit> > m_clauses;
   
  public:
   ProblemManagerCnf();
@@ -41,9 +39,8 @@ class ProblemManagerCnf : public ProblemManager
   ProblemManagerCnf(std::string &nameFile);
   ~ProblemManagerCnf();  
   void display(std::ostream &out);
-  std::vector< std::vector<Lit> > &getClauses(){return clauses;}  
+  std::vector< std::vector<Lit> > &getClauses(){return m_clauses;}  
 };
   
 } // d4
 
-#endif
