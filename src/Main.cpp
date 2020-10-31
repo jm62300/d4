@@ -21,13 +21,8 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#if 0
 
-
-#include <src/utils/EquivExtractor.hpp>
-#endif
-
-#include <src/methods/MethodManager.hpp>
+#include "src/methods/MethodManager.hpp"
 
 
 /**

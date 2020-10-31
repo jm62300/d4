@@ -16,8 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_problem_ProblemManager_hpp
-#define d4_src_problem_ProblemManager_hpp
+#pragma once
 
 #include <boost/program_options.hpp>
 
@@ -38,5 +37,3 @@ class ProblemManager
   virtual void display(std::ostream &out) = 0;
 };
 }
-
-#endif

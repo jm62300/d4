@@ -15,9 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_problem_ProblemTypes_hpp
-#define d4_src_problem_ProblemTypes_hpp
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -64,8 +62,4 @@ inline void showListLit(std::ostream &out, std::vector<Lit> &v)
 
 
 inline Lit operator ~(Lit p) {return Lit(p.x, !(p.sign()));}
-
-
-}
-
-#endif
+} // d4
