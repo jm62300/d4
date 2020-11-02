@@ -17,7 +17,7 @@
 */
 
 #include "PartitioningHeuristicBipartite.hpp"
-#include <3rdParty/patoh/patoh.h>
+#include "3rdParty/patoh/patoh.h"
 
 namespace d4
 {
@@ -289,7 +289,6 @@ void PartitioningHeuristicBipartite::computePartition(
     hypergraph.push_back(std::vector<int>());
   }
 
-
   std::vector<Lit> unitEquiv;
   std::vector< std::vector<Var> > equivVar;
   if(equivSimp)
@@ -299,26 +298,29 @@ void PartitioningHeuristicBipartite::computePartition(
   }
   om.preUpdate(unitEquiv);
 
-
   // collect the set of clauses
-  om.getCurrentClauses(idxClauses, inCurrentComponent);
-  for(auto &idx : idxClauses) weightClause[idx] = 1;
-  buildOccMap(hypergraph, idxClauses);
+  om.getCurrentClauses(m_idxClauses, inCurrentComponent);
+  for(auto &idx : m_idxClauses)
+  {
+    assert((unsigned) idx < weightClause.size());
+    weightClause[idx] = 1;
+  }
+  buildOccMap(hypergraph, m_idxClauses);
 
   std::vector<Var> vUse;
   if(!reduceFormula) component = vUse;
   else
   {
-    computeUselessVariables(component, hypergraph, idxClauses);
-    computeUselessClauses(idxClauses, hypergraph);
+    computeUselessVariables(component, hypergraph, m_idxClauses);
+    computeUselessClauses(m_idxClauses, hypergraph);
     clearSetOfVariable(component, hypergraph, vUse);
 
     unsigned i, j;
-    for(i = j = 0 ; i<idxClauses.size() ; i++)
-      if(idxClauses[i] != -1) idxClauses[j++] = idxClauses[i];
+    for(i = j = 0 ; i<m_idxClauses.size() ; i++)
+      if(m_idxClauses[i] != -1) m_idxClauses[j++] = m_idxClauses[i];
 
-    idxClauses.resize(i);
-    buildOccMap(hypergraph, idxClauses);
+    m_idxClauses.resize(i);
+    buildOccMap(hypergraph, m_idxClauses);
   }
 
   
@@ -385,11 +387,11 @@ void PartitioningHeuristicBipartite::computePartition(
   args._k = 2;
   args.seed = 1;
 
-  for(unsigned i = 0 ; i<idxClauses.size() ; i++)
-    cwghts[i] = weightClause[idxClauses[i]];
+  for(unsigned i = 0 ; i<m_idxClauses.size() ; i++)
+    cwghts[i] = weightClause[m_idxClauses[i]];
   
-  PaToH_Alloc(&args, idxClauses.size(), vUse.size(), 1, cwghts, NULL, xpins, pins);
-  PaToH_Part(&args, idxClauses.size(), vUse.size(), 1, 0, cwghts, NULL, xpins, pins,
+  PaToH_Alloc(&args, m_idxClauses.size(), vUse.size(), 1, cwghts, NULL, xpins, pins);
+  PaToH_Part(&args, m_idxClauses.size(), vUse.size(), 1, 0, cwghts, NULL, xpins, pins,
              NULL, partvec, partweights, &cut);
 
   std::vector<int> idxEdges;

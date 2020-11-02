@@ -16,6 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <boost/multiprecision/gmp.hpp>
+
 #include "MethodManager.hpp"
 #include "ModelCounter.hpp"
 
@@ -31,7 +33,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm)
 {
   std::string meth = vm["method"].as<std::string>();
 
-  if(meth == "counting") return new ModelCounter<int>(vm);
+  if(meth == "counting") return new ModelCounter<boost::multiprecision::mpz_int>(vm);
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
 

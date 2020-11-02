@@ -63,17 +63,5 @@ int main(int argc, char** argv)
   method->run();
   delete method;
 
-#if 0
-  
-  delete partition;
-  delete phase;
-  delete sm;
-  delete problem;
-  delete preprocProblem;
-  delete preproc;
-  delete specManager;
-  delete solver;
-#endif
-  
   return 0;
 }// main

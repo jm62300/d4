@@ -15,15 +15,14 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_heuristics_cnf_PartitioningHeuristicBipartite_hpp
-#define d4_src_heuristics_cnf_PartitioningHeuristicBipartite_hpp
+#pragma once
 
 #include <vector>
 
-#include <src/solvers/WrapperSolver.hpp>
-#include <src/utils/EquivExtractor.hpp>
-#include <src/specs/cnf/SpecManagerCnf.hpp>
+#include "src/solvers/WrapperSolver.hpp"
+#include "src/utils/EquivExtractor.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
+
 #include "../PartitioningHeuristic.hpp"
 
 namespace d4
@@ -42,7 +41,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   std::vector<bool> markedClauses;
   std::vector<int> mapVar;
   std::vector<int> weightClause;
-  std::vector<int> idxClauses;
+  std::vector<int> m_idxClauses;
 
   int *xpins;
   int *pins;
@@ -98,5 +97,3 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
       std::vector< std::vector<int> > &hypergraph);
 };
 } // d4
-
-#endif
