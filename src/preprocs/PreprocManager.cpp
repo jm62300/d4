@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "src/exceptions/FactoryException.hpp"
 
 #include "PreprocManager.hpp"
 #include "PreprocBasic.hpp"
@@ -32,7 +33,7 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm)
   std::string meth = vm["preproc"].as<std::string>();
 
   if(meth == "basic") return new PreprocBasic(vm);
-  return NULL;
+  throw (FactoryException("Cannot create a PreprocManager",__FILE__, __LINE__));
 } // makePreprocManager
 
 }

@@ -32,7 +32,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm)
   std::string meth = vm["method"].as<std::string>();
 
   if(meth == "counting") return new ModelCounter<int>(vm);
-  return NULL;
+  throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
 
 } // d4

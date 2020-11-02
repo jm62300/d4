@@ -22,6 +22,7 @@
 #include "cnf/ScoringMethodVsids.hpp"
 #include "cnf/ScoringMethodJwts.hpp"
 #include "cnf/ScoringMethodVsads.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4
 {
@@ -61,7 +62,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManag
     }    
   }
   
-  return NULL;
+  throw (FactoryException("Cannot create a ScoringMethod",__FILE__, __LINE__));
 } // makeScoringMethod
 
 

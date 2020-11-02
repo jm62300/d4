@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "src/exceptions/FactoryException.hpp"
 
 #include "PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicNone.hpp"
@@ -44,12 +45,10 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
   std::string extension = in.substr(in.find_last_of(".") + 1);
   if(extension == "cnf" || extension == "dimacs")
   {    
-    if(meth == "bipartition")
-      return new PartitioningHeuristicBipartite(ws, s, options);
-    return NULL;
+    if(meth == "bipartition") return new PartitioningHeuristicBipartite(ws, s, options);   
   }
-  
-  return NULL;
+
+  throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));
 } // makePartitioningHeuristic
 
 }

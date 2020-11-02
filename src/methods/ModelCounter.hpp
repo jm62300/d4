@@ -88,7 +88,7 @@ template <class T> class ModelCounter : public MethodManager
      @param[in] vm, the list of options.
    */
   ModelCounter(po::variables_map &vm)
-  {
+  { 
     // the initial problem.
     ProblemManager *initProblem = ProblemManager::makeProblemManager(vm);
     assert(initProblem);
@@ -98,7 +98,7 @@ template <class T> class ModelCounter : public MethodManager
     assert(preproc);
     problem = preproc->run(*initProblem);
     assert(problem);
-
+    
     // we create the SAT solver. 
     solver = WrapperSolver::makeWrapperSolver(vm);
     assert(solver);
@@ -437,7 +437,7 @@ template <class T> class ModelCounter : public MethodManager
      The method called to run the model counter.
    */
   void run()
-  {
+  { 
     T nbModels = computeNbModel(std::cout);
     std::cout << nbModels << "\n"; 
   } // run

@@ -18,6 +18,7 @@
 
 #include "WrapperSolver.hpp"
 #include "cnf/WrapperMinisat.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4
 {
@@ -36,9 +37,10 @@ WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm)
   if(extension == "cnf" || extension == "dimacs")
   {    
     if(s == "minisat") return new WrapperMinisat();
-    return NULL;
+    
   }
-  return NULL;
+  
+  throw (FactoryException("Cannot create a WrapperSolver",__FILE__, __LINE__));
 } // makeWrapperSolver
 
 

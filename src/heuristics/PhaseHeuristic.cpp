@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "src/exceptions/FactoryException.hpp"
 
 #include "PhaseHeuristic.hpp"
 #include "PhaseHeuristicFalse.hpp"
@@ -41,7 +42,8 @@ PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm,
   if(meth == "true") return new PhaseHeuristicTrue(rev);
   if(meth == "polarity") return new PhaseHeuristicPolarity(p, rev);
   if(meth == "occurrence") return new PhaseHeuristicOccurrence(s, rev);
-  return NULL;
+  
+  throw (FactoryException("Cannot create a PhaseHeuristic",__FILE__, __LINE__));
 } // makePhaseHeuristic
 
 }

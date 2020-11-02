@@ -9,7 +9,6 @@
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected. [add a description for the available methods]")
 ("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("bipartition"),"The method used to compute a cut. [add a description for the available methods]")
 ("partitioning-heuristic-options,pvho",boost::program_options::value<unsigned>()->default_value(-1),"The option given to the partitioner. We are limited in 32 options given by the bytes of the parameter.")
-("method,m", boost::program_options::value<std::string>()->default_value("counting"), "The method we use (counting or dDNNF)")
 ("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("expectation"), "The strategy used to reduce the cache structure.")
 ("cache-size-page,csp", boost::program_options::value<unsigned>()->default_value((1<<29)), "The block size of memory allocated for each page of the cache structure.")
 ("cache-store-strategy,css", boost::program_options::value<std::string>()->default_value("not-touched"), "The strategy used to store the clause in a bucket (all, not-binary and not-touched).")

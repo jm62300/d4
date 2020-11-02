@@ -15,9 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_caching_BucketManager_hpp
-#define d4_src_caching_BucketManager_hpp
+#pragma once
 
 #include <iostream>
 #include <cassert>
@@ -26,8 +24,9 @@
 
 #include <boost/program_options.hpp>
 
-#include <src/problem/ProblemTypes.hpp>
-#include <src/specs/SpecManager.hpp>
+#include "src/problem/ProblemTypes.hpp"
+#include "src/specs/SpecManager.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 #include "CachedBucket.hpp"
 #include "cnf/BucketManagerCnf.hpp"
@@ -71,9 +70,9 @@ template<class T> class BucketManager
     if(css == "NT") modeStore = NT;
     
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
-    if(css == "clause") return new BucketManagerCnfCl<T>(scnf, modeStore, sizePage);
-    
-    return NULL;
+    if(ccr == "clause") return new BucketManagerCnfCl<T>(scnf, modeStore, sizePage);
+
+    throw (FactoryException("Cannot create a BucketManager",__FILE__, __LINE__));
   } // makeBucketManager
 
   
@@ -200,7 +199,4 @@ template<class T> class BucketManager
 
   virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;
 };
-}
-
-
-#endif
+} // d4

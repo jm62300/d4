@@ -92,13 +92,13 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
       ret.push_back(cl);
     }
 
-    for(int i = 0 ; s.clauses.size() ; i++)
+    for(int i = 0 ; i<s.clauses.size() ; i++)
     {
       minisat::Clause &c = s.ca[s.clauses[i]];
 
       bool isSAT = false;
       std::vector<Lit> cl;
-      for(int j = 0 ; j<c.size() && !isSAT ; i++)
+      for(int j = 0 ; j<c.size() && !isSAT ; j++)
       {
         if(s.isUndef(c[j]))
           cl.push_back(Lit(minisat::var(c[j]), minisat::sign(c[j])));

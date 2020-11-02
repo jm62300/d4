@@ -48,7 +48,7 @@ PreprocBasic::~PreprocBasic()
    @param[out] p, the problem we want to preprocess.
  */
 ProblemManager *PreprocBasic::run(ProblemManager &pin)
-{  
+{
   ws->initSolver(pin);
   ProblemManagerCnf *pout = new ProblemManagerCnf(pin.getNbVar());
   

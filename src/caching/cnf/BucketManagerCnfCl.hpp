@@ -15,11 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef d4_src_caching_cnf_BucketManagerCnfCl_hpp
-#define d4_src_caching_cnf_BucketManagerCnfCl_hpp
 
-#include <src/problem/ProblemTypes.hpp>
+#include "src/problem/ProblemTypes.hpp"
 #include "BucketManagerCnf.hpp"
 
 namespace d4
@@ -30,7 +29,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 {
  private:
   std::vector<bucketSortInfo> vecBucketSortIntervalle;
-  std::vector<int> refCutBucket;
+  std::vector<unsigned> refCutBucket;
   std::vector<unsigned long int> mapVar;
   std::vector< std::vector<Lit> > distrib;
   std::vector<int> occInfoPos;
@@ -39,7 +38,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   std::vector<bool> markView;
   std::vector<int> markIdx;
   std::vector<unsigned> distribClauseNbVar;
-  int lastSize;
+  unsigned lastSize;
   
   using BucketManagerCnf<T>::specManager;
   using BucketManagerCnf<T>::modeStore;
@@ -78,13 +77,12 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   */
   void createDistribWrTLit(Lit l)
   {
-    assert(occManager);
     std::vector<int> &idxClauses = specManager.getVecIdxClause(l);
     int ownBucket = -1;
 
     for(unsigned j = 0 ; j<idxClauses.size() ; j++)
     {
-      int idx = idxClauses[j];
+      unsigned idx = idxClauses[j];
 
       if(modeStore == NT && !specManager.getNbUnsat(idx)) continue;
       std::vector<Lit> &c = specManager.getClause(idx);
@@ -111,7 +109,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
         vecBucketSortIntervalle[ownBucket].end++;
       }else
       {
-        int bkNew = markIdx[idx], bkOld = bkNew;
+        unsigned bkNew = markIdx[idx], bkOld = bkNew;
         assert(bkNew < refCutBucket.size());
 
         if(refCutBucket[bkNew] == bkNew)
@@ -163,7 +161,6 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   */
   inline void collectDistrib(std::vector<Var> &component)
   {
-    assert(occManager);
     initSortBucket();
 
     // sort the set of clauses
@@ -378,7 +375,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
  fillTheBucket:
     // reinit for the next run
     assert(lastSize < distribClauseNbVar.size());
-    for(int i = 0 ; i <= lastSize ; i++) distribClauseNbVar[i] = 0;
+    for(unsigned i = 0 ; i <= lastSize ; i++) distribClauseNbVar[i] = 0;
 
     // put the information into the bucket
     DataInfoCnf di(szData, component.size(), nbLit, nbClause,
@@ -409,8 +406,4 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     printf("----------------------------------\n");
   }
 };
-
-
-}
-
-#endif
+} // d4

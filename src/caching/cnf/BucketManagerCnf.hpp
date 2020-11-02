@@ -15,17 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_caching_cnf_BucketManagerCnf_hpp
-#define d4_src_caching_cnf_BucketManagerCnf_hpp
+#pragma once
 
 #include <bitset>
 #include <vector>
 #include <iostream>
 
-#include <src/caching/cnf/DataInfoCnf.hpp>
-#include <src/specs/cnf/SpecManagerCnf.hpp>
-#include <src/problem/ProblemTypes.hpp>
+#include "src/caching/cnf/DataInfoCnf.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 #include "../BucketManager.hpp"
 #include "../CachedBucket.hpp"
@@ -55,9 +53,9 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   SpecManagerCnf &specManager;
   
   int modeStore;
-  int nbClauseCnf;
-  int nbVarCnf;
-  int maxSizeClause;
+  unsigned nbClauseCnf;
+  unsigned nbVarCnf;
+  unsigned maxSizeClause;
 
  public:
   /**
@@ -82,7 +80,4 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   virtual ~BucketManagerCnf() {;}
   virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;  
 };
-
-}
-
-#endif
+} // d4

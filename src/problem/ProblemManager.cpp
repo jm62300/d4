@@ -15,12 +15,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <iostream>
+
+#include "src/exceptions/FactoryException.hpp"
 
 #include "ProblemManager.hpp"
 #include "cnf/ProblemManagerCnf.hpp"
-
-#include <iostream>
-
 
 namespace d4
 {
@@ -39,7 +39,7 @@ ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm)
 
   if(extension == "cnf" || extension == "dimacs") return new ProblemManagerCnf(in);
   
-  return NULL;
+  throw (FactoryException("Cannot create a ProblemManager",__FILE__, __LINE__));
 } // makeProblemManager
 
 }

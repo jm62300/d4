@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "src/exceptions/FactoryException.hpp"
 
 #include "SpecManager.hpp"
 #include "cnf/SpecManagerCnfDyn.hpp"
@@ -42,7 +43,7 @@ SpecManager *SpecManager::makeSpecManager(po::variables_map &vm, ProblemManager 
     return NULL;
   }
   
-  return NULL;
+  throw (FactoryException("Cannot create a SpecManager",__FILE__, __LINE__));
 } // makeSpecManager
 
 }
