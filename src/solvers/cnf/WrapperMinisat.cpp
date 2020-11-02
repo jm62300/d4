@@ -149,9 +149,17 @@ bool WrapperMinisat::getPolarity(Var v)
  */
 bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
 {
+  minisat::Lit ml = minisat::mkLit(l.var(), l.sign());
+  if(varIsAssigned(l.var()))
+  {
+    if(s.litAssigned(l.var()) != ml) return false;
+    units.push_back(l);
+    return true;
+  }
+
   int posTrail = (s.trail).size();
   s.newDecisionLevel();
-  s.uncheckedEnqueue(minisat::mkLit(l.intern(), l.sign()));
+  s.uncheckedEnqueue(ml);
   minisat::CRef confl = s.propagate();
 
   if(confl != minisat::CRef_Undef) // unit literal
@@ -190,6 +198,18 @@ void WrapperMinisat::whichAreUnits(std::vector<Var> &component,
   }
 } // whichAreUnits
 
+
+/**
+   Check out if the given variable is assigned or not by the solver.
+
+   @param[in] v, the variable we search for.
+
+   \return true if the variable is assigned, false otherwise.
+ */
+bool WrapperMinisat::varIsAssigned(Var v)
+{
+  return s.isAssigned(v);
+} // varIsAssigned
 
 /**
    Restart the solver.

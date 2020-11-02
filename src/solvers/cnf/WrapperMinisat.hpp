@@ -46,6 +46,7 @@ class WrapperMinisat : public WrapperSolver
   void inputVar(std::vector<Var> &setOfVar);
   void pushAssumption(Lit l);
   void popAssumption();
+  bool varIsAssigned(Var v);
 };
 }
 

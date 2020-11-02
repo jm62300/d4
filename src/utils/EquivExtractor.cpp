@@ -88,7 +88,7 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
       
   for(auto &v : vars)
   {
-    if(markedVar[v]) continue;
+    if(markedVar[v] || s.varIsAssigned(v)) continue;
     
     std::vector<Var> eqv;
     if(interCollectUnit(s, v, eqv))
