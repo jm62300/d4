@@ -33,11 +33,11 @@ class DataInfoCnf : public DataInfo
               unsigned nbOctetsData,   
               unsigned nbOctetsVar,    
               unsigned nbOctetsDistrib,
-              unsigned count);
+              unsigned count = 0);
   
   void print(char *data, std::ostream &out);
 
-  unsigned nbOctetsDistrib(){return info2 & ((1<<2) - 1);}
+  unsigned nbOctetsDistrib(){return 1 + (info2 & ((1<<2) - 1));}
   unsigned nbClause(){return info1>>42 & ((1<<22) - 1);}
   unsigned nbLit(){return info1>>21 & ((1<<21) - 1);}
 

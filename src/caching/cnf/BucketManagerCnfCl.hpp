@@ -43,8 +43,8 @@ class DistribContainer
   void init(unsigned capacity, unsigned capacityLine)
   {
     m_capacity = capacity;
-    m_capacityLine = capacityLine;
-    m_data = new unsigned[m_capacity * (m_capacityLine + 1)]; // +1 to store the size.
+    m_capacityLine = capacityLine + 1;
+    m_data = new unsigned[m_capacity * m_capacityLine]; // +1 to store the size.
     m_size = 0;
   } // constructor
 
@@ -67,7 +67,7 @@ class DistribContainer
     assert(idx < m_size);
     unsigned *tmp = &m_data[idx * m_capacityLine];
     assert(*tmp < m_capacityLine);
-
+    
     (*tmp)++;
     tmp[*tmp] = l;
   } // pushInLast
@@ -90,7 +90,7 @@ class DistribContainer
   inline unsigned *getArrayIn(unsigned idx)
   {
     assert(idx < m_size);
-    return &m_data[idx * m_capacityLine + 1];
+    return &m_data[(idx * m_capacityLine) + 1];
   } // getArrayIn
 
 
@@ -253,7 +253,6 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     }
     resetUnMark();
 
-
     // remove redondant clauses
     for(unsigned i = 0 ; i<m_vecBucketSortIntervalle.size() ; i++)
     {
@@ -264,14 +263,14 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
 
   inline void getInfoClDistrib(unsigned &nbLit, unsigned &nbDiffSize,
-                               unsigned &nbClause,
-                               unsigned &maxDistribSz)
+                               unsigned &nbClause, unsigned &maxDistribSz)
   {
     maxDistribSz = 0;
     for(unsigned i = 0 ; i<m_distrib.size() ; i++)
     {
       if(!m_distrib.getSizeIn(i)) continue;      
       nbLit += m_distrib.getSizeIn(i);
+      assert(m_distrib.getSizeIn(i) < m_distribClauseNbVar.size());
       m_distribClauseNbVar[m_distrib.getSizeIn(i)]++;
       nbClause++;
     }
@@ -331,15 +330,14 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
      \return a pointer to the end of the data we added
    */
-  template <typename U> void *storeDistribInfo(void *data,
-                                               std::vector<unsigned> &distribInfo,
-                                               int last)
+  template <typename U>
+  void *storeDistribInfo(void *data, std::vector<unsigned> &distInfo, int last)
   {
     U *p = static_cast<U *>(data);
     for(int i = 0 ; i <= last ; i++)
     {
-      if(!distribInfo[i]) continue;
-      *p = static_cast<U>(distribInfo[i]);
+      if(!distInfo[i]) continue;
+      *p = static_cast<U>(distInfo[i]);
       p++;
       *p = static_cast<U>(i);
       p++;
@@ -451,10 +449,11 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     // reinit for the next run
     assert(m_lastSize < m_distribClauseNbVar.size());
     for(unsigned i = 0 ; i <= m_lastSize ; i++) m_distribClauseNbVar[i] = 0;
-
+    
     // put the information into the bucket
-    DataInfoCnf di(szData, component.size(), nbLit, nbClause,
-                   nbDiffSize<<1, nbOData, nbOVar, nbODistrib);
+    DataInfoCnf di(szData, component.size(), nbLit, nbClause, nbOData, nbOVar, nbODistrib);
+
+    assert(di.szData() == szData);
     b.set(data, di);
   }// storeFormula
 
@@ -464,7 +463,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   inline void printData(std::vector<Var> &component)
   {
     printf("storeFormula:\n");
-    printf("Variable: %d\n", component.size());
+    printf("Variable: %lu\n", component.size());
     for(unsigned i = 0 ; i<component.size() ; i++) printf("%d ", component[i] + 1);
     printf("\n");
     printf("clauses: %d\n", m_distrib.size());
@@ -478,7 +477,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
         printf("\n");
       }
     printf("distribution info: %d\n", m_lastSize);
-    for(int i = 0 ; i<=m_lastSize; i++) printf("%d ", m_distribClauseNbVar[i]);
+    for(unsigned i = 0 ; i<=m_lastSize; i++) printf("%d ", m_distribClauseNbVar[i]);
     printf("\n");
     printf("----------------------------------\n");
   }

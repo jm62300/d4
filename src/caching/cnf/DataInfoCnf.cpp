@@ -34,11 +34,12 @@ DataInfoCnf::DataInfoCnf(unsigned szData,
                          unsigned count) :
     DataInfo(szData, nbVar, nbOctetsData, nbOctetsVar, count)
 {
+  assert(nbOctetsDistrib - 1 < 4);
   info1 = info1 |
           ((uint64_t) nbLit << 21) |
           ((uint64_t) nbClause << 42);
   info2 = info2 |
-          ((uint32_t) nbOctetsDistrib);
+          ((uint32_t) (nbOctetsDistrib - 1));  
 } // constructor
 
 

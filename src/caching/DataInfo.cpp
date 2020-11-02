@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <bitset>
 
 #include "DataInfo.hpp"
 
@@ -42,11 +43,16 @@ DataInfo::DataInfo(unsigned szData,
                    unsigned nbOctetsVar,
                    unsigned count)
 {
+  info1 = info2 = 0;  
+  assert((nbOctetsData - 1) < 4);
+  assert((nbOctetsVar - 1) < 4);
+
   info1 = (uint64_t) nbVar;
-  info2 = ((uint32_t) nbOctetsData << 4) |
-          ((uint32_t) nbOctetsVar << 2) |
+  info2 = ((uint32_t) (nbOctetsData - 1) << 4) |
+          ((uint32_t) (nbOctetsVar - 1) << 2) |
           ((uint32_t) szData << 6);
   stats = {count, 0};
+  assert(szData == this->szData());
 } // constructor
 
 }

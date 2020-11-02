@@ -15,9 +15,9 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef d4_src_hashing_HashString_hpp
-#define d4_src_hashing_HashString_hpp
+#include <iostream>
 
 namespace d4
 {
@@ -72,5 +72,3 @@ class HashString
   } // hash
 };
 } // d4
-
-#endif

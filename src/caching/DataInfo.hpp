@@ -83,8 +83,8 @@ class DataInfo
   {
     info2 = (info2&((1<<6) - 1)) | ((uint32_t) sz << 6);
   }
-  inline unsigned nbOctetsVar(){return (info2>>2) & ((1<<2) - 1);}
-  inline unsigned nbOctetsData(){return (info2>>4) & ((1<<2) - 1);}
+  inline unsigned nbOctetsVar(){return 1 + ((info2>>2) & ((1<<2) - 1));}
+  inline unsigned nbOctetsData(){return 1 + ((info2>>4) & ((1<<2) - 1));}
   inline unsigned nbVar(){return info1 & ((1<<21) - 1);}
 
   

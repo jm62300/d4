@@ -117,17 +117,17 @@ template<class T> class Cache
   }// pushinhashtable
 
 
-  inline unsigned int computeHash(CachedBucket<T> &bucket)
-  {
+  inline unsigned computeHash(CachedBucket<T> &bucket)
+  {    
     return hashMethod.hash(bucket.data, bucket.szData());
   }
   
   /**
      Research in the set of buckets if the bucket pointed by i already exist.
      @param[in] idx, the index of the researched bucket
-     \return the index of the identical bucket if this one exists, -1 otherwise
+     \return the index of the identical bucket if this one exists, NULL otherwise
   */
-  CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned int hashValue)
+  CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned hashValue)
   {
     char *refData = cb.data;
     std::vector<CachedBucket<T> > &listCollision = hashTable[hashValue % SIZE_HASH];
@@ -144,6 +144,7 @@ template<class T> class Cache
         return &cbi;
       }
     }
+    
     nbNegativeHit++;
     return NULL;
   }// bucketAlreadyExist
@@ -184,7 +185,7 @@ template<class T> class Cache
     if(strategyRedCache) callCleaningStrategy(bm);
 
     CachedBucket<T> *formulaBucket = bm->collectBucket(varConnected);
-    unsigned int hashValue = computeHash(*formulaBucket);
+    unsigned hashValue = computeHash(*formulaBucket);
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
     assert(nbTestCache.size() > varConnected.size());
     nbTestCache[varConnected.size()]++;
