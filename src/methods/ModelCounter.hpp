@@ -15,28 +15,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_methods_ModelCounter_hpp
-#define d4_src_methods_ModelCounter_hpp
+#pragma once
 
 #include <iostream>
 #include <iomanip>
 #include <ctime>
 #include <boost/program_options.hpp>
 
-#include <src/heuristics/ScoringMethod.hpp>
-#include <src/heuristics/PhaseHeuristic.hpp>
-#include <src/heuristics/PartitioningHeuristic.hpp>
-#include <src/problem/ProblemManager.hpp>
-#include <src/problem/ProblemTypes.hpp>
-#include <src/preprocs/PreprocManager.hpp>
-#include <src/specs/SpecManager.hpp>
-#include <src/solvers/WrapperSolver.hpp>
-#include <src/caching/BucketManager.hpp>
-#include <src/caching/TmpEntry.hpp>
-#include <src/caching/Cache.hpp>
-#include <src/caching/CachedBucket.hpp>
-#include <src/utils/MemoryStat.hpp>
+#include "src/heuristics/ScoringMethod.hpp"
+#include "src/heuristics/PhaseHeuristic.hpp"
+#include "src/heuristics/PartitioningHeuristic.hpp"
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
+#include "src/preprocs/PreprocManager.hpp"
+#include "src/specs/SpecManager.hpp"
+#include "src/solvers/WrapperSolver.hpp"
+#include "src/caching/BucketManager.hpp"
+#include "src/caching/TmpEntry.hpp"
+#include "src/caching/Cache.hpp"
+#include "src/caching/CachedBucket.hpp"
+#include "src/utils/MemoryStat.hpp"
 
 #include "MethodManager.hpp"
 
@@ -115,7 +113,7 @@ template <class T> class ModelCounter : public MethodManager
                          makePartitioningHeuristic(vm, *specs, *solver);
     assert(heuristicVar && heuristicPhase && heuristicPartition);
 
-    cache = new Cache<T>(vm);
+    cache = new Cache<T>(vm, problem->getNbVar());
     bucketManager = BucketManager<T>::makeBucketManager(vm, *specs);
     
     // we delete the useless objects.
@@ -127,7 +125,7 @@ template <class T> class ModelCounter : public MethodManager
 
     // weight
     weightLit.resize((specs->getNbVariable() + 1) << 1, 1);
-    weightVar.resize(specs->getNbVariable(), 2);
+    weightVar.resize(specs->getNbVariable() + 1, 2);
     
     optCached = vm["cache-activated"].as<bool>();
     callPartitioner = callEquiv = 0;
@@ -135,7 +133,7 @@ template <class T> class ModelCounter : public MethodManager
     nbDecisionNode = nbNodeInCall = 0;
 
     stampIdx = 0;
-    stampVar.resize(specs->getNbVariable(), 0);    
+    stampVar.resize(specs->getNbVariable() + 1, 0);    
   } // constructor
 
 
@@ -144,7 +142,14 @@ template <class T> class ModelCounter : public MethodManager
    */
   ~ModelCounter()
   {
-    
+    delete problem;
+    delete solver;
+    delete specs;
+    delete heuristicVar;
+    delete heuristicPhase;
+    delete heuristicPartition;
+    delete bucketManager;
+    delete cache;
   } // destructor
 
 
@@ -439,11 +444,8 @@ template <class T> class ModelCounter : public MethodManager
   void run()
   { 
     T nbModels = computeNbModel(std::cout);
-    std::cout << nbModels << "\n"; 
+    std::cout << "s " << nbModels << "\n"; 
   } // run
   
 };
 } // d4
-
-#endif
-

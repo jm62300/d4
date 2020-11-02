@@ -29,7 +29,7 @@ namespace d4
  */
 Lit::Lit(Var v, bool sign)
 {
-  x = (v << 1) + sign;
+  m_x = (v << 1) + sign;
 } // constructor
 
 

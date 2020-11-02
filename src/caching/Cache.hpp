@@ -15,17 +15,16 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_caching_Cache_hpp
-#define d4_src_caching_Cache_hpp
+#pragma once
 
 #define SIZE_HASH 999331
 
 #include <vector>
 #include <boost/program_options.hpp>
 
+#include "src/hashing/HashString.hpp"
+
 #include "CachedBucket.hpp"
-#include <src/hashing/HashString.hpp>
 
 namespace d4
 {
@@ -46,8 +45,6 @@ template<class T> class Cache
   
   // data info
   unsigned nbInitVar;
-  unsigned maxBlockClause;
-  unsigned nbClauses;
   unsigned nbFailedInCache;
   unsigned nbRemoveEntry;
   unsigned long int nbCreationBucket;
@@ -56,16 +53,14 @@ template<class T> class Cache
   std::vector<int> nbCacheWithSizeVar;
   std::vector<int> nbTestCache;
   std::vector<bool> deadSize;
-
-  unsigned maxSize;
+  
   unsigned long int sumDataSize;
-
   unsigned strategyRedCache; // 0 no cache
   
   HashString hashMethod;
   
  public:
-  Cache(po::variables_map &vm)
+  Cache(po::variables_map &vm, unsigned nbVar)
   {
     sumDataSize = nbEntry = nbCreationBucket = 0;
     nbPositiveHit = nbNegativeHit = 0;
@@ -77,6 +72,8 @@ template<class T> class Cache
     if(strategyCacheOpt == "none") strategyRedCache = 0;
     else if(strategyCacheOpt == "expectation") strategyRedCache = 3;
     else assert(0);
+
+    initHashTable(nbVar);
   }// CacheCNF
 
   ~Cache()
@@ -300,37 +297,29 @@ template<class T> class Cache
      to know the size of the memory blocks we have to allocate).
 
      @param[in] mVar, the number of variables
-     @param[in] nbC, the number of clauses
-     @param[in] mSize, the size of the biggest clause
   */
-  void setInfoFormula(unsigned int mVar, unsigned int nbC, int mSize)
+  void setInfoFormula(unsigned mVar)
   {
     minAffectedHitCache = mVar;
-    maxSize = mSize;
-    maxBlockClause = mSize * nbC;
     nbInitVar = mVar;
 
-    for(int i = 0 ; i<nbInitVar ; i++)
-    {
-      sizeVarCacheHit.push_back(0);
-      nbCacheWithSizeVar.push_back(0);
-      nbTestCache.push_back(0);
-      deadSize.push_back(false);
-    }
+    sizeVarCacheHit.resize(nbInitVar + 1, 0);
+    nbCacheWithSizeVar.resize(nbInitVar + 1, 0);
+    nbTestCache.resize(nbInitVar + 1, 0);
+    deadSize.resize(nbInitVar + 1, 0);        
   }// setInfoFormula
 
 
   /**
      Initialized the hashTable
   */
-  void initHashTable(unsigned int mVar, unsigned int nbC, int mSize)
+  void initHashTable(unsigned maxVar)
   {
-    setInfoFormula(mVar, nbC, mSize);
+    setInfoFormula(maxVar);
 
     // init hash tables
     hashTable.clear();
-    for(int i = 0 ; i<SIZE_HASH ; i++)
-      hashTable.push_back(std::vector<CachedBucket<T> >());
+    hashTable.resize(SIZE_HASH, std::vector<CachedBucket<T> >());
   }// initHashTable
 
 
@@ -511,5 +500,3 @@ template<class T> class Cache
 
 };
 } // d4
-
-#endif

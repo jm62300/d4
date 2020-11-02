@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef d4_src_problem_cnf_SpecManagerCnf_hpp
-#define d4_src_problem_cnf_SpecManagerCnf_hpp
-
-#include <src/problem/ProblemManager.hpp>
-#include <src/problem/cnf/ProblemManagerCnf.hpp>
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 #include "../SpecManager.hpp"
 
@@ -94,11 +92,12 @@ class SpecManagerCnf : public SpecManager
     unsigned i = 0;
     for(auto list : occList)
     {
-      if(!list.size()) continue;
-
-      out << ((i&1) ? "-" : "") << (i>>1);
-      for(auto &idx : list) out << idx << " ";
-      out << "\n";
+      if(list.size())
+      {
+        out << ((i&1) ? "-" : "") << (i>>1) << " ";
+        for(auto &idx : list) out << idx << " ";
+        out << "\n";
+      }
       i++;
     }
   } // showOccList
@@ -133,7 +132,6 @@ class SpecManagerCnf : public SpecManager
   inline int getNbClause(Var v){return getNbClause(Lit(v, false)) + getNbClause(Lit(v, true));}
   inline int getNbClause(Lit l){return occList[l.intern()].size();}
   inline int getNbClause(){return clauses.size();}
-  inline std::vector<int> &getVecIdxClause(Lit l){return occList[l.intern()];}
   inline std::vector<Lit> &getClause(int idx){return clauses[idx];}
   inline int getNbUnsat(int idx){return nbUnsat[idx];}
   inline int getNbVariable(){return nbVar;}
@@ -149,6 +147,12 @@ class SpecManagerCnf : public SpecManager
   inline int getMaxSizeClause(){return maxSizeClause;}
   inline int getNbOccurrence(Lit l){return getNbClause(l);}
 
+  inline std::vector<int> &getVecIdxClause(Lit l)
+  {
+    assert(l.intern() < occList.size());
+    return occList[l.intern()];
+  }
+  
   virtual inline int getSumSizeClauses()
   {
     int sum = 0;
@@ -156,7 +160,4 @@ class SpecManagerCnf : public SpecManager
     return sum;
   }// getSumSizeClauses
 };
-
 } // d4
-
-#endif

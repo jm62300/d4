@@ -15,25 +15,39 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #pragma once
 
-#include <boost/program_options.hpp>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <exception>
 
 namespace d4
 {
-namespace po = boost::program_options;
-class ProblemManager
+class FactoryException : public std::exception
 {
- protected:
-  int m_nbVar;
-  
+ private:
+  std::string m_error_message;
+  const char* m_file;
+  int m_line;
+    
  public:
-  static ProblemManager *makeProblemManager(po::variables_map &vm);
-  
-  virtual ~ProblemManager(){;}
-  unsigned getNbVar(){return m_nbVar;}
-  void setNbVar(int n){m_nbVar = n;}
-  virtual void display(std::ostream &out) = 0;
+  FactoryException(const char* msg, const char* file_, int line_) :
+      m_file (file_), m_line (line_)
+  {
+    std::ostringstream o;
+    o << m_file << ":" << m_line << ": " << msg;
+    m_error_message = o.str();
+  } // constructor
+
+  /**
+     Returns a pointer to the (constant) error description.
+   
+     \return A pointer to a const char*. 
+   */
+  virtual const char* what() const throw ()
+  {    
+    return m_error_message.c_str();
+  }        
 };
 }

@@ -33,22 +33,24 @@ typedef uint8_t lbool;
 
 class Lit
 {
+ private:
+  int m_x;
+  
  public:
-  int x;
-
-  Lit(){x = 0;}
+  Lit() : m_x(0) {}
   Lit(Var v, bool sign = false);
 
-  inline bool sign(){return x&1;}
-  inline Var var(){return x>>1;}
-  inline Lit neg(){return Lit(x>>1, (x+1) & 1);}
-  inline int intern(){return x;}
-  inline int human(){return (x&1) ? -var() : var();}
+  inline bool sign(){return m_x&1;}
+  inline Var var(){return m_x>>1;}
+  inline Lit neg(){return Lit(m_x>>1, (m_x+1) & 1);}
+  inline unsigned intern(){return m_x;}
+  inline int human(){return (m_x&1) ? -var() : var();}
   
-  bool operator == (Lit p) const { return x == p.x; }
-  bool operator != (Lit p) const { return x != p.x; }
-  bool operator <  (Lit p) const { return x < p.x;  } // '<' makes p, ~p adjacent in the ordering.
+  bool operator == (Lit p) const { return m_x == p.m_x; }
+  bool operator != (Lit p) const { return m_x != p.m_x; }
+  bool operator <  (Lit p) const { return m_x < p.m_x;  } // '<' makes p, ~p adjacent in the ordering.
 
+  friend Lit operator ~(Lit p);
   friend std::ostream& operator<< (std::ostream &os, Lit l);
 };
 
@@ -61,5 +63,5 @@ inline void showListLit(std::ostream &out, std::vector<Lit> &v)
 } // showListLit
 
 
-inline Lit operator ~(Lit p) {return Lit(p.x, !(p.sign()));}
+inline Lit operator ~(Lit p) {return Lit(p.m_x>>1, !(p.sign()));}
 } // d4

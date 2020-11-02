@@ -42,7 +42,7 @@ void WrapperMinisat::initSolver(ProblemManager &p)
     ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);
 
     // say to the solver we have pcnf.getNbVar() variables.
-    while(s.nVars() <= pcnf.getNbVar()) s.newVar();
+    while((unsigned)s.nVars() <= pcnf.getNbVar()) s.newVar();
 
     // load the clauses
     std::vector<std::vector<Lit>> &clauses = pcnf.getClauses();
