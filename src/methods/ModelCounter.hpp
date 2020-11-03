@@ -337,6 +337,7 @@ template <class T> class ModelCounter : public MethodManager
     // compute the connected composant
     std::vector<Var> reallyPresent;
     std::vector< std::vector<Var> > varConnected;
+    
     int nbComponent = specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
     // consider each connected component.
@@ -396,22 +397,23 @@ template <class T> class ModelCounter : public MethodManager
 
     
     Lit l = Lit(v, heuristicPhase->selectPhase(v));
-    nbDecisionNode++;
+    nbDecisionNode++;    
+    
     
     // compile the formula where l is assigned to true
     std::vector<Lit> unitLitPos, unitLitNeg;
-    std::vector<Var> freeVarPos, freeVarNeg;
-
+    std::vector<Var> freeVarPos, freeVarNeg;    
+    
     solver->pushAssumption(l);
     T pos = computeNbModel_(connected, unitLitPos, freeVarPos, priorityVar, out);
     pos *= computeWeightUnitFree(unitLitPos, freeVarPos);
     solver->popAssumption();
-    
+
     solver->pushAssumption(~l);
     T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar, out);
     neg *= computeWeightUnitFree(unitLitNeg, freeVarNeg);
     solver->popAssumption();
-    
+
     return neg + pos;
   }// computeDecisionNode
 
@@ -442,7 +444,7 @@ template <class T> class ModelCounter : public MethodManager
      The method called to run the model counter.
    */
   void run()
-  { 
+  {
     T nbModels = computeNbModel(std::cout);
     std::cout << "s " << nbModels << "\n"; 
   } // run

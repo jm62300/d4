@@ -26,96 +26,94 @@ namespace d4
 {
 /**
    Constructor.
- */
+*/
 SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _maxSizeClause) :
     nbVar(_nbVar), maxSizeClause(_maxSizeClause)
 {
   for(unsigned i = 0 ; i <= nbVar ; i++)
-    {
-      inCurrentComponent.push_back(false);
-      currentValue.push_back(l_Undef);
-      idxComponent.push_back(0);
-      tmpVecVar.push_back(0);
-      occList.push_back(std::vector<int>());
-      occList.push_back(std::vector<int>());
-      tmpMark.push_back(false);
-    }
+  {
+    inCurrentComponent.push_back(false);
+    currentValue.push_back(l_Undef);
+    idxComponent.push_back(0);
+    occList.push_back(std::vector<int>());
+    occList.push_back(std::vector<int>());
+    tmpMark.push_back(false);
+  }
 
   mustUnMark.reserve(nbClause);
   for(int i = 0 ; i<nbClause ; i++)
-    {      
-      markView.push_back(false);
-      nbUnsat.push_back(0);
-      nbSat.push_back(0);
-      watcher.push_back(lit_Undef);
-    }
+  {      
+    markView.push_back(false);
+    nbUnsat.push_back(0);
+    nbSat.push_back(0);
+    watcher.push_back(lit_Undef);
+  }
 }// construtor
 
 
 /**
    Constructor.
- */
+*/
 SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : nbVar(p.getNbVar())
 {
   initFormula(p);
   
   for(unsigned i = 0 ; i <= nbVar ; i++)
-    {
-      currentValue.push_back(l_Undef);
-      idxComponent.push_back(0);
-      tmpVecVar.push_back(0);
-      occList.push_back(std::vector<int>());
-      occList.push_back(std::vector<int>());
-      tmpMark.push_back(false);
-      inCurrentComponent.push_back(false);
-    }
+  {
+    currentValue.push_back(l_Undef);
+    idxComponent.push_back(0);
+    occList.push_back(std::vector<int>());
+    occList.push_back(std::vector<int>());
+    tmpMark.push_back(false);
+    inCurrentComponent.push_back(false);
+  }
 
   mustUnMark.reserve(clauses.size());
 
   if(!clauses.size()) return;
   maxSizeClause = clauses[0].size();
   for(auto &cl : clauses)
-    {
-      if(cl.size() > maxSizeClause) maxSizeClause = cl.size();
-      markView.push_back(false);
-      nbUnsat.push_back(0);
-      nbSat.push_back(0);
-      watcher.push_back(cl[0]);
-    }
+  {
+    if(cl.size() > maxSizeClause) maxSizeClause = cl.size();
+    markView.push_back(false);
+    nbUnsat.push_back(0);
+    nbSat.push_back(0);
+    watcher.push_back(cl[0]);
+  }
 }// construtor
 
 
 /**
+   Collect the set of literals connected to l and store the result in
+   varComponent. 
+   
    @param[in] l, the considered literal
-   WARNING: varConnected references tmpVecVar. Thus, it is already allocate.
+   @param[in] v, the label of the previously assigned componet (0 if not assigned).
+   @param[in] varComponent, the set of varaible connected to l.
+   @param[in] nbComponent, the component label.
 */
-int SpecManagerCnf::connectedToLit(Lit l, std::vector<int> &v,
-                                   std::vector<Var> &varComponent, int nbComponent)
+void SpecManagerCnf::connectedToLit(Lit l,
+                                    std::vector<int> &v,
+                                    std::vector<Var> &varComponent,
+                                    int nbComponent)
 {
-  int cpt = 0;
   for(auto &idx : occList[l.intern()])
+  {
+    if(markView[idx]) continue;
+    std::vector<Lit> &c = clauses[idx];
+
+    markView[idx] = true;
+    mustUnMark.push_back(idx);
+
+    // compute component
+    for(auto &l : c )
     {
-      std::vector<Lit> &c = clauses[idx];
-      if(markView[idx]) continue;
-         
-      cpt++;
-      markView[idx] = true;
-      mustUnMark.push_back(idx);
-
-      // compute component
-      for(auto &l : c )
-        {
-          if(currentValue[l.var()] != l_Undef) continue;
-
-          Var vTmp = l.var();
-          if(!v[vTmp])
-            {
-              varComponent.push_back(vTmp);
-              v[vTmp] = nbComponent;
-            }
-        }
+      if(currentValue[l.var()] != l_Undef || v[l.var()]) continue;
+      
+      varComponent.push_back(l.var());
+      v[l.var()] = nbComponent;
     }
-  return cpt;
+  }
 }// connectedToLit
 
 
@@ -130,7 +128,7 @@ int SpecManagerCnf::connectedToLit(Lit l, std::vector<int> &v,
    @param[out] notFreeVar, the difference between setOfVar and freeVar
 
    \return the number of component found
- */
+*/
 int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &varCo,
                                               std::vector<Var> &setOfVar,
                                               std::vector<Var> &freeVar,
@@ -138,48 +136,52 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
 {
   freeVar.clear();
   int nbComponent = 0;
-
+  
   for(auto &v : setOfVar)
+  {
+    if(currentValue[v] != l_Undef || idxComponent[v]) continue;
+
+    // index a new composant
+    nbComponent++;
+    idxComponent[v] = nbComponent;
+
+    // save the variables of connected component
+    assert(!tmpVecVar.size());
+    tmpVecVar.push_back(v);
+
+    int cpt = 0;
+    while(tmpVecVar.size())
     {
-      if(currentValue[v] != l_Undef || idxComponent[v]) continue;
+      cpt++;
+      Lit l = Lit(tmpVecVar.back(), false);
+      tmpVecVar.pop_back();
 
-      // index a new composant
-      nbComponent++;
-      idxComponent[v] = nbComponent;
-
-      // save the variables of connected component
-      tmpVecVar.resize(0);
-      tmpVecVar.push_back(v);
-
-      int nbClausesInComponent = 0;
-      for(auto &vv : tmpVecVar)
-        {
-          Lit l = Lit(vv, false);
-          nbClausesInComponent += connectedToLit(l, idxComponent, tmpVecVar, nbComponent);
-          nbClausesInComponent += connectedToLit(~l, idxComponent, tmpVecVar, nbComponent);
-        }
-
-      if(tmpVecVar.size() <= 1)
-        {
-          idxComponent[v] = 0;
-          nbComponent--; // it is alone ...
-        }
+      connectedToLit(l, idxComponent, tmpVecVar, nbComponent);
+      connectedToLit(~l, idxComponent, tmpVecVar, nbComponent);
     }
+
+    assert(cpt > 0);
+    if(cpt == 1)
+    {
+      idxComponent[v] = 0;
+      nbComponent--; // it is alone ...
+    }
+  }
 
   resetUnMark();
 
   for(int i = 0 ; i<nbComponent ; i++) varCo.push_back(std::vector<Var>());
   for(auto &v : setOfVar)
+  {
+    if(idxComponent[v])
     {
-      if(idxComponent[v])
-        {
-          assert(nbComponent);
-          varCo[idxComponent[v] - 1].push_back(v);
-          notFreeVar.push_back(v);
-        }
-      if(!idxComponent[v] && currentValue[v] == l_Undef) freeVar.push_back(v);
-      idxComponent[v] = 0;
+      assert(nbComponent);
+      varCo[idxComponent[v] - 1].push_back(v);
+      notFreeVar.push_back(v);
     }
+    if(!idxComponent[v] && currentValue[v] == l_Undef) freeVar.push_back(v);
+    idxComponent[v] = 0;
+  }
 
   return nbComponent;
 }// computeConnectedComponent
@@ -192,7 +194,7 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
    @param[in] idx, the clause index.
 
    \return true if the clause is satisfied, false otherwise.
- */
+*/
 bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
 {
   assert(idx < clauses.size());
@@ -207,15 +209,15 @@ bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
    @param[in] idx, the clause index.
 
    \return true if the clause is satisfied, false otherwise.
- */
+*/
 bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
 {
   for(auto &l : c)
-    {
-      if(!litIsAssigned(l)) continue;
-      if(l.sign() && currentValue[l.var()] == l_False) return true;
-      if(!l.sign() && currentValue[l.var()] == l_True) return true;
-    }
+  {
+    if(!litIsAssigned(l)) continue;
+    if(l.sign() && currentValue[l.var()] == l_False) return true;
+    if(!l.sign() && currentValue[l.var()] == l_True) return true;
+  }
 
   return false;
 }// isSatisfiedClause
@@ -232,9 +234,9 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
    current component, false otherwise.
 
    \return true if the clause is satisfied, false otherwise.
- */
+*/
 bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
-                               std::vector<bool> &inCurrentComponent)
+                                                        std::vector<bool> &inCurrentComponent)
 {
   if(nbSat[idx]) return false;
   assert(watcher[idx] != lit_Undef);

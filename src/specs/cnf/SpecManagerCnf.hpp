@@ -46,9 +46,9 @@ class SpecManagerCnf : public SpecManager
   {
     for(unsigned i = 0 ; i<occList.size() ; i++)
     {
-      out << ((i&1) ? "-" : "") << ((i>>1) + 1) << " ";
+      out << ((i&1) ? "-" : "") << (i>>1) << " --> [ ";
       for(auto l : occList[i]) out << l << " ";
-      out << "\n";
+      out << " ]\n";
     }
   }  
 
@@ -64,9 +64,10 @@ class SpecManagerCnf : public SpecManager
     for(auto idx : mustUnMark) markView[idx] = false;
     mustUnMark.resize(0);
   }// resetUnMark
-
-  int connectedToLit(Lit l, std::vector<int> &v, std::vector<Var> &varComponent,
-                     int nbComponent);
+  
+  void connectedToLit(Lit l, std::vector<int> &v,
+                      std::vector<Var> &varComponent,
+                      int nbComponent);
 
  public:
   SpecManagerCnf(int nbClause, int nbVar, int maxClauseSize);
