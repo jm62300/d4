@@ -293,6 +293,7 @@ void PartitioningHeuristicBipartite::computePartition(
   std::vector< std::vector<Var> > equivVar;
   if(equivSimp)
   {
+    std::cout << "here I am\n";
     em.searchEquiv(s, component, equivVar);
     s.whichAreUnits(component, unitEquiv);
   }
