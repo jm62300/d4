@@ -13,7 +13,6 @@ project.
 
 ```console
 $ ./build.sh
-$ ninja -C build
 ```
 
 The executable is called d4 and is in the build repository.

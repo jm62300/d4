@@ -384,8 +384,7 @@ template <class T> class ModelCounter : public MethodManager
   {
     if(!priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
       {
-        m_hPartition->computePartition(connected, priorityVar);
-        assert(priorityVar.size());
+        m_hPartition->computePartition(connected, priorityVar);        
         callPartitioner++;
       }
 
@@ -397,7 +396,6 @@ template <class T> class ModelCounter : public MethodManager
     
     Lit l = Lit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
-    
     
     // compile the formula where l is assigned to true
     std::vector<Lit> unitLitPos, unitLitNeg;
@@ -420,7 +418,7 @@ template <class T> class ModelCounter : public MethodManager
   /**
      Compute the number of model using the trace of a SAT solver.
 
-     \return the number of models
+     \return the number of models.
   */
   T computeNbModel(std::ostream &out)
   {

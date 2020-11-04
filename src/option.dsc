@@ -1,5 +1,6 @@
 ("help,h", "Help screen")
 ("input,i", boost::program_options::value<std::string>(), "(required) Path to get the input file")
+("input-type,it", boost::program_options::value<std::string>()->default_value("cnf"), "The input type")
 ("method,m", boost::program_options::value<std::string>(), "(required) The method we run (mc for model counting, dec-DNNF for decision DNNF compilation).")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")
 ("preproc-solver,ps", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use in the preproc")
@@ -15,4 +16,3 @@
 ("cache-clause-representation,ccr", boost::program_options::value<std::string>()->default_value("clause"), "The way the clause are reprensented in the cache (clause and index).")
 ("cache-activated,ca", boost::program_options::value<bool>()->default_value(true), "Activate or not the cache.")
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(true), "Consider or not the reverse of the current phase.")
-

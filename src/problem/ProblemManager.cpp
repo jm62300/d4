@@ -35,9 +35,9 @@ namespace d4
 ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm)
 {
   std::string in = vm["input"].as<std::string>();
-  std::string extension = in.substr(in.find_last_of(".") + 1);
+  std::string inType = vm["input-type"].as<std::string>();
 
-  if(extension == "cnf" || extension == "dimacs") return new ProblemManagerCnf(in);
+  if(inType == "cnf" || inType == "dimacs") return new ProblemManagerCnf(in);
   
   throw (FactoryException("Cannot create a ProblemManager",__FILE__, __LINE__));
 } // makeProblemManager

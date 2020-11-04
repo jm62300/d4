@@ -34,9 +34,9 @@ namespace d4
 SpecManager *SpecManager::makeSpecManager(po::variables_map &vm, ProblemManager &p)
 {
   std::string in = vm["input"].as<std::string>();
-  std::string extension = in.substr(in.find_last_of(".") + 1);
+  std::string inType = vm["input-type"].as<std::string>();
 
-  if(extension == "cnf" || extension == "dimacs")
+  if(inType == "cnf" || inType == "dimacs")
   {
     std::string meth = vm["occurrence-manager"].as<std::string>();
     if(meth == "dynamic") return new SpecManagerCnfDyn(p);

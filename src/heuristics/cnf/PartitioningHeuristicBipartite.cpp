@@ -306,9 +306,16 @@ void PartitioningHeuristicBipartite::computePartition(
     weightClause[idx] = 1;
   }
   buildOccMap(hypergraph, m_idxClauses);
+  
+  // for(unsigned i = 0 ; i<component.size() ; i++)
+  // {
+  //   std::cout << component[i] << ": ";
+  //   for(auto &idx : hypergraph[i]) std::cout << idx << " ";
+  //   std::cout << "\n";
+  // }
 
-  std::vector<Var> vUse;
-  if(!reduceFormula) component = vUse;
+  std::vector<Var> vUse; 
+  if(!reduceFormula) vUse = component;
   else
   {
     computeUselessVariables(component, hypergraph, m_idxClauses);
@@ -321,7 +328,6 @@ void PartitioningHeuristicBipartite::computePartition(
     m_idxClauses.resize(j);
     buildOccMap(hypergraph, m_idxClauses);
   }
-
   
   if(equivSimp)
   {
@@ -365,8 +371,7 @@ void PartitioningHeuristicBipartite::computePartition(
     
     vUse.resize(j);
     hypergraph.resize(j);
-  }
-  
+  }  
 
   // graph initialization
   int posPins = 0;
@@ -411,7 +416,7 @@ void PartitioningHeuristicBipartite::computePartition(
     for(unsigned j = 0 ; j<equivVar[i].size() - 1 ; j++)
       if(inCurrentComponent[equivVar[i][j]]) cutVar.push_back(equivVar[i][j]);
   }
-
+  
   om.postUpdate(unitEquiv);
 } // component
 

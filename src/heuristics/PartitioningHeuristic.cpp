@@ -42,8 +42,9 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
   if(meth == "none") return new PartitioningHeuristicNone();
   
   std::string in = vm["input"].as<std::string>();
-  std::string extension = in.substr(in.find_last_of(".") + 1);
-  if(extension == "cnf" || extension == "dimacs")
+  std::string inType = vm["input-type"].as<std::string>();
+
+  if(inType == "cnf" || inType == "dimacs")
   {    
     if(meth == "bipartition") return new PartitioningHeuristicBipartite(ws, s, options);   
   }
