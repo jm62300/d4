@@ -33,9 +33,9 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     SpecManager &_om,
     unsigned options) :
     PartitioningHeuristicBipartite(_s, _om, options,
-                             dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
-                             dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
-                             dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
+                                   dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
+                                   dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
+                                   dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
 { 
 } // constructor
 
@@ -53,25 +53,25 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     int _nbClause,
     int _nbVar,
     int _sumSize) : s(_s), om(dynamic_cast<SpecManagerCnf&>(_om))
-{ 
-  em.initEquivExtractor(_nbVar);
+{
+  em.initEquivExtractor(_nbVar + 1);
   sumSize = _sumSize;
   nbVar = _nbVar;
   nbClause = _nbClause;
 
   // initialize the vector.
-  inCurrentComponent.resize(nbVar, false);
-  mapVar.resize(nbVar, 0);
-  markedVar.resize(nbVar, false);
-  useLessVariable.resize(nbVar, false);
-  markedClauses.resize(nbClause, false);
-  weightClause.resize(nbClause, 1);
+  inCurrentComponent.resize(nbVar + 1, false);
+  mapVar.resize(nbVar + 1, 0);
+  markedVar.resize(nbVar + 1, false);
+  useLessVariable.resize(nbVar + 1, false);
+  markedClauses.resize(nbClause + 1, false);
+  weightClause.resize(nbClause + 1, 1);
   
   // allocate the memory
   pins = new int[sumSize];
   partweights = new int[2];
-  xpins = new int[(nbVar + 2)];
-  vwghts = new int[(nbVar + 2)];
+  xpins = new int[(nbVar + 3)];
+  vwghts = new int[(nbVar + 3)];
   partvec = new int[(nbClause + 2)];
   cwghts = new int[(nbClause + 2)];
 
@@ -318,8 +318,7 @@ void PartitioningHeuristicBipartite::computePartition(
     unsigned i, j;
     for(i = j = 0 ; i<m_idxClauses.size() ; i++)
       if(m_idxClauses[i] != -1) m_idxClauses[j++] = m_idxClauses[i];
-
-    m_idxClauses.resize(i);
+    m_idxClauses.resize(j);
     buildOccMap(hypergraph, m_idxClauses);
   }
 
@@ -364,8 +363,8 @@ void PartitioningHeuristicBipartite::computePartition(
         vUse[j++] = vUse[i];
       }
     
-    vUse.resize(i);
-    hypergraph.resize(i);
+    vUse.resize(j);
+    hypergraph.resize(j);
   }
   
 

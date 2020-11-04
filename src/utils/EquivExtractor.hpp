@@ -15,22 +15,20 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_utils_EquivExtractor_hpp
-#define d4_src_utils_EquivExtractor_hpp
+#pragma once
 
 #include <vector>
 
-#include <src/solvers/WrapperSolver.hpp>
-#include <src/problem/ProblemTypes.hpp>
+#include "src/solvers/WrapperSolver.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4
 {
 class EquivExtractor
 {
  private:
-  std::vector<bool> markedVar;
-  std::vector<bool> markedVarInter;
+  std::vector<bool> m_markedVar;
+  std::vector<bool> m_markedVarInter;
   
  public:
   EquivExtractor(){;} // empty constructor 
@@ -42,5 +40,3 @@ class EquivExtractor
                    std::vector< std::vector<Var> > &equivVar);
 };
 } // d4
-
-#endif

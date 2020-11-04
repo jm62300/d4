@@ -132,8 +132,7 @@ class SpecManagerCnf : public SpecManager
   inline int getNbNotBinaryClause(Var v){return getNbClause(v) - getNbBinaryClause(v);}
   inline int getNbClause(Var v){return getNbClause(Lit(v, false)) + getNbClause(Lit(v, true));}
   inline int getNbClause(Lit l){return occList[l.intern()].size();}
-  inline int getNbClause(){return clauses.size();}
-  inline std::vector<Lit> &getClause(int idx){return clauses[idx];}
+  inline int getNbClause(){return clauses.size();}  
   inline int getNbUnsat(int idx){return nbUnsat[idx];}
   inline int getNbVariable(){return nbVar;}
 
@@ -148,6 +147,12 @@ class SpecManagerCnf : public SpecManager
   inline int getMaxSizeClause(){return maxSizeClause;}
   inline int getNbOccurrence(Lit l){return getNbClause(l);}
 
+  inline std::vector<Lit> &getClause(int idx)
+  {
+    assert((unsigned) idx < clauses.size());
+    return clauses[idx];
+  }
+  
   inline std::vector<int> &getVecIdxClause(Lit l)
   {
     assert(l.intern() < occList.size());

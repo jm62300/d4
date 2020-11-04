@@ -71,9 +71,9 @@ template <class T> class ModelCounter : public MethodManager
   ProblemManager *problem;
   WrapperSolver *solver;
   SpecManager *specs;
-  ScoringMethod *heuristicVar;
-  PhaseHeuristic *heuristicPhase;
-  PartitioningHeuristic * heuristicPartition;
+  ScoringMethod *m_hVar;
+  PhaseHeuristic *m_hPhase;
+  PartitioningHeuristic *m_hPartition;
   BucketManager<T> *bucketManager;
   TmpEntry<T> NULL_CACHE_ENTRY;  
   Cache<T> *cache;
@@ -105,13 +105,12 @@ template <class T> class ModelCounter : public MethodManager
     // we initialize the object that will give info about the problem.
     specs = SpecManager::makeSpecManager(vm, *problem);
     assert(specs);
-
+    
     // we initialize the object used to compute score and partition.
-    heuristicVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver);    
-    heuristicPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver);
-    heuristicPartition = PartitioningHeuristic::
-                         makePartitioningHeuristic(vm, *specs, *solver);
-    assert(heuristicVar && heuristicPhase && heuristicPartition);
+    m_hVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver);    
+    m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver);
+    m_hPartition = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver);
+    assert(m_hVar && m_hPhase && m_hPartition);
 
     cache = new Cache<T>(vm, problem->getNbVar());
     bucketManager = BucketManager<T>::makeBucketManager(vm, *specs);
@@ -145,9 +144,9 @@ template <class T> class ModelCounter : public MethodManager
     delete problem;
     delete solver;
     delete specs;
-    delete heuristicVar;
-    delete heuristicPhase;
-    delete heuristicPartition;
+    delete m_hVar;
+    delete m_hPhase;
+    delete m_hPartition;
     delete bucketManager;
     delete cache;
   } // destructor
@@ -385,18 +384,18 @@ template <class T> class ModelCounter : public MethodManager
   {
     if(!priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
       {
-        heuristicPartition->computePartition(connected, priorityVar);
+        m_hPartition->computePartition(connected, priorityVar);
         assert(priorityVar.size());
         callPartitioner++;
       }
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;    
-    Var v = heuristicVar->selectVariable(inVars, *specs);    
+    Var v = m_hVar->selectVariable(inVars, *specs);    
     if(v == var_Undef) return 1;
 
     
-    Lit l = Lit(v, heuristicPhase->selectPhase(v));
+    Lit l = Lit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     
     

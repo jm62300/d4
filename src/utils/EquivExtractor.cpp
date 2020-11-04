@@ -29,7 +29,7 @@ namespace d4
  */
 EquivExtractor::EquivExtractor(int nbVar)
 {
-  initEquivExtractor(nbVar);
+  initEquivExtractor(nbVar + 1);
 } // constructor
 
 
@@ -40,8 +40,8 @@ EquivExtractor::EquivExtractor(int nbVar)
  */
 void EquivExtractor::initEquivExtractor(int nbVar)
 {
-  markedVar.resize(nbVar, false);
-  markedVarInter.resize(nbVar, false);  
+  m_markedVar.resize(nbVar, false);
+  m_markedVarInter.resize(nbVar, false);  
 } // initEquivExtractor
 
 
@@ -64,10 +64,10 @@ bool EquivExtractor::interCollectUnit(WrapperSolver &s,
   if(!s.decideAndComputeUnit(Lit(v, true), listVarNegLit)) return false;
 
   // intersection.
-  for(auto &l : listVarPosLit) markedVarInter[l.var()] = true;
+  for(auto &l : listVarPosLit) m_markedVarInter[l.var()] = true;
   for(auto &l : listVarNegLit)
-    if(markedVarInter[l.var()]) listVarPU.push_back(l.var());
-  for(auto &l : listVarPosLit) markedVarInter[l.var()] = false;
+    if(m_markedVarInter[l.var()]) listVarPU.push_back(l.var());
+  for(auto &l : listVarPosLit) m_markedVarInter[l.var()] = false;
 
   return true;
 } // interCollectUnit
@@ -88,7 +88,8 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
       
   for(auto &v : vars)
   {
-    if(markedVar[v] || s.varIsAssigned(v)) continue;
+    assert((unsigned) v < m_markedVar.size());
+    if(m_markedVar[v] || s.varIsAssigned(v)) continue;
     
     std::vector<Var> eqv;
     if(interCollectUnit(s, v, eqv))
@@ -97,13 +98,13 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
       equivVar.push_back(eqv);
       for(auto &vv : eqv)
       {
-        markedVar[vv] = true;
+        m_markedVar[vv] = true;
         reinit.push_back(vv);
       }      
     } 
   }
   
-  for(auto &v : reinit) markedVar[v] = false;
+  for(auto &v : reinit) m_markedVar[v] = false;
 } // searchEquiv
 
 } // d4
