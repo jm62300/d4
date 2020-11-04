@@ -173,7 +173,7 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
     return false;
   }
       
-  for(int j = posTrail + 1 ; j<s.trail.size() ; j++)
+  for(int j = posTrail ; j<s.trail.size() ; j++)
     units.push_back(Lit(var(s.trail[j]), sign(s.trail[j])));
   s.cancelUntil(s.decisionLevel() - 1);
   return true;
