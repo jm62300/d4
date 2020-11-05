@@ -56,7 +56,7 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     int _nbVar,
     int _sumSize) : m_s(_s), m_om(dynamic_cast<SpecManagerCnf&>(_om))
 {
-  m_pm = PartitionerManager::makePartitioner(vm, _nbClause, _nbVar, _sumSize);
+  m_pm = PartitionerManager::makePartitioner(vm, _nbVar, _nbClause, _sumSize);
   
   m_em.initEquivExtractor(_nbVar + 1);
   m_nbVar = _nbVar;

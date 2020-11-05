@@ -6,18 +6,21 @@ set -o pipefail
 
 opt=0
 
-while getopts 'd' OPTION
+while getopts 'ds' OPTION
 do
     case "$OPTION" in
         d)
-            echo "debugging mode"
             opt=1
             ;;
+        s)
+            opt=2
+            ;;
+
     esac
 done
 
 
 mkdir -p build
 cd build
-cmake -GNinja $* .. -DDEBUG_MODE=$opt
+cmake -GNinja $* .. -DBUILD_MODE=$opt
 ninja 

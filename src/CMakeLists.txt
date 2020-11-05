@@ -11,13 +11,14 @@ file(GLOB_RECURSE INCLUDES ./**.hpp)
 set(SRCS ${SOURCES})
 set(HEADERS ${INCLUDES})
 
+set(Boost_USE_STATIC_LIBS   ON)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/)
 
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # flags
-if(${DEBUG_MODE})
+if(${BUILD_MODE} EQUAL 1)
   # create an executable
   add_executable(d4_debug ${SRCS} ${HEADERS})
 
@@ -29,13 +30,24 @@ if(${DEBUG_MODE})
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug
     DESTINATION bin
-    RENAME ${CMAKE_PROJECT_NAME}-d4_debug)
-else()
+    RENAME ${CMAKE_PROJECT_NAME}-d4_debug)  
+elseif(${BUILD_MODE} EQUAL 2)
+  message("Static mode activated")
+
+  add_executable(d4_static ${SRCS} ${HEADERS})
+
+  target_compile_options(d4_static PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess -static)
+  target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a -static)
+
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_static
+    DESTINATION bin
+    RENAME ${CMAKE_PROJECT_NAME}-d4_static)
+else()  
   # create an executable
   add_executable(d4 ${SRCS} ${HEADERS})
 
   message("Classical mode activated")
-  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess -Wfatal-errors)
+  target_compile_options(d4 PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
