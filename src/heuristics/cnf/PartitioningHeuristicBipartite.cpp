@@ -1,5 +1,5 @@
 /*
-* d4
+* d4 
 * Copyright (C) 2020  Univ. Artois & CNRS
 * 
 * This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 */
 
 #include "PartitioningHeuristicBipartite.hpp"
-#include "3rdParty/patoh/patoh.h"
+
 
 namespace d4
 {
@@ -29,14 +29,15 @@ namespace d4
    @param[in] _om, a structure manager.
  */
 PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
+    po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om,
     unsigned options) :
-    PartitioningHeuristicBipartite(_s, _om, options,
+    PartitioningHeuristicBipartite(vm, _s, _om, options,
                                    dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
                                    dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
                                    dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
-{ 
+{  
 } // constructor
 
 
@@ -47,40 +48,32 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
    @param[in] _om, a structure manager.
  */
 PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
+    po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om,
     unsigned options,
     int _nbClause,
     int _nbVar,
-    int _sumSize) : s(_s), om(dynamic_cast<SpecManagerCnf&>(_om))
+    int _sumSize) : m_s(_s), m_om(dynamic_cast<SpecManagerCnf&>(_om))
 {
-  em.initEquivExtractor(_nbVar + 1);
-  sumSize = _sumSize;
-  nbVar = _nbVar;
-  nbClause = _nbClause;
+  m_pm = PartitionerManager::makePartitioner(vm, _nbClause, _nbVar, _sumSize);
+  
+  m_em.initEquivExtractor(_nbVar + 1);
+  m_nbVar = _nbVar;
+  m_nbClause = _nbClause;
 
   // initialize the vector.
-  inCurrentComponent.resize(nbVar + 1, false);
-  mapVar.resize(nbVar + 1, 0);
-  markedVar.resize(nbVar + 1, false);
-  useLessVariable.resize(nbVar + 1, false);
-  markedClauses.resize(nbClause + 1, false);
-  weightClause.resize(nbClause + 1, 1);
+  m_inCurrentComponent.resize(m_nbVar + 1, false);
+  m_mapVar.resize(m_nbVar + 1, 0);
+  m_markedVar.resize(m_nbVar + 1, false);
+  m_equivClass.resize(m_nbVar + 1, 0);
+  m_useLessVariable.resize(m_nbVar + 1, false);
+  m_partition.resize(m_nbVar + 1, 0);
+  m_markedClauses.resize(m_nbClause + 1, false);
   
-  // allocate the memory
-  pins = new int[sumSize];
-  partweights = new int[2];
-  xpins = new int[(nbVar + 3)];
-  vwghts = new int[(nbVar + 3)];
-  partvec = new int[(nbClause + 2)];
-  cwghts = new int[(nbClause + 2)];
-
-  // set all weightclause to 1
-  for(int i = 0 ; i<(nbClause + 1) ; i++) cwghts[i] = 1;
-
   // get the options.
-  reduceFormula = options & 1;
-  equivSimp = (options>>1) & 1;  
+  m_reduceFormula = options & 1;
+  m_equivSimp = (options>>1) & 1;
 } // constructor
 
 
@@ -89,12 +82,7 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
  */
 PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
 {
-  delete[] pins;
-  delete[] partweights;
-  delete[] xpins;
-  delete[] vwghts;
-  delete[] partvec;
-  delete[] cwghts;
+  delete m_pm;
 } // destructor
 
 
@@ -102,322 +90,191 @@ PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
    Check all the hyper edges in order to extract those their are conflictual
    (i.e. there are belong to at least two components).
 
-   @param[in] hyperEdges, the list of hyper edges.
-   @param[in] pv, the array that gives the partition.
-
-   \return the indices of the hyper edges that are between several components.
+   @param[in] hypergraph, the list of hyper edges.
+   @param[in] partition, the array that gives the partition.
+   @param[out] cutSet, the computed cutset.
  */
-void PartitioningHeuristicBipartite::extractCutFromClauses(
-    std::vector< std::vector<int> > &hyperEdges,
-    std::vector<int> &cutSet,
-    int *pv)
+void PartitioningHeuristicBipartite::extractCutFromHyperGraph(
+    std::vector< std::vector<unsigned> > &hypergraph,
+    std::vector<int> &partition,
+    std::vector<int> &cutSet)
 {
-  for(unsigned i = 0 ; i<hyperEdges.size() ; i++)
-  {
-    std::vector<int> &c = hyperEdges[i];
-    bool split = false;
-    
-    for(unsigned j = 1 ; !split && j<c.size() ; j++)
-      split = pv[c[j]] != pv[c[0]];
+  std::vector<unsigned> indices;
+  clashHyperEdgeIndex(hypergraph, partition, indices);
 
-    if(split) cutSet.push_back(i);
+  int balance = 0;
+  for(auto &idx : indices)
+  {
+    int part = balance >= 0 ? 0 : 1;
+    for(auto &x : hypergraph[idx])
+    {
+      if(!m_markedVar[x] && partition[x] == part)
+      {
+        m_markedVar[x] = true;
+        cutSet.push_back(x);
+        if(part) balance++; else balance--;
+      }
+    }
   }
+  
+  for(auto &x : cutSet) m_markedVar[x] = false; // reinit
 } // extractCutFromClauses
 
 
 /**
-   Construct the occurrence map from the set of clauses.
+   Get the clauses we will use in the partitioning algorithm.
 
-   @param[out] hyperEdges, the list of hyper edges. We suppose that hyperEdges
-   is nig enough, that means its size is at least the number of variables of the
-   current component.   
-   @param[in] idxClauses, the set of index of clauses.
+   @param[in] component, the set of variables we focus on.
+   @param[in] equiClass, the equivalence class.
+   @param[out] hypergraph, the output hyper graph.
+   
  */
-void PartitioningHeuristicBipartite::buildOccMap(
-    std::vector< std::vector<int> > &hyperEdges,
-    std::vector<int> &idxCl)
+void PartitioningHeuristicBipartite::constructHyperGraph(
+    std::vector<Var> &component,
+    std::vector<Var> &equivClass,
+    std::vector< std::vector<unsigned> > &hypergraph)
 {
-  for(auto &v : hyperEdges) v.clear();
-  for(unsigned i = 0 ; i<idxCl.size() ; i++)
+  // collect the indices of the clauses from the spec manager.
+  for(auto &v : component) m_inCurrentComponent[v] = true;
+  m_idxClauses.clear();
+  m_om.getCurrentClauses(m_idxClauses, m_inCurrentComponent);
+  for(auto &v : component) m_inCurrentComponent[v] = false;
+  
+  // construct the hypergraph.
+  for(auto &idx : m_idxClauses)
   {
-    int id = idxCl[i];
-    for(auto &l : om.getClause(id))
-    {
-      if(!om.litIsAssigned(l) && !useLessVariable[l.var()])
-        hyperEdges[mapVar[l.var()]].push_back(i);
-    }
+    hypergraph.push_back(std::vector<unsigned>());
+    std::vector<unsigned> &next = hypergraph.back();
+
+    for(auto &l : m_om.getClause(idx))
+      if(!m_om.litIsAssigned(l) && !m_markedVar[equivClass[l.var()]])
+      {
+        m_markedVar[equivClass[l.var()]] = true;
+        next.push_back(equivClass[l.var()]);
+      }
+
+    for(auto &x : next) m_markedVar[x] = false;
+    if(next.size() == 1) hypergraph.pop_back();
   }
-} // buildOccMap
+
+  // remove useless edges.
+  if(m_reduceFormula) removeSubsumEdges(hypergraph);
+}// collectRelevantIdxClauses
+
 
 /**
-   Remove useless variables and ajust the hypergraph, mapVar and save the new
-   set of variables.
+   We remove from the hypergraph the edges that are subsumed by another one.
 
-   @param[in] component, the initial set of variables
-   @param[out] occMap, the occurrence map
-   @param[out] useFulVariable, the set of kept variables
+   @param[out] hypergraph, the list of hyper edges.
  */
-void PartitioningHeuristicBipartite::clearSetOfVariable(
-    std::vector<Var> &component,
-    std::vector< std::vector<int> > &hypergraph,
-    std::vector<Var> &useFulVariable)
+void PartitioningHeuristicBipartite::removeSubsumEdges(
+    std::vector< std::vector<unsigned> > &hypergraph)
 {
-  hypergraph.clear();
-  for(auto &v : component)
-    if(!om.varIsAssigned(v) && !useLessVariable[v])
-    {
-      mapVar[v] = useFulVariable.size();
-      useFulVariable.push_back(v);
-      hypergraph.push_back(std::vector<int>());
-    }
-} // clearSetOfVariable
-
-
-/**
-   Search if some variable can be drop from the graph.
-
-   @param[in] component, the set of variables
-   @param[in] hypergraph, occurrence lists
-   @param[in] idxClauses, correspondance between the occurrence lists and the
-   clauses
-*/
-void PartitioningHeuristicBipartite::computeUselessVariables(
-    std::vector<Var> &component,
-    std::vector< std::vector<int> > &hypergraph,
-    std::vector<int> &idxClauses)
-{
-  for(unsigned i = 0 ; i<component.size() ; i++)
+  unsigned i, j;
+  for(i = j = 0 ; i<hypergraph.size() ; i++)
   {
-    if(!hypergraph[i].size()) continue;
-
-    // init with the first clause
-    std::vector<Lit> &c = om.getClause(idxClauses[hypergraph[i][0]]);
-    for(auto &l : c) if(!om.litIsAssigned(l)) markedVar[l.var()] = true;
+    if(!hypergraph[i].size()) continue; // i is then removed.
     
-    bool notUseFul = true;
-    for(unsigned j = 1 ; notUseFul && j<hypergraph[i].size() ; j++)
+    // mark the varaibles of the current edge.
+    for(auto &x : hypergraph[i]) m_markedVar[x] = true;
+
+    // visit the other edges to compute those that subsubmed or are subsubmed.
+    bool subsumed = false;
+    for(unsigned k = i + 1 ; k<hypergraph.size() ; k++)
     {
-      std::vector<Lit> &d = om.getClause(idxClauses[hypergraph[i][j]]);
-      for(unsigned k = 0 ; notUseFul && k<d.size() ; k++)
-        if(!om.litIsAssigned(d[k])) notUseFul = markedVar[d[k].var()]; 
-    }
-    if(notUseFul) useLessVariable[component[i]] = true;
+      unsigned cpt = 0;
+      for(auto &x : hypergraph[k]) if(m_markedVar[x]) cpt++;
 
-    // reinit the variable we marked.
-    for(auto &l : c) markedVar[l.var()] = false;
-  } 
-} // computeUselessVariables
-
-
-/**
-   Remove useless clauses (a clause is useless if I can find
-   another one with exactly the same variable).
-
-   @param[out] idxClauses, the set of index of clauses we want to purge
-*/
-void PartitioningHeuristicBipartite::computeUselessClauses(
-    std::vector<int> &idxClauses,
-    std::vector< std::vector<int> > &hypergraph)
-{
-  for(unsigned i = 0 ; i<idxClauses.size() ; i++)
-  {
-    if(idxClauses[i] == -1) continue;
-    std::vector<Lit> &c = om.getClause(idxClauses[i]);    
-    for(auto &l : c) markedVar[l.var()] = true; // we mark the clause
-
-    // search a variable in c that minimized the number of occurrences.
-    // we also compute the number of available variables.
-    Var v = var_Undef;
-    int nbAvailableVar = 0;
-    for(auto &l : c)
-    {
-      Var vp = l.var();
-      if(!om.varIsAssigned(vp) && !useLessVariable[vp])
-      {
-        nbAvailableVar++;
-        if(v == var_Undef ||
-           hypergraph[mapVar[v]].size() > hypergraph[mapVar[vp]].size()) v = vp;
-      }
-    }
-
-    if(v != var_Undef)
-    {
-      for(unsigned j = 0 ; j<hypergraph[mapVar[v]].size() ; j++)
-      {
-        unsigned idxCl = hypergraph[mapVar[v]][j];
-        if(idxCl == i || idxClauses[idxCl] == -1) continue;
-        std::vector<Lit> &d = om.getClause(idxClauses[idxCl]);
-
-        int cpt = 0;
-        for(unsigned k = 0 ; cpt < nbAvailableVar && k<d.size() ; k++)
-          if(markedVar[d[k].var()] &&
-             !om.litIsAssigned(d[k]) && !useLessVariable[d[k].var()]) cpt++;
-
-        if(cpt >= nbAvailableVar) // we keep the largest clause
-        {
-          weightClause[idxClauses[idxCl]] += weightClause[idxClauses[i]];
-          idxClauses[i] = -1;
-          break;
-        }
-      }
+      if(cpt == hypergraph[k].size()) subsumed = true; // the current edge is smaller then include
+      if(cpt == hypergraph[i].size()) hypergraph[k].clear(); // the edges k subsums i
     }
     
-    for(auto &l : c) markedVar[l.var()] = false; // unmark
+    for(auto &x : hypergraph[i]) m_markedVar[x] = false;     // reinit
+    if(!subsumed){if(i != j) hypergraph[j++] = hypergraph[i]; else j++;} // copy or not ...
   }
-} // computeUselessClauses
 
+  hypergraph.resize(j);
+} // removeSubsumEdges
+
+/**
+   Associate for each variable in the component an equivalence class.
+
+   @param[in] component, the set of variables of the component we want to cut.
+   @param[out] unitEquiv, the set of unit literals we find out.
+   @param[out] equiClass, the equivalence class we computed (we suppose that the
+   verctor is large enough and then we do not allocate).
+ */
+void PartitioningHeuristicBipartite::computeEquivClass(
+    std::vector<Var> &component,
+    std::vector<Lit> &unitEquiv,
+    std::vector<Var> &equivClass)
+{
+  assert(equivClass.size() >= m_nbVar);
+  for(auto &v : component) equivClass[v] = v;
+  if(!m_equivSimp) return;
+
+  std::vector< std::vector<Var> > equivVar;
+  m_em.searchEquiv(m_s, component, equivVar);
+  m_s.whichAreUnits(component, unitEquiv);
+
+  // propagate the equivVar information in equivClass
+  for(auto &c : equivVar)
+  {
+    Var vi = c.back();
+    for(auto &v : c) equivClass[v] = vi;             
+  }
+} // computeEquivClass
+
+/**
+   Collect the set of hyper egdes (their indices actually) that are between
+   several component.
+
+   @param[in] hypergraph, the hypergraph.
+   @param[in] partition, the partition.
+   @param[in] indices, the list of edge's indices that clash.
+ */
+void PartitioningHeuristicBipartite::clashHyperEdgeIndex(
+    std::vector< std::vector<unsigned> > &hypergraph,
+    std::vector<int> &partition,
+    std::vector<unsigned> &indices)
+{
+  bool clash = false;
+  int part = 0;
+  for(unsigned i = 0 ; i<hypergraph.size() ; i++)
+  {
+    clash = false;
+    part = partition[hypergraph[i][0]];
+
+    for(unsigned j = 1 ; !clash && j<hypergraph[i].size() ; j++) clash = part != partition[hypergraph[i][j]];
+    if(clash) indices.push_back(i);
+  }
+} // clashHyperEdgeIndex
 
 /**
    Compute a cutset by computing a bipartition of the hypergraph of the clauses.
 
-   @param[in] component, the set of variables of the component we want to cut.
+   @param[in] component, the set of variables.
    @param[out] cutSet, the cut set we compute.
  */
-void PartitioningHeuristicBipartite::computePartition(
+void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &component,
-    std::vector<Var> &cutVar)
+    std::vector<Var> &cutSet)
 {
-  int cut;
-  cutVar.clear();
-
-  std::vector< std::vector<int> > hypergraph;
-  std::vector<Var> notPlaced;
-  for(unsigned i = 0 ; i<component.size() ; i++)
-  {
-    mapVar[component[i]] = i;
-    inCurrentComponent[component[i]] = true;
-    hypergraph.push_back(std::vector<int>());
-  }
-
+  // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
-  std::vector< std::vector<Var> > equivVar;
-  if(equivSimp)
-  {
-    em.searchEquiv(s, component, equivVar);
-    s.whichAreUnits(component, unitEquiv);
-  }
-  om.preUpdate(unitEquiv);
-
-  // collect the set of clauses
-  om.getCurrentClauses(m_idxClauses, inCurrentComponent);
-  for(auto &idx : m_idxClauses)
-  {
-    assert((unsigned) idx < weightClause.size());
-    weightClause[idx] = 1;
-  }
-  buildOccMap(hypergraph, m_idxClauses);
+  computeEquivClass(component, unitEquiv, m_equivClass);
   
-  // for(unsigned i = 0 ; i<component.size() ; i++)
-  // {
-  //   std::cout << component[i] << ": ";
-  //   for(auto &idx : hypergraph[i]) std::cout << idx << " ";
-  //   std::cout << "\n";
-  // }
+  // synchronize the SAT solver and the spec manager.
+  m_om.preUpdate(unitEquiv);
 
-  std::vector<Var> vUse; 
-  if(!reduceFormula) vUse = component;
-  else
-  {
-    computeUselessVariables(component, hypergraph, m_idxClauses);
-    computeUselessClauses(m_idxClauses, hypergraph);
-    clearSetOfVariable(component, hypergraph, vUse);
-
-    unsigned i, j;
-    for(i = j = 0 ; i<m_idxClauses.size() ; i++)
-      if(m_idxClauses[i] != -1) m_idxClauses[j++] = m_idxClauses[i];
-    m_idxClauses.resize(j);
-    buildOccMap(hypergraph, m_idxClauses);
-  }
+  // construct the hypergraph
+  std::vector< std::vector<unsigned> > hypergraph;
+  constructHyperGraph(component, m_equivClass, hypergraph);
+  m_pm->computePartition(hypergraph, m_partition);
   
-  if(equivSimp)
-  {
-    for(auto &classEquiv : equivVar)
-    {
-      assert(classEquiv.size());
-      Var v = classEquiv.back();
-      if(!inCurrentComponent[v] || useLessVariable[v]) continue;
-      for(auto &idx : hypergraph[mapVar[v]]) markedClauses[idx] = true;
-      
-      for(auto &vv : classEquiv)
-      {
-        if(vv == v) continue;
-        if(!inCurrentComponent[vv] || useLessVariable[vv]) continue;
-
-        // transfer the clause in v
-        for(auto &idx : hypergraph[mapVar[vv]])
-        {
-          if(!markedClauses[idx])
-          {
-            hypergraph[mapVar[v]].push_back(idx);
-            markedClauses[idx] = true;
-          }
-        }
-        
-        useLessVariable[vv] = true;
-      }
-
-      for(auto &idx : hypergraph[mapVar[v]]) markedClauses[idx] = false;
-    }
-
-    // remove useless variables
-    unsigned i, j;
-    for(i = j = 0 ; i<vUse.size() ; i++)
-      if(!useLessVariable[vUse[i]])
-      {
-        if(i != j) hypergraph[j] = hypergraph[i];
-        mapVar[j] = vUse[i];
-        vUse[j++] = vUse[i];
-      }
-    
-    vUse.resize(j);
-    hypergraph.resize(j);
-  }  
-
-  // graph initialization
-  int posPins = 0;
-  for(unsigned i = 0 ; i<vUse.size() ; i++)
-  {
-    xpins[i] = posPins;
-    for(auto &idx : hypergraph[i]) pins[posPins++] = idx;
-  }
-  xpins[vUse.size()] = posPins;
-
-  // hypergraph partitioner
-  PaToH_Parameters args;
-  if(vUse.size() < 200)
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
-  else PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
-
-  args._k = 2;
-  args.seed = 1;
-
-  for(unsigned i = 0 ; i<m_idxClauses.size() ; i++)
-    cwghts[i] = weightClause[m_idxClauses[i]];
+  // collect the cut.
+  extractCutFromHyperGraph(hypergraph, m_partition, cutSet);
   
-  PaToH_Alloc(&args, m_idxClauses.size(), vUse.size(), 1, cwghts, NULL, xpins, pins);
-  PaToH_Part(&args, m_idxClauses.size(), vUse.size(), 1, 0, cwghts, NULL, xpins, pins,
-             NULL, partvec, partweights, &cut);
-
-  std::vector<int> idxEdges;
-  extractCutFromClauses(hypergraph, idxEdges, partvec);
-  for(auto &id : idxEdges) cutVar.push_back(vUse[id]);
-  
-  for(unsigned i = 0 ; i<component.size() ; i++)
-    useLessVariable[component[i]] = inCurrentComponent[component[i]] = false;
-  PaToH_Free();
-
-  for(unsigned i = 0 ; i<equivVar.size() ; i++)
-  {
-    Var v = equivVar[i].back();
-    bool isInCut = false;
-    for(unsigned j = 0 ; j<cutVar.size() && !isInCut ; j++)
-      isInCut = v == cutVar[j];
-    if(!isInCut) continue;
-    for(unsigned j = 0 ; j<equivVar[i].size() - 1 ; j++)
-      if(inCurrentComponent[equivVar[i][j]]) cutVar.push_back(equivVar[i][j]);
-  }
-  
-  om.postUpdate(unitEquiv);
+  m_om.postUpdate(unitEquiv);
 } // component
-
 } // d4

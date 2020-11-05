@@ -91,7 +91,7 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
       cl.push_back(Lit(minisat::var(s.trail[i]), minisat::sign(s.trail[i])));
       ret.push_back(cl);
     }
-
+    
     for(int i = 0 ; i<s.clauses.size() ; i++)
     {
       minisat::Clause &c = s.ca[s.clauses[i]];

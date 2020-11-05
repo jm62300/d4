@@ -17,9 +17,8 @@ a* it under the terms of the GNU General Public License as published by
 */
 #include "src/exceptions/FactoryException.hpp"
 
-#include "PartitioningHeuristic.hpp"
-#include "PartitioningHeuristicNone.hpp"
-#include "cnf/PartitioningHeuristicBipartite.hpp"
+#include "PartitionerManager.hpp"
+#include "PartitionerPatoh.hpp"
 
 namespace d4
 {
@@ -32,24 +31,15 @@ namespace d4
 
    \return a partioner if the options are ocrrect, NULL otherwise.
  */
-PartitioningHeuristic *
-PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
-                                                 SpecManager &s,
-                                                 WrapperSolver &ws)
+PartitionerManager *PartitionerManager::makePartitioner(po::variables_map &vm,
+                                                        unsigned maxNodes,
+                                                        unsigned maxEdges,
+                                                        unsigned maxSumEdgeSize)
 {
-  unsigned options = vm["partitioning-heuristic-options"].as<unsigned>();
-  std::string meth = vm["partitioning-heuristic"].as<std::string>();
-  if(meth == "none") return new PartitioningHeuristicNone();
+  std::string meth = vm["partitioning-heuristic-partitioner"].as<std::string>();;
+
+  if(meth == "patoh") return new PartitionerPatoh(maxNodes, maxEdges, maxSumEdgeSize);
   
-  std::string in = vm["input"].as<std::string>();
-  std::string inType = vm["input-type"].as<std::string>();
-
-  if(inType == "cnf" || inType == "dimacs")
-  {    
-    if(meth == "bipartition") return new PartitioningHeuristicBipartite(vm, ws, s, options);   
-  }
-
-  throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));
-} // makePartitioningHeuristic
-
+  throw (FactoryException("Cannot create a Partitioner",__FILE__, __LINE__));
+} // makePartitioner
 }

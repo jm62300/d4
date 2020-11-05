@@ -38,7 +38,7 @@
 
 #include "MethodManager.hpp"
 
-#define NB_SEP_MC 131
+#define NB_SEP_MC 105
 #define MASK_SHOWRUN_MC ((2<<13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 
@@ -55,13 +55,10 @@ template <class T> class ModelCounter : public MethodManager
   unsigned nbNodeInCall;
   unsigned nbCallCall;
   unsigned nbSplit;
-  unsigned callEquiv;
   unsigned callPartitioner;
   unsigned nbDecisionNode;
   unsigned optCached;
   unsigned stampIdx;
-  
-  std::clock_t currentTime;
 
   std::vector<unsigned> stampVar;
   std::vector<double> weightLit;
@@ -73,7 +70,7 @@ template <class T> class ModelCounter : public MethodManager
   SpecManager *specs;
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
-  PartitioningHeuristic *m_hPartition;
+  PartitioningHeuristic *m_hCutSet;
   BucketManager<T> *bucketManager;
   TmpEntry<T> NULL_CACHE_ENTRY;  
   Cache<T> *cache;
@@ -96,7 +93,7 @@ template <class T> class ModelCounter : public MethodManager
     assert(preproc);
     problem = preproc->run(*initProblem);
     assert(problem);
-    
+
     // we create the SAT solver. 
     solver = WrapperSolver::makeWrapperSolver(vm);
     assert(solver);
@@ -109,8 +106,8 @@ template <class T> class ModelCounter : public MethodManager
     // we initialize the object used to compute score and partition.
     m_hVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver);    
     m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver);
-    m_hPartition = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver);
-    assert(m_hVar && m_hPhase && m_hPartition);
+    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver);
+    assert(m_hVar && m_hPhase && m_hCutSet);
 
     cache = new Cache<T>(vm, problem->getNbVar());
     bucketManager = BucketManager<T>::makeBucketManager(vm, *specs);
@@ -119,15 +116,15 @@ template <class T> class ModelCounter : public MethodManager
     delete initProblem;
     delete preproc;
 
-    // other variable initialization.
-    currentTime = clock();
+    // init the clock time.
+    initTimer();
 
     // weight
     weightLit.resize((specs->getNbVariable() + 1) << 1, 1);
     weightVar.resize(specs->getNbVariable() + 1, 2);
     
     optCached = vm["cache-activated"].as<bool>();
-    callPartitioner = callEquiv = 0;
+    callPartitioner = 0;
     nbSplit = nbCallCall = 0;    
     nbDecisionNode = nbNodeInCall = 0;
 
@@ -146,7 +143,7 @@ template <class T> class ModelCounter : public MethodManager
     delete specs;
     delete m_hVar;
     delete m_hPhase;
-    delete m_hPartition;
+    delete m_hCutSet;
     delete bucketManager;
     delete cache;
   } // destructor
@@ -180,14 +177,13 @@ template <class T> class ModelCounter : public MethodManager
   inline void showInter(std::ostream &out)
   {
     out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbCallCall 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << clock() - currentTime 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbCallCall
+        << std::fixed << std::setprecision(2)
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->getNbPositiveHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->getNbNegativeHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit
-        << std::fixed << std::setprecision(2)
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << callEquiv
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
         << "|\n";
@@ -219,8 +215,7 @@ template <class T> class ModelCounter : public MethodManager
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#equivCall" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter"
         << "|\n";
@@ -257,7 +252,7 @@ template <class T> class ModelCounter : public MethodManager
     out << "c Number of paritioner calls: " << callPartitioner << "\n";
     out << "c\n";
     cache->printCacheInformation(out);
-    out << "c Final time: " << currentTime - clock() << "\n";
+    out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   } // printFinalStat
 
@@ -384,7 +379,7 @@ template <class T> class ModelCounter : public MethodManager
   {
     if(!priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
       {
-        m_hPartition->computePartition(connected, priorityVar);        
+        m_hCutSet->computeCutSet(connected, priorityVar);        
         callPartitioner++;
       }
 
@@ -443,7 +438,8 @@ template <class T> class ModelCounter : public MethodManager
   void run()
   {
     T nbModels = computeNbModel(std::cout);
-    std::cout << "s " << nbModels << "\n"; 
+    printFinalStats(std::cout);
+    std::cout << "s " << nbModels << "\n";
   } // run
   
 };

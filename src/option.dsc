@@ -9,6 +9,7 @@
 ("occurrence-manager,om",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used. [add a description]")
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected. [add a description for the available methods]")
 ("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("bipartition"),"The method used to compute a cut. [add a description for the available methods]")
+("partitioning-heuristic-partitioner,php",boost::program_options::value<std::string>()->default_value("patoh"),"The partitioner we will call.")
 ("partitioning-heuristic-options,pvho",boost::program_options::value<unsigned>()->default_value(-1),"The option given to the partitioner. We are limited in 32 options given by the bytes of the parameter.")
 ("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("expectation"), "The strategy used to reduce the cache structure.")
 ("cache-size-page,csp", boost::program_options::value<unsigned>()->default_value((1<<29)), "The block size of memory allocated for each page of the cache structure.")

@@ -22,12 +22,13 @@ namespace d4
 {
 
 /**
-   We do not use the partitioning process, then we return the component.
+   We do not use the partitioning process, then we return the component as cut
+   set.
 
    @param[in] component, the set of variables of the component we want to cut.
    @param[out] cutSet, the cut set we compute.
- */
-void PartitioningHeuristicNone::computePartition(
+*/
+void PartitioningHeuristicNone::computeCutSet(
     std::vector<Var> &component, std::vector<Var> &cutSet)
 { 
   cutSet = component;

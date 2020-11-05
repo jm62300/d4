@@ -146,7 +146,7 @@ Var Solver::newVar(bool sign, bool dvar)
 
 
 bool Solver::addClause_(vec<Lit>& ps)
-{
+{ 
   assert(decisionLevel() == 0);
   if (!ok) return false;
 
@@ -170,7 +170,7 @@ bool Solver::addClause_(vec<Lit>& ps)
     }
     else if (value(ps[i]) != l_False && ps[i] != p) ps[j++] = p = ps[i];
   }
-
+  
   ps.shrink(i - j);
 
   if ((cert != nullptr))
@@ -802,7 +802,7 @@ void Solver::rebuildOrderHeap()
    thing done here is the removal of satisfied clauses, but more things can be put here.
 */
 bool Solver::simplify()
-{
+{ 
   assert(decisionLevel() == 0);
 
   if (!ok || propagate() != CRef_Undef) return ok = false;

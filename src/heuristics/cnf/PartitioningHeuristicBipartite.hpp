@@ -18,52 +18,73 @@
 #pragma once
 
 #include <vector>
+#include <boost/program_options.hpp>
 
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/utils/EquivExtractor.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
 
 #include "../PartitioningHeuristic.hpp"
 
 namespace d4
 {
+namespace po = boost::program_options;
 class PartitioningHeuristicBipartite : public PartitioningHeuristic
 {
  private:
-  WrapperSolver &s;  
-  SpecManagerCnf &om;
-  EquivExtractor em;
+  WrapperSolver &m_s;  
+  SpecManagerCnf &m_om;
+  EquivExtractor m_em;
+  PartitionerManager *m_pm;
 
-  std::vector<bool> inCurrentComponent;
-  std::vector<bool> markedVar;
-  std::vector<bool> useLessVariable;
-  std::vector<bool> isInput;
-  std::vector<bool> markedClauses;
-  std::vector<int> mapVar;
-  std::vector<int> weightClause;
+  std::vector<bool> m_inCurrentComponent;
+  std::vector<bool> m_markedVar;
+  std::vector<bool> m_useLessVariable;
+  std::vector<bool> m_markedClauses;
+  std::vector<int> m_mapVar;
   std::vector<int> m_idxClauses;
-
-  int *xpins;
-  int *pins;
-  int *cwghts;
-  int *vwghts;
-  int *partvec;
-  int *partweights;
+  std::vector<Var> m_equivClass;
+  std::vector<int> m_partition;
   
-  int sumSize;
-  int nbVar;
-  int nbClause;
+  unsigned m_nbVar;
+  unsigned m_nbClause;
 
-  // options
-  bool reduceFormula; // 0.....01 
-  bool equivSimp;     // 0.....10
+  // options is given in the constructor and its bytes set the following:
+  bool m_reduceFormula; // 0.....01 
+  bool m_equivSimp;     // 0.....10
+
+
+  void constructHyperGraph(std::vector<Var> &component,
+                           std::vector<Var> &equivClass,
+                           std::vector< std::vector<unsigned> > &hypergraph);
+  
+  void computeEquivClass(std::vector<Var> &component,
+                         std::vector<Lit> &unitEquiv,
+                         std::vector<Var> &equivClass);
+  
+  void clashHyperEdgeIndex(std::vector< std::vector<unsigned> > &hypergraph,
+                           std::vector<int> &partition,
+                           std::vector<unsigned> &indices);
+
+
+  void extractCutFromHyperGraph(
+      std::vector< std::vector<unsigned> > &hypergraph,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet);
+
+
+  void removeSubsumEdges(std::vector< std::vector<unsigned> > &hypergraph);
+
   
  public:
-  PartitioningHeuristicBipartite(WrapperSolver &s,
+  PartitioningHeuristicBipartite(po::variables_map &vm,
+                                 WrapperSolver &s,
                                  SpecManager &om,
                                  unsigned options);
 
-  PartitioningHeuristicBipartite(WrapperSolver &s,
+  PartitioningHeuristicBipartite(po::variables_map &vm,
+                                 WrapperSolver &s,
                                  SpecManager &om,
                                  unsigned options,
                                  int nbClause,
@@ -73,27 +94,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   
   ~PartitioningHeuristicBipartite();
   
-  void computePartition(std::vector<Var> &component,
-                        std::vector<Var> &cutVar);
-
-  void extractCutFromClauses(
-      std::vector< std::vector<int> > &hyperEdges,
-      std::vector<int> &cutSet,
-      int *pv);
-  
-  void buildOccMap(std::vector< std::vector<int> > &hyperEdges,
-                   std::vector<int> &idxClauses);
-
-  void clearSetOfVariable(std::vector<Var> &component,
-                          std::vector< std::vector<int> > &hypergraph,
-                          std::vector<Var> &useFulVariable);
-
-  void computeUselessVariables(std::vector<Var> &component,
-                               std::vector< std::vector<int> > &hypergraph,
-                               std::vector<int> &idxClauses);
-
-  void computeUselessClauses(
-      std::vector<int> &idxClauses,
-      std::vector< std::vector<int> > &hypergraph);
+  void computeCutSet(std::vector<Var> &component,
+                     std::vector<Var> &cutSet);
 };
 } // d4

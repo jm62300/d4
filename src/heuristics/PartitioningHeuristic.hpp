@@ -37,8 +37,8 @@ class PartitioningHeuristic
                                                           SpecManager &sm,
                                                           WrapperSolver &ws);
   
-  virtual void computePartition(std::vector<Var> &component,
-                                std::vector<Var> &cutSet) = 0;
+  virtual void computeCutSet(std::vector<Var> &component,
+                             std::vector<Var> &cutSet) = 0;
 };
 }
 

@@ -15,25 +15,33 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_heuristics_PartitioningHeuristicNone_hpp
-#define d4_src_heuristics_PartitioningHeuristicNone_hpp
+#pragma once
 
 #include <vector>
+#include <boost/program_options.hpp>
 
-#include <src/problem/ProblemTypes.hpp>
-
-#include "PartitioningHeuristic.hpp"
+#include "PartitionerManager.hpp"
 
 namespace d4
 {
-class PartitioningHeuristicNone : public PartitioningHeuristic
+namespace po = boost::program_options;
+class PartitionerPatoh : public PartitionerManager
 {
+ private:
+  std::vector<bool> m_markedNodes;
+  std::vector<int> m_mapNodes;
+  
+  int *m_xpins;
+  int *m_pins;
+  int *m_cwghts;
+  int *m_partvec;
+  int *m_partweights;
+
  public:
-  PartitioningHeuristicNone(){}
-  void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
+  PartitionerPatoh(unsigned maxNodes, unsigned maxEdges, unsigned maxSumEdgeSize);
+  
+  ~PartitionerPatoh();
+  void computePartition(std::vector< std::vector<unsigned> > &hypergraph,
+                        std::vector<int> &partition);
 };
-}
-
-#endif
-
+} // d4

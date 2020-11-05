@@ -26,11 +26,17 @@ namespace d4
 namespace po = boost::program_options;
 class MethodManager
 {
+ protected:
+  std::clock_t currentTime;
+  
  public:
   virtual ~MethodManager() {}
   
   static MethodManager *makeMethodManager(po::variables_map &vm);
   virtual void run() = 0;
+
+  inline void initTimer(){currentTime = clock();}
+  inline float getTimer(){return (float)(clock() - currentTime)/CLOCKS_PER_SEC;}
 };
 } // d4
 
