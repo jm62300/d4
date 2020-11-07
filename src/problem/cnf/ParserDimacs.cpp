@@ -55,7 +55,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<Lit
         if ((v > 0 && nbVars < v) || (-v > 0 && nbVars < -v))
           std::cerr << "PARSE ERROR! Number of variables given incorrect: " << v << "\n", exit(3);
         
-        if(v) lits.push_back((v > 0) ? Lit(v) : Lit(-v, true));
+        if(v) lits.push_back((v > 0) ? Lit::makeLit(v, false) : Lit::makeLit(-v, true));
       } while(v);
 
       assert(lits.size());

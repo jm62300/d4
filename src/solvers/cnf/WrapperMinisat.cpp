@@ -88,7 +88,7 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
     for(int i = 0 ; i<s.trail.size() ; i++)
     {
       std::vector<Lit> cl;
-      cl.push_back(Lit(minisat::var(s.trail[i]), minisat::sign(s.trail[i])));
+      cl.push_back(Lit::makeLit(minisat::var(s.trail[i]), minisat::sign(s.trail[i])));
       ret.push_back(cl);
     }
     
@@ -101,7 +101,7 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
       for(int j = 0 ; j<c.size() && !isSAT ; j++)
       {
         if(s.isUndef(c[j]))
-          cl.push_back(Lit(minisat::var(c[j]), minisat::sign(c[j])));
+          cl.push_back(Lit::makeLit(minisat::var(c[j]), minisat::sign(c[j])));
         isSAT = s.isSAT(c[j]);
       }
 
@@ -120,6 +120,8 @@ void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout)
    An accessor on the activity of a variable.
 
    @param[in] v, the variable we want the activity.
+
+   \return the activity of v.
  */
 double WrapperMinisat::getActivity(Var v)
 {
@@ -128,7 +130,28 @@ double WrapperMinisat::getActivity(Var v)
 
 
 /**
-   An accessort on the polarity of a variable.
+   Return the number of times the variable v occurs in a conflict.
+   
+   @param[in] v, the variable we want the activity.
+   
+   \return the number of times v occurs in a conflict.
+ */
+double WrapperMinisat::getCountConflict(Var v)
+{
+  return s.scoreActivity[v];
+} // getCountConflict
+
+
+/**
+   Print out the trail on the standard output.
+ */
+void WrapperMinisat::showTrail()
+{
+  s.showTrail();
+} // showTrail
+
+/**
+   An accessor on the polarity of a variable.
 
    @param[in] v, the variable we want the polarity.
  */
@@ -174,7 +197,7 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units)
   }
       
   for(int j = posTrail ; j<s.trail.size() ; j++)
-    units.push_back(Lit(var(s.trail[j]), sign(s.trail[j])));
+    units.push_back(Lit::makeLit(var(s.trail[j]), sign(s.trail[j])));
   s.cancelUntil(s.decisionLevel() - 1);
   return true;
 } // decideAndComputeUnit
@@ -194,7 +217,7 @@ void WrapperMinisat::whichAreUnits(std::vector<Var> &component,
   {
     if(!s.isAssigned(v)) continue;
     minisat::Lit l = s.litAssigned(v);
-    units.push_back(Lit(var(l), sign(l)));
+    units.push_back(Lit::makeLit(var(l), sign(l)));
   }
 } // whichAreUnits
 
@@ -235,6 +258,16 @@ void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
 
 
 /**
+   Ask for the model.
+
+   @param[in] b, a boolean value to ask the solver to get the model.
+ */
+void WrapperMinisat::setNeedModel(bool b)
+{
+  s.setNeedModel(b);
+} // setNeedModel
+
+/**
    Say yo the SAT solver that we search for a model only with a set of given
    variables. That means, if all variables of setOfvar are assigned, then the
    problem is say to be satisfiable.
@@ -243,9 +276,9 @@ void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
  */
 void WrapperMinisat::inputVar(std::vector<Var> &setOfVar)
 {
-  minisat::vec<minisat::Var> setOfVar_m;
-  for(auto &v : setOfVar) setOfVar_m.push(v);
-  s.rebuildWithConnectedComponent(setOfVar_m);
+  m_setOfVar_m.setSize(0);
+  for(auto &v : setOfVar) m_setOfVar_m.push(v);
+  s.rebuildWithConnectedComponent(m_setOfVar_m);
 } // inputVar
 
 

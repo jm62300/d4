@@ -75,6 +75,8 @@ template <class T> class ModelCounter : public MethodManager
   TmpEntry<T> NULL_CACHE_ENTRY;  
   Cache<T> *cache;
 
+  std::ostream m_out;
+  
  public:
 
   /**
@@ -82,38 +84,50 @@ template <class T> class ModelCounter : public MethodManager
 
      @param[in] vm, the list of options.
    */
-  ModelCounter(po::variables_map &vm)
-  { 
+  ModelCounter(po::variables_map &vm) : m_out(nullptr)
+  {
+    // init the output stream
+    m_out.copyfmt(std::cout);                          
+    m_out.clear(std::cout.rdstate());           
+    m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
+    
     // the initial problem.
     ProblemManager *initProblem = ProblemManager::makeProblemManager(vm);
+    m_out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
+    initProblem->displayStat(m_out, "c [INITIAL INPUT] ");
+    m_out << "c\n";
     assert(initProblem);
 
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
     assert(preproc);
-    problem = preproc->run(*initProblem);
+    problem = initProblem; // preproc->run(*initProblem);
+    m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the preprocessed formula\033[0m\n";
+    problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
+    m_out << "c\n";
     assert(problem);
 
     // we create the SAT solver. 
     solver = WrapperSolver::makeWrapperSolver(vm);
     assert(solver);
     solver->initSolver(*problem);
-
+    solver->setNeedModel(false);
+    
     // we initialize the object that will give info about the problem.
     specs = SpecManager::makeSpecManager(vm, *problem);
     assert(specs);
     
     // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver);    
-    m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver);
+    m_hVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver, m_out);    
+    m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver, m_out);
     m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver);
     assert(m_hVar && m_hPhase && m_hCutSet);
 
     cache = new Cache<T>(vm, problem->getNbVar());
-    bucketManager = BucketManager<T>::makeBucketManager(vm, *specs);
+    bucketManager = BucketManager<T>::makeBucketManager(vm, *specs, m_out);
     
     // we delete the useless objects.
-    delete initProblem;
+    // delete initProblem;
     delete preproc;
 
     // init the clock time.
@@ -319,11 +333,12 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    
     solver->inputVar(setOfVar);
     if(!solver->solve()) return 0;
     
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
+    // for(auto &l : unitsLit) out << l << " "; out << "\n";
+    
     specs->preUpdate(unitsLit);
 
     T ret = 1, curr;
@@ -334,6 +349,9 @@ template <class T> class ModelCounter : public MethodManager
     
     int nbComponent = specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
+    
+    // if(nbComponent > 1){std::cout << nbComponent << "\n"; exit(0);}
+
     // consider each connected component.
     if(nbComponent)
     {
@@ -384,13 +402,19 @@ template <class T> class ModelCounter : public MethodManager
       }
 
     // search the next variable to branch on
-    std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;    
-    Var v = m_hVar->selectVariable(inVars, *specs);    
+    std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
+
+    // for(auto &v : inVars) std::cout << v << " => " << m_hVar->computeScore(v) << "\n";
+    // exit(0);
+    // RM std::cout << "\n";
+    
+    Var v = m_hVar->selectVariable(inVars, *specs);
     if(v == var_Undef) return 1;
 
+    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    nbDecisionNode++;
     
-    Lit l = Lit(v, m_hPhase->selectPhase(v));
-    nbDecisionNode++;    
+    // std::cout << "decision " <<   l.human() << "\n";
     
     // compile the formula where l is assigned to true
     std::vector<Lit> unitLitPos, unitLitNeg;
@@ -401,6 +425,9 @@ template <class T> class ModelCounter : public MethodManager
     pos *= computeWeightUnitFree(unitLitPos, freeVarPos);
     solver->popAssumption();
 
+    // printf("backtrack %d\n", l.human());
+    // solver->showTrail();
+    
     solver->pushAssumption(~l);
     T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar, out);
     neg *= computeWeightUnitFree(unitLitNeg, freeVarNeg);
@@ -437,10 +464,9 @@ template <class T> class ModelCounter : public MethodManager
    */
   void run()
   {
-    T nbModels = computeNbModel(std::cout);
-    printFinalStats(std::cout);
-    std::cout << "s " << nbModels << "\n";
+    T nbModels = computeNbModel(m_out);
+    printFinalStats(m_out);
+    m_out << "s " << nbModels << "\n";
   } // run
-  
 };
 } // d4

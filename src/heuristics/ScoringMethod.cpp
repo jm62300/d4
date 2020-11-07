@@ -35,15 +35,19 @@ namespace d4
 
    \return the scoring method
  */
-ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm, SpecManager &p, ActivityManager &am)
+ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm,
+                                                SpecManager &p,
+                                                ActivityManager &am,
+                                                std::ostream &out)
 {
   std::string in = vm["input"].as<std::string>();
   std::string inType = vm["input-type"].as<std::string>();
-
+  std::string meth = vm["scoring-method"].as<std::string>();
+  
+  out << "c [CONSTRUCTOR] Variable heuristic: " << meth << "\n";
+  
   if(inType == "cnf" || inType == "dimacs")
   {
-    std::string meth = vm["scoring-method"].as<std::string>();
-
     try
     {
       SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf&>(p);

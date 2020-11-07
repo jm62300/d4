@@ -44,20 +44,23 @@ ScoringMethodJwts::ScoringMethodJwts(SpecManagerCnf &o) : om(o)
  */
 double ScoringMethodJwts::computeScore(Var v)
 {
-  Lit lp = Lit(v, false);
-      
+  Lit lp = Lit::makeLit(v, false);
   double res = 0;
-  for(int sign = 0 ; sign<2 ; sign++)
-  { 
-    for(auto &idx : om.getVecIdxClause(sign ? lp : ~lp))
-    {
-      if(om.isSatisfiedClause(idx)) std::cout << "beuh\n";
-      assert(!om.isSatisfiedClause(idx));
-      if(om.getInitSize(idx) > 5) continue;      
-      res += ((double) 1.0) / (1<<om.getCurrentSize(idx));
-    }
+
+  for(auto &idx : om.getVecIdxClause(lp))
+  {
+    assert(!om.isSatisfiedClause(idx));
+    if(om.getInitSize(idx) > 5) continue;
+    res += ((double) 1.0) / (1<<om.getCurrentSize(idx));
   }
-      
+
+  for(auto &idx : om.getVecIdxClause(~lp))
+  {
+    assert(!om.isSatisfiedClause(idx));
+    if(om.getInitSize(idx) > 5) continue;
+    res += ((double) 1.0) / (1<<om.getCurrentSize(idx));
+  }
+  
   return res;
 } // computeScore
 

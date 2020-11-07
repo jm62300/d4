@@ -47,6 +47,8 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   virtual void pushAssumption(Lit l) = 0;
   virtual void popAssumption() = 0;
   virtual bool varIsAssigned(Var v) = 0;
+  virtual void setNeedModel(bool b) = 0;
+  virtual void showTrail() = 0;
 
   // this function returns false if the propagation gives a conflict.
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) = 0;

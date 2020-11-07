@@ -102,17 +102,14 @@ void PartitioningHeuristicBipartite::extractCutFromHyperGraph(
   std::vector<unsigned> indices;
   clashHyperEdgeIndex(hypergraph, partition, indices);
 
-  int balance = 0;
   for(auto &idx : indices)
-  {
-    int part = balance >= 0 ? 0 : 1;
+  {    
     for(auto &x : hypergraph[idx])
     {
-      if(!m_markedVar[x] && partition[x] == part)
+      if(!m_markedVar[x])
       {
         m_markedVar[x] = true;
-        cutSet.push_back(x);
-        if(part) balance++; else balance--;
+        cutSet.push_back(x);        
       }
     }
   }

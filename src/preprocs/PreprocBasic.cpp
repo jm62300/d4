@@ -62,7 +62,7 @@ ProblemManager *PreprocBasic::run(ProblemManager &pin)
       ret.clear();
     
       std::vector<Lit> cl;
-      Lit l = Lit(1, false);
+      Lit l = Lit::makeLit(1, false);
     
       cl.push_back(l);
       ret.push_back(cl);

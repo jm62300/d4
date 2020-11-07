@@ -44,7 +44,7 @@ ScoringMethodVsads::ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a) : 
  */
 double ScoringMethodVsads::computeScore(Var v)
 {
-  return activity.getActivity(v) + om.getNbClause(v);
+  return activity.getCountConflict(v) + (double) om.getNbClause(v);
 }
 
 } // d4

@@ -41,7 +41,7 @@ PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p,
  */
 bool PhaseHeuristicPolarity::selectPhase(Var v)
 {
-  return (pm.getPolarity(v) + 1) & 1;
+  return (pm.getPolarity(v) + isReversed) & 1;
 } // selectPhase
 
 }

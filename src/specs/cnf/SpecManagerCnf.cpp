@@ -100,13 +100,11 @@ void SpecManagerCnf::connectedToLit(Lit l,
   for(auto &idx : occList[l.intern()])
   {
     if(markView[idx]) continue;
-    std::vector<Lit> &c = clauses[idx];
-
     markView[idx] = true;
     mustUnMark.push_back(idx);
-
+    
     // compute component
-    for(auto &l : c )
+    for(auto &l : clauses[idx])
     {
       if(currentValue[l.var()] != l_Undef || v[l.var()]) continue;
       
@@ -134,9 +132,9 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
                                               std::vector<Var> &freeVar,
                                               std::vector<Var> &notFreeVar)
 {
-  freeVar.clear();
-  int nbComponent = 0;
+  freeVar.resize(0);
   
+  int nbComponent = 0;
   for(auto &v : setOfVar)
   {
     if(currentValue[v] != l_Undef || idxComponent[v]) continue;
@@ -153,11 +151,11 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
     while(tmpVecVar.size())
     {
       cpt++;
-      Lit l = Lit(tmpVecVar.back(), false);
+      Lit l = Lit::makeLit(tmpVecVar.back(), false);
       tmpVecVar.pop_back();
 
-      connectedToLit(l, idxComponent, tmpVecVar, nbComponent);
-      connectedToLit(~l, idxComponent, tmpVecVar, nbComponent);
+      if(occList[l.intern()].size()) connectedToLit(l, idxComponent, tmpVecVar, nbComponent);
+      if(occList[(~l).intern()].size()) connectedToLit(~l, idxComponent, tmpVecVar, nbComponent);
     }
 
     assert(cpt > 0);
@@ -169,17 +167,17 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
   }
 
   resetUnMark();
-
-  for(int i = 0 ; i<nbComponent ; i++) varCo.push_back(std::vector<Var>());
+  
+  varCo.resize(nbComponent);
   for(auto &v : setOfVar)
   {
     if(idxComponent[v])
     {
-      assert(nbComponent);
       varCo[idxComponent[v] - 1].push_back(v);
       notFreeVar.push_back(v);
-    }
-    if(!idxComponent[v] && currentValue[v] == l_Undef) freeVar.push_back(v);
+      assert(nbComponent);
+    } else if(currentValue[v] == l_Undef) freeVar.push_back(v);
+    
     idxComponent[v] = 0;
   }
 

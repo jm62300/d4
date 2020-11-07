@@ -332,6 +332,8 @@ Lit Solver::pickBranchLit()
 {
   Var next = var_Undef;
 
+  // for(int i = 0 ; i<order_heap.size() ; i++) printf("%d ", order_heap[i]);
+  // printf("\n");
   // Activity based decision:
   while (next == var_Undef || value(next) != l_Undef || !decision[next] || !isInTheHeap(next))
   {
@@ -386,8 +388,9 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
       Lit q = c[j];
 
       if (!seen[var(q)] && level(var(q)) > 0)
-      {
+      {        
         varBumpActivity(var(q));
+        // printf("bump %d %lf\n", var(q), activity[var(q)]);
         seen[var(q)] = 1;
         if (level(var(q)) >= decisionLevel()) pathC++; else out_learnt.push(q);
       }
@@ -493,7 +496,7 @@ void Solver::analyzeLastUIP(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
       Lit q = c[j];
 
       if (!seen[var(q)] && level(var(q)) > 0)
-      {
+      {        
         varBumpActivity(var(q));
         seen[var(q)] = 1;
         if (!(level(var(q)) >= decisionLevel())) out_learnt.push(q);
@@ -788,8 +791,9 @@ void Solver::removeSatisfied(vec<CRef>& cs)
 void Solver::rebuildOrderHeap()
 {
   vec<Var> vs;
-  for (Var v = 0; v < nVars(); v++)
+  for (Var v = 0; v < nVars(); v++){
     if(decision[v] && value(v) == l_Undef && inTheHeap[v] == stampInTheHeap) vs.push(v);
+  }
   order_heap.build(vs);
 }// rebuildOrderHeap
 
@@ -849,6 +853,7 @@ lbool Solver::search(int nof_conflicts)
 
     if (confl != CRef_Undef) // CONFLICT
     {
+      // printf("conflict\n");
       conflicts++; conflictC++;
       if (decisionLevel() == 0)
       {
@@ -957,9 +962,9 @@ lbool Solver::search(int nof_conflicts)
       }
 
       if (next == lit_Undef) // New variable decision:
-      {
+      {        
         decisions++;
-        next = pickBranchLit();
+        next = pickBranchLit();        
         if (next == lit_Undef) return l_True; // Model found:
       }
 
@@ -1018,10 +1023,11 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict)
   model.clear();
   conflict.clear();
   if (!ok) return l_False;
-
+  
   if(rebuildHeap) rebuildOrderHeap();
+  
   solves++;
-
+  
   if(solves == 1)
   {
     max_learnts = nClauses() * learntsize_factor;
@@ -1041,6 +1047,7 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict)
     if (!withinBudget()) break;
     curr_restarts++;
   }
+
 
   if(needModel && status == l_True)
   {

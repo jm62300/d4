@@ -36,8 +36,8 @@ elseif(${BUILD_MODE} EQUAL 2)
 
   add_executable(d4_static ${SRCS} ${HEADERS})
 
-  target_compile_options(d4_static PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess -static)
-  target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a -static)
+  target_compile_options(d4_static PUBLIC -std=c++11 -Wall -lz -O3 -lgmpxx -lgmp -Wno-class-memaccess -D NDEBUG -static)
+  target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a -D NDEBUG -static)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_static
     DESTINATION bin

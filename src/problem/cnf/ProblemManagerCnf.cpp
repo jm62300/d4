@@ -78,4 +78,35 @@ void ProblemManagerCnf::display(std::ostream &out)
   }
 } // diplay
 
+
+/**
+   Print out some statistic about the problem. Each line will start with the
+   string startLine given in parameter.
+
+   @param[in] out, the stream where the messages are redirected.
+   @param[in] startLine, each line will start with this string.
+ */
+void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine)
+{
+  unsigned nbLits = 0;
+  unsigned nbBin = 0;
+  unsigned nbTer = 0;
+  unsigned nbMoreThree = 0;
+
+  for(auto &c :  m_clauses)
+  {
+    nbLits += c.size();
+    if(c.size() == 2) nbBin++;
+    if(c.size() == 3) nbTer++;
+    if(c.size() > 3) nbMoreThree++;
+  }
+  
+  out << startLine << "Number of variables: " << m_nbVar << "\n";
+  out << startLine << "Number of clauses: " << m_clauses.size() << "\n";
+  out << startLine << "Number of binary clauses: " << nbBin << "\n";
+  out << startLine << "Number of ternary clauses: " << nbTer << "\n";
+  out << startLine << "Number of clauses larger than 3: " << nbMoreThree << "\n";
+  out << startLine << "Number of literals: " << nbLits << "\n";
+} // displaystat
+
 }

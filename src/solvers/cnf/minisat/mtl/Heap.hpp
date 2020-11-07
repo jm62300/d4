@@ -124,7 +124,7 @@ class Heap {
     for (int i = 0; i < heap.size(); i++)
       indices[heap[i]] = -1;
     heap.clear();
-
+    
     for (int i = 0; i < ns.size(); i++){
       indices[ns[i]] = i;
       heap.push(ns[i]); }

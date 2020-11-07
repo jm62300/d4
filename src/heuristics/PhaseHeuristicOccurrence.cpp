@@ -39,7 +39,8 @@ PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s,
  */
 bool PhaseHeuristicOccurrence::selectPhase(Var v)
 {
-  bool ret = sm.getNbOccurrence(Lit(v, false)) < sm.getNbOccurrence(Lit(v, true));
+  bool ret = sm.getNbOccurrence(Lit::makeLit(v, false)) <
+             sm.getNbOccurrence(Lit::makeLit(v, true));
   return (ret + isReversed) & 1;
 } // selectPhase
 

@@ -23,7 +23,18 @@
 
 namespace d4
 {
-typedef struct{ unsigned start; unsigned end;} bucketSortInfo;
+class BucketSortInfo
+{
+ public:
+  unsigned start;
+  unsigned end;
+  unsigned counter;
+  unsigned redirected; // redirected only if counter > 0
+
+  BucketSortInfo() : start(0), end(0), counter(0), redirected(0) {}
+  BucketSortInfo(unsigned init) : start(init), end(init), counter(0), redirected(0) {}
+  BucketSortInfo(unsigned s, unsigned e) : start(s), end(e), counter(0), redirected(0) {}
+};
 
 class DistribContainer
 {
@@ -62,6 +73,15 @@ class DistribContainer
   } // push
 
 
+  inline void pushOne(unsigned l)
+  {
+    assert(m_size < m_capacity);
+    m_data[m_size * m_capacityLine] = 1;
+    m_data[m_size * m_capacityLine + 1] = l;
+    m_size++;
+  }
+
+  
   inline void pushIn(unsigned idx, unsigned l)
   {
     assert(idx < m_size);
@@ -115,13 +135,15 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
  private:
   DistribContainer m_distrib;
   
-  std::vector<bucketSortInfo> m_vecBucketSortIntervalle;
-  std::vector<unsigned> m_refCutBucket;
+  std::vector<BucketSortInfo> m_vecBucketSortInfo;
+  int m_unusedBucket;
   std::vector<unsigned long int> m_mapVar;
   unsigned long int *m_tmpKey;
 
-  std::vector<bool> m_markView;
+  std::vector<int> m_mustUnMark;
   std::vector<int> m_markIdx;
+  std::vector<bool> m_toBeConsidered;
+  std::vector<unsigned> m_idInVecBucket;
   std::vector<unsigned> m_distribClauseNbVar;
   unsigned m_lastSize;
   
@@ -140,8 +162,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   {
     m_tmpKey = new unsigned long int[nbVarCnf + 1 + (nbClauseCnf<<1)];
     m_mapVar.resize(nbVarCnf + 1, 0);
-    m_markView.resize(nbClauseCnf, false);
     m_markIdx.resize(nbClauseCnf, -1);
+    m_toBeConsidered.resize(nbClauseCnf, false);
     m_distribClauseNbVar.resize(maxSizeClause + 1, 0);
     m_distrib.init(nbClauseCnf, maxSizeClause);
   }// BucketManagerCnfCl
@@ -151,115 +173,139 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     delete[] m_tmpKey;
   }
 
+
+  /**
+     Get the clauses that will be used, that are the clause that respect the
+     modeStore.
+
+     @param[out] idxClauses, the resulting clauses (index).
+   */
+  void collectIdActiveClauses(std::vector<unsigned> &idxClauses)
+  {
+    
+  } // collectIdActiveClauses
   
   /**
      It is used in order to construct a sorted residual formula.
 
      @param[in] l, we considere the clause containing l
   */
-  void createDistribWrTLit(Lit l)
+  void createDistribWrTLit(const Lit &l)
   {
-    std::vector<int> &idxClauses = specManager.getVecIdxClause(l);
-    int ownBucket = -1;
-
-    for(unsigned j = 0 ; j<idxClauses.size() ; j++)
+    if(!specManager.getVecIdxClause(l).size()) return;
+    
+    // associate a bucket to the literal.
+    unsigned counter = 0;
+    int ownBucket = m_unusedBucket;
+    if(m_unusedBucket == -1)
     {
-      unsigned idx = idxClauses[j];
+      ownBucket = m_vecBucketSortInfo.size();
+      m_vecBucketSortInfo.push_back(BucketSortInfo(m_distrib.size()));
+    } else m_unusedBucket = -1;
 
+    // visit each clause
+    m_idInVecBucket.resize(0);
+    unsigned nextBucket = m_vecBucketSortInfo.size();
+    for(auto &idx : specManager.getVecIdxClause(l))
+    {
       if(modeStore == NT && !specManager.getNbUnsat(idx)) continue;
-      std::vector<Lit> &c = specManager.getClause(idx);
-      if(modeStore == NB && c.size() <= 2) continue;
+      if(modeStore == NB && specManager.getClause(idx).size() <= 2) continue;
 
-      assert(idx < m_markIdx.size());
-      if(!m_markView[idx])
+      assert((unsigned) idx < m_markIdx.size());
+      if(m_markIdx[idx] == -1)
       {
-        m_markView[idx] = true;
-        mustUnMark.push_back(idx);
-
-        if(ownBucket == -1) // create its own bucket
-        {
-          ownBucket = m_vecBucketSortIntervalle.size();
-          m_vecBucketSortIntervalle.push_back((bucketSortInfo) {m_distrib.size(), m_distrib.size()});
-          m_refCutBucket.push_back(ownBucket);
-        }
-
+        m_mustUnMark.push_back(idx);
         m_markIdx[idx] = ownBucket;
-        m_distrib.push();
-        m_distrib.pushIn(m_distrib.size() - 1, l.intern());
-        m_vecBucketSortIntervalle[ownBucket].end++;
+        counter++;        
       }else
       {
-        unsigned bkNew = m_markIdx[idx], bkOld = bkNew;
-        assert(bkNew < m_refCutBucket.size());
-
-        if(m_refCutBucket[bkNew] == bkNew)
+        BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+        if(!b.counter)
         {
-          bucketSortInfo tmp = m_vecBucketSortIntervalle[bkNew];
-          tmp.end = tmp.start;
-          m_vecBucketSortIntervalle.push_back(tmp);
-          bkNew = m_vecBucketSortIntervalle.size() - 1;
-          m_refCutBucket.push_back(bkNew);
-          m_refCutBucket[bkOld] = bkNew;
-        }else bkNew = m_refCutBucket[bkNew];
-
-        m_markIdx[idx] = bkNew;
-        m_vecBucketSortIntervalle[bkOld].start++;
-        bucketSortInfo &currB = m_vecBucketSortIntervalle[bkNew];
-        
-        m_distrib.pushIn(currB.end++, l.intern());
+          assert(nextBucket == m_vecBucketSortInfo.size() + m_idInVecBucket.size());
+          b.redirected = nextBucket++;
+          m_idInVecBucket.push_back(m_markIdx[idx]);
+        }
+        m_markIdx[idx] = b.redirected;
+        b.counter++;        
       }
     }
+    
+    m_vecBucketSortInfo.resize(m_vecBucketSortInfo.size() + m_idInVecBucket.size());
+    for(auto &bid : m_idInVecBucket)
+    {
+      BucketSortInfo &b = m_vecBucketSortInfo[bid];
+      assert(b.counter);
 
-    for(unsigned j = 0 ; j<m_refCutBucket.size() ; j++) m_refCutBucket[j] = j;
+      // we add the literal in the bucket.
+      for(unsigned i = 0 ; i<b.counter ; i++) m_distrib.pushIn(b.start + i, l.intern());
+
+      // we split out the bucket.
+      m_vecBucketSortInfo[b.redirected] = BucketSortInfo(b.start, b.start + b.counter);
+      b.start += b.counter;
+      b.counter = 0;
+    }
+    
+    if(!counter) m_unusedBucket = ownBucket;
+    else
+    {
+      m_vecBucketSortInfo[ownBucket].start = m_distrib.size();
+      for(unsigned i = 0 ; i<counter ; i++) m_distrib.pushOne(l.intern());
+      m_vecBucketSortInfo[ownBucket].end += counter;
+    }
   }// createDistribWrTLit
 
 
-  inline void initSortBucket()
-  {
-    m_vecBucketSortIntervalle.clear();
-    m_refCutBucket.clear();
-    m_distrib.reinit();
-  } // initSortBucket
-
-
-  inline void showListBucketSort(std::vector<bucketSortInfo> &v)
-  {
-    for(unsigned i = 0 ; i<v.size() ; i++) printf("[%d %d]", v[i].start, v[i].end);
-    printf("\n");
-  }
-
-  std::vector<int> mustUnMark;
-  inline void resetUnMark()
-  {
-    for(auto &u : mustUnMark) m_markView[u] = false;
-    mustUnMark.clear();
-  }// resetUnMark
-
   /**
-     Collect the clause distribution
+     Collect the clause distribution. The result is stored in distrib.
+
+     @param[in] component, the set of variables we consider.
   */
   inline void collectDistrib(std::vector<Var> &component)
   {
     initSortBucket();
-
+    
     // sort the set of clauses
-    for(unsigned i = 0 ; i<component.size() ; i++)
+    for(auto &v : component)
     {
-      if(specManager.varIsAssigned(component[i])) continue;      
-      Lit l = Lit(component[i], false);
-      
-      createDistribWrTLit(l);
-      createDistribWrTLit(~l);
+      if(specManager.varIsAssigned(v)) continue;
+      createDistribWrTLit(Lit::makeLitFalse(v));
+      createDistribWrTLit(Lit::makeLitTrue(v));
     }
     resetUnMark();
 
     // remove redondant clauses
-    for(unsigned i = 0 ; i<m_vecBucketSortIntervalle.size() ; i++)
-    {
-      bucketSortInfo &c = m_vecBucketSortIntervalle[i];
+    for(auto &c : m_vecBucketSortInfo)
       for(unsigned j = c.start + 1 ; j<c.end ; j++) m_distrib.resizeIn(j, 0);
-    }
   }// collectDistrib
+
+  
+  inline void initSortBucket()
+  {
+    m_unusedBucket = -1;
+    m_vecBucketSortInfo.resize(0);
+    m_distrib.reinit();
+  } // initSortBucket
+
+  
+  inline void resetUnMark()
+  {
+    for(auto &u : m_mustUnMark) m_markIdx[u] = -1;
+    m_mustUnMark.resize(0);
+  }// resetUnMark
+
+
+
+  inline void showListBucketSort(std::vector<BucketSortInfo> &v, std::ostream &out)
+  {
+    out << "size = " << v.size() << "\n";
+    for(auto &e : v) out << "[" <<  e.start << " "
+                         << e.end << " " 
+                         << e.counter << " " 
+                         << e.redirected
+                         << "]";
+    out << "\n";
+  } // showListBucketSort
 
 
   inline void getInfoClDistrib(unsigned &nbLit, unsigned &nbDiffSize,
@@ -309,9 +355,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
                                              std::vector<Var> &component)
   {
     U *p = static_cast<U *>(data);
-    for(unsigned i = 0 ; i<component.size() ; i++)
+    for(auto &v : component)
     {
-      *p = static_cast<U>(component[i]);
+      *p = static_cast<U>(v);
       p++;
     }
 

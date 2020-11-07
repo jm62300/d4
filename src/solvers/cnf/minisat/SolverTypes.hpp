@@ -88,7 +88,7 @@ inline Var readableVarToVar (int v)
 
 
 inline  int  readableVar      (Var v)              { return v + 1;}
-inline  int  readableLit      (Lit l)              { return sign(l) ? -(var(l) + 1) : (var(l) + 1);}
+inline  int  readableLit      (Lit l)              { return sign(l) ? -(var(l)) : (var(l));}
 inline  int  litToInt         (Lit l)              {return sign(l) ? -(var(l)) : (var(l));}
 
 inline void showListVar(vec<Var> &v){for(int i = 0 ; i<v.size() ; i++) printf("%d ", v[i] + 1); printf("\n");}

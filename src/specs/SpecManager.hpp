@@ -52,8 +52,6 @@ class SpecManager
   virtual int getNbVariable() = 0;
   virtual void updateCurrentFormula(std::vector<Var> &component) = 0;
   virtual void popPreviousFormula() = 0;
-  
-  // virtual bool byPass(int mode, int idx) = 0;
 };
 }
 #endif

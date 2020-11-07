@@ -61,7 +61,7 @@ class SpecManagerCnf : public SpecManager
 
   inline void resetUnMark()
   {
-    for(auto idx : mustUnMark) markView[idx] = false;
+    for(auto &idx : mustUnMark) markView[idx] = false;
     mustUnMark.resize(0);
   }// resetUnMark
   
@@ -126,11 +126,15 @@ class SpecManagerCnf : public SpecManager
   inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}
   inline int getNbBinaryClause(Var v)
   {
-    return getNbBinaryClause(Lit(v, false)) + getNbBinaryClause(Lit(v, true));
+    return getNbBinaryClause(Lit::makeLitFalse(v))
+        + getNbBinaryClause(Lit::makeLitTrue(v));
   }
   inline int getNbNotBinaryClause(Lit l){return getNbClause(l) - getNbBinaryClause(l);}
   inline int getNbNotBinaryClause(Var v){return getNbClause(v) - getNbBinaryClause(v);}
-  inline int getNbClause(Var v){return getNbClause(Lit(v, false)) + getNbClause(Lit(v, true));}
+  inline int getNbClause(Var v)
+  {
+    return getNbClause(Lit::makeLitFalse(v))
+        + getNbClause(Lit::makeLitTrue(v));}
   inline int getNbClause(Lit l){return occList[l.intern()].size();}
   inline int getNbClause(){return clauses.size();}  
   inline int getNbUnsat(int idx){return nbUnsat[idx];}

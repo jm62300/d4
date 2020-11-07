@@ -27,6 +27,7 @@ class ActivityManager
 {
  public:
   virtual double getActivity(Var v) = 0;
+  virtual double getCountConflict(Var v) = 0;
 };
 }
 

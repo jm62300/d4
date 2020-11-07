@@ -39,7 +39,8 @@ class ProblemManagerCnf : public ProblemManager
   ProblemManagerCnf(std::string &nameFile);
   ~ProblemManagerCnf();  
   void display(std::ostream &out);
-  std::vector< std::vector<Lit> > &getClauses(){return m_clauses;}  
+  std::vector< std::vector<Lit> > &getClauses(){return m_clauses;}
+  void displayStat(std::ostream &out, std::string startLine);
 };
   
 } // d4

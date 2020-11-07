@@ -59,15 +59,22 @@ template<class T> class BucketManager
   unsigned long int pageData;
 
   static BucketManager<T> *makeBucketManager(po::variables_map &vm,
-                                             SpecManager &s)
+                                             SpecManager &s,
+                                             std::ostream &out)
   {
     std::string css = vm["cache-store-strategy"].as<std::string>();
     std::string ccr = vm["cache-clause-representation"].as<std::string>();
     unsigned sizePage = vm["cache-size-page"].as<unsigned>();
 
+    out << "c [CONSTRUCTOR] Cache bucket manager:"
+        << " storage(" << css << ") "
+        << " reprentation(" << ccr << ") "
+        << " size_page(" << sizePage << ")"
+        << "\n";
+    
     int modeStore = ALL;
-    if(css == "NB") modeStore = NB;
-    if(css == "NT") modeStore = NT;
+    if(css == "not-binary") modeStore = NB;
+    if(css == "not-touched") modeStore = NT;
     
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
     if(ccr == "clause") return new BucketManagerCnfCl<T>(scnf, modeStore, sizePage);

@@ -35,7 +35,8 @@ class ScoringMethod
  public: 
   static ScoringMethod *makeScoringMethod(po::variables_map &vm,
                                           SpecManager &p,
-                                          ActivityManager &am);
+                                          ActivityManager &am,
+                                          std::ostream &out);
   virtual ~ScoringMethod(){;}
   virtual double computeScore(Var v) = 0;
 

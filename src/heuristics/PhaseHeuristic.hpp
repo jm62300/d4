@@ -37,7 +37,8 @@ class PhaseHeuristic
   virtual ~PhaseHeuristic() {}
   static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm,
                                             SpecManager &s,
-                                            PolarityManager &p);
+                                            PolarityManager &p,
+                                            std::ostream &out);
   
   virtual bool selectPhase(Var v) = 0;
 };

@@ -32,21 +32,27 @@ class WrapperMinisat : public WrapperSolver
 {
  private:
   minisat::Solver s;
+  minisat::vec<minisat::Var> m_setOfVar_m;
   
  public:
   void initSolver(ProblemManager &p);
   bool solve();
-  void getSimplifiedFormula(ProblemManager &p);
-  double getActivity(Var v);
+  bool varIsAssigned(Var v);
   bool getPolarity(Var v);
   bool decideAndComputeUnit(Lit l, std::vector<Lit> &units);
+  
+  void getSimplifiedFormula(ProblemManager &p);
   void whichAreUnits(std::vector<Var> &component, std::vector<Lit> &units);
   void restart();
   void setAssumption(std::vector<Lit> &assums);
   void inputVar(std::vector<Var> &setOfVar);
   void pushAssumption(Lit l);
   void popAssumption();
-  bool varIsAssigned(Var v);
+  void setNeedModel(bool b);
+  void showTrail();
+  
+  double getActivity(Var v);
+  double getCountConflict(Var v);
 };
 }
 

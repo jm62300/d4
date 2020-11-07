@@ -31,20 +31,15 @@ typedef uint8_t lbool;
 #define l_False (lbool((uint8_t)1))
 #define l_Undef (lbool((uint8_t)2))
 
-class Lit
+struct Lit
 {
- private:
   int m_x;
   
- public:
-  Lit() : m_x(0) {}
-  Lit(Var v, bool sign = false);
-
-  inline bool sign(){return m_x&1;}
-  inline Var var(){return m_x>>1;}
-  inline Lit neg(){return Lit(m_x>>1, (m_x+1) & 1);}
-  inline unsigned intern(){return m_x;}
-  inline int human(){return (m_x&1) ? -var() : var();}
+  inline bool sign() const {return m_x&1;}
+  inline Var var() const {return m_x>>1;}
+  inline Lit neg() const {return {m_x ^ (m_x & 1)};}
+  inline unsigned intern() const  {return m_x;}
+  inline int human() const {return (m_x&1) ? -var() : var();}
   
   bool operator == (Lit p) const { return m_x == p.m_x; }
   bool operator != (Lit p) const { return m_x != p.m_x; }
@@ -52,6 +47,10 @@ class Lit
 
   friend Lit operator ~(Lit p);
   friend std::ostream& operator<< (std::ostream &os, Lit l);
+
+  static inline Lit makeLit(Var v, bool sign) {return {(v<<1) + sign};}
+  static inline Lit makeLitFalse(Var v){return {(v<<1) + 1};}
+  static inline Lit makeLitTrue(Var v){return {v<<1};}
 };
 
 const Lit lit_Undef = { -2 };  // }- Useful special constants.
@@ -63,5 +62,5 @@ inline void showListLit(std::ostream &out, std::vector<Lit> &v)
 } // showListLit
 
 
-inline Lit operator ~(Lit p) {return Lit(p.m_x>>1, !(p.sign()));}
+inline Lit operator ~(Lit p) {return {p.m_x ^ 1};}
 } // d4

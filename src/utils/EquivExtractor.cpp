@@ -60,8 +60,8 @@ bool EquivExtractor::interCollectUnit(WrapperSolver &s,
                                       std::vector<Var> &listVarPU)
 {
   std::vector<Lit> listVarPosLit, listVarNegLit;
-  if(!s.decideAndComputeUnit(Lit(v, false), listVarPosLit)) return false;
-  if(!s.decideAndComputeUnit(Lit(v, true), listVarNegLit)) return false;
+  if(!s.decideAndComputeUnit(Lit::makeLit(v, false), listVarPosLit)) return false;
+  if(!s.decideAndComputeUnit(Lit::makeLit(v, true), listVarNegLit)) return false;
 
   // intersection.
   for(auto &l : listVarPosLit) m_markedVarInter[l.var()] = true;

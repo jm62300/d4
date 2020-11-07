@@ -669,8 +669,8 @@ public:
   inline void rebuildWithConnectedComponent(vec<Var> &v)
   {
     stampInTheHeap++;
-    for(int j = 0 ; j<v.size() ; j++) inTheHeap[v[j]] = stampInTheHeap;
-    order_heap.build(v);
+    for(int j = 0 ; j<v.size() ; j++) if(value(v[j]) == l_Undef) inTheHeap[v[j]] = stampInTheHeap;
+    rebuildOrderHeap();
   }// rebuidWithConnectedComponent
 
   void connectedToLit(Lit l, vec<int> &v, vec<Var> &varComponent, int nbComponent);

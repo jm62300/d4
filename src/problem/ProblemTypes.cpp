@@ -20,19 +20,6 @@
 
 namespace d4
 {
-
-/**
-   Constructor.
-
-   \param[in] v, the variable
-   \param[in] sign, the polarity
- */
-Lit::Lit(Var v, bool sign)
-{
-  m_x = (v << 1) + sign;
-} // constructor
-
-
 /**
    Redefinition of the toString method.
  */
