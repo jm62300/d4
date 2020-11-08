@@ -101,7 +101,7 @@ template <class T> class ModelCounter : public MethodManager
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
     assert(preproc);
-    problem = initProblem; // preproc->run(*initProblem);
+    problem = preproc->run(*initProblem);
     m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the preprocessed formula\033[0m\n";
     problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
     m_out << "c\n";
@@ -127,7 +127,7 @@ template <class T> class ModelCounter : public MethodManager
     bucketManager = BucketManager<T>::makeBucketManager(vm, *specs, m_out);
     
     // we delete the useless objects.
-    // delete initProblem;
+    delete initProblem;
     delete preproc;
 
     // init the clock time.
@@ -333,11 +333,11 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
+    // if(nbCallCall > 20000) exit(0);
     solver->inputVar(setOfVar);
     if(!solver->solve()) return 0;
     
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
-    // for(auto &l : unitsLit) out << l << " "; out << "\n";
     
     specs->preUpdate(unitsLit);
 
@@ -403,18 +403,11 @@ template <class T> class ModelCounter : public MethodManager
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
-
-    // for(auto &v : inVars) std::cout << v << " => " << m_hVar->computeScore(v) << "\n";
-    // exit(0);
-    // RM std::cout << "\n";
-    
     Var v = m_hVar->selectVariable(inVars, *specs);
     if(v == var_Undef) return 1;
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
-    nbDecisionNode++;
-    
-    // std::cout << "decision " <<   l.human() << "\n";
+    nbDecisionNode++;    
     
     // compile the formula where l is assigned to true
     std::vector<Lit> unitLitPos, unitLitNeg;
@@ -425,9 +418,6 @@ template <class T> class ModelCounter : public MethodManager
     pos *= computeWeightUnitFree(unitLitPos, freeVarPos);
     solver->popAssumption();
 
-    // printf("backtrack %d\n", l.human());
-    // solver->showTrail();
-    
     solver->pushAssumption(~l);
     T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar, out);
     neg *= computeWeightUnitFree(unitLitNeg, freeVarNeg);

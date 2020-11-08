@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <bitset>
 
 #include "PartitioningHeuristicBipartite.hpp"
 
@@ -131,6 +132,8 @@ void PartitioningHeuristicBipartite::constructHyperGraph(
     std::vector<Var> &equivClass,
     std::vector< std::vector<unsigned> > &hypergraph)
 {
+  m_hashEdges.resize(0);
+  
   // collect the indices of the clauses from the spec manager.
   for(auto &v : component) m_inCurrentComponent[v] = true;
   m_idxClauses.clear();
@@ -142,16 +145,19 @@ void PartitioningHeuristicBipartite::constructHyperGraph(
   {
     hypergraph.push_back(std::vector<unsigned>());
     std::vector<unsigned> &next = hypergraph.back();
-
+    uint64_t hash = 0;
+    
     for(auto &l : m_om.getClause(idx))
       if(!m_om.litIsAssigned(l) && !m_markedVar[equivClass[l.var()]])
       {
+        hash |= (uint64_t) 1<<(((uint64_t)equivClass[l.var()])&63);        
         m_markedVar[equivClass[l.var()]] = true;
         next.push_back(equivClass[l.var()]);
       }
 
     for(auto &x : next) m_markedVar[x] = false;
-    if(next.size() == 1) hypergraph.pop_back();
+    if(next.size() == 1) hypergraph.pop_back(); else m_hashEdges.push_back(hash);
+     
   }
 
   // remove useless edges.
@@ -179,17 +185,26 @@ void PartitioningHeuristicBipartite::removeSubsumEdges(
     bool subsumed = false;
     for(unsigned k = i + 1 ; k<hypergraph.size() ; k++)
     {
+      if(!hypergraph[k].size()) continue;
+      uint64_t inter = m_hashEdges[i] & m_hashEdges[k];      
+      if(m_hashEdges[i] != inter && m_hashEdges[k] != inter) continue;
+      
       unsigned cpt = 0;
       for(auto &x : hypergraph[k]) if(m_markedVar[x]) cpt++;
 
-      if(cpt == hypergraph[k].size()) subsumed = true; // the current edge is smaller then include
+      if(cpt == hypergraph[k].size()) subsumed = true; // the current edge is smaller then include      
       if(cpt == hypergraph[i].size()) hypergraph[k].clear(); // the edges k subsums i
     }
     
     for(auto &x : hypergraph[i]) m_markedVar[x] = false;     // reinit
-    if(!subsumed){if(i != j) hypergraph[j++] = hypergraph[i]; else j++;} // copy or not ...
+    if(!subsumed)
+    {
+      m_hashEdges[j] = m_hashEdges[i];
+      if(i != j) hypergraph[j++] = hypergraph[i]; else j++; // copy or not ...      
+    } 
   }
 
+  m_hashEdges.resize(j);
   hypergraph.resize(j);
 } // removeSubsumEdges
 
@@ -213,7 +228,7 @@ void PartitioningHeuristicBipartite::computeEquivClass(
   std::vector< std::vector<Var> > equivVar;
   m_em.searchEquiv(m_s, component, equivVar);
   m_s.whichAreUnits(component, unitEquiv);
-
+  
   // propagate the equivVar information in equivClass
   for(auto &c : equivVar)
   {
