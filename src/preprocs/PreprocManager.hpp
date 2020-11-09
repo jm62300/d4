@@ -32,7 +32,8 @@ class PreprocManager
 {
  private:
  public:
-  static PreprocManager *makePreprocManager(po::variables_map &vm);
+  static PreprocManager *makePreprocManager(po::variables_map &vm,
+                                            std::ostream &out);
 
   virtual ~PreprocManager(){}
 

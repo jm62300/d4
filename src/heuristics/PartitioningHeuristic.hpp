@@ -35,7 +35,8 @@ class PartitioningHeuristic
   virtual ~PartitioningHeuristic(){}
   static PartitioningHeuristic *makePartitioningHeuristic(po::variables_map &vm,
                                                           SpecManager &sm,
-                                                          WrapperSolver &ws);
+                                                          WrapperSolver &ws,
+                                                          std::ostream &out);
   
   virtual void computeCutSet(std::vector<Var> &component,
                              std::vector<Var> &cutSet) = 0;

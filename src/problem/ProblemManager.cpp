@@ -32,11 +32,14 @@ namespace d4
 
    \return the problem manager that fits the command line.
  */
-ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm)
+ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm,
+                                                   std::ostream &out)
 {
   std::string in = vm["input"].as<std::string>();
   std::string inType = vm["input-type"].as<std::string>();
 
+  out << "c [CONSTRUCTOR] Problem: " << in << " " << inType << "\n";
+  
   if(inType == "cnf" || inType == "dimacs") return new ProblemManagerCnf(in);
   
   throw (FactoryException("Cannot create a ProblemManager",__FILE__, __LINE__));

@@ -28,16 +28,17 @@ namespace d4
 
    @param[in] vm, the options.
  */
-WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm)
+WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm,
+                                                std::ostream &out)
 {
-  std::string in = vm["input"].as<std::string>();
   std::string s = vm["solver"].as<std::string>();
   std::string inType = vm["input-type"].as<std::string>();
 
+  out << "c [CONSTRUCTOR] Solver: " << s << " " << inType << "\n";
+  
   if(inType == "cnf" || inType == "dimacs")
   {    
-    if(s == "minisat") return new WrapperMinisat();
-    
+    if(s == "minisat") return new WrapperMinisat();    
   }
   
   throw (FactoryException("Cannot create a WrapperSolver",__FILE__, __LINE__));
@@ -50,13 +51,20 @@ WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm)
 
    @param[in] vm, the options.
  */
-WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm)
+WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm,
+                                                       std::ostream &out)
 {
   std::string s = vm["preproc-solver"].as<std::string>();
+  std::string inType = vm["input-type"].as<std::string>();
 
-  if(s == "minisat") return new WrapperMinisat();
+  out << "c [CONSTRUCTOR] Preproc solver: " << s << " " << inType << "\n";
   
-  return NULL;
+  if(inType == "cnf" || inType == "dimacs")
+  {
+    if(s == "minisat") return new WrapperMinisat();
+  }
+
+  throw (FactoryException("Cannot create a WrapperSolver",__FILE__, __LINE__));
 } // makeWrapperSolverPreproc
 
 

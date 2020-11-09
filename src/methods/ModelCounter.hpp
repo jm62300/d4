@@ -92,14 +92,14 @@ template <class T> class ModelCounter : public MethodManager
     m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
     
     // the initial problem.
-    ProblemManager *initProblem = ProblemManager::makeProblemManager(vm);
+    ProblemManager *initProblem = ProblemManager::makeProblemManager(vm, m_out);
     m_out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
     initProblem->displayStat(m_out, "c [INITIAL INPUT] ");
     m_out << "c\n";
     assert(initProblem);
 
     // we call the preproc and we generate the problem used after.
-    PreprocManager *preproc = PreprocManager::makePreprocManager(vm);
+    PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
     assert(preproc);
     problem = preproc->run(*initProblem);
     m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the preprocessed formula\033[0m\n";
@@ -108,19 +108,19 @@ template <class T> class ModelCounter : public MethodManager
     assert(problem);
 
     // we create the SAT solver. 
-    solver = WrapperSolver::makeWrapperSolver(vm);
+    solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(solver);
     solver->initSolver(*problem);
     solver->setNeedModel(false);
     
     // we initialize the object that will give info about the problem.
-    specs = SpecManager::makeSpecManager(vm, *problem);
+    specs = SpecManager::makeSpecManager(vm, *problem, m_out);
     assert(specs);
     
     // we initialize the object used to compute score and partition.
     m_hVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver, m_out);    
     m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver, m_out);
-    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver);
+    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver, m_out);
     assert(m_hVar && m_hPhase && m_hCutSet);
 
     cache = new Cache<T>(vm, problem->getNbVar());
@@ -333,7 +333,7 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 20000) exit(0);
+    // if(nbCallCall > 200000) exit(0);
     solver->inputVar(setOfVar);
     if(!solver->solve()) return 0;
     

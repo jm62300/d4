@@ -29,7 +29,8 @@ class ProblemManager
   int m_nbVar;
   
  public:
-  static ProblemManager *makeProblemManager(po::variables_map &vm);
+  static ProblemManager *makeProblemManager(po::variables_map &vm,
+                                            std::ostream &out);
   
   virtual ~ProblemManager(){;}
   unsigned getNbVar(){return m_nbVar;}

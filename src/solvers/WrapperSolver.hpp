@@ -35,8 +35,10 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   private:
 
  public:
-  static WrapperSolver *makeWrapperSolver(po::variables_map &vm);
-  static WrapperSolver *makeWrapperSolverPreproc(po::variables_map &vm);
+  static WrapperSolver *makeWrapperSolver(po::variables_map &vm,
+                                          std::ostream &out);
+  static WrapperSolver *makeWrapperSolverPreproc(po::variables_map &vm,
+                                                 std::ostream &out);
 
   virtual ~WrapperSolver(){}
   virtual void initSolver(ProblemManager &p) = 0;

@@ -35,7 +35,7 @@ class PreprocBasic : public PreprocManager
   WrapperSolver *ws;
   
  public:
-  PreprocBasic(po::variables_map &vm);
+  PreprocBasic(po::variables_map &vm, std::ostream &out);
   ~PreprocBasic();
   ProblemManager *run(ProblemManager &pin);
 };

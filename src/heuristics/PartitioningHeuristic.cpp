@@ -15,6 +15,8 @@ a* it under the terms of the GNU General Public License as published by
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <bitset>
+
 #include "src/exceptions/FactoryException.hpp"
 
 #include "PartitioningHeuristic.hpp"
@@ -35,15 +37,25 @@ namespace d4
 PartitioningHeuristic *
 PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
                                                  SpecManager &s,
-                                                 WrapperSolver &ws)
+                                                 WrapperSolver &ws,
+                                                 std::ostream &out)
 {
   unsigned options = vm["partitioning-heuristic-options"].as<unsigned>();
-  std::string meth = vm["partitioning-heuristic"].as<std::string>();
-  if(meth == "none") return new PartitioningHeuristicNone();
-  
-  std::string in = vm["input"].as<std::string>();
+  std::string meth = vm["partitioning-heuristic"].as<std::string>();  
   std::string inType = vm["input-type"].as<std::string>();
 
+  
+  if(meth == "none")
+  {
+    out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << "\n";
+    return new PartitioningHeuristicNone();
+  }
+
+  std::bitset<32> xoptions(options);
+  out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << " "
+      << xoptions << "\n";
+  
+  
   if(inType == "cnf" || inType == "dimacs")
   {    
     if(meth == "bipartition") return new PartitioningHeuristicBipartite(vm, ws, s, options);   

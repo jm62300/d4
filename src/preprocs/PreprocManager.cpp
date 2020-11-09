@@ -28,11 +28,14 @@ namespace d4
 
    @param[in] vm, the option for the preprocessing.
  */ 
-PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm)
+PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
+                                                   std::ostream &out)
 {
   std::string meth = vm["preproc"].as<std::string>();
 
-  if(meth == "basic") return new PreprocBasic(vm);
+  out << "c [CONSTRUCTOR] Preproc: " << meth << "\n";
+
+  if(meth == "basic") return new PreprocBasic(vm, out);
   throw (FactoryException("Cannot create a PreprocManager",__FILE__, __LINE__));
 } // makePreprocManager
 

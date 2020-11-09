@@ -102,15 +102,15 @@ void PartitioningHeuristicBipartite::extractCutFromHyperGraph(
 {
   std::vector<unsigned> indices;
   clashHyperEdgeIndex(hypergraph, partition, indices);
-
+  
   for(auto &idx : indices)
-  {    
-    for(auto &x : hypergraph[idx])
+  {
+    for(auto &x : hypergraph[idx])      
     {
       if(!m_markedVar[x])
       {
         m_markedVar[x] = true;
-        cutSet.push_back(x);        
+        cutSet.push_back(x);
       }
     }
   }
@@ -192,8 +192,30 @@ void PartitioningHeuristicBipartite::removeSubsumEdges(
       unsigned cpt = 0;
       for(auto &x : hypergraph[k]) if(m_markedVar[x]) cpt++;
 
-      if(cpt == hypergraph[k].size()) subsumed = true; // the current edge is smaller then include      
-      if(cpt == hypergraph[i].size()) hypergraph[k].clear(); // the edges k subsums i
+      if(cpt == hypergraph[i].size())
+      {
+#if 0
+        std::cout << "k: ";
+        for(auto &l : hypergraph[k]) std::cout << l << " ";
+        std::cout << "\n";
+        std::cout << "r: ";
+        for(auto &l : hypergraph[i]) std::cout << l << " ";
+        std::cout << "\n";
+#endif       
+        subsumed = true; // the current edge is smaller then include
+      }
+      if(cpt == hypergraph[k].size())
+      {
+#if 0
+        std::cout << "k: ";
+        for(auto &l : hypergraph[i]) std::cout << l << " ";
+        std::cout << "\n";
+        std::cout << "r: ";
+        for(auto &l : hypergraph[k]) std::cout << l << " ";
+        std::cout << "\n";
+#endif   
+        hypergraph[k].clear(); // the edges k subsums i
+      }
     }
     
     for(auto &x : hypergraph[i]) m_markedVar[x] = false;     // reinit

@@ -27,9 +27,10 @@ namespace d4
 
    @param[in] vm, the options used (solver).
  */
-PreprocBasic::PreprocBasic(po::variables_map &vm)
+PreprocBasic::PreprocBasic(po::variables_map &vm,
+                           std::ostream &out)
 {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm);
+  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
 } // constructor
 
 

@@ -32,7 +32,9 @@ class SpecManager
 { 
   
  public:
-  static SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p);
+  static SpecManager *makeSpecManager(po::variables_map &vm,
+                                      ProblemManager &p,
+                                      std::ostream &out);
   
   virtual ~SpecManager(){}
   virtual bool litIsAssigned(Lit l) = 0;
