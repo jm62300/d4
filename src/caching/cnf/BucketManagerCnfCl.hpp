@@ -146,12 +146,18 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   std::vector<unsigned> m_idInVecBucket;
   std::vector<unsigned> m_distribClauseNbVar;
   unsigned m_lastSize;
-  
+
+  // using: variables
   using BucketManagerCnf<T>::specManager;
-  using BucketManagerCnf<T>::modeStore;
   using BucketManagerCnf<T>::nbClauseCnf;
   using BucketManagerCnf<T>::nbVarCnf;
   using BucketManagerCnf<T>::maxSizeClause;
+  using BucketManagerCnf<T>::m_idxClauses;
+
+  // using: functions
+  using BucketManagerCnf<T>::isKeptClause;
+  using BucketManagerCnf<T>::collectIdActiveClauses;
+
 
  public:
   /**
@@ -172,18 +178,6 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   {
     delete[] m_tmpKey;
   }
-
-
-  /**
-     Get the clauses that will be used, that are the clause that respect the
-     modeStore.
-
-     @param[out] idxClauses, the resulting clauses (index).
-   */
-  void collectIdActiveClauses(std::vector<unsigned> &idxClauses)
-  {
-    
-  } // collectIdActiveClauses
   
   /**
      It is used in order to construct a sorted residual formula.
@@ -208,8 +202,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     unsigned nextBucket = m_vecBucketSortInfo.size();
     for(auto &idx : specManager.getVecIdxClause(l))
     {
-      if(modeStore == NT && !specManager.getNbUnsat(idx)) continue;
-      if(modeStore == NB && specManager.getClause(idx).size() <= 2) continue;
+      if(!isKeptClause(idx)) continue;
 
       assert((unsigned) idx < m_markIdx.size());
       if(m_markIdx[idx] == -1)
@@ -264,6 +257,16 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   inline void collectDistrib(std::vector<Var> &component)
   {
     initSortBucket();
+
+    // the set of clauses.
+    // collectIdActiveClauses(component, m_idxClauses);
+    // if(!m_idxClauses.size()) return;
+
+    // for(auto &idx : m_idxClauses)
+    // std::cout << specManager.getClause(idx).size() - specManager.getNbUnsat(idx) << " ";
+    // std::cout << "\n";
+    
+    // exit(0);
     
     // sort the set of clauses
     for(auto &v : component)

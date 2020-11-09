@@ -57,6 +57,9 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   unsigned nbVarCnf;
   unsigned maxSizeClause;
 
+  std::vector<bool> m_varInComponent;
+  std::vector<int> m_idxClauses;
+
  public:
   /**
      Constructor.
@@ -72,12 +75,65 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
     nbClauseCnf = occM.getNbClause();
     nbVarCnf = occM.getNbVariable();
     maxSizeClause = occM.getMaxSizeClause();
-
+    m_varInComponent.resize(nbVarCnf, false);
+    
     this->init(sizePage);
   }// BucketManager
 
   
   virtual ~BucketManagerCnf() {;}
-  virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;  
+  virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;
+
+
+  /**
+     Tell if the clause given as parameter (which is represented by its index in
+     the spec manager) should be considered or not.
+
+     @param[in] idx, the index of the clause.
+     
+     \return true if the clause is kept, false otherwise.
+   */
+  bool isKeptClause(int idx)
+  {
+    switch(modeStore)
+    {
+      case NT : return specManager.getNbUnsat(idx);
+      case NB : return specManager.getClause(idx).size() > 2;
+      default : return true;
+    }
+  } // isKeptClause
+  
+  
+  /**
+     Get the clauses that will be used, that are the clause that respect the
+     modeStore.
+
+     @param[in] component, the variables in the current component.
+     @param[out] idxClauses, the resulting clauses (index).
+  */
+  void collectIdActiveClauses(std::vector<Var> &component,
+                              std::vector<int> &idxClauses)
+  {    
+    for(auto &v : component) m_varInComponent[v] = true; 
+    
+    // collect the clauses
+    idxClauses.resize(0);
+    specManager.getCurrentClauses(idxClauses, m_varInComponent);
+
+    // std::cout << " => " << idxClauses.size() << "\n";
+    
+    unsigned i, j;
+    for(i = j = 0 ; i<idxClauses.size() ; i++)
+    {
+      if(!isKeptClause(idxClauses[i])) continue;
+      idxClauses[j++] = idxClauses[i];
+    }
+    
+    idxClauses.resize(j);
+
+    // std::cout << " <<<<< " << idxClauses.size() << "\n";
+    for(auto &v : component) m_varInComponent[v] = false; 
+  } // collectIdActiveClauses
+
 };
 } // d4
