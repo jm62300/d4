@@ -32,7 +32,16 @@ class PartitionerManager
                                              unsigned maxSumEdgeSize);
 
   virtual ~PartitionerManager() {}
-  virtual void computePartition(std::vector< std::vector<unsigned> > &hypergraph,
+
+  /**
+     Partitioner takes as input an hypergraph given in an array that follows:
+       - [size1] [...elts1 ...] [size2] [... elts2...] .......
+       - hypergraphSize gives the number of 'sizei'
+       - flags[i] is 0 if the clause must be ignored.
+   */
+  virtual void computePartition(unsigned *hypergraph,
+                                unsigned hypergraphSize,
+                                std::vector<uint64_t> flags,
                                 std::vector<int> &partition) = 0;
 };
 } // d4

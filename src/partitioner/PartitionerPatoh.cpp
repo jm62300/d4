@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <iostream>
 #include <vector>
 
 #include "PartitionerPatoh.hpp"
@@ -39,7 +40,7 @@ PartitionerPatoh::PartitionerPatoh(unsigned maxNodes,
   m_xpins = new int[(maxEdges + 3)];
   m_partvec = new int[(maxNodes + 3)];
   m_cwghts = new int[(maxNodes + 3)];
-
+  
   // set all weight to 1
   for(unsigned i = 0 ; i<(maxNodes + 3) ; i++) m_cwghts[i] = 1;
 
@@ -63,39 +64,54 @@ PartitionerPatoh::~PartitionerPatoh()
 
 /**
    Get a partition from the hypergraph.
+   Partitioner takes as input an hypergraph given in an array that follows:
+       - [size1] [...elts1 ...] [size2] [... elts2...] .......
+       - hypergraphSize gives the number of 'sizei'
+       - flags[i] is 0 if the clause must be ignored.
    
    @param[in] hypergraph, the graph we search for a partition.
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
-void PartitionerPatoh::computePartition(
-    std::vector< std::vector<unsigned> > &hypergraph,
-    std::vector<int> &partition)
+void PartitionerPatoh::computePartition(unsigned *hypergraph,
+                                        unsigned hypergraphSize,
+                                        std::vector<uint64_t> flags,
+                                        std::vector<int> &partition)
 {
   std::vector<unsigned> elts;
-  
+
   // graph initialization and shift the hypergraph
-  int posM_Pins = 0;
-  for(unsigned i = 0 ; i<hypergraph.size() ; i++)
+  unsigned sizeXpins = 0;
+  int posPins = 0;
+
+  unsigned *edge = hypergraph;
+  for(unsigned i = 0 ; i<hypergraphSize ; i++)
   {
-    m_xpins[i] = posM_Pins;
-    for(auto &x : hypergraph[i])
+    if(flags[i])
     {
-      if(!m_markedNodes[x])
+      m_xpins[sizeXpins++] = posPins;
+      for(unsigned j = 0 ; j<*edge ; j++)
       {
-        m_markedNodes[x] = true;
-        m_mapNodes[x] = elts.size();
-        elts.push_back(x);
-      }
+        unsigned x = edge[1 + j];
         
-      m_pins[posM_Pins++] = m_mapNodes[x];
+        if(!m_markedNodes[x])
+        {
+          m_markedNodes[x] = true;
+          m_mapNodes[x] = elts.size();
+          elts.push_back(x);
+        }
+        
+        m_pins[posPins++] = m_mapNodes[x];
+      }
     }
+
+    edge = &(edge[*edge + 1]);
   }
   for(auto &x : elts) m_markedNodes[x] = false;
-  m_xpins[hypergraph.size()] = posM_Pins;
+  m_xpins[sizeXpins] = posPins;
 
   // hypergraph partitioner
   PaToH_Parameters args;
-  if(hypergraph.size() < 200)
+  if(sizeXpins < 200)
     PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
   else PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
 
@@ -103,8 +119,8 @@ void PartitionerPatoh::computePartition(
   args.seed = 1;
 
   int cut;
-  PaToH_Alloc(&args, elts.size(), hypergraph.size(), 1, m_cwghts, NULL, m_xpins, m_pins);
-  PaToH_Part(&args, elts.size(), hypergraph.size(), 1, 0, m_cwghts, NULL, m_xpins, m_pins,
+  PaToH_Alloc(&args, elts.size(), sizeXpins, 1, m_cwghts, NULL, m_xpins, m_pins);
+  PaToH_Part(&args, elts.size(), sizeXpins, 1, 0, m_cwghts, NULL, m_xpins, m_pins,
              NULL, m_partvec, m_partweights, &cut);
 
   for(unsigned i = 0 ; i<elts.size() ; i++) partition[elts[i]] = m_partvec[i];

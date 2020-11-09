@@ -41,7 +41,9 @@ class PartitionerPatoh : public PartitionerManager
   PartitionerPatoh(unsigned maxNodes, unsigned maxEdges, unsigned maxSumEdgeSize);
   
   ~PartitionerPatoh();
-  void computePartition(std::vector< std::vector<unsigned> > &hypergraph,
+  void computePartition(unsigned *hypergraph,
+                        unsigned hypergraphSize,
+                        std::vector<uint64_t> flags,
                         std::vector<int> &partition);
 };
 } // d4

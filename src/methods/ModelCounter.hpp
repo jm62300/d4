@@ -395,7 +395,7 @@ template <class T> class ModelCounter : public MethodManager
                         std::vector<Var> &priorityVar,
                         std::ostream &out)
   {
-    if(!priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
+    if(!priorityVar.size() && connected.size() > 1 && connected.size() < 5000)
       {
         m_hCutSet->computeCutSet(connected, priorityVar);        
         callPartitioner++;

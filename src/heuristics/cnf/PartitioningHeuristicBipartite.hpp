@@ -48,7 +48,12 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   std::vector<int> m_idxClauses;
   std::vector<Var> m_equivClass;
   std::vector<int> m_partition;
-  
+
+  // to store the hypergraph, and then avoir reallocated memory.
+  unsigned *m_hypergraph;
+  unsigned m_hypergraphCapacity;
+  unsigned m_hypergraphSize;
+
   unsigned m_nbVar;
   unsigned m_nbClause;
 
@@ -58,25 +63,21 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
 
 
   void constructHyperGraph(std::vector<Var> &component,
-                           std::vector<Var> &equivClass,
-                           std::vector< std::vector<unsigned> > &hypergraph);
+                           std::vector<Var> &equivClass);
   
   void computeEquivClass(std::vector<Var> &component,
                          std::vector<Lit> &unitEquiv,
                          std::vector<Var> &equivClass);
   
-  void clashHyperEdgeIndex(std::vector< std::vector<unsigned> > &hypergraph,
-                           std::vector<int> &partition,
-                           std::vector<unsigned> &indices);
+  void clashHyperEdgeIndex(std::vector<int> &partition,
+                           std::vector<unsigned *> &indices);
 
 
-  void extractCutFromHyperGraph(
-      std::vector< std::vector<unsigned> > &hypergraph,
-      std::vector<int> &partition,
+  void extractCutFromHyperGraph(std::vector<int> &partition,
       std::vector<int> &cutSet);
 
 
-  void removeSubsumEdges(std::vector< std::vector<unsigned> > &hypergraph);
+  void removeSubsumEdges();
 
   
  public:
