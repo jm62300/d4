@@ -34,6 +34,11 @@ class BucketSortInfo
   BucketSortInfo() : start(0), end(0), counter(0), redirected(0) {}
   BucketSortInfo(unsigned init) : start(init), end(init), counter(0), redirected(0) {}
   BucketSortInfo(unsigned s, unsigned e) : start(s), end(e), counter(0), redirected(0) {}
+
+  inline void display(std::ostream &out)
+  {
+    out << start << " " << end << "\n";
+  }
 };
 
 class DistribContainer
@@ -194,7 +199,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     if(m_unusedBucket == -1)
     {
       ownBucket = m_vecBucketSortInfo.size();
-      m_vecBucketSortInfo.push_back(BucketSortInfo(m_distrib.size()));
+      m_vecBucketSortInfo.emplace_back(BucketSortInfo(m_distrib.size()));
     } else m_unusedBucket = -1;
 
     // visit each clause
@@ -232,7 +237,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
       // we add the literal in the bucket.
       for(unsigned i = 0 ; i<b.counter ; i++) m_distrib.pushIn(b.start + i, l.intern());
-
+#if 0
+      std::cout << "----> " << l.human() << " <<<< " << b.start << " " << b.start + b.counter <<"\n";
+#endif 
       // we split out the bucket.
       m_vecBucketSortInfo[b.redirected] = BucketSortInfo(b.start, b.start + b.counter);
       b.start += b.counter;
@@ -242,7 +249,10 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     if(!counter) m_unusedBucket = ownBucket;
     else
     {
-      m_vecBucketSortInfo[ownBucket].start = m_distrib.size();
+#if 0
+      std::cout << "----> " << l.human() << " " <<  m_distrib.size() 
+                << " " << m_distrib.size() + counter << "\n";
+#endif
       for(unsigned i = 0 ; i<counter ; i++) m_distrib.pushOne(l.intern());
       m_vecBucketSortInfo[ownBucket].end += counter;
     }
@@ -259,15 +269,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     initSortBucket();
 
     // the set of clauses.
-    // collectIdActiveClauses(component, m_idxClauses);
-    // if(!m_idxClauses.size()) return;
+    collectIdActiveClauses(component, m_idxClauses);
+    if(!m_idxClauses.size()) return;
 
-    // for(auto &idx : m_idxClauses)
-    // std::cout << specManager.getClause(idx).size() - specManager.getNbUnsat(idx) << " ";
-    // std::cout << "\n";
-    
-    // exit(0);
-    
     // sort the set of clauses
     for(auto &v : component)
     {
@@ -275,6 +279,29 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       createDistribWrTLit(Lit::makeLitFalse(v));
       createDistribWrTLit(Lit::makeLitTrue(v));
     }
+#if 0
+    std::cout << "The component\n";
+    for(auto &v : component) std::cout << v << " ";
+    std::cout << "\n";
+    
+    std::cout << "From the vecbucketsortinfo list\n";    
+    for(auto &c : m_vecBucketSortInfo)
+    {
+      c.display(std::cout);      
+    }
+    
+    std::cout << "From the idx list\n";
+    for(auto &idx : m_idxClauses)
+    {
+      m_vecBucketSortInfo[m_markIdx[idx]].display(std::cout);
+      std::cout << "clause: ";
+      for(auto &l : specManager.getClause(idx))
+        if(!specManager.litIsAssigned(l)) std::cout << l.human() << " ";         
+      std::cout << "\n";
+    }    
+    exit(0);
+#endif
+    
     resetUnMark();
 
     // remove redondant clauses
@@ -484,7 +511,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size() + 2 * nbODistrib * nbDiffSize]);
 
-    // strore the clauses
+    // store the clauses
     switch(nbOData)
     {
       case 1 : p = storeClauses<char>(p, m_distrib, component, m_distribClauseNbVar, m_lastSize); break;

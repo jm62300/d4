@@ -25,7 +25,6 @@
 
 namespace d4
 {
-using namespace std;
 class SpecManagerCnf : public SpecManager
 {
  protected:
@@ -42,17 +41,6 @@ class SpecManagerCnf : public SpecManager
   std::vector<bool> inCurrentComponent;
   std::vector< std::vector<int> > occList;
   
-  inline void showOccurenceList(std::ostream &out)
-  {
-    for(unsigned i = 0 ; i<occList.size() ; i++)
-    {
-      out << ((i&1) ? "-" : "") << (i>>1) << " --> [ ";
-      for(auto l : occList[i]) out << l << " ";
-      out << " ]\n";
-    }
-  }  
-
- protected:
   // to manage the connected component
   std::vector<int> mustUnMark;
   std::vector<Var> tmpVecVar;
@@ -78,32 +66,7 @@ class SpecManagerCnf : public SpecManager
                                 std::vector<Var> &freeVar,
                                 std::vector<Var> &notFreeVar) override;
 
-  void initFormula(ProblemManager &p) override;
-
-  inline int getNbBinaryClause(Lit l)
-  {
-    int nbBin = 0;
-    for(auto &idx : occList[l.intern()])
-      if(clauses[idx].size() - nbUnsat[idx] == 2) nbBin++;
-    return nbBin;
-  } // getNbBinaryClause
-  
-  inline void showOccList(std::ostream &out)
-  {
-    unsigned i = 0;
-    for(auto list : occList)
-    {
-      if(list.size())
-      {
-        out << ((i&1) ? "-" : "") << (i>>1) << " ";
-        for(auto &idx : list) out << idx << " ";
-        out << "\n";
-      }
-      i++;
-    }
-  } // showOccList
-
-  
+  void initFormula(ProblemManager &p) override;  
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
 
@@ -121,9 +84,8 @@ class SpecManagerCnf : public SpecManager
   void updateCurrentFormula(std::vector<Var> &component);
   void popPreviousFormula();
 
-  
-  
-  inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}
+  // inline functions.
+  // about the CNF.
   inline int getNbBinaryClause(Var v)
   {
     return getNbBinaryClause(Lit::makeLitFalse(v))
@@ -133,41 +95,70 @@ class SpecManagerCnf : public SpecManager
   inline int getNbNotBinaryClause(Var v){return getNbClause(v) - getNbBinaryClause(v);}
   inline int getNbClause(Var v)
   {
-    return getNbClause(Lit::makeLitFalse(v))
-        + getNbClause(Lit::makeLitTrue(v));}
+    return getNbClause(Lit::makeLitFalse(v)) + getNbClause(Lit::makeLitTrue(v));
+  }
   inline int getNbClause(Lit l){return occList[l.intern()].size();}
-  inline int getNbClause(){return clauses.size();}  
-  inline int getNbUnsat(int idx){return nbUnsat[idx];}
+  inline int getNbClause(){return clauses.size();}
   inline int getNbVariable(){return nbVar;}
-
-  inline bool varIsAssigned(Var v) override {return currentValue[v] != l_Undef;}
-  inline bool litIsAssigned(Lit l) override {return currentValue[l.var()] != l_Undef;}
-  inline bool litIsAssignedToTrue(Lit l) override
-  {
-    if(l.sign()) return currentValue[l.var()] == l_False;
-    else return currentValue[l.var()] == l_True;
-  }  
-
   inline int getMaxSizeClause(){return maxSizeClause;}
-  inline int getNbOccurrence(Lit l){return getNbClause(l);}
+
+    virtual inline int getSumSizeClauses()
+  {
+    int sum = 0;
+    for(auto &cl : clauses) sum += cl.size();
+    return sum;
+  }// getSumSizeClauses
+
+  inline int getNbBinaryClause(Lit l)
+  {
+    int nbBin = 0;
+    for(auto &idx : occList[l.intern()])
+      if(clauses[idx].size() - nbUnsat[idx] == 2) nbBin++;
+    return nbBin;
+  } // getNbBinaryClause
+
+
+  // about the clauses.
+  inline int getNbUnsat(int idx){return nbUnsat[idx];}
+  inline int getSize(int idx){return clauses[idx].size() - nbUnsat[idx];}
 
   inline std::vector<Lit> &getClause(int idx)
   {
     assert((unsigned) idx < clauses.size());
     return clauses[idx];
   }
+
+  
+  // about the assignment.
+  inline bool varIsAssigned(Var v) override {return currentValue[v] != l_Undef;}
+  inline bool litIsAssigned(Lit l) override {return currentValue[l.var()] != l_Undef;}
+  inline bool litIsAssignedToTrue(Lit l) override
+  {
+    if(l.sign()) return currentValue[l.var()] == l_False;
+    else return currentValue[l.var()] == l_True;
+  }
+
+
+  // about the occurrence list.
+  inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}
+  inline int getNbOccurrence(Lit l){return getNbClause(l);}
   
   inline std::vector<int> &getVecIdxClause(Lit l)
   {
     assert(l.intern() < occList.size());
     return occList[l.intern()];
   }
-  
-  virtual inline int getSumSizeClauses()
+
+
+  inline void showOccurenceList(std::ostream &out)
   {
-    int sum = 0;
-    for(auto &cl : clauses) sum += cl.size();
-    return sum;
-  }// getSumSizeClauses
+    for(unsigned i = 0 ; i<occList.size() ; i++)
+    {
+      if(!occList[i].size()) continue;
+      out << ((i&1) ? "-" : "") << (i>>1) << " --> [ ";
+      for(auto l : occList[i]) out << l << " ";
+      out << " ]\n";
+    }
+  }
 };
 } // d4
