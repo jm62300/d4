@@ -58,7 +58,31 @@ void WrapperMinisat::initSolver(ProblemManager &p)
     std::cerr << "bad_cast caught: " << bc.what() << '\n';
     std::cerr << "A CNF formula was expeted\n";
   }
+
+  m_activeModel = false;
+  m_needModel = false;
+  setNeedModel(m_needModel);
 } // initSolver
+
+
+/**
+   Call the SAT solver and return its result.
+
+   @param[in] setOfvar, the variables we focus the solving process.
+   
+   \return true if the problem is SAT, false otherwise.
+ */
+bool WrapperMinisat::solve(std::vector<Var> &setOfVar)
+{
+  if(m_activeModel && m_needModel) return true;
+  
+  m_setOfVar_m.setSize(0);
+  for(auto &v : setOfVar) m_setOfVar_m.push(v);
+  s.rebuildWithConnectedComponent(m_setOfVar_m);  
+  
+  m_activeModel = s.solveWithAssumptions();  
+  return m_activeModel;
+} // solve
 
 
 /**
@@ -68,6 +92,7 @@ void WrapperMinisat::initSolver(ProblemManager &p)
  */
 bool WrapperMinisat::solve()
 {
+  s.rebuildWithAllVar();
   return s.solveWithAssumptions();
 } // solve
 
@@ -264,22 +289,9 @@ void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
  */
 void WrapperMinisat::setNeedModel(bool b)
 {
+  m_needModel = b;
   s.setNeedModel(b);
 } // setNeedModel
-
-/**
-   Say yo the SAT solver that we search for a model only with a set of given
-   variables. That means, if all variables of setOfvar are assigned, then the
-   problem is say to be satisfiable.
-
-   @param[in] setOfvar, the set of considered variables.
- */
-void WrapperMinisat::inputVar(std::vector<Var> &setOfVar)
-{
-  m_setOfVar_m.setSize(0);
-  for(auto &v : setOfVar) m_setOfVar_m.push(v);
-  s.rebuildWithConnectedComponent(m_setOfVar_m);
-} // inputVar
 
 
 /**
@@ -289,7 +301,26 @@ void WrapperMinisat::inputVar(std::vector<Var> &setOfVar)
  */
 void WrapperMinisat::pushAssumption(Lit l)
 {
-  (s.assumptions).push(minisat::mkLit(l.var(), l.sign()));
+  minisat::Lit ml = minisat::mkLit(l.var(), l.sign());
+  m_activeModel = m_activeModel && !s.isAssigned(var(ml));
+
+  // std::cout << "pushassumption " << l << " << " << s.litTrueInLastModel(ml) << "\n";
+  
+  (s.assumptions).push(ml);
+
+  if(m_activeModel && m_needModel)
+  {
+    m_activeModel = s.litTrueInLastModel(ml);
+    if(m_activeModel)
+    {
+      assert(s.decisionLevel() == s.assumptions.size() - 1);
+      s.newDecisionLevel();
+      assert(!s.isAssigned(var(ml)));
+      s.uncheckedEnqueue(ml);
+      [[maybe_unused]] minisat::CRef cref = s.propagate();
+      assert(cref == minisat::CRef_Undef);
+    }
+  }
 } // pushAssumption
 
 

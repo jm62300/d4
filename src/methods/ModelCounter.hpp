@@ -111,7 +111,7 @@ template <class T> class ModelCounter : public MethodManager
     solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(solver);
     solver->initSolver(*problem);
-    solver->setNeedModel(false);
+    solver->setNeedModel(true);
     
     // we initialize the object that will give info about the problem.
     specs = SpecManager::makeSpecManager(vm, *problem, m_out);
@@ -334,8 +334,7 @@ template <class T> class ModelCounter : public MethodManager
   {
     showRun(out); nbCallCall++;
     // if(nbCallCall > 200000) exit(0);
-    solver->inputVar(setOfVar);
-    if(!solver->solve()) return 0;
+    if(!solver->solve(setOfVar)) return 0;
     
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     

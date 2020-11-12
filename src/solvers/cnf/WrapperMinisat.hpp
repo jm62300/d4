@@ -31,11 +31,15 @@ namespace d4
 class WrapperMinisat : public WrapperSolver
 {
  private:
-  minisat::Solver s;
+  minisat::Solver s;  
   minisat::vec<minisat::Var> m_setOfVar_m;
+
+  bool m_activeModel;
+  bool m_needModel;
   
  public:
   void initSolver(ProblemManager &p);
+  bool solve(std::vector<Var> &setOfVar);
   bool solve();
   bool varIsAssigned(Var v);
   bool getPolarity(Var v);
@@ -45,7 +49,6 @@ class WrapperMinisat : public WrapperSolver
   void whichAreUnits(std::vector<Var> &component, std::vector<Lit> &units);
   void restart();
   void setAssumption(std::vector<Lit> &assums);
-  void inputVar(std::vector<Var> &setOfVar);
   void pushAssumption(Lit l);
   void popAssumption();
   void setNeedModel(bool b);

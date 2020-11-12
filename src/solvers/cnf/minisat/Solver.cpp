@@ -132,11 +132,13 @@ Var Solver::newVar(bool sign, bool dvar)
   litFlags.push(lit_Undef);
   flags.push(0);
 
+  problemVariable.push(v);
+  
   alreadyConsidered.push(false);
   toUnConsidered.push(false);
   wasConsideredOcc.push(false);
 
-  kindOfVariable.push('v');
+  model.push(l_Undef);
   saveFree.push(0);
   currentModel.push(l_False);
   insistTruePolarity.push(false);
@@ -335,15 +337,13 @@ Lit Solver::pickBranchLit()
   // for(int i = 0 ; i<order_heap.size() ; i++) printf("%d ", order_heap[i]);
   // printf("\n");
   // Activity based decision:
-  while (next == var_Undef || value(next) != l_Undef || !decision[next] || !isInTheHeap(next))
+  while (next == var_Undef || value(next) != l_Undef || !decision[next])
   {
     if (order_heap.empty())
     {
       next = var_Undef;
       break;
-    }else next = order_heap.removeMin();
-
-    assert(next == var_Undef || isInTheHeap(next));
+    }else next = order_heap.removeMin();    
   }
 
   if(next != var_Undef && insistTruePolarity[next]) return mkLit(next, false);
@@ -788,13 +788,17 @@ void Solver::removeSatisfied(vec<CRef>& cs)
 }// removeSatisfied
 
 
+
 void Solver::rebuildOrderHeap()
 {
-  vec<Var> vs;
-  for (Var v = 0; v < nVars(); v++){
-    if(decision[v] && value(v) == l_Undef && inTheHeap[v] == stampInTheHeap) vs.push(v);
+  vsRebuildOrderHeap.setSize(0);
+  for (int i = 0 ; i<problemVariable.size() ; i++)
+  {
+    Var v = problemVariable[i];
+    if(decision[v] && value(v) == l_Undef)
+      vsRebuildOrderHeap.push(v);
   }
-  order_heap.build(vs);
+  order_heap.build(vsRebuildOrderHeap);
 }// rebuildOrderHeap
 
 
@@ -820,7 +824,8 @@ bool Solver::simplify()
   rebuildOrderHeap();
 
   simpDB_assigns = nAssigns();
-  simpDB_props   = clauses_literals + learnts_literals;//(shouldn't depend on stats really, but it will do for now)
+  //(shouldn't depend on stats really, but it will do for now)
+  simpDB_props   = clauses_literals + learnts_literals; 
 
   return true;
 }// simplify
@@ -876,13 +881,6 @@ lbool Solver::search(int nof_conflicts)
         for (int i = 0; i < learnt_clause.size(); i++)
           cval << (var(learnt_clause[i]) + 1)*(-2 * sign(learnt_clause[i]) + 1) << " ";
         cval << "0\n";
-#if 0
-        printf("learnt idx %d : ", idxClausesCpt);
-        vec<Lit> &cl = learnt_clause;
-        for(int j = 0 ; j<cl.size() ; j++)
-          printf("%s%d ", sign(cl[j]) ? "-" : "", var(cl[j]) + 1);
-        printf("\n");
-#endif
       }
 
       idxClausesCpt++;
@@ -1020,7 +1018,6 @@ static double luby(double y, int x)
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_(bool rebuildHeap, int nbConflict)
 {
-  model.clear();
   conflict.clear();
   if (!ok) return l_False;
   
@@ -1048,12 +1045,15 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict)
     curr_restarts++;
   }
 
-
   if(needModel && status == l_True)
   {
-    // Extend & copy model:
-    model.growTo(nVars());
-    for (int i = 0; i < nVars(); i++) model[i] = value(i);
+    // Extend & copy model:    
+    for (int i = 0; i < problemVariable.size() ; i++)
+    {
+      // printf("%d %d\n", problemVariable[i], value(problemVariable[i]) == l_True);
+      model[problemVariable[i]] = value(problemVariable[i]);      
+    }
+    // printf("*** %d %d\n", 3, model[3] == l_True);
   }
 
   cancelUntil(assumptions.size());

@@ -293,7 +293,6 @@ public:
     
   // Returns a random integer 0 <= x < size. Seed must never be 0.
   static inline int irand(double& seed, int size){return (int)(drand(seed) * size);}
-  vec<char> kindOfVariable;
     
 private:    
   vec<int> flags;
@@ -320,6 +319,8 @@ public:
   vec<bool> toUnConsidered;
   vec<Lit> heapConsideredOcc;
   vec<bool> wasConsideredOcc;
+
+  vec<Var> problemVariable;
     
 private:
 
@@ -572,7 +573,6 @@ public:
   inline vec<char> &getPolarity(){return polarity;}
 
   void searchAtMostOne(vec<Lit> &vc, vec<Lit> &canBeTrue);
-  inline char getKindOfVariable(int idx){return kindOfVariable[idx];}
   inline void backTrack(){cancelUntil(decisionLevel() - 1);}
   inline void computeLitPropagate(Lit l, vec<Lit> &vp)
   {
@@ -600,23 +600,6 @@ public:
     return false;
   }// oneIsTrue    
     
-  inline void putListTop(vec<Lit> &v)
-  {
-    for(int i = 0 ; i<v.size() ; i++)
-      {
-        kindOfVariable[var(v[i])] = 't'; 
-        topVariables.push(var(v[i]));
-      }
-  }// putListTop  
-
-  inline void putListNoSym(vec<Lit> &v)
-  {
-    for(int i = 0 ; i<v.size() ; i++)
-      {
-        kindOfVariable[var(v[i])] = 'n'; 
-        noSymVariables.push(var(v[i]));
-      }
-  }// putListNoSym
 
 
   inline void rebuildTrail(vec<Lit> &areUnit)
@@ -655,6 +638,7 @@ public:
        
 
   ////////////////////////// Connected component ///////////////////////////////////////////
+  vec<Var> vsRebuildOrderHeap;
   vec<int> inTheHeap;
   int stampInTheHeap;
   inline bool isInTheHeap(Var v){return inTheHeap[v] == stampInTheHeap;}
@@ -665,11 +649,33 @@ public:
     for(int i = 0 ; i<mustUnMark.size() ; i++) ca[clauses[mustUnMark[i]]].markView(0); 
     mustUnMark.setSize(0);      
   }// resetUnMark
-    
+
+
+  inline bool litTrueInLastModel(Lit l)
+  {
+    return modelValue(l) == l_True;
+  }
+  
+
+  inline void rebuildWithAllVar()
+  {
+    problemVariable.setSize(0);
+    stampInTheHeap++;
+    for (Var v = 0; v < nVars(); v++)
+    {
+      if(value(v) != l_Undef) continue;
+      inTheHeap[v] = stampInTheHeap;
+      problemVariable.push(v);
+    }
+    rebuildOrderHeap();
+  } // rebuildWithAllVar
+  
   inline void rebuildWithConnectedComponent(vec<Var> &v)
   {
+    v.copyTo(problemVariable);
     stampInTheHeap++;
-    for(int j = 0 ; j<v.size() ; j++) if(value(v[j]) == l_Undef) inTheHeap[v[j]] = stampInTheHeap;
+    for(int j = 0 ; j<v.size() ; j++)
+      if(value(v[j]) == l_Undef) inTheHeap[v[j]] = stampInTheHeap;
     rebuildOrderHeap();
   }// rebuidWithConnectedComponent
 
@@ -941,17 +947,7 @@ public:
       if(v1[i] != v2[i]){printf("(%d -- %d)", readableLit(v1[i]), readableLit(v2[i]));showPrintf = true;}
     if(showPrintf) printf("\n---------\n");
   }// showDiff
-
-        
-  inline void definedBlockedSymVariable(vec<int> &c)
-  {
-    for(int i = 0 ; i<c.size() ; i++)
-      {
-        Var x = (c[i] > 0) ? c[i] - 1 : -(c[i] + 1);
-        kindOfVariable[x] = 'n';
-      }
-  }// definedBlockedSymVariable
-
+  
 
   // additional stuff
   inline void intToLit(vec<int> &c, vec<Lit> &ls)

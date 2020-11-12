@@ -42,6 +42,7 @@ class WrapperSolver : public ActivityManager, public PolarityManager
 
   virtual ~WrapperSolver(){}
   virtual void initSolver(ProblemManager &p) = 0;
+  virtual bool solve(std::vector<Var> &setOfVar) = 0;
   virtual bool solve() = 0;
   virtual void getSimplifiedFormula(ProblemManager &p) = 0;
   virtual void restart() = 0;
@@ -54,9 +55,6 @@ class WrapperSolver : public ActivityManager, public PolarityManager
 
   // this function returns false if the propagation gives a conflict.
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) = 0;
-
-  // we only consider setOfvar as input variable.
-  virtual void inputVar(std::vector<Var> &setOfVar) = 0;
   
   virtual void whichAreUnits(std::vector<Var> &component,
                              std::vector<Lit> &units) = 0;
