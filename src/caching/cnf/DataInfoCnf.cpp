@@ -29,17 +29,13 @@ DataInfoCnf::DataInfoCnf(unsigned szData,
                          unsigned nbLit,          
                          unsigned nbClause,       
                          unsigned nbOctetsData,   
-                         unsigned nbOctetsVar,    
-                         unsigned nbOctetsDistrib,
+                         unsigned nbOctetsVar,
                          unsigned count) :
     DataInfo(szData, nbVar, nbOctetsData, nbOctetsVar, count)
 {
-  assert(nbOctetsDistrib - 1 < 4);
   info1 = info1 |
           ((uint64_t) nbLit << 21) |
           ((uint64_t) nbClause << 42);
-  info2 = info2 |
-          ((uint32_t) (nbOctetsDistrib - 1));  
 } // constructor
 
 
@@ -49,7 +45,6 @@ void DataInfoCnf::print(char *data, std::ostream &out)
       << "nbVar = " << nbVar() << "\n"
       << "nbClause = " << nbClause() << "\n"
       << "nbLit = " << nbLit() << "\n"
-      << "nbDiff = " << nbDiffSize() << "\n"
       << "count = " << count() << "\n"
       << "dirty = "<< dirty() << "\n";
 
@@ -63,16 +58,7 @@ void DataInfoCnf::print(char *data, std::ostream &out)
   }
 
   // distribution
-  char *dataDistrib = &data[nbVar() * nbOctetsVar()];
-  out << "Distribution: " << nbDiffSize() << "(" << nbOctetsDistrib() << ")\n";
-  switch(nbOctetsDistrib())
-  {
-    case 1 : printData<char>(dataDistrib, nbDiffSize()); break;
-    case 2 : printData<char16_t>(dataDistrib, nbDiffSize()); break;
-    default : printData<char32_t>(dataDistrib, nbDiffSize()); break;
-  }
-
-  char *dataClause = &dataDistrib[nbDiffSize() * nbOctetsDistrib()];
+  char *dataClause = &data[nbVar() * nbOctetsVar()];
 
   out << "Clause: " << nbClause() << "(" << nbOctetsData() << ")\n";
   switch(nbOctetsData())

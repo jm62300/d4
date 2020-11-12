@@ -102,7 +102,7 @@ class SpecManagerCnf : public SpecManager
   inline int getNbVariable(){return nbVar;}
   inline int getMaxSizeClause(){return maxSizeClause;}
 
-    virtual inline int getSumSizeClauses()
+  virtual inline int getSumSizeClauses()
   {
     int sum = 0;
     for(auto &cl : clauses) sum += cl.size();

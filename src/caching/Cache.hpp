@@ -118,7 +118,7 @@ template<class T> class Cache
 
 
   inline unsigned computeHash(CachedBucket<T> &bucket)
-  {    
+  {
     return hashMethod.hash(bucket.data, bucket.szData());
   }
   
@@ -189,7 +189,10 @@ template<class T> class Cache
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
     assert(nbTestCache.size() > varConnected.size());
     nbTestCache[varConnected.size()]++;
-
+#if 0
+    std::cout << "Result: "<< cacheBucket << "\n";
+#endif
+    
     if(cacheBucket)
     {
       switch(strategyRedCache)

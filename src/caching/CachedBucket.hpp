@@ -58,8 +58,8 @@ public:
   inline int dirty() {return header.dirty();}
 
   inline void szData(int s) {header.szData(s);}
-  inline int szData() {return header.szData();}
-  inline int nbVar(){return header.nbVar();}
+  inline unsigned szData() {return header.szData();}
+  inline unsigned nbVar(){return header.nbVar();}
   inline void print(std::ostream &os){header.print(data, os);}
   
   inline bool sameHeader(CachedBucket<T> &b){return header == b.header;}
