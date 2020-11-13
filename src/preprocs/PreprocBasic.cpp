@@ -51,8 +51,9 @@ PreprocBasic::~PreprocBasic()
 ProblemManager *PreprocBasic::run(ProblemManager &pin)
 {
   ws->initSolver(pin);
-  ProblemManagerCnf *pout = new ProblemManagerCnf(pin.getNbVar());
-  
+  ProblemManagerCnf *pout = new ProblemManagerCnf(
+      pin.getNbVar(), pin.getWeightLit(), pin.getWeightVar());
+
   try
   {    
     ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(*pout); 

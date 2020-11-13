@@ -61,8 +61,6 @@ template <class T> class ModelCounter : public MethodManager
   unsigned stampIdx;
 
   std::vector<unsigned> stampVar;
-  std::vector<double> weightLit;
-  std::vector<double> weightVar;
   std::vector< std::vector<Lit> > clauses;
 
   ProblemManager *problem;
@@ -132,10 +130,6 @@ template <class T> class ModelCounter : public MethodManager
 
     // init the clock time.
     initTimer();
-
-    // weight
-    weightLit.resize((specs->getNbVariable() + 1) << 1, 1);
-    weightVar.resize(specs->getNbVariable() + 1, 2);
     
     optCached = vm["cache-activated"].as<bool>();
     callPartitioner = 0;
@@ -281,38 +275,7 @@ template <class T> class ModelCounter : public MethodManager
   {
     solver->restart();
     solver->setAssumption(assums);
-  } // initAssumption
-
-
-  /**
-     Return the weight of a given variable.
-
-     @param[in] v, the variable.
-
-     \return weightVar[v], that is the weight of v     
-   */
-  inline T getWeightVar(Var v)
-  {
-    return T(weightVar[v]);
-  }
-
-  /**
-     Compute the value for free and unit variables.
-
-     @param[in] units, the units variables
-     @param[in] frees, the free variables
-
-     \return the right value
-  */
-  inline T computeWeightUnitFree(std::vector<Lit> &units,
-                                 std::vector<Var> &frees)
-  {
-    T tmp = 1;
-    for(auto &l : units) tmp *= T(weightLit[l.intern()]);
-    for(auto &v : frees) tmp *= T(weightVar[v]);
-    return tmp;
-  } // computeValue
-  
+  } // initAssumption  
 
   /**
      Call the CNF formula into a D-FPiBDD.
@@ -412,12 +375,12 @@ template <class T> class ModelCounter : public MethodManager
     
     solver->pushAssumption(l);
     T pos = computeNbModel_(connected, unitLitPos, freeVarPos, priorityVar, out);
-    pos *= computeWeightUnitFree(unitLitPos, freeVarPos);
+    pos *= problem->computeWeightUnitFree<T>(unitLitPos, freeVarPos);
     solver->popAssumption();
 
     solver->pushAssumption(~l);
     T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar, out);
-    neg *= computeWeightUnitFree(unitLitNeg, freeVarNeg);
+    neg *= problem->computeWeightUnitFree<T>(unitLitNeg, freeVarNeg);
     solver->popAssumption();
 
     return neg + pos;
@@ -437,11 +400,7 @@ template <class T> class ModelCounter : public MethodManager
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
     T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);
 
-    T computeWeight = 1;
-    for(auto &v : freeVariable) computeWeight *= T(weightVar[v]);
-    for(auto &l : unitsLit) computeWeight *= T(weightLit[l.intern()]);
-
-    return d * computeWeight;
+    return d * problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
   }// computeNbModel
 
  public:

@@ -30,6 +30,9 @@ ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile)
 {
   ParserDimacs parser;
   m_nbVar = parser.parse_DIMACS(nameFile, m_clauses);
+
+  m_weightLit.resize((m_nbVar + 1) << 1, 1);
+  m_weightVar.resize(m_nbVar + 1, 2);
 } // constructor
 
 
@@ -45,11 +48,19 @@ ProblemManagerCnf::ProblemManagerCnf()
 
 /**
    Constructor.
-   Construct an empty formula.
+
+   @param[in] nbVar, the number of variables.
+   @param[in] weightLit, the weights associate with the literals.   
+   @param[in] weightVar, the weights associate with the variables (sum of weight
+   of the lit)
  */
-ProblemManagerCnf::ProblemManagerCnf(int nbVar) 
+ProblemManagerCnf::ProblemManagerCnf(int nbVar,
+                                     std::vector<double> &weightLit,
+                                     std::vector<double> &weightVar) 
 {
   m_nbVar = nbVar;
+  m_weightLit = weightLit;
+  m_weightVar = weightVar;  
 } // constructor
 
 

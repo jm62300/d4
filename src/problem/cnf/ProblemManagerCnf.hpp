@@ -35,7 +35,9 @@ class ProblemManagerCnf : public ProblemManager
   
  public:
   ProblemManagerCnf();
-  ProblemManagerCnf(int nbVar);
+  ProblemManagerCnf(int nbVar,
+                    std::vector<double> &weightLit,
+                    std::vector<double> &weightVar);
   ProblemManagerCnf(std::string &nameFile);
   ~ProblemManagerCnf();  
   void display(std::ostream &out);

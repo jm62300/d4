@@ -20,14 +20,18 @@
 
 #include <boost/program_options.hpp>
 
+#include "src/problem/ProblemTypes.hpp"
+
 namespace d4
 {
 namespace po = boost::program_options;
 class ProblemManager
 {
  protected:
-  int m_nbVar;
-  
+  unsigned m_nbVar;
+  std::vector<double> m_weightLit;
+  std::vector<double> m_weightVar;
+
  public:
   static ProblemManager *makeProblemManager(po::variables_map &vm,
                                             std::ostream &out);
@@ -38,5 +42,47 @@ class ProblemManager
   
   virtual void display(std::ostream &out) = 0;
   virtual void displayStat(std::ostream &out, std::string startLine) = 0;
+  
+  inline std::vector<double> &getWeightLit(){return m_weightLit;}
+  inline std::vector<double> &getWeightVar(){return m_weightVar;}
+
+  /**
+     Get the weight for a variable.
+   */
+  template<typename T> inline T getWeightVar(Var v)
+  {
+    return T(m_weightVar[v]);
+  } // getWeightLar
+
+
+  /**
+     Get the weight for a literal.
+   */
+  template<typename T> inline T getWeightLit(Lit l)
+  {
+    return T(m_weightLit[l.intern()]);
+  } // getWeightLit
+
+
+  /**
+     Compute the value for free and unit variables.
+
+     @param[in] units, the units variables
+     @param[in] frees, the free variables
+
+     \return the right value
+  */
+  template<typename T> inline T computeWeightUnitFree(
+      std::vector<Lit> &units, std::vector<Var> &frees)
+  {
+    T tmp = 1;
+    for(auto &l : units) tmp *= T(m_weightLit[l.intern()]);
+    for(auto &v : frees) tmp *= T(m_weightVar[v]);
+    return tmp;
+  } // computeWeightUnitFree
+
+
+  
+  
 };
 }
