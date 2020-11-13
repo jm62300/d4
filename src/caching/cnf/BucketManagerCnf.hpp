@@ -112,7 +112,7 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
      @param[out] idxClauses, the resulting clauses (index).
   */
   void collectIdActiveClauses(std::vector<Var> &component,
-                              std::vector<int> &idxClauses)
+                              std::vector<unsigned> &idxClauses)
   {    
     // collect the clauses
     idxClauses.resize(0);

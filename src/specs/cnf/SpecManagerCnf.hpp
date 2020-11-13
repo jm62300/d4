@@ -82,7 +82,7 @@ class SpecManagerCnf : public SpecManager
   bool isNotSatisfiedClauseAndInComponent(int idx,
                                           std::vector<bool> &m_inCurrentComponent);
   
-  void getCurrentClauses(std::vector<int> &idxClauses,
+  void getCurrentClauses(std::vector<unsigned> &idxClauses,
                          std::vector<Var> &component);
 
   // inline functions.

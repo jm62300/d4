@@ -241,18 +241,16 @@ bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
 }// isSatisfiedClause
 
 
-void SpecManagerCnf::getCurrentClauses(std::vector<int> &idxClauses,
+void SpecManagerCnf::getCurrentClauses(std::vector<unsigned> &idxClauses,
                                        std::vector<Var> &component)
 {
   idxClauses.resize(0);
   for(auto &v : component) m_inCurrentComponent[v] = true;
-
   for(unsigned i = 0 ; i<m_clauses.size() ; i++)
   {
     if(isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
       idxClauses.push_back(i);
   }
-  
   for(auto &v : component) m_inCurrentComponent[v] = false;
 }// getCurrentclauses
 

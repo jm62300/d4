@@ -44,7 +44,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   std::vector<bool> m_markedClauses;
   std::vector<uint64_t> m_hashEdges;
   std::vector<int> m_mapVar;
-  std::vector<int> m_idxClauses;
+  std::vector<unsigned> m_idxClauses;
   std::vector<Var> m_equivClass;
   std::vector<int> m_partition;
 

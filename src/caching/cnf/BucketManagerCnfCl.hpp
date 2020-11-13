@@ -355,14 +355,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       while(j<i)
       {
         if(m_shiftedIndexClause[m_distrib[j]] < m_nbClauseInDistrib)
-        {          
           p[2 + k++] = static_cast<U>(m_shiftedIndexClause[m_distrib[j]]);
-#if 0
-          std::cout << (unsigned) p[0] << " #### " << Lit::makeLit(l>>1, l&1).human() << " "
-                    << m_shiftedIndexClause[m_distrib[j]] 
-                    <<  " *** " << p[k-1] << "\n" ;
-#endif
-        }
         j++;
       }
 
@@ -385,17 +378,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b)
   {
     unsigned sizeDistrib = collectDistrib(component);         // built the sorted formula
-#if 0
-    std::cout << "variable: ";
-    for(auto &v : component) std::cout << v << " ";
-    std::cout << "\n";
 
-    std::cout << "distribution: ";
-    for(unsigned i = 0 ; i<m_sizeDistrib ; i++) std::cout << m_distrib[i] << " ";
-    std::cout << "\n";
-
-    specManager.showCurrentFormula(std::cout);
-#endif
     // get information about the clause distribution
     m_lastSize = 0;
     unsigned nbLit = 0, nbVar = component.size();

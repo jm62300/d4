@@ -31,6 +31,7 @@
 #include "CachedBucket.hpp"
 #include "cnf/BucketManagerCnf.hpp"
 #include "cnf/BucketManagerCnfCl.hpp"
+#include "cnf/BucketManagerCnfIndex.hpp"
 
 #define ONE_OCTET 2
 #define TWO_OCTET 3
@@ -78,6 +79,7 @@ template<class T> class BucketManager
     
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
     if(ccr == "clause") return new BucketManagerCnfCl<T>(scnf, modeStore, sizePage);
+    if(ccr == "index") return new BucketManagerCnfIndex<T>(scnf, modeStore, sizePage);
 
     throw (FactoryException("Cannot create a BucketManager",__FILE__, __LINE__));
   } // makeBucketManager
