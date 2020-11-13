@@ -114,25 +114,17 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   void collectIdActiveClauses(std::vector<Var> &component,
                               std::vector<int> &idxClauses)
   {    
-    for(auto &v : component) m_varInComponent[v] = true; 
-    
     // collect the clauses
     idxClauses.resize(0);
     specManager.getCurrentClauses(idxClauses, component);
 
-    // std::cout << " => " << idxClauses.size() << "\n";
-    
     unsigned i, j;
     for(i = j = 0 ; i<idxClauses.size() ; i++)
     {
       if(!isKeptClause(idxClauses[i])) continue;
       idxClauses[j++] = idxClauses[i];
-    }
-    
+    }    
     idxClauses.resize(j);
-
-    // std::cout << " <<<<< " << idxClauses.size() << "\n";
-    for(auto &v : component) m_varInComponent[v] = false; 
   } // collectIdActiveClauses
 
 };

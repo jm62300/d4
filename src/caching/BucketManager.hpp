@@ -184,10 +184,15 @@ template<class T> class BucketManager
      @param[in] size, the size of the memory block
   */
   inline void releaseMemory(char *m, unsigned size)
-  {
-    while(freeSpace.size() <= size) freeSpace.push_back(std::vector<char *>());
-    freeSpace[size].push_back(m);
-    freeMemory += size;
+  {    
+    if((posInData - size) > 0 && &data[posInData - size] == m)
+      posInData -= size;
+    else
+    {    
+      while(freeSpace.size() <= size) freeSpace.push_back(std::vector<char *>());
+      freeSpace[size].push_back(m);
+      freeMemory += size;
+    }
   }// reverseLastBucket
 
 

@@ -189,9 +189,6 @@ template<class T> class Cache
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
     assert(nbTestCache.size() > varConnected.size());
     nbTestCache[varConnected.size()]++;
-#if 0
-    std::cout << "Result: "<< cacheBucket << "\n";
-#endif
     
     if(cacheBucket)
     {
@@ -201,6 +198,7 @@ template<class T> class Cache
           // case 0 : cacheBucket->reinitCount(nbPositiveHit + nbNegativeHit); break;
         case 1 : cacheBucket->incCount(1); break;
       }
+      
       bm->releaseMemory(formulaBucket->data, formulaBucket->szData());
       return TmpEntry<T>(*cacheBucket, hashValue, true);
     }
@@ -228,71 +226,6 @@ template<class T> class Cache
     pushInHashTable(*formulaBucket, hashValue, c); // add the new bucket
     nbCacheWithSizeVar[varConnected.size()]++;
   }// createBucket
-
-
-#define WINDOWS_CACHEDYN 30
-#define START_CACHEDYN 10
-  /**
-     Compute a new limit from where we should not put the bucket in the cache.
-  */
-  inline int computeLimitVarCache()
-  {
-    double sumTest = 1, sumHit = 1;
-
-    std::vector<int> compactNbTest, compactPosHit, sizeSet;
-    for(int i = 1 ; i<sizeVarCacheHit.size() ; i++)
-    {
-      if(!nbTestCache[i]) continue;
-      compactNbTest.push_back(nbTestCache[i]);
-      compactPosHit.push_back(sizeVarCacheHit[i]);
-      sizeSet.push_back(i);
-
-      nbTestCache[i] >>= 1;
-      if(sizeVarCacheHit[i]) sizeVarCacheHit[i] >>= 1;
-    }
-
-    int max = START_CACHEDYN < compactPosHit.size() ?
-                               sizeSet[START_CACHEDYN] : sizeSet.back();
-    for(int i = START_CACHEDYN ; i<compactPosHit.size() ; i++)
-    {
-      sumTest += compactNbTest[i];
-      sumHit += compactPosHit[i];
-
-      if(i >= WINDOWS_CACHEDYN + START_CACHEDYN)
-      {
-        sumTest -= compactNbTest[i - WINDOWS_CACHEDYN];
-        sumHit -= compactPosHit[i - WINDOWS_CACHEDYN];
-      }
-
-      if(sumHit / sumTest > 1.0 / log2(sizeSet[i])) max = sizeSet[i];
-    }
-
-
-    if(max == sizeSet.back()) return max * 2;
-    return max * 1.1;
-  }// computeLimitVarCache
-
-
-  inline bool shouldNotCache(int nbVar, BucketManager<T> *bm)
-  {
-    if(bm->allMemory < ((unsigned long int) 1<<30)) return false;
-    if(deadSize[nbVar]) return true;
-    deadSize[nbVar] = !sizeVarCacheHit[nbVar];
-
-    if(deadSize[nbVar])
-      printf("c entries s.t. |var| is of size %d are dead for caching\n", nbVar);
-    return deadSize[nbVar];
-  } // shouldNotCache
-
-
-  /**
-     Ckeck-out if we should postpone the creation of the current cache entry.
-     @param[in] varConnected, the variables in the connected component
-  */
-  inline bool shouldPostpone(std::vector<Var> &varConnected)
-  {
-    return !nbCacheWithSizeVar[varConnected.size()];
-  }// shouldPostpone
 
 
   /**
