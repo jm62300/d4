@@ -31,6 +31,7 @@ class ProblemManager
   unsigned m_nbVar;
   std::vector<double> m_weightLit;
   std::vector<double> m_weightVar;
+  bool m_isUnsat;
 
  public:
   static ProblemManager *makeProblemManager(po::variables_map &vm,
@@ -45,6 +46,8 @@ class ProblemManager
   
   inline std::vector<double> &getWeightLit(){return m_weightLit;}
   inline std::vector<double> &getWeightVar(){return m_weightVar;}
+  inline bool isUnsat() {return m_isUnsat;}
+  inline void isUnsat(bool b) {m_isUnsat = b;}
 
   /**
      Get the weight for a variable.
@@ -78,11 +81,22 @@ class ProblemManager
     T tmp = 1;
     for(auto &l : units) tmp *= T(m_weightLit[l.intern()]);
     for(auto &v : frees) tmp *= T(m_weightVar[v]);
+#if 0
+    std::cout << "weight: ";
+    for(auto &v : m_weightLit) std::cout << v << " ";
+    std::cout << "\n";
+    
+    std::cout << "units: ";
+    for(auto &l : units) std::cout << l.human() << "(" << m_weightLit[l.intern()] << ") ";
+    std::cout << "\n";
+
+    std::cout << "vars: ";
+    for(auto &v : frees) std::cout << v << "(" << m_weightVar[v] << ") ";
+    std::cout << "\n";
+    
+    std::cout << tmp << "\n";
+#endif
     return tmp;
-  } // computeWeightUnitFree
-
-
-  
-  
+  } // computeWeightUnitFree  
 };
 }

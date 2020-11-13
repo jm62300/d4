@@ -29,10 +29,11 @@ namespace d4
 ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile)
 {
   ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(nameFile, m_clauses);
+  m_nbVar = parser.parse_DIMACS(nameFile, m_clauses, m_weightLit);
 
-  m_weightLit.resize((m_nbVar + 1) << 1, 1);
-  m_weightVar.resize(m_nbVar + 1, 2);
+  m_weightVar.resize(m_nbVar + 1, 0);
+  for(unsigned i = 0 ; i <= m_nbVar ; i++)
+    m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
 } // constructor
 
 
@@ -60,7 +61,8 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar,
 {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
-  m_weightVar = weightVar;  
+  m_weightVar = weightVar;
+  m_isUnsat = false;
 } // constructor
 
 

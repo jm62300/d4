@@ -17,3 +17,5 @@
 ("cache-clause-representation,ccr", boost::program_options::value<std::string>()->default_value("clause"), "The way the clause are reprensented in the cache (clause and index).")
 ("cache-activated,ca", boost::program_options::value<bool>()->default_value(true), "Activate or not the cache.")
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(false), "Consider or not the reverse of the current phase.")
+("float-precision,fp", boost::program_options::value<int>()->default_value(128), "The precision for the float.")
+("float,f", boost::program_options::value<bool>()->default_value(false), "If the count is computed as a float or not.")

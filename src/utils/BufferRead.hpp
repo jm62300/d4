@@ -96,6 +96,38 @@ class BufferRead
     }
     return (sign) ? -ret : ret;
   }
+
+
+  inline double nextDouble()
+  {
+    double vint = 0;
+    skipSpace();
+
+    bool sign = currentChar() == '-';
+    if(sign) consumeChar();
+    while(!eof() && currentChar() >= '0' && currentChar() <= '9')
+    {
+      vint = vint * 10 + (nextChar() - '0');
+    }
+
+    double vdec = 0.0;
+    int nbDigit = 0;
+    if(currentChar() == '.')
+    {
+      consumeChar();
+      while(!eof() && currentChar() >= '0' && currentChar() <= '9')
+      {
+        vdec = vdec * 10 + (nextChar() - '0');
+        nbDigit++;
+      }
+    }
+
+    while(nbDigit--) vdec /= 10;
+    
+    double ret = vint + vdec;
+    return (sign) ? -ret : ret;
+  }
+
 };
 }
 #endif

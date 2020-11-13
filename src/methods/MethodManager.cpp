@@ -32,8 +32,16 @@ namespace d4
 MethodManager *MethodManager::makeMethodManager(po::variables_map &vm)
 {
   std::string meth = vm["method"].as<std::string>();
+  int precision = vm["float-precision"].as<int>();
 
-  if(meth == "counting") return new ModelCounter<boost::multiprecision::mpz_int>(vm);
+  boost::multiprecision::mpf_float::default_precision(precision); // we set the precision
+  if(meth == "counting")
+  {
+    bool isFloat = vm["float"].as<bool>();
+    if(!isFloat) return new ModelCounter<boost::multiprecision::mpz_int>(vm);
+    else return new ModelCounter<boost::multiprecision::mpf_float>(vm);
+  }
+
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
 

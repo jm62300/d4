@@ -71,6 +71,7 @@ ProblemManager *PreprocBasic::run(ProblemManager &pin)
     
       cl[0] = l.neg();
       ret.push_back(cl);
+      pout->isUnsat(true);
     }
     else // SAT: extract the clauses from the solver.
     {

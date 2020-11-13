@@ -20,11 +20,14 @@
 
 namespace d4
 {
-int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<Lit> > &clauses)
+int ParserDimacs::parse_DIMACS_main(BufferRead &in,
+                                    std::vector< std::vector<Lit> > &clauses,
+                                    std::vector<double> &weightLit)
 {
   std::vector<Lit> lits;
   std::string s;
 
+  weightLit.resize(0);
   int nbVars = 0;
   int nbClauses = 0;
 
@@ -42,7 +45,18 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<Lit
 
       nbVars = in.nextInt();
       nbClauses = in.nextInt();
+      weightLit.resize(((nbVars + 1) << 1), 1);
+      
       if (nbClauses < 0) printf("parse error\n"), exit(2);
+    }
+    else if (in.currentChar() == 'w')
+    {
+      in.consumeChar();
+      in.skipSpace();
+
+      int lit = in.nextInt();
+      double w = in.nextDouble();
+      if(lit > 0) weightLit[lit<<1] = w; else weightLit[((-lit)<<1) + 1] = w;
     }
     else if (in.currentChar() == 'c') in.skipLine();
     else
@@ -67,10 +81,11 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in, std::vector< std::vector<Lit
 }
 
 
-
-int ParserDimacs::parse_DIMACS(std::string input_stream, std::vector< std::vector<Lit> > &clauses)
+int ParserDimacs::parse_DIMACS(std::string input_stream,
+                               std::vector< std::vector<Lit> > &clauses,
+                               std::vector<double> &weightLit)
 {
   BufferRead in(input_stream);
-  return parse_DIMACS_main(in, clauses);
+  return parse_DIMACS_main(in, clauses, weightLit);
 }// parse_DIMACS
 }

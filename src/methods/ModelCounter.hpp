@@ -394,12 +394,15 @@ template <class T> class ModelCounter : public MethodManager
   */
   T computeNbModel(std::ostream &out)
   {
+    if(problem->isUnsat()) return T(0);
+    
     std::vector<Var> freeVariable, setOfVar, priorityVar;
     std::vector<Lit> unitsLit;
 
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
     T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);
-
+    
+    
     return d * problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
   }// computeNbModel
 
@@ -412,7 +415,7 @@ template <class T> class ModelCounter : public MethodManager
   {
     T nbModels = computeNbModel(m_out);
     printFinalStats(m_out);
-    m_out << "s " << nbModels << "\n";
+    m_out << "s " << std::fixed << nbModels << "\n";
   } // run
 };
 } // d4

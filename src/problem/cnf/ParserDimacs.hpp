@@ -37,10 +37,14 @@ namespace d4
 class ParserDimacs
 {
  private:
-  int parse_DIMACS_main(BufferRead &in, std::vector< std::vector<Lit> > &clauses);
+  int parse_DIMACS_main(BufferRead &in,
+                        std::vector< std::vector<Lit> > &clauses,
+                        std::vector<double> &weightLit);
 
  public:
-  int parse_DIMACS(std::string input_stream, std::vector< std::vector<Lit> > &clauses);
+  int parse_DIMACS(std::string input_stream,
+                   std::vector< std::vector<Lit> > &clauses,
+                   std::vector<double> &weightLit);
 };
 } // d4
 

@@ -37,12 +37,15 @@ ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm,
 {
   std::string in = vm["input"].as<std::string>();
   std::string inType = vm["input-type"].as<std::string>();
+  std::string meth = vm["method"].as<std::string>();
 
   out << "c [CONSTRUCTOR] Problem: " << in << " " << inType << "\n";
+
+  ProblemManager *ret = NULL;
+  if(inType == "cnf" || inType == "dimacs") ret = new ProblemManagerCnf(in);
   
-  if(inType == "cnf" || inType == "dimacs") return new ProblemManagerCnf(in);
-  
-  throw (FactoryException("Cannot create a ProblemManager",__FILE__, __LINE__));
+  if(!ret) throw (FactoryException("Cannot create a ProblemManager",__FILE__, __LINE__));
+  return ret;
 } // makeProblemManager
 
 }
