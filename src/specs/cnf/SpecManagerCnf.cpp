@@ -27,58 +27,56 @@ namespace d4
 /**
    Constructor.
 */
-SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _maxSizeClause) :
-    nbVar(_nbVar), maxSizeClause(_maxSizeClause)
+SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _m_maxSizeClause) :
+    m_nbVar(_nbVar), m_maxSizeClause(_m_maxSizeClause)
 {
-  for(unsigned i = 0 ; i <= nbVar ; i++)
-  {
-    inCurrentComponent.push_back(false);
-    currentValue.push_back(l_Undef);
-    idxComponent.push_back(0);
-    occList.push_back(std::vector<int>());
-    occList.push_back(std::vector<int>());
-    tmpMark.push_back(false);
-  }
+  // variables:
+  m_inCurrentComponent.resize(m_nbVar + 1, false);
+  m_currentValue.resize(m_nbVar + 1, l_Undef);
+  m_idxComponent.resize(m_nbVar + 1, 0);
 
-  mustUnMark.reserve(nbClause);
-  for(int i = 0 ; i<nbClause ; i++)
-  {      
-    markView.push_back(false);
-    nbUnsat.push_back(0);
-    nbSat.push_back(0);
-    watcher.push_back(lit_Undef);
-  }
+  // occurrences:
+  m_occList.resize((m_nbVar + 1) << 1, std::vector<int>());
+
+  // clauses:
+  m_mustUnMark.reserve(nbClause);
+  m_markView.resize(nbClause, false);
+  m_infoClauses.resize(nbClause);
 }// construtor
 
 
 /**
    Constructor.
 */
-SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : nbVar(p.getNbVar())
+SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar())
 {
   initFormula(p);
+
+  // variables:
+  m_inCurrentComponent.resize(m_nbVar + 1, false);
+  m_currentValue.resize(m_nbVar + 1, l_Undef);
+  m_idxComponent.resize(m_nbVar + 1, 0);
+
+  // occurrences:
+  m_occList.resize((m_nbVar + 1) << 1, std::vector<int>());  
   
-  for(unsigned i = 0 ; i <= nbVar ; i++)
-  {
-    currentValue.push_back(l_Undef);
-    idxComponent.push_back(0);
-    occList.push_back(std::vector<int>());
-    occList.push_back(std::vector<int>());
-    tmpMark.push_back(false);
-    inCurrentComponent.push_back(false);
-  }
+  // clauses:
+  unsigned nbClause = m_clauses.size();
+  m_mustUnMark.reserve(nbClause);
+  m_markView.resize(nbClause, false);
 
-  mustUnMark.reserve(clauses.size());
+  m_infoClauses.resize(nbClause);
 
-  if(!clauses.size()) return;
-  maxSizeClause = clauses[0].size();
-  for(auto &cl : clauses)
+
+  if(!m_clauses.size()) return;
+  m_maxSizeClause = m_clauses[0].size();
+  
+  for(unsigned i = 0 ; i<m_clauses.size() ; i++)
   {
-    if(cl.size() > maxSizeClause) maxSizeClause = cl.size();
-    markView.push_back(false);
-    nbUnsat.push_back(0);
-    nbSat.push_back(0);
-    watcher.push_back(cl[0]);
+    std::vector<Lit> &cl = m_clauses[i];
+    for(auto &l : cl) m_occList[l.intern()].push_back(i);
+    if(cl.size() > m_maxSizeClause) m_maxSizeClause = cl.size();
+    m_infoClauses[i].watcher = cl[0];
   }
 }// construtor
 
@@ -97,16 +95,16 @@ void SpecManagerCnf::connectedToLit(Lit l,
                                     std::vector<Var> &varComponent,
                                     int nbComponent)
 {
-  for(auto &idx : occList[l.intern()])
+  for(auto &idx : m_occList[l.intern()])
   {
-    if(markView[idx]) continue;
-    markView[idx] = true;
-    mustUnMark.push_back(idx);
+    if(m_markView[idx]) continue;
+    m_markView[idx] = true;
+    m_mustUnMark.push_back(idx);
     
     // compute component
-    for(auto &l : clauses[idx])
+    for(auto &l : m_clauses[idx])
     {
-      if(currentValue[l.var()] != l_Undef || v[l.var()]) continue;
+      if(m_currentValue[l.var()] != l_Undef || v[l.var()]) continue;
       
       varComponent.push_back(l.var());
       v[l.var()] = nbComponent;
@@ -137,31 +135,31 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
   int nbComponent = 0;
   for(auto &v : setOfVar)
   {
-    if(currentValue[v] != l_Undef || idxComponent[v]) continue;
+    if(m_currentValue[v] != l_Undef || m_idxComponent[v]) continue;
 
     // index a new composant
     nbComponent++;
-    idxComponent[v] = nbComponent;
+    m_idxComponent[v] = nbComponent;
 
     // save the variables of connected component
-    assert(!tmpVecVar.size());
-    tmpVecVar.push_back(v);
+    assert(!m_tmpVecVar.size());
+    m_tmpVecVar.push_back(v);
 
     int cpt = 0;
-    while(tmpVecVar.size())
+    while(m_tmpVecVar.size())
     {
       cpt++;
-      Lit l = Lit::makeLit(tmpVecVar.back(), false);
-      tmpVecVar.pop_back();
+      Lit l = Lit::makeLit(m_tmpVecVar.back(), false);
+      m_tmpVecVar.pop_back();
 
-      if(occList[l.intern()].size()) connectedToLit(l, idxComponent, tmpVecVar, nbComponent);
-      if(occList[(~l).intern()].size()) connectedToLit(~l, idxComponent, tmpVecVar, nbComponent);
+      if(m_occList[l.intern()].size()) connectedToLit(l, m_idxComponent, m_tmpVecVar, nbComponent);
+      if(m_occList[(~l).intern()].size()) connectedToLit(~l, m_idxComponent, m_tmpVecVar, nbComponent);
     }
 
     assert(cpt > 0);
     if(cpt == 1)
     {
-      idxComponent[v] = 0;
+      m_idxComponent[v] = 0;
       nbComponent--; // it is alone ...
     }
   }
@@ -171,14 +169,14 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
   varCo.resize(nbComponent);
   for(auto &v : setOfVar)
   {
-    if(idxComponent[v])
+    if(m_idxComponent[v])
     {
-      varCo[idxComponent[v] - 1].push_back(v);
+      varCo[m_idxComponent[v] - 1].push_back(v);
       notFreeVar.push_back(v);
       assert(nbComponent);
-    } else if(currentValue[v] == l_Undef) freeVar.push_back(v);
+    } else if(m_currentValue[v] == l_Undef) freeVar.push_back(v);
     
-    idxComponent[v] = 0;
+    m_idxComponent[v] = 0;
   }
 
   return nbComponent;
@@ -195,8 +193,8 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
 */
 bool SpecManagerCnf::isSatisfiedClause(unsigned idx)
 {
-  assert(idx < clauses.size());
-  return nbSat[idx];
+  assert(idx < m_clauses.size());
+  return m_infoClauses[idx].nbSat;
 }// isSatisfiedClause
 
 
@@ -213,8 +211,8 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
   for(auto &l : c)
   {
     if(!litIsAssigned(l)) continue;
-    if(l.sign() && currentValue[l.var()] == l_False) return true;
-    if(!l.sign() && currentValue[l.var()] == l_True) return true;
+    if(l.sign() && m_currentValue[l.var()] == l_False) return true;
+    if(!l.sign() && m_currentValue[l.var()] == l_True) return true;
   }
 
   return false;
@@ -234,58 +232,29 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c)
    \return true if the clause is satisfied, false otherwise.
 */
 bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(int idx,
-                                                        std::vector<bool> &inCurrentComponent)
+                                                        std::vector<bool> &m_inCurrentComponent)
 {
-  if(nbSat[idx]) return false;
-  assert(watcher[idx] != lit_Undef);
-  assert(!litIsAssigned(watcher[idx]));
-  return inCurrentComponent[watcher[idx].var()];
+  if(m_infoClauses[idx].nbSat) return false;
+  assert(m_infoClauses[idx].watcher != lit_Undef);
+  assert(!litIsAssigned(m_infoClauses[idx].watcher));
+  return m_inCurrentComponent[m_infoClauses[idx].watcher.var()];
 }// isSatisfiedClause
 
 
 void SpecManagerCnf::getCurrentClauses(std::vector<int> &idxClauses,
-                                       std::vector<bool> &inComponent)
+                                       std::vector<Var> &component)
 {
   idxClauses.resize(0);
-  for(int i = 0 ; i<currentSize ; i++)
+  for(auto &v : component) m_inCurrentComponent[v] = true;
+
+  for(unsigned i = 0 ; i<m_clauses.size() ; i++)
   {
-    idxClauses.push_back(currentIdx[i]);
-    assert(!nbSat[currentIdx[i]]);
-    assert(isNotSatisfiedClauseAndInComponent(currentIdx[i], inComponent));
+    if(isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
+      idxClauses.push_back(i);
   }
   
-  std::sort(idxClauses.begin(), idxClauses.end());
+  for(auto &v : component) m_inCurrentComponent[v] = false;
 }// getCurrentclauses
-
-
-void SpecManagerCnf::updateCurrentFormula(std::vector<Var> &component)
-{
-  for(auto &v : component) inCurrentComponent[v] = true;
-
-  stackSize.push_back(currentSize);
-  int i = 0;
-  while(i < currentSize)
-  {
-    if(isNotSatisfiedClauseAndInComponent(currentIdx[i], inCurrentComponent)) i++;
-    else
-    {
-      currentSize--;
-      int tmp = currentIdx[currentSize];
-      currentIdx[currentSize] = currentIdx[i];
-      currentIdx[i] = tmp;
-    }
-  }
-  
-  for(auto &v : component) inCurrentComponent[v] = false;
-}// updatecurrentclauseset
-
-
-void SpecManagerCnf::popPreviousFormula()
-{
-  assert(stackSize.size());
-  currentSize = stackSize.back();
-  stackSize.pop_back();
-}// poppreviousclauseset
 
 
 void SpecManagerCnf::initFormula(ProblemManager &p) 
@@ -293,7 +262,7 @@ void SpecManagerCnf::initFormula(ProblemManager &p)
   try
   {
     ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);
-    clauses = pcnf.getClauses();
+    m_clauses = pcnf.getClauses();
   }
   catch (std::bad_cast& bc)
   {
@@ -301,20 +270,14 @@ void SpecManagerCnf::initFormula(ProblemManager &p)
     std::cerr << "A CNF formula was expeted\n";
   }
     
-  currentIdx.clear();
-
-  for(unsigned i = 0 ; i<clauses.size() ; i++) currentIdx.push_back(i);
-
-  currentSize = clauses.size();
-  stackSize.clear();
-  for(auto &val : currentValue) val = l_Undef;
+  for(auto &val : m_currentValue) val = l_Undef;
 }// initFormula
 
 
 void SpecManagerCnf::showFormula(std::ostream &out)
 {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
-  for(auto &cl : clauses)
+  for(auto &cl : m_clauses)
   {      
     showListLit(out, cl);
     out << "0\n";
@@ -325,10 +288,10 @@ void SpecManagerCnf::showFormula(std::ostream &out)
 void SpecManagerCnf::showCurrentFormula(std::ostream &out)
 { 
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
-  for(unsigned i = 0 ; i<clauses.size(); i++)
+  for(unsigned i = 0 ; i<m_clauses.size(); i++)
   {
-    if(nbSat[i]) continue;    
-    for(auto &l : clauses[i]) if(!litIsAssigned(l)) out << l << " ";
+    if(m_infoClauses[i].nbSat) continue;    
+    for(auto &l : m_clauses[i]) if(!litIsAssigned(l)) out << l << " ";
     out << "0\n";
   }
 }// showFormula

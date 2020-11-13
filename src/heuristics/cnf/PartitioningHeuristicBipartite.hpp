@@ -38,8 +38,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   SpecManagerCnf &m_om;
   EquivExtractor m_em;
   PartitionerManager *m_pm;
-
-  std::vector<bool> m_inCurrentComponent;
+  
   std::vector<bool> m_markedVar;
   std::vector<bool> m_useLessVariable;
   std::vector<bool> m_markedClauses;

@@ -45,7 +45,6 @@ class SpecManagerCnfDyn : public SpecManagerCnf
 
   // we cannot use this function here
   inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units){assert(0);}
-  void initFormula(ProblemManager &p);
 };
 
 }

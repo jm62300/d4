@@ -333,7 +333,7 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 200000) exit(0);
+    // if(nbCallCall > 100000) exit(0);
     if(!solver->solve(setOfVar)) return 0;
     
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
@@ -358,7 +358,6 @@ template <class T> class ModelCounter : public MethodManager
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
         std::vector<Var> &connected = varConnected[cp];
-        specs->updateCurrentFormula(connected);
         TmpEntry<T> cb = optCached ?
                          cache->searchInCache(connected, bucketManager):
                          NULL_CACHE_ENTRY;
@@ -373,7 +372,6 @@ template <class T> class ModelCounter : public MethodManager
 
           if(optCached) cache->addInCache(cb, curr);
         }
-        specs->popPreviousFormula();
       }
     }// else we have a tautology
 

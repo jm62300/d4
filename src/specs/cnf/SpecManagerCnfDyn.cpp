@@ -43,37 +43,8 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(int nbC, int nbV, int maxClSz) :
  */
 SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p)
 {
-  // create the occurrence list
-  for(unsigned i = 0 ; i<clauses.size() ; i++)
-    for(auto &l : clauses[i]) occList[l.intern()].push_back(i);
+  
 }// SpecManagerCnfDyn
-
-
-/**
-   Initiliaze the occurrence manager with a new set of clauses.
- */
-void SpecManagerCnfDyn::initFormula(ProblemManager &p)
-{
-  SpecManagerCnf::initFormula(p);
-  
-  // construct the occurrence list
-  for(unsigned i = 0 ; i<clauses.size() ; i++)
-  {
-    for(auto &l : clauses[i]) occList[l.intern()].push_back(i);
-    if(clauses[i].size() > maxSizeClause) maxSizeClause = clauses[i].size();
-  }
-  
-  mustUnMark.reserve(clauses.size());
-  for(unsigned i = 0 ; i<clauses.size() ; i++)
-  {
-    if(markView.size() > i) markView[i] = false; else markView.push_back(false);
-    if(nbUnsat.size() > i) nbUnsat[i] = 0; else nbUnsat.push_back(0);
-    if(nbSat.size() > i) nbSat[i] = 0; else nbSat.push_back(0);
-    if(watcher.size() > i)
-      watcher[i] = clauses[i][0];
-    else watcher.push_back(clauses[i][0]);
-  }
-}// initFormula
 
 
 /**
@@ -89,50 +60,36 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits)
 
   for(auto &l : lits)
     {
-      currentValue[l.var()] = l.sign() ? l_False : l_True;
+      m_currentValue[l.var()] = l.sign() ? l_False : l_True;
       
-      for(auto &idxCl : occList[l.intern()])
+      for(auto &idxCl : m_occList[l.intern()])
         {
-          nbSat[idxCl]++;
-          for(auto &ll : clauses[idxCl])
-            if(currentValue[ll.var()] == l_Undef)
-              removeIdxFromOccList(occList[ll.intern()], idxCl);            
+          m_infoClauses[idxCl].nbSat++;
+          for(auto &ll : m_clauses[idxCl])
+            if(m_currentValue[ll.var()] == l_Undef)
+              removeIdxFromOccList(m_occList[ll.intern()], idxCl);            
         }
       
-      for(auto &idxCl : occList[(~l).intern()])
+      for(auto &idxCl : m_occList[(~l).intern()])
       {
-        nbUnsat[idxCl]++;
-        if(watcher[idxCl] == ~l) reviewWatcher.push_back(idxCl);
+        m_infoClauses[idxCl].nbUnsat++;
+        if(m_infoClauses[idxCl].watcher == ~l) reviewWatcher.push_back(idxCl);
       }
     }
 
   // we search another non assigned literal if requiered
   for(auto &idxCl : reviewWatcher)
   {
-    if(nbSat[idxCl]) continue;
+    if(m_infoClauses[idxCl].nbSat) continue;
 
-    for(auto &l : clauses[idxCl])
+    for(auto &l : m_clauses[idxCl])
     {
-      if(currentValue[l.var()] == l_Undef)
+      if(m_currentValue[l.var()] == l_Undef)
       {
-        watcher[idxCl] = l;
+        m_infoClauses[idxCl].watcher = l;
         break;
       }
     }    
-  }
-
-  stackSize.push_back(currentSize);
-  int i = 0;
-  while(i<currentSize)
-  {
-    if(!nbSat[currentIdx[i]]) i++;
-    else
-    {
-      currentSize--;
-      int tmp = currentIdx[currentSize];
-      currentIdx[currentSize] = currentIdx[i];
-      currentIdx[i] = tmp;
-    }
   }
 }// preUpdate
 
@@ -149,23 +106,21 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits)
   for(int i = lits.size() - 1 ; i >= 0 ; i--)
     {
       Lit l = lits[i];      
-      for(auto &idxCl : occList[l.intern()])
+      for(auto &idxCl : m_occList[l.intern()])
         {
-          nbSat[idxCl]--;
-          assert(!nbSat[idxCl]);
+          m_infoClauses[idxCl].nbSat--;
+          assert(!m_infoClauses[idxCl].nbSat);
           
-          for(auto &ll : clauses[idxCl])
+          for(auto &ll : m_clauses[idxCl])
           {
-            if(currentValue[ll.var()] == l_Undef)
-              occList[ll.intern()].push_back(idxCl);
+            if(m_currentValue[ll.var()] == l_Undef)
+              m_occList[ll.intern()].push_back(idxCl);
           }
         }
 
-      for(auto &idxCl : occList[(~l).intern()]) nbUnsat[idxCl]--;
-      currentValue[l.var()] = l_Undef;
+      for(auto &idxCl : m_occList[(~l).intern()]) m_infoClauses[idxCl].nbUnsat--;
+      m_currentValue[l.var()] = l_Undef;
     }
-
-  popPreviousFormula();
 }// postUpdate
 
 

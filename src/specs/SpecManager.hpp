@@ -52,8 +52,6 @@ class SpecManager
   virtual void initFormula(ProblemManager &p) = 0;
   virtual int getNbOccurrence(Lit l) = 0;
   virtual int getNbVariable() = 0;
-  virtual void updateCurrentFormula(std::vector<Var> &component) = 0;
-  virtual void popPreviousFormula() = 0;
 };
 }
 #endif

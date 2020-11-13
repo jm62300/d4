@@ -25,32 +25,36 @@
 
 namespace d4
 {
+struct SpecClauseInfo
+{
+  unsigned nbSat;
+  unsigned nbUnsat;
+  Lit watcher;
+
+  SpecClauseInfo() : nbSat(0), nbUnsat(0), watcher(lit_Undef) {;}
+};
+
 class SpecManagerCnf : public SpecManager
 {
  protected:
-  std::vector<std::vector<Lit> > clauses;
-  unsigned nbVar, maxSizeClause;
-  std::vector<lbool> currentValue;
-  std::vector<int> nbUnsat;
-  std::vector<int> nbSat;
-  std::vector<Lit> watcher;
+  std::vector<std::vector<Lit> > m_clauses;
+  unsigned m_nbVar, m_maxSizeClause;
+  std::vector<lbool> m_currentValue;
+  std::vector<SpecClauseInfo> m_infoClauses;
 
-  std::vector<int> currentIdx;
-  int currentSize;
-  std::vector<int> stackSize;
-  std::vector<bool> inCurrentComponent;
-  std::vector< std::vector<int> > occList;
+  std::vector<bool> m_inCurrentComponent;
+  std::vector< std::vector<int> > m_occList;
   
   // to manage the connected component
-  std::vector<int> mustUnMark;
-  std::vector<Var> tmpVecVar;
-  std::vector<int> idxComponent;
-  std::vector<bool> tmpMark, markView;
+  std::vector<int> m_mustUnMark;
+  std::vector<Var> m_tmpVecVar;
+  std::vector<int> m_idxComponent;
+  std::vector<bool> m_markView;
 
   inline void resetUnMark()
   {
-    for(auto &idx : mustUnMark) markView[idx] = false;
-    mustUnMark.resize(0);
+    for(auto &idx : m_mustUnMark) m_markView[idx] = false;
+    m_mustUnMark.resize(0);
   }// resetUnMark
   
   void connectedToLit(Lit l, std::vector<int> &v,
@@ -70,19 +74,16 @@ class SpecManagerCnf : public SpecManager
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
 
-  int getInitSize(int i){return clauses[i].size() - nbUnsat[i];}
-  int getCurrentSize(int i){return clauses[i].size() - nbUnsat[i];}
+  int getInitSize(int i){return m_clauses[i].size() - m_infoClauses[i].nbUnsat;}
+  int getCurrentSize(int i){return m_clauses[i].size() - m_infoClauses[i].nbUnsat;}
 
   bool isSatisfiedClause(unsigned idx);
   bool isSatisfiedClause(std::vector<Lit> &c);
   bool isNotSatisfiedClauseAndInComponent(int idx,
-                                          std::vector<bool> &inCurrentComponent);
+                                          std::vector<bool> &m_inCurrentComponent);
   
   void getCurrentClauses(std::vector<int> &idxClauses,
-                         std::vector<bool> &inCurrentComponent);
-  
-  void updateCurrentFormula(std::vector<Var> &component);
-  void popPreviousFormula();
+                         std::vector<Var> &component);
 
   // inline functions.
   // about the CNF.
@@ -97,66 +98,66 @@ class SpecManagerCnf : public SpecManager
   {
     return getNbClause(Lit::makeLitFalse(v)) + getNbClause(Lit::makeLitTrue(v));
   }
-  inline int getNbClause(Lit l){return occList[l.intern()].size();}
-  inline int getNbClause(){return clauses.size();}
-  inline int getNbVariable(){return nbVar;}
-  inline int getMaxSizeClause(){return maxSizeClause;}
+  inline int getNbClause(Lit l){return m_occList[l.intern()].size();}
+  inline int getNbClause(){return m_clauses.size();}
+  inline int getNbVariable(){return m_nbVar;}
+  inline int getMaxSizeClause(){return m_maxSizeClause;}
 
   virtual inline int getSumSizeClauses()
   {
     int sum = 0;
-    for(auto &cl : clauses) sum += cl.size();
+    for(auto &cl : m_clauses) sum += cl.size();
     return sum;
   }// getSumSizeClauses
 
   inline int getNbBinaryClause(Lit l)
   {
     int nbBin = 0;
-    for(auto &idx : occList[l.intern()])
-      if(clauses[idx].size() - nbUnsat[idx] == 2) nbBin++;
+    for(auto &idx : m_occList[l.intern()])
+      if(m_clauses[idx].size() - m_infoClauses[idx].nbUnsat == 2) nbBin++;
     return nbBin;
   } // getNbBinaryClause
 
 
   // about the clauses.
-  inline int getNbUnsat(int idx){return nbUnsat[idx];}
-  inline int getSize(int idx){return clauses[idx].size() - nbUnsat[idx];}
+  inline int getNbUnsat(int idx){return m_infoClauses[idx].nbUnsat;}
+  inline int getSize(int idx){return m_clauses[idx].size() - m_infoClauses[idx].nbUnsat;}
 
   inline std::vector<Lit> &getClause(int idx)
   {
-    assert((unsigned) idx < clauses.size());
-    return clauses[idx];
+    assert((unsigned) idx < m_clauses.size());
+    return m_clauses[idx];
   }
 
   
   // about the assignment.
-  inline bool varIsAssigned(Var v) override {return currentValue[v] != l_Undef;}
-  inline bool litIsAssigned(Lit l) override {return currentValue[l.var()] != l_Undef;}
+  inline bool varIsAssigned(Var v) override {return m_currentValue[v] != l_Undef;}
+  inline bool litIsAssigned(Lit l) override {return m_currentValue[l.var()] != l_Undef;}
   inline bool litIsAssignedToTrue(Lit l) override
   {
-    if(l.sign()) return currentValue[l.var()] == l_False;
-    else return currentValue[l.var()] == l_True;
+    if(l.sign()) return m_currentValue[l.var()] == l_False;
+    else return m_currentValue[l.var()] == l_True;
   }
 
 
   // about the occurrence list.
-  inline const std::vector< std::vector<int> > &getOccurrenceList(){return occList;}
+  inline const std::vector< std::vector<int> > &getOccurrenceList(){return m_occList;}
   inline int getNbOccurrence(Lit l){return getNbClause(l);}
   
   inline std::vector<int> &getVecIdxClause(Lit l)
   {
-    assert(l.intern() < occList.size());
-    return occList[l.intern()];
+    assert(l.intern() < m_occList.size());
+    return m_occList[l.intern()];
   }
 
 
   inline void showOccurenceList(std::ostream &out)
   {
-    for(unsigned i = 0 ; i<occList.size() ; i++)
+    for(unsigned i = 0 ; i<m_occList.size() ; i++)
     {
-      if(!occList[i].size()) continue;
+      if(!m_occList[i].size()) continue;
       out << ((i&1) ? "-" : "") << (i>>1) << " --> [ ";
-      for(auto l : occList[i]) out << l << " ";
+      for(auto l : m_occList[i]) out << l << " ";
       out << " ]\n";
     }
   }

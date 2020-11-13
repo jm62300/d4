@@ -118,7 +118,7 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
     
     // collect the clauses
     idxClauses.resize(0);
-    specManager.getCurrentClauses(idxClauses, m_varInComponent);
+    specManager.getCurrentClauses(idxClauses, component);
 
     // std::cout << " => " << idxClauses.size() << "\n";
     

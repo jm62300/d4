@@ -22,7 +22,6 @@
 
 namespace d4
 {
-
 /**
    Constructor.
 
@@ -64,7 +63,6 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_nbClause = _nbClause;
 
   // initialize the vector.
-  m_inCurrentComponent.resize(m_nbVar + 1, false);
   m_mapVar.resize(m_nbVar + 1, 0);
   m_markedVar.resize(m_nbVar + 1, false);
   m_equivClass.resize(m_nbVar + 1, 0);
@@ -137,10 +135,7 @@ void PartitioningHeuristicBipartite::constructHyperGraph(
   m_hypergraphSize = 0;
   
   // collect the indices of the clauses from the spec manager.
-  for(auto &v : component) m_inCurrentComponent[v] = true;
-  m_idxClauses.clear();
-  m_om.getCurrentClauses(m_idxClauses, m_inCurrentComponent);
-  for(auto &v : component) m_inCurrentComponent[v] = false;
+  m_om.getCurrentClauses(m_idxClauses, component);
   
   // construct the hypergraph.
   unsigned *edge = m_hypergraph;  
