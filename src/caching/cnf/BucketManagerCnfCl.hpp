@@ -17,7 +17,7 @@
 */
 #pragma once
 
-#include<algorithm> 
+#include <algorithm> 
 
 #include "src/problem/ProblemTypes.hpp"
 #include "BucketManagerCnf.hpp"
@@ -264,8 +264,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       m_shiftedIndexClause[i] = m_markedAsRedundant[i] ? m_sizeDistrib : index++;
       m_markedAsRedundant[i] = false;
     }
-    m_nbClauseInDistrib = index; // resize
-    
+    m_nbClauseInDistrib = index; // resize    
     return realSizeDistrib; 
   }// collectDistrib
 
@@ -346,14 +345,16 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     unsigned i = 0;
     while(i<m_sizeDistrib)
     {
-      unsigned l = m_distrib[i++];
+      unsigned l = m_distrib[i];
       p[0] = static_cast<U>((m_mapVar[l>>1]<<1) | (l&1));
-      p[1] = static_cast<U>(m_distrib[i++]);
+      p[1] = static_cast<U>(m_distrib[i+1]);
 
-      unsigned j = i, k = 0;
-      i += p[1];
+      unsigned j = i + 2, k = 0;
+      i += ((unsigned) p[1]) + 2;
+      
       while(j<i)
-      {
+      {        
+        assert(j < m_capacityDistrib && m_distrib[j] < nbClauseCnf);
         if(m_shiftedIndexClause[m_distrib[j]] < m_nbClauseInDistrib)
           p[2 + k++] = static_cast<U>(m_shiftedIndexClause[m_distrib[j]]);
         j++;
@@ -395,9 +396,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     // store the variables
     switch(nbOVar)
     {
-      case 1 : p = storeVariables<char>(p, component); break;
-      case 2 : p = storeVariables<char16_t>(p, component); break;
-      default : p = storeVariables<char32_t>(p, component); break;
+      case 1 : p = storeVariables<uint8_t>(p, component); break;
+      case 2 : p = storeVariables<uint16_t>(p, component); break;
+      default : p = storeVariables<uint32_t>(p, component); break;
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
     if(!m_nbClauseInDistrib) goto fillTheBucket;
@@ -405,9 +406,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     // store the clauses
     switch(nbOData)
     {
-      case 1 : p = storeClauses<char>(p, component, nbLit); break;
-      case 2 : p = storeClauses<char16_t>(p, component, nbLit); break;
-      default : p = storeClauses<char32_t>(p, component, nbLit); break;
+      case 1 : p = storeClauses<uint8_t>(p, component, nbLit); break;
+      case 2 : p = storeClauses<uint16_t>(p, component, nbLit); break;
+      default : p = storeClauses<uint32_t>(p, component, nbLit); break;
     }
     assert(static_cast<char *>(p) == &data[szData]);
 

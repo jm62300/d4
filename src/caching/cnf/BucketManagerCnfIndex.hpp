@@ -100,9 +100,9 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
     // store the variables
     switch(nbOVar)
     {
-      case 1 : p = storeData<char, Var>(p, component); break;
-      case 2 : p = storeData<char16_t, Var>(p, component); break;
-      default : p = storeData<char32_t, Var>(p, component); break;
+      case 1 : p = storeData<uint8_t, Var>(p, component); break;
+      case 2 : p = storeData<uint16_t, Var>(p, component); break;
+      default : p = storeData<uint32_t, Var>(p, component); break;
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
     if(!m_idxClauses.size()) goto fillTheBucket;
@@ -110,9 +110,9 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
     // strore the clauses
     switch(nbOData)
     {
-      case 1 : p = storeData<char, unsigned>(p, m_idxClauses); break;
-      case 2 : p = storeData<char16_t, unsigned>(p, m_idxClauses); break;
-      default : p = storeData<char32_t, unsigned>(p, m_idxClauses); break;
+      case 1 : p = storeData<uint8_t, unsigned>(p, m_idxClauses); break;
+      case 2 : p = storeData<uint16_t, unsigned>(p, m_idxClauses); break;
+      default : p = storeData<uint32_t, unsigned>(p, m_idxClauses); break;
     }
 
  fillTheBucket:
