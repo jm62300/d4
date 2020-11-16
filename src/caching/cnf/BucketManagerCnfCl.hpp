@@ -29,6 +29,89 @@
 
 namespace d4
 {
+
+class BucketInConstruction
+{
+ public:
+  unsigned *distrib;
+  unsigned *shiftedIndexClause;
+  unsigned *shiftedSizeClause;
+  unsigned *sizeClauses;
+  unsigned *distribDiffSize;
+  bool *markedAsRedundant;
+
+  unsigned nbClauseInDistrib;
+  unsigned sizeDistrib;
+  unsigned capacityDistrib;
+  unsigned maxSizeClause;
+
+  /**
+     Empty constructor.
+   */
+  BucketInConstruction()
+  {
+    distrib = nullptr;
+    shiftedIndexClause = nullptr;
+    shiftedSizeClause = nullptr;
+    sizeClauses = nullptr;
+    distribDiffSize = nullptr;
+    markedAsRedundant = nullptr;
+
+    nbClauseInDistrib = 0;
+    sizeDistrib = 0;
+    capacityDistrib = 0;
+  } // constructor
+
+
+  /**
+     Constructor.
+
+     @param[in] occM, the spec manager.
+   */
+  BucketInConstruction(SpecManagerCnf &occM)
+  {
+    nbClauseInDistrib = 0;
+    sizeDistrib = 0;
+    capacityDistrib = 3 * occM.getSumSizeClauses() + occM.getNbVariable();
+    maxSizeClause = occM.getMaxSizeClause();
+    
+    shiftedIndexClause = new unsigned[occM.getNbClause()];
+    distrib = new unsigned[capacityDistrib];
+    markedAsRedundant = new bool[occM.getNbClause()];
+    sizeClauses = new unsigned[occM.getNbClause()];
+    shiftedSizeClause = new unsigned[occM.getNbClause()];
+    distribDiffSize = new unsigned[occM.getMaxSizeClause() + 1];
+
+    for(int i = 0 ; i<occM.getNbClause() ; i++) markedAsRedundant[i] = false;    
+  } // constructor
+
+
+  /**
+     Destructor.     
+   */
+  ~BucketInConstruction()
+  {
+    if(distrib) delete[] distrib;
+    if(shiftedIndexClause) delete[] shiftedIndexClause;
+    if(shiftedSizeClause) delete[] shiftedSizeClause;
+    if(sizeClauses) delete[] sizeClauses;
+    if(distribDiffSize) delete[] distribDiffSize;
+    if(markedAsRedundant) delete[] markedAsRedundant;
+  } // destructor
+
+
+  /**
+     Reinit.
+   */
+  inline void reinit()
+  {
+    nbClauseInDistrib = 0;
+    sizeDistrib = 0;
+    for(unsigned i = 0 ; i <= maxSizeClause ; i++) distribDiffSize[i] = 0;
+  } // reinit
+};
+
+
 class BucketSortInfo
 {
  public:
@@ -65,20 +148,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   std::vector<int> m_mustUnMark;
   std::vector<int> m_markIdx;
   std::vector<unsigned> m_idInVecBucket;
-  unsigned m_lastSize;
 
-  unsigned *m_distrib;
+  BucketInConstruction m_inConstruction;
   unsigned *m_offsetClauses;
-  unsigned *m_shiftedIndexClause;
-  unsigned *m_shiftedSizeClause;
-  bool *m_markedAsRedundant;
-  unsigned *m_sizeClauses;
-  unsigned *m_distribDiffSize;
-  
-  unsigned m_nbClauseInDistrib;
-  unsigned m_sizeDistrib;
-  unsigned m_capacityDistrib;
-  
 
   // using: variables
   using BucketManagerCnf<T>::specManager;
@@ -97,25 +169,11 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      Function called in order to initialized variables before using
   */
   BucketManagerCnfCl(SpecManagerCnf &occM, int mdStore, unsigned sizePage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizePage)
+      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizePage), m_inConstruction(occM)
   {
     m_mapVar.resize(nbVarCnf + 1, 0);
-    m_markIdx.resize(nbClauseCnf, -1);
-    
-    m_capacityDistrib =  3 * occM.getSumSizeClauses() + nbVarCnf;
-    m_sizeDistrib = 0;
-    m_nbClauseInDistrib = 0;
-
-
-    m_offsetClauses = new unsigned[nbClauseCnf];
-    m_shiftedIndexClause = new unsigned[nbClauseCnf];
-    m_distrib = new unsigned[m_capacityDistrib];
-    m_markedAsRedundant = new bool[nbClauseCnf];
-    m_sizeClauses = new unsigned[nbClauseCnf];
-    m_shiftedSizeClause = new unsigned[nbClauseCnf];
-    m_distribDiffSize = new unsigned[m_maxSizeClause + 1];
-
-    for(unsigned i = 0 ; i<nbClauseCnf ; i++) m_markedAsRedundant[i] = false;
+    m_markIdx.resize(nbClauseCnf, -1);    
+    m_offsetClauses = new unsigned[nbClauseCnf];    
   }// BucketManagerCnfCl
 
 
@@ -125,28 +183,24 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   ~BucketManagerCnfCl()
   {
     delete[] m_offsetClauses;
-    delete[] m_shiftedSizeClause;
-    delete[] m_distribDiffSize;
-    delete[] m_shiftedIndexClause;
-    delete[] m_distrib;
-    delete[] m_markedAsRedundant;
-    delete[] m_sizeClauses;
   } // destructor
 
 
   /**
      Get an index store the distribution information.
 
+     @param[out] inConstruction, place where we store the bucket in construction.
+     
      \return the index of a reserved bucket.
    */
-  inline int getIdxBucketSortInfo()
+  inline int getIdxBucketSortInfo(BucketInConstruction &inConstruction)
   {
     int ret = m_unusedBucket;
     
     if(m_unusedBucket == -1)
     {
       ret = m_vecBucketSortInfo.size();
-      m_vecBucketSortInfo.emplace_back(BucketSortInfo(m_nbClauseInDistrib));
+      m_vecBucketSortInfo.emplace_back(BucketSortInfo(inConstruction.nbClauseInDistrib));
     } else m_unusedBucket = -1;
 
     return ret;
@@ -170,15 +224,17 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      It is used in order to construct a sorted residual formula.
 
      @param[in] l, we considere the clause containing l
+     @param[out] inConstruction, place where we store the bucket in construction.
   */
-  void createDistribWrTLit(const Lit &l)
+  void createDistribWrTLit(const Lit &l, BucketInConstruction &inConstruction)
   {
-    unsigned currentPos = m_sizeDistrib; // the place where we put l.
-    m_sizeDistrib += 2;                  // save memory for l and the size.
+    unsigned currentPos = inConstruction.sizeDistrib; // the place where we put l.
+    inConstruction.sizeDistrib += 2;                  // save memory for l and the size.
     
     // associate a bucket to the literal.
-    unsigned counter = 0, nbElt = 0, *tab = &m_distrib[m_sizeDistrib];
-    int ownBucket = getIdxBucketSortInfo();
+    unsigned counter = 0, nbElt = 0;
+    unsigned *tab = &inConstruction.distrib[inConstruction.sizeDistrib];
+    int ownBucket = getIdxBucketSortInfo(inConstruction);
     
     // visit each clause
     m_idInVecBucket.resize(0);
@@ -190,14 +246,14 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       assert((unsigned) idx < m_markIdx.size());
       if(m_markIdx[idx] == -1)
       {
-        m_sizeClauses[idx] = 1;
+        inConstruction.sizeClauses[idx] = 1;
         m_mustUnMark.push_back(idx);
         m_markIdx[idx] = ownBucket;
-        pushSorted(tab, nbElt++, m_nbClauseInDistrib + counter);
+        pushSorted(tab, nbElt++, inConstruction.nbClauseInDistrib + counter);
         counter++;        
       }else
       {
-        m_sizeClauses[idx]++;
+        inConstruction.sizeClauses[idx]++;
         BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
         if(!b.counter)
         {
@@ -211,8 +267,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       }
     }
     
-    m_sizeDistrib += nbElt;
-    assert(m_sizeDistrib < m_capacityDistrib);
+    inConstruction.sizeDistrib += nbElt;
+    assert(inConstruction.sizeDistrib < inConstruction.capacityDistrib);
     
     m_vecBucketSortInfo.resize(m_vecBucketSortInfo.size() + m_idInVecBucket.size());
     for(auto &bid : m_idInVecBucket)
@@ -229,17 +285,17 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     if(!counter) m_unusedBucket = ownBucket;
     else
     {
-      m_vecBucketSortInfo[ownBucket].reset(m_nbClauseInDistrib,
-                                           m_nbClauseInDistrib + counter);
-      m_nbClauseInDistrib += counter;
+      m_vecBucketSortInfo[ownBucket].reset(inConstruction.nbClauseInDistrib,
+                                           inConstruction.nbClauseInDistrib + counter);
+      inConstruction.nbClauseInDistrib += counter;
     }
     
-    if(currentPos == m_sizeDistrib - 2) m_sizeDistrib -= 2; // we add nothing.
+    if(currentPos == inConstruction.sizeDistrib - 2) inConstruction.sizeDistrib -= 2; 
     else
     {
-      m_distrib[currentPos] = l.intern();
-      m_distrib[currentPos + 1] = m_sizeDistrib - currentPos - 2;
-    }    
+      inConstruction.distrib[currentPos] = l.intern();
+      inConstruction.distrib[currentPos + 1] = inConstruction.sizeDistrib - currentPos - 2;
+    }
   }// createDistribWrTLit
 
 
@@ -247,31 +303,33 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      Collect the clause distribution. The result is stored in distrib.
 
      @param[in] component, the set of variables we consider.
+     @param[out] inConstruction, place where we store the bucket in construction.
 
      \return the number of elements we have in the distribution once the
      redundant clauses have been removed.
   */
-  inline unsigned collectDistrib(std::vector<Var> &component)
+  inline unsigned collectDistrib(std::vector<Var> &component,
+                                 BucketInConstruction &inConstruction)
   {
     // sort the set of clauses
     for(auto &v : component)
     {
       if(specManager.varIsAssigned(v)) continue;
-      createDistribWrTLit(Lit::makeLitFalse(v));
-      createDistribWrTLit(Lit::makeLitTrue(v));
+      createDistribWrTLit(Lit::makeLitFalse(v), inConstruction);
+      createDistribWrTLit(Lit::makeLitTrue(v), inConstruction);
     }
 
     // mark the clause we do not keep.
-    unsigned realSizeDistrib = m_sizeDistrib;    
+    unsigned realSizeDistrib = inConstruction.sizeDistrib;    
     for(auto &idx : m_mustUnMark)
     {
       BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];      
       m_markIdx[idx] = -1;
-      m_shiftedSizeClause[b.start] = m_sizeClauses[idx];
+      inConstruction.shiftedSizeClause[b.start] = inConstruction.sizeClauses[idx];
       if(b.end != b.start + 1)
       {
         realSizeDistrib -= (b.end - b.start - 1) * specManager.getCurrentSize(idx);
-        for(unsigned j = b.start + 1 ; j<b.end ; j++) m_markedAsRedundant[j] = true;
+        for(unsigned j = b.start + 1 ; j<b.end ; j++) inConstruction.markedAsRedundant[j] = true;
         b.end = b.start + 1;
       }
     }
@@ -279,28 +337,31 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
     // shift the clauses indices if requiered.
     unsigned index = 0;
-    for(unsigned i = 0 ; i<m_nbClauseInDistrib ; i++)
+    for(unsigned i = 0 ; i<inConstruction.nbClauseInDistrib ; i++)
     {
-      if(!m_markedAsRedundant[i])
+      if(!inConstruction.markedAsRedundant[i])
       {
-        m_distribDiffSize[m_shiftedSizeClause[i]]++;
-        m_shiftedSizeClause[index] = m_shiftedSizeClause[i];
-        m_shiftedIndexClause[i] = index++;
-      } else m_shiftedIndexClause[i] = m_sizeDistrib;
-      m_markedAsRedundant[i] = false;
+        inConstruction.distribDiffSize[inConstruction.shiftedSizeClause[i]]++;
+        inConstruction.shiftedSizeClause[index] = inConstruction.shiftedSizeClause[i];
+        inConstruction.shiftedIndexClause[i] = index++;
+      } else inConstruction.shiftedIndexClause[i] = inConstruction.sizeDistrib;
+      inConstruction.markedAsRedundant[i] = false;
     }
-    m_nbClauseInDistrib = index; // resize    
+    inConstruction.nbClauseInDistrib = index; // resize    
     return realSizeDistrib; 
   }// collectDistrib
 
-  
-  inline void initSortBucket()
+
+  /**
+     Prepare the data to store a new bucket.
+     
+     @param[out] inConstruction, place where we store the bucket in construction.
+   */
+  inline void initSortBucket(BucketInConstruction &inConstruction)
   {
-    m_nbClauseInDistrib = 0;
-    m_sizeDistrib = 0;
+    inConstruction.reinit();
     m_unusedBucket = -1;
     m_vecBucketSortInfo.resize(0);
-    for(unsigned i = 0 ; i <= m_maxSizeClause ; i++) m_distribDiffSize[i] = 0;
   } // initSortBucket
 
   
@@ -333,7 +394,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      to encode each elements and returns the pointer just after the end of the
      data.
 
-     @param[]
+     @param[in] data, the place where we print the data.
+     @param[in] component, the set of variables.
    */
   template <typename U> void *storeVariables(void *data,
                                              std::vector<Var> &component)
@@ -355,16 +417,18 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      data.
 
      @param[in] data, the place where we store the information.
+     @param[out] inConstruction, place where we store the bucket in construction.
    */
-  template <typename U> void *storeDistribInfo(void *data)
+  template <typename U> void *storeDistribInfo(void *data,
+                                               BucketInConstruction &inConstruction)
   {
     U *p = static_cast<U *>(data);
-    for(unsigned i = 0 ; i <= m_maxSizeClause ; i++)
+    for(unsigned i = 0 ; i <= inConstruction.maxSizeClause ; i++)
     {
-      if(!m_distribDiffSize[i]) continue;
+      if(!inConstruction.distribDiffSize[i]) continue;
       *p = static_cast<U>(i);
       p++;
-      *p = static_cast<U>(m_distribDiffSize[i]);
+      *p = static_cast<U>(inConstruction.distribDiffSize[i]);
       p++;
     }
 
@@ -384,10 +448,13 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
      @param[in] data, the place where we store the information
      @param[in] component, is the set of variables.
+     @param[out] inConstruction, place where we store the bucket in construction.
 
      \return a pointer to the end of the data we added
   */
-  template <typename U> void *storeClauses(void *data, std::vector<Var> &component)
+  template <typename U> void *storeClauses(void *data,
+                                           std::vector<Var> &component,
+                                           BucketInConstruction &inConstruction)
   {
     // we map the variable to another index regarding their poistion in component.
     for(unsigned i = 0 ; i<component.size() ; i++) m_mapVar[component[i]] = i;
@@ -398,36 +465,36 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     for(unsigned i = 0 ; i <= m_maxSizeClause ; i++)
     {
       memoryPlaceWrtSizeClause[i] = offSet;
-      offSet += m_distribDiffSize[i] * i;
+      offSet += inConstruction.distribDiffSize[i] * i;
     }
 
     // allocate an offset for each clauses.
-    for(unsigned i = 0 ; i<m_nbClauseInDistrib ; i++)
+    for(unsigned i = 0 ; i<inConstruction.nbClauseInDistrib ; i++)
     {
-      unsigned szClause = m_shiftedSizeClause[i];
+      unsigned szClause = inConstruction.shiftedSizeClause[i];
       if(!szClause) continue;
       
       m_offsetClauses[i] = memoryPlaceWrtSizeClause[szClause];
       memoryPlaceWrtSizeClause[szClause] += szClause;      
-      m_shiftedSizeClause[i] = 0;
+      inConstruction.shiftedSizeClause[i] = 0;
     }
 
     // we store the data.
     U *p = static_cast<U *>(data);
     unsigned i = 0;
-    while(i<m_sizeDistrib)
+    while(i<inConstruction.sizeDistrib)
     {
-      unsigned lit = m_distrib[i++];
+      unsigned lit = inConstruction.distrib[i++];
       
       U l = static_cast<U>((m_mapVar[lit>>1]<<1) | (lit&1));
-      unsigned szLitList = m_distrib[i++];
+      unsigned szLitList = inConstruction.distrib[i++];
 
       while(szLitList)
       {        
         szLitList--;        
         
-        unsigned idx = m_shiftedIndexClause[m_distrib[i++]];
-        if(idx >= m_nbClauseInDistrib) continue;
+        unsigned idx = inConstruction.shiftedIndexClause[inConstruction.distrib[i++]];
+        if(idx >= inConstruction.nbClauseInDistrib) continue;
         p[m_offsetClauses[idx]] = l;
         m_offsetClauses[idx]++;        
       }      
@@ -446,22 +513,25 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      @parar[out] largestSizeClause, store the size of the largest clause.
      @param[out] nbDiffClauseSize, the number of different size.
      @param[out] nbLit, the number of literals in the distribution.
+     @param[out] inConstruction, place where we store the bucket in construction.
    */
   inline void getInfoDistributionSize(unsigned &maxNbSizeClause,
                                       unsigned &largestSizeClause,
                                       unsigned &nbDiffClauseSize,
-                                      unsigned &nbLit)
+                                      unsigned &nbLit,
+                                      BucketInConstruction &inConstruction)
   {
     largestSizeClause = 0;
     maxNbSizeClause = 0;
     nbDiffClauseSize = 0;
     for(unsigned i = 0 ; i<=m_maxSizeClause ; i++)
-      if(m_distribDiffSize[i])
+      if(inConstruction.distribDiffSize[i])
       {
         largestSizeClause = i;
-        if(maxNbSizeClause < m_distribDiffSize[i]) maxNbSizeClause = m_distribDiffSize[i];
+        if(maxNbSizeClause < inConstruction.distribDiffSize[i])
+          maxNbSizeClause = inConstruction.distribDiffSize[i];
         nbDiffClauseSize++;
-        nbLit += m_distribDiffSize[i] * i;
+        nbLit += inConstruction.distribDiffSize[i] * i;
       }
   } // getInfoDistributionSize
   
@@ -469,19 +539,18 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   /**
      Transfer the formula store in distib in a table given in parameter.
 
-     @param[in] component, the input variables
-     @param[out] tmpFormula, the place where is stored the formula
-     @param[out] szTmpFormula, to collect the size of the stored formula
+     @param[in] component, the input variables.
+     @param[out] tmpFormula, the place where is stored the formula.
+     @param[out] szTmpFormula, to collect the size of the stored formula.
   */
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b)
   {
-    initSortBucket();
-    collectDistrib(component);         // built the sorted formula
+    initSortBucket(m_inConstruction);
+    collectDistrib(component, m_inConstruction);         // built the sorted formula
     
     // get information about the clause distribution
-    m_lastSize = 0;
     unsigned nbLit = 0, nbVar = component.size(), maxNbSizeClause, nbDiffClauseSize, largestSizeClause;
-    getInfoDistributionSize(maxNbSizeClause, largestSizeClause, nbDiffClauseSize, nbLit);
+    getInfoDistributionSize(maxNbSizeClause, largestSizeClause, nbDiffClauseSize, nbLit, m_inConstruction);
 
     unsigned nbOVar = this->nbOctetToEncodeInt(component.back() + 1);
     unsigned nbODistrib = this->nbOctetToEncodeInt(std::max(maxNbSizeClause, largestSizeClause));
@@ -502,14 +571,14 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
       default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
-    if(!m_nbClauseInDistrib) goto fillTheBucket;
+    if(!m_inConstruction.nbClauseInDistrib) goto fillTheBucket;
     
     // store the clause distribution of the size.
     switch(nbODistrib)
     {
-      case 1 : p = storeDistribInfo<uint8_t>(p); break;
-      case 2 : p = storeDistribInfo<uint16_t>(p); break;
-      case 4 : p = storeDistribInfo<uint32_t>(p); break;
+      case 1 : p = storeDistribInfo<uint8_t>(p, m_inConstruction); break;
+      case 2 : p = storeDistribInfo<uint16_t>(p, m_inConstruction); break;
+      case 4 : p = storeDistribInfo<uint32_t>(p, m_inConstruction); break;
       default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size() + nbODistrib * (nbDiffClauseSize<<1)]);
@@ -517,9 +586,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     // store the clauses.
     switch(nbOLit)
     {
-      case 1 : p = storeClauses<uint8_t>(p, component); break;
-      case 2 : p = storeClauses<uint16_t>(p, component); break;
-      case 4 : p = storeClauses<uint32_t>(p, component); break;
+      case 1 : p = storeClauses<uint8_t>(p, component, m_inConstruction); break;
+      case 2 : p = storeClauses<uint16_t>(p, component, m_inConstruction); break;
+      case 4 : p = storeClauses<uint32_t>(p, component, m_inConstruction); break;
       default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
     }
     assert(static_cast<char *>(p) == &data[szData]);
