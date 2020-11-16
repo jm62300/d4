@@ -116,7 +116,7 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
     }
 
  fillTheBucket:
-    DataInfoCnf di(szData, component.size(), 0, m_idxClauses.size(), nbOData, nbOVar);
+    DataInfoCnf di(szData, component.size(), 0, m_idxClauses.size(), nbOVar, 0, nbOData);
     assert(di.szData() == szData);
     b.set(data, di);
   }// storeFormula

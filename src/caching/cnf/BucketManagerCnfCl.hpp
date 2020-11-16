@@ -19,8 +19,13 @@
 
 #include <algorithm> 
 
+#include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "DataInfoCnfCl.hpp"
 #include "BucketManagerCnf.hpp"
+
+#define PRINT_DEBUG 0
+
 
 namespace d4
 {
@@ -63,8 +68,13 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   unsigned m_lastSize;
 
   unsigned *m_distrib;
+  unsigned *m_offsetClauses;
   unsigned *m_shiftedIndexClause;
+  unsigned *m_shiftedSizeClause;
   bool *m_markedAsRedundant;
+  unsigned *m_sizeClauses;
+  unsigned *m_distribDiffSize;
+  
   unsigned m_nbClauseInDistrib;
   unsigned m_sizeDistrib;
   unsigned m_capacityDistrib;
@@ -74,7 +84,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   using BucketManagerCnf<T>::specManager;
   using BucketManagerCnf<T>::nbClauseCnf;
   using BucketManagerCnf<T>::nbVarCnf;
-  using BucketManagerCnf<T>::maxSizeClause;
+  using BucketManagerCnf<T>::m_maxSizeClause;
   using BucketManagerCnf<T>::m_idxClauses;
 
   // using: functions
@@ -95,10 +105,15 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     m_capacityDistrib =  3 * occM.getSumSizeClauses() + nbVarCnf;
     m_sizeDistrib = 0;
     m_nbClauseInDistrib = 0;
-    
+
+
+    m_offsetClauses = new unsigned[nbClauseCnf];
     m_shiftedIndexClause = new unsigned[nbClauseCnf];
     m_distrib = new unsigned[m_capacityDistrib];
     m_markedAsRedundant = new bool[nbClauseCnf];
+    m_sizeClauses = new unsigned[nbClauseCnf];
+    m_shiftedSizeClause = new unsigned[nbClauseCnf];
+    m_distribDiffSize = new unsigned[m_maxSizeClause + 1];
 
     for(unsigned i = 0 ; i<nbClauseCnf ; i++) m_markedAsRedundant[i] = false;
   }// BucketManagerCnfCl
@@ -109,9 +124,13 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
    */
   ~BucketManagerCnfCl()
   {
+    delete[] m_offsetClauses;
+    delete[] m_shiftedSizeClause;
+    delete[] m_distribDiffSize;
     delete[] m_shiftedIndexClause;
     delete[] m_distrib;
     delete[] m_markedAsRedundant;
+    delete[] m_sizeClauses;
   } // destructor
 
 
@@ -166,17 +185,19 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     unsigned nextBucket = m_vecBucketSortInfo.size();
     for(auto &idx : specManager.getVecIdxClause(l))
     {
-      if(!isKeptClause(idx)) continue;
-
+      if(!isKeptClause(idx)) continue;      
+      
       assert((unsigned) idx < m_markIdx.size());
       if(m_markIdx[idx] == -1)
       {
+        m_sizeClauses[idx] = 1;
         m_mustUnMark.push_back(idx);
         m_markIdx[idx] = ownBucket;
         pushSorted(tab, nbElt++, m_nbClauseInDistrib + counter);
         counter++;        
       }else
       {
+        m_sizeClauses[idx]++;
         BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
         if(!b.counter)
         {
@@ -232,8 +253,6 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   */
   inline unsigned collectDistrib(std::vector<Var> &component)
   {
-    initSortBucket();
-
     // sort the set of clauses
     for(auto &v : component)
     {
@@ -246,8 +265,9 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     unsigned realSizeDistrib = m_sizeDistrib;    
     for(auto &idx : m_mustUnMark)
     {
-      BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+      BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];      
       m_markIdx[idx] = -1;
+      m_shiftedSizeClause[b.start] = m_sizeClauses[idx];
       if(b.end != b.start + 1)
       {
         realSizeDistrib -= (b.end - b.start - 1) * specManager.getCurrentSize(idx);
@@ -261,7 +281,12 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     unsigned index = 0;
     for(unsigned i = 0 ; i<m_nbClauseInDistrib ; i++)
     {
-      m_shiftedIndexClause[i] = m_markedAsRedundant[i] ? m_sizeDistrib : index++;
+      if(!m_markedAsRedundant[i])
+      {
+        m_distribDiffSize[m_shiftedSizeClause[i]]++;
+        m_shiftedSizeClause[index] = m_shiftedSizeClause[i];
+        m_shiftedIndexClause[i] = index++;
+      } else m_shiftedIndexClause[i] = m_sizeDistrib;
       m_markedAsRedundant[i] = false;
     }
     m_nbClauseInDistrib = index; // resize    
@@ -275,6 +300,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     m_sizeDistrib = 0;
     m_unusedBucket = -1;
     m_vecBucketSortInfo.resize(0);
+    for(unsigned i = 0 ; i <= m_maxSizeClause ; i++) m_distribDiffSize[i] = 0;
   } // initSortBucket
 
   
@@ -293,10 +319,13 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   /**
      Compute the number of bytes requiered to store the data.
    */
-  inline unsigned computeNeededBytes(int nBv, int nBda,
-                                     int nbVar, int nbEltData)
+  inline unsigned computeNeededBytes(unsigned nBv, unsigned nBda,
+                                     unsigned nbD, unsigned nbVar,
+                                     unsigned nbEltData, unsigned nbEltDist)
   {
-    return (nBv * nbVar) + (nBda * nbEltData);
+    return (nBv * nbVar)
+        + (nBda * nbEltData)
+        + (nbD * (nbEltDist<<1));   // <<1 because the size and the number.
   }
 
   /**
@@ -318,6 +347,30 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
     return p;
   } // storeVariables
+
+
+    /**
+     Store the variables respecting the information of size concerning the type T
+     to encode each elements and returns the pointer just after the end of the
+     data.
+
+     @param[in] data, the place where we store the information.
+   */
+  template <typename U> void *storeDistribInfo(void *data)
+  {
+    U *p = static_cast<U *>(data);
+    for(unsigned i = 0 ; i <= m_maxSizeClause ; i++)
+    {
+      if(!m_distribDiffSize[i]) continue;
+      *p = static_cast<U>(i);
+      p++;
+      *p = static_cast<U>(m_distribDiffSize[i]);
+      p++;
+    }
+
+    return p;
+  } // storeDistribInfo
+
   
 
   /**
@@ -331,43 +384,87 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
      @param[in] data, the place where we store the information
      @param[in] component, is the set of variables.
-     @param[out] nbLit, used to get the number of literals of the formula.
 
      \return a pointer to the end of the data we added
   */
-  template <typename U> void *storeClauses(void *data, std::vector<Var> &component, unsigned &nbLit)
+  template <typename U> void *storeClauses(void *data, std::vector<Var> &component)
   {
     // we map the variable to another index regarding their poistion in component.
     for(unsigned i = 0 ; i<component.size() ; i++) m_mapVar[component[i]] = i;
 
-    U *p = static_cast<U *>(data);
+    // get the information about the starting offset for the different clause size.
+    unsigned offSet = 0;
+    unsigned memoryPlaceWrtSizeClause[m_maxSizeClause + 1];
+    for(unsigned i = 0 ; i <= m_maxSizeClause ; i++)
+    {
+      memoryPlaceWrtSizeClause[i] = offSet;
+      offSet += m_distribDiffSize[i] * i;
+    }
 
+    // allocate an offset for each clauses.
+    for(unsigned i = 0 ; i<m_nbClauseInDistrib ; i++)
+    {
+      unsigned szClause = m_shiftedSizeClause[i];
+      if(!szClause) continue;
+      
+      m_offsetClauses[i] = memoryPlaceWrtSizeClause[szClause];
+      memoryPlaceWrtSizeClause[szClause] += szClause;      
+      m_shiftedSizeClause[i] = 0;
+    }
+
+    // we store the data.
+    U *p = static_cast<U *>(data);
     unsigned i = 0;
     while(i<m_sizeDistrib)
     {
-      unsigned l = m_distrib[i];
-      p[0] = static_cast<U>((m_mapVar[l>>1]<<1) | (l&1));
-      p[1] = static_cast<U>(m_distrib[i+1]);
-
-      unsigned j = i + 2, k = 0;
-      i += ((unsigned) p[1]) + 2;
+      unsigned lit = m_distrib[i++];
       
-      while(j<i)
+      U l = static_cast<U>((m_mapVar[lit>>1]<<1) | (lit&1));
+      unsigned szLitList = m_distrib[i++];
+
+      while(szLitList)
       {        
-        assert(j < m_capacityDistrib && m_distrib[j] < nbClauseCnf);
-        if(m_shiftedIndexClause[m_distrib[j]] < m_nbClauseInDistrib)
-          p[2 + k++] = static_cast<U>(m_shiftedIndexClause[m_distrib[j]]);
-        j++;
-      }
-
-      p[1] = static_cast<U>(k);
-      nbLit += k;
-      p += (2 + k);
+        szLitList--;        
+        
+        unsigned idx = m_shiftedIndexClause[m_distrib[i++]];
+        if(idx >= m_nbClauseInDistrib) continue;
+        p[m_offsetClauses[idx]] = l;
+        m_offsetClauses[idx]++;        
+      }      
     }
-
+    
+    p += offSet;
     return p;
   } // storeClauses
 
+
+  /**
+     Compute from the m_distribDiffSize the number of different size and the maximum
+     size.
+
+     @param[out] maxNbSizeDistr, the clause size with the maximum number of elements.
+     @parar[out] largestSizeClause, store the size of the largest clause.
+     @param[out] nbDiffClauseSize, the number of different size.
+     @param[out] nbLit, the number of literals in the distribution.
+   */
+  inline void getInfoDistributionSize(unsigned &maxNbSizeClause,
+                                      unsigned &largestSizeClause,
+                                      unsigned &nbDiffClauseSize,
+                                      unsigned &nbLit)
+  {
+    largestSizeClause = 0;
+    maxNbSizeClause = 0;
+    nbDiffClauseSize = 0;
+    for(unsigned i = 0 ; i<=m_maxSizeClause ; i++)
+      if(m_distribDiffSize[i])
+      {
+        largestSizeClause = i;
+        if(maxNbSizeClause < m_distribDiffSize[i]) maxNbSizeClause = m_distribDiffSize[i];
+        nbDiffClauseSize++;
+        nbLit += m_distribDiffSize[i] * i;
+      }
+  } // getInfoDistributionSize
+  
 
   /**
      Transfer the formula store in distib in a table given in parameter.
@@ -378,43 +475,58 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   */
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b)
   {
-    unsigned sizeDistrib = collectDistrib(component);         // built the sorted formula
-
+    initSortBucket();
+    collectDistrib(component);         // built the sorted formula
+    
     // get information about the clause distribution
     m_lastSize = 0;
-    unsigned nbLit = 0, nbVar = component.size();
+    unsigned nbLit = 0, nbVar = component.size(), maxNbSizeClause, nbDiffClauseSize, largestSizeClause;
+    getInfoDistributionSize(maxNbSizeClause, largestSizeClause, nbDiffClauseSize, nbLit);
 
-    unsigned int nbOVar = this->nbOctetToEncodeInt(component.back() + 1);
-    unsigned int nbOData = this->nbOctetToEncodeInt(std::max(nbVar<<1, m_nbClauseInDistrib));
+    unsigned nbOVar = this->nbOctetToEncodeInt(component.back() + 1);
+    unsigned nbODistrib = this->nbOctetToEncodeInt(std::max(maxNbSizeClause, largestSizeClause));
+    unsigned nbOLit = this->nbOctetToEncodeInt(nbVar << 1);
 
     // ask for memory
-    unsigned szData = computeNeededBytes(nbOVar, nbOData, nbVar, sizeDistrib);
-    
+    unsigned szData = computeNeededBytes(nbOVar, nbOLit, nbODistrib,
+                                         nbVar, nbLit, nbDiffClauseSize);    
     char *data = this->getArray(szData);
     void *p = data;
 
-    // store the variables
+    // store the variables.
     switch(nbOVar)
     {
       case 1 : p = storeVariables<uint8_t>(p, component); break;
       case 2 : p = storeVariables<uint16_t>(p, component); break;
-      default : p = storeVariables<uint32_t>(p, component); break;
+      case 4 : p = storeVariables<uint32_t>(p, component); break;
+      default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
     if(!m_nbClauseInDistrib) goto fillTheBucket;
-
-    // store the clauses
-    switch(nbOData)
+    
+    // store the clause distribution of the size.
+    switch(nbODistrib)
     {
-      case 1 : p = storeClauses<uint8_t>(p, component, nbLit); break;
-      case 2 : p = storeClauses<uint16_t>(p, component, nbLit); break;
-      default : p = storeClauses<uint32_t>(p, component, nbLit); break;
+      case 1 : p = storeDistribInfo<uint8_t>(p); break;
+      case 2 : p = storeDistribInfo<uint16_t>(p); break;
+      case 4 : p = storeDistribInfo<uint32_t>(p); break;
+      default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
+    }
+    assert(static_cast<char *>(p) == &data[nbOVar * component.size() + nbODistrib * (nbDiffClauseSize<<1)]);
+
+    // store the clauses.
+    switch(nbOLit)
+    {
+      case 1 : p = storeClauses<uint8_t>(p, component); break;
+      case 2 : p = storeClauses<uint16_t>(p, component); break;
+      case 4 : p = storeClauses<uint32_t>(p, component); break;
+      default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
     }
     assert(static_cast<char *>(p) == &data[szData]);
 
  fillTheBucket:
     // put the information into the bucket
-    DataInfoCnf di(szData, nbVar, nbLit, m_nbClauseInDistrib, nbOData, nbOVar);
+    DataInfoCnfCl di(szData, nbVar, nbLit, nbDiffClauseSize, nbOVar, nbOLit, nbODistrib);
     assert(di.szData() == szData);
     b.set(data, di);
   }// storeFormula

@@ -38,7 +38,7 @@
 
 #include "MethodManager.hpp"
 
-#define NB_SEP_MC 105
+#define NB_SEP_MC 118
 #define MASK_SHOWRUN_MC ((2<<13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 
@@ -190,10 +190,12 @@ template <class T> class ModelCounter : public MethodManager
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->getNbPositiveHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->getNbNegativeHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << bucketManager->usedMemory
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
+        
         << "|\n";
   } // showInter
 
@@ -221,7 +223,8 @@ template <class T> class ModelCounter : public MethodManager
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#compile"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" 
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" 
@@ -297,10 +300,8 @@ template <class T> class ModelCounter : public MethodManager
   {
     showRun(out); nbCallCall++;
     // if(nbCallCall > 100000) exit(0);
-    if(!solver->solve(setOfVar)) return 0;
-    
+    if(!solver->solve(setOfVar)) return 0;    
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
-    
     specs->preUpdate(unitsLit);
 
     T ret = 1, curr;

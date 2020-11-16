@@ -49,8 +49,8 @@ class DataInfo
 
  public:
   DataInfo();
-  DataInfo(unsigned szData,         
-           unsigned nbVar,          
+  DataInfo(unsigned szData,
+           unsigned nbVar,
            unsigned nbOctetsData,   
            unsigned nbOctetsVar,
            unsigned count);  
@@ -93,15 +93,15 @@ class DataInfo
     out << data;
   }
 
-  template <typename U> void printData(void *data, int sz)
+  template <typename U> void printData(void *data, int sz, std::ostream &out)
   {
     U *p = static_cast<U *>(data);
     for(int i = 0 ; i<sz ; i++)
     {
-      printf("%d ", *p);
+      out << (unsigned) *p << " ";
       p++;
     }
-    printf("\n");
+    out << "\n";
   }// printdata
 };
 }

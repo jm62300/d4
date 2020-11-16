@@ -27,11 +27,12 @@ class DataInfoCnf : public DataInfo
 {
  public:
   DataInfoCnf(unsigned szData,         
-              unsigned nbVar,          
-              unsigned nbLit,          
-              unsigned nbClause,       
-              unsigned nbOctetsData,   
+              unsigned nbVar,
+              unsigned nbLit,
+              unsigned nbDiffSizeDistrib,
               unsigned nbOctetsVar,
+              unsigned nbOctetsLit,
+              unsigned nbOctetsDistrib,
               unsigned count = 0);
   
   void print(char *data, std::ostream &out);

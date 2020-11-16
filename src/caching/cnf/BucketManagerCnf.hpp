@@ -55,7 +55,7 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   int modeStore;
   unsigned nbClauseCnf;
   unsigned nbVarCnf;
-  unsigned maxSizeClause;
+  unsigned m_maxSizeClause;
 
   std::vector<bool> m_varInComponent;
   std::vector<int> m_idxClauses;
@@ -74,7 +74,7 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
     modeStore = mdStore;
     nbClauseCnf = occM.getNbClause();
     nbVarCnf = occM.getNbVariable();
-    maxSizeClause = occM.getMaxSizeClause();
+    m_maxSizeClause = occM.getMaxSizeClause();
     m_varInComponent.resize(nbVarCnf, false);
     
     this->init(sizePage);

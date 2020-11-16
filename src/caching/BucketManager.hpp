@@ -38,7 +38,6 @@
 #define FOUR_OCTET 4
 #define EIGHT_OCTET 5
 
-#define PAGE (1<<29)
 
 namespace d4
 {
@@ -58,6 +57,7 @@ template<class T> class BucketManager
   unsigned long int allMemory;
   unsigned long int freeMemory;
   unsigned long int pageData;
+  unsigned long int usedMemory;
 
   static BucketManager<T> *makeBucketManager(po::variables_map &vm,
                                              SpecManager &s,
@@ -120,6 +120,7 @@ template<class T> class BucketManager
     data = new char[sizeData];
     allocateData.push_back(data);
     allMemory += sizeData;
+    usedMemory = 0;
   } // init
 
 
@@ -129,7 +130,8 @@ template<class T> class BucketManager
   */
   char *getArray(unsigned size)
   {
-    char *ret = NULL;
+    usedMemory += size;
+    char *ret = NULL;    
 
     if(size < freeSpace.size() && freeSpace[size].size())
     {
@@ -138,29 +140,12 @@ template<class T> class BucketManager
       freeMemory -= size;
       return ret;
     }
-
-    // go futher to see if we cannot split some entry
-    if((size << 1) < freeSpace.size())
-    {
-      unsigned pos = size << 1;
-      while(pos < freeSpace.size() && !freeSpace[pos].size()) pos++;
-
-      // split an entry
-      if(pos < freeSpace.size())
-      {
-        ret = freeSpace[pos].back();
-        freeSpace[pos].pop_back();
-        freeMemory -= size;
-        freeSpace[pos - size].push_back(&ret[size]); // split and push
-        return ret;
-      }
-    }
-
+    
     // take a fresh entry
     if(posInData + size > sizeData)
     {
       unsigned rSz = sizeData - posInData;
-      if(freeSpace.size() <= rSz) freeSpace.resize(rSz, std::vector<char *>());
+      if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::vector<char *>());
       freeSpace[rSz].push_back(&data[posInData]);
       freeMemory += rSz;
 
@@ -171,7 +156,7 @@ template<class T> class BucketManager
 
       allMemory += sizeData;
     }
-
+    
     ret = &data[posInData];
     posInData += size;
     return ret;
@@ -186,12 +171,14 @@ template<class T> class BucketManager
      @param[in] size, the size of the memory block
   */
   inline void releaseMemory(char *m, unsigned size)
-  {    
+  {
+    usedMemory -= size;
+    
     if((posInData - size) > 0 && &data[posInData - size] == m)
       posInData -= size;
     else
-    {    
-      while(freeSpace.size() <= size) freeSpace.push_back(std::vector<char *>());
+    {
+      freeSpace.resize(size + 1, std::vector<char *>());
       freeSpace[size].push_back(m);
       freeMemory += size;
     }
