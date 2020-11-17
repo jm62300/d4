@@ -15,10 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_methods_MethodManager_hpp
-#define d4_src_methods_MethodManager_hpp
-
+#pragma once
 #include <boost/program_options.hpp>
 
 namespace d4
@@ -39,5 +36,3 @@ class MethodManager
   inline float getTimer(){return (float)(clock() - currentTime)/CLOCKS_PER_SEC;}
 };
 } // d4
-
-#endif

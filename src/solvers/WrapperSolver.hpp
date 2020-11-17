@@ -15,9 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_solvers_cnf_minisat_WrapperSolver_hpp
-#define d4_src_solvers_cnf_minisat_WrapperSolver_hpp
+#pragma once
 
 #include <boost/program_options.hpp>
 
@@ -61,5 +59,3 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   
 };
 } // d4
-
-#endif

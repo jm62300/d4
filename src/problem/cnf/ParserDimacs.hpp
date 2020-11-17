@@ -15,9 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_parsing_ParserDimacs_hpp
-#define d4_src_parsing_ParserDimacs_hpp
+#pragma once
 
 #include <iostream>
 #include <cassert>
@@ -48,4 +46,3 @@ class ParserDimacs
 };
 } // d4
 
-#endif

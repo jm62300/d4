@@ -15,9 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_src_utils_BufferReader_hpp
-#define d4_src_utils_BufferReader_hpp
+#pragma once
 
 #include <iostream>
 
@@ -129,5 +127,4 @@ class BufferRead
   }
 
 };
-}
-#endif
+} // d4
