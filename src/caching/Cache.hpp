@@ -49,14 +49,8 @@ template<class T> class Cache
   unsigned nbInitVar;
   unsigned nbFailedInCache;
   unsigned nbRemoveEntry;
-  unsigned long int nbCreationBucket;
-
-  std::vector<int> sizeVarCacheHit;
-  std::vector<int> nbCacheWithSizeVar;
-  std::vector<int> nbTestCache;
-  std::vector<bool> deadSize;
-  
-  unsigned long int sumDataSize;
+  unsigned long int m_nbCreationBucket;
+  unsigned long int m_sumDataSize;
 
   std::ostream m_out;
   HashString hashMethod;
@@ -72,14 +66,14 @@ template<class T> class Cache
     m_out.clear(out.rdstate());           
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
     
-    sumDataSize = m_nbEntry = nbCreationBucket = 0;
+    m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
     m_nbPositiveHit = m_nbNegativeHit = 0;
     nbFailedInCache = 1;
     nbRemoveEntry = sumAffectedHitCache = 0;
     verb = 0;
     
     initHashTable(nbVar);
-    m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, out);
+    m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, nbVar, out);
     m_bucketManager = BucketManager<T>::makeBucketManager(vm, *specs, out);
   }// CacheCNF
 
@@ -88,7 +82,9 @@ template<class T> class Cache
     hashTable.clear();
   }
 
-  
+
+  inline unsigned long int nbCreationBucket(){return m_nbCreationBucket;}
+  inline unsigned long int sumDataSize(){return m_sumDataSize;}
   inline unsigned long int usedMemory(){return m_bucketManager->usedMemory;}
   inline unsigned long int getNbPositiveHit(){return m_nbPositiveHit;}
   inline unsigned long int getNbNegativeHit(){return m_nbNegativeHit;}
@@ -114,9 +110,9 @@ template<class T> class Cache
 
     CachedBucket<T> &cbIn = (hashTable[hashValue % SIZE_HASH].back());
     cbIn.lockedBucket(val);
-    nbCreationBucket++;
-    sumDataSize += cb.szData();
-    m_cacheCleaningManager->initCountCachedBucket(cbIn);
+    m_nbCreationBucket++;
+    m_sumDataSize += cb.szData();
+    m_cacheCleaningManager->initCountCachedBucket(&cbIn);
     m_nbEntry++;
   }// pushinhashtable
 
@@ -141,8 +137,7 @@ template<class T> class Cache
       if(!cb.sameHeader(cbi)) continue;
 
       if(!memcmp(refData, cbi.data, cbi.szData()))
-      {
-        if(!cbi.dirty()) sizeVarCacheHit[cbi.nbVar()]++;
+      {        
         cbi.setTrueDirty();
         m_nbPositiveHit++;
         return &cbi;
@@ -178,21 +173,12 @@ template<class T> class Cache
     CachedBucket<T> *formulaBucket = m_bucketManager->collectBucket(varConnected);
     unsigned hashValue = computeHash(*formulaBucket);
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
-    assert(nbTestCache.size() > varConnected.size());
-    nbTestCache[varConnected.size()]++;
+
+    m_cacheCleaningManager->updateCountCachedBucket(cacheBucket, varConnected.size());
+    if(!cacheBucket) return TmpEntry<T>(*formulaBucket, hashValue, false);
     
-    if(cacheBucket) 
-    {
-      m_cacheCleaningManager->updateCountCachedBucket(*cacheBucket);
-      m_bucketManager->releaseMemory(formulaBucket->data, formulaBucket->szData());
-      return TmpEntry<T>(*cacheBucket, hashValue, true);
-    }
-    else
-    {
-      nbFailedInCache++;
-      nbCacheWithSizeVar[varConnected.size()]++;
-      return TmpEntry<T>(*formulaBucket, hashValue, false);
-    }
+    m_bucketManager->releaseMemory(formulaBucket->data, formulaBucket->szData());
+    return TmpEntry<T>(*cacheBucket, hashValue, true);
   } // searchInCache
 
 
@@ -207,7 +193,6 @@ template<class T> class Cache
     CachedBucket<T> *formulaBucket = m_bucketManager->collectBuckect(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
     pushInHashTable(*formulaBucket, hashValue, c); // add the new bucket
-    nbCacheWithSizeVar[varConnected.size()]++;
   }// createBucket
 
 
@@ -222,11 +207,6 @@ template<class T> class Cache
   {
     minAffectedHitCache = mVar;
     nbInitVar = mVar;
-
-    sizeVarCacheHit.resize(nbInitVar + 1, 0);
-    nbCacheWithSizeVar.resize(nbInitVar + 1, 0);
-    nbTestCache.resize(nbInitVar + 1, 0);
-    deadSize.resize(nbInitVar + 1, 0);        
   }// setInfoFormula
 
 
@@ -241,63 +221,6 @@ template<class T> class Cache
     hashTable.clear();
     hashTable.resize(SIZE_HASH, std::vector<CachedBucket<T> >());
   }// initHashTable
-
-#if 0
-/**
-     Remove from the cache structure the element that look to be useless (we use
-     the dirty variable for this purpose).
-  */
-  void reduceCacheStr0()
-  {
-#if 0
-    if(!strategyRedCache) return;
-#endif
-    int dec = ((unsigned long int) nbEntry *
-               (unsigned long int) (nbInitVar)) >>
-              (38 - (int) log2(sumDataSize / nbCreationBucket));
-    nbFailedInCache++;
-    nbReduceCall++;
-
-    for(unsigned i = 0 ; i<hashTable.size() ; i++)
-    {
-      std::vector< CachedBucket<T> > &v = hashTable[i];
-      
-      for(unsigned j = 0 ; j<v.size() ; )
-      {
-        CachedBucket<T> &cb = v[j];
-        double ratio = (double) sizeVarCacheHit[cb.nbVar()] /
-                       (double) nbCacheWithSizeVar[cb.nbVar()];
-        bool mustBeKept = !deadSize[cb.nbVar()] &&
-                          (cb.count() || cb.dirty() || ratio > 0.5);
-
-        if(mustBeKept)
-        {
-          cb.decCount(dec);
-          if(!cb.count() && cb.dirty())
-          {
-            cb.setFalseDirty();
-            sizeVarCacheHit[cb.nbVar()]--;
-          }
-          j++;
-        } else
-        {
-          if(cb.dirty()) sizeVarCacheHit[cb.nbVar()]--;
-          nbCacheWithSizeVar[cb.nbVar()]--;
-
-          m_bucketManager->releaseMemory(cb.data, cb.szData());
-          v[j] = v.back();
-          v.pop_back();
-          nbRemoveEntry++;
-          nbEntry--;
-        }
-      }
-    }
-
-    printf("c Number of entries removed: %u %lu %lu %d %d %lu\n",
-           nbRemoveEntry, m_bucketManager->allMemory, m_bucketManager->freeMemory, dec,
-           nbEntry, sumDataSize / nbCreationBucket);
-  } // reduceCacheStr0
-#endif
 
 
   ///////////////////////////////////////////////////////////////////////////
@@ -341,11 +264,6 @@ template<class T> class Cache
     }
     printf("%d %d/%ld %d\n", cpt, val, allC, anotherSum);
 
-
-    for(int i = 0 ; i<sizeVarCacheHit.size() ; i++)
-    {
-      if(sizeVarCacheHit[i]) printf("-> %d %d\n", i, sizeVarCacheHit[i]);
-    }
 
     return;
 

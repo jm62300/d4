@@ -26,6 +26,7 @@
 #include "CacheCleaningNone.hpp"
 #include "CacheCleaningCachet.hpp"
 #include "CacheCleaningSharpSAT.hpp"
+#include "CacheCleaningExpectation.hpp"
 
 namespace d4
 {
@@ -43,30 +44,47 @@ template<class T> class CacheCleaningManager
 
      @param[in] vm, the option list.
      @param[in] cache, the cache where we want to clean.
+     @param[in] nbVar, the number of variables in the problem.
+     @param[in] out, the stream where are print out the information.
    */
   static CacheCleaningManager<T> *makeCacheCleaningManager(po::variables_map &vm,
                                                            Cache<T> *cache,
+                                                           int nbVar,
                                                            std::ostream &out)
   {
     std::string crs = vm["cache-reduction-strategy"].as<std::string>();
     bool csa = vm["cache-smudge-activation"].as<bool>();
 
-    out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << " smudge(" << csa << ")\n";
-    
-    if(crs == "none") return new CacheCleaningNone<T>(cache);
-    if(crs == "cachet")
+    if(crs == "cachet" || crs == "expectation")
     {
-      unsigned long limit = vm["cache-reduction-strategy-cachet-limit"].as<unsigned long>();
-      return new CacheCleaningCachet<T>(cache, csa, limit);
-    }
-    if(crs == "sharpSAT") return new CacheCleaningSharSAT<T>(cache, csa);
+      if(crs == "cachet")
+      {
+        unsigned long limit = vm["cache-reduction-strategy-cachet-limit"].as<unsigned long>();
+        out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs
+            << " smudge(" << csa << ") limit(" << limit << ")\n";
+        return new CacheCleaningCachet<T>(cache, csa, limit);
+      }
+    
+      if(crs == "expectation")
+      {
+        unsigned long limit = vm["cache-reduction-strategy-expectation-limit"].as<unsigned long>();
+        out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs
+            << " smudge(" << csa << ") limit(" << limit << ")\n";                
+        return new CacheCleaningExpectation<T>(cache, csa, nbVar, limit); 
+      }
+    }else
+    {
+      out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << " smudge(" << csa << ")\n";
+      if(crs == "none") return new CacheCleaningNone<T>(cache);
+      if(crs == "sharpSAT") return new CacheCleaningSharpSAT<T>(cache, csa);
+    }    
     
     throw (FactoryException("Cannot create a CacheCleaningManager",__FILE__, __LINE__));
   } // makeCacheCleaningManager
   
 
-  virtual void initCountCachedBucket(CachedBucket<T> &cb) = 0;
-  virtual void updateCountCachedBucket(CachedBucket<T> &cb) = 0;
+  virtual void initCountCachedBucket(CachedBucket<T> *cb) = 0;
+  virtual void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) = 0;
   virtual void reduceCache() = 0;
   virtual void printCleaningInfo(std::ostream &out) = 0;
   

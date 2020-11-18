@@ -73,7 +73,7 @@ template<class T> class BucketManager
 
     out << "c [CONSTRUCTOR] Cache bucket manager:"
         << " storage(" << css << ") "
-        << " reprentation(" << ccr << ") "
+        << " representation(" << ccr << ") "
         << " size_first_page(" << sizeFirstPage << ")"
         << " size_additional_page(" << sizeAdditionalPage << ")"
         << "\n";

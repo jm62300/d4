@@ -37,10 +37,10 @@ template<class T> class CacheCleaningNone : public CacheCleaningManager<T>
     this->m_cache = cache;
   } // constructor
 
-  void initCountCachedBucket(CachedBucket<T> &cb){}    // nothing to do.
-  void updateCountCachedBucket(CachedBucket<T> &cb){}  // nothing to do.
-  void reduceCache(){}                                 // nothing to do.
-  void printCleaningInfo(std::ostream &out){}          // nothing to do.
+  void initCountCachedBucket(CachedBucket<T> *cb){}               // nothing to do.
+  void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar){}  // nothing to do.
+  void reduceCache(){}                                            // nothing to do.
+  void printCleaningInfo(std::ostream &out){}                     // nothing to do.
 };
   
 } // d4

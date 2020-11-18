@@ -13,6 +13,7 @@
 ("partitioning-heuristic-options,pvho",boost::program_options::value<unsigned>()->default_value(-1),"The option given to the partitioner. We are limited in 32 options given by the bytes of the parameter.")
 ("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("none"), "The strategy used to reduce the cache structure.")
 ("cache-reduction-strategy-cachet-limit,crscl", boost::program_options::value<unsigned long>()->default_value(10UL * (1<<21)), "The limit in term of number of entries, the cachet reduction strategy allows.")
+("cache-reduction-strategy-expectation-limit,crsel", boost::program_options::value<unsigned long>()->default_value(100000), "The frequency in term of number of negative hits used for the expectation reduction strategy allows.")
 ("cache-smudge-activation,csa", boost::program_options::value<bool>()->default_value(true), "It does not directly remove the entries, but we do it when we need more memory.")
 ("cache-size-first-page,csfp", boost::program_options::value<unsigned long>()->default_value((1UL<<32)), "The block size of memory allocated for the first page of the cache structure.")
 ("cache-size-additional-page,csap", boost::program_options::value<unsigned long>()->default_value((1UL<<28)), "The block size of memory allocated for the next page of the cache structure.")

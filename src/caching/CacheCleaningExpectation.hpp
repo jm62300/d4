@@ -25,13 +25,18 @@ namespace d4
 {
 template<class T> class CacheCleaningManager;
 template<class T> class Cache;
-template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
+template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T>
 {
  private:
-  unsigned long m_limitNbEntry;
   bool m_smudge;
   unsigned m_nbReduceCall;
   unsigned long m_nbRemoveEntry;
+  unsigned long m_nbFailedInCache;
+  unsigned long m_limitNegativeHit;
+  int m_nbVar;
+
+  std::vector<unsigned long> m_sizeVarCacheHit;
+  std::vector<unsigned long> m_nbCacheWithSizeVar;
 
   using CacheCleaningManager<T>::m_cache;
   
@@ -43,14 +48,22 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
      @param[in] cache, the cache where is applied the cleaning process.     
      @param[in] smudge, control if we directly remove the entries or if we
      postpone until we really need the memory.
-     @param[in] limit, the limit of entry before we clean the cache.
+     @param[in] nbVar, the number of variables in the problem.     
+     @param[in] limitNegativehit, the number of negative hits before calling the
+     reduction.
    */
-  CacheCleaningCachet(Cache<T> *cache, bool smudge, unsigned long limit)
+  CacheCleaningExpectation(Cache<T> *cache, bool smudge, int nbVar,
+                           unsigned long limitNegativehit)
   {
+    m_limitNegativeHit = limitNegativehit;
+    m_nbVar = nbVar;
+    m_nbFailedInCache = 0;
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
-    m_limitNbEntry = limit;
     this->m_cache = cache;
+
+    m_sizeVarCacheHit.resize(nbVar, 0);
+    m_nbCacheWithSizeVar.resize(nbVar, 0);
   } // constructor
 
 
@@ -62,39 +75,47 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
    */
   void initCountCachedBucket(CachedBucket<T> *cb)
   {
-    cb->reinitCount(m_cache->getNbNegativeHit());
+    assert(cb);
+    cb->reinitCount(cb->nbVar());
+    m_nbCacheWithSizeVar[cb->nbVar()]++;
   } // initCountCachedBucket
 
   
   /**
-     For the cachet strategy we do not update information about the cached
-     bucket since we use the age of the bucket to know if we should remove it.
+     For the cachet strategy we reinit the score of the bucket, that means newly
+     possitively hit buckets get the priority.
 
-     @param[out] cb, the cached bucket we want to init.
-     @param[in] nbVar, not used here.
+     @param[in] cb, the cached bucket we want to init.
+     
+     @param[in] nbVar, a number of variables (because cb can be NULL the number
+     of variables cannot be related to cb).
    */
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar)
   {
-    // do nothing.
+    if(cb)
+    {
+      m_sizeVarCacheHit[cb->nbVar()]++;
+      cb->incCount(1);
+    }
+    else
+    {
+      m_nbFailedInCache++;
+    }
   } // updateCountCachedBucket
 
   
   /**
-     Remove 75% of the cache entries once we have reached a predifined limit of
-     entries.
+     
    */
   void reduceCache()
   {
-    if(m_cache->getNbEntry() < m_limitNbEntry) return;
-
+    if(m_nbFailedInCache < m_limitNegativeHit) return;
+    
     BucketManager<T> *bm = m_cache->getBucketManager();
+    m_nbFailedInCache = 0;
     m_nbReduceCall++;
 
-    // get the limit by sorting the element.
     auto &hashTable = m_cache->getHashTable();
-    int limit = (m_cache->getNbNegativeHit() >> 1) +
-                          (m_cache->getNbNegativeHit() >> 2);
-
     for(unsigned i = 0 ; i<hashTable.size() ; i++)
     {
       std::vector< CachedBucket<T> > &v = hashTable[i];
@@ -102,17 +123,28 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
       for(unsigned j = 0 ; j<v.size() ; )
       {
         CachedBucket<T> &cb = v[j];
-        if(cb.count() < limit)
+        double ratio = (double) m_sizeVarCacheHit[cb.nbVar()] / (double) m_nbCacheWithSizeVar[cb.nbVar()];
+        bool mustBeKept = (cb.count() || cb.dirty() || ratio > 0.5);
+
+        if(mustBeKept)
         {
+          cb.divCount();
+          if(!cb.count() && cb.dirty())
+          {
+            cb.setFalseDirty();
+            m_sizeVarCacheHit[cb.nbVar()]--;
+          }
+          j++;
+        } else
+        {
+          m_sizeVarCacheHit[cb.nbVar()]--;          
+          m_nbCacheWithSizeVar[cb.nbVar()]--;
+
           bm->releaseMemory(cb.data, cb.szData());
           v[j] = v.back();
           v.pop_back();
-          m_cache->decrementNbEntry();
           m_nbRemoveEntry++;
-        } else
-        {
-          cb.divCount();
-          j++;
+          m_cache->decrementNbEntry();
         }
       }
     }

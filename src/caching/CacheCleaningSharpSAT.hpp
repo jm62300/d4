@@ -25,7 +25,7 @@ namespace d4
 {
 template<class T> class CacheCleaningManager;
 template<class T> class Cache;
-template<class T> class CacheCleaningSharSAT : public CacheCleaningManager<T>
+template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
 {
  private:
   bool m_smudge;
@@ -43,7 +43,7 @@ template<class T> class CacheCleaningSharSAT : public CacheCleaningManager<T>
      @param[in] smudge, control if we directly remove the entries or if we
      postpone until we really need the memory.
    */
-  CacheCleaningSharSAT(Cache<T> *cache, bool smudge)
+  CacheCleaningSharpSAT(Cache<T> *cache, bool smudge)
   {
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
@@ -57,9 +57,9 @@ template<class T> class CacheCleaningSharSAT : public CacheCleaningManager<T>
 
      @param[out] cb, the cached bucket we want to init.
    */
-  void initCountCachedBucket(CachedBucket<T> &cb)
+  void initCountCachedBucket(CachedBucket<T> *cb)
   {
-    cb.reinitCount(m_cache->getNbNegativeHit());
+    cb->reinitCount(m_cache->getNbNegativeHit());
   } // initCountCachedBucket
 
   
@@ -68,15 +68,16 @@ template<class T> class CacheCleaningSharSAT : public CacheCleaningManager<T>
      possitively hit buckets get the priority.
 
      @param[out] cb, the cached bucket we want to init.
+     @param[in] nbVar, not used here.
    */
-  void updateCountCachedBucket(CachedBucket<T> &cb)
+  void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar)
   {
-    cb.reinitCount(m_cache->getNbNegativeHit());
+    cb->reinitCount(m_cache->getNbNegativeHit());
   } // updateCountCachedBucket
 
   
   /**
-     
+     Reduce half the cache once we reach 90% of the memory capacity.
    */
   void reduceCache()
   {
@@ -118,8 +119,8 @@ template<class T> class CacheCleaningSharSAT : public CacheCleaningManager<T>
       }
     }
 
-    std::cout << "c Call cache reduction: " << m_nbReduceCall << " " << m_nbRemoveEntry
-              << " " << bm->freeMemory << "\n";
+    std::cout << "c Number of entries removed: " << m_nbRemoveEntry
+              << "/" << m_cache->getNbEntry() << "\n";
   } //reduceCache
 
 
