@@ -23,7 +23,10 @@
 #include <boost/program_options.hpp>
 
 #include "src/hashing/HashString.hpp"
+#include "src/specs/SpecManager.hpp"
 
+#include "CacheCleaningManager.hpp"
+#include "BucketManager.hpp"
 #include "CachedBucket.hpp"
 
 namespace d4
@@ -36,11 +39,10 @@ template<class T> class Cache
   std::vector< std::vector< CachedBucket<T> > > hashTable;
 
   // statistics
-  unsigned nbEntry;
-  unsigned nbPositiveHit;
-  unsigned nbNegativeHit;
+  unsigned long m_nbEntry;
+  unsigned long m_nbPositiveHit;
+  unsigned long m_nbNegativeHit;
   unsigned minAffectedHitCache;
-  unsigned nbReduceCall;
   double sumAffectedHitCache;
   
   // data info
@@ -55,25 +57,30 @@ template<class T> class Cache
   std::vector<bool> deadSize;
   
   unsigned long int sumDataSize;
-  unsigned strategyRedCache; // 0 no cache
-  
+
+  std::ostream m_out;
   HashString hashMethod;
+  BucketManager<T> *m_bucketManager;
+  CacheCleaningManager<T> *m_cacheCleaningManager;
   
  public:
-  Cache(po::variables_map &vm, unsigned nbVar)
+  Cache(po::variables_map &vm, unsigned nbVar,
+        SpecManager *specs, std::ostream &out) : m_out(nullptr)
   {
-    sumDataSize = nbEntry = nbCreationBucket = 0;
-    nbPositiveHit = nbNegativeHit = 0;
+    // init the output stream
+    m_out.copyfmt(out);
+    m_out.clear(out.rdstate());           
+    m_out.basic_ios<char>::rdbuf(out.rdbuf());
+    
+    sumDataSize = m_nbEntry = nbCreationBucket = 0;
+    m_nbPositiveHit = m_nbNegativeHit = 0;
     nbFailedInCache = 1;
-    nbRemoveEntry = nbReduceCall = sumAffectedHitCache = 0;
+    nbRemoveEntry = sumAffectedHitCache = 0;
     verb = 0;
-
-    std::string strategyCacheOpt = vm["cache-reduction-strategy"].as<std::string>();
-    if(strategyCacheOpt == "none") strategyRedCache = 0;
-    else if(strategyCacheOpt == "expectation") strategyRedCache = 3;
-    else assert(0);
-
+    
     initHashTable(nbVar);
+    m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, out);
+    m_bucketManager = BucketManager<T>::makeBucketManager(vm, *specs, out);
   }// CacheCNF
 
   ~Cache()
@@ -81,15 +88,21 @@ template<class T> class Cache
     hashTable.clear();
   }
 
-  inline int getNbPositiveHit(){return nbPositiveHit;}
-  inline int getNbNegativeHit(){return nbNegativeHit;}
+  
+  inline unsigned long int usedMemory(){return m_bucketManager->usedMemory;}
+  inline unsigned long int getNbPositiveHit(){return m_nbPositiveHit;}
+  inline unsigned long int getNbNegativeHit(){return m_nbNegativeHit;}
+  inline unsigned long getNbEntry(){return m_nbEntry;}
+  inline void decrementNbEntry(){m_nbEntry--;}
+  inline BucketManager<T> *getBucketManager(){return m_bucketManager;}
+  inline std::vector< std::vector< CachedBucket<T> > > &getHashTable(){return hashTable;}
 
   inline void printCacheInformation(std::ostream &out)
   {
     out << "c \033[1m\033[34mCache Information\033[0m\n";
-    out << "c Number of positive hit: " << nbPositiveHit << "\n";
-    out << "c Number of negative hit: " << nbNegativeHit << "\n";
-    out << "c Number of reduceCall: " << nbReduceCall << "\n";
+    out << "c Number of positive hit: " << m_nbPositiveHit << "\n";
+    out << "c Number of negative hit: " << m_nbNegativeHit << "\n";
+    m_cacheCleaningManager->printCleaningInfo(out);    
     out << "c\n";
   }// printCacheInformation
 
@@ -103,17 +116,8 @@ template<class T> class Cache
     cbIn.lockedBucket(val);
     nbCreationBucket++;
     sumDataSize += cb.szData();
-    
-    switch(strategyRedCache)
-    {
-      case 0 : break;
-      case 1 : cbIn.reinitCount(cb.nbVar()); break;
-        // case 0 : cbIn.reinitCount(nbPositiveHit + nbNegativeHit); break;
-      case 2 : ;
-      case 3 : cbIn.reinitCount(nbPositiveHit + nbNegativeHit);
-    }
-    assert(cbIn.count());
-    nbEntry++;
+    m_cacheCleaningManager->initCountCachedBucket(cbIn);
+    m_nbEntry++;
   }// pushinhashtable
 
 
@@ -140,12 +144,12 @@ template<class T> class Cache
       {
         if(!cbi.dirty()) sizeVarCacheHit[cbi.nbVar()]++;
         cbi.setTrueDirty();
-        nbPositiveHit++;
+        m_nbPositiveHit++;
         return &cbi;
       }
     }
     
-    nbNegativeHit++;
+    m_nbNegativeHit++;
     return NULL;
   }// bucketAlreadyExist
 
@@ -159,18 +163,6 @@ template<class T> class Cache
   } // addInCache
 
 
-  inline void callCleaningStrategy(BucketManager<T> *bm)
-  {
-    switch(strategyRedCache)
-    {
-      case 0 : break;
-      case 1 : reduceCacheStr0(bm); break;
-      case 2 : reduceCacheStr1(bm); break;
-      case 3 : reduceCacheStr1(bm); break;
-    }
-  } // callCleaningStrategy
-
-
   /**
      Take a bucket manager as well as a set of variables consisting in the
      variables in the current component and search in the cache if the related
@@ -178,28 +170,21 @@ template<class T> class Cache
      created and added.
 
      @param[in] varConnected, the variable
-     @param[in] bm, the bucket manager
   */
-  TmpEntry<T> searchInCache(std::vector<Var> &varConnected, BucketManager<T> *bm)
+  TmpEntry<T> searchInCache(std::vector<Var> &varConnected)
   {
-    if(strategyRedCache) callCleaningStrategy(bm);
+    m_cacheCleaningManager->reduceCache();
 
-    CachedBucket<T> *formulaBucket = bm->collectBucket(varConnected);
+    CachedBucket<T> *formulaBucket = m_bucketManager->collectBucket(varConnected);
     unsigned hashValue = computeHash(*formulaBucket);
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
     assert(nbTestCache.size() > varConnected.size());
     nbTestCache[varConnected.size()]++;
     
-    if(cacheBucket)
+    if(cacheBucket) 
     {
-      switch(strategyRedCache)
-      {
-        case 2 : cacheBucket->reinitCount(nbPositiveHit + nbNegativeHit); break;
-          // case 0 : cacheBucket->reinitCount(nbPositiveHit + nbNegativeHit); break;
-        case 1 : cacheBucket->incCount(1); break;
-      }
-      
-      bm->releaseMemory(formulaBucket->data, formulaBucket->szData());
+      m_cacheCleaningManager->updateCountCachedBucket(*cacheBucket);
+      m_bucketManager->releaseMemory(formulaBucket->data, formulaBucket->szData());
       return TmpEntry<T>(*cacheBucket, hashValue, true);
     }
     else
@@ -215,13 +200,11 @@ template<class T> class Cache
      Create a bucket and store it in the cache.
 
      @param[in] varConnected, the variable
-     @param[in] bm, the bucket manager
      @param[in] c, the value we want to store
   */
-  inline void createAndStoreBucket(std::vector<Var> &varConnected,
-                                   BucketManager<T> *bm, T &c)
+  inline void createAndStoreBucket(std::vector<Var> &varConnected, T &c)
   {
-    CachedBucket<T> *formulaBucket = bm->collectBuckect(varConnected);
+    CachedBucket<T> *formulaBucket = m_bucketManager->collectBuckect(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
     pushInHashTable(*formulaBucket, hashValue, c); // add the new bucket
     nbCacheWithSizeVar[varConnected.size()]++;
@@ -259,17 +242,18 @@ template<class T> class Cache
     hashTable.resize(SIZE_HASH, std::vector<CachedBucket<T> >());
   }// initHashTable
 
-
+#if 0
   /**
      Strategy 1 : Reduce the set of entries in the cache using the approach
      proposed by Muise.
   */
-  void reduceCacheStr1(BucketManager<T> *bm)
+  void reduceCacheStr1()
   {
+#if 0
     if(!strategyRedCache) return;
-    if(strategyRedCache == 2 && (bm->remainingMemory() > 0.1)) return;
+    if(strategyRedCache == 2 && (m_bucketManager->remainingMemory() > 0.1)) return;
     if(strategyRedCache == 3 && nbEntry < (10 * (1<<21))) return;
-
+#endif
     nbReduceCall++;
     std::vector<int> vecCount;
 
@@ -281,10 +265,11 @@ template<class T> class Cache
 
 
     int limit = 0;
+#if 0
     if(strategyRedCache == 2) limit = vecCount[vecCount.size() >> 1];
     if(strategyRedCache == 3)
       limit = vecCount[(vecCount.size() >> 1) + (vecCount.size() >> 2)];
-
+#endif
     for(auto &v : hashTable)
     {
       for(unsigned j = 0 ; j<v.size() ; )
@@ -292,7 +277,7 @@ template<class T> class Cache
         CachedBucket<T> &cb = v[j];
         if(cb.count() < limit)
         {
-          bm->releaseMemory(cb.data, cb.szData());
+          m_bucketManager->releaseMemory(cb.data, cb.szData());
           v[j] = v.back();
           v.pop_back();
           nbRemoveEntry++;
@@ -306,7 +291,7 @@ template<class T> class Cache
     }
 
     std::cout << "c Call cache reduction: " << nbReduceCall << " " << nbRemoveEntry
-              << " " << bm->freeMemory << "\n";
+              << " " << m_bucketManager->freeMemory << "\n";
   } // reduceCacheStr1
 
 
@@ -314,9 +299,11 @@ template<class T> class Cache
      Remove from the cache structure the element that look to be useless (we use
      the dirty variable for this purpose).
   */
-  void reduceCacheStr0(BucketManager<T> *bm)
+  void reduceCacheStr0()
   {
+#if 0
     if(!strategyRedCache) return;
+#endif
     int dec = ((unsigned long int) nbEntry *
                (unsigned long int) (nbInitVar)) >>
               (38 - (int) log2(sumDataSize / nbCreationBucket));
@@ -349,7 +336,7 @@ template<class T> class Cache
           if(cb.dirty()) sizeVarCacheHit[cb.nbVar()]--;
           nbCacheWithSizeVar[cb.nbVar()]--;
 
-          bm->releaseMemory(cb.data, cb.szData());
+          m_bucketManager->releaseMemory(cb.data, cb.szData());
           v[j] = v.back();
           v.pop_back();
           nbRemoveEntry++;
@@ -359,10 +346,10 @@ template<class T> class Cache
     }
 
     printf("c Number of entries removed: %u %lu %lu %d %d %lu\n",
-           nbRemoveEntry, bm->allMemory, bm->freeMemory, dec,
+           nbRemoveEntry, m_bucketManager->allMemory, m_bucketManager->freeMemory, dec,
            nbEntry, sumDataSize / nbCreationBucket);
   } // reduceCacheStr0
-
+#endif
 
 
   ///////////////////////////////////////////////////////////////////////////

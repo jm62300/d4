@@ -30,7 +30,6 @@
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/specs/SpecManager.hpp"
 #include "src/solvers/WrapperSolver.hpp"
-#include "src/caching/BucketManager.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/caching/Cache.hpp"
 #include "src/caching/CachedBucket.hpp"
@@ -69,7 +68,6 @@ template <class T> class ModelCounter : public MethodManager
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
-  BucketManager<T> *bucketManager;
   TmpEntry<T> NULL_CACHE_ENTRY;  
   Cache<T> *cache;
 
@@ -121,8 +119,7 @@ template <class T> class ModelCounter : public MethodManager
     m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver, m_out);
     assert(m_hVar && m_hPhase && m_hCutSet);
 
-    cache = new Cache<T>(vm, problem->getNbVar());
-    bucketManager = BucketManager<T>::makeBucketManager(vm, *specs, m_out);
+    cache = new Cache<T>(vm, problem->getNbVar(), specs, m_out);    
     
     // we delete the useless objects.
     delete initProblem;
@@ -152,7 +149,6 @@ template <class T> class ModelCounter : public MethodManager
     delete m_hVar;
     delete m_hPhase;
     delete m_hCutSet;
-    delete bucketManager;
     delete cache;
   } // destructor
 
@@ -190,7 +186,7 @@ template <class T> class ModelCounter : public MethodManager
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->getNbPositiveHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->getNbNegativeHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << bucketManager->usedMemory
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << cache->usedMemory()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode
@@ -323,7 +319,7 @@ template <class T> class ModelCounter : public MethodManager
       {
         std::vector<Var> &connected = varConnected[cp];
         TmpEntry<T> cb = optCached ?
-                         cache->searchInCache(connected, bucketManager):
+                         cache->searchInCache(connected):
                          NULL_CACHE_ENTRY;
 
         if(optCached && cb.defined) ret *= cb.getValue();
