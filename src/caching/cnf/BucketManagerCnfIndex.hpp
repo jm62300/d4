@@ -39,9 +39,16 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
  public:
   /**
      Function called in order to initialized variables before using
+
+     @param[in] occM, the CNF occurrence manager
+     @param[in] mdStore, the storing mode for the clause
+     @param[in] sizeFirstPage, the amount of bytes for the first page.
+     @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
   */
-  BucketManagerCnfIndex(SpecManagerCnf &occM, int mdStore, unsigned sizePage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizePage)
+  BucketManagerCnfIndex(SpecManagerCnf &occM, int mdStore,
+                        unsigned long sizeFirstPage,
+                        unsigned long sizeAdditionalPage) :
+      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizeFirstPage, sizeAdditionalPage)
   {
   }// BucketManagerCnfCl
 

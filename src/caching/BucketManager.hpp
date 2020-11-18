@@ -48,7 +48,10 @@ template<class T> class BucketManager
  protected:
   std::vector<char *> allocateData;
   char *data;
-  unsigned long int sizeData, posInData;
+  unsigned long m_sizeFirstPage;
+  unsigned long m_sizeAdditionalPage;
+  unsigned long m_sizeData;
+  unsigned long m_posInData;
   CachedBucket<T> bucket;
   
  public:
@@ -65,12 +68,14 @@ template<class T> class BucketManager
   {
     std::string css = vm["cache-store-strategy"].as<std::string>();
     std::string ccr = vm["cache-clause-representation"].as<std::string>();
-    unsigned long sizePage = vm["cache-size-page"].as<unsigned long>();
+    unsigned long sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
+    unsigned long sizeAdditionalPage = vm["cache-size-additional-page"].as<unsigned long>();
 
     out << "c [CONSTRUCTOR] Cache bucket manager:"
         << " storage(" << css << ") "
         << " reprentation(" << ccr << ") "
-        << " size_page(" << sizePage << ")"
+        << " size_first_page(" << sizeFirstPage << ")"
+        << " size_additional_page(" << sizeAdditionalPage << ")"
         << "\n";
     
     int modeStore = ALL;
@@ -78,8 +83,10 @@ template<class T> class BucketManager
     if(css == "not-touched") modeStore = NT;
     
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
-    if(ccr == "clause") return new BucketManagerCnfCl<T>(scnf, modeStore, sizePage);
-    if(ccr == "index") return new BucketManagerCnfIndex<T>(scnf, modeStore, sizePage);
+    if(ccr == "clause")
+      return new BucketManagerCnfCl<T>(scnf, modeStore, sizeFirstPage, sizeAdditionalPage);
+    if(ccr == "index")
+      return new BucketManagerCnfIndex<T>(scnf, modeStore, sizeFirstPage, sizeAdditionalPage);
 
     throw (FactoryException("Cannot create a BucketManager",__FILE__, __LINE__));
   } // makeBucketManager
@@ -102,24 +109,30 @@ template<class T> class BucketManager
 
   inline double remainingMemory()
   {
-    return ((double) freeMemory + (sizeData - posInData)) / (double) allMemory;
+    return ((double) freeMemory + (m_sizeData - m_posInData)) / (double) allMemory;
   } // remainingMemory
 
 
   /**
      Initialize the data structure regarding the configuration (ie. number of
      variables, maximum number of clauses and the lenght of the largest clause).
+
+     @param[in] sizeFirstPage, the amount of bytes for the first page.
+     @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
   */
-  void init(int _sizeData)
+  void init(unsigned long sizeFirstPage,
+            unsigned long sizeAdditionalPage)
   {
-    allMemory = freeMemory = posInData = 0;
-    sizeData = _sizeData;
+    allMemory = freeMemory = m_posInData = 0;
+    m_sizeFirstPage = sizeFirstPage;
+    m_sizeAdditionalPage = sizeAdditionalPage;    
+    m_sizeData = m_sizeFirstPage;
 
     // we cannot reinit ... at least for the moment
     assert(!allocateData.size());
-    data = new char[sizeData];
+    data = new char[m_sizeData];
     allocateData.push_back(data);
-    allMemory += sizeData;
+    allMemory += m_sizeData;
     usedMemory = 0;
   } // init
 
@@ -142,23 +155,24 @@ template<class T> class BucketManager
     }
     
     // take a fresh entry
-    if(posInData + size > sizeData)
+    if(m_posInData + size > m_sizeData)
     {
-      unsigned rSz = sizeData - posInData;
+      unsigned rSz = m_sizeData - m_posInData;
       if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::vector<char *>());
-      freeSpace[rSz].push_back(&data[posInData]);
+      freeSpace[rSz].push_back(&data[m_posInData]);
       freeMemory += rSz;
 
       printf("c Allocate a new page for the cache %lu\n", freeMemory);
-      posInData = 0;
-      data = new char[sizeData];
+      m_sizeData = m_sizeAdditionalPage;
+      m_posInData = 0;
+      data = new char[m_sizeData];
       allocateData.push_back(data);
 
-      allMemory += sizeData;
+      allMemory += m_sizeData;
     }
     
-    ret = &data[posInData];
-    posInData += size;
+    ret = &data[m_posInData];
+    m_posInData += size;
     return ret;
   } // getArray
 
@@ -174,8 +188,8 @@ template<class T> class BucketManager
   {
     usedMemory -= size;
     
-    if((posInData - size) > 0 && &data[posInData - size] == m)
-      posInData -= size;
+    if((m_posInData - size) > 0 && &data[m_posInData - size] == m)
+      m_posInData -= size;
     else
     {
       if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::vector<char *>());

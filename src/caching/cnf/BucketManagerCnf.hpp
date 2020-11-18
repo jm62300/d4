@@ -66,9 +66,12 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
 
      @param[in] occM, the CNF occurrence manager
      @param[in] mdStore, the storing mode for the clause
-     @param[in] strCache, the strategy used for caching
+     @param[in] sizeFirstPage, the amount of bytes for the first page.
+     @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
   */
-  BucketManagerCnf(SpecManagerCnf &occM, int mdStore, unsigned sizePage) :
+  BucketManagerCnf(SpecManagerCnf &occM, int mdStore,
+                   unsigned long sizeFirstPage,
+                   unsigned long sizeAdditionalPage) :
       specManager(occM)
   {
     modeStore = mdStore;
@@ -77,7 +80,7 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
     m_maxSizeClause = occM.getMaxSizeClause();
     m_varInComponent.resize(nbVarCnf, false);
     
-    this->init(sizePage);
+    this->init(sizeFirstPage, sizeAdditionalPage);
   }// BucketManager
 
   

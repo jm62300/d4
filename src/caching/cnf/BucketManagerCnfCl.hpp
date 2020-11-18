@@ -167,9 +167,18 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
  public:
   /**
      Function called in order to initialized variables before using
-  */
-  BucketManagerCnfCl(SpecManagerCnf &occM, int mdStore, unsigned sizePage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizePage), m_inConstruction(occM)
+
+     @param[in] occM, the CNF occurrence manager
+     @param[in] mdStore, the storing mode for the clause
+     @param[in] sizeFirstPage, the amount of bytes for the first page.
+     @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
+5  */
+  BucketManagerCnfCl(SpecManagerCnf &occM,
+                     int mdStore,
+                     unsigned long sizeFirstPage,
+                     unsigned long sizeAdditionalPage) :
+      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizeFirstPage, sizeAdditionalPage),
+      m_inConstruction(occM)
   {
     m_mapVar.resize(nbVarCnf + 1, 0);
     m_markIdx.resize(nbClauseCnf, -1);    
