@@ -65,7 +65,7 @@ template<class T> class BucketManager
   {
     std::string css = vm["cache-store-strategy"].as<std::string>();
     std::string ccr = vm["cache-clause-representation"].as<std::string>();
-    unsigned sizePage = vm["cache-size-page"].as<unsigned>();
+    unsigned long sizePage = vm["cache-size-page"].as<unsigned long>();
 
     out << "c [CONSTRUCTOR] Cache bucket manager:"
         << " storage(" << css << ") "
@@ -102,7 +102,7 @@ template<class T> class BucketManager
 
   inline double remainingMemory()
   {
-    return ((double) freeMemory + (sizeData - posInData)) / (double) sizeData;
+    return ((double) freeMemory + (sizeData - posInData)) / (double) allMemory;
   } // remainingMemory
 
 
@@ -178,7 +178,7 @@ template<class T> class BucketManager
       posInData -= size;
     else
     {
-      freeSpace.resize(size + 1, std::vector<char *>());
+      if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::vector<char *>());
       freeSpace[size].push_back(m);
       freeMemory += size;
     }

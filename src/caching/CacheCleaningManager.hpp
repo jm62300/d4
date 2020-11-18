@@ -25,6 +25,7 @@
 #include "Cache.hpp"
 #include "CacheCleaningNone.hpp"
 #include "CacheCleaningCachet.hpp"
+#include "CacheCleaningSharpSAT.hpp"
 
 namespace d4
 {
@@ -58,6 +59,7 @@ template<class T> class CacheCleaningManager
       unsigned long limit = vm["cache-reduction-strategy-cachet-limit"].as<unsigned long>();
       return new CacheCleaningCachet<T>(cache, csa, limit);
     }
+    if(crs == "sharpSAT") return new CacheCleaningSharSAT<T>(cache, csa);
     
     throw (FactoryException("Cannot create a CacheCleaningManager",__FILE__, __LINE__));
   } // makeCacheCleaningManager

@@ -243,59 +243,7 @@ template<class T> class Cache
   }// initHashTable
 
 #if 0
-  /**
-     Strategy 1 : Reduce the set of entries in the cache using the approach
-     proposed by Muise.
-  */
-  void reduceCacheStr1()
-  {
-#if 0
-    if(!strategyRedCache) return;
-    if(strategyRedCache == 2 && (m_bucketManager->remainingMemory() > 0.1)) return;
-    if(strategyRedCache == 3 && nbEntry < (10 * (1<<21))) return;
-#endif
-    nbReduceCall++;
-    std::vector<int> vecCount;
-
-    for(auto &v : hashTable)
-      for(auto b : v) vecCount.push_back(b.count());
-
-    if(!vecCount.size()) return;
-    std::sort(vecCount.begin(), vecCount.end());
-
-
-    int limit = 0;
-#if 0
-    if(strategyRedCache == 2) limit = vecCount[vecCount.size() >> 1];
-    if(strategyRedCache == 3)
-      limit = vecCount[(vecCount.size() >> 1) + (vecCount.size() >> 2)];
-#endif
-    for(auto &v : hashTable)
-    {
-      for(unsigned j = 0 ; j<v.size() ; )
-      {
-        CachedBucket<T> &cb = v[j];
-        if(cb.count() < limit)
-        {
-          m_bucketManager->releaseMemory(cb.data, cb.szData());
-          v[j] = v.back();
-          v.pop_back();
-          nbRemoveEntry++;
-          nbEntry--;
-        } else
-        {
-          cb.divCount();
-          j++;
-        }
-      }
-    }
-
-    std::cout << "c Call cache reduction: " << nbReduceCall << " " << nbRemoveEntry
-              << " " << m_bucketManager->freeMemory << "\n";
-  } // reduceCacheStr1
-
-
-  /**
+/**
      Remove from the cache structure the element that look to be useless (we use
      the dirty variable for this purpose).
   */
