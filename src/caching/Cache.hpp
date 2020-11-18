@@ -138,7 +138,6 @@ template<class T> class Cache
 
       if(!memcmp(refData, cbi.data, cbi.szData()))
       {        
-        cbi.setTrueDirty();
         m_nbPositiveHit++;
         return &cbi;
       }

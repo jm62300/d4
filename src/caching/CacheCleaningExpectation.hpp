@@ -96,9 +96,10 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
     {
       m_sizeVarCacheHit[cb->nbVar()]++;
       cb->incCount(1);
+      cb->setTrueDirty();
     }
     else
-    {
+    {      
       m_nbFailedInCache++;
     }
   } // updateCountCachedBucket
@@ -134,6 +135,7 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
             cb.setFalseDirty();
             m_sizeVarCacheHit[cb.nbVar()]--;
           }
+          cb.setFalseDirty();
           j++;
         } else
         {
