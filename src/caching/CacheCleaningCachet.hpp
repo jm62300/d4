@@ -62,7 +62,7 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
    */
   void initCountCachedBucket(CachedBucket<T> &cb)
   {
-    cb.reinitCount(m_cache->getNbPositiveHit() + m_cache->getNbNegativeHit());
+    cb.reinitCount(m_cache->getNbNegativeHit());
   } // initCountCachedBucket
 
   
@@ -90,13 +90,8 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
 
     // get the limit by sorting the element.
     auto &hashTable = m_cache->getHashTable();
-    std::vector<int> vecCount;
-    for(auto &v : hashTable)
-      for(auto b : v) vecCount.push_back(b.count());
-
-    if(!vecCount.size()) return;
-    std::sort(vecCount.begin(), vecCount.end());
-    int limit = vecCount[(vecCount.size() >> 1) + (vecCount.size() >> 2)];
+    int limit = (m_cache->getNbNegativeHit() >> 1) +
+                          (m_cache->getNbNegativeHit() >> 2);
 
     for(unsigned i = 0 ; i<hashTable.size() ; i++)
     {
