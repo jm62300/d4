@@ -42,8 +42,9 @@ class DataInfo
   
   struct
   {
-    unsigned count:30;
+    unsigned count:29;    
     unsigned dirty:2;
+    unsigned smudge:1;
   } stats;
 
 
@@ -55,6 +56,9 @@ class DataInfo
            unsigned nbOctetsVar,
            unsigned count);  
 
+  inline bool smudge(){return stats.smudge;}
+  inline void smudge(bool b){stats.smudge = b;}
+  
   inline void reinitCount(int v = 0) {stats.count = v;}
   inline void incCount(int v = 1){stats.count += v;}
   inline void divCount(){stats.count >>= 1;}
