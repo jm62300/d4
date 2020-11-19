@@ -169,15 +169,17 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
      Function called in order to initialized variables before using
 
      @param[in] occM, the CNF occurrence manager
+     @param[in] cache, the cache the bucket is linked with.
      @param[in] mdStore, the storing mode for the clause
      @param[in] sizeFirstPage, the amount of bytes for the first page.
      @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
-5  */
+  */
   BucketManagerCnfCl(SpecManagerCnf &occM,
+                     Cache<T> *cache,
                      int mdStore,
                      unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, mdStore, sizeFirstPage, sizeAdditionalPage),
+      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore, sizeFirstPage, sizeAdditionalPage),
       m_inConstruction(occM)
   {
     m_mapVar.resize(nbVarCnf + 1, 0);

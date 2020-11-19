@@ -43,6 +43,15 @@ namespace d4
 {
 namespace po = boost::program_options;
 
+struct Released
+{
+  char *data;
+  int posInHash;
+
+  Released(char *_data, int _posInHash) : data(_data), posInHash(_posInHash){}
+};
+
+
 template<class T> class BucketManager
 {
  protected:
@@ -53,16 +62,18 @@ template<class T> class BucketManager
   unsigned long m_sizeData;
   unsigned long m_posInData;
   CachedBucket<T> bucket;
+  Cache<T> *m_cache; // the cache linked with this BucketManager.
   
  public:
   // freespace[i][j] points to a free memory space of size i
-  std::vector<std::vector<char *>> freeSpace;  
+  std::vector<std::vector<Released>> freeSpace;  
   unsigned long int allMemory;
   unsigned long int freeMemory;
   unsigned long int pageData;
   unsigned long int usedMemory;
 
   static BucketManager<T> *makeBucketManager(po::variables_map &vm,
+                                             Cache<T> *cache,
                                              SpecManager &s,
                                              std::ostream &out)
   {
@@ -84,9 +95,9 @@ template<class T> class BucketManager
     
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
     if(ccr == "clause")
-      return new BucketManagerCnfCl<T>(scnf, modeStore, sizeFirstPage, sizeAdditionalPage);
+      return new BucketManagerCnfCl<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
     if(ccr == "index")
-      return new BucketManagerCnfIndex<T>(scnf, modeStore, sizeFirstPage, sizeAdditionalPage);
+      return new BucketManagerCnfIndex<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
 
     throw (FactoryException("Cannot create a BucketManager",__FILE__, __LINE__));
   } // makeBucketManager
@@ -119,9 +130,11 @@ template<class T> class BucketManager
 
      @param[in] sizeFirstPage, the amount of bytes for the first page.
      @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
+     @param[in] cache, the cache the bucket is linked with.     
   */
   void init(unsigned long sizeFirstPage,
-            unsigned long sizeAdditionalPage)
+            unsigned long sizeAdditionalPage,
+            Cache<T> *cache)
   {
     allMemory = freeMemory = m_posInData = 0;
     m_sizeFirstPage = sizeFirstPage;
@@ -148,7 +161,22 @@ template<class T> class BucketManager
 
     if(size < freeSpace.size() && freeSpace[size].size())
     {
-      ret = freeSpace[size].back();
+      Released &r = freeSpace[size].back();      
+      ret = r.data;
+
+      if(r.posInHash != -1) // remove in the cache.
+      {
+        assert(m_cache);
+        std::vector< CachedBucket<T> > &v = m_cache->getHashTable()[r.posInHash];
+        unsigned posRm = v.size();
+        for(unsigned i = 0 ; i<posRm ; i++)
+          if(v[i].data == r.data) posRm = i;
+
+        assert(posRm < v.size());
+        v[posRm] = v.back();
+        v.pop_back();
+      }
+
       freeSpace[size].pop_back();
       freeMemory -= size;
       return ret;
@@ -158,8 +186,8 @@ template<class T> class BucketManager
     if(m_posInData + size > m_sizeData)
     {
       unsigned rSz = m_sizeData - m_posInData;
-      if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::vector<char *>());
-      freeSpace[rSz].push_back(&data[m_posInData]);
+      if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::vector<Released>());
+      freeSpace[rSz].push_back(Released(&data[m_posInData], -1));
       freeMemory += rSz;
 
       printf("c Allocate a new page for the cache %lu\n", freeMemory);
@@ -183,8 +211,9 @@ template<class T> class BucketManager
 
      @param[in] m, the memory we want to release
      @param[in] size, the size of the memory block
+     @param[in] posInHash, a position in the hash table (in the vector).
   */
-  inline void releaseMemory(char *m, unsigned size)
+  inline void releaseMemory(char *m, unsigned size, int posInHash = -1)
   {
     usedMemory -= size;
     
@@ -192,8 +221,8 @@ template<class T> class BucketManager
       m_posInData -= size;
     else
     {
-      if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::vector<char *>());
-      freeSpace[size].push_back(m);
+      if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::vector<Released>());
+      freeSpace[size].push_back(Released(m, posInHash));
       freeMemory += size;
     }
   }// reverseLastBucket

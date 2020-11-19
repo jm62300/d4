@@ -51,7 +51,7 @@ DataInfo::DataInfo(unsigned szData,
   info2 = ((uint32_t) (nbOctetsData - 1) << 4) |
           ((uint32_t) (nbOctetsVar - 1) << 2) |
           ((uint32_t) szData << 6);
-  stats = {count, 0};
+  stats = {count, 0, 0};
   assert(szData == this->szData());
 } // constructor
 

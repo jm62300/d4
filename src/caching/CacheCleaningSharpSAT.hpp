@@ -47,6 +47,7 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
   {
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
+    m_smudge = smudge;
     this->m_cache = cache;
   } // constructor
 
@@ -81,8 +82,7 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
    */
   void reduceCache()
   {
-    BucketManager<T> *bm = m_cache->getBucketManager();
-    if(bm->remainingMemory() > 0.1) return;    
+    if(m_cache->getBucketManager()->remainingMemory() > 0.1) return;    
     m_nbReduceCall++;
 
     // get the limit by sorting the element.
@@ -90,7 +90,7 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
     std::vector<int> vecCount;
 
     for(auto &v : hashTable)
-      for(auto b : v) vecCount.push_back(b.count());
+      for(auto b : v) if(!b.smudge()) vecCount.push_back(b.count());
 
     if(!vecCount.size()) return;
     std::sort(vecCount.begin(), vecCount.end());
@@ -104,11 +104,20 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
       for(unsigned j = 0 ; j<v.size() ; )
       {
         CachedBucket<T> &cb = v[j];
-        if(cb.count() < limit)
+        if(!cb.smudge() && cb.count() < limit)
         {
-          bm->releaseMemory(cb.data, cb.szData());
-          v[j] = v.back();
-          v.pop_back();
+          this->releaseMemory(cb.data, cb.szData(), i, m_smudge);
+          if(m_smudge)
+          {
+            cb.smudge(true);
+            j++;
+          }
+          else            
+          {
+            v[j] = v.back();
+            v.pop_back();
+          } 
+          
           m_cache->decrementNbEntry();
           m_nbRemoveEntry++;
         } else

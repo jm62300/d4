@@ -50,6 +50,7 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
     m_limitNbEntry = limit;
+    m_smudge = smudge;
     this->m_cache = cache;
   } // constructor
 
@@ -86,8 +87,6 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
   void reduceCache()
   {
     if(m_cache->getNbEntry() < m_limitNbEntry) return;
-
-    BucketManager<T> *bm = m_cache->getBucketManager();
     m_nbReduceCall++;
 
     // get the limit by sorting the element.
@@ -98,15 +97,23 @@ template<class T> class CacheCleaningCachet : public CacheCleaningManager<T>
     for(unsigned i = 0 ; i<hashTable.size() ; i++)
     {
       std::vector< CachedBucket<T> > &v = hashTable[i];
-
       for(unsigned j = 0 ; j<v.size() ; )
       {
         CachedBucket<T> &cb = v[j];
-        if(cb.count() < limit)
+        if(!cb.smudge() && cb.count() < limit)
         {
-          bm->releaseMemory(cb.data, cb.szData());
-          v[j] = v.back();
-          v.pop_back();
+          this->releaseMemory(cb.data, cb.szData(), i, m_smudge);
+          if(m_smudge)
+          {
+            cb.smudge(true);
+            j++;
+          }
+          else
+          {
+            v[j] = v.back();
+            v.pop_back();
+          }
+
           m_cache->decrementNbEntry();
           m_nbRemoveEntry++;
         } else

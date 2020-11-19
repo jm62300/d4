@@ -87,6 +87,22 @@ template<class T> class CacheCleaningManager
   virtual void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) = 0;
   virtual void reduceCache() = 0;
   virtual void printCleaningInfo(std::ostream &out) = 0;
+
+
+  /**
+     Ask to the bucket manager to release some memory block.
+
+     @param[in] data, the memory we release.
+     @param[in] size, the size of the memory block.
+     @param[in] posInHash, where in the cache this block oppears.
+     @param[in] smudge, control if we want to directly remove the entry or not.
+     
+   */
+  void releaseMemory(char *data, int size, int posInHash, bool smudge)
+  {
+    if(!smudge) m_cache->getBucketManager()->releaseMemory(data, size, -1);
+    else m_cache->getBucketManager()->releaseMemory(data, size, posInHash);
+  } // releaseMemory
   
 };
   

@@ -44,6 +44,8 @@ public:
     fc = v;
   }
 
+  inline bool smudge(){return header.smudge();}
+  inline void smudge(bool b){header.smudge(b);}
   inline void reinitCount(int v = 0) {header.reinitCount(v);}
   inline void incCount(int v){header.incCount(v);}
   inline void divCount(){header.divCount();}

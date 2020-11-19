@@ -60,6 +60,7 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
     m_nbFailedInCache = 0;
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
+    m_smudge = smudge;
     this->m_cache = cache;
 
     m_sizeVarCacheHit.resize(nbVar, 0);
@@ -111,8 +112,6 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
   void reduceCache()
   {
     if(m_nbFailedInCache < m_limitNegativeHit) return;
-    
-    BucketManager<T> *bm = m_cache->getBucketManager();
     m_nbFailedInCache = 0;
     m_nbReduceCall++;
 
@@ -124,6 +123,8 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
       for(unsigned j = 0 ; j<v.size() ; )
       {
         CachedBucket<T> &cb = v[j];
+        if(cb.smudge()){j++; continue;}
+        
         double ratio = (double) m_sizeVarCacheHit[cb.nbVar()] / (double) m_nbCacheWithSizeVar[cb.nbVar()];
         bool mustBeKept = (cb.count() || cb.dirty() || ratio > 0.5);
 
@@ -142,9 +143,18 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
           m_sizeVarCacheHit[cb.nbVar()]--;          
           m_nbCacheWithSizeVar[cb.nbVar()]--;
 
-          bm->releaseMemory(cb.data, cb.szData());
-          v[j] = v.back();
-          v.pop_back();
+          this->releaseMemory(cb.data, cb.szData(), i, m_smudge);
+          if(m_smudge)
+          {
+            cb.smudge(true);
+            j++;
+          }
+          else            
+          {
+            v[j] = v.back();
+            v.pop_back();
+          }
+          
           m_nbRemoveEntry++;
           m_cache->decrementNbEntry();
         }
