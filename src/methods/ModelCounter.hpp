@@ -397,9 +397,9 @@ template <class T> class ModelCounter : public MethodManager
     std::vector<Lit> unitsLit;
 
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
-    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);
-    
-    
+
+    if(!solver->warmStart(29, 11, setOfVar, m_out)) return T(0);    
+    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);    
     return d * problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
   }// computeNbModel
 

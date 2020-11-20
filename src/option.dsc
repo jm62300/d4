@@ -11,7 +11,7 @@
 ("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("bipartition"),"The method used to compute a cut. [add a description for the available methods]")
 ("partitioning-heuristic-partitioner,php",boost::program_options::value<std::string>()->default_value("patoh"),"The partitioner we will call.")
 ("partitioning-heuristic-options,pvho",boost::program_options::value<unsigned>()->default_value(-1),"The option given to the partitioner. We are limited in 32 options given by the bytes of the parameter.")
-("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("none"), "The strategy used to reduce the cache structure.")
+("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("expectation"), "The strategy used to reduce the cache structure (none, expectation, cache or sharpSAT).")
 ("cache-reduction-strategy-cachet-limit,crscl", boost::program_options::value<unsigned long>()->default_value(10UL * (1<<21)), "The limit in term of number of entries, the cachet reduction strategy allows.")
 ("cache-reduction-strategy-expectation-limit,crsel", boost::program_options::value<unsigned long>()->default_value(100000), "The frequency in term of number of negative hits used for the expectation reduction strategy allows.")
 ("cache-smudge-activation,csa", boost::program_options::value<bool>()->default_value(true), "It does not directly remove the entries, but we do it when we need more memory.")

@@ -56,6 +56,9 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   
   virtual void whichAreUnits(std::vector<Var> &component,
                              std::vector<Lit> &units) = 0;
-  
+
+  bool warmStart(int iteration, int sizeQuery,
+                 std::vector<Var> &setOfVar,
+                 std::ostream &out);
 };
 } // d4

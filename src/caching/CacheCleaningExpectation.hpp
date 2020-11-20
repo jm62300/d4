@@ -63,8 +63,8 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
     m_smudge = smudge;
     this->m_cache = cache;
 
-    m_sizeVarCacheHit.resize(nbVar, 0);
-    m_nbCacheWithSizeVar.resize(nbVar, 0);
+    m_sizeVarCacheHit.resize(nbVar + 1, 0);
+    m_nbCacheWithSizeVar.resize(nbVar + 1, 0);
   } // constructor
 
 
@@ -107,7 +107,8 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
 
   
   /**
-     
+     We remove the entry regarding if they have been used recently and depending
+     their number of variables.
    */
   void reduceCache()
   {

@@ -68,4 +68,54 @@ WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm,
 } // makeWrapperSolverPreproc
 
 
+/**
+   Prepare the solver by running it a given number of iteration for some queries
+   of a given size.
+
+   @param[in] iteration, the number of queries we test.
+   @param[in] sizeQuery, the (maximum) size of the queries.
+   @param[in] setOfvar, the set of variable we construct the queries on.
+   @param[in] out, the place where we print out the information.
+
+   \return true if the problem is SAT, false otherwise.
+ */
+bool WrapperSolver::warmStart(int iteration,
+                              int sizeQuery,
+                              std::vector<Var> &setOfVar,
+                              std::ostream &out)
+{
+  if(!solve()) return false;
+
+  int nbSAT = 0;
+  std::vector<Lit> query(sizeQuery);
+  
+  for(int nbIte = 0 ; nbIte < iteration ; nbIte++)
+  {
+    query.resize(0);
+    for(int i = 0 ; i<sizeQuery ; i++)
+    {
+      Var v = setOfVar[rand() % setOfVar.size()];
+      Lit l = Lit::makeLit(v, rand() & 1);
+
+      bool isIn = false;
+      for(unsigned j = 0 ; !isIn && j<query.size() ; j++) isIn = l.var() == query[j].var();
+      if(!isIn) query.push_back(l);
+    }
+
+    setAssumption(query);
+    bool res = solve(); // we do not care the result.
+    if(res) nbSAT++;
+    restart();
+  }
+
+  query.clear();
+  setAssumption(query);
+  restart();
+
+  
+  out << "c Warm start process ("<< sizeQuery << "): "
+      << nbSAT << "/" << iteration << "\n";
+  return true;
+} // warmStart
+
 }
