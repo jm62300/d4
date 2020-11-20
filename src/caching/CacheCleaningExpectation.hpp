@@ -135,13 +135,14 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
           if(!cb.count() && cb.dirty())
           {
             cb.setFalseDirty();
-            m_sizeVarCacheHit[cb.nbVar()]--;
+            if(m_sizeVarCacheHit[cb.nbVar()]) m_sizeVarCacheHit[cb.nbVar()]--;
           }
-          cb.setFalseDirty();
+          cb.setFalseDirty();          
           j++;
         } else
         {
-          m_sizeVarCacheHit[cb.nbVar()]--;          
+          if(m_sizeVarCacheHit[cb.nbVar()]) m_sizeVarCacheHit[cb.nbVar()]--;
+          assert(m_nbCacheWithSizeVar[cb.nbVar()]);
           m_nbCacheWithSizeVar[cb.nbVar()]--;
 
           this->releaseMemory(cb.data, cb.szData(), i, m_smudge);

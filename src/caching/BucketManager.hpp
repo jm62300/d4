@@ -21,6 +21,7 @@
 #include <cassert>
 #include <vector>
 #include <string.h>
+#include <deque>
 
 #include <boost/program_options.hpp>
 
@@ -66,7 +67,7 @@ template<class T> class BucketManager
   
  public:
   // freespace[i][j] points to a free memory space of size i
-  std::vector<std::vector<Released>> freeSpace;  
+  std::vector<std::deque<Released>> freeSpace;  
   unsigned long int allMemory;
   unsigned long int freeMemory;
   unsigned long int pageData;
@@ -186,7 +187,7 @@ template<class T> class BucketManager
     if(m_posInData + size > m_sizeData)
     {
       unsigned rSz = m_sizeData - m_posInData;
-      if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::vector<Released>());
+      if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::deque<Released>());
       freeSpace[rSz].push_back(Released(&data[m_posInData], -1));
       freeMemory += rSz;
 
@@ -221,8 +222,8 @@ template<class T> class BucketManager
       m_posInData -= size;
     else
     {
-      if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::vector<Released>());
-      freeSpace[size].push_back(Released(m, posInHash));
+      if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::deque<Released>());
+      freeSpace[size].push_front(Released(m, posInHash));
       freeMemory += size;
     }
   }// reverseLastBucket
