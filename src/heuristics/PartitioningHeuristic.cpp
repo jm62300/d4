@@ -40,7 +40,6 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
                                                  WrapperSolver &ws,
                                                  std::ostream &out)
 {
-  unsigned options = vm["partitioning-heuristic-options"].as<unsigned>();
   std::string meth = vm["partitioning-heuristic"].as<std::string>();  
   std::string inType = vm["input-type"].as<std::string>();
 
@@ -51,14 +50,16 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
     return new PartitioningHeuristicNone();
   }
 
-  std::bitset<32> xoptions(options);
+  bool reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+  bool equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
   out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << " "
-      << xoptions << "\n";
+      << "reduceFormula(" << reduceFormula << ") "
+      << "equivSimp(" << equivSimp << ")\n";
   
   
   if(inType == "cnf" || inType == "dimacs")
   {    
-    if(meth == "bipartition") return new PartitioningHeuristicBipartite(vm, ws, s, options);   
+    if(meth == "bipartition") return new PartitioningHeuristicBipartite(vm, ws, s);
   }
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));

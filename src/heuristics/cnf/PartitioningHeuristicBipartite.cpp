@@ -31,9 +31,8 @@ namespace d4
 PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     po::variables_map &vm,
     WrapperSolver &_s,
-    SpecManager &_om,
-    unsigned options) :
-    PartitioningHeuristicBipartite(vm, _s, _om, options,
+    SpecManager &_om) :
+    PartitioningHeuristicBipartite(vm, _s, _om,
                                    dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
                                    dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
                                    dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
@@ -51,7 +50,6 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om,
-    unsigned options,
     int _nbClause,
     int _nbVar,
     int _sumSize) : m_s(_s), m_om(dynamic_cast<SpecManagerCnf&>(_om))
@@ -71,8 +69,8 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_markedClauses.resize(m_nbClause + 1, false);
   
   // get the options.
-  m_reduceFormula = options & 1;
-  m_equivSimp = (options>>1) & 1;
+  m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+  m_equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
 
   m_hypergraphCapacity = m_nbClause + _sumSize + 1;
   m_hypergraph = new unsigned[m_hypergraphCapacity];
@@ -93,6 +91,7 @@ PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
 /**
    Check all the hyper edges in order to extract those their are conflictual
    (i.e. there are belong to at least two components).
+   We try to minimize the cut in a greedy fashion.
    
    @param[in] partition, the array that gives the partition.
    @param[out] cutSet, the computed cutset.
@@ -106,10 +105,19 @@ void PartitioningHeuristicBipartite::extractCutFromHyperGraph(
   
   for(auto &edge : indices)
   {
+    int cpt0 = 0, cpt1 = 0;
     for(unsigned i = 0 ; i<*edge ; i++)
     {
       unsigned x = edge[i + 1];
-      if(!m_markedVar[x])
+      if(m_markedVar[x]) continue;
+      if(partition[x]) cpt1++; else cpt0++;
+    }
+
+    int selected = (cpt0 < cpt1) ? 0 : 1;    
+    for(unsigned i = 0 ; i<*edge ; i++)
+    {
+      unsigned x = edge[i + 1];
+      if(!m_markedVar[x] && partition[x] == selected)
       {
         m_markedVar[x] = true;
         cutSet.push_back(x);

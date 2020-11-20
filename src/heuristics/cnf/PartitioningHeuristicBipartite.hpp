@@ -82,13 +82,11 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
  public:
   PartitioningHeuristicBipartite(po::variables_map &vm,
                                  WrapperSolver &s,
-                                 SpecManager &om,
-                                 unsigned options);
+                                 SpecManager &om);
 
   PartitioningHeuristicBipartite(po::variables_map &vm,
                                  WrapperSolver &s,
-                                 SpecManager &om,
-                                 unsigned options,
+                                 SpecManager &om,                                 
                                  int nbClause,
                                  int nbVar,
                                  int sumSize);
