@@ -70,11 +70,12 @@ PartitionerPatoh::~PartitionerPatoh()
        - flags[i] is 0 if the clause must be ignored.
    
    @param[in] hypergraph, the graph we search for a partition.
+   @param[in] isAccepted, function that decide if we keep or not.
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
 void PartitionerPatoh::computePartition(unsigned *hypergraph,
                                         unsigned hypergraphSize,
-                                        std::vector<uint64_t> flags,
+                                        std::function<bool(int)> isAccepted,
                                         std::vector<int> &partition)
 {
   std::vector<unsigned> elts;
@@ -86,7 +87,7 @@ void PartitionerPatoh::computePartition(unsigned *hypergraph,
   unsigned *edge = hypergraph;
   for(unsigned i = 0 ; i<hypergraphSize ; i++)
   {
-    if(flags[i])
+    if(isAccepted(i))
     {
       m_xpins[sizeXpins++] = posPins;
       for(unsigned j = 0 ; j<*edge ; j++)
@@ -124,7 +125,6 @@ void PartitionerPatoh::computePartition(unsigned *hypergraph,
              NULL, m_partvec, m_partweights, &cut);
 
   for(unsigned i = 0 ; i<elts.size() ; i++) partition[elts[i]] = m_partvec[i];
-  
   PaToH_Free();
 } // computePartition
 

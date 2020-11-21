@@ -21,7 +21,8 @@ a* it under the terms of the GNU General Public License as published by
 
 #include "PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicNone.hpp"
-#include "cnf/PartitioningHeuristicBipartite.hpp"
+#include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
+#include "cnf/PartitioningHeuristicBipartiteDual.hpp"
 
 namespace d4
 {
@@ -59,7 +60,10 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
   
   if(inType == "cnf" || inType == "dimacs")
   {    
-    if(meth == "bipartition") return new PartitioningHeuristicBipartite(vm, ws, s);
+    if(meth == "bipartition-primal")
+      return new PartitioningHeuristicBipartitePrimal(vm, ws, s);
+    if(meth == "bipartition-dual")
+      return new PartitioningHeuristicBipartiteDual(vm, ws, s);
   }
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));

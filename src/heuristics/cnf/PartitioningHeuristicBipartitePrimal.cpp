@@ -17,8 +17,7 @@
 */
 #include <bitset>
 
-#include "PartitioningHeuristicBipartite.hpp"
-
+#include "PartitioningHeuristicBipartitePrimal.hpp"
 
 namespace d4
 {
@@ -27,15 +26,15 @@ namespace d4
 
    @param[in] _s, a wrapper on a solver.
    @param[in] _om, a structure manager.
- */
-PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
+*/
+PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
     po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om) :
-    PartitioningHeuristicBipartite(vm, _s, _om,
-                                   dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
-                                   dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
-                                   dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
+    PartitioningHeuristicBipartitePrimal(vm, _s, _om,
+                                         dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
+                                         dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
+                                         dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
 {  
 } // constructor
 
@@ -45,8 +44,8 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
 
    @param[in] _s, a wrapper on a solver.
    @param[in] _om, a structure manager.
- */
-PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
+*/
+PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
     po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om,
@@ -80,13 +79,33 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
 
 /**
    Destructor.
- */
-PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
+*/
+PartitioningHeuristicBipartitePrimal::~PartitioningHeuristicBipartitePrimal()
 {
   delete[] m_hypergraph;
   delete m_pm;
 } // destructor
 
+
+/**
+   Print out the hyper graph.
+
+   @param[in] hypergraph, the hypergraph data in row.
+   @param[in] size, the number of elements in hypergraph.
+*/
+void PartitioningHeuristicBipartitePrimal::displayHyperGraph(
+    unsigned *hypergraph,
+    unsigned size)
+{
+  unsigned *p = hypergraph;
+  for(unsigned i = 0 ; i<size ; i++)
+  {
+    if(!m_hashEdges[i]) continue;
+    for(unsigned j = 0 ; j<*p ; j++) std::cout << p[1 + j] << " ";
+    std::cout << "\n";
+    p += *p + 1;
+  }
+} // displayHyperGraph
 
 /**
    Check all the hyper edges in order to extract those their are conflictual
@@ -95,8 +114,8 @@ PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
    
    @param[in] partition, the array that gives the partition.
    @param[out] cutSet, the computed cutset.
- */
-void PartitioningHeuristicBipartite::extractCutFromHyperGraph(
+*/
+void PartitioningHeuristicBipartitePrimal::extractCutFromHyperGraph(
     std::vector<int> &partition,
     std::vector<int> &cutSet)
 {
@@ -134,15 +153,15 @@ void PartitioningHeuristicBipartite::extractCutFromHyperGraph(
 
    @param[in] component, the set of variables we focus on.
    @param[in] equiClass, the equivalence class.   
- */
-void PartitioningHeuristicBipartite::constructHyperGraph(
+*/
+void PartitioningHeuristicBipartitePrimal::constructHyperGraph(
     std::vector<Var> &component,
     std::vector<Var> &equivClass)
 {
   m_hashEdges.resize(0);
   m_hypergraphSize = 0;
   
-  // collect the indices of the clauses from the spec manager.
+  // collect the indices of the clauses from the spec manager.  
   m_om.getCurrentClauses(m_idxClauses, component);
   
   // construct the hypergraph.
@@ -153,37 +172,44 @@ void PartitioningHeuristicBipartite::constructHyperGraph(
     *edge = 0;
     
     for(auto &l : m_om.getClause(idx))
+    {
       if(!m_om.litIsAssigned(l) && !m_markedVar[equivClass[l.var()]])
       {
         hash |= (uint64_t) 1<<(((uint64_t)equivClass[l.var()])&63);        
         m_markedVar[equivClass[l.var()]] = true;
         edge[++(*edge)] = equivClass[l.var()];
       }
+    }
 
     for(unsigned i = 0 ; i<*edge ; i++) m_markedVar[edge[i + 1]] = false;
     if(*edge > 1)
     {
       assert(hash);
       m_hashEdges.push_back(hash);
-      edge = &(edge[*edge + 1]);
       m_hypergraphSize++;
+      edge = &(edge[*edge + 1]);      
     }     
   }
 
   // remove useless edges.
-  if(m_reduceFormula) removeSubsumEdges();
+  if(m_reduceFormula) removeSubsumEdges(m_hypergraph, m_hypergraphSize);
 }// collectRelevantIdxClauses
 
 
 /**
    We remove from the hypergraph the edges that are subsumed by another one.
+   The edges are not directly removed but their hash is set to 0 if they are
+   removed.
 
    @param[out] hypergraph, the list of hyper edges.
+   @param[in] size, the number of hyperedge.
 */
-void PartitioningHeuristicBipartite::removeSubsumEdges()
+void PartitioningHeuristicBipartitePrimal::removeSubsumEdges(
+    unsigned *hypergraph,
+    unsigned size)
 {
-  unsigned *edge = m_hypergraph;
-  for(unsigned i = 0 ; i<m_hypergraphSize ; i++)
+  unsigned *edge = hypergraph;
+  for(unsigned i = 0 ; i<size ; i++)
   {    
     if(m_hashEdges[i])
     {    
@@ -193,7 +219,7 @@ void PartitioningHeuristicBipartite::removeSubsumEdges()
       // visit the other edges to compute those that subsubmed or are subsubmed.
       bool subsumed = false;
       unsigned *kedge = &(edge[*edge + 1]);
-      for(unsigned k = i + 1 ; k<m_hypergraphSize ; k++)
+      for(unsigned k = i + 1 ; k<size ; k++)
       {
         if(m_hashEdges[k])
         {          
@@ -203,8 +229,8 @@ void PartitioningHeuristicBipartite::removeSubsumEdges()
             unsigned cpt = 0;
             for(unsigned j = 0 ; j<*kedge ; j++) if(m_markedVar[kedge[1 + j]]) cpt++;
         
-            if(cpt == *edge) subsumed = true;     // the current edge is smaller then include
-            if(cpt == *kedge) m_hashEdges[k] = 0; // the edges k subsums i
+            if(cpt == *edge) subsumed = true;          // the current edge is smaller then include
+            else if(cpt == *kedge) m_hashEdges[k] = 0; // the edges k subsums i 
           }
         }
 
@@ -215,7 +241,7 @@ void PartitioningHeuristicBipartite::removeSubsumEdges()
       if(subsumed) m_hashEdges[i] = 0;
     }
 
-    edge = &(edge[*edge + 1]); // progress to the next clause.
+    edge = &(edge[*edge + 1]); // progress to the next clause.  
   }
 } // removeSubsumEdges
 
@@ -227,8 +253,8 @@ void PartitioningHeuristicBipartite::removeSubsumEdges()
    @param[out] unitEquiv, the set of unit literals we find out.
    @param[out] equiClass, the equivalence class we computed (we suppose that the
    verctor is large enough and then we do not allocate).
- */
-void PartitioningHeuristicBipartite::computeEquivClass(
+*/
+void PartitioningHeuristicBipartitePrimal::computeEquivClass(
     std::vector<Var> &component,
     std::vector<Lit> &unitEquiv,
     std::vector<Var> &equivClass)
@@ -236,7 +262,7 @@ void PartitioningHeuristicBipartite::computeEquivClass(
   assert(equivClass.size() >= m_nbVar);
   for(auto &v : component) equivClass[v] = v;
   if(!m_equivSimp) return;
-
+  
   std::vector< std::vector<Var> > equivVar;
   m_em.searchEquiv(m_s, component, equivVar);
   m_s.whichAreUnits(component, unitEquiv);
@@ -256,8 +282,8 @@ void PartitioningHeuristicBipartite::computeEquivClass(
    @param[in] hypergraph, the hypergraph.
    @param[in] partition, the partition.
    @param[in] indices, the list of edge's indices that clash.
- */
-void PartitioningHeuristicBipartite::clashHyperEdgeIndex(
+*/
+void PartitioningHeuristicBipartitePrimal::clashHyperEdgeIndex(
     std::vector<int> &partition,
     std::vector<unsigned *> &indices)
 {
@@ -266,14 +292,11 @@ void PartitioningHeuristicBipartite::clashHyperEdgeIndex(
   unsigned *edge = m_hypergraph;
   for(unsigned i = 0 ; i<m_hypergraphSize ; i++)
   {
-    if(m_hashEdges[i])
-    {    
-      clash = false;
-      part = partition[edge[1]];
+    clash = false;
+    part = partition[edge[1]];
 
-      for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
-      if(clash) indices.push_back(edge);
-    }
+    for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
+    if(clash) indices.push_back(edge);
 
     edge = &(edge[*edge + 1]); // next clause.
   }
@@ -284,8 +307,8 @@ void PartitioningHeuristicBipartite::clashHyperEdgeIndex(
 
    @param[in] component, the set of variables.
    @param[out] cutSet, the cut set we compute.
- */
-void PartitioningHeuristicBipartite::computeCutSet(
+*/
+void PartitioningHeuristicBipartitePrimal::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
@@ -298,11 +321,21 @@ void PartitioningHeuristicBipartite::computeCutSet(
 
   // construct the hypergraph
   constructHyperGraph(component, m_equivClass);
-  assert(m_hashEdges.size() == m_hypergraphSize);
-  m_pm->computePartition(m_hypergraph, m_hypergraphSize, m_hashEdges, m_partition);
-  
+  m_pm->computePartition(m_hypergraph, m_hypergraphSize,
+                         (std::function<bool(int)>) [this](int i)
+                         {return this->m_hashEdges[i] != 0;},
+                         m_partition);
   // collect the cut.
   extractCutFromHyperGraph(m_partition, cutSet);
+  
+  // extend with equivalence literals.
+  for(auto &v : cutSet) m_markedVar[v] = true;
+  for(auto &v : component)
+  {
+    if(m_markedVar[v]) continue;
+    if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
+  }  
+  for(auto &v : cutSet) m_markedVar[v] = false;
   
   m_om.postUpdate(unitEquiv);
 } // component

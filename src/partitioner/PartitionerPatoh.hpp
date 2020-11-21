@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <boost/program_options.hpp>
+#include <functional>
 
 #include "PartitionerManager.hpp"
 
@@ -43,7 +44,7 @@ class PartitionerPatoh : public PartitionerManager
   ~PartitionerPatoh();
   void computePartition(unsigned *hypergraph,
                         unsigned hypergraphSize,
-                        std::vector<uint64_t> flags,
+                        std::function<bool(int)> isAccepted,
                         std::vector<int> &partition);
 };
 } // d4

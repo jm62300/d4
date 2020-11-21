@@ -31,7 +31,7 @@
 namespace d4
 {
 namespace po = boost::program_options;
-class PartitioningHeuristicBipartite : public PartitioningHeuristic
+class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristic
 {
  private:
   WrapperSolver &m_s;  
@@ -57,8 +57,8 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   unsigned m_nbClause;
 
   // options is given in the constructor and its bytes set the following:
-  bool m_reduceFormula; // 0.....01 
-  bool m_equivSimp;     // 0.....10
+  bool m_reduceFormula; 
+  bool m_equivSimp;     
 
 
   void constructHyperGraph(std::vector<Var> &component,
@@ -73,26 +73,28 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
 
 
   void extractCutFromHyperGraph(std::vector<int> &partition,
-      std::vector<int> &cutSet);
+                                std::vector<int> &cutSet);
 
 
-  void removeSubsumEdges();
+  void removeSubsumEdges(unsigned *hypergraph,
+                         unsigned size);
 
+  void displayHyperGraph(unsigned *hypergraph, unsigned size);
   
  public:
-  PartitioningHeuristicBipartite(po::variables_map &vm,
-                                 WrapperSolver &s,
-                                 SpecManager &om);
+  PartitioningHeuristicBipartitePrimal(po::variables_map &vm,
+                                       WrapperSolver &s,
+                                       SpecManager &om);
 
-  PartitioningHeuristicBipartite(po::variables_map &vm,
-                                 WrapperSolver &s,
-                                 SpecManager &om,                                 
-                                 int nbClause,
-                                 int nbVar,
-                                 int sumSize);
+  PartitioningHeuristicBipartitePrimal(po::variables_map &vm,
+                                       WrapperSolver &s,
+                                       SpecManager &om,                                 
+                                       int nbClause,
+                                       int nbVar,
+                                       int sumSize);
 
   
-  ~PartitioningHeuristicBipartite();
+  ~PartitioningHeuristicBipartitePrimal();
   
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet);

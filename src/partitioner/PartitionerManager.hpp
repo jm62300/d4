@@ -17,6 +17,7 @@
 */
 #pragma once
 #include <vector>
+#include <functional>
 #include <boost/program_options.hpp>
 
 namespace d4
@@ -36,12 +37,12 @@ class PartitionerManager
   /**
      Partitioner takes as input an hypergraph given in an array that follows:
        - [size1] [...elts1 ...] [size2] [... elts2...] .......
-       - hypergraphSize gives the number of 'sizei'
+       - hypergraphSize gives the number of 'sizei'       
        - flags[i] is 0 if the clause must be ignored.
    */
   virtual void computePartition(unsigned *hypergraph,
                                 unsigned hypergraphSize,
-                                std::vector<uint64_t> flags,
+                                std::function<bool(int)> isAccepted,
                                 std::vector<int> &partition) = 0;
 };
 } // d4
