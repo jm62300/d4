@@ -63,11 +63,13 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
 
   void constructHyperGraph(std::vector<Var> &component,
                            std::vector<Var> &equivClass,
+                           std::vector< std::vector<Var> > &equivVar,
                            std::vector<Var> &considered);
   
   void computeEquivClass(std::vector<Var> &component,
                          std::vector<Lit> &unitEquiv,
-                         std::vector<Var> &equivClass);
+                         std::vector<Var> &equivClass,
+                         std::vector< std::vector<Var> > &equivVar);
   
   void clashHyperEdgeIndex(std::vector<int> &partition,
                            std::vector<unsigned> &indices);

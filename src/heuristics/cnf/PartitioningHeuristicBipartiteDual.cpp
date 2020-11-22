@@ -137,31 +137,46 @@ void PartitioningHeuristicBipartiteDual::extractCutFromHyperGraph(
 void PartitioningHeuristicBipartiteDual::constructHyperGraph(
     std::vector<Var> &component,
     std::vector<Var> &equivClass,
+    std::vector< std::vector<Var> > &equivVar,
     std::vector<Var> &considered)
 {
   unsigned pos = 0;
-  m_hypergraphSize = 0;  
-  for(auto &v : component)
+  m_hypergraphSize = 0;
+
+  // first considere the equivalence.
+  for(auto &vec : equivVar)
   {
     unsigned &size = m_hypergraph[pos++];
     size = 0;
-
-    for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v)))
+    
+    for(auto &v : vec)
     {
-      m_hypergraph[pos++] = idx;
-      size++;
+      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v))){m_hypergraph[pos++] = idx; size++;}
+      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v))){ m_hypergraph[pos++] = idx; size++;}
+      m_markedVar[v] = true;
     }
+    
+    m_hypergraphSize++;
+    considered.push_back(vec.back());
+  }
 
-    for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v)))
-    {
-      m_hypergraph[pos++] = idx;
-      size++;
-    }
+  // next consider the remaining variables (unmarked).
+  for(auto &v : component)
+  {
+    if(m_markedVar[v]) continue;
+    m_markedVar[v] = true;
+    
+    unsigned &size = m_hypergraph[pos++];
+    size = 0;
+
+    for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v))){m_hypergraph[pos++] = idx; size++;}
+    for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v))){m_hypergraph[pos++] = idx; size++;}
     
     m_hypergraphSize++;
     considered.push_back(v);
   }
 
+  for(auto &v : component) m_markedVar[v] = false;
   // displayHyperGraph(m_hypergraph, m_hypergraphSize);
 
   // remove useless edges.
@@ -179,13 +194,14 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 void PartitioningHeuristicBipartiteDual::computeEquivClass(
     std::vector<Var> &component,
     std::vector<Lit> &unitEquiv,
-    std::vector<Var> &equivClass)
+    std::vector<Var> &equivClass,
+    std::vector< std::vector<Var> > &equivVar)
 {
   assert(equivClass.size() >= m_nbVar);
   for(auto &v : component) equivClass[v] = v;
   if(!m_equivSimp) return;
   
-  std::vector< std::vector<Var> > equivVar;
+  equivVar.clear();
   m_em.searchEquiv(m_s, component, equivVar);
   m_s.whichAreUnits(component, unitEquiv);
   
@@ -236,14 +252,15 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
 {
   // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
-  computeEquivClass(component, unitEquiv, m_equivClass);
+  std::vector< std::vector<Var> > equivVar;
+  computeEquivClass(component, unitEquiv, m_equivClass, equivVar);
   
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);
 
   // construct the hypergraph
   std::vector<Var> considered;
-  constructHyperGraph(component, m_equivClass, considered);
+  constructHyperGraph(component, m_equivClass, equivVar, considered);
   m_pm->computePartition(m_hypergraph, m_hypergraphSize,
                          (std::function<bool(int)>) [](int i) {return true;},
                          m_partition);
