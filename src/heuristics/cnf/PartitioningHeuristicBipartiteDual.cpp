@@ -63,9 +63,9 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
   m_mapVar.resize(m_nbVar + 1, 0);
   m_markedVar.resize(m_nbVar + 1, false);
   m_equivClass.resize(m_nbVar + 1, 0);
-  m_useLessVariable.resize(m_nbVar + 1, false);
   m_partition.resize(m_nbClause + 1, 0);
   m_markedClauses.resize(m_nbClause + 1, false);
+  m_keepClause.resize(m_nbClause + 1, false);
   
   // get the options.
   m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
@@ -128,6 +128,7 @@ void PartitioningHeuristicBipartiteDual::extractCutFromHyperGraph(
 
 /**
    Get the clauses we will use in the partitioning algorithm.
+   We also compute the set of clause indices.
 
    @param[in] component, the set of variables we focus on.
    @param[in] equiClass, the equivalence class.   
@@ -140,6 +141,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
     std::vector< std::vector<Var> > &equivVar,
     std::vector<Var> &considered)
 {
+  m_idxClauses.resize(0);
   unsigned pos = 0;
   m_hypergraphSize = 0;
 
@@ -151,28 +153,33 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 
     for(auto &v : vec)
     {
-      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v)))
-        if(!m_markedClauses[idx])
-        {
-          m_markedClauses[idx] = true;
-          m_hypergraph[pos++] = idx;
-          m_unmarkSet.push_back(idx);
-          size++;
-        }
-      
-      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v)))
-        if(!m_markedClauses[idx])
-        {
-          m_markedClauses[idx] = true;
-          m_unmarkSet.push_back(idx);
-          m_hypergraph[pos++] = idx;
-          size++;
-        }
+      Lit l = Lit::makeLitFalse(v);
+
+      for(unsigned i = 0 ; i<2 ; i++)
+      {
+        for(auto &idx : m_om.getVecIdxClause(l))
+          if(!m_markedClauses[idx])
+          {
+            m_markedClauses[idx] = true;
+            m_hypergraph[pos++] = idx;
+            m_unmarkSet.push_back(idx);
+            size++;
+          }
+        l = l.neg();
+      }
       
       m_markedVar[v] = true;
     }
 
-    for(auto &idx : m_unmarkSet) m_markedClauses[idx] = false;
+    for(auto &idx : m_unmarkSet)
+    {
+      if(!m_keepClause[idx])
+      {
+        m_keepClause[idx] = true;
+        m_idxClauses.push_back(idx);
+      }
+      m_markedClauses[idx] = false;
+    }
     m_unmarkSet.resize(0);
     m_hypergraphSize++;
     considered.push_back(vec.back());
@@ -183,12 +190,24 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
   {
     if(m_markedVar[v]) continue;
     m_markedVar[v] = true;
-    
+
+    Lit l = Lit::makeLitFalse(v);
     unsigned &size = m_hypergraph[pos++];
     size = 0;
 
-    for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v))){m_hypergraph[pos++] = idx; size++;}
-    for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v))){m_hypergraph[pos++] = idx; size++;}
+    for(unsigned i = 0 ; i<2 ; i++)
+    {
+      for(auto &idx : m_om.getVecIdxClause(l))
+      {
+        if(!m_keepClause[idx])
+        {
+          m_keepClause[idx] = true;
+          m_idxClauses.push_back(idx);
+        }
+        m_hypergraph[pos++] = idx; size++;
+      }
+      l = l.neg();
+    }
     
     m_hypergraphSize++;
     considered.push_back(v);

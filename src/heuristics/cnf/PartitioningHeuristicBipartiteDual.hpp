@@ -40,7 +40,7 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
   PartitionerManager *m_pm;
   
   std::vector<bool> m_markedVar;
-  std::vector<bool> m_useLessVariable;
+  std::vector<bool> m_keepClause;
   std::vector<bool> m_markedClauses;
   std::vector<int> m_unmarkSet;
   std::vector<int> m_mapVar;
