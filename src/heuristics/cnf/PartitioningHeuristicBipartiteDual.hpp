@@ -42,7 +42,7 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
   std::vector<bool> m_markedVar;
   std::vector<bool> m_useLessVariable;
   std::vector<bool> m_markedClauses;
-  std::vector<uint64_t> m_hashEdges;
+  std::vector<int> m_unmarkSet;
   std::vector<int> m_mapVar;
   std::vector<unsigned> m_idxClauses;
   std::vector<Var> m_equivClass;

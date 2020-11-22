@@ -148,14 +148,32 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
   {
     unsigned &size = m_hypergraph[pos++];
     size = 0;
-    
+
     for(auto &v : vec)
     {
-      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v))){m_hypergraph[pos++] = idx; size++;}
-      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v))){ m_hypergraph[pos++] = idx; size++;}
+      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitFalse(v)))
+        if(!m_markedClauses[idx])
+        {
+          m_markedClauses[idx] = true;
+          m_hypergraph[pos++] = idx;
+          m_unmarkSet.push_back(idx);
+          size++;
+        }
+      
+      for(auto &idx : m_om.getVecIdxClause(Lit::makeLitTrue(v)))
+        if(!m_markedClauses[idx])
+        {
+          m_markedClauses[idx] = true;
+          m_unmarkSet.push_back(idx);
+          m_hypergraph[pos++] = idx;
+          size++;
+        }
+      
       m_markedVar[v] = true;
     }
-    
+
+    for(auto &idx : m_unmarkSet) m_markedClauses[idx] = false;
+    m_unmarkSet.resize(0);
     m_hypergraphSize++;
     considered.push_back(vec.back());
   }

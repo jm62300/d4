@@ -63,7 +63,7 @@ bool EquivExtractor::interCollectUnit(WrapperSolver &s,
   if(!s.decideAndComputeUnit(Lit::makeLit(v, false), listVarPosLit)) return false;
   if(!s.decideAndComputeUnit(Lit::makeLit(v, true), listVarNegLit)) return false;
 
-  // intersection.
+  // intersection.  
   for(auto &l : listVarPosLit) m_markedVarInter[l.var()] = true;
   for(auto &l : listVarNegLit)
     if(m_markedVarInter[l.var()]) listVarPU.push_back(l.var());
@@ -87,10 +87,10 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
   std::vector<Var> reinit;
       
   for(auto &v : vars)
-  {
+  {    
     assert((unsigned) v < m_markedVar.size());
     if(m_markedVar[v] || s.varIsAssigned(v)) continue;
-    
+
     std::vector<Var> eqv;
     if(interCollectUnit(s, v, eqv))
     {
@@ -101,11 +101,58 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
       {
         m_markedVar[vv] = true;
         reinit.push_back(vv);
-      }      
+      }
     } 
   }
   
   for(auto &v : reinit) m_markedVar[v] = false;
+
+  // fusion the equivalence classes that share variables.
+  for(unsigned i = 0 ; i<equivVar.size() ; i++)
+  {    
+    for(auto &v : equivVar[i]) m_markedVar[v] = true;
+
+    unsigned j = i + 1;
+    while(j<equivVar.size())
+    {
+      bool share = false;
+      for(auto &v : equivVar[j])
+      {
+        share = m_markedVar[v];
+        if(share) break;
+      }
+
+      if(!share) j++;
+      else
+      {
+        for(auto &v : equivVar[j])
+        {
+          if(!m_markedVar[v])
+          {
+            m_markedVar[v] = true;
+            equivVar[i].push_back(v);
+          }
+        }
+
+        equivVar[j].clear();
+        j = i + 1;
+      }
+    }
+    
+    for(auto &v : equivVar[i]) m_markedVar[v] = false;
+  }
+
+  // remove the empty list
+  unsigned j = 0;
+  for(unsigned i = 0 ; i<equivVar.size() ; i++)
+  {
+    if(equivVar[i].size())
+    {      
+      if(i != j) equivVar[j] = equivVar[i];
+      j++;
+    }
+  }
+  equivVar.resize(j);
 } // searchEquiv
 
 } // d4
