@@ -38,7 +38,8 @@ template<class T> class CacheCleaningManager
   Cache<T> *m_cache;
 
  public:
-
+  virtual ~CacheCleaningManager(){}
+  
   /**
      Create an operator to manage the cache reduction process.
 

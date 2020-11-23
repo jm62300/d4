@@ -80,6 +80,8 @@ template<class T> class Cache
   ~Cache()
   {
     hashTable.clear();
+    delete m_cacheCleaningManager;
+    delete m_bucketManager;
   }
 
 

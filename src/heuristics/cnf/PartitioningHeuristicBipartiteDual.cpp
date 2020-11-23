@@ -173,7 +173,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
           }
         l = l.neg();
       }
-      
+
       m_markedVar[v] = true;
     }
 
@@ -279,14 +279,18 @@ void PartitioningHeuristicBipartiteDual::reduceHyperGraph(
         vars.push_back(equivClass[l.var()]);
       }
     }
-
+    
     // we count how many var we cover.
     for(auto &icl : idxClauses) m_countClause[icl] = 0;
     for(auto &v : vars)
     {
       m_markedVar[v] = false; // unmarked for the next runs.
       unsigned *tab = m_mapVarEdge[v];
-      for(unsigned j = 0 ; j<*tab ; j++) m_countClause[tab[1 + j]]++;
+      for(unsigned j = 0 ; j<*tab ; j++)
+      {
+        assert(tab[1 + j] < m_countClause.size());
+        m_countClause[tab[1 + j]]++;
+      }
     }
 
     // we remove the clauses that are covered.

@@ -362,7 +362,7 @@ template <class T> class ModelCounter : public MethodManager
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
     Var v = m_hVar->selectVariable(inVars, *specs);
     if(v == var_Undef) return 1;
-
+    
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     

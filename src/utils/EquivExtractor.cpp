@@ -41,7 +41,8 @@ EquivExtractor::EquivExtractor(int nbVar)
 void EquivExtractor::initEquivExtractor(int nbVar)
 {
   m_markedVar.resize(nbVar, false);
-  m_markedVarInter.resize(nbVar, false);  
+  m_markedVarInter.resize(nbVar, false);
+  m_flagVar.resize(nbVar, false);
 } // initEquivExtractor
 
 
@@ -57,14 +58,15 @@ void EquivExtractor::initEquivExtractor(int nbVar)
  */
 bool EquivExtractor::interCollectUnit(WrapperSolver &s,
                                       Var v,
-                                      std::vector<Var> &listVarPU)
+                                      std::vector<Var> &listVarPU,
+                                      std::vector<bool> &flagVar)
 {
   std::vector<Lit> listVarPosLit, listVarNegLit;
   if(!s.decideAndComputeUnit(Lit::makeLit(v, false), listVarPosLit)) return false;
   if(!s.decideAndComputeUnit(Lit::makeLit(v, true), listVarNegLit)) return false;
 
   // intersection.  
-  for(auto &l : listVarPosLit) m_markedVarInter[l.var()] = true;
+  for(auto &l : listVarPosLit) if(flagVar[l.var()]) m_markedVarInter[l.var()] = true;
   for(auto &l : listVarNegLit)
     if(m_markedVarInter[l.var()]) listVarPU.push_back(l.var());
   for(auto &l : listVarPosLit) m_markedVarInter[l.var()] = false;
@@ -85,14 +87,15 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
                                  std::vector< std::vector<Var> > &equivVar)
 {
   std::vector<Var> reinit;
-      
+  for(auto &v : vars) m_flagVar[v] = true;
+  
   for(auto &v : vars)
   {    
     assert((unsigned) v < m_markedVar.size());
     if(m_markedVar[v] || s.varIsAssigned(v)) continue;
 
     std::vector<Var> eqv;
-    if(interCollectUnit(s, v, eqv))
+    if(interCollectUnit(s, v, eqv, m_flagVar))
     {
       assert(eqv.size() > 0);
       if(eqv.size() == 1) continue;
@@ -106,6 +109,7 @@ void EquivExtractor::searchEquiv(WrapperSolver &s,
   }
   
   for(auto &v : reinit) m_markedVar[v] = false;
+  for(auto &v : vars) m_flagVar[v] = false;
 
   // fusion the equivalence classes that share variables.
   for(unsigned i = 0 ; i<equivVar.size() ; i++)
