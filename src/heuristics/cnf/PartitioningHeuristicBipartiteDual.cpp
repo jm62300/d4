@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <bitset>
+#include <algorithm>
 
 #include "PartitioningHeuristicBipartiteDual.hpp"
 
@@ -64,8 +65,11 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
   m_markedVar.resize(m_nbVar + 1, false);
   m_equivClass.resize(m_nbVar + 1, 0);
   m_partition.resize(m_nbClause + 1, 0);
+  m_mapVarEdge.resize(m_nbVar + 1, nullptr);
   m_markedClauses.resize(m_nbClause + 1, false);
   m_keepClause.resize(m_nbClause + 1, false);
+  m_sizeClause.resize(m_nbClause + 1, 0);
+  m_countClause.resize(m_nbClause + 1, 0);
   
   // get the options.
   m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
@@ -153,6 +157,8 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 
     for(auto &v : vec)
     {
+      if(m_om.varIsAssigned(v)) continue;
+      assert(!m_markedVar[v]);
       Lit l = Lit::makeLitFalse(v);
 
       for(unsigned i = 0 ; i<2 ; i++)
@@ -173,22 +179,24 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 
     for(auto &idx : m_unmarkSet)
     {
-      if(!m_keepClause[idx])
-      {
-        m_keepClause[idx] = true;
-        m_idxClauses.push_back(idx);
-      }
+      if(!m_keepClause[idx]){m_keepClause[idx] = true; m_idxClauses.push_back(idx);}
       m_markedClauses[idx] = false;
     }
     m_unmarkSet.resize(0);
-    m_hypergraphSize++;
-    considered.push_back(vec.back());
+    assert(equivClass[vec.back()] == vec.back());
+
+    if(!size) pos--;
+    else
+    {
+      m_hypergraphSize++;
+      considered.push_back(vec.back());
+    }    
   }
 
   // next consider the remaining variables (unmarked).
   for(auto &v : component)
-  {
-    if(m_markedVar[v]) continue;
+  {    
+    if(m_markedVar[v] || m_om.varIsAssigned(v)) continue;
     m_markedVar[v] = true;
 
     Lit l = Lit::makeLitFalse(v);
@@ -198,27 +206,120 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
     for(unsigned i = 0 ; i<2 ; i++)
     {
       for(auto &idx : m_om.getVecIdxClause(l))
-      {
-        if(!m_keepClause[idx])
-        {
-          m_keepClause[idx] = true;
-          m_idxClauses.push_back(idx);
-        }
+      {        
+        if(!m_keepClause[idx]){m_keepClause[idx] = true; m_idxClauses.push_back(idx);}
         m_hypergraph[pos++] = idx; size++;
       }
       l = l.neg();
     }
-    
-    m_hypergraphSize++;
-    considered.push_back(v);
+
+    if(!size) pos--;
+    else
+    {
+      m_hypergraphSize++;
+      considered.push_back(v);
+    }
+  }
+  
+  // unmark.
+  for(auto &v : component) m_markedVar[v] = false;
+  
+  // remove useless edges.
+  if(m_reduceFormula) reduceHyperGraph(m_hypergraph, m_hypergraphSize,
+                                       considered, m_idxClauses, equivClass);
+  for(auto &idx : m_idxClauses) m_keepClause[idx] = false;
+}// collectRelevantIdxClauses
+
+
+/**
+   Reduce the hyper graph by removing indices of clauses that subsubmes others
+   in term of variables.
+
+   @param[out] hypergraph, the hypergraph.
+   @param[in] size, the number of hyper edges.
+   @param[in] considered, a correspondance between edges and variables.
+   @param[in] idxClauses, the set of clauses indices present in the edges.
+ */
+void PartitioningHeuristicBipartiteDual::reduceHyperGraph(
+    unsigned *hypergraph,
+    unsigned size,
+    std::vector<Var> &considered,
+    std::vector<unsigned> &idxClauses,
+    std::vector<Var> &equivClass)
+{
+  assert(considered.size() == size);
+
+  // map the variables to the edges and compute the clause size.
+  unsigned *edge = hypergraph;
+  for(auto &idx : idxClauses) m_sizeClause[idx] = 0; // set the clause sizes to 0.
+  for(auto &v : considered)
+  {
+    m_mapVarEdge[v] = edge;
+    for(unsigned j = 0 ; j<*edge ; j++) m_sizeClause[edge[1 + j]]++;
+    edge = &edge[*edge + 1];
   }
 
-  for(auto &v : component) m_markedVar[v] = false;
-  // displayHyperGraph(m_hypergraph, m_hypergraphSize);
+  // sort the clause indices to put first the biggest clauses.
+  sort(idxClauses.begin(), idxClauses.end(),
+       [this](const int i, const int j) -> bool {return m_sizeClause[i] > m_sizeClause[j];});
 
-  // remove useless edges.
-  // if(m_reduceFormula) removeSubsumEdges(m_hypergraph, m_hypergraphSize);
-}// collectRelevantIdxClauses
+  std::vector<Var> vars;
+  for(auto &idx : idxClauses)
+  {
+    if(!m_keepClause[idx]) continue;
+    
+    vars.resize(0);
+    std::vector<Lit> &cl = m_om.getClause(idx);
+
+    for(auto &l : cl)
+    {
+      if(!m_om.litIsAssigned(l) && !m_markedVar[equivClass[l.var()]])
+      {
+        m_markedVar[equivClass[l.var()]] = true;
+        vars.push_back(equivClass[l.var()]);
+      }
+    }
+
+    // we count how many var we cover.
+    for(auto &icl : idxClauses) m_countClause[icl] = 0;
+    for(auto &v : vars)
+    {
+      m_markedVar[v] = false; // unmarked for the next runs.
+      unsigned *tab = m_mapVarEdge[v];
+      for(unsigned j = 0 ; j<*tab ; j++) m_countClause[tab[1 + j]]++;
+    }
+
+    // we remove the clauses that are covered.
+    assert(m_countClause[idx] == m_sizeClause[idx]);
+    for(auto &icl : idxClauses)
+    {
+      if(icl == idx || !m_keepClause[icl]) continue;
+      assert(m_countClause[icl] <= m_sizeClause[icl]);
+      m_keepClause[icl] = m_countClause[icl] < m_sizeClause[icl];
+    }
+  }
+
+  // apply the reduction.
+  unsigned pos = 0;
+  edge = hypergraph;  
+  for(unsigned i = 0 ; i<size ; i++)
+  {
+    unsigned cpt = 0, csize = *edge;    
+    for(unsigned j = 0 ; j<csize ; j++)
+    {
+      if(m_keepClause[edge[1 + j]])
+      {
+        hypergraph[pos + 1 + cpt] = edge[1 + j];
+        cpt++;
+      }
+    }
+    edge = &edge[csize + 1];
+    assert(cpt);
+    hypergraph[pos] = cpt;
+    pos += 1 + cpt;
+  }
+} // reduceHyperGraph
+
 
 /**
    Associate for each variable in the component an equivalence class.
@@ -250,6 +351,7 @@ void PartitioningHeuristicBipartiteDual::computeEquivClass(
   }
 } // computeEquivClass
 
+
 /**
    Collect the set of hyper egdes (their indices actually) that are between
    several component.
@@ -276,6 +378,7 @@ void PartitioningHeuristicBipartiteDual::clashHyperEdgeIndex(
     edge = &(edge[*edge + 1]); // next clause.
   }
 } // clashHyperEdgeIndex
+
 
 /**
    Compute a cutset by computing a bipartition of the hypergraph of the clauses.

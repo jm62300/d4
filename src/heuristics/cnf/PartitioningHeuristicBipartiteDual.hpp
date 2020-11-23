@@ -47,6 +47,9 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
   std::vector<unsigned> m_idxClauses;
   std::vector<Var> m_equivClass;
   std::vector<int> m_partition;
+  std::vector<unsigned *> m_mapVarEdge;
+  std::vector<unsigned> m_sizeClause;
+  std::vector<unsigned> m_countClause;
 
   // to store the hypergraph, and then avoir reallocated memory.
   unsigned *m_hypergraph;
@@ -77,6 +80,12 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
   void extractCutFromHyperGraph(std::vector<Var> &considered,
                                 std::vector<int> &partition,
                                 std::vector<int> &cutSet);
+
+  void reduceHyperGraph(unsigned *hypergraph,
+                        unsigned size,
+                        std::vector<Var> &considered,
+                        std::vector<unsigned> &idxClauses,
+                        std::vector<Var> &equivClass);
   
   void displayHyperGraph(unsigned *hypergraph, unsigned size);
   
