@@ -24,7 +24,6 @@
 
 #include "src/methods/MethodManager.hpp"
 
-
 /**
    The main function!
 */
@@ -59,7 +58,7 @@ int main(int argc, char** argv)
     exit(!vm.count("help"));
   }
 
-  d4::MethodManager *method = d4::MethodManager::makeMethodManager(vm);
+  d4::MethodManager *method = d4::MethodManager::makeMethodManager(vm, std::cout);
   method->run();
   delete method;
 

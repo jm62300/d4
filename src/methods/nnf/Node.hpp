@@ -15,27 +15,38 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef d4_circuit_ClauseGate_hpp
-#define d4_circuit_ClauseGate_hpp
+#pragma once
 
 #include <iostream>
 #include <vector>
 
-#include "Circuit.hpp"
+#include "src/problem/ProblemManager.hpp"
 
 namespace d4
 {
-class ClauseGate : public Circuit
+enum TypeNode {TypeIteNode, TypeUnaryDecisionNode,
+               TypeDecAndNode, TypeTrueNode, TypeFalseNode};
+enum ValueVar {isTrue, isFalse, isNotAssigned};
+
+template <class T> class Node
 {
-  std::ostream &print(std::ostream &os);
-  
- private:
-  std::vector<int> literals_;
-  
  public:
-  ClauseGate(std::vector<int> &literals);
-  ~ClauseGate();
+  struct
+  {
+    unsigned typeNode:4;
+    unsigned stamp:28;
+  } header;
+  
+  
+  Node()
+  {
+    header.typeNode = 0;
+    header.stamp = 0;
+  }
+
+  template <typename U> T computeNbModels()
+  {
+    
+  } // computeNbModels
 };
-}
-#endif
+} // d4

@@ -15,34 +15,23 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef d4_circuit_Circuit_hpp
-#define d4_circuit_Circuit_hpp
+#include <vector>
 
-#include <iostream>
-
+#include "Circuit.hpp"
 
 namespace d4
 {
-class Circuit
+class AndGate : public Circuit
 {
-  virtual std::ostream &print(std::ostream &os) = 0;
-  
+  std::ostream &print(std::ostream &os);
+
  private:
-  int counterFather = 0;
+  std::vector<Circuit *> children_;
 
  public:
-  virtual ~Circuit(){ }
-
-  friend std::ostream& operator<< (std::ostream &os, Circuit &c)
-  {
-    return c.print(os);
-  }
-
-  inline int getCounter(){return counterFather;}
-  inline int incCounter(){return ++counterFather;}
-  inline int decCounter(){return --counterFather;}
+  AndGate(std::vector<Circuit *> children);
+  ~AndGate();
 };
 }
-
-#endif

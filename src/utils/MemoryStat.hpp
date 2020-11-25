@@ -2,6 +2,8 @@
 #include <fstream>
 #include <unistd.h>
 
+#pragma once
+
 namespace d4
 {
 

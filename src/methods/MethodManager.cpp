@@ -20,6 +20,7 @@
 
 #include "MethodManager.hpp"
 #include "ModelCounter.hpp"
+#include "DDnnfCompiler.hpp"
 
 namespace d4
 {
@@ -29,7 +30,8 @@ namespace d4
 
    @param[in] vm, the map of option.
  */
-MethodManager *MethodManager::makeMethodManager(po::variables_map &vm)
+MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
+                                                std::ostream &out)
 {
   std::string meth = vm["method"].as<std::string>();
   int precision = vm["float-precision"].as<int>();
@@ -40,6 +42,13 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm)
     bool isFloat = vm["float"].as<bool>();
     if(!isFloat) return new ModelCounter<boost::multiprecision::mpz_int>(vm);
     else return new ModelCounter<boost::multiprecision::mpf_float>(vm);
+  }
+
+  if(meth == "ddnnf-compiler")
+  {
+    bool isFloat = vm["float"].as<bool>();
+    if(!isFloat) return new DDnnfCompiler<boost::multiprecision::mpz_int>(vm);
+    else return new DDnnfCompiler<boost::multiprecision::mpf_float>(vm);
   }
 
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));

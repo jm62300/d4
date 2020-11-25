@@ -16,24 +16,29 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <boost/program_options.hpp>
+
+#include <iostream>
+
 
 namespace d4
 {
-namespace po = boost::program_options;
-class MethodManager
+class Circuit
 {
- protected:
-  std::clock_t currentTime;
+  virtual std::ostream &print(std::ostream &os) = 0;
   
- public:
-  virtual ~MethodManager() {}
-  
-  static MethodManager *makeMethodManager(po::variables_map &vm,
-                                          std::ostream &out);
-  virtual void run() = 0;
+ private:
+  int counterFather = 0;
 
-  inline void initTimer(){currentTime = clock();}
-  inline float getTimer(){return (float)(clock() - currentTime)/CLOCKS_PER_SEC;}
+ public:
+  virtual ~Circuit(){ }
+
+  friend std::ostream& operator<< (std::ostream &os, Circuit &c)
+  {
+    return c.print(os);
+  }
+
+  inline int getCounter(){return counterFather;}
+  inline int incCounter(){return ++counterFather;}
+  inline int decCounter(){return --counterFather;}
 };
-} // d4
+}

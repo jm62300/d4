@@ -15,27 +15,24 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef d4_circuit_AndGate_hpp
-#define d4_circuit_AndGate_hpp
-
+#include <iostream>
 #include <vector>
 
 #include "Circuit.hpp"
 
 namespace d4
 {
-class AndGate : public Circuit
+class ClauseGate : public Circuit
 {
   std::ostream &print(std::ostream &os);
-
+  
  private:
-  std::vector<Circuit *> children_;
-
+  std::vector<int> literals_;
+  
  public:
-  AndGate(std::vector<Circuit *> children);
-  ~AndGate();
+  ClauseGate(std::vector<int> &literals);
+  ~ClauseGate();
 };
 }
-
-#endif

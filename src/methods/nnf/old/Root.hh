@@ -1,0 +1,103 @@
+#ifndef Minisat_DAG_Root_h
+#define Minisat_DAG_Root_h
+
+#include "DAG.hh"
+
+template<class T> class DAG;
+
+template<class T> class rootNode : public DAG<T>
+{
+public:
+  using DAG<T>::globalStamp;
+  using DAG<T>::fixedValue;
+  using DAG<T>::idxOutputStruct;
+  using DAG<T>::stamp;
+
+
+  Branch<T> b;
+  int nbVariable;
+  vec<int> reasonForUnits;
+  bool fromCache;
+
+  rootNode(int nbVar)
+  {
+    nbVariable = nbVar;
+    this->unitLits = (Lit *) malloc(sizeof(Lit));
+    this->szUnitLits = this->capUnitLits = 1;
+    this->unitLits[0] = lit_Undef;
+
+    this->freeVariables = (Var *) malloc(sizeof(Var));
+    this->freeVariables[0] = var_Undef;
+    this->szFreeVariables = this->capFreeVariables = 1;
+
+    this->nbNodes = this->nbEdges = 0;
+    this->globalStamp = 1;
+    this->fixedValue.clear();
+    this->newAnd = nullptr;
+  }
+
+  ~rootNode() {
+    if (newAnd != nullptr) {
+      delete newAnd;
+    }
+  }
+
+  int getSize_(){return 1 + b.d->getSize_();}
+
+  inline void assignRootNode(vec<Lit> &units, DAG<T> *d, bool fromCache_,
+                             int nbVar, vec<Var> &fVar, vec<int> &idxReason)
+  {
+    b.initBranch(units, d, fVar);
+    idxReason.copyTo(reasonForUnits);
+    fromCache = fromCache_;
+  }
+
+  inline void printNNF(std::ostream& out, bool certif)
+  {
+    stamp = globalStamp + 1;
+    int idxCurrent = ++idxOutputStruct;
+
+    if(certif)
+    {
+      out << "o " << idxCurrent << " 1 ";
+      for(int i = 0 ; i<reasonForUnits.size() ; i++) out << reasonForUnits[i] << " ";
+      out << "0" << endl;
+    }
+    else out << "o " << idxCurrent << " 1 0" << endl;
+
+    b.printNNF(out, certif);
+    out << idxCurrent << " " << (b.d)->getIdx() << " ";
+    if(certif) out << (fromCache ? "1" : "2") << " ";
+
+    Lit *pUnit = &DAG<T>::unitLits[b.idxUnitLit];
+    for( ; *pUnit != lit_Undef ; pUnit++) out << readableLit(*pUnit) << " ";
+    out << "0" << endl;
+
+    globalStamp += idxOutputStruct;
+  }// printNNF
+
+
+  inline bool isSAT()
+  {
+    globalStamp++;
+    return b.isSAT();
+  }
+
+  inline bool isSAT(vec<Lit> &units)
+  {
+    globalStamp++;
+    return b.isSAT(units);
+  }
+
+
+  inline T computeNbModels()
+  {
+    globalStamp++;
+    return b.computeNbModels();
+  }
+
+private:
+  ImplicitAnd<T>* newAnd;
+};
+
+#endif

@@ -35,6 +35,8 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/utils/MemoryStat.hpp"
 
+#include "nnf/Node.hpp"
+#include "nnf/NodeManager.hpp"
 #include "MethodManager.hpp"
 
 #define NB_SEP_MC 118
@@ -45,7 +47,7 @@
 namespace d4
 {
 namespace po = boost::program_options;
-template <class T> class ModelCounter : public MethodManager
+template <class T> class DDnnfCompiler : public MethodManager
 {
  private:
   bool optDomConst;
@@ -72,6 +74,10 @@ template <class T> class ModelCounter : public MethodManager
   Cache<T> *m_cache;
 
   std::ostream m_out;
+
+
+  // added from model counting.
+  NodeManager<T> *m_nodeConstructor;
   
  public:
 
@@ -80,7 +86,7 @@ template <class T> class ModelCounter : public MethodManager
 
      @param[in] vm, the list of options.
    */
-  ModelCounter(po::variables_map &vm) : m_out(nullptr)
+  DDnnfCompiler(po::variables_map &vm) : m_out(nullptr)
   {
     // init the output stream
     m_out.copyfmt(std::cout);                          
@@ -120,6 +126,7 @@ template <class T> class ModelCounter : public MethodManager
     assert(m_hVar && m_hPhase && m_hCutSet);
     
     m_cache = new Cache<T>(vm, problem->getNbVar(), specs, m_out);
+    m_nodeConstructor = NodeManager<T>::makeNodeManager(specs->getNbVariable() + 1);
     
     // we delete the useless objects.
     delete initProblem;
@@ -141,7 +148,7 @@ template <class T> class ModelCounter : public MethodManager
   /**
      Destructor.
    */
-  ~ModelCounter()
+  ~DDnnfCompiler()
   {
     delete problem;
     delete solver;
@@ -295,8 +302,7 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 100000) exit(0);
-    if(!solver->solve(setOfVar)) return 0;    
+    if(!solver->solve(setOfVar)) return 0;
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     specs->preUpdate(unitsLit);
 
