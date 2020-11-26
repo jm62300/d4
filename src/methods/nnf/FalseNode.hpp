@@ -28,7 +28,19 @@ namespace d4
 {
 template <class T> class FalseNode : public Node<T>
 {
- public:  
+ public:
+  using Node<T>::header;
+  
+  /**
+     Constructor.
+   */
+  FalseNode()
+  {
+    header.typeNode = TypeNode::TypeFalseNode;
+    header.stamp = 0;
+  } // constructor.
+  
+  
   /**
      Ask for the number of models of the formula under an interpretation.
      Because it is a true node, the number of models is of course 1.
@@ -41,7 +53,7 @@ template <class T> class FalseNode : public Node<T>
   T computeNbModels(std::vector<ValueVar> &fixedValue,
                     ProblemManager &problem)
   {    
-    return 1;
+    return 0;
   } // computeNbModels
 
 

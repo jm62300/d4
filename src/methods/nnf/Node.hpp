@@ -20,7 +20,12 @@
 #include <iostream>
 #include <vector>
 
+#include "src/exceptions/NodeException.hpp"
 #include "src/problem/ProblemManager.hpp"
+
+template <class T, typename U> class BinaryDeterministicOrNode;
+template <class T> class TrueNode;
+template <class T> class FalseNode;
 
 namespace d4
 {
@@ -44,9 +49,21 @@ template <class T> class Node
     header.stamp = 0;
   }
 
-  template <typename U> T computeNbModels()
+  template <typename U> T computeNbModels(std::vector<ValueVar> &fixedValue,
+                                          ProblemManager &problem,
+                                          unsigned globalStamp)
   {
-    
+    switch(header.typeNode)
+    {
+      case TypeIteNode:
+        return BinaryDeterministicOrNode<T,U>::computeNbModels(fixedValue, problem, globalStamp);
+      case TypeTrueNode:
+        return TrueNode<T>::computeNbModels(fixedValue, problem, globalStamp);
+      case TypeFalseNode:
+        return FalseNode<T>::computeNbModels(fixedValue, problem, globalStamp);
+      default:
+        throw (NodeException("Node type unknown",__FILE__, __LINE__));
+    }
   } // computeNbModels
 };
 } // d4

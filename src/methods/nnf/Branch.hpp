@@ -26,8 +26,9 @@
 
 namespace d4
 {
-template <class T> struct DataBranch
+template <class T> class DataBranch
 {
+ public:
   std::vector<Lit> unitLits;
   std::vector<Var> freeVars;
   Node<T> *d;
@@ -35,13 +36,13 @@ template <class T> struct DataBranch
   inline unsigned sumFreeUnit(){return unitLits.size() + freeVars.size();}
 };
 
-
-template <class T, typename U> struct Branch
+template <class T, typename U> class Branch
 {
+
  private:
   /**
      Ask if l is unsatisfiable if the variable is assigned to some given value.
-
+     
      @param[in] value, the value we assign the variable (l>>1)
      @param[in] l, the literal we want to know if it unsatisfiable or not.
 
@@ -49,8 +50,9 @@ template <class T, typename U> struct Branch
   */
   inline bool isUnsatLit(ValueVar value, U l)
   {
-    if(value == isNotAssigned) return false;    
-    return (value == isTrue && (l&1)) || (value == isFalse && !(l&1));
+    if(value == ValueVar::isNotAssigned) return false;    
+    return (value == ValueVar::isTrue && (l&1))
+        || (value == ValueVar::isFalse && !(l&1));
   } // isUnsatLit
   
   
@@ -73,7 +75,8 @@ template <class T, typename U> struct Branch
   */
   T computeNbModels(U *data,
                     std::vector<ValueVar> &fixedValue,
-                    ProblemManager &problem)
+                    ProblemManager &problem,
+                    unsigned globalStamp)
   {
     T computeWeight = 1;
 
@@ -84,7 +87,7 @@ template <class T, typename U> struct Branch
       computeWeight *= T(problem.getWeightLit()[l]);
     }
     
-    T c = d->computeNbModels(fixedValue);
+    T c = d->Node<T>::computeNbModels(fixedValue, problem, globalStamp);
 
     for(unsigned i = 0 ; i<nbFree ; i++)
     {

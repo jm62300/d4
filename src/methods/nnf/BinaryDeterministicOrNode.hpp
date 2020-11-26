@@ -22,8 +22,8 @@
 
 #include "src/problem/ProblemManager.hpp"
 
-#include "Branch.hpp"
 #include "Node.hpp"
+#include "Branch.hpp"
 
 namespace d4
 {
@@ -43,7 +43,7 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
   // gives the unit literals for the rightt branch.
   // data[l.nbLit + l.nbFree + r.nbLit .. l.nbLit + l.nbFree + r.nbLit + r.nbFree - 1]
   // gives the free variables for the right branch.
-  U data[];
+  U data[0];
 
   
   /**
@@ -83,8 +83,8 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
                     unsigned globalStamp)
   {
     if(header.stamp == globalStamp) return nbModels;
-    nbModels = l.computeNbModels(data, fixedValue, problem)
-               + r.computeNbModels(&data[l.nbLit + l.nbFree], fixedValue, problem);
+    nbModels = l.computeNbModels(data, fixedValue, problem, globalStamp) +
+               r.computeNbModels(&data[l.nbLit + l.nbFree], fixedValue, problem, globalStamp);
     header.stamp = globalStamp;
     return nbModels;
   } // computeNbModels

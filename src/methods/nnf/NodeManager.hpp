@@ -21,10 +21,10 @@
 #include <vector>
 
 #include "Node.hpp"
-#include "Branch.hpp"
 #include "TrueNode.hpp"
 #include "FalseNode.hpp"
 #include "BinaryDeterministicOrNode.hpp"
+#include "Branch.hpp"
 
 namespace d4
 {
@@ -64,8 +64,8 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
     BinaryDeterministicOrNode<T,U> *ret =
         reinterpret_cast<BinaryDeterministicOrNode<T,U> *>(data);
-
     ret->init(left, right);
+    
     return ret;
   } // makeBinaryDeterministicOrNode
 

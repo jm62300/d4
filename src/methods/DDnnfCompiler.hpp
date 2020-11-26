@@ -35,8 +35,8 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/utils/MemoryStat.hpp"
 
-#include "nnf/Node.hpp"
 #include "nnf/NodeManager.hpp"
+#include "nnf/Node.hpp"
 #include "MethodManager.hpp"
 
 #define NB_SEP_MC 118
