@@ -157,6 +157,7 @@ template <class T> class DDnnfCompiler : public MethodManager
     delete m_hPhase;
     delete m_hCutSet;
     delete m_cache;
+    delete m_nodeConstructor;
   } // destructor
 
 

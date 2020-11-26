@@ -23,7 +23,9 @@
 #include "Node.hpp"
 #include "TrueNode.hpp"
 #include "FalseNode.hpp"
+#include "UnaryNode.hpp"
 #include "BinaryDeterministicOrNode.hpp"
+#include "DecomposableAndNode.hpp"
 #include "Branch.hpp"
 
 namespace d4
@@ -69,6 +71,23 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
     return ret;
   } // makeBinaryDeterministicOrNode
 
+
+  /**
+     Create an unary branch.
+
+     @param[in] left, the branch.
+
+     \return a UnaryNode..
+  */
+  Node<T> *makeUnaryNode(DataBranch<T> &branch)
+  {
+    unsigned memoryNeeded = sizeof(UnaryNode<T,U>) + branch.sumFreeUnit();
+    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
+    UnaryNode<T,U> *ret = reinterpret_cast<UnaryNode<T,U> *>(data);
+    ret->init(branch);    
+    return ret;
+  } // makeBinaryDeterministicOrNode
+
 };
 
 template <class T> class NodeManager
@@ -103,7 +122,7 @@ template <class T> class NodeManager
   } // getMemory
   
  public:
-  static const unsigned PAGE_SIZE = 1<<20;
+  static const unsigned PAGE_SIZE = 1<<24;
   
   /**
      The destructor free the memory.
@@ -129,8 +148,27 @@ template <class T> class NodeManager
   inline Node<T> *makeTrueNode(){return &trueNode;}
   inline Node<T> *makeFalseNode(){return &falseNode;}
 
+  /**
+     Create a decomposable AND node.
+
+     @param[in] size, the number of sons.
+     @param[in] sons, the sons.
+
+     \return a DecomposableAndNode that regroup the elements given in parameter.
+  */
+  inline Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons)
+  {
+    unsigned memoryNeeded = sizeof(DecomposableAndNode<T>) + size * sizeof(Node<T> *);
+    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
+    DecomposableAndNode<T> *ret = reinterpret_cast<DecomposableAndNode<T> *>(data);
+    ret->init(size, sons);
+  } // makeDecomposableAndNode
+
+  
   virtual Node<T> *makeBinaryDeterministicOrNode(DataBranch<T> &left,
                                                  DataBranch<T> &right) = 0;
+  
+  virtual Node<T> *makeUnaryNode(DataBranch<T> &branch) = 0;
   
 };
 } // d4

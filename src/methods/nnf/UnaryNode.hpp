@@ -27,22 +27,18 @@
 
 namespace d4
 {
-template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
+template <class T, typename U> class UnaryNode : public Node<T>
 {
  public:
   using Node<T>::header;
   
-  BinaryDeterministicOrNode() = delete;
+  UnaryNode() = delete;
   
   T nbModels;
-  Branch<T, U> l, r;
+  Branch<T, U> b;
   
-  // data[0 .. l.nbLit - 1] gives the unit literals for the left branch.
-  // data[l.nbLit .. l.nbLit + l.nbFree - 1] gives the free variables for the left branch.
-  // data[l.nbLit + l.nbFree .. l.nbLit + l.nbFree + r.nbLit - 1]
-  // gives the unit literals for the rightt branch.
-  // data[l.nbLit + l.nbFree + r.nbLit .. l.nbLit + l.nbFree + r.nbLit + r.nbFree - 1]
-  // gives the free variables for the right branch.
+  // data[0 .. b.nbLit - 1] gives the unit literals for the left branch.
+  // data[b.nbLit .. b.nbLit + b.nbFree - 1] gives the free variables for the left branch.
   U data[0];
 
   
@@ -52,23 +48,17 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  void init(DataBranch<T> &left, DataBranch<T> &right)
+  void init(DataBranch<T> &branch)
   {
-    header.typeNode = TypeNode::TypeIteNode;
-    l.d = left.d;
-    r.d = right.d;
+    header.typeNode = TypeNode::TypeUnaryNode;
+    b.d = branch.d;
 
-    l.nbUnits = left.unitLits.size();
-    r.nbUnits = right.unitLits.size();
-
-    l.nbFree = left.freeVars.size();
-    r.nbFree = right.freeVars.size();
+    b.nbUnits = branch.unitLits.size();
+    b.nbFree = branch.freeVars.size();    
 
     unsigned pos = 0;
-    for(auto &lit : left.unitLits) data[pos++] = lit.intern();
-    for(auto &var : left.freeVars) data[pos++] = var;
-    for(auto &lit : right.unitLits) data[pos++] = lit.intern();
-    for(auto &var : right.freeVars) data[pos++] = var;
+    for(auto &l : branch.unitLits) data[pos++] = l.intern();
+    for(auto &v : branch.freeVars) data[pos++] = v;
   } // init
   
   /**
@@ -84,8 +74,7 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
                     unsigned globalStamp)
   {
     if(header.stamp == globalStamp) return nbModels;
-    nbModels = l.computeNbModels(data, fixedValue, problem, globalStamp) +
-               r.computeNbModels(&data[l.nbLit + l.nbFree], fixedValue, problem, globalStamp);
+    nbModels = b.computeNbModels(data, fixedValue, problem, globalStamp);
     header.stamp = globalStamp;
     return nbModels;
   } // computeNbModels

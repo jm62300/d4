@@ -27,24 +27,17 @@
 
 namespace d4
 {
-template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
+template <class T> class DecomposableAndNode : public Node<T>
 {
  public:
   using Node<T>::header;
   
-  BinaryDeterministicOrNode() = delete;
+  DecomposableAndNode() = delete;
   
   T nbModels;
-  Branch<T, U> l, r;
+  unsigned size;
+  Node<T>* sons[0];
   
-  // data[0 .. l.nbLit - 1] gives the unit literals for the left branch.
-  // data[l.nbLit .. l.nbLit + l.nbFree - 1] gives the free variables for the left branch.
-  // data[l.nbLit + l.nbFree .. l.nbLit + l.nbFree + r.nbLit - 1]
-  // gives the unit literals for the rightt branch.
-  // data[l.nbLit + l.nbFree + r.nbLit .. l.nbLit + l.nbFree + r.nbLit + r.nbFree - 1]
-  // gives the free variables for the right branch.
-  U data[0];
-
   
   /**
      Init the two branches using the data coming from the solver.
@@ -52,24 +45,12 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  void init(DataBranch<T> &left, DataBranch<T> &right)
+  void init(unsigned _size, Node<T> **_sons)
   {
-    header.typeNode = TypeNode::TypeIteNode;
-    l.d = left.d;
-    r.d = right.d;
-
-    l.nbUnits = left.unitLits.size();
-    r.nbUnits = right.unitLits.size();
-
-    l.nbFree = left.freeVars.size();
-    r.nbFree = right.freeVars.size();
-
-    unsigned pos = 0;
-    for(auto &lit : left.unitLits) data[pos++] = lit.intern();
-    for(auto &var : left.freeVars) data[pos++] = var;
-    for(auto &lit : right.unitLits) data[pos++] = lit.intern();
-    for(auto &var : right.freeVars) data[pos++] = var;
+    size = _size;
+    for(unsigned i = 0 ; i<size ; i++) sons[i] = _sons[i];
   } // init
+
   
   /**
      Ask for the number of models of the formula under an interpretation.
@@ -84,8 +65,13 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
                     unsigned globalStamp)
   {
     if(header.stamp == globalStamp) return nbModels;
-    nbModels = l.computeNbModels(data, fixedValue, problem, globalStamp) +
-               r.computeNbModels(&data[l.nbLit + l.nbFree], fixedValue, problem, globalStamp);
+    nbModels = 1;
+    for(unsigned i = 0 ; i<size ; i++)
+    {
+      nbModels *= sons[i]->Node<T>::computeNbModels(fixedValue, problem, globalStamp);
+      if(nbModels == 0) break;
+    }
+    
     header.stamp = globalStamp;
     return nbModels;
   } // computeNbModels
