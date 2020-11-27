@@ -31,12 +31,8 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
 {
  public:
   using Node<T>::header;
-  
-  BinaryDeterministicOrNode() = delete;
-  
   T nbModels;
   Branch<T, U> l, r;
-  
   // data[0 .. l.nbLit - 1] gives the unit literals for the left branch.
   // data[l.nbLit .. l.nbLit + l.nbFree - 1] gives the free variables for the left branch.
   // data[l.nbLit + l.nbFree .. l.nbLit + l.nbFree + r.nbLit - 1]
@@ -45,6 +41,29 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
   // gives the free variables for the right branch.
   U data[0];
 
+  BinaryDeterministicOrNode() = delete;
+
+  /**
+     Deallocate the memory.
+
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
+     @param[in] globalstamp, get the stamp number.
+  */
+  static void deallocate(Node<T> *node,
+                         void (**func)(),
+                         unsigned globalStamp)
+  {
+    if(node->header.stamp == globalStamp) return;
+    node->header.stamp = globalStamp;
+
+    auto *p = reinterpret_cast<BinaryDeterministicOrNode*>(node);
+    p->nbModels.~T();
+    reinterpret_cast<void (**)(Node<T> *, void (**func)(), unsigned)>(func)
+        [(p->l).d->header.typeNode]((p->l).d, func, globalStamp);
+    reinterpret_cast<void (**)(Node<T> *, void (**func)(), unsigned)>(func)
+        [(p->r).d->header.typeNode]((p->r).d, func, globalStamp);
+  } // destructor
   
   /**
      Init the two branches using the data coming from the solver.
@@ -52,9 +71,11 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  void init(DataBranch<T> &left, DataBranch<T> &right)
+  BinaryDeterministicOrNode(DataBranch<T> &left, DataBranch<T> &right)
   {
     header.typeNode = TypeNode::TypeIteNode;
+    header.stamp = 0;    
+    
     l.d = left.d;
     r.d = right.d;
 
@@ -69,25 +90,36 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
     for(auto &var : left.freeVars) data[pos++] = var;
     for(auto &lit : right.unitLits) data[pos++] = lit.intern();
     for(auto &var : right.freeVars) data[pos++] = var;
-  } // init
+  } // constructor
   
   /**
      Ask for the number of models of the formula under an interpretation.
 
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] fixedValue, the assigment we consider
      @param[in] problem, the problem we are solving (use to get information about weight).
+     @param[in] globalStamp, use to stamp if we visit a not or not.
 
      \return the number of models.
    */
-  T computeNbModels(std::vector<ValueVar> &fixedValue,
-                    ProblemManager &problem,
-                    unsigned globalStamp)
+  static T computeNbModels(Node<T> *node,
+                           T (**func)(),
+                           std::vector<ValueVar> &fixedValue,
+                           ProblemManager &problem,
+                           unsigned globalStamp)
   {
-    if(header.stamp == globalStamp) return nbModels;
-    nbModels = l.computeNbModels(data, fixedValue, problem, globalStamp) +
-               r.computeNbModels(&data[l.nbLit + l.nbFree], fixedValue, problem, globalStamp);
-    header.stamp = globalStamp;
-    return nbModels;
+    auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
+    
+    if(node->header.stamp == globalStamp)
+      return p->nbModels;
+    
+    p->nbModels = (p->l).computeNbModels(func, p->data, fixedValue, problem, globalStamp)
+                  + (p)->r.computeNbModels(func, &p->data[p->l.nbUnits + p->l.nbFree],
+                                           fixedValue, problem, globalStamp);
+    
+    node->header.stamp = globalStamp;
+    return p->nbModels;
   } // computeNbModels
 
 

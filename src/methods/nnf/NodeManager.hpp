@@ -36,6 +36,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   using NodeManager<T>::m_memoryPages;
   using NodeManager<T>::m_posInMemoryPage;
   using NodeManager<T>::m_data;
+  using NodeManager<T>::m_globalStamp;
   using NodeManager<T>::PAGE_SIZE;
   
  public:
@@ -47,6 +48,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
     m_data = new uint8_t[PAGE_SIZE];
     m_memoryPages.push_back(m_data);
     m_posInMemoryPage = 0;
+    m_globalStamp = 0;
   } // NodeManagerTyped
   
   /**
@@ -61,14 +63,10 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   Node<T> *makeBinaryDeterministicOrNode(DataBranch<T> &left, DataBranch<T> &right)
   {
     unsigned memoryNeeded = sizeof(BinaryDeterministicOrNode<T,U>)
-                            + left.sumFreeUnit() + right.sumFreeUnit(); // in number of bytes.
+                            + (left.sumFreeUnit() + right.sumFreeUnit()) * sizeof(U);
 
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
-    BinaryDeterministicOrNode<T,U> *ret =
-        reinterpret_cast<BinaryDeterministicOrNode<T,U> *>(data);
-    ret->init(left, right);
-    
-    return ret;
+    return new (data) BinaryDeterministicOrNode<T,U>(left, right);
   } // makeBinaryDeterministicOrNode
 
 
@@ -81,14 +79,81 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   */
   Node<T> *makeUnaryNode(DataBranch<T> &branch)
   {
-    unsigned memoryNeeded = sizeof(UnaryNode<T,U>) + branch.sumFreeUnit();
+    unsigned memoryNeeded = sizeof(UnaryNode<T,U>) + sizeof(U) * branch.sumFreeUnit();
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
-    UnaryNode<T,U> *ret = reinterpret_cast<UnaryNode<T,U> *>(data);
-    ret->init(branch);    
-    return ret;
+    return new (data) UnaryNode<T,U>(branch);
   } // makeBinaryDeterministicOrNode
 
+
+  /**
+     Create a decomposable AND node.
+
+     @param[in] size, the number of sons.
+     @param[in] sons, the sons.
+
+     \return a DecomposableAndNode that regroup the elements given in parameter.
+  */
+  inline Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons)
+  {
+    unsigned memoryNeeded = sizeof(DecomposableAndNode<T,U>) + size * sizeof(Node<T> *);
+    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
+    return new (data) DecomposableAndNode<T,U>(size, sons);
+  } // makeDecomposableAndNode
+
+
+  /**
+     Compute the number of models regarding a node.
+
+     @param[in] node, the node we start from to get the number of models.
+     @param[in] fixedValue, use to know which variables are assigned or not.
+     @param[in] problem, the problem specification.
+
+     \return the number of models.
+   */
+  T computeNbModels(Node<T> *node,
+                    std::vector<ValueVar> &fixedValue,
+                    ProblemManager &problem)
+  {
+    T (* func[TypeNode::count])(Node<T> *node,
+                                T (* t[])(),
+                                std::vector<ValueVar> &,
+                                ProblemManager &,
+                                unsigned);
+
+    func[TypeNode::TypeDecAndNode] = DecomposableAndNode<T,U>::computeNbModels;
+    func[TypeNode::TypeIteNode] = BinaryDeterministicOrNode<T,U>::computeNbModels;
+    func[TypeNode::TypeUnaryNode] = UnaryNode<T,U>::computeNbModels;
+    func[TypeNode::TypeFalseNode] = FalseNode<T>::computeNbModels;
+    func[TypeNode::TypeTrueNode] = TrueNode<T>::computeNbModels;
+
+    m_globalStamp++;
+    return func[node->header.typeNode](node, (T (**)()) func, fixedValue, problem, m_globalStamp);
+  } // computeNbModels
+
+
+  /**
+     Deallocate the memory of the member variables of all the graph from a given
+     node.
+
+     @param[in] node, the root node of the graph we want to free the members.
+   */
+  void deallocate(Node<T> *node)
+  {
+    void (* func[TypeNode::count])(Node<T> *node,
+                                   void (* t[])(),
+                                   unsigned int);
+
+    func[TypeNode::TypeDecAndNode] = DecomposableAndNode<T,U>::deallocate;
+    func[TypeNode::TypeIteNode] = BinaryDeterministicOrNode<T,U>::deallocate;
+    func[TypeNode::TypeUnaryNode] = UnaryNode<T,U>::deallocate;
+    func[TypeNode::TypeFalseNode] = FalseNode<T>::deallocate;
+    func[TypeNode::TypeTrueNode] = TrueNode<T>::deallocate;
+    
+    m_globalStamp++;
+    func[node->header.typeNode](node, (void (**)()) func, m_globalStamp);
+  } // deallocate
 };
+
 
 template <class T> class NodeManager
 {
@@ -97,8 +162,10 @@ template <class T> class NodeManager
   unsigned m_posInMemoryPage;
   uint8_t *m_data;
 
+  unsigned m_globalStamp;
+  
   FalseNode<T> falseNode;
-  TrueNode<T> trueNode;
+  TrueNode<T> trueNode;  
 
   /**
      'Allocate' an ammount of bytes.
@@ -109,7 +176,7 @@ template <class T> class NodeManager
    */
   inline uint8_t *getMemory(unsigned nbBytes)
   {
-    assert((nbBytes<<2) < PAGE_SIZE); // we check out that the PAGE is large enough.
+    assert(nbBytes < PAGE_SIZE); // we check out that the PAGE is large enough.
     if(m_posInMemoryPage + nbBytes >= PAGE_SIZE)
     {
       m_posInMemoryPage = 0;
@@ -148,27 +215,18 @@ template <class T> class NodeManager
   inline Node<T> *makeTrueNode(){return &trueNode;}
   inline Node<T> *makeFalseNode(){return &falseNode;}
 
-  /**
-     Create a decomposable AND node.
-
-     @param[in] size, the number of sons.
-     @param[in] sons, the sons.
-
-     \return a DecomposableAndNode that regroup the elements given in parameter.
-  */
-  inline Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons)
-  {
-    unsigned memoryNeeded = sizeof(DecomposableAndNode<T>) + size * sizeof(Node<T> *);
-    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
-    DecomposableAndNode<T> *ret = reinterpret_cast<DecomposableAndNode<T> *>(data);
-    ret->init(size, sons);
-  } // makeDecomposableAndNode
-
   
+  virtual Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons) = 0;
+
   virtual Node<T> *makeBinaryDeterministicOrNode(DataBranch<T> &left,
                                                  DataBranch<T> &right) = 0;
   
   virtual Node<T> *makeUnaryNode(DataBranch<T> &branch) = 0;
   
+  virtual T computeNbModels(Node<T> *node,
+                            std::vector<ValueVar> &fixedValue,
+                            ProblemManager &problem) = 0;
+
+  virtual void deallocate(Node<T> *node) = 0;
 };
 } // d4

@@ -29,9 +29,9 @@ namespace d4
 template <class T> class DataBranch
 {
  public:
-  std::vector<Lit> unitLits;
-  std::vector<Var> freeVars;
   Node<T> *d;
+  std::vector<Lit> unitLits;
+  std::vector<Var> freeVars;  
 
   inline unsigned sumFreeUnit(){return unitLits.size() + freeVars.size();}
 };
@@ -66,6 +66,7 @@ template <class T, typename U> class Branch
      Regarding a branch, ask for the number of models of the formula under an
      interpretation.
 
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] b, the branch we consider.
      @param[in] data, the place to get the data.
      @param[in] fixedValue, the assigment we consider.
@@ -73,7 +74,8 @@ template <class T, typename U> class Branch
 
      \return the number of models.
   */
-  T computeNbModels(U *data,
+  T computeNbModels(T (**func)(),
+                    U *data,
                     std::vector<ValueVar> &fixedValue,
                     ProblemManager &problem,
                     unsigned globalStamp)
@@ -87,7 +89,12 @@ template <class T, typename U> class Branch
       computeWeight *= T(problem.getWeightLit()[l]);
     }
     
-    T c = d->Node<T>::computeNbModels(fixedValue, problem, globalStamp);
+    T c = reinterpret_cast<T (**)(Node<T> *,
+                                  T (**func)(),
+                                  std::vector<ValueVar> &,
+                                  ProblemManager &,
+                                  unsigned)>
+          (func)[d->header.typeNode](d, func, fixedValue, problem, globalStamp);
 
     for(unsigned i = 0 ; i<nbFree ; i++)
     {
@@ -95,13 +102,13 @@ template <class T, typename U> class Branch
       switch(fixedValue[v])
       {
         case isFalse:
-          computeWeight *= problem.getWeightLit()[(v<<1) | 1];
+          computeWeight *= T(problem.getWeightLit()[(v<<1) | 1]);
           break;
         case isTrue:
-          computeWeight *= problem.getWeightLit()[v<<1];
+          computeWeight *= T(problem.getWeightLit()[v<<1]);
           break;
         default:
-          computeWeight *= problem.getWeightVar()[v];
+          computeWeight *= T(problem.getWeightVar()[v]);
       }
     }
     

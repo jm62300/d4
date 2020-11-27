@@ -23,16 +23,19 @@
 #include "src/exceptions/NodeException.hpp"
 #include "src/problem/ProblemManager.hpp"
 
+
+namespace d4
+{
 template <class T, typename U> class DecomposableAndNode;
 template <class T, typename U> class BinaryDeterministicOrNode;
 template <class T, typename U> class UnaryNode;
 template <class T> class TrueNode;
 template <class T> class FalseNode;
 
-namespace d4
-{
+
 enum TypeNode {TypeIteNode, TypeUnaryNode,
-               TypeDecAndNode, TypeTrueNode, TypeFalseNode};
+               TypeDecAndNode, TypeTrueNode,
+               TypeFalseNode, count};
 enum ValueVar {isTrue, isFalse, isNotAssigned};
 
 template <class T> class Node
@@ -43,34 +46,10 @@ template <class T> class Node
     unsigned typeNode:4;
     unsigned stamp:28;
   } header;
-  
-  
+
   Node()
   {
-    header.typeNode = 0;
-    header.stamp = 0;
-  }
-
-  template <typename U>
-  inline T computeNbModels(std::vector<ValueVar> &fixedValue,
-                           ProblemManager &problem,
-                           unsigned globalStamp)
-  {
-    switch(header.typeNode)
-    {
-      case TypeIteNode:
-        return BinaryDeterministicOrNode<T,U>::computeNbModels(fixedValue, problem, globalStamp);
-      case TypeDecAndNode:
-        return DecomposableAndNode<T,U>::computeNbModels(fixedValue, problem, globalStamp);
-      case TypeUnaryNode:
-        return UnaryNode<T,U>::computeNbModels(fixedValue, problem, globalStamp);
-      case TypeTrueNode:
-        return TrueNode<T>::computeNbModels(fixedValue, problem, globalStamp);
-      case TypeFalseNode:
-        return FalseNode<T>::computeNbModels(fixedValue, problem, globalStamp);
-      default:
-        throw (NodeException("Node type unknown",__FILE__, __LINE__));
-    }
-  } // computeNbModels
+    header = {0, 0};
+  }  
 };
 } // d4

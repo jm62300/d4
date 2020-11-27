@@ -37,6 +37,7 @@
 
 #include "nnf/NodeManager.hpp"
 #include "nnf/Node.hpp"
+#include "nnf/Branch.hpp"
 #include "MethodManager.hpp"
 
 #define NB_SEP_MC 118
@@ -64,20 +65,20 @@ template <class T> class DDnnfCompiler : public MethodManager
   std::vector<unsigned> stampVar;
   std::vector< std::vector<Lit> > clauses;
 
-  ProblemManager *problem;
+  ProblemManager *m_problem;
   WrapperSolver *solver;
   SpecManager *specs;
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
-  TmpEntry<T> NULL_CACHE_ENTRY;  
-  Cache<T> *m_cache;
+  TmpEntry<Node<T> *> NULL_CACHE_ENTRY;  
+  Cache<Node<T> *> *m_cache;
 
   std::ostream m_out;
 
 
   // added from model counting.
-  NodeManager<T> *m_nodeConstructor;
+  NodeManager<T> *m_nodeManager;
   
  public:
 
@@ -103,20 +104,20 @@ template <class T> class DDnnfCompiler : public MethodManager
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
     assert(preproc);
-    problem = preproc->run(*initProblem);
+    m_problem = preproc->run(*initProblem);
     m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the preprocessed formula\033[0m\n";
-    problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
+    m_problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
     m_out << "c\n";
-    assert(problem);
+    assert(m_problem);
 
     // we create the SAT solver. 
     solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(solver);
-    solver->initSolver(*problem);
+    solver->initSolver(*m_problem);
     solver->setNeedModel(true);
     
     // we initialize the object that will give info about the problem.
-    specs = SpecManager::makeSpecManager(vm, *problem, m_out);
+    specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
     assert(specs);
     
     // we initialize the object used to compute score and partition.
@@ -125,8 +126,8 @@ template <class T> class DDnnfCompiler : public MethodManager
     m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver, m_out);
     assert(m_hVar && m_hPhase && m_hCutSet);
     
-    m_cache = new Cache<T>(vm, problem->getNbVar(), specs, m_out);
-    m_nodeConstructor = NodeManager<T>::makeNodeManager(specs->getNbVariable() + 1);
+    m_cache = new Cache<Node<T> *>(vm, m_problem->getNbVar(), specs, m_out);
+    m_nodeManager = NodeManager<T>::makeNodeManager(specs->getNbVariable() + 1);
     
     // we delete the useless objects.
     delete initProblem;
@@ -150,14 +151,14 @@ template <class T> class DDnnfCompiler : public MethodManager
    */
   ~DDnnfCompiler()
   {
-    delete problem;
+    delete m_problem;
     delete solver;
     delete specs;
     delete m_hVar;
     delete m_hPhase;
     delete m_hCutSet;
     delete m_cache;
-    delete m_nodeConstructor;
+    delete m_nodeManager;
   } // destructor
 
 
@@ -296,18 +297,16 @@ template <class T> class DDnnfCompiler : public MethodManager
 
      \return a number of models.
   */
-  T computeNbModel_(std::vector<Var> &setOfVar,
+  Node<T> *compile_(std::vector<Var> &setOfVar,
                     std::vector<Lit> &unitsLit,
                     std::vector<Var> &freeVariable,
                     std::vector<Var> &priorityVar,
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    if(!solver->solve(setOfVar)) return 0;
+    if(!solver->solve(setOfVar)) return m_nodeManager->makeFalseNode();
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
-    specs->preUpdate(unitsLit);
-
-    T ret = 1, curr;
+    specs->preUpdate(unitsLit);    
     
     // compute the connected composant
     std::vector<Var> reallyPresent;
@@ -315,38 +314,40 @@ template <class T> class DDnnfCompiler : public MethodManager
     
     int nbComponent = specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    
-    // if(nbComponent > 1){std::cout << nbComponent << "\n"; exit(0);}
 
     // consider each connected component.
+    Node<T> *ret = m_nodeManager->makeTrueNode();
     if(nbComponent)
     {
       nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      
+      Node<T>* sons[nbComponent];
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = optCached ?
-                         m_cache->searchInCache(connected):
-                         NULL_CACHE_ENTRY;
+        TmpEntry<Node<T> *> cb = optCached ?
+                                 m_cache->searchInCache(connected):
+                                 NULL_CACHE_ENTRY;
 
-        if(optCached && cb.defined) ret *= cb.getValue();
+        if(optCached && cb.defined) sons[cp] = cb.getValue();
         else
         {
           // recursive call
           std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
-          ret *= (curr = computeDecisionNode(connected, currPriority, out));
-
-          if(optCached) m_cache->addInCache(cb, curr);
+          sons[cp] = computeDecisionNode(connected, currPriority, out);
+          if(optCached) m_cache->addInCache(cb, sons[cp]);
         }
       }
+
+      ret = m_nodeManager->makeDecomposableAndNode(nbComponent, sons);
     }// else we have a tautology
 
-    specs->postUpdate(unitsLit);    
+    specs->postUpdate(unitsLit);
     return ret;
   }// computeNbModel_
 
-
+  
   /**
      This function select a variable and compile a decision node.
 
@@ -355,7 +356,7 @@ template <class T> class DDnnfCompiler : public MethodManager
      
      \return the compiled formula.
   */
-  T computeDecisionNode(std::vector<Var> &connected,
+  Node<T> *computeDecisionNode(std::vector<Var> &connected,
                         std::vector<Var> &priorityVar,
                         std::ostream &out)
   {
@@ -368,26 +369,30 @@ template <class T> class DDnnfCompiler : public MethodManager
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
     Var v = m_hVar->selectVariable(inVars, *specs);
-    if(v == var_Undef) return 1;
+    if(v == var_Undef)
+    {
+      DataBranch<T> b;
+      solver->whichAreUnits(connected, b.unitLits); // collect unit literals
+      b.d = m_nodeManager->makeTrueNode();
+      if(b.unitLits.size()) return m_nodeManager->makeUnaryNode(b);
+      return b.d;
+    }
     
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     
     // compile the formula where l is assigned to true
-    std::vector<Lit> unitLitPos, unitLitNeg;
-    std::vector<Var> freeVarPos, freeVarNeg;    
+    DataBranch<T> left, right;
     
     solver->pushAssumption(l);
-    T pos = computeNbModel_(connected, unitLitPos, freeVarPos, priorityVar, out);
-    pos *= problem->computeWeightUnitFree<T>(unitLitPos, freeVarPos);
+    left.d = compile_(connected, left.unitLits, left.freeVars, priorityVar, out);    
     solver->popAssumption();
 
     solver->pushAssumption(~l);
-    T neg = computeNbModel_(connected, unitLitNeg, freeVarNeg, priorityVar, out);
-    neg *= problem->computeWeightUnitFree<T>(unitLitNeg, freeVarNeg);
+    right.d = compile_(connected, right.unitLits, right.freeVars, priorityVar, out);
     solver->popAssumption();
 
-    return pos + neg;
+    return m_nodeManager->makeBinaryDeterministicOrNode(left, right);
   }// computeDecisionNode
 
   
@@ -396,16 +401,21 @@ template <class T> class DDnnfCompiler : public MethodManager
 
      \return the number of models.
   */
-  T computeNbModel(std::ostream &out)
+  Node<T> *compile(std::ostream &out)
   {
     std::vector<Var> freeVariable, setOfVar, priorityVar;
     std::vector<Lit> unitsLit;
 
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
 
-    if(problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out)) return T(0);    
-    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);    
-    return d * problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
+    if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out))
+      return m_nodeManager->makeFalseNode();
+
+    DataBranch<T> b;
+    Node<T> *d = compile_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);
+    b.d = d;
+
+    return m_nodeManager->makeUnaryNode(b);
   }// computeNbModel
 
  public:
@@ -415,9 +425,13 @@ template <class T> class DDnnfCompiler : public MethodManager
    */
   void run()
   {
-    T nbModels = computeNbModel(m_out);
+    Node<T> *root = compile(m_out);
     printFinalStats(m_out);
-    m_out << "s " << std::fixed << nbModels << "\n";
+    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+    m_out << "s " << std::fixed
+          << m_nodeManager->computeNbModels(root, fixedValue, *m_problem) << "\n";
+
+    m_nodeManager->deallocate(root);
   } // run
 };
 } // d4

@@ -39,22 +39,42 @@ template <class T> class TrueNode : public Node<T>
     header.typeNode = TypeNode::TypeTrueNode;
     header.stamp = 0;
   } // constructor.
+
+
+  /**
+     Deallocate the memory.
+
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
+     @param[in] globalstamp, get the stamp number.
+   */
+  static void deallocate(Node<T> *node,
+                         void (**func)(),
+                         unsigned globalStamp)
+  {
+    
+  } // destructor
+
   
   /**
      Ask for the number of models of the formula under an interpretation.
      Because it is a true node, the number of models is of course 1.
 
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] fixedValue, the assigment we consider
      @param[in] problem, the problem we are solving (use to get information about weight).
      @param[in] globalStamp, use to stamp if we visit a not or not (not used here)
 
      \return the number of models.
    */
-  T computeNbModels(std::vector<ValueVar> &fixedValue,
-                    ProblemManager &problem,
-                    unsigned globalStamp)
+  static T computeNbModels(Node<T> *node,
+                           T (**func)(),
+                           std::vector<ValueVar> &fixedValue,
+                           ProblemManager &problem,
+                           unsigned globalStamp)
   {    
-    return 1;
+    return T(1);
   } // computeNbModels
 
 

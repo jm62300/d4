@@ -31,52 +31,79 @@ template <class T, typename U> class UnaryNode : public Node<T>
 {
  public:
   using Node<T>::header;
-  
-  UnaryNode() = delete;
-  
   T nbModels;
   Branch<T, U> b;
-  
   // data[0 .. b.nbLit - 1] gives the unit literals for the left branch.
   // data[b.nbLit .. b.nbLit + b.nbFree - 1] gives the free variables for the left branch.
   U data[0];
 
   
+  UnaryNode() = delete;
+
   /**
      Init the two branches using the data coming from the solver.
 
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  void init(DataBranch<T> &branch)
+  UnaryNode(DataBranch<T> &branch)
   {
     header.typeNode = TypeNode::TypeUnaryNode;
+    header.stamp = 0;
     b.d = branch.d;
+    nbModels = T(0);
 
     b.nbUnits = branch.unitLits.size();
-    b.nbFree = branch.freeVars.size();    
+    b.nbFree = branch.freeVars.size();
 
     unsigned pos = 0;
     for(auto &l : branch.unitLits) data[pos++] = l.intern();
     for(auto &v : branch.freeVars) data[pos++] = v;
-  } // init
+  } // constructor
+
+  /**
+     Deallocate the memory.
+
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
+     @param[in] globalstamp, get the stamp number.
+  */
+  static void deallocate(Node<T> *node,
+                         void (**func)(),
+                         unsigned globalStamp)
+  {
+    if(node->header.stamp == globalStamp) return;
+    node->header.stamp = globalStamp;    
+    reinterpret_cast<UnaryNode*>(node)->nbModels.~T();
+    reinterpret_cast<void (**)(Node<T> *, void (**func)(), unsigned)>(func)
+        [(reinterpret_cast<UnaryNode*>(node)->b).d->header.typeNode](
+        (reinterpret_cast<UnaryNode*>(node)->b).d, func, globalStamp);
+  } // destructor
+
   
   /**
      Ask for the number of models of the formula under an interpretation.
 
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] fixedValue, the assigment we consider
      @param[in] problem, the problem we are solving (use to get information about weight).
+     @param[in] globalStamp, use to stamp if we visit a not or not.
 
      \return the number of models.
    */
-  T computeNbModels(std::vector<ValueVar> &fixedValue,
-                    ProblemManager &problem,
-                    unsigned globalStamp)
+  static T computeNbModels(Node<T> *node,
+                           T (**func)(),
+                           std::vector<ValueVar> &fixedValue,
+                           ProblemManager &problem,
+                           unsigned globalStamp)
   {
-    if(header.stamp == globalStamp) return nbModels;
-    nbModels = b.computeNbModels(data, fixedValue, problem, globalStamp);
-    header.stamp = globalStamp;
-    return nbModels;
+    auto *p = reinterpret_cast<UnaryNode *>(node);
+    
+    if(node->header.stamp == globalStamp) return p->nbModels;    
+    p->nbModels = p->b.computeNbModels(func, p->data, fixedValue, problem, globalStamp);    
+    node->header.stamp = globalStamp;
+    return p->nbModels;
   } // computeNbModels
 
 

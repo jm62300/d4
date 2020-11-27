@@ -24,6 +24,7 @@
 
 #include "src/methods/MethodManager.hpp"
 
+#include <boost/multiprecision/gmp.hpp>
 
 /**
    The main function!
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
     std::cout << desc << '\n';
     exit(!vm.count("help"));
   }
-  
+
   d4::MethodManager *method = d4::MethodManager::makeMethodManager(vm, std::cout);
   method->run(); 
   delete method;
