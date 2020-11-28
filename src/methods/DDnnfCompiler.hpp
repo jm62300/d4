@@ -431,7 +431,14 @@ template <class T> class DDnnfCompiler : public MethodManager
     m_out << "s " << std::fixed
           << m_nodeManager->computeNbModels(root, fixedValue, *m_problem) << "\n";
 
-    m_nodeManager->printNNF(root, std::cout);
+    if(vm.count("dump-ddnnf"))
+    {
+      std::ofstream out;
+      std::string fileName = vm["dump-ddnnf"].as<std::string>();
+      out.open(fileName);
+      m_nodeManager->printNNF(root, out);
+      out.close();
+    }
     
     m_nodeManager->deallocate(root);
   } // run

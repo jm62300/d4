@@ -1,7 +1,7 @@
 ("help,h", "Help screen")
 ("input,i", boost::program_options::value<std::string>(), "(required) Path to get the input file")
 ("input-type,it", boost::program_options::value<std::string>()->default_value("cnf"), "The input type")
-("method,m", boost::program_options::value<std::string>(), "(required) The method we run (mc for model counting, dec-DNNF for decision DNNF compilation).")
+("method,m", boost::program_options::value<std::string>(), "(required) The method we run (mc for model counting, ddnnf-compiler for decision DNNF compilation).")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")
 ("preproc-solver,ps", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use in the preproc")
 ("preproc,p",boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use.")
@@ -24,3 +24,4 @@
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(false), "Consider or not the reverse of the current phase.")
 ("float-precision,fp", boost::program_options::value<int>()->default_value(128), "The precision for the float.")
 ("float,f", boost::program_options::value<bool>()->default_value(false), "If the count is computed as a float or not.")
+("dump-ddnnf,dd", boost::program_options::value<std::string>(), "Print out the decision DNNF formula in a given file.")
