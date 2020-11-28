@@ -61,7 +61,7 @@ int main(int argc, char** argv)
   }
 
   d4::MethodManager *method = d4::MethodManager::makeMethodManager(vm, std::cout);
-  method->run(); 
+  method->run(vm); 
   delete method;
 
   return 0;

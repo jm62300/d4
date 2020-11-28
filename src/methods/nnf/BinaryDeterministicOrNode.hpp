@@ -125,27 +125,62 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
 
   /**
      Ask if the formula is satisfiable under an interpretation.
-
+     
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] fixedValue, the assigment we consider
+     @param[in] globalStamp, use to stamp if we visit a not or not.
 
-     \return true if the problem is satisfiable, falst otherwise.
-   */
-  bool isSAT(std::vector<ValueVar> &fixedValue)
+     \return true if the problem is satisfiable, false otherwise.
+  */
+  static bool isSAT(Node<T> *node,
+                    bool (**func)(),
+                    std::vector<ValueVar> &fixedValue,
+                    unsigned globalStamp)
   {
-    // TODO
-    return true;
+    auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
+    
+    if(node->header.stamp == globalStamp) return p->nbModels == 1;
+    
+    p->nbModels = (p->l).isSAT(func, p->data, fixedValue, globalStamp);
+    if(p->nbModels == 1) return true;
+    
+    p->nbModels =  (p)->r.isSAT(func, &p->data[p->l.nbUnits + p->l.nbFree],
+                                fixedValue, globalStamp);
+    
+    node->header.stamp = globalStamp;
+    return p->nbModels == 1;
   } // isSAT
 
-
+  
   /**
      Print out the NNF in a stream.
 
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] out, the stream where we print out the formula.
-     @param[in] certif, boolean that control if we certify the formula.
-   */ 
-  void printNNF(std::ostream& out)
+     @param[in] idx, the next possible index.
+     @param[in] globalStamp, use to stamp if we visit a not or not.
+
+     \return the index of the node.
+  */ 
+  static unsigned printNNF(Node<T> *node,
+                           unsigned (**func)(),
+                           std::ostream &out,
+                           unsigned &idx,
+                           unsigned globalStamp)
   {
-    // TODO: d->printNNF(out);
+    auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
+    if(p->header.stamp == globalStamp) return (unsigned) p->nbModels;
+    p->nbModels = idx++;
+
+    out << "o " << (unsigned) p->nbModels << " 0\n";
+    p->l.printNNF((unsigned) p->nbModels, p->data, func, out, idx, globalStamp);
+    p->r.printNNF((unsigned) p->nbModels, &p->data[p->l.nbUnits + p->l.nbFree],
+                  func, out, idx, globalStamp);
+    
+    p->header.stamp = globalStamp;
+    return (unsigned) p->nbModels;
   } // printNNF
 };
 } // d4

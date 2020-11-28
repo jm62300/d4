@@ -423,7 +423,7 @@ template <class T> class DDnnfCompiler : public MethodManager
   /**
      The method called to run the model counter.
    */
-  void run()
+  void run(po::variables_map &vm)
   {
     Node<T> *root = compile(m_out);
     printFinalStats(m_out);
@@ -431,6 +431,8 @@ template <class T> class DDnnfCompiler : public MethodManager
     m_out << "s " << std::fixed
           << m_nodeManager->computeNbModels(root, fixedValue, *m_problem) << "\n";
 
+    m_nodeManager->printNNF(root, std::cout);
+    
     m_nodeManager->deallocate(root);
   } // run
 };

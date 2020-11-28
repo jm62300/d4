@@ -406,7 +406,7 @@ template <class T> class ModelCounter : public MethodManager
   /**
      The method called to run the model counter.
    */
-  void run()
+  void run(po::variables_map &vm)
   {
     T nbModels = computeNbModel(m_out);
     printFinalStats(m_out);

@@ -31,7 +31,7 @@ class MethodManager
   
   static MethodManager *makeMethodManager(po::variables_map &vm,
                                           std::ostream &out);
-  virtual void run() = 0;
+  virtual void run(po::variables_map &vm) = 0;
 
   inline void initTimer(){currentTime = clock();}
   inline float getTimer(){return (float)(clock() - currentTime)/CLOCKS_PER_SEC;}

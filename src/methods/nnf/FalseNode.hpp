@@ -29,6 +29,7 @@ namespace d4
 template <class T> class FalseNode : public Node<T>
 {
  public:
+  T nbModels;  
   using Node<T>::header;
   
   /**
@@ -51,7 +52,10 @@ template <class T> class FalseNode : public Node<T>
                          void (**func)(),
                          unsigned globalStamp)
   {
-    
+    auto *p = reinterpret_cast<FalseNode *>(node);
+    if(p->header.stamp == globalStamp) return;
+    p->header.stamp = globalStamp;
+    p->nbModels.~T();
   } // destructor
   
   
@@ -80,27 +84,48 @@ template <class T> class FalseNode : public Node<T>
 
   /**
      Ask if the formula is satisfiable under an interpretation.
-
+     
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] fixedValue, the assigment we consider
+     @param[in] globalStamp, use to stamp if we visit a not or not.
 
-     \return true if the problem is satisfiable, falst otherwise.
-   */
-  bool isSAT(std::vector<ValueVar> &fixedValue)
+     \return true if the problem is satisfiable, false otherwise.
+  */
+  static bool isSAT(Node<T> *node,
+                    bool (**func)(),
+                    std::vector<ValueVar> &fixedValue,
+                    unsigned globalStamp)
   {
-    // TODO
-    return true;
+    return false;
   } // isSAT
-
+  
 
   /**
      Print out the NNF in a stream.
 
+     @param[in] node, is equivalent to this.
+     @param[in] func, give for the type of node the deallocate function.
      @param[in] out, the stream where we print out the formula.
-     @param[in] certif, boolean that control if we certify the formula.
-   */ 
-  void printNNF(std::ostream& out)
+     @param[in] idx, the next possible index.
+     @param[in] globalStamp, use to stamp if we visit a not or not.
+
+     \return the index of the node.
+  */ 
+  static unsigned printNNF(Node<T> *node,
+                           unsigned (**func)(),
+                           std::ostream &out,
+                           unsigned &idx,
+                           unsigned globalStamp)
   {
-    // TODO: d->printNNF(out);
+    auto *p = reinterpret_cast<FalseNode *>(node);
+    if(p->header.stamp == globalStamp) return (unsigned) p->nbModels;
+    p->nbModels = idx++;
+
+    out << "f " << (unsigned) p->nbModels << " 0\n";
+    
+    p->header.stamp = globalStamp;
+    return (unsigned) p->nbModels;
   } // printNNF
 };
 } // d4

@@ -38,6 +38,9 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   using NodeManager<T>::m_data;
   using NodeManager<T>::m_globalStamp;
   using NodeManager<T>::PAGE_SIZE;
+
+  TrueNode<T> *trueNode;
+  FalseNode<T> *falseNode;
   
  public:
   /**
@@ -49,7 +52,34 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
     m_memoryPages.push_back(m_data);
     m_posInMemoryPage = 0;
     m_globalStamp = 0;
+
+    unsigned memoryNeeded = sizeof(TrueNode<T>);
+    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
+    trueNode = new (data) TrueNode<T>();
+
+    memoryNeeded = sizeof(TrueNode<T>);
+    data = NodeManager<T>::getMemory(memoryNeeded);
+    falseNode = new (data) FalseNode<T>();
   } // NodeManagerTyped
+
+
+  /**
+     \return a pointer on a true node.
+   */
+  virtual Node<T> *makeTrueNode()
+  {
+    return trueNode;
+  } // makeTrueNode
+
+  /**
+     \return a pointer on a false node.
+   */
+  virtual Node<T> *makeFalseNode()
+  {
+    return falseNode;
+  } // makeFalseNode
+
+  
   
   /**
      Create a binary deterministic OR node.
@@ -95,6 +125,8 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   */
   inline Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons)
   {
+    if(size == 1) return *sons;
+    
     unsigned memoryNeeded = sizeof(DecomposableAndNode<T,U>) + size * sizeof(Node<T> *);
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
     return new (data) DecomposableAndNode<T,U>(size, sons);
@@ -132,6 +164,52 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
 
 
   /**
+     Test if the problem is SAT or not.
+
+     @param[in] node, the node we start from to get the number of models.
+     @param[in] fixedValue, use to know which variables are assigned or not.
+
+     \return true if the formula conditioned is satisfiable, false otherwise.
+  */
+  bool isSAT(Node<T> *node,
+             std::vector<ValueVar> &fixedValue)
+  {
+    bool (* func[TypeNode::count])(Node<T> *node,
+                                   bool (* t[])(),
+                                   std::vector<ValueVar> &,
+                                   unsigned);
+
+    func[TypeNode::TypeDecAndNode] = DecomposableAndNode<T,U>::isSAT;
+    func[TypeNode::TypeIteNode] = BinaryDeterministicOrNode<T,U>::isSAT;
+    func[TypeNode::TypeUnaryNode] = UnaryNode<T,U>::isSAT;
+    func[TypeNode::TypeFalseNode] = FalseNode<T>::isSAT;
+    func[TypeNode::TypeTrueNode] = TrueNode<T>::isSAT;
+
+    m_globalStamp++;
+    return func[node->header.typeNode](node, (bool (**)()) func, fixedValue, m_globalStamp);
+  } // isSAT
+
+
+  void printNNF(Node<T> *node,
+                std::ostream& out)
+  {
+    unsigned (* func[TypeNode::count])(Node<T> *node,
+                                       unsigned (* t[])(),
+                                       std::ostream&,
+                                       unsigned &,
+                                       unsigned);
+    func[TypeNode::TypeDecAndNode] = DecomposableAndNode<T,U>::printNNF;
+    func[TypeNode::TypeIteNode] = BinaryDeterministicOrNode<T,U>::printNNF;
+    func[TypeNode::TypeUnaryNode] = UnaryNode<T,U>::printNNF;
+    func[TypeNode::TypeFalseNode] = FalseNode<T>::printNNF;
+    func[TypeNode::TypeTrueNode] = TrueNode<T>::printNNF;
+
+    m_globalStamp++;
+    unsigned idx = 1;
+    func[node->header.typeNode](node, (unsigned (**)()) func, out, idx, m_globalStamp);
+  } // printNNF
+
+  /**
      Deallocate the memory of the member variables of all the graph from a given
      node.
 
@@ -164,9 +242,6 @@ template <class T> class NodeManager
 
   unsigned m_globalStamp;
   
-  FalseNode<T> falseNode;
-  TrueNode<T> trueNode;  
-
   /**
      'Allocate' an ammount of bytes.
 
@@ -212,8 +287,8 @@ template <class T> class NodeManager
     return new NodeManagerTyped<T, uint32_t>();
   } // makeNodeManager
   
-  inline Node<T> *makeTrueNode(){return &trueNode;}
-  inline Node<T> *makeFalseNode(){return &falseNode;}
+  virtual Node<T> *makeTrueNode() = 0;
+  virtual Node<T> *makeFalseNode() = 0;
 
   
   virtual Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons) = 0;
@@ -226,6 +301,13 @@ template <class T> class NodeManager
   virtual T computeNbModels(Node<T> *node,
                             std::vector<ValueVar> &fixedValue,
                             ProblemManager &problem) = 0;
+
+  virtual bool isSAT(Node<T> *node,
+                     std::vector<ValueVar> &fixedValue) = 0;
+
+  virtual void printNNF(Node<T> *node,
+                        std::ostream& out) = 0;
+
 
   virtual void deallocate(Node<T> *node) = 0;
 };

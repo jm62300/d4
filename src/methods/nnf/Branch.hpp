@@ -114,5 +114,74 @@ template <class T, typename U> class Branch
     
     return c * computeWeight;
   } // computeNbModels
+
+
+
+  /**
+     Regarding a branch, ask if the problem is satisfiable under an
+     interpretation.
+
+     @param[in] func, give for the type of node the deallocate function.
+     @param[in] b, the branch we consider.
+     @param[in] data, the place to get the data.
+     @param[in] fixedValue, the assigment we consider.
+
+     \return true if the problem is satisfiable, false otherwise.
+  */
+  bool isSAT(bool (**func)(),
+             U *data,
+             std::vector<ValueVar> &fixedValue,
+             unsigned globalStamp)
+  {
+    for(unsigned i = 0 ; i<nbUnits ; i++)
+    {
+      U l = data[i];
+      if(isUnsatLit(fixedValue[l>>1], l)) return false;
+    }
+    
+    return reinterpret_cast<bool (**)(Node<T> *,
+                                      bool (**func)(),
+                                      std::vector<ValueVar> &,                                  
+                                      unsigned)>
+        (func)[d->header.typeNode](d, func, fixedValue, globalStamp);
+  } // isSAT
+
+
+  /**
+     Print out the NNF in a stream.
+
+     @param[in] idxFather, the index of the caller.
+     @param[in] func, give for the type of node the deallocate function.
+     @param[in] out, the stream where we print out the formula.
+     @param[in] idx, the next possible index.
+     @param[in] globalStamp, use to stamp if we visit a not or not.
+
+     \return the index of the node.
+  */ 
+  void printNNF(unsigned idxFather,
+                    U *data,
+                    unsigned (**func)(),
+                    std::ostream &out,
+                    unsigned &idx,
+                    unsigned globalStamp)
+  {
+
+    unsigned sidx = reinterpret_cast<unsigned (**)(Node<T> *,
+                                                   unsigned (**func)(),
+                                                   std::ostream &,
+                                                   unsigned &,
+                                                   unsigned)>
+                    (func)[d->header.typeNode](d, func, out, idx, globalStamp);
+
+    out << idxFather << " " << sidx << " ";
+    for(unsigned i = 0 ; i<nbUnits ; i++)
+    {
+      U l = data[i];      
+      out << ((l&1) ? "-" :"") << (l>>1) << " ";
+    }
+    out << "0\n";
+  } // printNNF
+
+  
 };
 } // d4
