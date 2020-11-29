@@ -479,7 +479,6 @@ template <class T> class DDnnfCompiler : public MethodManager
             << m_nodeManager->computeNbModels(root, fixedValue, *m_problem)
             << "\n";
     }
-
     
     m_nodeManager->deallocate(root);
   } // run

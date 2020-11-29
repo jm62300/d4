@@ -141,14 +141,13 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
     auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
     
     if(node->header.stamp == globalStamp) return p->nbModels == 1;
-    
-    p->nbModels = (p->l).isSAT(func, p->data, fixedValue, globalStamp);
+    node->header.stamp = globalStamp;
+
+    p->nbModels = (p->l).isSAT(func, p->data, fixedValue, globalStamp);    
     if(p->nbModels == 1) return true;
     
-    p->nbModels =  (p)->r.isSAT(func, &p->data[p->l.nbUnits + p->l.nbFree],
-                                fixedValue, globalStamp);
-    
-    node->header.stamp = globalStamp;
+    p->nbModels = (p->r).isSAT(func, &p->data[p->l.nbUnits + p->l.nbFree],
+                                fixedValue, globalStamp);    
     return p->nbModels == 1;
   } // isSAT
 

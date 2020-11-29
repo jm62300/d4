@@ -57,7 +57,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
     trueNode = new (data) TrueNode<T>();
 
-    memoryNeeded = sizeof(TrueNode<T>);
+    memoryNeeded = sizeof(FalseNode<T>);
     data = NodeManager<T>::getMemory(memoryNeeded);
     falseNode = new (data) FalseNode<T>();
   } // NodeManagerTyped
@@ -66,7 +66,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   /**
      \return a pointer on a true node.
    */
-  virtual Node<T> *makeTrueNode()
+  inline Node<T> *makeTrueNode()
   {
     return trueNode;
   } // makeTrueNode
@@ -74,7 +74,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   /**
      \return a pointer on a false node.
    */
-  virtual Node<T> *makeFalseNode()
+  inline Node<T> *makeFalseNode()
   {
     return falseNode;
   } // makeFalseNode
@@ -95,7 +95,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
     unsigned memoryNeeded = sizeof(BinaryDeterministicOrNode<T,U>)
                             + (left.sumFreeUnit() + right.sumFreeUnit()) * sizeof(U);
 
-    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
+    uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);    
     return new (data) BinaryDeterministicOrNode<T,U>(left, right);
   } // makeBinaryDeterministicOrNode
 
@@ -125,8 +125,8 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
   */
   inline Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons)
   {
-    if(size == 1) return *sons;
-    
+    if(size == 1) return *sons;    
+
     unsigned memoryNeeded = sizeof(DecomposableAndNode<T,U>) + size * sizeof(Node<T> *);
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
     return new (data) DecomposableAndNode<T,U>(size, sons);
@@ -178,7 +178,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
                                    bool (* t[])(),
                                    std::vector<ValueVar> &,
                                    unsigned);
-
+    
     func[TypeNode::TypeDecAndNode] = DecomposableAndNode<T,U>::isSAT;
     func[TypeNode::TypeIteNode] = BinaryDeterministicOrNode<T,U>::isSAT;
     func[TypeNode::TypeUnaryNode] = UnaryNode<T,U>::isSAT;

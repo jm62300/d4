@@ -57,10 +57,9 @@ template <class T, typename U> class Branch
   
   
  public:
-  
+  Node<T> *d;  
   U nbUnits;
   U nbFree;
-  Node<T> *d;
 
   /**
      Regarding a branch, ask for the number of models of the formula under an

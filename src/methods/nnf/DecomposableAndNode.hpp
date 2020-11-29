@@ -141,10 +141,10 @@ template <class T, typename U> class DecomposableAndNode : public Node<T>
     
     for(unsigned i = 0 ; i<p->size ; i++)
     {
-      p->nbModels = reinterpret_cast<T (**)(Node<T> *,
-                                            bool (**func)(),
-                                            std::vector<ValueVar> &,
-                                            unsigned)>
+      p->nbModels = reinterpret_cast<bool (**)(Node<T> *,
+                                               bool (**func)(),
+                                               std::vector<ValueVar> &,
+                                               unsigned)>
                     (func)[p->sons[i]->header.typeNode](
                         p->sons[i], func, fixedValue, globalStamp);
       if(p->nbModels == 0) return false;

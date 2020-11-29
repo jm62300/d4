@@ -123,7 +123,7 @@ template <class T, typename U> class UnaryNode : public Node<T>
              unsigned globalStamp)
   {
     auto *p = reinterpret_cast<UnaryNode *>(node);
-    
+
     if(node->header.stamp == globalStamp) return p->nbModels == 1;    
     p->nbModels = p->b.isSAT(func, p->data, fixedValue, globalStamp);    
     node->header.stamp = globalStamp;
