@@ -38,6 +38,7 @@
 #include "nnf/NodeManager.hpp"
 #include "nnf/Node.hpp"
 #include "nnf/Branch.hpp"
+#include "QueryManager.hpp"
 #include "MethodManager.hpp"
 
 #define NB_SEP_MC 118
@@ -427,9 +428,6 @@ template <class T> class DDnnfCompiler : public MethodManager
   {
     Node<T> *root = compile(m_out);
     printFinalStats(m_out);
-    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
-    m_out << "s " << std::fixed
-          << m_nodeManager->computeNbModels(root, fixedValue, *m_problem) << "\n";
 
     if(vm.count("dump-ddnnf"))
     {
@@ -438,7 +436,50 @@ template <class T> class DDnnfCompiler : public MethodManager
       out.open(fileName);
       m_nodeManager->printNNF(root, out);
       out.close();
+    } else if(vm.count("query"))
+    {
+      std::vector<Lit> query;
+      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+
+      std::string fileName = vm["query"].as<std::string>();
+      QueryManager queryManager(fileName);
+      TypeQuery typeQuery = TypeQuery::QueryEnd;
+      
+      do
+      {        
+        typeQuery = queryManager.next(query);        
+        for(auto &l : query)
+        {
+          if((unsigned) l.var() >= fixedValue.size()) continue;
+          fixedValue[l.var()] = (l.sign()) ? ValueVar::isFalse : ValueVar::isTrue;
+        }
+          
+        if(typeQuery == TypeQuery::QueryCounting)
+        {
+          m_out << "s " << std::fixed
+                << m_nodeManager->computeNbModels(root, fixedValue, *m_problem)
+                << "\n";
+        }
+        else if(typeQuery == TypeQuery::QueryDecision)
+        {
+          bool res = m_nodeManager->isSAT(root, fixedValue);
+          m_out << "s " << ((res) ? "SAT" : "UNS") << "\n";
+        }
+
+        for(auto &l : query)
+        {
+          if((unsigned) l.var() >= fixedValue.size()) continue;
+          fixedValue[l.var()] = ValueVar::isNotAssigned;
+        }
+      } while (typeQuery != TypeQuery::QueryEnd);
+    } else
+    {
+      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+      m_out << "s " << std::fixed
+            << m_nodeManager->computeNbModels(root, fixedValue, *m_problem)
+            << "\n";
     }
+
     
     m_nodeManager->deallocate(root);
   } // run
