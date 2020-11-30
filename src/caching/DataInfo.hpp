@@ -36,7 +36,6 @@ class DataInfo
   //   We always at least have the following distribution:
   // For info1 => |free (43 bytes)|nb var (21 bytes)|
   // For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb octets var (2 bytes)| free (2 bytes)|
-
   uint64_t info1;
   uint32_t info2;
   

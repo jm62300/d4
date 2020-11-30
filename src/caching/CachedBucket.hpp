@@ -36,7 +36,7 @@ public:
   {
     data = d;
     header = dnew;
-  }
+  } // set
 
   inline void lockedBucket(T v)
   {

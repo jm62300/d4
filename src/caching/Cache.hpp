@@ -174,7 +174,7 @@ template<class T> class Cache
     CachedBucket<T> *formulaBucket = m_bucketManager->collectBucket(varConnected);
     unsigned hashValue = computeHash(*formulaBucket);
     CachedBucket<T> *cacheBucket = bucketAlreadyExist(*formulaBucket, hashValue);
-
+    
     m_cacheCleaningManager->updateCountCachedBucket(cacheBucket, varConnected.size());
     if(!cacheBucket) return TmpEntry<T>(*formulaBucket, hashValue, false);
     

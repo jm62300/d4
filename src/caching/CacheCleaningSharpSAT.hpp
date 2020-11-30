@@ -60,6 +60,7 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
    */
   void initCountCachedBucket(CachedBucket<T> *cb)
   {
+    assert(cb);
     cb->reinitCount(m_cache->getNbNegativeHit());
   } // initCountCachedBucket
 
@@ -73,7 +74,7 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
    */
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar)
   {
-    cb->reinitCount(m_cache->getNbNegativeHit());
+    if(cb) cb->reinitCount(m_cache->getNbNegativeHit());
   } // updateCountCachedBucket
 
   
