@@ -37,12 +37,14 @@ class ParserDimacs
  private:
   int parse_DIMACS_main(BufferRead &in,
                         std::vector< std::vector<Lit> > &clauses,
-                        std::vector<double> &weightLit);
+                        std::vector<double> &weightLit,
+                        std::vector<Var> &selected);
 
  public:
   int parse_DIMACS(std::string input_stream,
                    std::vector< std::vector<Lit> > &clauses,
-                   std::vector<double> &weightLit);
+                   std::vector<double> &weightLit,
+                   std::vector<Var> &selected);
 };
 } // d4
 

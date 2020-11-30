@@ -22,12 +22,14 @@ namespace d4
 {
 int ParserDimacs::parse_DIMACS_main(BufferRead &in,
                                     std::vector< std::vector<Lit> > &clauses,
-                                    std::vector<double> &weightLit)
+                                    std::vector<double> &weightLit,
+                                    std::vector<Var> &selected)
 {
   std::vector<Lit> lits;
   std::string s;
 
   weightLit.resize(0);
+  selected.clear();
   int nbVars = 0;
   int nbClauses = 0;
 
@@ -40,14 +42,32 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
     {
       in.consumeChar();
       in.skipSpace();
+
+      bool vpActivated = false;
+      if(in.currentChar() == 'p') {vpActivated = true; in.consumeChar();}
+      
       if(in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f')
         std::cerr << "PARSE ERROR! Unexpected char: " << in.currentChar() << "\n", exit(3);
 
       nbVars = in.nextInt();
       nbClauses = in.nextInt();
+      if(vpActivated)      
+        std::cout << "c Some variable are marked: " << in.nextInt() << "\n";
       weightLit.resize(((nbVars + 1) << 1), 1);
       
       if (nbClauses < 0) printf("parse error\n"), exit(2);
+    }else if (in.currentChar() == 'v')
+    {
+      in.consumeChar();
+      assert(in.currentChar() == 'p');
+      in.consumeChar();
+
+      int v = -1;
+      do
+      {
+        v = in.nextInt();        
+        if(v) selected.push_back(v);
+      } while(v);      
     }
     else if (in.currentChar() == 'w')
     {
@@ -76,16 +96,17 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       clauses.push_back(lits);
     }
   }
-
+  
   return nbVars;
 }
 
 
 int ParserDimacs::parse_DIMACS(std::string input_stream,
                                std::vector< std::vector<Lit> > &clauses,
-                               std::vector<double> &weightLit)
+                               std::vector<double> &weightLit,
+                               std::vector<Var> &selected)
 {
   BufferRead in(input_stream);
-  return parse_DIMACS_main(in, clauses, weightLit);
+  return parse_DIMACS_main(in, clauses, weightLit, selected);
 }// parse_DIMACS
 }

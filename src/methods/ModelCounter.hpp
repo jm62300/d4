@@ -134,7 +134,11 @@ template <class T> class ModelCounter : public MethodManager
     nbDecisionNode = nbNodeInCall = 0;
 
     stampIdx = 0;
-    stampVar.resize(specs->getNbVariable() + 1, 0);    
+    stampVar.resize(specs->getNbVariable() + 1, 0);
+
+    std::vector<Var> &selected = problem->getSelectedVar();
+    for(auto v : selected) std::cout << v << " ";
+    std::cout << "\n";
   } // constructor
 
 

@@ -29,7 +29,7 @@ namespace d4
 ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile)
 {
   ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(nameFile, m_clauses, m_weightLit);
+  m_nbVar = parser.parse_DIMACS(nameFile, m_clauses, m_weightLit, m_selected);
 
   m_weightVar.resize(m_nbVar + 1, 0);
   for(unsigned i = 0 ; i <= m_nbVar ; i++)
@@ -57,11 +57,13 @@ ProblemManagerCnf::ProblemManagerCnf()
  */
 ProblemManagerCnf::ProblemManagerCnf(int nbVar,
                                      std::vector<double> &weightLit,
-                                     std::vector<double> &weightVar) 
+                                     std::vector<double> &weightVar,
+                                     std::vector<Var> &selected) 
 {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
+  m_selected = selected;
   m_isUnsat = false;
 } // constructor
 

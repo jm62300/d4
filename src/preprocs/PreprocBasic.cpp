@@ -52,7 +52,7 @@ ProblemManager *PreprocBasic::run(ProblemManager &pin)
 {
   ws->initSolver(pin);
   ProblemManagerCnf *pout = new ProblemManagerCnf(
-      pin.getNbVar(), pin.getWeightLit(), pin.getWeightVar());
+      pin.getNbVar(), pin.getWeightLit(), pin.getWeightVar(), pin.getSelectedVar());
 
   try
   {    

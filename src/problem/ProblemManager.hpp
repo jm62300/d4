@@ -31,6 +31,7 @@ class ProblemManager
   unsigned m_nbVar;
   std::vector<double> m_weightLit;
   std::vector<double> m_weightVar;
+  std::vector<Var> m_selected;
   bool m_isUnsat;
 
  public:
@@ -43,7 +44,8 @@ class ProblemManager
   
   virtual void display(std::ostream &out) = 0;
   virtual void displayStat(std::ostream &out, std::string startLine) = 0;
-  
+
+  inline std::vector<Var> &getSelectedVar(){return m_selected;}
   inline std::vector<double> &getWeightLit(){return m_weightLit;}
   inline std::vector<double> &getWeightVar(){return m_weightVar;}
   inline bool isUnsat() {return m_isUnsat;}
