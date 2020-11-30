@@ -23,37 +23,12 @@
 #include "src/problem/ProblemTypes.hpp"
 #include "DataInfoCnfCl.hpp"
 #include "BucketInConstruction.hpp"
+#include "BucketSortInfo.hpp"
 #include "BucketManagerCnf.hpp"
 
 
 namespace d4
 {
-class BucketSortInfo
-{
- public:
-  unsigned start;
-  unsigned end;
-  unsigned counter;
-  unsigned redirected; // redirected only if counter > 0
-
-  BucketSortInfo() : start(0), end(0), counter(0), redirected(0) {}
-  BucketSortInfo(unsigned init) : start(init), end(init), counter(0), redirected(0) {}
-  BucketSortInfo(unsigned s, unsigned e) : start(s), end(e), counter(0), redirected(0) {}
-
-  inline void display(std::ostream &out)
-  {
-    out << start << " " << end << "\n";
-  }
-
-  inline void reset(unsigned s, unsigned e)
-  {
-    start = s;
-    end = e;
-    counter = redirected = 0;
-  }
-};
-
-
 template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 {
  private:
@@ -79,7 +54,6 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   using BucketManagerCnf<T>::isKeptClause;
   using BucketManagerCnf<T>::collectIdActiveClauses;
 
-
  public:
   /**
      Function called in order to initialized variables before using
@@ -95,7 +69,8 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
                      int mdStore,
                      unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore, sizeFirstPage, sizeAdditionalPage),
+      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
+                                            sizeFirstPage, sizeAdditionalPage),
       m_inConstruction(occM)
   {
     m_mapVar.resize(nbVarCnf + 1, 0);
