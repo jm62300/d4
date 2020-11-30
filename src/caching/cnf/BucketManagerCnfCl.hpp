@@ -22,96 +22,12 @@
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "DataInfoCnfCl.hpp"
+#include "BucketInConstruction.hpp"
 #include "BucketManagerCnf.hpp"
-
-#define PRINT_DEBUG 0
 
 
 namespace d4
 {
-
-class BucketInConstruction
-{
- public:
-  unsigned *distrib;
-  unsigned *shiftedIndexClause;
-  unsigned *shiftedSizeClause;
-  unsigned *sizeClauses;
-  unsigned *distribDiffSize;
-  bool *markedAsRedundant;
-
-  unsigned nbClauseInDistrib;
-  unsigned sizeDistrib;
-  unsigned capacityDistrib;
-  unsigned maxSizeClause;
-
-  /**
-     Empty constructor.
-   */
-  BucketInConstruction()
-  {
-    distrib = nullptr;
-    shiftedIndexClause = nullptr;
-    shiftedSizeClause = nullptr;
-    sizeClauses = nullptr;
-    distribDiffSize = nullptr;
-    markedAsRedundant = nullptr;
-
-    nbClauseInDistrib = 0;
-    sizeDistrib = 0;
-    capacityDistrib = 0;
-  } // constructor
-
-
-  /**
-     Constructor.
-
-     @param[in] occM, the spec manager.
-   */
-  BucketInConstruction(SpecManagerCnf &occM)
-  {
-    nbClauseInDistrib = 0;
-    sizeDistrib = 0;
-    capacityDistrib = 3 * occM.getSumSizeClauses() + occM.getNbVariable();
-    maxSizeClause = occM.getMaxSizeClause();
-    
-    shiftedIndexClause = new unsigned[occM.getNbClause()];
-    distrib = new unsigned[capacityDistrib];
-    markedAsRedundant = new bool[occM.getNbClause()];
-    sizeClauses = new unsigned[occM.getNbClause()];
-    shiftedSizeClause = new unsigned[occM.getNbClause()];
-    distribDiffSize = new unsigned[occM.getMaxSizeClause() + 1];
-
-    for(int i = 0 ; i<occM.getNbClause() ; i++) markedAsRedundant[i] = false;    
-  } // constructor
-
-
-  /**
-     Destructor.     
-   */
-  ~BucketInConstruction()
-  {
-    if(distrib) delete[] distrib;
-    if(shiftedIndexClause) delete[] shiftedIndexClause;
-    if(shiftedSizeClause) delete[] shiftedSizeClause;
-    if(sizeClauses) delete[] sizeClauses;
-    if(distribDiffSize) delete[] distribDiffSize;
-    if(markedAsRedundant) delete[] markedAsRedundant;
-  } // destructor
-
-
-  /**
-     Reinit.
-   */
-  inline void reinit()
-  {
-    nbClauseInDistrib = 0;
-    sizeDistrib = 0;
-    for(unsigned i = 0 ; i <= maxSizeClause ; i++) distribDiffSize[i] = 0;
-  } // reinit
-};
-
-
 class BucketSortInfo
 {
  public:
