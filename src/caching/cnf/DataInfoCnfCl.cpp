@@ -25,13 +25,13 @@ namespace d4
    Constructor.
  */
 DataInfoCnfCl::DataInfoCnfCl(unsigned szData,
-                           unsigned nbVar,
-                           unsigned nbLit,
-                           unsigned nbDiffSizeDistrib,
-                           unsigned nbOctetsVar,
-                           unsigned nbOctetsLit,
-                           unsigned nbOctetsDistrib,
-                           unsigned count) :
+                             unsigned nbVar,
+                             unsigned nbLit,
+                             unsigned nbDiffSizeDistrib,
+                             unsigned nbOctetsVar,
+                             unsigned nbOctetsLit,
+                             unsigned nbOctetsDistrib,
+                             unsigned count) :
     DataInfo(szData, nbVar, nbOctetsLit, nbOctetsVar, count)
 {
   info1 = info1 |
