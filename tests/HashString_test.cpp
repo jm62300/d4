@@ -18,7 +18,7 @@
 
 #include "gtest/gtest.h"
 
-#include "src/hashing/HashString.hh"
+#include "../src/hashing/HashString.hpp"
 
 #define LEN (1<<6)
 
