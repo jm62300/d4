@@ -37,7 +37,7 @@ struct Lit
   
   inline bool sign() const {return m_x&1;}
   inline Var var() const {return m_x>>1;}
-  inline Lit neg() const {return {m_x ^ (m_x & 1)};}
+  inline Lit neg() const {return {m_x ^ 1};}
   inline unsigned intern() const  {return m_x;}
   inline int human() const {return (m_x&1) ? -var() : var();}
   
