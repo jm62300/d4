@@ -32,6 +32,7 @@
 #include "CachedBucket.hpp"
 #include "cnf/BucketManagerCnf.hpp"
 #include "cnf/BucketManagerCnfCl.hpp"
+#include "cnf/BucketManagerCnfSym.hpp"
 #include "cnf/BucketManagerCnfIndex.hpp"
 
 #define ONE_OCTET 2
@@ -97,6 +98,8 @@ template<class T> class BucketManager
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf&>(s);    
     if(ccr == "clause")
       return new BucketManagerCnfCl<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
+    if(ccr == "sym")
+      return new BucketManagerCnfSym<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
     if(ccr == "index")
       return new BucketManagerCnfIndex<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
 
