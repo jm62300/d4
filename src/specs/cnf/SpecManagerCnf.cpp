@@ -255,12 +255,31 @@ void SpecManagerCnf::getCurrentClauses(std::vector<unsigned> &idxClauses,
 }// getCurrentclauses
 
 
+void SpecManagerCnf::getCurrentClausesNotBin(
+    std::vector<unsigned> &idxClauses,
+    std::vector<Var> &component)
+{
+  idxClauses.resize(0);
+  for(auto &v : component) m_inCurrentComponent[v] = true;
+  for(auto &i : m_clausesNotBin)
+  {    
+    if(isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
+      idxClauses.push_back(i);
+  }
+  for(auto &v : component) m_inCurrentComponent[v] = false;
+}// getCurrentclauses
+
+
+
 void SpecManagerCnf::initFormula(ProblemManager &p) 
 {
   try
   {
     ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf&>(p);
     m_clauses = pcnf.getClauses();
+
+    for(unsigned i = 0 ; i<m_clauses.size() ; i++)
+      if(m_clauses[i].size() > 2) m_clausesNotBin.push_back(i);
   }
   catch (std::bad_cast& bc)
   {

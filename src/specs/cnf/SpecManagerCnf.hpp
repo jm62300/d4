@@ -38,6 +38,7 @@ class SpecManagerCnf : public SpecManager
 {
  protected:
   std::vector<std::vector<Lit> > m_clauses;
+  std::vector<int> m_clausesNotBin;
   unsigned m_nbVar, m_maxSizeClause;
   std::vector<lbool> m_currentValue;
   std::vector<SpecClauseInfo> m_infoClauses;
@@ -85,6 +86,10 @@ class SpecManagerCnf : public SpecManager
   void getCurrentClauses(std::vector<unsigned> &idxClauses,
                          std::vector<Var> &component);
 
+  void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
+                               std::vector<Var> &component);
+  
+  
   // inline functions.
   // about the CNF.
   inline int getNbBinaryClause(Var v)

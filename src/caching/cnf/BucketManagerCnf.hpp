@@ -123,7 +123,8 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   {    
     // collect the clauses
     idxClauses.resize(0);
-    specManager.getCurrentClauses(idxClauses, component);
+    if(modeStore == ALL) specManager.getCurrentClauses(idxClauses, component);
+    else specManager.getCurrentClausesNotBin(idxClauses, component);
 
     unsigned i, j;
     for(i = j = 0 ; i<idxClauses.size() ; i++)
