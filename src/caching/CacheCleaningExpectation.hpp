@@ -33,6 +33,7 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
   unsigned long m_nbRemoveEntry;
   unsigned long m_nbFailedInCache;
   unsigned long m_limitNegativeHit;
+  double m_ratio;
   int m_nbVar;
 
   std::vector<unsigned long> m_sizeVarCacheHit;
@@ -51,10 +52,13 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
      @param[in] nbVar, the number of variables in the problem.     
      @param[in] limitNegativehit, the number of negative hits before calling the
      reduction.
+     @param[in] ratio, the limit ratio.
    */
   CacheCleaningExpectation(Cache<T> *cache, bool smudge, int nbVar,
-                           unsigned long limitNegativehit)
+                           unsigned long limitNegativehit,
+                           double ratio)
   {
+    m_ratio = ratio;
     m_limitNegativeHit = limitNegativehit;
     m_nbVar = nbVar;
     m_nbFailedInCache = 0;
@@ -127,7 +131,7 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
         if(cb.smudge()){j++; continue;}
         
         double ratio = (double) m_sizeVarCacheHit[cb.nbVar()] / (double) m_nbCacheWithSizeVar[cb.nbVar()];
-        bool mustBeKept = (cb.count() || cb.dirty() || ratio > 0.5);
+        bool mustBeKept = (cb.count() || cb.dirty() || ratio > m_ratio);
 
         if(mustBeKept)
         {

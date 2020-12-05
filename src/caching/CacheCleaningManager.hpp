@@ -69,9 +69,11 @@ template<class T> class CacheCleaningManager
       if(crs == "expectation")
       {
         unsigned long limit = vm["cache-reduction-strategy-expectation-limit"].as<unsigned long>();
+        double ratio = vm["cache-reduction-strategy-expectation-ratio"].as<double>();
         out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs
-            << " smudge(" << csa << ") limit(" << limit << ")\n";                
-        return new CacheCleaningExpectation<T>(cache, csa, nbVar, limit); 
+            << " smudge(" << csa << ") limit(" << limit << ") "
+            << " ratio(" << ratio << ")\n";
+        return new CacheCleaningExpectation<T>(cache, csa, nbVar, limit, ratio); 
       }
     }else
     {
