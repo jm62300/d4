@@ -36,7 +36,8 @@ SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _m_maxSizeClause) :
   m_idxComponent.resize(m_nbVar + 1, 0);
 
   // occurrences:
-  m_occList.resize((m_nbVar + 1) << 1, std::vector<int>());
+  m_occListBin.resize((m_nbVar + 1) << 1, std::vector<int>());
+  m_occListNotBin.resize((m_nbVar + 1) << 1, std::vector<int>());
 
   // clauses:
   m_mustUnMark.reserve(nbClause);
@@ -58,7 +59,8 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar())
   m_idxComponent.resize(m_nbVar + 1, 0);
 
   // occurrences:
-  m_occList.resize((m_nbVar + 1) << 1, std::vector<int>());  
+  m_occListBin.resize((m_nbVar + 1) << 1, std::vector<int>());
+  m_occListNotBin.resize((m_nbVar + 1) << 1, std::vector<int>());
   
   // clauses:
   unsigned nbClause = m_clauses.size();
@@ -74,7 +76,10 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar())
   for(unsigned i = 0 ; i<m_clauses.size() ; i++)
   {
     std::vector<Lit> &cl = m_clauses[i];
-    for(auto &l : cl) m_occList[l.intern()].push_back(i);
+    std::vector<std::vector<int> > &listOcc = (cl.size() == 2) ?
+                                              m_occListBin :
+                                              m_occListNotBin;
+    for(auto &l : cl) listOcc[l.intern()].push_back(i);
     if(cl.size() > m_maxSizeClause) m_maxSizeClause = cl.size();
     m_infoClauses[i].watcher = cl[0];
   }
@@ -95,19 +100,25 @@ void SpecManagerCnf::connectedToLit(Lit l,
                                     std::vector<Var> &varComponent,
                                     int nbComponent)
 {
-  for(auto &idx : m_occList[l.intern()])
+  for(unsigned i = 0 ; i<2 ; i++)
   {
-    if(m_markView[idx]) continue;
-    m_markView[idx] = true;
-    m_mustUnMark.push_back(idx);
-    
-    // compute component
-    for(auto &l : m_clauses[idx])
-    {
-      if(m_currentValue[l.var()] != l_Undef || v[l.var()]) continue;
+    std::vector<int> &listIndex = (i) ? getVecIdxClauseBin(l) :
+                                  getVecIdxClauseNotBin(l);
       
-      varComponent.push_back(l.var());
-      v[l.var()] = nbComponent;
+    for(auto &idx : listIndex)
+    {
+      if(m_markView[idx]) continue;
+      m_markView[idx] = true;
+      m_mustUnMark.push_back(idx);
+    
+      // compute component
+      for(auto &l : m_clauses[idx])
+      {
+        if(m_currentValue[l.var()] != l_Undef || v[l.var()]) continue;
+      
+        varComponent.push_back(l.var());
+        v[l.var()] = nbComponent;
+      }
     }
   }
 }// connectedToLit
@@ -152,8 +163,8 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
       Lit l = Lit::makeLit(m_tmpVecVar.back(), false);
       m_tmpVecVar.pop_back();
 
-      if(m_occList[l.intern()].size()) connectedToLit(l, m_idxComponent, m_tmpVecVar, nbComponent);
-      if(m_occList[(~l).intern()].size()) connectedToLit(~l, m_idxComponent, m_tmpVecVar, nbComponent);
+      if(getNbOccurrence(l)) connectedToLit(l, m_idxComponent, m_tmpVecVar, nbComponent);
+      if(getNbOccurrence(~l)) connectedToLit(~l, m_idxComponent, m_tmpVecVar, nbComponent);
     }
 
     assert(cpt > 0);

@@ -44,7 +44,8 @@ class SpecManagerCnf : public SpecManager
   std::vector<SpecClauseInfo> m_infoClauses;
 
   std::vector<bool> m_inCurrentComponent;
-  std::vector< std::vector<int> > m_occList;
+  std::vector< std::vector<int> > m_occListBin;
+  std::vector< std::vector<int> > m_occListNotBin;
   
   // to manage the connected component
   std::vector<int> m_mustUnMark;
@@ -103,7 +104,12 @@ class SpecManagerCnf : public SpecManager
   {
     return getNbClause(Lit::makeLitFalse(v)) + getNbClause(Lit::makeLitTrue(v));
   }
-  inline int getNbClause(Lit l){return m_occList[l.intern()].size();}
+
+  inline int getNbClause(Lit l)
+  {
+    return m_occListBin[l.intern()].size() + m_occListNotBin[l.intern()].size();
+  }
+  
   inline int getNbClause(){return m_clauses.size();}
   inline int getNbVariable(){return m_nbVar;}
   inline int getMaxSizeClause(){return m_maxSizeClause;}
@@ -117,8 +123,8 @@ class SpecManagerCnf : public SpecManager
 
   inline int getNbBinaryClause(Lit l)
   {
-    int nbBin = 0;
-    for(auto &idx : m_occList[l.intern()])
+    int nbBin = m_occListBin[l.intern()].size();
+    for(auto &idx : m_occListNotBin[l.intern()])
       if(m_clauses[idx].size() - m_infoClauses[idx].nbUnsat == 2) nbBin++;
     return nbBin;
   } // getNbBinaryClause
@@ -146,23 +152,39 @@ class SpecManagerCnf : public SpecManager
 
 
   // about the occurrence list.
-  inline const std::vector< std::vector<int> > &getOccurrenceList(){return m_occList;}
+  inline const std::vector< std::vector<int> > &getOccurrenceListBin(){return m_occListBin;}
+  inline const std::vector< std::vector<int> > &getOccurrenceListNotBin(){return m_occListNotBin;}
+  
   inline int getNbOccurrence(Lit l){return getNbClause(l);}
   
-  inline std::vector<int> &getVecIdxClause(Lit l)
+  inline std::vector<int> &getVecIdxClauseBin(Lit l)
   {
-    assert(l.intern() < m_occList.size());
-    return m_occList[l.intern()];
+    assert(l.intern() < m_occListBin.size());
+    return m_occListBin[l.intern()];
+  }
+
+  inline std::vector<int> &getVecIdxClauseNotBin(Lit l)
+  {
+    assert(l.intern() < m_occListNotBin.size());
+    return m_occListNotBin[l.intern()];
   }
 
 
   inline void showOccurenceList(std::ostream &out)
   {
-    for(unsigned i = 0 ; i<m_occList.size() ; i++)
+    for(unsigned i = 0 ; i<m_occListBin.size() ; i++)
     {
-      if(!m_occList[i].size()) continue;
+      if(!m_occListBin[i].size()) continue;
       out << ((i&1) ? "-" : "") << (i>>1) << " --> [ ";
-      for(auto l : m_occList[i]) out << l << " ";
+      for(auto l : m_occListBin[i]) out << l << " ";
+      out << " ]\n";
+    }
+
+    for(unsigned i = 0 ; i<m_occListNotBin.size() ; i++)
+    {
+      if(!m_occListNotBin[i].size()) continue;
+      out << ((i&1) ? "-" : "") << (i>>1) << " --> [ ";
+      for(auto l : m_occListNotBin[i]) out << l << " ";
       out << " ]\n";
     }
   }

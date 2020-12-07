@@ -15,7 +15,7 @@
 ("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("expectation"), "The strategy used to reduce the cache structure [none, expectation, cache or sharpSAT].")
 ("cache-reduction-strategy-cachet-limit,crscl", boost::program_options::value<unsigned long>()->default_value(10UL * (1<<21)), "The limit in term of number of entries, the cachet reduction strategy allows.")
 ("cache-reduction-strategy-expectation-limit,crsel", boost::program_options::value<unsigned long>()->default_value(100000), "The frequency in term of number of negative hits used for the expectation reduction strategy allows.")
-("cache-reduction-strategy-expectation-ratio,crser", boost::program_options::value<double>()->default_value(0.5), "The ratio used to decide if a clause can be kept or not.")
+("cache-reduction-strategy-expectation-ratio,crser", boost::program_options::value<double>()->default_value(0.3), "The ratio used to decide if a clause can be kept or not.")
 ("cache-smudge-activation,csa", boost::program_options::value<bool>()->default_value(true), "It does not directly remove the entries, but we do it when we need more memory.")
 ("cache-size-first-page,csfp", boost::program_options::value<unsigned long>()->default_value((1UL<<32)), "The block size of memory allocated for the first page of the cache structure.")
 ("cache-size-additional-page,csap", boost::program_options::value<unsigned long>()->default_value((1UL<<28)), "The block size of memory allocated for the next page of the cache structure.")

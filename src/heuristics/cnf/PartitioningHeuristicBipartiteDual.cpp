@@ -163,14 +163,19 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 
       for(unsigned i = 0 ; i<2 ; i++)
       {
-        for(auto &idx : m_om.getVecIdxClause(l))
-          if(!m_markedClauses[idx])
-          {
-            m_markedClauses[idx] = true;
-            m_hypergraph[pos++] = idx;
-            m_unmarkSet.push_back(idx);
-            size++;
-          }
+        for(unsigned j = 0 ; j<2 ; j++)
+        {
+          std::vector<int> &listIndex = (j) ? m_om.getVecIdxClauseBin(l) :
+                                        m_om.getVecIdxClauseNotBin(l);      
+          for(auto &idx : listIndex)
+            if(!m_markedClauses[idx])
+            {
+              m_markedClauses[idx] = true;
+              m_hypergraph[pos++] = idx;
+              m_unmarkSet.push_back(idx);
+              size++;
+            }
+        }
         l = l.neg();
       }
 
@@ -205,10 +210,15 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 
     for(unsigned i = 0 ; i<2 ; i++)
     {
-      for(auto &idx : m_om.getVecIdxClause(l))
-      {        
-        if(!m_keepClause[idx]){m_keepClause[idx] = true; m_idxClauses.push_back(idx);}
-        m_hypergraph[pos++] = idx; size++;
+      for(unsigned j = 0 ; j<2 ; j++)
+      {
+        std::vector<int> &listIndex = (j) ? m_om.getVecIdxClauseBin(l) :
+                                      m_om.getVecIdxClauseNotBin(l);      
+        for(auto &idx : listIndex)
+        {        
+          if(!m_keepClause[idx]){m_keepClause[idx] = true; m_idxClauses.push_back(idx);}
+          m_hypergraph[pos++] = idx; size++;
+        }
       }
       l = l.neg();
     }

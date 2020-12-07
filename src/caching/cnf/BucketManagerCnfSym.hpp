@@ -139,29 +139,36 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
     // visit each clause
     m_idInVecBucket.resize(0);
     unsigned nextBucket = m_vecBucketSortInfo.size();
-    for(auto &idx : specManager.getVecIdxClause(l))
+
+    for(unsigned i = 0 ; i<2 ; i++)
     {
-      assert((unsigned) idx < m_markIdx.size());
-      if(m_markIdx[idx] == -1)
+      std::vector<int> &listIndex = (i) ? specManager.getVecIdxClauseBin(l) :
+                                    specManager.getVecIdxClauseNotBin(l);
+      
+      for(auto &idx : listIndex)
       {
-        inConstruction.sizeClauses[idx] = 1;
-        m_mustUnMark.push_back(idx);
-        m_markIdx[idx] = ownBucket;
-        pushSorted(tab, nbElt++, inConstruction.nbClauseInDistrib + counter);
-        counter++;        
-      }else
-      {
-        inConstruction.sizeClauses[idx]++;
-        BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
-        if(!b.counter)
+        assert((unsigned) idx < m_markIdx.size());
+        if(m_markIdx[idx] == -1)
         {
-          assert(nextBucket == m_vecBucketSortInfo.size() + m_idInVecBucket.size());
-          b.redirected = nextBucket++;
-          m_idInVecBucket.push_back(m_markIdx[idx]);
+          inConstruction.sizeClauses[idx] = 1;
+          m_mustUnMark.push_back(idx);
+          m_markIdx[idx] = ownBucket;
+          pushSorted(tab, nbElt++, inConstruction.nbClauseInDistrib + counter);
+          counter++;        
+        }else
+        {
+          inConstruction.sizeClauses[idx]++;
+          BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+          if(!b.counter)
+          {
+            assert(nextBucket == m_vecBucketSortInfo.size() + m_idInVecBucket.size());
+            b.redirected = nextBucket++;
+            m_idInVecBucket.push_back(m_markIdx[idx]);
+          }
+          m_markIdx[idx] = b.redirected;
+          pushSorted(tab, nbElt++, b.start + b.counter);
+          b.counter++;        
         }
-        m_markIdx[idx] = b.redirected;
-        pushSorted(tab, nbElt++, b.start + b.counter);
-        b.counter++;        
       }
     }
     

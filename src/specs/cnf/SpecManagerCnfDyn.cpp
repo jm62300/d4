@@ -61,19 +61,24 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits)
   for(auto &l : lits)
     {
       m_currentValue[l.var()] = l.sign() ? l_False : l_True;
-      
-      for(auto &idxCl : m_occList[l.intern()])
+
+      for(unsigned i = 0 ; i<2 ; i++)
+      {
+        std::vector<std::vector<int > > &occList = (i) ? m_occListBin :
+                                                   m_occListNotBin;
+        for(auto &idxCl : occList[l.intern()])
         {
           m_infoClauses[idxCl].nbSat++;
           for(auto &ll : m_clauses[idxCl])
             if(m_currentValue[ll.var()] == l_Undef)
-              removeIdxFromOccList(m_occList[ll.intern()], idxCl);            
+              removeIdxFromOccList(occList[ll.intern()], idxCl);            
         }
       
-      for(auto &idxCl : m_occList[(~l).intern()])
-      {
-        m_infoClauses[idxCl].nbUnsat++;
-        if(m_infoClauses[idxCl].watcher == ~l) reviewWatcher.push_back(idxCl);
+        for(auto &idxCl : occList[(~l).intern()])
+        {
+          m_infoClauses[idxCl].nbUnsat++;
+          if(m_infoClauses[idxCl].watcher == ~l) reviewWatcher.push_back(idxCl);
+        }
       }
     }
 
@@ -104,23 +109,30 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits)
 void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits)
 {
   for(int i = lits.size() - 1 ; i >= 0 ; i--)
-    {
-      Lit l = lits[i];      
-      for(auto &idxCl : m_occList[l.intern()])
-        {
-          m_infoClauses[idxCl].nbSat--;
-          assert(!m_infoClauses[idxCl].nbSat);
-          
-          for(auto &ll : m_clauses[idxCl])
-          {
-            if(m_currentValue[ll.var()] == l_Undef)
-              m_occList[ll.intern()].push_back(idxCl);
-          }
-        }
+  {
+    Lit l = lits[i];
 
-      for(auto &idxCl : m_occList[(~l).intern()]) m_infoClauses[idxCl].nbUnsat--;
-      m_currentValue[l.var()] = l_Undef;
+    for(unsigned i = 0 ; i<2 ; i++)      
+    {
+      std::vector<std::vector<int > > &occList = (i) ? m_occListBin :
+                                                 m_occListNotBin;      
+      for(auto &idxCl : occList[l.intern()])
+      {
+        m_infoClauses[idxCl].nbSat--;
+        assert(!m_infoClauses[idxCl].nbSat);
+          
+        for(auto &ll : m_clauses[idxCl])
+        {
+          if(m_currentValue[ll.var()] == l_Undef)
+            occList[ll.intern()].push_back(idxCl);
+        }
+      }
+    
+      for(auto &idxCl : occList[(~l).intern()]) m_infoClauses[idxCl].nbUnsat--;
     }
+    
+    m_currentValue[l.var()] = l_Undef;
+  }
 }// postUpdate
 
 

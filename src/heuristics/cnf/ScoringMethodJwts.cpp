@@ -45,16 +45,17 @@ ScoringMethodJwts::ScoringMethodJwts(SpecManagerCnf &o) : om(o)
 double ScoringMethodJwts::computeScore(Var v)
 {
   Lit lp = Lit::makeLit(v, false);
-  double res = 0;
+  double res = om.getVecIdxClauseBin(lp).size() + om.getVecIdxClauseBin(~lp).size();
+  res /= 4;
 
-  for(auto &idx : om.getVecIdxClause(lp))
+  for(auto &idx : om.getVecIdxClauseNotBin(lp))
   {
     assert(!om.isSatisfiedClause(idx));
     if(om.getInitSize(idx) > 5) continue;
     res += ((double) 1.0) / (1<<om.getCurrentSize(idx));
-  }
+  }  
 
-  for(auto &idx : om.getVecIdxClause(~lp))
+  for(auto &idx : om.getVecIdxClauseNotBin(~lp))
   {
     assert(!om.isSatisfiedClause(idx));
     if(om.getInitSize(idx) > 5) continue;
