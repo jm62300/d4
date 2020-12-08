@@ -145,11 +145,11 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
 
     for(unsigned i = (modeStore == ALL) ? 0 : 1 ; i<2 ; i++)
     {
-      std::vector<int> &listIndex = (i) ? specManager.getVecIdxClauseBin(l) :
-                                    specManager.getVecIdxClauseNotBin(l);
+      std::vector<int> &listIndex = (i) ? specManager.getVecIdxClauseNotBin(l) :
+                                    specManager.getVecIdxClauseBin(l);
       
       for(auto &idx : listIndex)
-      {
+      {        
         if(!isKeptClause(idx)) continue;      
       
         assert((unsigned) idx < m_markIdx.size());
