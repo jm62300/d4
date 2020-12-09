@@ -124,9 +124,13 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
      It is used in order to construct a sorted residual formula.
 
      @param[in] l, we considere the clause containing l
-     @param[out] inConstruction, place where we store the bucket in construction.
+     @param[out] inConstruction, place where we store the bucket in construction.     
+     @param[in] repLit, the representation of the literal l in the formula in
+     construction.
   */
-  void createDistribWrTLit(const Lit &l, BucketInConstruction &inConstruction)
+  void createDistribWrTLit(const Lit &l,
+                           BucketInConstruction &inConstruction,
+                           const Lit repLit)
   {
     unsigned currentPos = inConstruction.sizeDistrib; // the place where we put l.
     inConstruction.sizeDistrib += 2;                  // save memory for l and the size.
@@ -220,8 +224,11 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
     for(auto &v : component)
     {
       if(specManager.varIsAssigned(v)) continue;
-      createDistribWrTLit(Lit::makeLitFalse(v), inConstruction);
-      createDistribWrTLit(Lit::makeLitTrue(v), inConstruction);
+      Lit l = Lit::makeLitFalse(v);
+      
+      bool reverse = specManager.getNbClause(l) < specManager.getNbClause(~l);
+      createDistribWrTLit(l, inConstruction, (reverse) ? ~l : l);
+      createDistribWrTLit(~l, inConstruction, (reverse) ? l : ~l);
     }
 
     // mark the clause we do not keep.
@@ -252,7 +259,8 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
       } else inConstruction.shiftedIndexClause[i] = inConstruction.sizeDistrib;
       inConstruction.markedAsRedundant[i] = false;
     }
-    inConstruction.nbClauseInDistrib = index; // resize    
+    inConstruction.nbClauseInDistrib = index; // resize
+
     return realSizeDistrib; 
   }// collectDistrib
 
