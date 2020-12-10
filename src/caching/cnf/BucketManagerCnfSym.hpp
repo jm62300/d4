@@ -260,7 +260,26 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
       inConstruction.markedAsRedundant[i] = false;
     }
     inConstruction.nbClauseInDistrib = index; // resize
-
+#if 0
+    if(component.size() == 8)
+      {
+        std::vector<unsigned> idxClauses;
+        BucketManagerCnf<T>::modeStore = ALL;
+        collectIdActiveClauses(component, idxClauses);        
+        
+        for(auto &idx : idxClauses)
+        {
+          std::vector<Lit> &cl = specManager.getClause(idx);
+          for(auto &l : cl)
+          {
+            if(specManager.litIsAssigned(l)) continue;
+            std::cout << l << " ";
+          }
+          std::cout << "\n";
+        }
+        std::cout << "--------------------\n";
+      }
+#endif
     return realSizeDistrib; 
   }// collectDistrib
 

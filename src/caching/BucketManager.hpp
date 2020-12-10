@@ -68,7 +68,7 @@ template<class T> class BucketManager
   
  public:
   // freespace[i][j] points to a free memory space of size i
-  std::vector<std::deque<Released>> freeSpace;  
+  std::vector<std::deque<Released>> freeSpace;
   unsigned long int allMemory;
   unsigned long int freeMemory;
   unsigned long int pageData;
@@ -83,6 +83,8 @@ template<class T> class BucketManager
     std::string ccr = vm["cache-clause-representation"].as<std::string>();
     unsigned long sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
     unsigned long sizeAdditionalPage = vm["cache-size-additional-page"].as<unsigned long>();
+    if(ccr == "clause")
+      sizeFirstPage = vm["cache-reduction-strategy-expectation-size-first-page"].as<unsigned long>();
 
     out << "c [CONSTRUCTOR] Cache bucket manager:"
         << " storage(" << css << ") "
@@ -195,6 +197,7 @@ template<class T> class BucketManager
       freeMemory += rSz;
 
       printf("c Allocate a new page for the cache %lu\n", freeMemory);
+
       m_sizeData = m_sizeAdditionalPage;
       m_posInData = 0;
       data = new char[m_sizeData];
