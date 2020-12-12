@@ -78,7 +78,7 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar())
     std::vector<Lit> &cl = m_clauses[i];
     std::vector<std::vector<int> > &listOcc = (cl.size() == 2) ?
                                               m_occListBin :
-                                              m_occListNotBin;    
+                                              m_occListNotBin;
     for(auto &l : cl) listOcc[l.intern()].push_back(i);
     if(cl.size() > m_maxSizeClause) m_maxSizeClause = cl.size();
     m_infoClauses[i].watcher = cl[0];

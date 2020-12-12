@@ -135,6 +135,17 @@ template<class T> class CacheCleaningSharpSAT : public CacheCleaningManager<T>
 
 
   /**
+     We delete cb, but it is useful right now.
+
+     @param[in] cb, the bucket used.
+  */
+  void wrongSmudge(CachedBucket<T> &cb)
+  {
+    // nothing to do.
+  } // wrongSmudge
+
+  
+  /**
      Print out statistics about the cleaning process.
 
      @param[in] out, the stream where are print out the information.

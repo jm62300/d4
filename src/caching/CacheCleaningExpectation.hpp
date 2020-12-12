@@ -33,11 +33,12 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
   unsigned long m_nbRemoveEntry;
   unsigned long m_nbFailedInCache;
   unsigned long m_limitNegativeHit;
-  double m_ratio;
   int m_nbVar;
 
+  std::vector<double> m_ratio;
   std::vector<unsigned long> m_sizeVarCacheHit;
   std::vector<unsigned long> m_nbCacheWithSizeVar;
+  std::vector<unsigned> m_wrongSmudge;
 
   using CacheCleaningManager<T>::m_cache;
   
@@ -58,7 +59,6 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
                            unsigned long limitNegativehit,
                            double ratio)
   {
-    m_ratio = ratio;
     m_limitNegativeHit = limitNegativehit;
     m_nbVar = nbVar;
     m_nbFailedInCache = 0;
@@ -67,6 +67,8 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
     m_smudge = smudge;
     this->m_cache = cache;
 
+    m_ratio.resize(nbVar + 1, ratio);
+    m_wrongSmudge.resize(nbVar + 1, 0);
     m_sizeVarCacheHit.resize(nbVar + 1, 0);
     m_nbCacheWithSizeVar.resize(nbVar + 1, 0);
   } // constructor
@@ -119,6 +121,15 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
     if(m_nbFailedInCache < m_limitNegativeHit) return;
     m_nbFailedInCache = 0;
     m_nbReduceCall++;
+#if 1
+    for(int i = 0 ; i<m_nbVar ; i++)
+    {
+      if(m_wrongSmudge[i]) m_ratio[i] *= 0.99; else m_ratio[i] *= 1.01;      
+      // std::cout << i << "(" << m_wrongSmudge[i] << "/" << m_ratio[i]<< ") ";
+      m_wrongSmudge[i] >>= 1;      
+    }
+#endif
+    // std::cout << "\n";
 
     auto &hashTable = m_cache->getHashTable();
     for(unsigned i = 0 ; i<hashTable.size() ; i++)
@@ -131,7 +142,7 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
         if(cb.smudge()){j++; continue;}
         
         double ratio = (double) m_sizeVarCacheHit[cb.nbVar()] / (double) m_nbCacheWithSizeVar[cb.nbVar()];
-        bool mustBeKept = (cb.count() || cb.dirty() || ratio > m_ratio);
+        bool mustBeKept = (cb.count() || cb.dirty() || ratio > m_ratio[cb.nbVar()]);
 
         if(mustBeKept)
         {
@@ -172,6 +183,17 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
   } //reduceCache
 
 
+  /**
+     We delete cb, but it is useful right now.
+
+     @param[in] cb, the bucket used.
+   */
+  void wrongSmudge(CachedBucket<T> &cb)
+  {
+    m_wrongSmudge[cb.nbVar()]++;
+  } // wrongSmudge
+
+  
   /**
      Print out statistics about the cleaning process.
 

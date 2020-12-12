@@ -36,6 +36,7 @@ template<class T> class CacheCleaningManager
 {
  protected:
   Cache<T> *m_cache;
+  
 
  public:
   virtual ~CacheCleaningManager(){}
@@ -90,7 +91,8 @@ template<class T> class CacheCleaningManager
   virtual void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) = 0;
   virtual void reduceCache() = 0;
   virtual void printCleaningInfo(std::ostream &out) = 0;
-
+  virtual void wrongSmudge(CachedBucket<T> &cb) = 0;
+  
 
   /**
      Ask to the bucket manager to release some memory block.

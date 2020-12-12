@@ -151,7 +151,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 
   // first considere the equivalence.
   for(auto &vec : equivVar)
-  {
+  {    
     unsigned &size = m_hypergraph[pos++];
     size = 0;
 
@@ -162,20 +162,20 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
       
       for(auto l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)})
       {
-        for(auto &idx : m_om.getVecIdxClauseBin(l))
-          if(!m_markedClauses[idx])
-          {
-            m_markedClauses[idx] = true;
-            m_unmarkSet.push_back(idx);
-            m_hypergraph[pos++] = idx; size++;
-          }
-
         for(auto &idx : m_om.getVecIdxClauseNotBin(l))
           if(!m_markedClauses[idx])
           {
             m_markedClauses[idx] = true;
             m_unmarkSet.push_back(idx);
             m_hypergraph[pos++] = idx; size++;            
+          }
+
+        for(auto &idx : m_om.getVecIdxClauseBin(l))
+          if(!m_markedClauses[idx])
+          {
+            m_markedClauses[idx] = true;
+            m_unmarkSet.push_back(idx);
+            m_hypergraph[pos++] = idx; size++;
           }
       }
 
@@ -214,7 +214,6 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
         if(!m_keepClause[idx]){m_keepClause[idx] = true; m_idxClauses.push_back(idx);}
         m_hypergraph[pos++] = idx; size++;
       }
-
       for(auto &idx : m_om.getVecIdxClauseBin(l))
       {        
         if(!m_keepClause[idx]){m_keepClause[idx] = true; m_idxClauses.push_back(idx);}
@@ -236,6 +235,8 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
   // remove useless edges.
   if(m_reduceFormula) reduceHyperGraph(m_hypergraph, m_hypergraphSize,
                                        considered, m_idxClauses, equivClass);
+
+  // unmark.
   for(auto &idx : m_idxClauses) m_keepClause[idx] = false;
 }// collectRelevantIdxClauses
 
@@ -270,8 +271,12 @@ void PartitioningHeuristicBipartiteDual::reduceHyperGraph(
 
   // sort the clause indices to put first the biggest clauses.
   sort(idxClauses.begin(), idxClauses.end(),
-       [this](const int i, const int j) -> bool {return m_sizeClause[i] > m_sizeClause[j];});
-
+       [this](const int i, const int j) -> bool
+       {
+         if(m_sizeClause[i] == m_sizeClause[j]) return i > j;
+         return m_sizeClause[i] > m_sizeClause[j];
+       });
+  
   std::vector<Var> vars;
   for(auto &idx : idxClauses)
   {
@@ -416,8 +421,8 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
   constructHyperGraph(component, m_equivClass, equivVar, considered);
   m_pm->computePartition(m_hypergraph, m_hypergraphSize,
                          (std::function<bool(int)>) [](int i) {return true;},
-                         m_partition);
-  
+                         m_partition);  
+
   // collect the cut.
   extractCutFromHyperGraph(considered, m_partition, cutSet);
   

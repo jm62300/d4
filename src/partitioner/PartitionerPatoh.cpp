@@ -112,12 +112,18 @@ void PartitionerPatoh::computePartition(unsigned *hypergraph,
 
   // hypergraph partitioner
   PaToH_Parameters args;
-  if(sizeXpins < 200)
+#if 0
+  if(sizeXpins < 50)
+    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_SPEED);
+  // else
+#endif
+  if (sizeXpins < 200)
     PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
-  else PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
-
+  else
+    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
+  
   args._k = 2;
-  args.seed = 1;
+  args.seed = 2911;
 
   int cut;
   PaToH_Alloc(&args, elts.size(), sizeXpins, 1, m_cwghts, NULL, m_xpins, m_pins);

@@ -299,7 +299,7 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 100000) exit(0);
+    // if(nbCallCall > 60000000) exit(0);
     if(!solver->solve(setOfVar)) return 0;    
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     specs->preUpdate(unitsLit);

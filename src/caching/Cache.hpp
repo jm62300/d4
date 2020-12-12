@@ -133,8 +133,6 @@ template<class T> class Cache
   {
     char *refData = cb.data;
     std::vector<CachedBucket<T> > &listCollision = hashTable[hashValue % SIZE_HASH];
-
-    static unsigned cpt = 0;
     
     for(auto &cbi : listCollision)
     {
@@ -143,13 +141,7 @@ template<class T> class Cache
       if(!memcmp(refData, cbi.data, cbi.szData()))
       {        
         m_nbPositiveHit++;
-
-        if(cbi.smudge())
-        {
-          cpt++;
-          if(!(cpt % 1000)) std::cout << cpt << " cache hit\n";
-        }
-
+        if(cbi.smudge()) m_cacheCleaningManager->wrongSmudge(cbi);
         return &cbi;
       }
     }
