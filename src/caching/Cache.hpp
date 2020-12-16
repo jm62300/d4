@@ -87,7 +87,7 @@ template<class T> class Cache
 
   inline unsigned long int nbCreationBucket(){return m_nbCreationBucket;}
   inline unsigned long int sumDataSize(){return m_sumDataSize;}
-  inline unsigned long int usedMemory(){return m_bucketManager->usedMemory;}
+  inline unsigned long int usedMemory(){return m_bucketManager->usedMemory();}
   inline unsigned long int getNbPositiveHit(){return m_nbPositiveHit;}
   inline unsigned long int getNbNegativeHit(){return m_nbNegativeHit;}
   inline unsigned long getNbEntry(){return m_nbEntry;}

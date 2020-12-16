@@ -50,11 +50,12 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
   using BucketManagerCnf<T>::m_maxSizeClause;
   using BucketManagerCnf<T>::m_idxClauses;
   using BucketManagerCnf<T>::modeStore;
-
+  using BucketManagerCnf<T>::m_bucketAllocator;
+  
   // using: functions
   using BucketManagerCnf<T>::isKeptClause;
   using BucketManagerCnf<T>::collectIdActiveClauses;
-
+  
  public:
   /**
      Function called in order to initialized variables before using
@@ -69,9 +70,11 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
                      Cache<T> *cache,
                      int mdStore,
                      unsigned long sizeFirstPage,
-                     unsigned long sizeAdditionalPage) :
+                     unsigned long sizeAdditionalPage,
+                     BucketAllocator *bucketAllocator = new BucketAllocator()) :
       BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
-                                            sizeFirstPage, sizeAdditionalPage),
+                                            sizeFirstPage, sizeAdditionalPage,
+                                            bucketAllocator),
       m_inConstruction(occM)
   {
     m_mapVar.resize(nbVarCnf + 1, 0);
@@ -79,7 +82,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     m_offsetClauses = new unsigned[nbClauseCnf];    
   }// BucketManagerCnfCl
 
-
+  
   /**
      Destructor.
    */
@@ -469,7 +472,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
     // ask for memory
     unsigned szData = computeNeededBytes(nbOVar, nbOLit, nbODistrib,
                                          nbVar, nbLit, nbDiffClauseSize);    
-    char *data = this->getArray(szData);
+    char *data = m_bucketAllocator->getArray(szData);
     void *p = data;
 
     // store the variables.

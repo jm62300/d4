@@ -35,6 +35,7 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
   using BucketManagerCnf<T>::specManager;
   using BucketManagerCnf<T>::isKeptClause;
   using BucketManagerCnf<T>::collectIdActiveClauses;
+  using BucketManagerCnf<T>::m_bucketAllocator;
   
  public:
   /**
@@ -50,10 +51,13 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
                         Cache<T> *cache,
                         int mdStore,
                         unsigned long sizeFirstPage,
-                        unsigned long sizeAdditionalPage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore, sizeFirstPage, sizeAdditionalPage)
+                        unsigned long sizeAdditionalPage,
+                        BucketAllocator *bucketAllocator = new BucketAllocator()) :
+      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
+                                            sizeFirstPage, sizeAdditionalPage,
+                                            bucketAllocator)
   {
-  }// BucketManagerCnfCl
+  }// BucketManagerCnfIndex
 
 
   /**
@@ -104,7 +108,7 @@ template<class T> class BucketManagerCnfIndex : public BucketManagerCnf<T>
 
     // ask for memory
     unsigned szData = nbOVar * component.size() + nbOData * m_idxClauses.size();
-    char *data = this->getArray(szData);
+    char *data = m_bucketAllocator->getArray(szData);
     void *p = data;
 
     // store the variables

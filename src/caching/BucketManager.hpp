@@ -30,10 +30,12 @@
 #include "src/exceptions/FactoryException.hpp"
 
 #include "CachedBucket.hpp"
+#include "BucketAllocator.hpp"
 #include "cnf/BucketManagerCnf.hpp"
 #include "cnf/BucketManagerCnfCl.hpp"
 #include "cnf/BucketManagerCnfSym.hpp"
 #include "cnf/BucketManagerCnfIndex.hpp"
+#include "cnf/BucketManagerCnfCombi.hpp"
 
 #define ONE_OCTET 2
 #define TWO_OCTET 3
@@ -45,35 +47,16 @@ namespace d4
 {
 namespace po = boost::program_options;
 
-struct Released
-{
-  char *data;
-  int posInHash;
-
-  Released(char *_data, int _posInHash) : data(_data), posInHash(_posInHash){}
-};
-
-
 template<class T> class BucketManager
 {
  protected:
-  std::vector<char *> allocateData;
-  char *data;
-  unsigned long m_sizeFirstPage;
-  unsigned long m_sizeAdditionalPage;
-  unsigned long m_sizeData;
-  unsigned long m_posInData;
-  CachedBucket<T> bucket;
+  BucketAllocator *m_bucketAllocator;
+  CachedBucket<T> m_bucket;
   Cache<T> *m_cache; // the cache linked with this BucketManager.
   
  public:
-  // freespace[i][j] points to a free memory space of size i
-  std::vector<std::deque<Released>> freeSpace;
-  unsigned long int allMemory;
-  unsigned long int freeMemory;
-  unsigned long int pageData;
-  unsigned long int usedMemory;
-
+  virtual ~BucketManager() {}
+  
   static BucketManager<T> *makeBucketManager(po::variables_map &vm,
                                              Cache<T> *cache,
                                              SpecManager &s,
@@ -81,9 +64,11 @@ template<class T> class BucketManager
   {
     std::string css = vm["cache-store-strategy"].as<std::string>();
     std::string ccr = vm["cache-clause-representation"].as<std::string>();
+    std::string crs = vm["cache-reduction-strategy"].as<std::string>();
+    
     unsigned long sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
     unsigned long sizeAdditionalPage = vm["cache-size-additional-page"].as<unsigned long>();
-    if(ccr == "clause")
+    if(crs == "expectation")
       sizeFirstPage = vm["cache-reduction-strategy-expectation-size-first-page"].as<unsigned long>();
 
     out << "c [CONSTRUCTOR] Cache bucket manager:"
@@ -104,17 +89,25 @@ template<class T> class BucketManager
       return new BucketManagerCnfSym<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
     if(ccr == "index")
       return new BucketManagerCnfIndex<T>(scnf, cache, modeStore, sizeFirstPage, sizeAdditionalPage);
+    if(ccr == "combi")
+    {
+      unsigned limitNbVarSym = vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
+      double pourcentNbVarIndex = vm["cache-clause-representation-combi-pourcentVar-index"].as<double>();
+
+      out << "c [CONSTRUCTOR] Cache bucket manager mixed strategy:"
+          << " limit #var sym(" << limitNbVarSym << ") "
+          << " ratio #var index (" << pourcentNbVarIndex << ") "
+          << "\n";
+      
+      return new BucketManagerCnfCombi<T>(scnf, cache, modeStore,
+                                          sizeFirstPage, sizeAdditionalPage,
+                                          limitNbVarSym, pourcentNbVarIndex);
+    }
 
     throw (FactoryException("Cannot create a BucketManager",__FILE__, __LINE__));
-  } // makeBucketManager
+  } // makeBucketManager  
 
   
-  virtual ~BucketManager()
-  {
-    for(unsigned i = 0 ; i<allocateData.size() ; i++) delete[](allocateData[i]);
-    allocateData.clear();
-  }
-
   inline int nbOctetToEncodeInt(unsigned int v) 
   {
     // we know that we cannot have more than 1<<32 variables
@@ -122,117 +115,6 @@ template<class T> class BucketManager
     if(v < (1<<16)) return 2;
     return 4;
   }// nbOctetToEncodeInt
-
-
-  inline double remainingMemory()
-  {
-    return ((double) freeMemory + (m_sizeData - m_posInData)) / (double) allMemory;
-  } // remainingMemory
-
-
-  /**
-     Initialize the data structure regarding the configuration (ie. number of
-     variables, maximum number of clauses and the lenght of the largest clause).
-
-     @param[in] sizeFirstPage, the amount of bytes for the first page.
-     @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
-     @param[in] cache, the cache the bucket is linked with.     
-  */
-  void init(unsigned long sizeFirstPage,
-            unsigned long sizeAdditionalPage,
-            Cache<T> *cache)
-  {
-    allMemory = freeMemory = m_posInData = 0;
-    m_sizeFirstPage = sizeFirstPage;
-    m_sizeAdditionalPage = sizeAdditionalPage;    
-    m_sizeData = m_sizeFirstPage;
-
-    // we cannot reinit ... at least for the moment
-    assert(!allocateData.size());
-    data = new char[m_sizeData];
-    allocateData.push_back(data);
-    allMemory += m_sizeData;
-    usedMemory = 0;
-  } // init
-
-
-  /**
-     Get a pointer on an available array where we can store the data we want to
-     save into the bucket.
-  */
-  char *getArray(unsigned size)
-  {
-    usedMemory += size;
-    char *ret = NULL;    
-
-    if(size < freeSpace.size() && freeSpace[size].size())
-    {
-      Released &r = freeSpace[size].back();      
-      ret = r.data;
-
-      if(r.posInHash != -1) // remove in the cache.
-      {
-        assert(m_cache);
-        std::vector< CachedBucket<T> > &v = m_cache->getHashTable()[r.posInHash];
-        unsigned posRm = v.size();
-        for(unsigned i = 0 ; i<posRm ; i++)
-          if(v[i].data == r.data) posRm = i;
-
-        assert(posRm < v.size());
-        v[posRm] = v.back();
-        v.pop_back();
-      }
-
-      freeSpace[size].pop_back();
-      freeMemory -= size;
-      return ret;
-    }
-    
-    // take a fresh entry
-    if(m_posInData + size > m_sizeData)
-    {
-      unsigned rSz = m_sizeData - m_posInData;
-      if(freeSpace.size() <= rSz) freeSpace.resize(rSz + 1, std::deque<Released>());
-      freeSpace[rSz].push_back(Released(&data[m_posInData], -1));
-      freeMemory += rSz;
-
-      printf("c Allocate a new page for the cache %lu\n", freeMemory);
-
-      m_sizeData = m_sizeAdditionalPage;
-      m_posInData = 0;
-      data = new char[m_sizeData];
-      allocateData.push_back(data);
-
-      allMemory += m_sizeData;
-    }
-    
-    ret = &data[m_posInData];
-    m_posInData += size;
-    return ret;
-  } // getArray
-
-
-  /**
-     Release some memory of a given size and store this information in
-     freespace.
-
-     @param[in] m, the memory we want to release
-     @param[in] size, the size of the memory block
-     @param[in] posInHash, a position in the hash table (in the vector).
-  */
-  inline void releaseMemory(char *m, unsigned size, int posInHash = -1)
-  {
-    usedMemory -= size;
-    
-    if((m_posInData - size) > 0 && &data[m_posInData - size] == m)
-      m_posInData -= size;
-    else
-    {
-      if(size >= freeSpace.size()) freeSpace.resize(size + 1, std::deque<Released>());
-      freeSpace[size].push_front(Released(m, posInHash));
-      freeMemory += size;
-    }
-  }// reverseLastBucket
 
 
   /**
@@ -243,11 +125,22 @@ template<class T> class BucketManager
   */
   CachedBucket<T> *collectBucket(std::vector<Var> &component)
   {
-    storeFormula(component, bucket);
-    return &bucket;
+    storeFormula(component, m_bucket);
+    return &m_bucket;
   }// collectBuckect
 
+  inline unsigned long int usedMemory(){return m_bucketAllocator->usedMemory();}
 
+  inline void releaseMemory(char *m, unsigned size, int posInHash = -1)
+  {
+    m_bucketAllocator->releaseMemory(m, size, posInHash);
+  } // releaseMemory
+
+  inline double remainingMemory()
+  {
+    return m_bucketAllocator->remainingMemory();
+  } // remainingMemory
+  
   virtual void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) = 0;
 };
 } // d4

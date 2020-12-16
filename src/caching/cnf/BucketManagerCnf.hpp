@@ -25,6 +25,7 @@
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
+#include "../BucketAllocator.hpp"
 #include "../BucketManager.hpp"
 #include "../CachedBucket.hpp"
 
@@ -60,6 +61,9 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
   std::vector<bool> m_varInComponent;
   std::vector<int> m_idxClauses;
 
+  using BucketManager<T>::m_cache;
+  using BucketManager<T>::m_bucketAllocator;
+  
  public:
   /**
      Constructor.
@@ -69,22 +73,35 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
      @param[in] mdStore, the storing mode for the clause.
      @param[in] sizeFirstPage, the amount of bytes for the first page.
      @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
+     @param[in] bucketAllocator, a bucket allocator.
   */
   BucketManagerCnf(SpecManagerCnf &occM,
                    Cache<T> *cache,
                    int mdStore,
                    unsigned long sizeFirstPage,
-                   unsigned long sizeAdditionalPage) :
+                   unsigned long sizeAdditionalPage,
+                   BucketAllocator *bucketAllocator) :
       specManager(occM)
   {
     this->m_cache = cache;
+    this->m_bucketAllocator = bucketAllocator;
     modeStore = mdStore;
     nbClauseCnf = occM.getNbClause();
     nbVarCnf = occM.getNbVariable();
     m_maxSizeClause = occM.getMaxSizeClause();
     m_varInComponent.resize(nbVarCnf, false);
     
-    this->init(sizeFirstPage, sizeAdditionalPage, cache);
+    m_bucketAllocator->init(sizeFirstPage, sizeAdditionalPage,                            
+                            [this] (char *data, int posInHash)
+                            {std::vector< CachedBucket<T> > &v =
+                                  m_cache->getHashTable()[posInHash];
+                              unsigned posRm = v.size();
+                              for(unsigned i = 0 ; i<posRm ; i++)
+                                if(v[i].data == data) posRm = i;
+                              assert(posRm < v.size());
+                              v[posRm] = v.back();
+                              v.pop_back();}
+                            );
   }// BucketManager
 
   

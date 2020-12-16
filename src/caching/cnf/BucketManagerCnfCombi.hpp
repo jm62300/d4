@@ -1,0 +1,136 @@
+/*
+* d4
+* Copyright (C) 2020  Univ. Artois & CNRS
+* 
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#pragma once
+
+#include <algorithm> 
+
+#include "src/exceptions/BucketException.hpp"
+#include "src/problem/ProblemTypes.hpp"
+#include "DataInfoCnfCl.hpp"
+#include "BucketInConstruction.hpp"
+#include "BucketSortInfo.hpp"
+#include "BucketManagerCnf.hpp"
+
+#include "BucketManagerCnfCl.hpp"
+#include "BucketManagerCnfSym.hpp"
+#include "BucketManagerCnfIndex.hpp"
+
+
+namespace d4
+{
+template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
+{
+ private:
+  std::vector<BucketSortInfo> m_vecBucketSortInfo;
+  int m_unusedBucket;
+  std::vector<unsigned long int> m_mapVar;
+  
+  std::vector<int> m_mustUnMark;
+  std::vector<int> m_markIdx;
+  std::vector<unsigned> m_idInVecBucket;
+
+  BucketInConstruction m_inConstruction;
+  unsigned *m_offsetClauses;
+
+  // using: variables
+  using BucketManagerCnf<T>::specManager;
+  using BucketManagerCnf<T>::nbClauseCnf;
+  using BucketManagerCnf<T>::nbVarCnf;
+  using BucketManagerCnf<T>::m_maxSizeClause;
+  using BucketManagerCnf<T>::m_idxClauses;
+  using BucketManagerCnf<T>::modeStore;
+  using BucketManagerCnf<T>::m_bucketAllocator;
+
+  // using: functions
+  using BucketManagerCnf<T>::isKeptClause;
+  using BucketManagerCnf<T>::collectIdActiveClauses;
+
+
+  BucketManagerCnfCl<T> *clBucketManager;
+  BucketManagerCnfIndex<T> *indexBucketManager;
+  BucketManagerCnfSym<T> *symBucketManager;
+
+  double m_pourcentNbVarIndex;
+  unsigned m_limitNbVarSym;
+
+ public:
+  /**
+     Function called in order to initialized variables before using
+
+     @param[in] occM, the CNF occurrence manager
+     @param[in] cache, the cache the bucket is linked with.
+     @param[in] mdStore, the storing mode for the clause
+     @param[in] sizeFirstPage, the amount of bytes for the first page.
+     @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
+     @param[in] limitNbVarSym, if we have less than this number we use the sym cache.     
+     @param[in] pourcentNbVarIndex, if we have more than some pourcentage of
+                varaibles then we use the index cache representation.
+     @param[in] bucketAllocator, the object used to manage the memory allocation.
+  */
+  BucketManagerCnfCombi(SpecManagerCnf &occM,
+                        Cache<T> *cache,
+                        int mdStore,
+                        unsigned long sizeFirstPage,
+                        unsigned long sizeAdditionalPage,
+                        unsigned limitNbVarSym,
+                        double pourcentNbVarIndex,
+                        BucketAllocator *bucketAllocator = new BucketAllocator()) :
+      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
+                                            sizeFirstPage, sizeAdditionalPage,
+                                            bucketAllocator),
+      m_inConstruction(occM)
+  {
+    clBucketManager = new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
+                                                sizeAdditionalPage, m_bucketAllocator);
+
+    symBucketManager = new BucketManagerCnfSym<T>(occM, cache, mdStore, sizeFirstPage,
+                                                sizeAdditionalPage, m_bucketAllocator);
+
+    indexBucketManager = new BucketManagerCnfIndex<T>(occM, cache, mdStore, sizeFirstPage,
+                                                      sizeAdditionalPage, m_bucketAllocator);
+
+    m_pourcentNbVarIndex = pourcentNbVarIndex;
+    m_limitNbVarSym = limitNbVarSym;
+  }// BucketManagerCnfCombi
+
+
+  /**
+     Destructor.
+   */
+  ~BucketManagerCnfCombi()
+  {
+    delete clBucketManager;
+  } // destructor
+
+
+  /**
+     Transfer the formula store in distib in a table given in parameter.
+
+     @param[in] component, the input variables.
+     @param[out] tmpFormula, the place where is stored the formula.
+     @param[out] szTmpFormula, to collect the size of the stored formula.
+  */
+  inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b)
+  {
+    if(component.size() < m_limitNbVarSym) return symBucketManager->storeFormula(component, b);
+    if(component.size() > (m_pourcentNbVarIndex * specManager.getNbVariable()))
+      return indexBucketManager->storeFormula(component, b);
+    return clBucketManager->storeFormula(component, b);
+  }// storeFormula
+};
+} // d4

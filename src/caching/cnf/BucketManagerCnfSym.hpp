@@ -47,11 +47,11 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
   using BucketManagerCnf<T>::nbVarCnf;
   using BucketManagerCnf<T>::m_maxSizeClause;
   using BucketManagerCnf<T>::m_idxClauses;
-
+  using BucketManagerCnf<T>::m_bucketAllocator;
+  
   // using: functions
   using BucketManagerCnf<T>::isKeptClause;
   using BucketManagerCnf<T>::collectIdActiveClauses;
-
 
  public:
   /**
@@ -64,11 +64,14 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
      @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
   */
   BucketManagerCnfSym(SpecManagerCnf &occM,
-                     Cache<T> *cache,
-                     int mdStore,
-                     unsigned long sizeFirstPage,
-                     unsigned long sizeAdditionalPage) :
-      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore, sizeFirstPage, sizeAdditionalPage),
+                      Cache<T> *cache,
+                      int mdStore,
+                      unsigned long sizeFirstPage,
+                      unsigned long sizeAdditionalPage,
+                      BucketAllocator *bucketAllocator = new BucketAllocator()) :
+      BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
+                                            sizeFirstPage, sizeAdditionalPage,
+                                            bucketAllocator),
       m_inConstruction(occM)
   {
     m_mapVar.resize(nbVarCnf + 1, 0);
@@ -76,7 +79,7 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
     m_offsetClauses = new unsigned[nbClauseCnf];    
   }// BucketManagerCnfSym
 
-
+  
   /**
      Destructor.
    */
@@ -493,7 +496,7 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
 
     // ask for memory
     unsigned szData = computeNeededBytes(nbOLit, nbODistrib, nbLit, nbDiffClauseSize);    
-    char *data = this->getArray(szData);
+    char *data = m_bucketAllocator->getArray(szData);
     void *p = data;
 
     // store the clause distribution of the size.
