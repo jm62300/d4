@@ -72,6 +72,8 @@ template <class T> class ModelCounter : public MethodManager
   Cache<T> *m_cache;
 
   std::ostream m_out;
+
+  unsigned limitNbVarCache;
   
  public:
 
@@ -92,7 +94,7 @@ template <class T> class ModelCounter : public MethodManager
     m_out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
     initProblem->displayStat(m_out, "c [INITIAL INPUT] ");
     m_out << "c\n";
-    assert(initProblem);
+    assert(initProblem);    
 
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
@@ -133,6 +135,9 @@ template <class T> class ModelCounter : public MethodManager
     nbSplit = nbCallCall = 0;    
     nbDecisionNode = nbNodeInCall = 0;
 
+    limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
+    m_out << "c [CONSTRUCTOR] Limit number of variables for caching: " << limitNbVarCache << "\n";
+    
     stampIdx = 0;
     stampVar.resize(specs->getNbVariable() + 1, 0);
 
@@ -322,11 +327,13 @@ template <class T> class ModelCounter : public MethodManager
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = optCached ?
+        bool cacheActivated = optCached && connected.size() < limitNbVarCache;
+        
+        TmpEntry<T> cb = cacheActivated ?
                          m_cache->searchInCache(connected):
                          NULL_CACHE_ENTRY;
 
-        if(optCached && cb.defined) ret *= cb.getValue();
+        if(cacheActivated && cb.defined) ret *= cb.getValue();
         else
         {
           // recursive call
@@ -334,7 +341,7 @@ template <class T> class ModelCounter : public MethodManager
           computePrioritySubSet(connected, priorityVar, currPriority);
           ret *= (curr = computeDecisionNode(connected, currPriority, out));
 
-          if(optCached) m_cache->addInCache(cb, curr);
+          if(cacheActivated) m_cache->addInCache(cb, curr);
         }
       }
     }// else we have a tautology
