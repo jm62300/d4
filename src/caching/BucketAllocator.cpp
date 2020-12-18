@@ -55,6 +55,10 @@ void BucketAllocator::init(unsigned long sizeFirstPage,
 /**
    Get a pointer on an available array where we can store the data we want to
    save into the bucket.
+
+   @param[in] size, the size of the entry we want.
+
+   \return a pointer on a memory block.
 */
 char *BucketAllocator::getArray(unsigned size)
 {

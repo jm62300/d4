@@ -62,6 +62,9 @@ template <class T> class ModelCounter : public MethodManager
   std::vector<unsigned> stampVar;
   std::vector< std::vector<Lit> > clauses;
 
+  std::vector<unsigned long> nbTestCacheVarSize;
+  std::vector<unsigned long> nbPosHitCacheVarSize;
+
   ProblemManager *problem;
   WrapperSolver *solver;
   SpecManager *specs;
@@ -74,6 +77,8 @@ template <class T> class ModelCounter : public MethodManager
   std::ostream m_out;
 
   unsigned limitNbVarCache;
+  double ratioDynamicLimit;
+  unsigned limitNbVarCacheDynamic;
   
  public:
 
@@ -135,15 +140,23 @@ template <class T> class ModelCounter : public MethodManager
     nbSplit = nbCallCall = 0;    
     nbDecisionNode = nbNodeInCall = 0;
 
+    ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();
     limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
-    m_out << "c [CONSTRUCTOR] Limit number of variables for caching: " << limitNbVarCache << "\n";
+    limitNbVarCacheDynamic = specs->getNbVariable();
+    m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
+          << "limit("<< limitNbVarCache << ") "
+          << "ratio("<< ratioDynamicLimit << ") "
+          << "limitDyn("<< limitNbVarCacheDynamic << ") "
+          << "\n";
     
     stampIdx = 0;
     stampVar.resize(specs->getNbVariable() + 1, 0);
-
+    nbTestCacheVarSize.resize(specs->getNbVariable() + 1, 0);
+    nbPosHitCacheVarSize.resize(specs->getNbVariable() + 1, 0);
+    
     std::vector<Var> &selected = problem->getSelectedVar();
     for(auto v : selected) std::cout << v << " ";
-    std::cout << "\n";
+    std::cout << "\n";    
   } // constructor
 
 
@@ -285,6 +298,37 @@ template <class T> class ModelCounter : public MethodManager
     solver->setAssumption(assums);
   } // initAssumption  
 
+
+  /**
+     Decide if the cache is realized or not.
+   */
+  bool cacheIsActivated(std::vector<Var> &connected)
+  {
+    if(!optCached) return false;
+    if(connected.size() < limitNbVarCache) return true;
+    if(connected.size() < limitNbVarCacheDynamic) return true;
+    return false;
+  } // cacheIsActivated
+
+
+  /**
+     Update the dynamic limit.
+   */
+  void updateDynamicLimit()
+  {
+    unsigned limitNbVarCacheDynamic = 0;
+    for(unsigned i = limitNbVarCacheDynamic ; i<nbPosHitCacheVarSize.size() ; i++)
+    {
+      if(nbPosHitCacheVarSize[i]) limitNbVarCacheDynamic = i;      
+      if(nbTestCacheVarSize[i] > 100) nbPosHitCacheVarSize[i] >>= 1;
+    }
+    
+    limitNbVarCacheDynamic *= 1 + ratioDynamicLimit;
+    m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic
+          << "/" << limitNbVarCache << "\n";
+  } // updateDynamicLimit
+  
+  
   /**
      Call the CNF formula into a D-FPiBDD.
 
@@ -304,7 +348,8 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 60000000) exit(0);
+    // if(nbCallCall > 1000000) {exit(0);}
+    
     if(!solver->solve(setOfVar)) return 0;    
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     specs->preUpdate(unitsLit);
@@ -317,9 +362,9 @@ template <class T> class ModelCounter : public MethodManager
     
     int nbComponent = specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    
-    // if(nbComponent > 1){std::cout << nbComponent << "\n"; exit(0);}
 
+    if(!(nbCallCall % 100000)) updateDynamicLimit();
+    
     // consider each connected component.
     if(nbComponent)
     {
@@ -327,13 +372,17 @@ template <class T> class ModelCounter : public MethodManager
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
         std::vector<Var> &connected = varConnected[cp];
-        bool cacheActivated = optCached && connected.size() < limitNbVarCache;
+        bool cacheActivated = cacheIsActivated(connected);
         
-        TmpEntry<T> cb = cacheActivated ?
-                         m_cache->searchInCache(connected):
-                         NULL_CACHE_ENTRY;
+        TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
+                         : NULL_CACHE_ENTRY;
 
-        if(cacheActivated && cb.defined) ret *= cb.getValue();
+        if(cacheActivated) nbTestCacheVarSize[connected.size()]++;
+        if(cacheActivated && cb.defined)
+        {
+          nbPosHitCacheVarSize[connected.size()]++;
+          ret *= cb.getValue();
+        }
         else
         {
           // recursive call

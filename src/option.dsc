@@ -25,6 +25,7 @@
 ("cache-clause-representation-combi-limitVar-sym", boost::program_options::value<unsigned>()->default_value(20), "In the mixed strategy, if we have less than a given number of variable then we use the symmetry caching representation.")
 ("cache-clause-representation-combi-pourcentVar-index", boost::program_options::value<double>()->default_value(0.7), "In the mixed strategy, if we have more than some ratio of variable then we use the index caching representation.")
 ("cache-limit-number-variable", boost::program_options::value<unsigned>()->default_value(1<<31), "The number of variables threshold used to decide if the cache is used or not.")
+("cache-limit-ratio-number-variable", boost::program_options::value<double>()->default_value(0.1), "For the dynamic limit, we keep x% more than the last hit variable.")
 ("cache-activated", boost::program_options::value<bool>()->default_value(true), "Activate or not the cache.")
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(false), "Consider or not the reverse of the current phase.")
 ("float-precision,fp", boost::program_options::value<int>()->default_value(128), "The precision for the float.")
