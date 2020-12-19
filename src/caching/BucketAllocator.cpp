@@ -86,7 +86,7 @@ char *BucketAllocator::getArray(unsigned size)
     m_freeMemory += rSz;
 
     printf("c Allocate a new page for the cache %lu\n", m_freeMemory);
-
+    
     m_sizeData = m_sizeAdditionalPage;
     m_posInData = 0;
     m_data = new char[m_sizeData];

@@ -142,7 +142,7 @@ template <class T> class ModelCounter : public MethodManager
 
     ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();
     limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
-    limitNbVarCacheDynamic = specs->getNbVariable();
+    limitNbVarCacheDynamic = limitNbVarCache;
     m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
           << "limit("<< limitNbVarCache << ") "
           << "ratio("<< ratioDynamicLimit << ") "
@@ -316,14 +316,25 @@ template <class T> class ModelCounter : public MethodManager
    */
   void updateDynamicLimit()
   {
-    unsigned limitNbVarCacheDynamic = 0;
-    for(unsigned i = limitNbVarCacheDynamic ; i<nbPosHitCacheVarSize.size() ; i++)
+    limitNbVarCacheDynamic = 0;
+#if 0
+    for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
     {
-      if(nbPosHitCacheVarSize[i]) limitNbVarCacheDynamic = i;      
-      if(nbTestCacheVarSize[i] > 100) nbPosHitCacheVarSize[i] >>= 1;
+      if(!nbTestCacheVarSize[i]) continue;
+      if(nbPosHitCacheVarSize[i]) std::cout << "\033[1m\033[31m";
+      std::cout << i << "("<< nbTestCacheVarSize[i] << "/" << nbPosHitCacheVarSize[i] << ") ";
+      if(nbPosHitCacheVarSize[i]) std::cout << "\033[0m";
+    }
+    std::cout << "\n";
+#endif
+    
+    for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
+    {
+      if(nbPosHitCacheVarSize[i]) limitNbVarCacheDynamic = i;
+      nbPosHitCacheVarSize[i] >>= 1;      
     }
     
-    limitNbVarCacheDynamic *= 1 + ratioDynamicLimit;
+    limitNbVarCacheDynamic *= ratioDynamicLimit;
     m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic
           << "/" << limitNbVarCache << "\n";
   } // updateDynamicLimit
@@ -348,7 +359,7 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 1000000) {exit(0);}
+    // if(nbCallCall > 250000) {exit(0);}
     
     if(!solver->solve(setOfVar)) return 0;    
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
