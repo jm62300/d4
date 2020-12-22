@@ -92,16 +92,16 @@ template<class T> class BucketManager
     if(ccr == "combi")
     {
       unsigned limitNbVarSym = vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
-      double pourcentNbVarIndex = vm["cache-clause-representation-combi-pourcentVar-index"].as<double>();
+      unsigned limitNbVarIndex = vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
 
       out << "c [CONSTRUCTOR] Cache bucket manager mixed strategy:"
           << " limit #var sym(" << limitNbVarSym << ") "
-          << " ratio #var index (" << pourcentNbVarIndex << ") "
+          << " limit #var index (" << limitNbVarIndex << ") "
           << "\n";
       
       return new BucketManagerCnfCombi<T>(scnf, cache, modeStore,
                                           sizeFirstPage, sizeAdditionalPage,
-                                          limitNbVarSym, pourcentNbVarIndex);
+                                          limitNbVarSym, limitNbVarIndex);
     }
 
     throw (FactoryException("Cannot create a BucketManager",__FILE__, __LINE__));

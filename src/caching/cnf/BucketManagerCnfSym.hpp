@@ -228,10 +228,8 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
     {
       if(specManager.varIsAssigned(v)) continue;
       Lit l = Lit::makeLitFalse(v);
-      
-      bool reverse = specManager.getNbClause(l) < specManager.getNbClause(~l);
-      createDistribWrTLit(l, inConstruction, (reverse) ? ~l : l);
-      createDistribWrTLit(~l, inConstruction, (reverse) ? l : ~l);
+      createDistribWrTLit(l, inConstruction, l);
+      createDistribWrTLit(~l, inConstruction, ~l);
     }
 
     // mark the clause we do not keep.
@@ -263,26 +261,7 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
       inConstruction.markedAsRedundant[i] = false;
     }
     inConstruction.nbClauseInDistrib = index; // resize
-#if 0
-    if(component.size() == 8)
-      {
-        std::vector<unsigned> idxClauses;
-        BucketManagerCnf<T>::modeStore = ALL;
-        collectIdActiveClauses(component, idxClauses);        
-        
-        for(auto &idx : idxClauses)
-        {
-          std::vector<Lit> &cl = specManager.getClause(idx);
-          for(auto &l : cl)
-          {
-            if(specManager.litIsAssigned(l)) continue;
-            std::cout << l << " ";
-          }
-          std::cout << "\n";
-        }
-        std::cout << "--------------------\n";
-      }
-#endif
+
     return realSizeDistrib; 
   }// collectDistrib
 
@@ -477,20 +456,13 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
   */
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b)
   {
-    std::vector<Var> sortedComponent = component;
-    sort(sortedComponent.begin(), sortedComponent.end(),
-         [this](const int i, const int j) -> bool
-         {
-           return specManager.getNbClause(i) > specManager.getNbClause(j);
-         });
     initSortBucket(m_inConstruction);
-    collectDistrib(sortedComponent, m_inConstruction);         // built the sorted formula
+    collectDistrib(component, m_inConstruction);         // built the sorted formula
     
     // get information about the clause distribution
     unsigned nbLit = 0, nbVar = component.size(), maxNbSizeClause, nbDiffClauseSize, largestSizeClause;
     getInfoDistributionSize(maxNbSizeClause, largestSizeClause, nbDiffClauseSize, nbLit, m_inConstruction);
 
-    unsigned nbOVar = this->nbOctetToEncodeInt(component.back() + 1);
     unsigned nbODistrib = this->nbOctetToEncodeInt(std::max(maxNbSizeClause, largestSizeClause));
     unsigned nbOLit = this->nbOctetToEncodeInt(nbVar << 1);
 
@@ -512,15 +484,15 @@ template<class T> class BucketManagerCnfSym : public BucketManagerCnf<T>
     // store the clauses.
     switch(nbOLit)
     {
-      case 1 : p = storeClauses<uint8_t>(p, sortedComponent, m_inConstruction); break;
-      case 2 : p = storeClauses<uint16_t>(p, sortedComponent, m_inConstruction); break;
-      case 4 : p = storeClauses<uint32_t>(p, sortedComponent, m_inConstruction); break;
+      case 1 : p = storeClauses<uint8_t>(p, component, m_inConstruction); break;
+      case 2 : p = storeClauses<uint16_t>(p, component, m_inConstruction); break;
+      case 4 : p = storeClauses<uint32_t>(p, component, m_inConstruction); break;
       default : throw (BucketException("Bad number of bytes",__FILE__, __LINE__));
     }
     assert(static_cast<char *>(p) == &data[szData]);
-    
+
     // put the information into the bucket
-    DataInfoCnfCl di(szData, nbVar, nbLit, nbDiffClauseSize, nbOVar, nbOLit, nbODistrib);
+    DataInfoCnfCl di(szData, nbVar, nbLit, nbDiffClauseSize, 1, nbOLit, nbODistrib);
     assert(di.szData() == szData);
     b.set(data, di);
   }// storeFormula

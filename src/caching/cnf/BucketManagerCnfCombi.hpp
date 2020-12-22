@@ -60,13 +60,13 @@ template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
   using BucketManagerCnf<T>::isKeptClause;
   using BucketManagerCnf<T>::collectIdActiveClauses;
 
-
+  BucketManagerCnfCl<T> *clBucketManagerBis;
   BucketManagerCnfCl<T> *clBucketManager;
   BucketManagerCnfIndex<T> *indexBucketManager;
   BucketManagerCnfSym<T> *symBucketManager;
-
-  double m_pourcentNbVarIndex;
+  
   unsigned m_limitNbVarSym;
+  unsigned m_limitNbVarIndex;
 
  public:
   /**
@@ -88,7 +88,7 @@ template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
                         unsigned long sizeFirstPage,
                         unsigned long sizeAdditionalPage,
                         unsigned limitNbVarSym,
-                        double pourcentNbVarIndex,
+                        unsigned limitNbVarIndex,
                         BucketAllocator *bucketAllocator = new BucketAllocator()) :
       BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
                                             sizeFirstPage, sizeAdditionalPage,
@@ -98,13 +98,16 @@ template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
     clBucketManager = new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
                                                 sizeAdditionalPage, m_bucketAllocator);
 
+    clBucketManagerBis = new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
+                                                sizeAdditionalPage, m_bucketAllocator);
+
     symBucketManager = new BucketManagerCnfSym<T>(occM, cache, mdStore, sizeFirstPage,
                                                 sizeAdditionalPage, m_bucketAllocator);
 
     indexBucketManager = new BucketManagerCnfIndex<T>(occM, cache, mdStore, sizeFirstPage,
                                                       sizeAdditionalPage, m_bucketAllocator);
 
-    m_pourcentNbVarIndex = pourcentNbVarIndex;
+    m_limitNbVarIndex = limitNbVarIndex;
     m_limitNbVarSym = limitNbVarSym;
   }// BucketManagerCnfCombi
 
@@ -128,8 +131,7 @@ template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b)
   {
     if(component.size() < m_limitNbVarSym) return symBucketManager->storeFormula(component, b);
-    if(component.size() > (m_pourcentNbVarIndex * specManager.getNbVariable()))
-      return indexBucketManager->storeFormula(component, b);
+    if(component.size() > m_limitNbVarIndex) return indexBucketManager->storeFormula(component, b);
     return clBucketManager->storeFormula(component, b);
   }// storeFormula
 };

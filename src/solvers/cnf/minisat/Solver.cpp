@@ -933,7 +933,6 @@ lbool Solver::search(int nof_conflicts)
           analyzeFinal(~p, conflict);
           if(cert != nullptr)
           {
-
             std::ostream &cval = *cert;
             for (int i = 0; i < conflict.size(); i++)
               cval << (var(conflict[i]) + 1)*(-2 * sign(conflict[i]) + 1) << " ";

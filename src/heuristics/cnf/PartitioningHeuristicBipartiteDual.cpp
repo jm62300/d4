@@ -414,7 +414,7 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
   computeEquivClass(component, unitEquiv, m_equivClass, equivVar);
   
   // synchronize the SAT solver and the spec manager.
-  m_om.preUpdate(unitEquiv);
+  m_om.preUpdate(unitEquiv);  
 
   // construct the hypergraph
   std::vector<Var> considered;
@@ -434,7 +434,6 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
     if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
   }  
   for(auto &v : cutSet) m_markedVar[v] = false;
-  
   m_om.postUpdate(unitEquiv);
 } // component
 } // d4

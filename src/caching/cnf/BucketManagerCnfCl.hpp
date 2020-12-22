@@ -474,7 +474,7 @@ template<class T> class BucketManagerCnfCl : public BucketManagerCnf<T>
                                          nbVar, nbLit, nbDiffClauseSize);    
     char *data = m_bucketAllocator->getArray(szData);
     void *p = data;
-
+    
     // store the variables.
     switch(nbOVar)
     {

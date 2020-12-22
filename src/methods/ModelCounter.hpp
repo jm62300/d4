@@ -58,6 +58,9 @@ template <class T> class ModelCounter : public MethodManager
   unsigned nbDecisionNode;
   unsigned optCached;
   unsigned stampIdx;
+  unsigned m_limitUpdate;
+  unsigned m_limitUpdateCounter;
+  bool m_staticLimit;
 
   std::vector<unsigned> stampVar;
   std::vector< std::vector<Lit> > clauses;
@@ -140,13 +143,27 @@ template <class T> class ModelCounter : public MethodManager
     nbSplit = nbCallCall = 0;    
     nbDecisionNode = nbNodeInCall = 0;
 
-    ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();
-    limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
+    m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
+    m_staticLimit = vm["cache-limit-static"].as<bool>();
+    m_limitUpdateCounter = 0;
+
+    if(m_staticLimit)
+    {
+      ratioDynamicLimit = 1;
+      limitNbVarCache = problem->getNbVar();
+    }else
+    {
+      ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();    
+      limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
+    }
     limitNbVarCacheDynamic = limitNbVarCache;
+    
     m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
+          << "static("<< m_staticLimit << ") "
           << "limit("<< limitNbVarCache << ") "
           << "ratio("<< ratioDynamicLimit << ") "
           << "limitDyn("<< limitNbVarCacheDynamic << ") "
+          << "freq update(" << m_limitUpdate << ") "
           << "\n";
     
     stampIdx = 0;
@@ -317,6 +334,7 @@ template <class T> class ModelCounter : public MethodManager
   void updateDynamicLimit()
   {
     limitNbVarCacheDynamic = 0;
+    if(m_staticLimit) return;
 #if 0
     for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
     {
@@ -359,7 +377,7 @@ template <class T> class ModelCounter : public MethodManager
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 250000) {exit(0);}
+    // if(nbCallCall > 114000) {exit(0);}
     
     if(!solver->solve(setOfVar)) return 0;    
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
@@ -374,7 +392,11 @@ template <class T> class ModelCounter : public MethodManager
     int nbComponent = specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
 
-    if(!(nbCallCall % 100000)) updateDynamicLimit();
+    if(++m_limitUpdateCounter > m_limitUpdate)
+    {
+      updateDynamicLimit();
+      m_limitUpdateCounter = 0;
+    }
     
     // consider each connected component.
     if(nbComponent)
@@ -387,7 +409,7 @@ template <class T> class ModelCounter : public MethodManager
         
         TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
                          : NULL_CACHE_ENTRY;
-
+        
         if(cacheActivated) nbTestCacheVarSize[connected.size()]++;
         if(cacheActivated && cb.defined)
         {
