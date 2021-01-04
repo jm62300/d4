@@ -18,6 +18,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 
 #define BUFFER_SIZE 65536
 
@@ -98,31 +99,24 @@ class BufferRead
 
   inline double nextDouble()
   {
-    double vint = 0;
     skipSpace();
 
     bool sign = currentChar() == '-';
     if(sign) consumeChar();
-    while(!eof() && currentChar() >= '0' && currentChar() <= '9')
+
+    std::string cur = "";
+    while(!eof() && ((currentChar() >= '0' && currentChar() <= '9')
+                     || currentChar() == '.' || currentChar() == 'e'
+                     || currentChar() == '-'))
     {
-      vint = vint * 10 + (nextChar() - '0');
+      cur += currentChar();
+      nextChar();
     }
 
-    double vdec = 0.0;
-    int nbDigit = 0;
-    if(currentChar() == '.')
-    {
-      consumeChar();
-      while(!eof() && currentChar() >= '0' && currentChar() <= '9')
-      {
-        vdec = vdec * 10 + (nextChar() - '0');
-        nbDigit++;
-      }
-    }
+    std::string::size_type pos = 0;
+    double ret = 0;
+    ret = std::stod(cur, &pos);
 
-    while(nbDigit--) vdec /= 10;
-    
-    double ret = vint + vdec;
     return (sign) ? -ret : ret;
   }
 

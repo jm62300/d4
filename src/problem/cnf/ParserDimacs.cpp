@@ -45,6 +45,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
       bool vpActivated = false;
       if(in.currentChar() == 'p') {vpActivated = true; in.consumeChar();}
+      if(in.currentChar() == 'w') in.consumeChar();
       
       if(in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f')
         std::cerr << "PARSE ERROR! Unexpected char: " << in.currentChar() << "\n", exit(3);
@@ -91,7 +92,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
         
         if(v) lits.push_back((v > 0) ? Lit::makeLit(v, false) : Lit::makeLit(-v, true));
       } while(v);
-
+      
       assert(lits.size());
       clauses.push_back(lits);
     }
