@@ -121,15 +121,14 @@ template<class T> class CacheCleaningExpectation : public CacheCleaningManager<T
     if(m_nbFailedInCache < m_limitNegativeHit) return;
     m_nbFailedInCache = 0;
     m_nbReduceCall++;
+
 #if 1
     for(int i = 0 ; i<m_nbVar ; i++)
     {
-      if(m_wrongSmudge[i]) m_ratio[i] *= 0.99; else m_ratio[i] *= 1.01;      
-      // std::cout << i << "(" << m_wrongSmudge[i] << "/" << m_ratio[i]<< ") ";
+      if(m_wrongSmudge[i]) m_ratio[i] *= 0.99; else m_ratio[i] *= 1.01;
       m_wrongSmudge[i] >>= 1;      
     }
 #endif
-    // std::cout << "\n";
 
     auto &hashTable = m_cache->getHashTable();
     for(unsigned i = 0 ; i<hashTable.size() ; i++)
