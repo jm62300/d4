@@ -26,16 +26,6 @@
 
 namespace d4
 {
-template <class T> class DataBranch
-{
- public:
-  Node<T> *d;
-  std::vector<Lit> unitLits;
-  std::vector<Var> freeVars;  
-
-  inline unsigned sumFreeUnit(){return unitLits.size() + freeVars.size();}
-};
-
 template <class T, typename U> class Branch
 {
 

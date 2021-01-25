@@ -18,12 +18,17 @@
 
 #include <boost/multiprecision/gmp.hpp>
 
+#include "DpllStyleMethod.hpp"
 #include "MethodManager.hpp"
 #include "ModelCounter.hpp"
 #include "DDnnfCompiler.hpp"
 
+#include "Aggregator.hpp"
+#include "CountingAggregator.hpp"
+
 namespace d4
 {
+namespace mpz = boost::multiprecision;
 
 /**
    Consider the option in order to generate an instance of the wanted method.
@@ -36,21 +41,22 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   std::string meth = vm["method"].as<std::string>();
   int precision = vm["float-precision"].as<int>();
 
+  out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";  
   boost::multiprecision::mpf_float::default_precision(precision); // we set the precision
   if(meth == "counting")
-  {
+  {    
     bool isFloat = vm["float"].as<bool>();
-    if(!isFloat) return new ModelCounter<boost::multiprecision::mpz_int>(vm);
-    else return new ModelCounter<boost::multiprecision::mpf_float>(vm);
+    if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm);
+    else return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(vm);
   }
-
+#if 0
   if(meth == "ddnnf-compiler")
   {
     bool isFloat = vm["float"].as<bool>();
-    if(!isFloat) return new DDnnfCompiler<boost::multiprecision::mpz_int>(vm);
-    else return new DDnnfCompiler<boost::multiprecision::mpf_float>(vm);
+    if(!isFloat) return new DDnnfCompiler<mpz::mpz_int>(vm);
+    else return new DDnnfCompiler<mpz::mpf_float>(vm);
   }
-
+#endif
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
 

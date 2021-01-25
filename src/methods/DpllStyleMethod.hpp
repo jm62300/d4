@@ -35,10 +35,6 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/utils/MemoryStat.hpp"
 
-#include "nnf/NodeManager.hpp"
-#include "nnf/Node.hpp"
-#include "nnf/Branch.hpp"
-#include "QueryManager.hpp"
 #include "MethodManager.hpp"
 #include "DataBranch.hpp"
 
@@ -47,10 +43,14 @@
 #define WIDTH_PRINT_COLUMN_MC 12
 
 
+#include "Aggregator.hpp"
+#include "CountingAggregator.hpp"
+
 namespace d4
 {
 namespace po = boost::program_options;
-template <class T> class DDnnfCompiler : public MethodManager
+template <class T, class U>
+class DpllStyleMethod : public MethodManager
 {
  private:
   bool optDomConst;
@@ -63,9 +63,15 @@ template <class T> class DDnnfCompiler : public MethodManager
   unsigned nbDecisionNode;
   unsigned optCached;
   unsigned stampIdx;
+  unsigned m_limitUpdate;
+  unsigned m_limitUpdateCounter;
+  bool m_staticLimit;
 
   std::vector<unsigned> stampVar;
   std::vector< std::vector<Lit> > clauses;
+
+  std::vector<unsigned long> nbTestCacheVarSize;
+  std::vector<unsigned long> nbPosHitCacheVarSize;
 
   ProblemManager *m_problem;
   WrapperSolver *solver;
@@ -73,14 +79,16 @@ template <class T> class DDnnfCompiler : public MethodManager
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
-  TmpEntry<Node<T> *> NULL_CACHE_ENTRY;  
-  Cache<Node<T> *> *m_cache;
+  TmpEntry<T> NULL_CACHE_ENTRY;  
+  Cache<T> *m_cache;
 
   std::ostream m_out;
 
+  unsigned limitNbVarCache;
+  double ratioDynamicLimit;
+  unsigned limitNbVarCacheDynamic;
 
-  // added from model counting.
-  NodeManager<T> *m_nodeManager;
+  Aggregator<T, U> *aggregator;
   
  public:
 
@@ -89,7 +97,7 @@ template <class T> class DDnnfCompiler : public MethodManager
 
      @param[in] vm, the list of options.
    */
-  DDnnfCompiler(po::variables_map &vm) : m_out(nullptr)
+  DpllStyleMethod(po::variables_map &vm) : m_out(nullptr)
   {
     // init the output stream
     m_out.copyfmt(std::cout);                          
@@ -101,7 +109,7 @@ template <class T> class DDnnfCompiler : public MethodManager
     m_out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
     initProblem->displayStat(m_out, "c [INITIAL INPUT] ");
     m_out << "c\n";
-    assert(initProblem);
+    assert(initProblem);    
 
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
@@ -128,8 +136,7 @@ template <class T> class DDnnfCompiler : public MethodManager
     m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver, m_out);
     assert(m_hVar && m_hPhase && m_hCutSet);
     
-    m_cache = new Cache<Node<T> *>(vm, m_problem->getNbVar(), specs, m_out);
-    m_nodeManager = NodeManager<T>::makeNodeManager(specs->getNbVariable() + 1);
+    m_cache = new Cache<T>(vm, m_problem->getNbVar(), specs, m_out);
     
     // we delete the useless objects.
     delete initProblem;
@@ -143,16 +150,50 @@ template <class T> class DDnnfCompiler : public MethodManager
     nbSplit = nbCallCall = 0;    
     nbDecisionNode = nbNodeInCall = 0;
 
+    m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
+    m_staticLimit = vm["cache-limit-static"].as<bool>();
+    m_limitUpdateCounter = 0;
+
+    if(m_staticLimit)
+    {
+      ratioDynamicLimit = 1;
+      limitNbVarCache = m_problem->getNbVar();
+    }else
+    {
+      ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();    
+      limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
+    }
+    limitNbVarCacheDynamic = limitNbVarCache;
+    
+    m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
+          << "static("<< m_staticLimit << ") "
+          << "limit("<< limitNbVarCache << ") "
+          << "ratio("<< ratioDynamicLimit << ") "
+          << "limitDyn("<< limitNbVarCacheDynamic << ") "
+          << "freq update(" << m_limitUpdate << ") "
+          << "\n";
+    
     stampIdx = 0;
-    stampVar.resize(specs->getNbVariable() + 1, 0);    
+    stampVar.resize(specs->getNbVariable() + 1, 0);
+    nbTestCacheVarSize.resize(specs->getNbVariable() + 1, 0);
+    nbPosHitCacheVarSize.resize(specs->getNbVariable() + 1, 0);
+    
+    std::vector<Var> &selected = m_problem->getSelectedVar();
+    for(auto v : selected) std::cout << v << " ";
+    std::cout << "\n";
+
+
+    m_out << "c [CONSTRUCTOR] Aggregator: \n";
+    aggregator = new CountingAggregator<T>(m_problem);
   } // constructor
 
 
   /**
      Destructor.
    */
-  ~DDnnfCompiler()
+  ~DpllStyleMethod()
   {
+    delete aggregator;
     delete m_problem;
     delete solver;
     delete specs;
@@ -160,7 +201,6 @@ template <class T> class DDnnfCompiler : public MethodManager
     delete m_hPhase;
     delete m_hCutSet;
     delete m_cache;
-    delete m_nodeManager;
   } // destructor
 
 
@@ -287,6 +327,49 @@ template <class T> class DDnnfCompiler : public MethodManager
     solver->setAssumption(assums);
   } // initAssumption  
 
+
+  /**
+     Decide if the cache is realized or not.
+   */
+  bool cacheIsActivated(std::vector<Var> &connected)
+  {
+    if(!optCached) return false;
+    if(connected.size() < limitNbVarCache) return true;
+    if(connected.size() < limitNbVarCacheDynamic) return true;
+    return false;
+  } // cacheIsActivated
+
+
+  /**
+     Update the dynamic limit.
+   */
+  void updateDynamicLimit()
+  {
+    limitNbVarCacheDynamic = 0;
+    if(m_staticLimit) return;
+#if 0
+    for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
+    {
+      if(!nbTestCacheVarSize[i]) continue;
+      if(nbPosHitCacheVarSize[i]) std::cout << "\033[1m\033[31m";
+      std::cout << i << "("<< nbTestCacheVarSize[i] << "/" << nbPosHitCacheVarSize[i] << ") ";
+      if(nbPosHitCacheVarSize[i]) std::cout << "\033[0m";
+    }
+    std::cout << "\n";
+#endif
+    
+    for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
+    {
+      if(nbPosHitCacheVarSize[i]) limitNbVarCacheDynamic = i;
+      nbPosHitCacheVarSize[i] >>= 1;      
+    }
+    
+    limitNbVarCacheDynamic *= ratioDynamicLimit;
+    m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic
+          << "/" << limitNbVarCache << "\n";
+  } // updateDynamicLimit
+  
+  
   /**
      Call the CNF formula into a D-FPiBDD.
 
@@ -299,16 +382,18 @@ template <class T> class DDnnfCompiler : public MethodManager
 
      \return a number of models.
   */
-  Node<T> *compile_(std::vector<Var> &setOfVar,
+  T computeNbModel_(std::vector<Var> &setOfVar,
                     std::vector<Lit> &unitsLit,
                     std::vector<Var> &freeVariable,
                     std::vector<Var> &priorityVar,
                     std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    if(!solver->solve(setOfVar)) return m_nodeManager->makeFalseNode();
+    // if(nbCallCall > 114000) {exit(0);}
+    
+    if(!solver->solve(setOfVar)) return 0;    
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
-    specs->preUpdate(unitsLit);    
+    specs->preUpdate(unitsLit);
     
     // compute the connected composant
     std::vector<Var> reallyPresent;
@@ -317,39 +402,50 @@ template <class T> class DDnnfCompiler : public MethodManager
     int nbComponent = specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
 
+    if(++m_limitUpdateCounter > m_limitUpdate)
+    {
+      updateDynamicLimit();
+      m_limitUpdateCounter = 0;
+    }
+    
     // consider each connected component.
-    Node<T> *ret = m_nodeManager->makeTrueNode();
+    T ret = 1;
     if(nbComponent)
     {
+      T tab[nbComponent];      
       nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      
-      Node<T>* sons[nbComponent];
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<Node<T> *> cb = optCached ?
-                                 m_cache->searchInCache(connected):
-                                 NULL_CACHE_ENTRY;
-
-        if(optCached && cb.defined) sons[cp] = cb.getValue();
+        bool cacheActivated = cacheIsActivated(connected);
+        
+        TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
+                         : NULL_CACHE_ENTRY;
+        
+        if(cacheActivated) nbTestCacheVarSize[connected.size()]++;
+        if(cacheActivated && cb.defined)
+        {
+          nbPosHitCacheVarSize[connected.size()]++;
+          tab[cp] = cb.getValue();
+        }
         else
         {
           // recursive call
           std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
-          sons[cp] = computeDecisionNode(connected, currPriority, out);
-          if(optCached) m_cache->addInCache(cb, sons[cp]);
+          tab[cp] = computeDecisionNode(connected, currPriority, out);
+          if(cacheActivated) m_cache->addInCache(cb, tab[cp]);
         }
       }
 
-      ret = m_nodeManager->makeDecomposableAndNode(nbComponent, sons);
+      ret = aggregator->aggregateDecomposableAnd(tab, nbComponent);
     }// else we have a tautology
 
     specs->postUpdate(unitsLit);
     return ret;
   }// computeNbModel_
 
-  
+
   /**
      This function select a variable and compile a decision node.
 
@@ -358,7 +454,7 @@ template <class T> class DDnnfCompiler : public MethodManager
      
      \return the compiled formula.
   */
-  Node<T> *computeDecisionNode(std::vector<Var> &connected,
+  T computeDecisionNode(std::vector<Var> &connected,
                         std::vector<Var> &priorityVar,
                         std::ostream &out)
   {
@@ -371,30 +467,25 @@ template <class T> class DDnnfCompiler : public MethodManager
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
     Var v = m_hVar->selectVariable(inVars, *specs);
-    if(v == var_Undef)
-    {
-      DataBranch<Node<T> *> b;
-      solver->whichAreUnits(connected, b.unitLits); // collect unit literals
-      b.d = m_nodeManager->makeTrueNode();
-      if(b.unitLits.size()) return m_nodeManager->makeUnaryNode(b);
-      return b.d;
-    }
+    if(v == var_Undef) return 1;
     
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     
     // compile the formula where l is assigned to true
-    DataBranch<Node<T> *> left, right;
-    
-    solver->pushAssumption(l);
-    left.d = compile_(connected, left.unitLits, left.freeVars, priorityVar, out);    
+    DataBranch<T> left, right;
+
+    solver->pushAssumption(l);    
+    left.d = computeNbModel_(connected, left.unitLits, left.freeVars, priorityVar, out);
+    left.d *= m_problem->computeWeightUnitFree<T>(left.unitLits, left.freeVars);
     solver->popAssumption();
 
     solver->pushAssumption(~l);
-    right.d = compile_(connected, right.unitLits, right.freeVars, priorityVar, out);
+    right.d = computeNbModel_(connected, right.unitLits, right.freeVars, priorityVar, out);
+    right.d *= m_problem->computeWeightUnitFree<T>(right.unitLits, right.freeVars);
     solver->popAssumption();
 
-    return m_nodeManager->makeBinaryDeterministicOrNode(left, right);
+    return left.d + right.d;
   }// computeDecisionNode
 
   
@@ -403,21 +494,16 @@ template <class T> class DDnnfCompiler : public MethodManager
 
      \return the number of models.
   */
-  Node<T> *compile(std::ostream &out)
+  T computeNbModel(std::ostream &out)
   {
     std::vector<Var> freeVariable, setOfVar, priorityVar;
     std::vector<Lit> unitsLit;
 
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
 
-    if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out))
-      return m_nodeManager->makeFalseNode();
-
-    DataBranch<T> b;
-    Node<T> *d = compile_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);
-    b.d = d;
-
-    return m_nodeManager->makeUnaryNode(b);
+    if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out)) return T(0);    
+    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);    
+    return d * m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
   }// computeNbModel
 
  public:
@@ -427,61 +513,9 @@ template <class T> class DDnnfCompiler : public MethodManager
    */
   void run(po::variables_map &vm)
   {
-    Node<T> *root = compile(m_out);
+    T nbModels = computeNbModel(m_out);
     printFinalStats(m_out);
-
-    if(vm.count("dump-ddnnf"))
-    {
-      std::ofstream out;
-      std::string fileName = vm["dump-ddnnf"].as<std::string>();
-      out.open(fileName);
-      m_nodeManager->printNNF(root, out);
-      out.close();
-    } else if(vm.count("query"))
-    {
-      std::vector<Lit> query;
-      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
-
-      std::string fileName = vm["query"].as<std::string>();
-      QueryManager queryManager(fileName);
-      TypeQuery typeQuery = TypeQuery::QueryEnd;
-      
-      do
-      {        
-        typeQuery = queryManager.next(query);        
-        for(auto &l : query)
-        {
-          if((unsigned) l.var() >= fixedValue.size()) continue;
-          fixedValue[l.var()] = (l.sign()) ? ValueVar::isFalse : ValueVar::isTrue;
-        }
-          
-        if(typeQuery == TypeQuery::QueryCounting)
-        {
-          m_out << "s " << std::fixed
-                << m_nodeManager->computeNbModels(root, fixedValue, *m_problem)
-                << "\n";
-        }
-        else if(typeQuery == TypeQuery::QueryDecision)
-        {
-          bool res = m_nodeManager->isSAT(root, fixedValue);
-          m_out << "s " << ((res) ? "SAT" : "UNS") << "\n";
-        }
-
-        for(auto &l : query)
-        {
-          if((unsigned) l.var() >= fixedValue.size()) continue;
-          fixedValue[l.var()] = ValueVar::isNotAssigned;
-        }
-      } while (typeQuery != TypeQuery::QueryEnd);
-    } else
-    {
-      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
-      m_out << "s " << std::fixed
-            << m_nodeManager->computeNbModels(root, fixedValue, *m_problem)
-            << "\n";
-    }
-    
-    m_nodeManager->deallocate(root);
+    m_out << "s " << std::fixed << nbModels << "\n";
   } // run
 };
 } // d4
