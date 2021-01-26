@@ -48,14 +48,14 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
     if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm);
     else return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(vm);
   }
-#if 0
+
   if(meth == "ddnnf-compiler")
   {
     bool isFloat = vm["float"].as<bool>();
-    if(!isFloat) return new DDnnfCompiler<mpz::mpz_int>(vm);
-    else return new DDnnfCompiler<mpz::mpf_float>(vm);
+    if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(vm);
+    else return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(vm);
   }
-#endif
+
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
 

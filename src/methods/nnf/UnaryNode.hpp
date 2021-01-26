@@ -46,7 +46,7 @@ template <class T, typename U> class UnaryNode : public Node<T>
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  UnaryNode(DataBranch<T> &branch)
+  UnaryNode(DataBranch<Node<T> *> &branch)
   {
     header.typeNode = TypeNode::TypeUnaryNode;
     header.stamp = 0;

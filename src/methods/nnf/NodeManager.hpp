@@ -90,7 +90,8 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
      \return a BinaryDeterministicOrNode that make the disjcution between left
      and right.
   */
-  Node<T> *makeBinaryDeterministicOrNode(DataBranch<T> &left, DataBranch<T> &right)
+  Node<T> *makeBinaryDeterministicOrNode(DataBranch<Node<T> *> &left,
+                                         DataBranch<Node<T> *> &right)
   {
     unsigned memoryNeeded = sizeof(BinaryDeterministicOrNode<T,U>)
                             + (left.sumFreeUnit() + right.sumFreeUnit()) * sizeof(U);
@@ -107,7 +108,7 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
 
      \return a UnaryNode..
   */
-  Node<T> *makeUnaryNode(DataBranch<T> &branch)
+  Node<T> *makeUnaryNode(DataBranch<Node<T> *> &branch)
   {
     unsigned memoryNeeded = sizeof(UnaryNode<T,U>) + sizeof(U) * branch.sumFreeUnit();
     uint8_t *data = NodeManager<T>::getMemory(memoryNeeded);
@@ -293,10 +294,10 @@ template <class T> class NodeManager
   
   virtual Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons) = 0;
 
-  virtual Node<T> *makeBinaryDeterministicOrNode(DataBranch<T> &left,
-                                                 DataBranch<T> &right) = 0;
+  virtual Node<T> *makeBinaryDeterministicOrNode(DataBranch<Node<T> *> &left,
+                                                 DataBranch<Node<T> *> &right) = 0;
   
-  virtual Node<T> *makeUnaryNode(DataBranch<T> &branch) = 0;
+  virtual Node<T> *makeUnaryNode(DataBranch<Node<T> *> &branch) = 0;
   
   virtual T computeNbModels(Node<T> *node,
                             std::vector<ValueVar> &fixedValue,

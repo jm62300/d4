@@ -25,17 +25,19 @@
 namespace d4
 {
 namespace po = boost::program_options;
-template <class T, class U> class Operation
+template <class T> class Operation
 {
  public:
   virtual ~Operation() {}
 
-  virtual void manageResult(U &result, po::variables_map &vm,
+  virtual T createTop() = 0;
+  virtual T createBottom() = 0;
+  virtual void manageResult(T &result, po::variables_map &vm,
                             std::ostream &out) = 0;
-  virtual U aggregateBottom() = 0;
-  virtual U aggregateTop(std::vector<Var> &component) = 0;
-  virtual U aggregateBranch(DataBranch<U> &e) = 0;
-  virtual U aggregateDeterministOr(DataBranch<U> *elts, unsigned size) = 0;
-  virtual U aggregateDecomposableAnd(T *elts, unsigned size) = 0;
+  virtual T manageBottom() = 0;
+  virtual T manageTop(std::vector<Var> &component) = 0;
+  virtual T manageBranch(DataBranch<T> &e) = 0;
+  virtual T manageDeterministOr(DataBranch<T> *elts, unsigned size) = 0;
+  virtual T manageDecomposableAnd(T *elts, unsigned size) = 0;
 };
 } // d4

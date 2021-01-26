@@ -45,6 +45,7 @@
 
 #include "OperationManager.hpp"
 #include "CountingOperation.hpp"
+#include "DecisionDNNFOperation.hpp"
 
 namespace d4
 {
@@ -79,8 +80,8 @@ class DpllStyleMethod : public MethodManager
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
-  TmpEntry<T> NULL_CACHE_ENTRY;  
-  Cache<T> *m_cache;
+  TmpEntry<U> NULL_CACHE_ENTRY;  
+  Cache<U> *m_cache;
 
   std::ostream m_out;
 
@@ -88,7 +89,7 @@ class DpllStyleMethod : public MethodManager
   double ratioDynamicLimit;
   unsigned limitNbVarCacheDynamic;
 
-  Operation<T, U> *operation;
+  Operation<U> *operation;
   
  public:
 
@@ -136,7 +137,7 @@ class DpllStyleMethod : public MethodManager
     m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver, m_out);
     assert(m_hVar && m_hPhase && m_hCutSet);
     
-    m_cache = new Cache<T>(vm, m_problem->getNbVar(), specs, m_out);
+    m_cache = new Cache<U>(vm, m_problem->getNbVar(), specs, m_out);
     
     // we delete the useless objects.
     delete initProblem;
@@ -181,10 +182,10 @@ class DpllStyleMethod : public MethodManager
     std::vector<Var> &selected = m_problem->getSelectedVar();
     for(auto v : selected) std::cout << v << " ";
     std::cout << "\n";
-
-
+    
     m_out << "c [CONSTRUCTOR] Operation: \n";
-    operation = new CountingOperation<T>(m_problem);
+    // operation = new CountingOperation<U>(m_problem);
+    operation = new DecisionDNNFOperation<T, U>(m_problem, specs);
   } // constructor
 
 
@@ -392,7 +393,7 @@ class DpllStyleMethod : public MethodManager
     showRun(out); nbCallCall++;
     // if(nbCallCall > 114000) {exit(0);}
     
-    if(!solver->solve(setOfVar)) return operation->aggregateBottom();
+    if(!solver->solve(setOfVar)) return operation->manageBottom();
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     specs->preUpdate(unitsLit);
     
@@ -410,17 +411,17 @@ class DpllStyleMethod : public MethodManager
     }
     
     // consider each connected component.
-    T ret = 1;
+    U ret = operation->createTop();
     if(nbComponent)
     {
-      T tab[nbComponent];      
+      U tab[nbComponent];      
       nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for(int cp = 0 ; cp<nbComponent ; cp++)
       {
         std::vector<Var> &connected = varConnected[cp];
         bool cacheActivated = cacheIsActivated(connected);
         
-        TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
+        TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                          : NULL_CACHE_ENTRY;
         
         if(cacheActivated) nbTestCacheVarSize[connected.size()]++;
@@ -439,7 +440,7 @@ class DpllStyleMethod : public MethodManager
         }
       }
 
-      ret = operation->aggregateDecomposableAnd(tab, nbComponent);
+      ret = operation->manageDecomposableAnd(tab, nbComponent);
     }// else we have a tautology
 
     specs->postUpdate(unitsLit);
@@ -468,13 +469,13 @@ class DpllStyleMethod : public MethodManager
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
     Var v = m_hVar->selectVariable(inVars, *specs);
-    if(v == var_Undef) return operation->aggregateTop(connected);
+    if(v == var_Undef) return operation->manageTop(connected);
     
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     
     // compile the formula where l is assigned to true
-    DataBranch<T> b[2];
+    DataBranch<U> b[2];
 
     solver->pushAssumption(l);    
     b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);    
@@ -484,7 +485,7 @@ class DpllStyleMethod : public MethodManager
     b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
     solver->popAssumption();
 
-    return operation->aggregateDeterministOr(b, 2);
+    return operation->manageDeterministOr(b, 2);
   }// computeDecisionNode
 
   
@@ -500,11 +501,11 @@ class DpllStyleMethod : public MethodManager
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
 
     if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out))
-      return operation->aggregateBottom();
+      return operation->manageBottom();
 
-    DataBranch<T> b;
+    DataBranch<U> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);    
-    return operation->aggregateBranch(b);
+    return operation->manageBranch(b);
   }// compute
 
  public:

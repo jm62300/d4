@@ -71,7 +71,7 @@ template <class T, typename U> class BinaryDeterministicOrNode : public Node<T>
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  BinaryDeterministicOrNode(DataBranch<T> &left, DataBranch<T> &right)
+  BinaryDeterministicOrNode(DataBranch<Node<T> *> &left, DataBranch<Node<T> *> &right)
   {
     header.typeNode = TypeNode::TypeIteNode;
     header.stamp = 0;    

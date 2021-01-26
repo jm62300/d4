@@ -17,18 +17,20 @@
 */
 #pragma once
 #include "DataBranch.hpp"
+#include "nnf/NodeManager.hpp"
 
 namespace d4
 {
-template<class T> class Operation;
-template <class T> class CountingOperation : public Operation<T>
+template<class U> class Operation;
+template <class T, class U> class DecisionDNNFOperation : public Operation<U>
 {
  private:
   ProblemManager *m_problem;
+  NodeManager<T> *m_nodeManager;
   
  public:
 
-  CountingOperation() = delete;
+  DecisionDNNFOperation() = delete;
   
   /**
      Constructor.
@@ -36,12 +38,35 @@ template <class T> class CountingOperation : public Operation<T>
      @param[in] problem, allows to get information about the problem such as
      weights.
    */
-  CountingOperation(ProblemManager *problem) : m_problem(problem)
+  DecisionDNNFOperation(ProblemManager *problem, SpecManager *specs)
+      : m_problem(problem)
   {
-    
+    m_nodeManager = NodeManager<T>::makeNodeManager(specs->getNbVariable() + 1);
   } // constructor.
 
-  
+
+  /**
+     Create top node and returns it.
+
+     \return a top node.
+   */
+  U createTop()
+  {
+    return NULL;
+  } // createTop
+
+
+  /**
+     Create bottom node and returns it.
+
+     \return a bottom node.
+   */
+  U createBottom()
+  {
+    return NULL;
+  } // createBottom
+
+
   /**
      Compute the sum of the given elements.
 
@@ -50,16 +75,9 @@ template <class T> class CountingOperation : public Operation<T>
 
      \return the product of each element of elts.
   */
-  T manageDeterministOr(DataBranch<T> *elts, unsigned size)
+  U manageDeterministOr(DataBranch<U> *elts, unsigned size)
   {
-    T ret = 0;
-    for(unsigned i = 0 ; i<size ; i++)
-    {
-      ret = ret + (elts[i].d * m_problem->computeWeightUnitFree<T>(
-          elts[i].unitLits, elts[i].freeVars));
-    }
-    
-    return ret;
+    return NULL;
   } // manageDeterministOr
 
   
@@ -71,11 +89,9 @@ template <class T> class CountingOperation : public Operation<T>
 
      \return the product of each element of elts.
    */
-  T manageDecomposableAnd(T *elts, unsigned size)
+  U manageDecomposableAnd(U *elts, unsigned size)
   {
-    T ret = 1;
-    for(unsigned i = 0 ; i<size ; i++) ret = ret * elts[i];
-    return ret;
+    return NULL;
   } // manageDecomposableAnd
 
 
@@ -84,9 +100,9 @@ template <class T> class CountingOperation : public Operation<T>
 
      \return 0 as number of models.
    */
-  T manageBottom()
+  U manageBottom()
   {
-    return T(0);
+    return NULL;
   } // manageBottom
 
 
@@ -97,21 +113,10 @@ template <class T> class CountingOperation : public Operation<T>
      
      \return 0 as number of models.
    */
-  inline T manageTop(std::vector<Var> &component){return T(1);}
-
-  /**
-     Return true, that is given by the value 1.
-
-     \return T(1).
-   */
-  inline T createTop(){return T(1);}
-
-  /**
-     Return false, that is given by the value 1.
-
-     \return T(0).
-   */  
-  inline T createBottom(){return T(0);}
+  U manageTop(std::vector<Var> &component)
+  {
+    return NULL;
+  } // manageTop
 
 
   /**
@@ -121,9 +126,9 @@ template <class T> class CountingOperation : public Operation<T>
 
      \return the number of models associate to the given branch.
    */
-  T manageBranch(DataBranch<T> &e)
+  U manageBranch(DataBranch<U> &e)
   {
-    return e.d * m_problem->computeWeightUnitFree<T>(e.unitLits, e.freeVars);
+    return NULL;
   } // manageBranch
 
 
@@ -135,7 +140,7 @@ template <class T> class CountingOperation : public Operation<T>
      given result.
      @param[in] out, the output stream.
    */
-  void manageResult(T &result, po::variables_map &vm, std::ostream &out)
+  void manageResult(U &result, po::variables_map &vm, std::ostream &out)
   {
     out << "s " << std::fixed << result << "\n";
   } // manageResult
