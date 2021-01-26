@@ -20,15 +20,21 @@
 #include <boost/program_options.hpp>
 
 #include "DataBranch.hpp"
-#include "CountingAggregator.hpp"
+#include "CountingOperation.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
-template <class T, class U> class Aggregator
+template <class T, class U> class Operation
 {
  public:
-  virtual ~Aggregator() {}  
+  virtual ~Operation() {}
+
+  virtual void manageResult(U &result, po::variables_map &vm,
+                            std::ostream &out) = 0;
+  virtual U aggregateBottom() = 0;
+  virtual U aggregateTop(std::vector<Var> &component) = 0;
+  virtual U aggregateBranch(DataBranch<U> &e) = 0;
   virtual U aggregateDeterministOr(DataBranch<U> *elts, unsigned size) = 0;
   virtual U aggregateDecomposableAnd(T *elts, unsigned size) = 0;
 };

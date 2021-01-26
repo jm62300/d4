@@ -16,20 +16,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-
 #include "DataBranch.hpp"
 
 namespace d4
 {
-template<class T, class U> class Aggregator;
-template <class T> class CountingAggregator : public Aggregator<T, T>
+template<class T, class U> class Operation;
+template <class T> class CountingOperation : public Operation<T, T>
 {
  private:
   ProblemManager *m_problem;
   
  public:
 
-  CountingAggregator() = delete;
+  CountingOperation() = delete;
   
   /**
      Constructor.
@@ -37,7 +36,7 @@ template <class T> class CountingAggregator : public Aggregator<T, T>
      @param[in] problem, allows to get information about the problem such as
      weights.
    */
-  CountingAggregator(ProblemManager *problem) : m_problem(problem)
+  CountingOperation(ProblemManager *problem) : m_problem(problem)
   {
     
   } // constructor.
@@ -78,6 +77,57 @@ template <class T> class CountingAggregator : public Aggregator<T, T>
     for(unsigned i = 0 ; i<size ; i++) ret = ret * elts[i];
     return ret;
   } // aggregateDecomposableAnd
+
+
+  /**
+     Manage the case where the problem is unsatisfiable.
+
+     \return 0 as number of models.
+   */
+  T aggregateBottom()
+  {
+    return T(0);
+  } // aggregateBottom
+
+
+  /**
+     Manage the case where the problem is a tautology.
+
+     @param[in] component, the current set of variables (useless here).
+     
+     \return 0 as number of models.
+   */
+  T aggregateTop(std::vector<Var> &component)
+  {
+    return T(1);
+  } // aggregateTop
+
+
+  /**
+     Manage the case where we only have a branch in our OR gate.
+
+     @param[in] e, the branch we are considering.
+
+     \return the number of models associate to the given branch.
+   */
+  T aggregateBranch(DataBranch<T> &e)
+  {
+    return e.d * m_problem->computeWeightUnitFree<T>(e.unitLits, e.freeVars);
+  } // aggregateBranch
+
+
+  /**
+     Manage the final result compute.
+
+     @param[in] result, the result we are considering.
+     @param[in] vm, a set of options that describes what we want to do on the
+     given result.
+     @param[in] out, the output stream.
+   */
+  void manageResult(T &result, po::variables_map &vm, std::ostream &out)
+  {
+    out << "s " << std::fixed << result << "\n";
+  } // manageResult
 };
 
 } // d4

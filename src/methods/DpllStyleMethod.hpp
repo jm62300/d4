@@ -43,8 +43,8 @@
 #define WIDTH_PRINT_COLUMN_MC 12
 
 
-#include "Aggregator.hpp"
-#include "CountingAggregator.hpp"
+#include "OperationManager.hpp"
+#include "CountingOperation.hpp"
 
 namespace d4
 {
@@ -88,7 +88,7 @@ class DpllStyleMethod : public MethodManager
   double ratioDynamicLimit;
   unsigned limitNbVarCacheDynamic;
 
-  Aggregator<T, U> *aggregator;
+  Operation<T, U> *operation;
   
  public:
 
@@ -183,8 +183,8 @@ class DpllStyleMethod : public MethodManager
     std::cout << "\n";
 
 
-    m_out << "c [CONSTRUCTOR] Aggregator: \n";
-    aggregator = new CountingAggregator<T>(m_problem);
+    m_out << "c [CONSTRUCTOR] Operation: \n";
+    operation = new CountingOperation<T>(m_problem);
   } // constructor
 
 
@@ -193,7 +193,7 @@ class DpllStyleMethod : public MethodManager
    */
   ~DpllStyleMethod()
   {
-    delete aggregator;
+    delete operation;
     delete m_problem;
     delete solver;
     delete specs;
@@ -382,16 +382,16 @@ class DpllStyleMethod : public MethodManager
 
      \return a number of models.
   */
-  T computeNbModel_(std::vector<Var> &setOfVar,
-                    std::vector<Lit> &unitsLit,
-                    std::vector<Var> &freeVariable,
-                    std::vector<Var> &priorityVar,
-                    std::ostream &out)
+  U compute_(std::vector<Var> &setOfVar,
+             std::vector<Lit> &unitsLit,
+             std::vector<Var> &freeVariable,
+             std::vector<Var> &priorityVar,
+             std::ostream &out)
   {
     showRun(out); nbCallCall++;
     // if(nbCallCall > 114000) {exit(0);}
     
-    if(!solver->solve(setOfVar)) return 0;    
+    if(!solver->solve(setOfVar)) return operation->aggregateBottom();
     solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     specs->preUpdate(unitsLit);
     
@@ -438,12 +438,12 @@ class DpllStyleMethod : public MethodManager
         }
       }
 
-      ret = aggregator->aggregateDecomposableAnd(tab, nbComponent);
+      ret = operation->aggregateDecomposableAnd(tab, nbComponent);
     }// else we have a tautology
 
     specs->postUpdate(unitsLit);
     return ret;
-  }// computeNbModel_
+  }// compute_ 
 
 
   /**
@@ -454,7 +454,7 @@ class DpllStyleMethod : public MethodManager
      
      \return the compiled formula.
   */
-  T computeDecisionNode(std::vector<Var> &connected,
+  U computeDecisionNode(std::vector<Var> &connected,
                         std::vector<Var> &priorityVar,
                         std::ostream &out)
   {
@@ -467,25 +467,23 @@ class DpllStyleMethod : public MethodManager
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
     Var v = m_hVar->selectVariable(inVars, *specs);
-    if(v == var_Undef) return 1;
+    if(v == var_Undef) return operation->aggregateTop(connected);
     
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     
     // compile the formula where l is assigned to true
-    DataBranch<T> left, right;
+    DataBranch<T> b[2];
 
     solver->pushAssumption(l);    
-    left.d = computeNbModel_(connected, left.unitLits, left.freeVars, priorityVar, out);
-    left.d *= m_problem->computeWeightUnitFree<T>(left.unitLits, left.freeVars);
+    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);    
     solver->popAssumption();
 
     solver->pushAssumption(~l);
-    right.d = computeNbModel_(connected, right.unitLits, right.freeVars, priorityVar, out);
-    right.d *= m_problem->computeWeightUnitFree<T>(right.unitLits, right.freeVars);
+    b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
     solver->popAssumption();
 
-    return left.d + right.d;
+    return operation->aggregateDeterministOr(b, 2);
   }// computeDecisionNode
 
   
@@ -494,16 +492,17 @@ class DpllStyleMethod : public MethodManager
 
      \return the number of models.
   */
-  T computeNbModel(std::ostream &out)
+  U compute(std::ostream &out)
   {
-    std::vector<Var> freeVariable, setOfVar, priorityVar;
-    std::vector<Lit> unitsLit;
-
+    std::vector<Var> setOfVar, priorityVar;
     for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
 
-    if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out)) return T(0);    
-    T d = computeNbModel_(setOfVar, unitsLit, freeVariable, priorityVar, out);    
-    return d * m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
+    if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out))
+      return operation->aggregateBottom();
+
+    DataBranch<T> b;
+    b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);    
+    return operation->aggregateBranch(b);
   }// computeNbModel
 
  public:
@@ -513,9 +512,9 @@ class DpllStyleMethod : public MethodManager
    */
   void run(po::variables_map &vm)
   {
-    T nbModels = computeNbModel(m_out);
+    U nbModels = compute(m_out);
     printFinalStats(m_out);
-    m_out << "s " << std::fixed << nbModels << "\n";
+    operation->manageResult(nbModels, vm, m_out);
   } // run
 };
 } // d4

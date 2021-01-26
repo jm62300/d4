@@ -23,8 +23,7 @@
 #include "ModelCounter.hpp"
 #include "DDnnfCompiler.hpp"
 
-#include "Aggregator.hpp"
-#include "CountingAggregator.hpp"
+#include "OperationManager.hpp"
 
 namespace d4
 {

@@ -347,7 +347,7 @@ template <class T> class DDnnfCompiler : public MethodManager
 
     specs->postUpdate(unitsLit);
     return ret;
-  }// computeNbModel_
+  }// compile_
 
   
   /**
