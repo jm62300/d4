@@ -316,8 +316,8 @@ class DpllStyleMethod : public MethodManager
 
 
   /**
-     Initialize the assumption in order to compute the number of model
-     under this one.
+     Initialize the assumption in order to compute compiled formula under this
+     one.
 
      @param[in] assums, the assumption
   */
@@ -380,7 +380,8 @@ class DpllStyleMethod : public MethodManager
      node
      @param[in] out, the stream we use to print out information.
 
-     \return a number of models.
+     \return an element of type U that sums up the given CNF sub-formula using a
+     DPLL style algorithm with an operation manager.
   */
   U compute_(std::vector<Var> &setOfVar,
              std::vector<Lit> &unitsLit,
@@ -488,9 +489,10 @@ class DpllStyleMethod : public MethodManager
 
   
   /**
-     Compute the number of model using the trace of a SAT solver.
+     Compute U using the trace of a SAT solver.
 
-     \return the number of models.
+     \return an element of type U that sums up the given CNF formula using a
+     DPLL style algorithm with an operation manager.
   */
   U compute(std::ostream &out)
   {
@@ -503,18 +505,20 @@ class DpllStyleMethod : public MethodManager
     DataBranch<T> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);    
     return operation->aggregateBranch(b);
-  }// computeNbModel
+  }// compute
 
  public:
   
   /**
-     The method called to run the model counter.
+     Run the DPLL style algorithm with the operation manager.
+
+     @param[in] vm, the set of options.
    */
   void run(po::variables_map &vm)
   {
-    U nbModels = compute(m_out);
+    U result = compute(m_out);
     printFinalStats(m_out);
-    operation->manageResult(nbModels, vm, m_out);
+    operation->manageResult(result, vm, m_out);
   } // run
 };
 } // d4
