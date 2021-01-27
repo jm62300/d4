@@ -27,6 +27,7 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
  private:
   ProblemManager *m_problem;
   NodeManager<T> *m_nodeManager;
+  WrapperSolver *m_solver;
   
  public:
 
@@ -38,8 +39,9 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
      @param[in] problem, allows to get information about the problem such as
      weights.
    */
-  DecisionDNNFOperation(ProblemManager *problem, SpecManager *specs)
-      : m_problem(problem)
+  DecisionDNNFOperation(ProblemManager *problem, SpecManager *specs,
+                        WrapperSolver *solver)
+      : m_problem(problem), m_solver(solver)
   {
     m_nodeManager = NodeManager<T>::makeNodeManager(specs->getNbVariable() + 1);
   } // constructor.
@@ -52,7 +54,7 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   U createTop()
   {
-    return NULL;
+    return m_nodeManager->makeTrueNode();
   } // createTop
 
 
@@ -63,7 +65,7 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   U createBottom()
   {
-    return NULL;
+    return m_nodeManager->makeFalseNode();
   } // createBottom
 
 
@@ -77,7 +79,8 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
   */
   U manageDeterministOr(DataBranch<U> *elts, unsigned size)
   {
-    return NULL;
+    assert(size == 2);
+    return m_nodeManager->makeBinaryDeterministicOrNode(elts[0], elts[1]);
   } // manageDeterministOr
 
   
@@ -91,7 +94,7 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   U manageDecomposableAnd(U *elts, unsigned size)
   {
-    return NULL;
+    return m_nodeManager->makeDecomposableAndNode(elts, size);
   } // manageDecomposableAnd
 
 
@@ -102,7 +105,7 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   U manageBottom()
   {
-    return NULL;
+    return createBottom();
   } // manageBottom
 
 
@@ -115,7 +118,11 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   U manageTop(std::vector<Var> &component)
   {
-    return NULL;
+    DataBranch<U> b;
+    m_solver->whichAreUnits(component, b.unitLits); // collect unit literals
+    b.d = m_nodeManager->makeTrueNode();
+    if(b.unitLits.size()) return m_nodeManager->makeUnaryNode(b);
+    return b.d;    
   } // manageTop
 
 
@@ -128,7 +135,7 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   U manageBranch(DataBranch<U> &e)
   {
-    return NULL;
+    return m_nodeManager->makeUnaryNode(e);
   } // manageBranch
 
 
@@ -142,7 +149,10 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
    */
   void manageResult(U &result, po::variables_map &vm, std::ostream &out)
   {
-    out << "s " << std::fixed << result << "\n";
+    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+    out << "s " << std::fixed
+        << m_nodeManager->computeNbModels(result, fixedValue, *m_problem)
+        << "\n";
   } // manageResult
 };
 

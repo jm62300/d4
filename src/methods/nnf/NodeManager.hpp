@@ -118,13 +118,13 @@ template <class T, typename U> class NodeManagerTyped : public NodeManager<T>
 
   /**
      Create a decomposable AND node.
-
-     @param[in] size, the number of sons.
+     
      @param[in] sons, the sons.
+     @param[in] size, the number of sons.
 
      \return a DecomposableAndNode that regroup the elements given in parameter.
   */
-  inline Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons)
+  inline Node<T> *makeDecomposableAndNode(Node<T> **sons, unsigned size)
   {
     if(size == 1) return *sons;    
 
@@ -292,7 +292,7 @@ template <class T> class NodeManager
   virtual Node<T> *makeFalseNode() = 0;
 
   
-  virtual Node<T> *makeDecomposableAndNode(unsigned size, Node<T> **sons) = 0;
+  virtual Node<T> *makeDecomposableAndNode(Node<T> **sons, unsigned size) = 0;
 
   virtual Node<T> *makeBinaryDeterministicOrNode(DataBranch<Node<T> *> &left,
                                                  DataBranch<Node<T> *> &right) = 0;

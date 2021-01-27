@@ -19,17 +19,58 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 
+#include "nnf/NodeManager.hpp"
+#include "nnf/Node.hpp"
+#include "nnf/Branch.hpp"
+
+
 #include "DataBranch.hpp"
 #include "CountingOperation.hpp"
+#include "DecisionDNNFOperation.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
+namespace mpz = boost::multiprecision;
 template <class T> class Operation
 {
  public:
-  virtual ~Operation() {}
 
+  /**
+     Operation factory.
+
+     @param[in] vm, the option list.
+     @param[in] problem, the problem description.
+     @param[in] specs, the problem specification.
+     @param[in] solver, the SAT solver used for the compiler.
+     @param[in] out, where are print out the log.
+
+     \return an operation manager regarding the given options.
+  */
+  static void *makeOperationManager(po::variables_map &vm,
+                                            ProblemManager *problem,
+                                            SpecManager *specs,
+                                            WrapperSolver *solver,
+                                            std::ostream &out)
+  {
+    std::string meth = vm["method"].as<std::string>();
+    bool isFloat = vm["float"].as<bool>();
+    
+    out << "c [CONSTUCTOR] Operation: "
+        << "method(" << meth << ") "
+        << "float(" << isFloat<< ")\n";
+
+    if(meth == "counting")    
+      return new CountingOperation<T>(problem);
+
+    if(meth == "ddnnf-compiler")
+      return new DecisionDNNFOperation<T, Node<T> *>(problem, specs, solver);
+    
+    throw (FactoryException("Cannot create a Operation",__FILE__, __LINE__));
+  } // makeOperationManager  
+  
+  virtual ~Operation() {}
+  
   virtual T createTop() = 0;
   virtual T createBottom() = 0;
   virtual void manageResult(T &result, po::variables_map &vm,

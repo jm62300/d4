@@ -178,14 +178,16 @@ class DpllStyleMethod : public MethodManager
     stampVar.resize(specs->getNbVariable() + 1, 0);
     nbTestCacheVarSize.resize(specs->getNbVariable() + 1, 0);
     nbPosHitCacheVarSize.resize(specs->getNbVariable() + 1, 0);
-    
+
+    std::cout << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     for(auto v : selected) std::cout << v << " ";
-    std::cout << "\n";
+    std::cout << "\n" << "c\n";
+
+    void *op = Operation<T>::makeOperationManager(vm, m_problem, specs, solver, m_out);
     
-    m_out << "c [CONSTRUCTOR] Operation: \n";
-    // operation = new CountingOperation<U>(m_problem);
-    operation = new DecisionDNNFOperation<T, U>(m_problem, specs);
+    operation = static_cast<Operation<U> *>(op);
+    std::cout << "c\n";
   } // constructor
 
 

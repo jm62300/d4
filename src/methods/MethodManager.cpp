@@ -39,19 +39,19 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 {
   std::string meth = vm["method"].as<std::string>();
   int precision = vm["float-precision"].as<int>();
+  bool isFloat = vm["float"].as<bool>();
 
   out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";  
   boost::multiprecision::mpf_float::default_precision(precision); // we set the precision
+
   if(meth == "counting")
   {    
-    bool isFloat = vm["float"].as<bool>();
     if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm);
     else return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(vm);
   }
 
   if(meth == "ddnnf-compiler")
   {
-    bool isFloat = vm["float"].as<bool>();
     if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(vm);
     else return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(vm);
   }
