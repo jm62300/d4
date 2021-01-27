@@ -16,6 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+
+#include "QueryManager.hpp"
 #include "DataBranch.hpp"
 #include "nnf/NodeManager.hpp"
 
@@ -146,13 +148,61 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
      @param[in] vm, a set of options that describes what we want to do on the
      given result.
      @param[in] out, the output stream.
-   */
+  */
   void manageResult(U &result, po::variables_map &vm, std::ostream &out)
-  {
-    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
-    out << "s " << std::fixed
-        << m_nodeManager->computeNbModels(result, fixedValue, *m_problem)
-        << "\n";
+  {    
+    if(vm.count("dump-ddnnf"))
+    {
+      std::ofstream outFile;
+      std::string fileName = vm["dump-ddnnf"].as<std::string>();
+      outFile.open(fileName);
+      m_nodeManager->printNNF(result, outFile);
+      outFile.close();
+    } else if(vm.count("query"))
+    {
+      std::vector<Lit> query;
+      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+
+      std::string fileName = vm["query"].as<std::string>();
+      QueryManager queryManager(fileName);
+      TypeQuery typeQuery = TypeQuery::QueryEnd;
+      
+      do
+      {        
+        typeQuery = queryManager.next(query);        
+        for(auto &l : query)
+        {
+          if((unsigned) l.var() >= fixedValue.size()) continue;
+          fixedValue[l.var()] = (l.sign()) ? ValueVar::isFalse : ValueVar::isTrue;
+        }
+          
+        if(typeQuery == TypeQuery::QueryCounting)
+        {
+          out << "s " << std::fixed
+              << m_nodeManager->computeNbModels(result, fixedValue, *m_problem)
+              << "\n";
+        }
+        else if(typeQuery == TypeQuery::QueryDecision)
+        {
+          bool res = m_nodeManager->isSAT(result, fixedValue);
+          out << "s " << ((res) ? "SAT" : "UNS") << "\n";
+        }
+
+        for(auto &l : query)
+        {
+          if((unsigned) l.var() >= fixedValue.size()) continue;
+          fixedValue[l.var()] = ValueVar::isNotAssigned;
+        }
+      } while (typeQuery != TypeQuery::QueryEnd);
+    } else
+    {
+      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+      out << "s " << std::fixed
+          << m_nodeManager->computeNbModels(result, fixedValue, *m_problem)
+          << "\n";
+    }
+    
+    m_nodeManager->deallocate(result);
   } // manageResult
 };
 
