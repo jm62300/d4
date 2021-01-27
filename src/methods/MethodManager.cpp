@@ -18,10 +18,9 @@
 
 #include <boost/multiprecision/gmp.hpp>
 
-#include "DpllStyleMethod.hpp"
 #include "MethodManager.hpp"
-#include "ModelCounter.hpp"
-#include "DDnnfCompiler.hpp"
+#include "DpllStyleMethod.hpp"
+
 
 #include "OperationManager.hpp"
 
