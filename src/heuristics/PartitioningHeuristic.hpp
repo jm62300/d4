@@ -16,12 +16,12 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_heuristics_PartitioningHeuristic_hpp
-#define d4_src_heuristics_PartitioningHeuristic_hpp
+#pragma once
 
 #include <vector>
 #include <boost/program_options.hpp>
 
+#include "src/hyperGraph/HyperGraph.hpp"
 #include "src/utils/EquivExtractor.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/SpecManager.hpp"
@@ -41,7 +41,6 @@ class PartitioningHeuristic
       std::vector<Var> &equivClass,
       std::vector< std::vector<Var> > &equivVar);
 
-  
  public:
   virtual ~PartitioningHeuristic(){}
   static PartitioningHeuristic *makePartitioningHeuristic(po::variables_map &vm,
@@ -53,5 +52,3 @@ class PartitioningHeuristic
                              std::vector<Var> &cutSet) = 0;
 };
 }
-
-#endif

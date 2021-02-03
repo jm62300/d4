@@ -27,6 +27,8 @@
 #include "src/partitioner/PartitionerManager.hpp"
 
 #include "src/hyperGraph/HyperGraph.hpp"
+#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
+
 #include "../PartitioningHeuristic.hpp"
 
 namespace d4
@@ -39,57 +41,45 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
   SpecManagerCnf &m_om;
   EquivExtractor m_em;
   PartitionerManager *m_pm;
-  
+
   std::vector<bool> m_markedVar;
-  std::vector<bool> m_keepClause;
-  std::vector<bool> m_markedClauses;
-  std::vector<int> m_unmarkSet;
-  std::vector<int> m_mapVar;
-  std::vector<unsigned> m_idxClauses;
   std::vector<Var> m_equivClass;
   std::vector<int> m_partition;
-  std::vector<unsigned *> m_mapVarEdge;
-  std::vector<unsigned> m_sizeClause;
-  std::vector<unsigned> m_countClause;
+  std::vector<unsigned *> m_mapVarEdge;  
 
   // to store the hypergraph, and then avoir reallocated memory.
   HyperGraph m_hypergraph;
+  HyperGraphExtractorDual *m_hypergraphExtractor;
   
   unsigned m_nbVar;
   unsigned m_nbClause;
   bool m_reduceFormula; 
   bool m_equivSimp;
 
+  void clashHyperEdgeIndex(
+      HyperGraph &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &indices);
 
-  void constructHyperGraph(std::vector<Var> &component,
-                           std::vector<Var> &equivClass,
-                           std::vector< std::vector<Var> > &equivVar,
-                           std::vector<Var> &considered);
   
-  void clashHyperEdgeIndex(std::vector<int> &partition,
-                           std::vector<unsigned> &indices);
+  void extractCutFromHyperGraph(
+      std::vector<Var> &considered,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet);
 
-  void extractCutFromHyperGraph(std::vector<Var> &considered,
-                                std::vector<int> &partition,
-                                std::vector<int> &cutSet);
-
-  void reduceHyperGraph(unsigned *hypergraph,
-                        unsigned size,
-                        std::vector<Var> &considered,
-                        std::vector<unsigned> &idxClauses,
-                        std::vector<Var> &equivClass);
-  
  public:
-  PartitioningHeuristicBipartiteDual(po::variables_map &vm,
-                                       WrapperSolver &s,
-                                       SpecManager &om);
+  PartitioningHeuristicBipartiteDual(
+      po::variables_map &vm,
+      WrapperSolver &s,
+      SpecManager &om);
 
-  PartitioningHeuristicBipartiteDual(po::variables_map &vm,
-                                       WrapperSolver &s,
-                                       SpecManager &om,                                 
-                                       int nbClause,
-                                       int nbVar,
-                                       int sumSize);
+  PartitioningHeuristicBipartiteDual(
+      po::variables_map &vm,
+      WrapperSolver &s,
+      SpecManager &om,                                 
+      int nbClause,
+      int nbVar,
+      int sumSize);
 
   
   ~PartitioningHeuristicBipartiteDual();

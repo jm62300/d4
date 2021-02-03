@@ -288,7 +288,6 @@ void PartitioningHeuristicBipartitePrimal::computeCutSet(
     if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
   }  
   for(auto &v : cutSet) m_markedVar[v] = false;
-  
   m_om.postUpdate(unitEquiv);
 } // component
 } // d4
