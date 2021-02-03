@@ -52,7 +52,8 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
     SpecManager &_om,
     int _nbClause,
     int _nbVar,
-    int _sumSize) : m_s(_s), m_om(dynamic_cast<SpecManagerCnf&>(_om))
+    int _sumSize) : m_s(_s),
+                    m_om(dynamic_cast<SpecManagerCnf&>(_om))
 {
   m_pm = PartitionerManager::makePartitioner(vm, _nbClause, _nbVar, _sumSize);
   
@@ -75,9 +76,7 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
   m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
   m_equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
 
-  m_hypergraphCapacity = m_nbVar + m_nbClause + _sumSize + 1;
-  m_hypergraph = new unsigned[m_hypergraphCapacity];
-  m_hypergraphSize = 0;
+  m_hypergraph.init(m_nbVar + m_nbClause + _sumSize + 1);
 } // constructor
 
 
@@ -86,29 +85,9 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
 */
 PartitioningHeuristicBipartiteDual::~PartitioningHeuristicBipartiteDual()
 {
-  delete[] m_hypergraph;
   delete m_pm;
 } // destructor
 
-
-/**
-   Print out the hyper graph.
-
-   @param[in] hypergraph, the hypergraph data in row.
-   @param[in] size, the number of elements in hypergraph.
-*/
-void PartitioningHeuristicBipartiteDual::displayHyperGraph(
-    unsigned *hypergraph,
-    unsigned size)
-{
-  unsigned *p = hypergraph;
-  for(unsigned i = 0 ; i<size ; i++)
-  {
-    for(unsigned j = 0 ; j<*p ; j++) std::cout << p[1 + j] << " ";
-    std::cout << "\n";
-    p += *p + 1;
-  }
-} // displayHyperGraph
 
 /**
    Check all the hyper edges in order to extract those their are conflictual
@@ -147,7 +126,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
 {
   m_idxClauses.resize(0);
   unsigned pos = 0;
-  m_hypergraphSize = 0;
+  m_hypergraph.setSize(0);
 
   // first considere the equivalence.
   for(auto &vec : equivVar)
@@ -193,7 +172,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
     if(!size) pos--;
     else
     {
-      m_hypergraphSize++;
+      m_hypergraph.incSize();
       considered.push_back(vec.back());
     }
   }
@@ -224,7 +203,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
     if(!size) pos--;
     else
     {
-      m_hypergraphSize++;
+      m_hypergraph.incSize();
       considered.push_back(v);
     }
   }
@@ -233,7 +212,7 @@ void PartitioningHeuristicBipartiteDual::constructHyperGraph(
   for(auto &v : component) m_markedVar[v] = false;
   
   // remove useless edges.
-  if(m_reduceFormula) reduceHyperGraph(m_hypergraph, m_hypergraphSize,
+  if(m_reduceFormula) reduceHyperGraph(m_hypergraph.getEdges(), m_hypergraph.getSize(),
                                        considered, m_idxClauses, equivClass);
 
   // unmark.
@@ -340,37 +319,6 @@ void PartitioningHeuristicBipartiteDual::reduceHyperGraph(
 
 
 /**
-   Associate for each variable in the component an equivalence class.
-
-   @param[in] component, the set of variables of the component we want to cut.
-   @param[out] unitEquiv, the set of unit literals we find out.
-   @param[out] equiClass, the equivalence class we computed (we suppose that the
-   verctor is large enough and then we do not allocate).
-*/
-void PartitioningHeuristicBipartiteDual::computeEquivClass(
-    std::vector<Var> &component,
-    std::vector<Lit> &unitEquiv,
-    std::vector<Var> &equivClass,
-    std::vector< std::vector<Var> > &equivVar)
-{
-  assert(equivClass.size() >= m_nbVar);
-  for(auto &v : component) equivClass[v] = v;
-  if(!m_equivSimp) return;
-  
-  equivVar.clear();
-  m_em.searchEquiv(m_s, component, equivVar);
-  m_s.whichAreUnits(component, unitEquiv);
-  
-  // propagate the equivVar information in equivClass
-  for(auto &c : equivVar)
-  {
-    Var vi = c.back();
-    for(auto &v : c) equivClass[v] = vi;             
-  }
-} // computeEquivClass
-
-
-/**
    Collect the set of hyper egdes (their indices actually) that are between
    several component.
 
@@ -384,8 +332,8 @@ void PartitioningHeuristicBipartiteDual::clashHyperEdgeIndex(
 {
   bool clash = false;
   int part = 0;
-  unsigned *edge = m_hypergraph;  
-  for(unsigned i = 0 ; i<m_hypergraphSize ; i++)
+  unsigned *edge = m_hypergraph.getEdges();
+  for(unsigned i = 0 ; i<m_hypergraph.getSize() ; i++)
   {
     clash = false;
     part = partition[edge[1]];
@@ -411,7 +359,8 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
   // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
   std::vector< std::vector<Var> > equivVar;
-  computeEquivClass(component, unitEquiv, m_equivClass, equivVar);
+  if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
+         m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
   
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);  
@@ -419,7 +368,7 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
   // construct the hypergraph
   std::vector<Var> considered;
   constructHyperGraph(component, m_equivClass, equivVar, considered);
-  m_pm->computePartition(m_hypergraph, m_hypergraphSize,
+  m_pm->computePartition(m_hypergraph,
                          (std::function<bool(int)>) [](int i) {return true;},
                          m_partition);  
 

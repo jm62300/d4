@@ -64,17 +64,12 @@ PartitionerPatoh::~PartitionerPatoh()
 
 /**
    Get a partition from the hypergraph.
-   Partitioner takes as input an hypergraph given in an array that follows:
-       - [size1] [...elts1 ...] [size2] [... elts2...] .......
-       - hypergraphSize gives the number of 'sizei'
-       - flags[i] is 0 if the clause must be ignored.
    
    @param[in] hypergraph, the graph we search for a partition.
    @param[in] isAccepted, function that decide if we keep or not.
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
-void PartitionerPatoh::computePartition(unsigned *hypergraph,
-                                        unsigned hypergraphSize,
+void PartitionerPatoh::computePartition(HyperGraph &hypergraph,
                                         std::function<bool(int)> isAccepted,
                                         std::vector<int> &partition)
 {
@@ -84,8 +79,8 @@ void PartitionerPatoh::computePartition(unsigned *hypergraph,
   unsigned sizeXpins = 0;
   int posPins = 0;
 
-  unsigned *edge = hypergraph;
-  for(unsigned i = 0 ; i<hypergraphSize ; i++)
+  unsigned *edge = hypergraph.getEdges();
+  for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
   {
     if(isAccepted(i))
     {

@@ -22,15 +22,26 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include <src/solvers/WrapperSolver.hpp>
-#include <src/specs/SpecManager.hpp>
-#include <src/problem/ProblemTypes.hpp>
+#include "src/utils/EquivExtractor.hpp"
+#include "src/solvers/WrapperSolver.hpp"
+#include "src/specs/SpecManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
 class PartitioningHeuristic
 {
+ protected:
+  void computeEquivClass(
+      EquivExtractor &eqManager,
+      WrapperSolver &solver,
+      std::vector<Var> &component,
+      std::vector<Lit> &unitEquiv,
+      std::vector<Var> &equivClass,
+      std::vector< std::vector<Var> > &equivVar);
+
+  
  public:
   virtual ~PartitioningHeuristic(){}
   static PartitioningHeuristic *makePartitioningHeuristic(po::variables_map &vm,

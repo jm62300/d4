@@ -25,8 +25,10 @@
 #include "src/utils/EquivExtractor.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/HyperGraph.hpp"
 
 #include "../PartitioningHeuristic.hpp"
+
 
 namespace d4
 {
@@ -49,9 +51,7 @@ class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristic
   std::vector<int> m_partition;
 
   // to store the hypergraph, and then avoir reallocated memory.
-  unsigned *m_hypergraph;
-  unsigned m_hypergraphCapacity;
-  unsigned m_hypergraphSize;
+  HyperGraph m_hypergraph;
 
   unsigned m_nbVar;
   unsigned m_nbClause;
@@ -64,10 +64,6 @@ class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristic
   void constructHyperGraph(std::vector<Var> &component,
                            std::vector<Var> &equivClass);
   
-  void computeEquivClass(std::vector<Var> &component,
-                         std::vector<Lit> &unitEquiv,
-                         std::vector<Var> &equivClass);
-  
   void clashHyperEdgeIndex(std::vector<int> &partition,
                            std::vector<unsigned *> &indices);
 
@@ -78,8 +74,6 @@ class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristic
 
   void removeSubsumEdges(unsigned *hypergraph,
                          unsigned size);
-
-  void displayHyperGraph(unsigned *hypergraph, unsigned size);
   
  public:
   PartitioningHeuristicBipartitePrimal(po::variables_map &vm,

@@ -20,6 +20,8 @@
 #include <functional>
 #include <boost/program_options.hpp>
 
+#include "src/hyperGraph/HyperGraph.hpp"
+
 namespace d4
 {
 namespace po = boost::program_options;
@@ -36,12 +38,10 @@ class PartitionerManager
 
   /**
      Partitioner takes as input an hypergraph given in an array that follows:
-       - [size1] [...elts1 ...] [size2] [... elts2...] .......
-       - hypergraphSize gives the number of 'sizei'       
-       - flags[i] is 0 if the clause must be ignored.
+     - hypergraph, the given hyper graph
+     - flags[i] is 0 if the clause must be ignored.
    */
-  virtual void computePartition(unsigned *hypergraph,
-                                unsigned hypergraphSize,
+  virtual void computePartition(HyperGraph &hypergraph,
                                 std::function<bool(int)> isAccepted,
                                 std::vector<int> &partition) = 0;
 };

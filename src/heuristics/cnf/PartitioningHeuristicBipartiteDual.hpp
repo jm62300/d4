@@ -26,6 +26,7 @@
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 
+#include "src/hyperGraph/HyperGraph.hpp"
 #include "../PartitioningHeuristic.hpp"
 
 namespace d4
@@ -52,27 +53,18 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
   std::vector<unsigned> m_countClause;
 
   // to store the hypergraph, and then avoir reallocated memory.
-  unsigned *m_hypergraph;
-  unsigned m_hypergraphCapacity;
-  unsigned m_hypergraphSize;
-
+  HyperGraph m_hypergraph;
+  
   unsigned m_nbVar;
   unsigned m_nbClause;
-
-  // options is given in the constructor and its bytes set the following:
   bool m_reduceFormula; 
-  bool m_equivSimp;     
+  bool m_equivSimp;
 
 
   void constructHyperGraph(std::vector<Var> &component,
                            std::vector<Var> &equivClass,
                            std::vector< std::vector<Var> > &equivVar,
                            std::vector<Var> &considered);
-  
-  void computeEquivClass(std::vector<Var> &component,
-                         std::vector<Lit> &unitEquiv,
-                         std::vector<Var> &equivClass,
-                         std::vector< std::vector<Var> > &equivVar);
   
   void clashHyperEdgeIndex(std::vector<int> &partition,
                            std::vector<unsigned> &indices);
@@ -86,8 +78,6 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
                         std::vector<Var> &considered,
                         std::vector<unsigned> &idxClauses,
                         std::vector<Var> &equivClass);
-  
-  void displayHyperGraph(unsigned *hypergraph, unsigned size);
   
  public:
   PartitioningHeuristicBipartiteDual(po::variables_map &vm,

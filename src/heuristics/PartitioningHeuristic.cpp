@@ -23,6 +23,7 @@ a* it under the terms of the GNU General Public License as published by
 #include "PartitioningHeuristicNone.hpp"
 #include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
 #include "cnf/PartitioningHeuristicBipartiteDual.hpp"
+#include "cnf/StaticDecomposition.hpp"
 
 namespace d4
 {
@@ -64,9 +65,47 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
       return new PartitioningHeuristicBipartitePrimal(vm, ws, s);
     if(meth == "bipartition-dual")
       return new PartitioningHeuristicBipartiteDual(vm, ws, s);
+    if(meth == "static")
+      return new StaticDecomposition(vm, ws, s);
   }
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));
 } // makePartitioningHeuristic
+
+
+/**
+   Associate for each variable in the component an equivalence class.
+
+   @pararm[in] eqManager, the equivalence manager.
+   @param[in] solver, the SAT solver used in the equivalence manager.
+   @param[in] component, the set of variables of the component we want to cut.
+   @param[out] unitEquiv, the set of unit literals we find out.
+   @param[out] equiClass, the equivalence class we computed (we suppose that the
+   verctor is large enough and then we do not allocate).
+*/
+void PartitioningHeuristic::computeEquivClass(
+    EquivExtractor &eqManager,
+    WrapperSolver &solver,
+    std::vector<Var> &component,
+    std::vector<Lit> &unitEquiv,
+    std::vector<Var> &equivClass,
+    std::vector< std::vector<Var> > &equivVar)
+{
+  for(auto &v : component)
+  {
+    assert(equivClass.size() >= (unsigned) v);
+    equivClass[v] = v;
+  }
+  
+  eqManager.searchEquiv(solver, component, equivVar);
+  solver.whichAreUnits(component, unitEquiv);
+  
+  // propagate the equivVar information in equivClass
+  for(auto &c : equivVar)
+  {
+    Var vi = c.back();
+    for(auto &v : c) equivClass[v] = vi;             
+  }
+} // computeEquivclass
 
 }
