@@ -57,12 +57,10 @@ HyperGraph::~HyperGraph()
 */
 void HyperGraph::displayHyperGraph()
 {
-  unsigned *p = m_hypergraph;
-  for(unsigned i = 0 ; i<m_hypergraphSize ; i++)
+  for (auto it : *this)
   {
-    for(unsigned j = 0 ; j<*p ; j++) std::cout << p[1 + j] << " ";
+    for(unsigned j = 0 ; j<it.getSize() ; j++) std::cout << it[j] << " ";
     std::cout << "\n";
-    p += *p + 1;
   }
 } // displayHyperGraph
 

@@ -19,6 +19,9 @@
 
 #include <iostream>
 #include <cassert>
+#include <iterator>  
+
+#include "HyperEdge.hpp"
 
 namespace d4
 {
@@ -26,7 +29,7 @@ namespace d4
    We use a raw representation of the hyper graph.
    -> [size1] [...elts1 ...] [size2] [... elts2...] .......
 */
-class HyperGraph
+class HyperGraph 
 {
  private:
   unsigned *m_hypergraph;
@@ -37,10 +40,7 @@ class HyperGraph
   HyperGraph();
   HyperGraph(unsigned capacity);
   ~HyperGraph();
-
-  void displayHyperGraph();
-  void init(unsigned capacity);
-
+  
   inline void incSize(){m_hypergraphSize++;}
   inline void decSize(){m_hypergraphSize--;}
   inline void setSize(unsigned size){m_hypergraphSize = size;}
@@ -58,5 +58,40 @@ class HyperGraph
     assert(i<m_hypergraphCapacity);
     return m_hypergraph[i];
   }
+
+
+  class Iterator
+  {
+   private:
+    HyperEdge m_hyperEdge;
+    
+   public:
+    Iterator(unsigned *ptr, unsigned pos) : m_hyperEdge(pos, ptr)
+    {
+      
+    }
+    
+    inline HyperEdge &operator*() { return m_hyperEdge; }
+    inline HyperEdge operator->() { return m_hyperEdge; }
+    
+    Iterator &operator++() { m_hyperEdge.next(); return *this; }  
+    Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+    
+    friend bool operator== (const Iterator& a, const Iterator& b)
+    {
+      return a.m_hyperEdge.getId() == b.m_hyperEdge.getId();
+    };
+    friend bool operator!= (const Iterator& a, const Iterator& b)
+    {
+      return a.m_hyperEdge.getId() != b.m_hyperEdge.getId();
+    };
+  };
+
+
+  Iterator begin() { return Iterator(m_hypergraph, 0); }
+  Iterator end()   { return Iterator(m_hypergraph, m_hypergraphSize);}
+
+  void displayHyperGraph();
+  void init(unsigned capacity);  
 };
 } // d4
