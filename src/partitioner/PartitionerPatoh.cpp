@@ -66,11 +66,9 @@ PartitionerPatoh::~PartitionerPatoh()
    Get a partition from the hypergraph.
    
    @param[in] hypergraph, the graph we search for a partition.
-   @param[in] isAccepted, function that decide if we keep or not.
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
 void PartitionerPatoh::computePartition(HyperGraph &hypergraph,
-                                        std::function<bool(int)> isAccepted,
                                         std::vector<int> &partition)
 {
   std::vector<unsigned> elts;
@@ -78,28 +76,25 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph,
   // graph initialization and shift the hypergraph
   unsigned sizeXpins = 0;
   int posPins = 0;
-
+  
   unsigned *edge = hypergraph.getEdges();
   for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
   {
-    if(isAccepted(i))
+    m_xpins[sizeXpins++] = posPins;
+    for(unsigned j = 0 ; j<*edge ; j++)
     {
-      m_xpins[sizeXpins++] = posPins;
-      for(unsigned j = 0 ; j<*edge ; j++)
+      unsigned x = edge[1 + j];
+        
+      if(!m_markedNodes[x])
       {
-        unsigned x = edge[1 + j];
-        
-        if(!m_markedNodes[x])
-        {
-          m_markedNodes[x] = true;
-          m_mapNodes[x] = elts.size();
-          elts.push_back(x);
-        }
-        
-        m_pins[posPins++] = m_mapNodes[x];
+        m_markedNodes[x] = true;
+        m_mapNodes[x] = elts.size();
+        elts.push_back(x);
       }
-    }
 
+      m_pins[posPins++] = m_mapNodes[x];
+    }
+    
     edge = &(edge[*edge + 1]);
   }
   for(auto &x : elts) m_markedNodes[x] = false;

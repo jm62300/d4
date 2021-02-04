@@ -26,6 +26,7 @@
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/hyperGraph/HyperGraph.hpp"
+#include "src/hyperGraph/HyperGraphExtractorPrimal.hpp"
 
 #include "../PartitioningHeuristic.hpp"
 
@@ -52,6 +53,7 @@ class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristic
 
   // to store the hypergraph, and then avoir reallocated memory.
   HyperGraph m_hypergraph;
+  HyperGraphExtractorPrimal *m_hypergraphExtractor;
 
   unsigned m_nbVar;
   unsigned m_nbClause;

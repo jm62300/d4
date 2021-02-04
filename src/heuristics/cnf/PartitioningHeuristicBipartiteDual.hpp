@@ -67,6 +67,11 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
       std::vector<int> &partition,
       std::vector<int> &cutSet);
 
+  void computeEquivClass(
+      std::vector<Var> &component,
+      std::vector<Lit> &unitEquiv,
+      std::vector< std::vector<Var> > &equivVar);
+
  public:
   PartitioningHeuristicBipartiteDual(
       po::variables_map &vm,

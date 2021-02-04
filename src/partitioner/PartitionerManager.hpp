@@ -36,13 +36,7 @@ class PartitionerManager
 
   virtual ~PartitionerManager() {}
 
-  /**
-     Partitioner takes as input an hypergraph given in an array that follows:
-     - hypergraph, the given hyper graph
-     - flags[i] is 0 if the clause must be ignored.
-   */
   virtual void computePartition(HyperGraph &hypergraph,
-                                std::function<bool(int)> isAccepted,
                                 std::vector<int> &partition) = 0;
 };
 } // d4

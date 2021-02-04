@@ -43,7 +43,6 @@ class PartitionerPatoh : public PartitionerManager
   
   ~PartitionerPatoh();
   void computePartition(HyperGraph &hypergraph,
-                        std::function<bool(int)> isAccepted,
                         std::vector<int> &partition);
 };
 } // d4

@@ -72,6 +72,7 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
   m_equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
 
   m_hypergraph.init(m_nbClause + _sumSize + 1);
+  m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
 } // constructor
 
 
@@ -80,6 +81,7 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
 */
 PartitioningHeuristicBipartitePrimal::~PartitioningHeuristicBipartitePrimal()
 {
+  delete m_hypergraphExtractor;
   delete m_pm;
 } // destructor
 
@@ -267,16 +269,18 @@ void PartitioningHeuristicBipartitePrimal::computeCutSet(
   std::vector< std::vector<Var> > equivVar;
   if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
          m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
-  
+  else for(auto &v : component) m_equivClass[v] = v;
+
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);
-
+  
   // construct the hypergraph
-  constructHyperGraph(component, m_equivClass);
-  m_pm->computePartition(m_hypergraph,
-                         (std::function<bool(int)>) [this](int i)
-                         {return this->m_hashEdges[i] != 0;},
-                         m_partition);
+  std::vector<Var> considered;
+  m_hypergraphExtractor->constructHyperGraph(
+      m_om, component, m_equivClass, equivVar, m_reduceFormula, considered, m_hypergraph);
+  
+  m_pm->computePartition(m_hypergraph, m_partition);
+  
   // collect the cut.
   extractCutFromHyperGraph(m_partition, cutSet);
   

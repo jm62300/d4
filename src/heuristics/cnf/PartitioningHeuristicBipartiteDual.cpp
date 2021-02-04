@@ -135,6 +135,24 @@ void PartitioningHeuristicBipartiteDual::extractCutFromHyperGraph(
 
 
 /**
+   Compute the equivalence class.
+
+   @param[in] component, the set of variables.
+   @param[out] unitEquiv, the set of literals that have been proved unit.
+   @param[out] equivVar, equivalence class found.
+ */
+void PartitioningHeuristicBipartiteDual::computeEquivClass(
+      std::vector<Var> &component,
+      std::vector<Lit> &unitEquiv,
+      std::vector< std::vector<Var> > &equivVar)
+{
+  if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
+         m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
+  else for(auto &v : component) m_equivClass[v] = v;
+} // computeEquivclass
+
+
+/**
    Compute a cutset by computing a bipartition of the hypergraph of the clauses.
 
    @param[in] component, the set of variables.
@@ -147,8 +165,7 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
   // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
   std::vector< std::vector<Var> > equivVar;
-  if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
-         m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
+  computeEquivClass(component, unitEquiv, equivVar);
   
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);  
@@ -158,9 +175,7 @@ void PartitioningHeuristicBipartiteDual::computeCutSet(
   m_hypergraphExtractor->constructHyperGraph(
       m_om, component, m_equivClass, equivVar, m_reduceFormula, considered, m_hypergraph);
   
-  m_pm->computePartition(m_hypergraph,
-                         (std::function<bool(int)>) [](int i) {return true;},
-                         m_partition);  
+  m_pm->computePartition(m_hypergraph, m_partition);  
 
   // collect the cut.
   extractCutFromHyperGraph(considered, m_partition, cutSet);
