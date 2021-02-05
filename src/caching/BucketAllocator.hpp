@@ -17,6 +17,7 @@
 */
 #pragma once
 
+#include <iostream>
 #include <cassert>
 #include <vector>
 #include <deque>
@@ -36,7 +37,7 @@ class BucketAllocator
 {
  private:
   std::vector<char *> m_allocateData;
-  char *m_data;
+  char *m_data = NULL;
   unsigned long m_sizeFirstPage;
   unsigned long m_sizeAdditionalPage;
   unsigned long m_sizeData;
@@ -49,11 +50,22 @@ class BucketAllocator
   unsigned long int m_pageData;
   unsigned long int m_usedMemory;
   bool isInit = false;
+  bool cleanup = true;
   
   std::function<void(char *, int)> m_removeSmudgeEntry;
   
  public:
-  ~BucketAllocator();
+  ~BucketAllocator()
+  {
+    for(auto data : m_allocateData) delete[] data;
+    m_allocateData.clear();    
+  }
+
+  inline void activeCleanUp(){cleanup = true;}
+  inline void deactiveCleanUp(){cleanup = false;}
+  inline bool getCleanup(){return cleanup;}
+  inline bool getIsInit(){return isInit;}
+  inline void setIsInit(bool v){isInit = v;}
 
   inline unsigned long int usedMemory(){return m_usedMemory;}
   

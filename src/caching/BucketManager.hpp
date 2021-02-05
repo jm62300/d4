@@ -55,7 +55,10 @@ template<class T> class BucketManager
   Cache<T> *m_cache; // the cache linked with this BucketManager.
   
  public:
-  virtual ~BucketManager() {}
+  virtual ~BucketManager()
+  {
+    if(m_bucketAllocator->getCleanup()) delete m_bucketAllocator;
+  } // destructor  
   
   static BucketManager<T> *makeBucketManager(po::variables_map &vm,
                                              Cache<T> *cache,

@@ -75,8 +75,8 @@ class DpllStyleMethod : public MethodManager
   std::vector<unsigned long> nbPosHitCacheVarSize;
 
   ProblemManager *m_problem;
-  WrapperSolver *solver;
-  SpecManager *specs;
+  WrapperSolver *m_solver;
+  SpecManager *m_specs;
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
@@ -89,7 +89,7 @@ class DpllStyleMethod : public MethodManager
   double ratioDynamicLimit;
   unsigned limitNbVarCacheDynamic;
 
-  Operation<U> *operation;
+  Operation<U> *m_operation;
   
  public:
 
@@ -122,22 +122,22 @@ class DpllStyleMethod : public MethodManager
     assert(m_problem);
 
     // we create the SAT solver. 
-    solver = WrapperSolver::makeWrapperSolver(vm, m_out);
-    assert(solver);
-    solver->initSolver(*m_problem);
-    solver->setNeedModel(true);
+    m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
+    assert(m_solver);
+    m_solver->initSolver(*m_problem);
+    m_solver->setNeedModel(true);
     
     // we initialize the object that will give info about the problem.
-    specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
-    assert(specs);
+    m_specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
+    assert(m_specs);
     
     // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(vm, *specs, *solver, m_out);    
-    m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *specs, *solver, m_out);
-    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *specs, *solver, m_out);
+    m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);    
+    m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
+    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *m_specs, *m_solver, m_out);
     assert(m_hVar && m_hPhase && m_hCutSet);
     
-    m_cache = new Cache<U>(vm, m_problem->getNbVar(), specs, m_out);
+    m_cache = new Cache<U>(vm, m_problem->getNbVar(), m_specs, m_out);
     
     // we delete the useless objects.
     delete initProblem;
@@ -175,18 +175,17 @@ class DpllStyleMethod : public MethodManager
           << "\n";
     
     stampIdx = 0;
-    stampVar.resize(specs->getNbVariable() + 1, 0);
-    nbTestCacheVarSize.resize(specs->getNbVariable() + 1, 0);
-    nbPosHitCacheVarSize.resize(specs->getNbVariable() + 1, 0);
+    stampVar.resize(m_specs->getNbVariable() + 1, 0);
+    nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
+    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
 
     std::cout << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     for(auto v : selected) std::cout << v << " ";
     std::cout << "\n" << "c\n";
 
-    void *op = Operation<T>::makeOperationManager(vm, m_problem, specs, solver, m_out);
-    
-    operation = static_cast<Operation<U> *>(op);
+    void *op = Operation<T>::makeOperationManager(vm, m_problem, m_specs, m_solver, m_out);
+    m_operation = static_cast<Operation<U> *>(op);
     std::cout << "c\n";
   } // constructor
 
@@ -196,10 +195,10 @@ class DpllStyleMethod : public MethodManager
    */
   ~DpllStyleMethod()
   {
-    delete operation;
+    delete m_operation;
     delete m_problem;
-    delete solver;
-    delete specs;
+    delete m_solver;
+    delete m_specs;
     delete m_hVar;
     delete m_hPhase;
     delete m_hCutSet;
@@ -222,7 +221,7 @@ class DpllStyleMethod : public MethodManager
     stampIdx++;
     for(auto &v : connected) stampVar[v] = stampIdx;
     for(auto &v : priorityVar)
-      if(stampVar[v] == stampIdx && !specs->varIsAssigned(v))
+      if(stampVar[v] == stampIdx && !m_specs->varIsAssigned(v))
         currPriority.push_back(v);
   } // computePrioritySet
 
@@ -326,8 +325,8 @@ class DpllStyleMethod : public MethodManager
   */
   inline void initAssumption(std::vector<Lit> &assums)
   {
-    solver->restart();
-    solver->setAssumption(assums);
+    m_solver->restart();
+    m_solver->setAssumption(assums);
   } // initAssumption  
 
 
@@ -395,15 +394,15 @@ class DpllStyleMethod : public MethodManager
     showRun(out); nbCallCall++;
     // if(nbCallCall > 114000) {exit(0);}
     
-    if(!solver->solve(setOfVar)) return operation->manageBottom();
-    solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
-    specs->preUpdate(unitsLit);
+    if(!m_solver->solve(setOfVar)) return m_operation->manageBottom();
+    m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
+    m_specs->preUpdate(unitsLit);
     
     // compute the connected composant
     std::vector<Var> reallyPresent;
     std::vector< std::vector<Var> > varConnected;
     
-    int nbComponent = specs->computeConnectedComponent(
+    int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
 
     if(++m_limitUpdateCounter > m_limitUpdate)
@@ -413,7 +412,7 @@ class DpllStyleMethod : public MethodManager
     }
     
     // consider each connected component.
-    U ret = operation->createTop();
+    U ret = m_operation->createTop();
     if(nbComponent)
     {
       U tab[nbComponent];      
@@ -442,10 +441,10 @@ class DpllStyleMethod : public MethodManager
         }
       }
 
-      ret = operation->manageDecomposableAnd(tab, nbComponent);
+      ret = m_operation->manageDecomposableAnd(tab, nbComponent);
     }// else we have a tautology
 
-    specs->postUpdate(unitsLit);
+    m_specs->postUpdate(unitsLit);
     return ret;
   }// compute_ 
 
@@ -470,8 +469,8 @@ class DpllStyleMethod : public MethodManager
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
-    Var v = m_hVar->selectVariable(inVars, *specs);
-    if(v == var_Undef) return operation->manageTop(connected);
+    Var v = m_hVar->selectVariable(inVars, *m_specs);
+    if(v == var_Undef) return m_operation->manageTop(connected);
     
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
@@ -479,15 +478,15 @@ class DpllStyleMethod : public MethodManager
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];
 
-    solver->pushAssumption(l);    
+    m_solver->pushAssumption(l);    
     b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);    
-    solver->popAssumption();
+    m_solver->popAssumption();
 
-    solver->pushAssumption(~l);
+    m_solver->pushAssumption(~l);
     b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
-    solver->popAssumption();
+    m_solver->popAssumption();
 
-    return operation->manageDeterministOr(b, 2);
+    return m_operation->manageDeterministOr(b, 2);
   }// computeDecisionNode
 
   
@@ -500,14 +499,14 @@ class DpllStyleMethod : public MethodManager
   U compute(std::ostream &out)
   {
     std::vector<Var> setOfVar, priorityVar;
-    for(int i = 1 ; i <= specs->getNbVariable() ; i++) setOfVar.push_back(i);
+    for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
 
-    if(m_problem->isUnsat() || !solver->warmStart(29, 11, setOfVar, m_out))
-      return operation->manageBottom();
+    if(m_problem->isUnsat() || !m_solver->warmStart(29, 11, setOfVar, m_out))
+      return m_operation->manageBottom();
 
     DataBranch<U> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);    
-    return operation->manageBranch(b);
+    return m_operation->manageBranch(b);
   }// compute
 
  public:
@@ -521,7 +520,7 @@ class DpllStyleMethod : public MethodManager
   {
     U result = compute(m_out);
     printFinalStats(m_out);
-    operation->manageResult(result, vm, m_out);
+    m_operation->manageResult(result, vm, m_out);
   } // run
 };
 } // d4

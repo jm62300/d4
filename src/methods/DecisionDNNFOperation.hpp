@@ -50,6 +50,15 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
 
 
   /**
+     Destructor.
+   */
+  ~DecisionDNNFOperation()
+  {
+    delete m_nodeManager;
+  } // destructor
+  
+
+  /**
      Create top node and returns it.
 
      \return a top node.

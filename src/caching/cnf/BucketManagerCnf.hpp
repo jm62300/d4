@@ -91,17 +91,18 @@ template<class T> class BucketManagerCnf : public BucketManager<T>
     m_maxSizeClause = occM.getMaxSizeClause();
     m_varInComponent.resize(nbVarCnf, false);
     
-    m_bucketAllocator->init(sizeFirstPage, sizeAdditionalPage,                            
-                            [this] (char *data, int posInHash)
-                            {std::vector< CachedBucket<T> > &v =
-                                  m_cache->getHashTable()[posInHash];
-                              unsigned posRm = v.size();
-                              for(unsigned i = 0 ; i<posRm ; i++)
-                                if(v[i].data == data) posRm = i;
-                              assert(posRm < v.size());
-                              v[posRm] = v.back();
-                              v.pop_back();}
-                            );
+    m_bucketAllocator->init(
+        sizeFirstPage, sizeAdditionalPage,                            
+        [this] (char *data, int posInHash)
+        {
+          std::vector< CachedBucket<T> > &v = m_cache->getHashTable()[posInHash];
+          unsigned posRm = v.size();
+          
+          for(unsigned i = 0 ; i<posRm ; i++) if(v[i].data == data) posRm = i;
+          
+          assert(posRm < v.size());
+          v[posRm] = v.back();
+          v.pop_back();});
   }// BucketManager
 
   

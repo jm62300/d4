@@ -109,6 +109,7 @@ template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
 
     m_limitNbVarIndex = limitNbVarIndex;
     m_limitNbVarSym = limitNbVarSym;
+    m_bucketAllocator->deactiveCleanUp();
   }// BucketManagerCnfCombi
 
 
@@ -117,7 +118,11 @@ template<class T> class BucketManagerCnfCombi : public BucketManagerCnf<T>
    */
   ~BucketManagerCnfCombi()
   {
+    delete symBucketManager;
+    delete indexBucketManager;
+    delete clBucketManagerBis;
     delete clBucketManager;
+    m_bucketAllocator->activeCleanUp();
   } // destructor
 
 
