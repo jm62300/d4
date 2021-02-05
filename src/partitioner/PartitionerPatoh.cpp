@@ -82,7 +82,8 @@ void PartitionerPatoh::computePartition(
   {
     m_xpins[sizeXpins++] = posPins;
     for(auto x : edge)
-    {   
+    {
+      assert(x < m_markedNodes.size());
       if(!m_markedNodes[x])
       {
         m_markedNodes[x] = true;

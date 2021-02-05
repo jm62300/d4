@@ -51,51 +51,30 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
     SpecManager &_om,
     int _nbClause,
     int _nbVar,
-    int _sumSize) : m_s(_s), m_om(dynamic_cast<SpecManagerCnf&>(_om))
+    int _sumSize) :
+    PartitioningHeuristicBipartite(vm, _om, _s, _nbClause, _nbVar, _sumSize)
 {
-  m_pm = PartitionerManager::makePartitioner(vm, _nbVar, _nbClause, _sumSize);
-  
-  m_em.initEquivExtractor(_nbVar + 1);
-  m_nbVar = _nbVar;
-  m_nbClause = _nbClause;
-
-  // initialize the vector.
-  m_mapVar.resize(m_nbVar + 1, 0);
-  m_markedVar.resize(m_nbVar + 1, false);
-  m_equivClass.resize(m_nbVar + 1, 0);
-  m_useLessVariable.resize(m_nbVar + 1, false);
+  // initialize the vectors.  
   m_partition.resize(m_nbVar + 1, 0);
-  m_markedClauses.resize(m_nbClause + 1, false);
   
-  // get the options.
-  m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
-  m_equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-
+  // init the hyper graph managers.
+  m_pm = PartitionerManager::makePartitioner(vm, _nbVar, _nbClause, _sumSize);
   m_hypergraph.init(m_nbClause + _sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
 } // constructor
 
 
 /**
-   Destructor.
-*/
-PartitioningHeuristicBipartitePrimal::~PartitioningHeuristicBipartitePrimal()
-{
-  delete m_hypergraphExtractor;
-  delete m_pm;
-} // destructor
-
-
-
-/**
    Check all the hyper edges in order to extract those their are conflictual
    (i.e. there are belong to at least two components).
    We try to minimize the cut in a greedy fashion.
-   
+
+   @param[in] considered, the label variables for the edges [not used here].
    @param[in] partition, the array that gives the partition.
    @param[out] cutSet, the computed cutset.
 */
 void PartitioningHeuristicBipartitePrimal::extractCutFromHyperGraph(
+    std::vector<Var> &considered,
     std::vector<int> &partition,
     std::vector<int> &cutSet)
 {
@@ -155,44 +134,4 @@ void PartitioningHeuristicBipartitePrimal::clashHyperEdgeIndex(
   }
 } // clashHyperEdgeIndex
 
-/**
-   Compute a cutset by computing a bipartition of the hypergraph of the clauses.
-
-   @param[in] component, the set of variables.
-   @param[out] cutSet, the cut set we compute.
-*/
-void PartitioningHeuristicBipartitePrimal::computeCutSet(
-    std::vector<Var> &component,
-    std::vector<Var> &cutSet)
-{
-  // search for equiv class if requiered.
-  std::vector<Lit> unitEquiv;
-  std::vector< std::vector<Var> > equivVar;
-  if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
-         m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
-  else for(auto &v : component) m_equivClass[v] = v;
-
-  // synchronize the SAT solver and the spec manager.
-  m_om.preUpdate(unitEquiv);
-  
-  // construct the hypergraph
-  std::vector<Var> considered;
-  m_hypergraphExtractor->constructHyperGraph(
-      m_om, component, m_equivClass, equivVar, m_reduceFormula, considered, m_hypergraph);
-  
-  m_pm->computePartition(m_hypergraph, m_partition);
-  
-  // collect the cut.
-  extractCutFromHyperGraph(m_partition, cutSet);
-  
-  // extend with equivalence literals.
-  for(auto &v : cutSet) m_markedVar[v] = true;
-  for(auto &v : component)
-  {
-    if(m_markedVar[v]) continue;
-    if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
-  }  
-  for(auto &v : cutSet) m_markedVar[v] = false;
-  m_om.postUpdate(unitEquiv);
-} // component
 } // d4

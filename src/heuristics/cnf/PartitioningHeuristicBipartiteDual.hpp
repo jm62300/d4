@@ -29,33 +29,16 @@
 #include "src/hyperGraph/HyperGraph.hpp"
 #include "src/hyperGraph/HyperGraphExtractorDual.hpp"
 
-#include "../PartitioningHeuristic.hpp"
+#include "PartitioningHeuristicBipartite.hpp"
 
 namespace d4
 {
 namespace po = boost::program_options;
-class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
+class PartitioningHeuristicBipartiteDual : public PartitioningHeuristicBipartite
 {
  private:
-  WrapperSolver &m_s;  
-  SpecManagerCnf &m_om;
-  EquivExtractor m_em;
-  PartitionerManager *m_pm;
-
-  std::vector<bool> m_markedVar;
-  std::vector<Var> m_equivClass;
-  std::vector<int> m_partition;
-  std::vector<unsigned *> m_mapVarEdge;  
-
-  // to store the hypergraph, and then avoir reallocated memory.
-  HyperGraph m_hypergraph;
-  HyperGraphExtractorDual *m_hypergraphExtractor;
+  std::vector<unsigned *> m_mapVarEdge;
   
-  unsigned m_nbVar;
-  unsigned m_nbClause;
-  bool m_reduceFormula; 
-  bool m_equivSimp;
-
   void clashHyperEdgeIndex(
       HyperGraph &hypergraph,
       std::vector<int> &partition,
@@ -66,11 +49,6 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
       std::vector<Var> &considered,
       std::vector<int> &partition,
       std::vector<int> &cutSet);
-
-  void computeEquivClass(
-      std::vector<Var> &component,
-      std::vector<Lit> &unitEquiv,
-      std::vector< std::vector<Var> > &equivVar);
 
  public:
   PartitioningHeuristicBipartiteDual(
@@ -85,11 +63,5 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristic
       int nbClause,
       int nbVar,
       int sumSize);
-
-  
-  ~PartitioningHeuristicBipartiteDual();
-  
-  void computeCutSet(std::vector<Var> &component,
-                     std::vector<Var> &cutSet);
 };
 } // d4

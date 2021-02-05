@@ -25,13 +25,62 @@
 #include "src/utils/EquivExtractor.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
 
 #include "../PartitioningHeuristic.hpp"
 
 namespace d4
 {
+namespace po = boost::program_options;
 class PartitioningHeuristicBipartite : public PartitioningHeuristic
 {
+ private:
   
+ protected:
+  SpecManagerCnf &m_om;  
+  WrapperSolver &m_s;
+  EquivExtractor m_em;
+  PartitionerManager *m_pm;
+
+  // to store the hypergraph, and then avoid reallocated memory.
+  HyperGraph m_hypergraph;
+  HyperGraphExtractor *m_hypergraphExtractor;
+
+  std::vector<bool> m_markedVar;
+  std::vector<int> m_partition;
+  std::vector<Var> m_equivClass;
+
+  // options.
+  bool m_equivSimp;
+  bool m_reduceFormula;  
+
+  unsigned m_nbVar;
+  unsigned m_nbClause;
+
+  PartitioningHeuristicBipartite(
+      po::variables_map &vm,
+      SpecManager &om,
+      WrapperSolver &s,
+      int _nbClause,
+      int _nbVar,
+      int _sumSize);
+
+  ~PartitioningHeuristicBipartite();
+  
+  void computeEquivClass(
+      std::vector<Var> &component,
+      std::vector<Lit> &unitEquiv,
+      std::vector<Var> &equivClass,
+      std::vector< std::vector<Var> > &equivVar);
+
+  virtual void extractCutFromHyperGraph(
+      std::vector<Var> &considered,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet) = 0;
+
+ public:
+  void computeCutSet(std::vector<Var> &component,
+                     std::vector<Var> &cutSet);
+
 };
 } // d4

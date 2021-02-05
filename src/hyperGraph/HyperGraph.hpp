@@ -46,6 +46,7 @@ class HyperGraph
   inline void setSize(unsigned size){m_hypergraphSize = size;}
   inline unsigned *getEdges(){return m_hypergraph;}
   inline unsigned getSize(){return m_hypergraphSize;}
+  inline unsigned getCapicity(){return m_hypergraphCapacity;}
 
   inline unsigned operator [] (unsigned i) const
   {
