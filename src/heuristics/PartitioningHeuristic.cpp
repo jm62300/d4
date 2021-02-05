@@ -23,7 +23,7 @@ a* it under the terms of the GNU General Public License as published by
 #include "PartitioningHeuristicNone.hpp"
 #include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
 #include "cnf/PartitioningHeuristicBipartiteDual.hpp"
-#include "cnf/StaticDecomposition.hpp"
+#include "cnf/PartitioningHeuristicStatic.hpp"
 
 namespace d4
 {
@@ -66,7 +66,7 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
     if(meth == "bipartition-dual")
       return new PartitioningHeuristicBipartiteDual(vm, ws, s);
     if(meth == "static")
-      return new StaticDecomposition(vm, ws, s);
+      return new PartitioningHeuristicStatic(vm, ws, s);
   }
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));

@@ -17,7 +17,7 @@
 */
 #include <bitset>
 
-#include "StaticDecomposition.hpp"
+#include "PartitioningHeuristicStatic.hpp"
 
 namespace d4
 {
@@ -27,11 +27,11 @@ namespace d4
    @param[in] _s, a wrapper on a solver.
    @param[in] _om, a structure manager.
 */
-StaticDecomposition::StaticDecomposition(
+PartitioningHeuristicStatic::PartitioningHeuristicStatic(
     po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om) :
-    StaticDecomposition(vm, _s, _om,
+    PartitioningHeuristicStatic(vm, _s, _om,
                         dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
                         dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
                         dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
@@ -45,7 +45,7 @@ StaticDecomposition::StaticDecomposition(
    @param[in] _s, a wrapper on a solver.
    @param[in] _om, a structure manager.
 */
-StaticDecomposition::StaticDecomposition(
+PartitioningHeuristicStatic::PartitioningHeuristicStatic(
     po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om,
@@ -70,7 +70,7 @@ StaticDecomposition::StaticDecomposition(
 /**
    Destructor.
 */
-StaticDecomposition::~StaticDecomposition()
+PartitioningHeuristicStatic::~PartitioningHeuristicStatic()
 {
   delete m_pm;
 } // destructor
@@ -82,7 +82,7 @@ StaticDecomposition::~StaticDecomposition()
    @param[in] component, the set of variables.
    @param[out] cutSet, the cut set we compute.
 */
-void StaticDecomposition::computeCutSet(
+void PartitioningHeuristicStatic::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {

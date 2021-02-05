@@ -62,20 +62,12 @@ class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristic
   bool m_reduceFormula; 
   bool m_equivSimp;     
 
-
-  void constructHyperGraph(std::vector<Var> &component,
-                           std::vector<Var> &equivClass);
-  
   void clashHyperEdgeIndex(std::vector<int> &partition,
                            std::vector<unsigned *> &indices);
 
 
   void extractCutFromHyperGraph(std::vector<int> &partition,
                                 std::vector<int> &cutSet);
-
-
-  void removeSubsumEdges(unsigned *hypergraph,
-                         unsigned size);
   
  public:
   PartitioningHeuristicBipartitePrimal(po::variables_map &vm,

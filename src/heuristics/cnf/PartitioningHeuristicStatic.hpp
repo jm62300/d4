@@ -31,7 +31,7 @@
 namespace d4
 {
 namespace po = boost::program_options;
-class StaticDecomposition : public PartitioningHeuristic
+class PartitioningHeuristicStatic : public PartitioningHeuristic
 {
  private:
   WrapperSolver &m_s;  
@@ -54,11 +54,11 @@ class StaticDecomposition : public PartitioningHeuristic
                             std::vector<unsigned> &bucketNumber);
   
  public:
-  StaticDecomposition(po::variables_map &vm,
+  PartitioningHeuristicStatic(po::variables_map &vm,
                       WrapperSolver &s,
                       SpecManager &om);
 
-  StaticDecomposition(po::variables_map &vm,
+  PartitioningHeuristicStatic(po::variables_map &vm,
                       WrapperSolver &s,
                       SpecManager &om,                                 
                       int nbClause,
@@ -66,7 +66,7 @@ class StaticDecomposition : public PartitioningHeuristic
                       int sumSize);
 
   
-  ~StaticDecomposition();
+  ~PartitioningHeuristicStatic();
   
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet);
