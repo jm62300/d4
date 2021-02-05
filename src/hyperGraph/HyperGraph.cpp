@@ -57,9 +57,9 @@ HyperGraph::~HyperGraph()
 */
 void HyperGraph::displayHyperGraph()
 {
-  for (auto it : *this)
+  for(auto it : *this)
   {
-    for(unsigned j = 0 ; j<it.getSize() ; j++) std::cout << it[j] << " ";
+    for(auto e : it) std::cout << e << " ";
     std::cout << "\n";
   }
 } // displayHyperGraph

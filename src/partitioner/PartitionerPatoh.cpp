@@ -68,23 +68,21 @@ PartitionerPatoh::~PartitionerPatoh()
    @param[in] hypergraph, the graph we search for a partition.
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
-void PartitionerPatoh::computePartition(HyperGraph &hypergraph,
-                                        std::vector<int> &partition)
+void PartitionerPatoh::computePartition(
+    HyperGraph &hypergraph,
+    std::vector<int> &partition)
 {
   std::vector<unsigned> elts;
 
   // graph initialization and shift the hypergraph
   unsigned sizeXpins = 0;
   int posPins = 0;
-  
-  unsigned *edge = hypergraph.getEdges();
-  for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
+
+  for(auto &edge : hypergraph)
   {
     m_xpins[sizeXpins++] = posPins;
-    for(unsigned j = 0 ; j<*edge ; j++)
-    {
-      unsigned x = edge[1 + j];
-        
+    for(auto x : edge)
+    {   
       if(!m_markedNodes[x])
       {
         m_markedNodes[x] = true;
@@ -94,19 +92,13 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph,
 
       m_pins[posPins++] = m_mapNodes[x];
     }
-    
-    edge = &(edge[*edge + 1]);
   }
+  
   for(auto &x : elts) m_markedNodes[x] = false;
   m_xpins[sizeXpins] = posPins;
 
   // hypergraph partitioner
   PaToH_Parameters args;
-#if 0
-  if(sizeXpins < 50)
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_SPEED);
-  // else
-#endif
   if (sizeXpins < 200)
     PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
   else

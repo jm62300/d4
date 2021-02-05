@@ -71,7 +71,7 @@ void HyperGraphExtractorDual::reduceHyperGraph(
   {
     m_mapVarEdge[v] = edge;
     for(unsigned j = 0 ; j<*edge ; j++) m_sizeClause[edge[1 + j]]++;
-    edge = &edge[*edge + 1];
+    edge += *edge + 1;
   }
 
   // sort the clause indices to put first the biggest clauses.

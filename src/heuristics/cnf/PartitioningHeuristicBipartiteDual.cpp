@@ -100,20 +100,15 @@ void PartitioningHeuristicBipartiteDual::clashHyperEdgeIndex(
 {
   bool clash = false;
   int part = 0;
-
-  hypergraph.displayHyperGraph();
-  exit(0);
   
-  unsigned *edge = hypergraph.getEdges();
-  for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
+  for(auto edge : hypergraph)
   {
     clash = false;
-    part = partition[edge[1]];
+    part = partition[edge[0]];
 
-    for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
-    if(clash) indices.push_back(i);
-
-    edge = &(edge[*edge + 1]); // next clause.
+    for(unsigned j = 1 ; !clash && j<edge.getSize() ; j++)
+      clash = part != partition[edge[j]];
+    if(clash) indices.push_back(edge.getId());
   }
 } // clashHyperEdgeIndex
 

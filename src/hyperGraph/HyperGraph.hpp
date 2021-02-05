@@ -66,10 +66,7 @@ class HyperGraph
     HyperEdge m_hyperEdge;
     
    public:
-    Iterator(unsigned *ptr, unsigned pos) : m_hyperEdge(pos, ptr)
-    {
-      
-    }
+    Iterator(unsigned *ptr, unsigned pos) : m_hyperEdge(pos, ptr) {}
     
     inline HyperEdge &operator*() { return m_hyperEdge; }
     inline HyperEdge operator->() { return m_hyperEdge; }
@@ -86,8 +83,7 @@ class HyperGraph
       return a.m_hyperEdge.getId() != b.m_hyperEdge.getId();
     };
   };
-
-
+  
   Iterator begin() { return Iterator(m_hypergraph, 0); }
   Iterator end()   { return Iterator(m_hypergraph, m_hypergraphSize);}
 
