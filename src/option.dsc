@@ -8,7 +8,7 @@
 ("scoring-method,sm",boost::program_options::value<std::string>()->default_value("vsads"),"The scoring method used for selecting the next variable. [add a description of the available methods]")
 ("occurrence-manager,om",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used. [add a description]")
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected. [add a description for the available methods]")
-("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("bipartition-dual"),"The method used to compute a cut. [none, bipartition-primal or bipartition-dual]")
+("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("bipartition-dual"),"The method used to compute a cut. [none, decomposition-static, bipartition-primal or bipartition-dual]")
 ("partitioning-heuristic-partitioner,php",boost::program_options::value<std::string>()->default_value("patoh"),"The partitioner we will call.")
 ("partitioning-heuristic-simplification-equivalence,phse",boost::program_options::value<bool>()->default_value(true),"The graph with be simplified by considering literal equivalence.")
 ("partitioning-heuristic-simplification-hyperedge,phsh",boost::program_options::value<bool>()->default_value(true),"The graph with be simplified by reducing the hyper edges.")

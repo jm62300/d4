@@ -65,7 +65,7 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
       return new PartitioningHeuristicBipartitePrimal(vm, ws, s);
     if(meth == "bipartition-dual")
       return new PartitioningHeuristicBipartiteDual(vm, ws, s);
-    if(meth == "static")
+    if(meth == "decomposition-static")
       return new PartitioningHeuristicStatic(vm, ws, s);
   }
 

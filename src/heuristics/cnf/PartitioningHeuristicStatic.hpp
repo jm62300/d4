@@ -25,6 +25,7 @@
 #include "src/utils/EquivExtractor.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
 
 #include "../PartitioningHeuristic.hpp"
 
@@ -39,10 +40,15 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   EquivExtractor m_em;
   PartitionerManager *m_pm;
 
+  // to store the hypergraph, and then avoid reallocated memory.
+  HyperGraph m_hypergraph;
+  HyperGraphExtractor *m_hypergraphExtractor;
+
   unsigned m_nbVar;
   unsigned m_nbClause;  
   bool m_isInitialized;
   std::vector<unsigned> m_bucketNumber;
+  std::vector<unsigned> m_mapVar;
 
   // options:
   bool m_reduceFormula; 
@@ -51,7 +57,11 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   
  protected:
   void computeDecomposition(std::vector<Var> &component,
+                            std::vector<Var> &equivClass,
+                            std::vector< std::vector<Var> > &equivVar,
                             std::vector<unsigned> &bucketNumber);
+  
+  void init();
   
  public:
   PartitioningHeuristicStatic(po::variables_map &vm,

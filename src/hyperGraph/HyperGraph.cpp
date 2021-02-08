@@ -55,7 +55,7 @@ HyperGraph::~HyperGraph()
 /**
    Print out the hyper graph.
 */
-void HyperGraph::displayHyperGraph()
+void HyperGraph::display()
 {
   for(auto it : *this)
   {

@@ -44,8 +44,8 @@ class HyperGraph
   inline void incSize(){m_hypergraphSize++;}
   inline void decSize(){m_hypergraphSize--;}
   inline void setSize(unsigned size){m_hypergraphSize = size;}
-  inline unsigned *getEdges(){return m_hypergraph;}
   inline unsigned getSize(){return m_hypergraphSize;}
+  inline unsigned *getEdges(){return m_hypergraph;}
   inline unsigned getCapicity(){return m_hypergraphCapacity;}
 
   inline unsigned operator [] (unsigned i) const
@@ -88,7 +88,7 @@ class HyperGraph
   Iterator begin() { return Iterator(m_hypergraph, 0); }
   Iterator end()   { return Iterator(m_hypergraph, m_hypergraphSize);}
 
-  void displayHyperGraph();
+  void display();
   void init(unsigned capacity);  
 };
 } // d4

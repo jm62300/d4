@@ -25,7 +25,7 @@
 #include "src/utils/EquivExtractor.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
-#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
+#include "src/hyperGraph/HyperGraphExtractor.hpp"
 
 #include "../PartitioningHeuristic.hpp"
 

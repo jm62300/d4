@@ -111,7 +111,8 @@ void PartitioningHeuristicBipartite::computeCutSet(
   // construct the hypergraph
   std::vector<Var> considered;
   m_hypergraphExtractor->constructHyperGraph(
-      m_om, component, m_equivClass, equivVar, m_reduceFormula, considered, m_hypergraph);
+      m_om, component, m_equivClass, equivVar,
+      m_reduceFormula, considered, m_hypergraph);
   
   m_pm->computePartition(m_hypergraph, m_partition);  
 
