@@ -52,33 +52,97 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
   // options:
   bool m_reduceFormula; 
-  bool m_equivSimp;     
+  bool m_equivSimp;
 
+  const unsigned LIMIT = 10;
+
+
+  /**
+     Save the current hyper graph.
+
+     @param[out] savedHyperGraph, the structure where is saved the graph.
+   */
+  inline void saveHyperGraph(
+      std::vector<std::vector<unsigned> > &savedHyperGraph)
+  {
+    for(auto edge : m_hypergraph)
+    {
+      savedHyperGraph.push_back(std::vector<unsigned>());
+      std::vector<unsigned> &tmp = savedHyperGraph.back();
+      for(auto v : edge) tmp.push_back(v);
+    }
+  } // savedHyperGraph
+
+
+  /**
+     Set the hyper graph regarding the given set of variables and the saved
+     hyper graph.
+
+     @param[in] savedHyperGraph, the current hyper graph.
+     @param[in] current, the current set of variables.
+     @param[in] mapVar, used to get the hyper edge regarding the variable.
+     @param[out] hypergraph, the computed hyper graph.
+   */
+  inline void setHyperGraph(
+      std::vector<std::vector<unsigned> > &savedHyperGraph,
+      std::vector<Var> &current,
+      std::vector<unsigned> &mapVar,
+      HyperGraph &hypergraph)
+  {
+    unsigned *edges = hypergraph.getEdges();
+    hypergraph.setSize(0);
+
+    for(auto v : current)
+    {
+      unsigned idxEdge = mapVar[v];
+      std::vector<unsigned> &tmp = savedHyperGraph[idxEdge];
+      *edges = tmp.size();
+      for(unsigned i = 0 ; i<tmp.size() ; i++) edges[i + 1] = tmp[i];      
+      edges += *edges + 1;
+      hypergraph.incSize();
+    }
+  } // setHyperGraph
+  
+
+  void splitVarWrtPartition(
+      std::vector<std::vector<unsigned> > &savedHyperGraph,
+      std::vector<Var> &current,
+      std::vector<int> &partition,
+      std::vector<Var> &cutSet,
+      std::vector<Var> &setLeft,
+      std::vector<Var> &setRight,
+      std::vector< std::vector<Var> > &stack,
+      unsigned &level);
+  
   
  protected:
-  void computeDecomposition(std::vector<Var> &component,
-                            std::vector<Var> &equivClass,
-                            std::vector< std::vector<Var> > &equivVar,
-                            std::vector<unsigned> &bucketNumber);
+  void computeDecomposition(
+      std::vector<Var> &component,
+      std::vector<Var> &equivClass,
+      std::vector< std::vector<Var> > &equivVar,
+      std::vector<unsigned> &bucketNumber);
   
   void init();
   
  public:
-  PartitioningHeuristicStatic(po::variables_map &vm,
-                      WrapperSolver &s,
-                      SpecManager &om);
+  PartitioningHeuristicStatic(
+      po::variables_map &vm,
+      WrapperSolver &s,
+      SpecManager &om);
 
-  PartitioningHeuristicStatic(po::variables_map &vm,
-                      WrapperSolver &s,
-                      SpecManager &om,                                 
-                      int nbClause,
-                      int nbVar,
-                      int sumSize);
+  PartitioningHeuristicStatic(
+      po::variables_map &vm,
+      WrapperSolver &s,
+      SpecManager &om,                                 
+      int nbClause,
+      int nbVar,
+      int sumSize);
 
   
   ~PartitioningHeuristicStatic();
   
-  void computeCutSet(std::vector<Var> &component,
-                     std::vector<Var> &cutSet);
+  void computeCutSet(
+      std::vector<Var> &component,
+      std::vector<Var> &cutSet);
 };
 } // d4

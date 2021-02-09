@@ -145,6 +145,70 @@ void PartitioningHeuristicStatic::computeCutSet(
 } // component
 
 
+/**
+   Split and assign variables.
+
+   @param[in] savedHyperGraph, the current hyper graph.
+   @param[in] current, the current set of variables.
+   @param[in] partition, the computed partition of clauses (dual graph).
+   @param[out] cutSet, the extracted cut set.
+   @param[out] setLeft, the first parition.
+   @param[out] setRight, the second partition.   
+   @param[out] stack, the current stack of set of variables (will receive
+   setLeft and setRight if their size is large enough).   
+   @param[out] level, the current level where are assigned the variables in
+   their bucket.
+*/
+void PartitioningHeuristicStatic::splitVarWrtPartition(
+    std::vector<std::vector<unsigned> > &savedHyperGraph,
+    std::vector<Var> &current,
+    std::vector<int> &partition,
+    std::vector<Var> &cutSet,
+    std::vector<Var> &setLeft,
+    std::vector<Var> &setRight,
+    std::vector< std::vector<Var> > &stack,
+    unsigned &level)
+{
+  for(auto v : current)
+  {
+    unsigned idxEdge = m_mapVar[v];
+    std::vector<unsigned> &tmp = savedHyperGraph[idxEdge];
+
+    bool clash = false;
+    int part = partition[tmp[0]];
+    for(unsigned i = 1 ; !clash && i<tmp.size() ; i++)
+      clash = part != partition[tmp[i]];
+
+    if(clash) cutSet.push_back(v);
+    else { if(part) setLeft.push_back(v); else setRight.push_back(v); }
+  }
+    
+  // set the level for the current cut set.
+  for(auto v : cutSet)
+  {
+    assert((unsigned) v <= m_nbVar);
+    m_bucketNumber[v] = level;
+  }
+
+  // pop the current set of variables and add the two partitioned set.    
+  if(cutSet.size()) level++;    
+  stack.pop_back();
+
+  if(setLeft.size() > LIMIT) stack.push_back(setLeft);
+  else
+  {
+    for(auto v : setLeft) m_bucketNumber[v] = level;
+    if(setLeft.size()) level++;
+  }
+
+  if(setRight.size() > LIMIT) stack.push_back(setRight);
+  else
+  {
+    for(auto v : setRight) m_bucketNumber[v] = level;
+    if(setRight.size()) level++;
+  }
+} // splitVarWrtPartition
+
 
 /**
    Search a decomposition tree regarding a component.
@@ -165,17 +229,11 @@ void PartitioningHeuristicStatic::computeDecomposition(
       m_reduceFormula, considered, m_hypergraph);
 
   // save the hyper graph.
-  std::vector<std::vector<unsigned> > saveHyperGraph;
-  for(auto edge : m_hypergraph)
-  {
-    saveHyperGraph.push_back(std::vector<unsigned>());
-    std::vector<unsigned> &tmp = saveHyperGraph.back();
-    for(auto v : edge) tmp.push_back(v);
-  }
+  std::vector<std::vector<unsigned> > savedHyperGraph;
+  saveHyperGraph(savedHyperGraph);
 
   // keep the variables' information.
-  for(unsigned i = 0 ; i<considered.size() ; i++)
-    m_mapVar[considered[i]] = i;
+  for(unsigned i = 0 ; i<considered.size() ; i++) m_mapVar[considered[i]] = i;
 
   // preparation.
   std::vector<int> partition;
@@ -190,65 +248,14 @@ void PartitioningHeuristicStatic::computeDecomposition(
   while(stack.size())
   {
     std::vector<Var> &current = stack.back();
-
-    // re-construct the hypergraph.
-    unsigned *edges = m_hypergraph.getEdges();
-    m_hypergraph.setSize(0);
-
-    for(auto v : current)
-    {
-      unsigned idxEdge = m_mapVar[v];
-      std::vector<unsigned> &tmp = saveHyperGraph[idxEdge];
-      *edges = tmp.size();
-      for(unsigned i = 0 ; i<tmp.size() ; i++) edges[i + 1] = tmp[i];      
-      edges += *edges + 1;
-      m_hypergraph.incSize();
-    }
-    
+    setHyperGraph(savedHyperGraph, current, m_mapVar, m_hypergraph);
     m_pm->computePartition(m_hypergraph, partition);
 
     // get the cut and split the current set of variables.
     std::vector<Var> cutSet;
     std::vector<Var> setLeft, setRight;
-    
-    for(auto v : current)
-    {
-      unsigned idxEdge = m_mapVar[v];
-      std::vector<unsigned> &tmp = saveHyperGraph[idxEdge];
-
-      bool clash = false;
-      int part = partition[tmp[0]];
-      for(unsigned i = 1 ; !clash && i<tmp.size() ; i++)
-        clash = part != partition[tmp[i]];
-
-      if(clash) cutSet.push_back(v);
-      else { if(part) setLeft.push_back(v); else setRight.push_back(v); }
-    }
-    
-    // set the level for the current cut set.
-    for(auto v : cutSet)
-    {
-      assert((unsigned) v <= m_nbVar);
-      m_bucketNumber[v] = level;
-    }
-
-    // pop the current set of variables and add the two partitioned set.    
-    if(cutSet.size()) level++;    
-    stack.pop_back();
-
-    if(setLeft.size() > 1) stack.push_back(setLeft);
-    else
-    {
-      for(auto v : setLeft) m_bucketNumber[v] = level;
-      if(setLeft.size()) level++;
-    }
-
-    if(setRight.size() > 1) stack.push_back(setRight);
-    else
-    {
-      for(auto v : setRight) m_bucketNumber[v] = level;
-      if(setRight.size()) level++;
-    }
+    splitVarWrtPartition(savedHyperGraph, current, partition, cutSet,
+                         setLeft, setRight, stack, level);
   }
   
   // set the equivalence.
