@@ -349,16 +349,6 @@ class DpllStyleMethod : public MethodManager
   {
     limitNbVarCacheDynamic = 0;
     if(m_staticLimit) return;
-#if 0
-    for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
-    {
-      if(!nbTestCacheVarSize[i]) continue;
-      if(nbPosHitCacheVarSize[i]) std::cout << "\033[1m\033[31m";
-      std::cout << i << "("<< nbTestCacheVarSize[i] << "/" << nbPosHitCacheVarSize[i] << ") ";
-      if(nbPosHitCacheVarSize[i]) std::cout << "\033[0m";
-    }
-    std::cout << "\n";
-#endif
     
     for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
     {
@@ -461,7 +451,7 @@ class DpllStyleMethod : public MethodManager
                         std::vector<Var> &priorityVar,
                         std::ostream &out)
   {
-    if(!priorityVar.size() && connected.size() > 10 && connected.size() < 5000)
+    if(!priorityVar.size() && m_hCutSet->isReady(connected))
       {
         m_hCutSet->computeCutSet(connected, priorityVar);        
         callPartitioner++;

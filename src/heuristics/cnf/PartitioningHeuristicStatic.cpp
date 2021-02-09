@@ -225,30 +225,6 @@ void PartitioningHeuristicStatic::computeDecomposition(
       else { if(part) setLeft.push_back(v); else setRight.push_back(v); }
     }
     
-    std::cout << "Partition: ";
-    for(unsigned i = 0 ; i<partition.size() ; i++)
-      std::cout << i << "(" << partition[i] << ") ";
-    std::cout << "\n";
-
-    std::cout << "Considered: ";
-    for(auto v : considered) std::cout << v << " ";
-    std::cout << "\n";
-
-    std::cout << "Cutset: ";
-    for(auto v : cutSet) std::cout << v << " ";
-    std::cout << "\n";
-
-    std::cout << "setLeft: ";
-    for(auto v : setLeft) std::cout << v << " ";
-    std::cout << "\n";
-
-    std::cout << "setRight: ";
-    for(auto v : setRight) std::cout << v << " ";
-    std::cout << "\n";
-  
-    m_hypergraph.display();
-
-
     // set the level for the current cut set.
     for(auto v : cutSet)
     {
@@ -285,12 +261,6 @@ void PartitioningHeuristicStatic::computeDecomposition(
                           level : m_bucketNumber[equivClass[v]];
     }
   }
-
-
-  for(auto v : component)
-    std::cout <<  v << "(" << m_bucketNumber[v] << ") ";
-  std::cout << "\n";
-  exit(0);
 } // computeDecomposition
 
 } // d4

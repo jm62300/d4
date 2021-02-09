@@ -82,5 +82,10 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet);
 
+  inline bool isReady(std::vector<Var> &component)
+  {
+    return component.size() > 10 && component.size() < 5000;
+  }
+
 };
 } // d4

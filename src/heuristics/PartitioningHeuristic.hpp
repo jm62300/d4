@@ -47,8 +47,24 @@ class PartitioningHeuristic
                                                           SpecManager &sm,
                                                           WrapperSolver &ws,
                                                           std::ostream &out);
-  
+
+  /**
+     Compute a cutset regarding the subformula built on the set of given
+     variables.
+
+     @param[in] component, the set of variables the problem is built on.
+     @param[out] cutSet, the computed cut set.
+   */
   virtual void computeCutSet(std::vector<Var> &component,
                              std::vector<Var> &cutSet) = 0;
+
+  /**
+     Decide if the partitioning heuristic is ready to be used.
+
+     @param[in] component, the variables of the current subformula.
+
+     \return true if the partitioner is ready.
+   */
+  virtual bool isReady(std::vector<Var> &component){return true;}
 };
 }
