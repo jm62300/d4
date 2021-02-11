@@ -66,5 +66,12 @@ class PartitioningHeuristic
      \return true if the partitioner is ready.
    */
   virtual bool isReady(std::vector<Var> &component){return true;}
+
+
+  /**
+     Print out some statistic about the way the cutting process has been
+     conducted.
+   */
+  virtual void displayStat(std::ostream &out) { } 
 };
 }

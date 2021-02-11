@@ -312,8 +312,13 @@ class DpllStyleMethod : public MethodManager
     out << "c Number of paritioner calls: " << callPartitioner << "\n";
     out << "c\n";
     m_cache->printCacheInformation(out);
+    if(m_hCutSet)
+    {
+      out << "c\n";
+      m_hCutSet->displayStat(out);
+    }
     out << "c Final time: " << getTimer() << "\n";
-    out << "c\n";
+    out << "c\n";    
   } // printFinalStat
 
 

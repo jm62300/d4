@@ -28,6 +28,7 @@
 #include "src/hyperGraph/HyperGraphExtractor.hpp"
 
 #include "../PartitioningHeuristic.hpp"
+#include "PartitioningHeuristicStatic.hpp"
 
 namespace d4
 {
@@ -35,6 +36,8 @@ namespace po = boost::program_options;
 class PartitioningHeuristicBipartite : public PartitioningHeuristic
 {
  private:
+  unsigned m_nbStatic;
+  unsigned m_nbDynamic;
   
  protected:
   SpecManagerCnf &m_om;  
@@ -45,6 +48,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   // to store the hypergraph, and then avoid reallocated memory.
   HyperGraph m_hypergraph;
   HyperGraphExtractor *m_hypergraphExtractor;
+  PartitioningHeuristicStatic *m_staticPartioner;
 
   std::vector<bool> m_markedVar;
   std::vector<int> m_partition;
@@ -82,9 +86,12 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet);
 
+  void displayStat(std::ostream &out);
+  
   inline bool isReady(std::vector<Var> &component)
   {
-    return component.size() > 10 && component.size() < 5000;
+    return m_staticPartioner ||
+        (component.size() > 10 && component.size() < 5000);
   }
 
 };

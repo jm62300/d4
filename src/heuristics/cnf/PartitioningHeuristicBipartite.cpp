@@ -34,16 +34,16 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     po::variables_map &vm,
     SpecManager &om,
     WrapperSolver &s,
-    int _nbClause,
-    int _nbVar,
-    int _sumSize) :
+    int nbClause,
+    int nbVar,
+    int sumSize) :
     m_om(dynamic_cast<SpecManagerCnf&>(om)),
     m_s(s)
 { 
-  m_nbVar = _nbVar;
-  m_nbClause = _nbClause;
+  m_nbVar = nbVar;
+  m_nbClause = nbClause;
   
-  m_em.initEquivExtractor(_nbVar + 1);
+  m_em.initEquivExtractor(nbVar + 1);
 
   // initialize the vectors.
   m_markedVar.resize(m_nbVar + 1, false);
@@ -53,8 +53,15 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
   m_equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
 
+  m_nbStatic = 0;
+  m_nbDynamic = 0;
   m_pm = NULL;
   m_hypergraphExtractor = NULL;
+
+  if(vm["partitioning-heuristic-bipartite-phase"].as<bool>())
+    m_staticPartioner = new PartitioningHeuristicStatic(vm, m_s, m_om, m_nbClause,
+                                                        m_nbVar, sumSize);
+  else m_staticPartioner = NULL;
 } // constructor
 
 
@@ -63,6 +70,7 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
 */
 PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
 {
+  if(m_staticPartioner) delete m_staticPartioner;
   if(m_hypergraphExtractor) delete m_hypergraphExtractor;
   if(m_pm) delete m_pm;
 } // destructor
@@ -100,6 +108,12 @@ void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
+  if(m_staticPartioner && component.size() > 5000)
+  {
+    m_nbStatic++;
+    return m_staticPartioner->computeCutSet(component, cutSet);
+  } else m_nbDynamic++;
+  
   // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
   std::vector< std::vector<Var> > equivVar;
@@ -129,5 +143,13 @@ void PartitioningHeuristicBipartite::computeCutSet(
   for(auto &v : cutSet) m_markedVar[v] = false;
   m_om.postUpdate(unitEquiv);
 } // computeCutset
+
+
+void PartitioningHeuristicBipartite::displayStat(std::ostream &out)
+{
+  out << "c \033[1m\033[36mPartioning Information\033[0m\n";
+  out << "c Number of static decomposition used: " << m_nbStatic << "\n";
+  out << "c Number of dynamic decomposition used: " << m_nbDynamic << "\n";
+} // displayStat
 
 } // d4

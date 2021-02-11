@@ -48,20 +48,20 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
 */
 PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
     po::variables_map &vm,
-    WrapperSolver &_s,
-    SpecManager &_om,
-    int _nbClause,
-    int _nbVar,
-    int _sumSize) :
-    PartitioningHeuristicBipartite(vm, _om, _s, _nbClause, _nbVar, _sumSize)
+    WrapperSolver &s,
+    SpecManager &om,
+    int nbClause,
+    int nbVar,
+    int sumSize) :
+    PartitioningHeuristicBipartite(vm, om, s, nbClause, nbVar, sumSize)
 {
   // initialize the vector.
   m_partition.resize(m_nbClause + 1, 0);
 
-  m_pm = PartitionerManager::makePartitioner(vm, _nbClause, _nbVar, _sumSize);
-  m_hypergraph.init(m_nbVar + m_nbClause + _sumSize + 1);  
+  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
+  m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
-} // constructor
+} // constructor    
 
 /**
    Collect the set of hyper egdes (their indices actually) that are between

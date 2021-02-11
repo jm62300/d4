@@ -112,7 +112,7 @@ void PartitioningHeuristicStatic::init()
   
   // restore the initial state.
   m_om.postUpdate(unitEquiv);
-}// initialization
+}// init
 
 
 /**
