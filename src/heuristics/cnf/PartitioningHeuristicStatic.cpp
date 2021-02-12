@@ -108,7 +108,9 @@ void PartitioningHeuristicStatic::init()
   m_om.preUpdate(unitEquiv);  
 
   // compute the decomposition.
+  std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
   computeDecomposition(component, equivClass, equivVar, m_bucketNumber);
+  std::cout << "done\n";
   
   // restore the initial state.
   m_om.postUpdate(unitEquiv);
@@ -182,7 +184,7 @@ void PartitioningHeuristicStatic::splitVarWrtPartition(
     if(clash) cutSet.push_back(v);
     else { if(part) setLeft.push_back(v); else setRight.push_back(v); }
   }
-    
+
   // set the level for the current cut set.
   for(auto v : cutSet)
   {
@@ -194,6 +196,22 @@ void PartitioningHeuristicStatic::splitVarWrtPartition(
   if(cutSet.size()) level++;    
   stack.pop_back();
 
+  // special case 1.
+  if(!cutSet.size() && !setLeft.size() && setRight.size())
+  {
+    for(auto v : setRight) m_bucketNumber[v] = level;
+    level++;
+    return;
+  }
+
+  // special case 2.
+  if(!cutSet.size() && !setRight.size() && setLeft.size())
+  {
+    for(auto v : setLeft) m_bucketNumber[v] = level;
+    level++;
+    return;
+  }
+  
   if(setLeft.size() > LIMIT) stack.push_back(setLeft);
   else
   {
@@ -246,14 +264,13 @@ void PartitioningHeuristicStatic::computeDecomposition(
   
   // iteratively consider sub-graph.
   while(stack.size())
-  {
+  {    
     std::vector<Var> &current = stack.back();
     setHyperGraph(savedHyperGraph, current, m_mapVar, m_hypergraph);
-    m_pm->computePartition(m_hypergraph, partition);
+    m_pm->computePartition(m_hypergraph, partition);    
 
     // get the cut and split the current set of variables.
-    std::vector<Var> cutSet;
-    std::vector<Var> setLeft, setRight;
+    std::vector<Var> cutSet, setLeft, setRight;
     splitVarWrtPartition(savedHyperGraph, current, partition, cutSet,
                          setLeft, setRight, stack, level);
   }

@@ -108,7 +108,7 @@ void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
-  if(m_staticPartioner && component.size() > 5000)
+  if(m_staticPartioner && component.size() > 1000)
   {
     m_nbStatic++;
     return m_staticPartioner->computeCutSet(component, cutSet);
