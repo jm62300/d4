@@ -108,6 +108,20 @@ void PartitioningHeuristicBipartiteDual::extractCutFromHyperGraph(
   std::vector<unsigned> indices;
   clashHyperEdgeIndex(m_hypergraph, partition, indices);
   for(auto &i : indices) cutSet.push_back(considered[i]);
+
+  if(!cutSet.size() && considered.size())
+  {
+    // check if we only have one partition.
+    int part = -1;
+    for(auto edge : m_hypergraph)
+    {
+      if(part == -1) part = partition[edge[0]];
+      for(auto e : edge) if(part != partition[e]){part = -2; break;}
+      if(part == -2) break;
+    }
+
+    if(part != -2) cutSet = considered;
+  }
 } // extractCutFromClauses
 
 } // d4

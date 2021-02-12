@@ -127,20 +127,24 @@ void PartitioningHeuristicBipartite::computeCutSet(
   m_hypergraphExtractor->constructHyperGraph(
       m_om, component, m_equivClass, equivVar,
       m_reduceFormula, considered, m_hypergraph);
-  
-  m_pm->computePartition(m_hypergraph, m_partition);  
 
-  // collect the cut.
-  extractCutFromHyperGraph(considered, m_partition, cutSet);
-  
-  // extend with equivalence literals.
-  for(auto &v : cutSet) m_markedVar[v] = true;
-  for(auto &v : component)
+  if(m_hypergraph.getSize() < 5) cutSet = component;
+  else
   {
-    if(m_markedVar[v]) continue;
-    if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
-  }  
-  for(auto &v : cutSet) m_markedVar[v] = false;
+    m_pm->computePartition(m_hypergraph, m_partition);
+    extractCutFromHyperGraph(considered, m_partition, cutSet);    
+
+    // extend with equivalence literals.
+    for(auto &v : cutSet) m_markedVar[v] = true;
+    for(auto &v : component)
+    {
+      if(m_markedVar[v]) continue;
+      if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
+    }  
+    for(auto &v : cutSet) m_markedVar[v] = false;
+    if(!cutSet.size()) for(auto l : unitEquiv) cutSet.push_back(l.var());
+  }
+  
   m_om.postUpdate(unitEquiv);
 } // computeCutset
 
