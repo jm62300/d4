@@ -38,6 +38,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
  private:
   unsigned m_nbStatic;
   unsigned m_nbDynamic;
+  unsigned m_limitPhase;
   
  protected:
   SpecManagerCnf &m_om;  

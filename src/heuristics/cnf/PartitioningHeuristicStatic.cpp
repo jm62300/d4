@@ -267,7 +267,8 @@ void PartitioningHeuristicStatic::computeDecomposition(
   {    
     std::vector<Var> &current = stack.back();
     setHyperGraph(savedHyperGraph, current, m_mapVar, m_hypergraph);
-    m_pm->computePartition(m_hypergraph, partition);    
+    m_pm->computePartition(m_hypergraph, PartitionerManager::Level::QUALITY,
+                           partition);    
 
     // get the cut and split the current set of variables.
     std::vector<Var> cutSet, setLeft, setRight;

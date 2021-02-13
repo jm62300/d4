@@ -18,6 +18,7 @@
 #include <iostream>
 #include <vector>
 
+#include "src/exceptions/OptionException.hpp"
 #include "PartitionerPatoh.hpp"
 #include "3rdParty/patoh/patoh.h"
 
@@ -70,6 +71,7 @@ PartitionerPatoh::~PartitionerPatoh()
  */
 void PartitionerPatoh::computePartition(
     HyperGraph &hypergraph,
+    Level level,
     std::vector<int> &partition)
 {
   std::vector<unsigned> elts;
@@ -100,10 +102,21 @@ void PartitionerPatoh::computePartition(
 
   // hypergraph partitioner
   PaToH_Parameters args;
-  if (sizeXpins < 200)
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
-  else
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
+  switch(level)
+  {
+    case NORMAL :
+      PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
+      break;
+    case SPEED :
+      PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_SPEED);
+      break;
+    case QUALITY :
+      PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
+      break;
+    default:
+      throw (OptionException("Wrong option given to the partioner.",
+                              __FILE__, __LINE__));
+  }  
   
   args._k = 2;
   args.seed = 2911;

@@ -57,8 +57,9 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_nbDynamic = 0;
   m_pm = NULL;
   m_hypergraphExtractor = NULL;
-
-  if(vm["partitioning-heuristic-bipartite-phase"].as<bool>())
+  m_limitPhase = vm["partitioning-heuristic-bipartite-phase"].as<int>();
+  
+  if(m_limitPhase > 0)
     m_staticPartioner = new PartitioningHeuristicStatic(vm, m_s, m_om, m_nbClause,
                                                         m_nbVar, sumSize);
   else m_staticPartioner = NULL;
@@ -108,7 +109,7 @@ void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
-  if(m_staticPartioner && component.size() > 1000)
+  if(m_staticPartioner && component.size() > m_limitPhase)
   {
     m_nbStatic++;
     return m_staticPartioner->computeCutSet(component, cutSet);
@@ -131,7 +132,11 @@ void PartitioningHeuristicBipartite::computeCutSet(
   if(m_hypergraph.getSize() < 5) cutSet = component;
   else
   {
-    m_pm->computePartition(m_hypergraph, m_partition);
+    // set the level.
+    PartitionerManager::Level level = PartitionerManager::Level::NORMAL;
+    if(m_hypergraph.getSize() >= 200) level = PartitionerManager::Level::QUALITY;
+    
+    m_pm->computePartition(m_hypergraph, level, m_partition);
     extractCutFromHyperGraph(considered, m_partition, cutSet);    
 
     // extend with equivalence literals.

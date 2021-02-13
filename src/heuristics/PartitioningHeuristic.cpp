@@ -54,7 +54,7 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
 
   bool reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
   bool equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-  bool staticPhase = vm["partitioning-heuristic-bipartite-phase"].as<bool>();
+  int staticPhase = vm["partitioning-heuristic-bipartite-phase"].as<int>();
   out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << " "
       << "reduceFormula(" << reduceFormula << ") "
       << "equivSimp(" << equivSimp << ") "
@@ -71,7 +71,8 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
       return new PartitioningHeuristicStatic(vm, ws, s);
   }
 
-  throw (FactoryException("Cannot create a PartitioningHeuristic",__FILE__, __LINE__));
+  throw (FactoryException("Cannot create a PartitioningHeuristic",
+                          __FILE__, __LINE__));
 } // makePartitioningHeuristic
 
 

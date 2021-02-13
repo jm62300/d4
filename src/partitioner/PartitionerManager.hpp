@@ -24,10 +24,13 @@
 
 namespace d4
 {
+
+
 namespace po = boost::program_options;
 class PartitionerManager
-{
+{  
  public:
+  enum Level {NORMAL, SPEED, QUALITY};
   
   static PartitionerManager *makePartitioner(po::variables_map &vm,
                                              unsigned maxNodes,
@@ -37,6 +40,7 @@ class PartitionerManager
   virtual ~PartitionerManager() {}
 
   virtual void computePartition(HyperGraph &hypergraph,
+                                Level level,
                                 std::vector<int> &partition) = 0;
 };
 } // d4

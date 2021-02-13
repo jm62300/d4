@@ -17,33 +17,37 @@
 */
 #pragma once
 
-#include <vector>
-#include <boost/program_options.hpp>
-#include <functional>
-
-#include "PartitionerManager.hpp"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <exception>
 
 namespace d4
 {
-namespace po = boost::program_options;
-class PartitionerPatoh : public PartitionerManager
+class OptionException : public std::exception
 {
  private:
-  std::vector<bool> m_markedNodes;
-  std::vector<int> m_mapNodes;
-  
-  int *m_xpins;
-  int *m_pins;
-  int *m_cwghts;
-  int *m_partvec;
-  int *m_partweights;
-
+  std::string m_error_message;
+  const char* m_file;
+  int m_line;
+    
  public:
-  PartitionerPatoh(unsigned maxNodes, unsigned maxEdges, unsigned maxSumEdgeSize);
-  
-  ~PartitionerPatoh();
-  void computePartition(HyperGraph &hypergraph,
-                        Level level,
-                        std::vector<int> &partition);
+  OptionException(const char* msg, const char* file_, int line_) :
+      m_file (file_), m_line (line_)
+  {
+    std::ostringstream o;
+    o << m_file << ":" << m_line << ": " << msg;
+    m_error_message = o.str();
+  } // constructor
+
+  /**
+     Returns a pointer to the (constant) error description.
+   
+     \return A pointer to a const char*. 
+   */
+  virtual const char* what() const throw ()
+  {    
+    return m_error_message.c_str();
+  }        
 };
-} // d4
+}
