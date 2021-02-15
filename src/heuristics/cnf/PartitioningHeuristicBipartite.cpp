@@ -137,7 +137,8 @@ void PartitioningHeuristicBipartite::computeCutSet(
     if(m_hypergraph.getSize() >= 200) level = PartitionerManager::Level::QUALITY;
     
     m_pm->computePartition(m_hypergraph, level, m_partition);
-    extractCutFromHyperGraph(considered, m_partition, cutSet);    
+    m_hypergraphExtractor->extractCutFromHyperGraph(
+        m_hypergraph, considered, m_partition, cutSet);    
 
     // extend with equivalence literals.
     for(auto &v : cutSet) m_markedVar[v] = true;

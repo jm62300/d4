@@ -78,11 +78,6 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
       std::vector<Var> &equivClass,
       std::vector< std::vector<Var> > &equivVar);
 
-  virtual void extractCutFromHyperGraph(
-      std::vector<Var> &considered,
-      std::vector<int> &partition,
-      std::vector<int> &cutSet) = 0;
-
  public:
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet);

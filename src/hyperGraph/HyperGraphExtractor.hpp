@@ -39,5 +39,11 @@ class HyperGraphExtractor
       bool reduceFormula,
       std::vector<Var> &considered,
       HyperGraph &hypergraph) = 0;
+
+  virtual void extractCutFromHyperGraph(
+      HyperGraph &hypergraph,
+      std::vector<Var> &considered,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet) = 0;
 };
 } // d4

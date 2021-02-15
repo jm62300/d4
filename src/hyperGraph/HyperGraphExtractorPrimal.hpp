@@ -45,13 +45,17 @@ class HyperGraphExtractorPrimal : public HyperGraphExtractor
   std::vector<uint64_t> m_hashEdges;
   
   void removeSubsumEdges(HyperGraph &hypergraph);
+
+  void clashHyperEdgeIndex(
+      HyperGraph &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned *> &indices);
   
  public:
   HyperGraphExtractorPrimal(
       unsigned nbVar,
       unsigned nbClause);
 
-  
   void constructHyperGraph(
       SpecManagerCnf &om,
       std::vector<Var> &component,
@@ -60,5 +64,11 @@ class HyperGraphExtractorPrimal : public HyperGraphExtractor
       bool reduceFormula,
       std::vector<Var> &considered,
       HyperGraph &hypergraph);
+
+  void extractCutFromHyperGraph(
+      HyperGraph &hypergraph,
+      std::vector<Var> &considered,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet);
 };
 } // d4

@@ -38,17 +38,6 @@ class PartitioningHeuristicBipartiteDual : public PartitioningHeuristicBipartite
 {
  private:
   std::vector<unsigned *> m_mapVarEdge;
-  
-  void clashHyperEdgeIndex(
-      HyperGraph &hypergraph,
-      std::vector<int> &partition,
-      std::vector<unsigned> &indices);
-
-  
-  void extractCutFromHyperGraph(
-      std::vector<Var> &considered,
-      std::vector<int> &partition,
-      std::vector<int> &cutSet);
 
  public:
   PartitioningHeuristicBipartiteDual(

@@ -36,17 +36,6 @@ namespace d4
 namespace po = boost::program_options;
 class PartitioningHeuristicBipartitePrimal : public PartitioningHeuristicBipartite
 {
- private:
-  void clashHyperEdgeIndex(
-      std::vector<int> &partition,
-      std::vector<unsigned *> &indices);
-
-
-  void extractCutFromHyperGraph(
-      std::vector<Var> &considered,
-      std::vector<int> &partition,
-      std::vector<int> &cutSet);
-  
  public:
   PartitioningHeuristicBipartitePrimal(
       po::variables_map &vm,

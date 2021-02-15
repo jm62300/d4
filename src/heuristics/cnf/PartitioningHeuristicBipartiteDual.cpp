@@ -61,67 +61,6 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
   m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
   m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
-} // constructor    
-
-/**
-   Collect the set of hyper egdes (their indices actually) that are between
-   several component.
-
-   @param[in] hypergraph, the hypergraph.
-   @param[in] partition, the partition.
-   @param[in] indices, the list of edge's indices that clash.
-*/
-void PartitioningHeuristicBipartiteDual::clashHyperEdgeIndex(
-    HyperGraph &hypergraph,
-    std::vector<int> &partition,
-    std::vector<unsigned> &indices)
-{
-  bool clash = false;
-  int part = 0;
-  
-  for(auto edge : hypergraph)
-  {
-    clash = false;
-    part = partition[edge[0]];
-
-    for(unsigned j = 1 ; !clash && j<edge.getSize() ; j++)
-      clash = part != partition[edge[j]];
-    if(clash) indices.push_back(edge.getId());
-  }
-} // clashHyperEdgeIndex
-
-
-/**
-   Check all the hyper edges in order to extract those their are conflictual
-   (i.e. there are belong to at least two components).
-   We try to minimize the cut in a greedy fashion.
-
-   @param[in] considered, the label variables for the edges.
-   @param[in] partition, the array that gives the partition.
-   @param[out] cutSet, the computed cutset.
-*/
-void PartitioningHeuristicBipartiteDual::extractCutFromHyperGraph(
-    std::vector<Var> &considered,
-    std::vector<int> &partition,
-    std::vector<int> &cutSet)
-{
-  std::vector<unsigned> indices;
-  clashHyperEdgeIndex(m_hypergraph, partition, indices);
-  for(auto &i : indices) cutSet.push_back(considered[i]);
-
-  if(!cutSet.size() && considered.size())
-  {
-    // check if we only have one partition.
-    int part = -1;
-    for(auto edge : m_hypergraph)
-    {
-      if(part == -1) part = partition[edge[0]];
-      for(auto e : edge) if(part != partition[e]){part = -2; break;}
-      if(part == -2) break;
-    }
-
-    if(part != -2) cutSet = considered;
-  }
-} // extractCutFromClauses
+} // constructor
 
 } // d4

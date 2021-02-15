@@ -43,13 +43,17 @@ class HyperGraphExtractorDual : public HyperGraphExtractor
 
   std::vector<unsigned *> m_mapVarEdge;
   
-
   void reduceHyperGraph(
       SpecManagerCnf &om,
       HyperGraph &hypergraph,
       std::vector<Var> &considered,
       std::vector<unsigned> &idxClauses,
       std::vector<Var> &equivClass);
+
+  void clashHyperEdgeIndex(
+      HyperGraph &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &indices);
   
  public:
   HyperGraphExtractorDual(
@@ -65,5 +69,11 @@ class HyperGraphExtractorDual : public HyperGraphExtractor
       bool reduceFormula,
       std::vector<Var> &considered,
       HyperGraph &hypergraph);
+
+  void extractCutFromHyperGraph(
+      HyperGraph &hypergraph,
+      std::vector<Var> &considered,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet);
 };
 } // d4

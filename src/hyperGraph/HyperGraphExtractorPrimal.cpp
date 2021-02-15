@@ -45,6 +45,82 @@ HyperGraphExtractorPrimal::HyperGraphExtractorPrimal(
 
 
 /**
+   Collect the set of hyper egdes (their indices actually) that are between
+   several component.
+
+   @param[in] hypergraph, the hypergraph.
+   @param[in] partition, the partition.
+   @param[in] indices, the list of edge's indices that clash.
+*/
+void HyperGraphExtractorPrimal::clashHyperEdgeIndex(
+    HyperGraph &hypergraph,
+    std::vector<int> &partition,
+    std::vector<unsigned *> &indices)
+{
+  bool clash = false;
+  int part = 0;
+  unsigned *edge = hypergraph.getEdges();
+  for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
+  {
+    clash = false;
+    part = partition[edge[1]];
+
+    for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
+    if(clash) indices.push_back(edge);
+
+    edge = &(edge[*edge + 1]); // next clause.
+  }
+} // clashHyperEdgeIndex
+
+
+/**
+   Check all the hyper edges in order to extract those their are conflictual
+   (i.e. there are belong to at least two components).
+   We try to minimize the cut in a greedy fashion.
+
+   @param[in] hypergraph, the hyper graph we search to cut.
+   @param[in] considered, the label variables for the edges.
+   @param[in] partition, the array that gives the partition.
+   @param[out] cutSet, the computed cutset.
+*/
+void HyperGraphExtractorPrimal::extractCutFromHyperGraph(
+    HyperGraph &hypergraph,
+    std::vector<Var> &considered,
+    std::vector<int> &partition,
+    std::vector<int> &cutSet)
+{
+  std::vector<unsigned *> indices;
+  clashHyperEdgeIndex(hypergraph, partition, indices);
+  
+  for(auto &edge : indices)
+  {
+    int cpt0 = 0, cpt1 = 0;
+    for(unsigned i = 0 ; i<*edge ; i++)
+    {
+      unsigned x = edge[i + 1];
+      if(m_markedVar[x]) continue;
+      if(partition[x]) cpt1++; else cpt0++;
+    }
+
+    int selected = (cpt0 < cpt1) ? 0 : 1;    
+    for(unsigned i = 0 ; i<*edge ; i++)
+    {
+      unsigned x = edge[i + 1];
+      if(!m_markedVar[x] && partition[x] == selected)
+      {
+        m_markedVar[x] = true;
+        cutSet.push_back(x);
+      }
+    }
+  }
+  
+  for(auto &x : cutSet) m_markedVar[x] = false; // reinit
+} // extractCutFromHyperGraph
+
+
+
+
+/**
    Remove the edges they are subsubmed.
 
    @param[out] hypergraph, the computed hyper graph.
