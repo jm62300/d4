@@ -17,8 +17,6 @@
 */
 #pragma once
 
-#include <cstdint>
-#include <vector>
 #include <boost/program_options.hpp>
 
 #include "src/specs/cnf/SpecManagerCnf.hpp"
