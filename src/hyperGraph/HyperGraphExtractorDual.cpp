@@ -113,7 +113,8 @@ void HyperGraphExtractorDual::extractCutFromHyperGraph(
 
    @param[in] hypergraph, the hyper graph we search to split.
    @param[in] partition, a partition of the nets.
-   @param[in] mapping, to map the indices.
+   @param[in] mappingVar, to map the indices of the edge to the variable.
+   @param[in] mappingEdge, to map the local edge index to the global one.
    @param[out] cutset, the cutset (that is the variables we are to remove to
    split the graph).
    @param[out] indicesFirst, the set of edges regarding the first partition.
@@ -122,8 +123,9 @@ void HyperGraphExtractorDual::extractCutFromHyperGraph(
 void HyperGraphExtractorDual::splitWrtPartition(
     HyperGraph &hypergraph,
     std::vector<int> &partition,
-    std::vector<unsigned> &mapping,
-    std::vector<unsigned> &cutSet,
+    std::vector<Var> &mappingVar,
+    std::vector<unsigned> &mappingEdge,
+    std::vector<Var> &cutSet,
     std::vector<unsigned> &indicesFirst,
     std::vector<unsigned> &indicesSecond)
 {
@@ -134,11 +136,11 @@ void HyperGraphExtractorDual::splitWrtPartition(
     for(unsigned i = 1 ; !clash && i<edge.getSize() ; i++)
       clash = part != partition[edge[i]];
 
-    if(clash) cutSet.push_back(mapping[edge.getId()]);
+    if(clash) cutSet.push_back(mappingVar[edge.getId()]);
     else
     {
-      if(part) indicesFirst.push_back(mapping[edge.getId()]);
-      else indicesSecond.push_back(mapping[edge.getId()]);
+      if(part) indicesFirst.push_back(mappingEdge[edge.getId()]);
+      else indicesSecond.push_back(mappingEdge[edge.getId()]);
     }
   }
 } // splitWrtPartition

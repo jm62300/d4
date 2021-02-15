@@ -78,8 +78,9 @@ class HyperGraphExtractorDual : public HyperGraphExtractor
   void splitWrtPartition(
       HyperGraph &hypergraph,
       std::vector<int> &partition,
-      std::vector<unsigned> &mapping,
-      std::vector<unsigned> &cutSet,
+      std::vector<Var> &mappingVar,
+      std::vector<unsigned> &mappingEdge,
+      std::vector<Var> &cutSet,
       std::vector<unsigned> &indicesFirst,
       std::vector<unsigned> &indicesSecond);
 };

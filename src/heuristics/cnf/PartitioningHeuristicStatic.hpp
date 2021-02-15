@@ -79,22 +79,19 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
      hyper graph.
 
      @param[in] savedHyperGraph, the current hyper graph.
-     @param[in] current, the current set of variables.
-     @param[in] mapVar, used to get the hyper edge regarding the variable.
+     @param[in] indices, the current set of edges' indices.
      @param[out] hypergraph, the computed hyper graph.
    */
   inline void setHyperGraph(
       std::vector<std::vector<unsigned> > &savedHyperGraph,
-      std::vector<Var> &current,
-      std::vector<unsigned> &mapVar,
+      std::vector<unsigned> &indices,
       HyperGraph &hypergraph)
   {
     unsigned *edges = hypergraph.getEdges();
     hypergraph.setSize(0);
 
-    for(auto v : current)
+    for(auto idxEdge : indices)
     {
-      unsigned idxEdge = mapVar[v];
       std::vector<unsigned> &tmp = savedHyperGraph[idxEdge];
       *edges = tmp.size();
       for(unsigned i = 0 ; i<tmp.size() ; i++) edges[i + 1] = tmp[i];      
@@ -104,14 +101,12 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   } // setHyperGraph
   
 
-  void splitVarWrtPartition(
-      std::vector<std::vector<unsigned> > &savedHyperGraph,
-      std::vector<Var> &current,
-      std::vector<int> &partition,
-      std::vector<Var> &cutSet,
-      std::vector<Var> &setLeft,
-      std::vector<Var> &setRight,
-      std::vector< std::vector<Var> > &stack,
+  void distributePartition(
+      std::vector<unsigned> &indicesFirst,
+      std::vector<unsigned> &indicesSecond,
+      std::vector<Var> &mappingVar,
+      bool cutIsEmpty,
+      std::vector< std::vector<unsigned> > &stack,
       unsigned &level);
   
   
