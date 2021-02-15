@@ -31,10 +31,11 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
     po::variables_map &vm,
     WrapperSolver &_s,
     SpecManager &_om) :
-    PartitioningHeuristicBipartitePrimal(vm, _s, _om,
-                                         dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
-                                         dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
-                                         dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
+    PartitioningHeuristicBipartitePrimal(
+        vm, _s, _om,
+        dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
+        dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
+        dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
 {  
 } // constructor
 

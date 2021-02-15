@@ -21,8 +21,6 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "src/solvers/WrapperSolver.hpp"
-#include "src/utils/EquivExtractor.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/hyperGraph/HyperGraph.hpp"
