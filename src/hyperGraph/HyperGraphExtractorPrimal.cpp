@@ -118,6 +118,27 @@ void HyperGraphExtractorPrimal::extractCutFromHyperGraph(
 } // extractCutFromHyperGraph
 
 
+/**
+   Split the hyper graph into two parts that are induced by the given partition.
+
+   @param[in] hypergraph, the hyper graph we search to split.
+   @param[in] partition, a partition of the nets.
+   @param[in] mapping, to map the indices.
+   @param[in] cutset, the cutset (that is the variables we are to remove to
+   split the graph).
+   @param[in] indicesFirst, the set of edges regarding the first partition.
+   @param[in] indicesSecond, the set of edges regarding the second partition.
+ */
+void HyperGraphExtractorPrimal::splitWrtPartition(
+    HyperGraph &hypergraph,
+    std::vector<int> &partition,
+    std::vector<unsigned> &mapping,
+    std::vector<unsigned> &cutSet,
+    std::vector<unsigned> &indicesFirst,
+    std::vector<unsigned> &indicesSecond)
+{
+  
+} // splitWrtPartition
 
 
 /**

@@ -59,7 +59,6 @@ class HyperGraphExtractorDual : public HyperGraphExtractor
   HyperGraphExtractorDual(
       unsigned nbVar,
       unsigned nbClause);
-
   
   void constructHyperGraph(
       SpecManagerCnf &om,
@@ -75,5 +74,13 @@ class HyperGraphExtractorDual : public HyperGraphExtractor
       std::vector<Var> &considered,
       std::vector<int> &partition,
       std::vector<int> &cutSet);
+
+  void splitWrtPartition(
+      HyperGraph &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &mapping,
+      std::vector<unsigned> &cutSet,
+      std::vector<unsigned> &indicesFirst,
+      std::vector<unsigned> &indicesSecond);
 };
 } // d4

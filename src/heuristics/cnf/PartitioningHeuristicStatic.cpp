@@ -185,6 +185,26 @@ void PartitioningHeuristicStatic::splitVarWrtPartition(
     else { if(part) setLeft.push_back(v); else setRight.push_back(v); }
   }
 
+  // test.
+  
+  std::vector<unsigned> mapCurrent;
+  for(auto &v : current) mapCurrent.push_back((unsigned) v);
+  
+  std::vector<unsigned> cutSetTmp;
+  std::vector<unsigned> indicesFirst;
+  std::vector<unsigned> indicesSecond;
+  m_hypergraphExtractor->splitWrtPartition(m_hypergraph, partition, mapCurrent,
+                                           cutSetTmp, indicesFirst, indicesSecond);
+
+  assert(cutSetTmp.size() == cutSet.size());
+  assert(indicesFirst.size() == setLeft.size());
+  assert(indicesSecond.size() == setRight.size());
+
+  for(unsigned i = 0 ; i<cutSet.size() ; i++) assert(cutSet[i] == (Var) cutSetTmp[i]);
+  for(unsigned i = 0 ; i<indicesFirst.size() ; i++) assert((Var) indicesFirst[i] == setLeft[i]);
+  for(unsigned i = 0 ; i<indicesSecond.size() ; i++) assert((Var) indicesSecond[i] == setRight[i]);
+  
+
   // set the level for the current cut set.
   for(auto v : cutSet)
   {
