@@ -24,17 +24,18 @@ namespace d4
 /**
    Constructor.
 
-   @param[in] _s, a wrapper on a solver.
-   @param[in] _om, a structure manager.
+   @param[in] vm, the option list.
+   @param[in] s, a wrapper on a solver.
+   @param[in] om, a structure manager.
 */
 PartitioningHeuristicStatic::PartitioningHeuristicStatic(
     po::variables_map &vm,
-    WrapperSolver &_s,
-    SpecManager &_om) :
-    PartitioningHeuristicStatic(vm, _s, _om,
-                        dynamic_cast<SpecManagerCnf&>(_om).getNbClause(),
-                        dynamic_cast<SpecManagerCnf&>(_om).getNbVariable(),
-                        dynamic_cast<SpecManagerCnf&>(_om).getSumSizeClauses())
+    WrapperSolver &s,
+    SpecManager &om) :
+    PartitioningHeuristicStatic(vm, s, om,
+                                dynamic_cast<SpecManagerCnf&>(om).getNbClause(),
+                                dynamic_cast<SpecManagerCnf&>(om).getNbVariable(),
+                                dynamic_cast<SpecManagerCnf&>(om).getSumSizeClauses())
 {  
 } // constructor
 
@@ -42,22 +43,26 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
 /**
    Constructor.
 
-   @param[in] _s, a wrapper on a solver.
-   @param[in] _om, a structure manager.
+   @param[in] vm, the option list.
+   @param[in] s, a wrapper on a solver.
+   @param[in] om, a structure manager.
+   @param[in] nbClause, the number of clauses.
+   @param[in] nbVar, the number of variables.
+   @param[in] sumSize, which give the number of literals.
 */
 PartitioningHeuristicStatic::PartitioningHeuristicStatic(
     po::variables_map &vm,
-    WrapperSolver &_s,
-    SpecManager &_om,
-    int _nbClause,
-    int _nbVar,
-    int _sumSize) : m_s(_s), m_om(dynamic_cast<SpecManagerCnf&>(_om))
+    WrapperSolver &s,
+    SpecManager &om,
+    int nbClause,
+    int nbVar,
+    int sumSize) : m_s(s), m_om(dynamic_cast<SpecManagerCnf&>(om))
 {
-  m_nbVar = _nbVar;
-  m_nbClause = _nbClause;  
+  m_nbVar = nbVar;
+  m_nbClause = nbClause;  
   
-  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, _sumSize);
-  m_hypergraph.init(m_nbVar + m_nbClause + _sumSize + 1);  
+  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
+  m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
   
   m_em.initEquivExtractor(m_nbVar + 1);
@@ -69,8 +74,6 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
   m_isInitialized = false;
   m_bucketNumber.resize(m_nbVar + 2, 0);
   m_mapVar.resize(m_nbVar + 2, 0);
-
-  init();
 } // constructor
 
 
@@ -79,6 +82,7 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
 */
 PartitioningHeuristicStatic::~PartitioningHeuristicStatic()
 {
+  delete m_hypergraphExtractor;
   delete m_pm;
 } // destructor
 
@@ -105,7 +109,7 @@ void PartitioningHeuristicStatic::init()
   else for(auto &v : component) equivClass[v] = v;
   
   // synchronize the SAT solver and the spec manager.
-  m_om.preUpdate(unitEquiv);  
+  m_om.preUpdate(unitEquiv);
 
   // compute the decomposition.
   std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
@@ -275,11 +279,8 @@ void PartitioningHeuristicStatic::computeDecomposition(
   for(auto v : component)
   {
     if(m_bucketNumber[v]) continue;
-    else
-    {
-      m_bucketNumber[v] = (v == equivClass[v]) ?
-                          level : m_bucketNumber[equivClass[v]];
-    }    
+    m_bucketNumber[v] = (v == equivClass[v]) ?
+                        level : m_bucketNumber[equivClass[v]];
   }
 } // computeDecomposition
 

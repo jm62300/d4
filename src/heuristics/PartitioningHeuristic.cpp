@@ -23,7 +23,7 @@ a* it under the terms of the GNU General Public License as published by
 #include "PartitioningHeuristicNone.hpp"
 #include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
 #include "cnf/PartitioningHeuristicBipartiteDual.hpp"
-#include "cnf/PartitioningHeuristicStatic.hpp"
+#include "cnf/PartitioningHeuristicStaticDual.hpp"
 
 namespace d4
 {
@@ -36,11 +36,11 @@ namespace d4
 
    \return a partioner if the options are ocrrect, NULL otherwise.
  */
-PartitioningHeuristic *
-PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
-                                                 SpecManager &s,
-                                                 WrapperSolver &ws,
-                                                 std::ostream &out)
+PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
+    po::variables_map &vm,
+    SpecManager &s,
+    WrapperSolver &ws,
+    std::ostream &out)
 {
   std::string meth = vm["partitioning-heuristic"].as<std::string>();  
   std::string inType = vm["input-type"].as<std::string>();
@@ -67,8 +67,8 @@ PartitioningHeuristic::makePartitioningHeuristic(po::variables_map &vm,
       return new PartitioningHeuristicBipartitePrimal(vm, ws, s);
     if(meth == "bipartition-dual")
       return new PartitioningHeuristicBipartiteDual(vm, ws, s);
-    if(meth == "decomposition-static")
-      return new PartitioningHeuristicStatic(vm, ws, s);
+    if(meth == "decomposition-static-dual")
+      return new PartitioningHeuristicStaticDual(vm, ws, s);
   }
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",
