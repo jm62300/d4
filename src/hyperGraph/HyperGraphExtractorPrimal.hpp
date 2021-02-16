@@ -50,6 +50,11 @@ class HyperGraphExtractorPrimal : public HyperGraphExtractor
       HyperGraph &hypergraph,
       std::vector<int> &partition,
       std::vector<unsigned *> &indices);
+
+  void extractCutFromEdges(
+      std::vector<unsigned *> &indices,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet);
   
  public:
   HyperGraphExtractorPrimal(

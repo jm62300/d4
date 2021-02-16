@@ -15,10 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
-#include "PartitioningHeuristicStaticDual.hpp"
-
+#include "src/hyperGraph/HyperGraphExtractorPrimal.hpp"
+#include "PartitioningHeuristicStaticPrimal.hpp"
 
 namespace d4
 {
@@ -30,11 +28,11 @@ namespace d4
    @param[in] s, a wrapper on a solver.
    @param[in] om, a structure manager.
  */
-PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
+PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
     po::variables_map &vm,
     WrapperSolver &s,
     SpecManager &om) :
-    PartitioningHeuristicStaticDual(
+    PartitioningHeuristicStaticPrimal(
         vm, s, om,
         dynamic_cast<SpecManagerCnf&>(om).getNbClause(),
         dynamic_cast<SpecManagerCnf&>(om).getNbVariable(),
@@ -54,7 +52,7 @@ PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
    @param[in] nbVar, the number of variables.
    @param[in] sumSize, which give the number of literals.
  */
-PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
+PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
     po::variables_map &vm,
     WrapperSolver &s,
     SpecManager &om,                                 
@@ -63,11 +61,11 @@ PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
     int sumSize) :
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
-  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
-  m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
-  m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
-  m_maxNbNodes = m_nbClause + 1;
-  m_maxNbEdges = m_nbVar + 1;
+  m_pm = PartitionerManager::makePartitioner(vm, m_nbVar, m_nbClause, sumSize);
+  m_hypergraph.init(m_nbClause + sumSize + 1);  
+  m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
+  m_maxNbNodes = m_nbVar + 1;
+  m_maxNbEdges = m_nbClause + 1;
   
   init();
 } // constructor
@@ -76,7 +74,7 @@ PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
 /**
    Destructor.
  */
-PartitioningHeuristicStaticDual::~PartitioningHeuristicStaticDual()
+PartitioningHeuristicStaticPrimal::~PartitioningHeuristicStaticPrimal()
 {
   
 } // destructor
@@ -90,13 +88,14 @@ PartitioningHeuristicStaticDual::~PartitioningHeuristicStaticDual()
    @param[in] mapping, to map the edges to variables.
    @param[in] level, the level we want to assign the varaibles.
  */
-void PartitioningHeuristicStaticDual::setBucketLevelFromEdges(
+void PartitioningHeuristicStaticPrimal::setBucketLevelFromEdges(
     std::vector<std::vector<unsigned> > &hypergraph,
     std::vector<unsigned> &indices,
     std::vector<int> &mapping,
     unsigned level)
 {
-  for(auto &id : indices) m_bucketNumber[mapping[id]] = level;
+  for(auto id : indices)
+    for(auto v : hypergraph[id]) m_bucketNumber[v] = level;
 } // setBucketLevelFromEdges
 
 } // d4

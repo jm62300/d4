@@ -73,26 +73,20 @@ void HyperGraphExtractorPrimal::clashHyperEdgeIndex(
 } // clashHyperEdgeIndex
 
 
-/**
-   Check all the hyper edges in order to extract those their are conflictual
-   (i.e. there are belong to at least two components).
-   We try to minimize the cut in a greedy fashion.
 
-   @param[in] hypergraph, the hyper graph we search to cut.
-   @param[in] considered, the label variables for the edges.
+/**
+   Extract the cut that make the hyper graph not partitioned.
+
+   @param[in] edges, the problematic edges.
    @param[in] partition, the array that gives the partition.
    @param[out] cutSet, the computed cutset.
-*/
-void HyperGraphExtractorPrimal::extractCutFromHyperGraph(
-    HyperGraph &hypergraph,
-    std::vector<Var> &considered,
-    std::vector<int> &partition,
-    std::vector<int> &cutSet)
+ */
+void HyperGraphExtractorPrimal::extractCutFromEdges(
+      std::vector<unsigned *> &edges,
+      std::vector<int> &partition,
+      std::vector<int> &cutSet)
 {
-  std::vector<unsigned *> indices;
-  clashHyperEdgeIndex(hypergraph, partition, indices);
-  
-  for(auto &edge : indices)
+  for(auto &edge : edges)
   {
     int cpt0 = 0, cpt1 = 0;
     for(unsigned i = 0 ; i<*edge ; i++)
@@ -115,6 +109,29 @@ void HyperGraphExtractorPrimal::extractCutFromHyperGraph(
   }
   
   for(auto &x : cutSet) m_markedVar[x] = false; // reinit
+
+} // extractCutFromEdges
+
+
+/**
+   Check all the hyper edges in order to extract those their are conflictual
+   (i.e. there are belong to at least two components).
+   We try to minimize the cut in a greedy fashion.
+
+   @param[in] hypergraph, the hyper graph we search to cut.
+   @param[in] considered, the label variables for the edges.
+   @param[in] partition, the array that gives the partition.
+   @param[out] cutSet, the computed cutset.
+*/
+void HyperGraphExtractorPrimal::extractCutFromHyperGraph(
+    HyperGraph &hypergraph,
+    std::vector<Var> &considered,
+    std::vector<int> &partition,
+    std::vector<int> &cutSet)
+{
+  std::vector<unsigned *> edgesCut;
+  clashHyperEdgeIndex(hypergraph, partition, edgesCut);
+  extractCutFromEdges(edgesCut, partition, cutSet);
 } // extractCutFromHyperGraph
 
 
@@ -139,7 +156,30 @@ void HyperGraphExtractorPrimal::splitWrtPartition(
     std::vector<unsigned> &indicesFirst,
     std::vector<unsigned> &indicesSecond)
 {
+  // create the partition.
+  bool clash = false;
+  int part = 0;
+  unsigned *edge = hypergraph.getEdges();
   
+  std::vector<unsigned *> edgesCut;
+  for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
+  {
+    clash = false;
+    part = partition[edge[1]];
+
+    for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
+    if(clash) edgesCut.push_back(edge);
+    else
+    {
+      if(part) indicesFirst.push_back(mappingEdge[i]);
+      else indicesSecond.push_back(mappingEdge[i]);
+    }
+
+    edge = &(edge[*edge + 1]); // next clause.
+  }
+
+  // extract the cutset from the pointed edges (edgescut).
+  extractCutFromEdges(edgesCut, partition, cutSet);
 } // splitWrtPartition
 
 

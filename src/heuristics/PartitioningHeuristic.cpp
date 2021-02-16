@@ -24,6 +24,7 @@ a* it under the terms of the GNU General Public License as published by
 #include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
 #include "cnf/PartitioningHeuristicBipartiteDual.hpp"
 #include "cnf/PartitioningHeuristicStaticDual.hpp"
+#include "cnf/PartitioningHeuristicStaticPrimal.hpp"
 
 namespace d4
 {
@@ -69,6 +70,8 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
       return new PartitioningHeuristicBipartiteDual(vm, ws, s);
     if(meth == "decomposition-static-dual")
       return new PartitioningHeuristicStaticDual(vm, ws, s);
+    if(meth == "decomposition-static-primal")
+      return new PartitioningHeuristicStaticPrimal(vm, ws, s);
   }
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",
