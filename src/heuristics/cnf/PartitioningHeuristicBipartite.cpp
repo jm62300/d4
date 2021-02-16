@@ -17,6 +17,7 @@
 */
 
 #include "PartitioningHeuristicBipartite.hpp"
+#include "PartitioningHeuristicStaticDual.hpp"
 
 namespace d4
 {
@@ -60,8 +61,8 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_limitPhase = vm["partitioning-heuristic-bipartite-phase"].as<int>();
   
   if(m_limitPhase > 0)
-    m_staticPartioner = new PartitioningHeuristicStatic(vm, m_s, m_om, m_nbClause,
-                                                        m_nbVar, sumSize);
+    m_staticPartioner = new PartitioningHeuristicStaticDual(vm, m_s, m_om, m_nbClause,
+                                                            m_nbVar, sumSize);
   else m_staticPartioner = NULL;
 } // constructor
 

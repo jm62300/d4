@@ -136,7 +136,7 @@ void HyperGraphExtractorDual::splitWrtPartition(
     for(unsigned i = 1 ; !clash && i<edge.getSize() ; i++)
       clash = part != partition[edge[i]];
 
-    if(clash) cutSet.push_back(mappingVar[edge.getId()]);
+    if(clash) cutSet.push_back(mappingVar[mappingEdge[edge.getId()]]);
     else
     {
       if(part) indicesFirst.push_back(mappingEdge[edge.getId()]);

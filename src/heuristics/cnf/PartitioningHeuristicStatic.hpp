@@ -34,7 +34,7 @@ namespace d4
 namespace po = boost::program_options;
 class PartitioningHeuristicStatic : public PartitioningHeuristic
 {
- private:
+ protected:
   WrapperSolver &m_s;  
   SpecManagerCnf &m_om;
   EquivExtractor m_em;
@@ -45,10 +45,12 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   HyperGraphExtractor *m_hypergraphExtractor;
 
   unsigned m_nbVar;
-  unsigned m_nbClause;  
+  unsigned m_nbClause;
+  unsigned m_maxNbNodes;
+  unsigned m_maxNbEdges;
+
   bool m_isInitialized;
   std::vector<unsigned> m_bucketNumber;
-  std::vector<unsigned> m_mapVar;
 
   // options:
   bool m_reduceFormula; 
@@ -102,6 +104,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   
 
   void distributePartition(
+      std::vector<std::vector<unsigned> > &hypergraph,
       std::vector<unsigned> &indicesFirst,
       std::vector<unsigned> &indicesSecond,
       std::vector<Var> &mappingVar,
@@ -119,7 +122,13 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   
   void init();
   
- public:
+  virtual void setBucketLevelFromEdges(
+      std::vector<std::vector<unsigned> > &hypergraph,
+      std::vector<unsigned> &indices,
+      std::vector<int> &mapping,
+      unsigned level){}
+
+ protected:
   PartitioningHeuristicStatic(
       po::variables_map &vm,
       WrapperSolver &s,
@@ -133,7 +142,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
       int nbVar,
       int sumSize);
 
-  
+ public:  
   ~PartitioningHeuristicStatic();
   
   void computeCutSet(

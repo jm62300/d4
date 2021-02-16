@@ -41,24 +41,28 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
 /**
    Constructor.
 
-   @param[in] _s, a wrapper on a solver.
-   @param[in] _om, a structure manager.
+   @param[in] vm, the option list.
+   @param[in] s, a wrapper on a solver.
+   @param[in] om, a structure manager.
+   @param[in] nbClause, the number of clauses.
+   @param[in] nbVar, the number of variables.
+   @param[in] sumSize, which give the number of literals.
 */
 PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
     po::variables_map &vm,
-    WrapperSolver &_s,
-    SpecManager &_om,
-    int _nbClause,
-    int _nbVar,
-    int _sumSize) :
-    PartitioningHeuristicBipartite(vm, _om, _s, _nbClause, _nbVar, _sumSize)
+    WrapperSolver &s,
+    SpecManager &om,
+    int nbClause,
+    int nbVar,
+    int sumSize) :
+    PartitioningHeuristicBipartite(vm, om, s, nbClause, nbVar, sumSize)
 {
   // initialize the vectors.  
   m_partition.resize(m_nbVar + 1, 0);
   
   // init the hyper graph managers.
-  m_pm = PartitionerManager::makePartitioner(vm, _nbVar, _nbClause, _sumSize);
-  m_hypergraph.init(m_nbClause + _sumSize + 1);
+  m_pm = PartitionerManager::makePartitioner(vm, nbVar, nbClause, sumSize);
+  m_hypergraph.init(m_nbClause + sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
 } // constructor
 } // d4
