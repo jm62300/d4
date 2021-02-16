@@ -57,13 +57,7 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_nbStatic = 0;
   m_nbDynamic = 0;
   m_pm = NULL;
-  m_hypergraphExtractor = NULL;
-  m_limitPhase = vm["partitioning-heuristic-bipartite-phase"].as<int>();
-  
-  if(m_limitPhase > 0)
-    m_staticPartioner = new PartitioningHeuristicStaticDual(vm, m_s, m_om, m_nbClause,
-                                                            m_nbVar, sumSize);
-  else m_staticPartioner = NULL;
+  m_hypergraphExtractor = NULL;  
 } // constructor
 
 
@@ -72,8 +66,9 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
 */
 PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
 {
-  if(m_staticPartioner) delete m_staticPartioner;
+  if(m_staticPartitioner) delete m_staticPartitioner;
   if(m_hypergraphExtractor) delete m_hypergraphExtractor;
+  if(m_phaseSelector) delete m_phaseSelector;
   if(m_pm) delete m_pm;
 } // destructor
 
@@ -110,10 +105,10 @@ void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
-  if(m_staticPartioner && component.size() > m_limitPhase)
-  {
+  if(m_phaseSelector->isStillOk(component))
+  { 
     m_nbStatic++;
-    return m_staticPartioner->computeCutSet(component, cutSet);
+    return m_staticPartitioner->computeCutSet(component, cutSet);
   } else m_nbDynamic++;
   
   // search for equiv class if requiered.

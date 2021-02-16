@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include "PartitioningHeuristicBipartiteDual.hpp"
+#include "PartitioningHeuristicStaticDual.hpp"
 
 namespace d4
 {
@@ -61,6 +62,12 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
   m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
   m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
+  
+  m_staticPartitioner = PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
+      vm, s, om, nbClause, nbVar, sumSize, "dual");
+
+  m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(
+      vm, m_staticPartitioner->getBucketNumber());
 } // constructor
 
 } // d4

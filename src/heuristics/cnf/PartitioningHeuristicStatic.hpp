@@ -58,49 +58,12 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
   const unsigned LIMIT = 10;
 
-
-  /**
-     Save the current hyper graph.
-
-     @param[out] savedHyperGraph, the structure where is saved the graph.
-   */
-  inline void saveHyperGraph(
-      std::vector<std::vector<unsigned> > &savedHyperGraph)
-  {
-    for(auto edge : m_hypergraph)
-    {
-      savedHyperGraph.push_back(std::vector<unsigned>());
-      std::vector<unsigned> &tmp = savedHyperGraph.back();
-      for(auto v : edge) tmp.push_back(v);
-    }
-  } // savedHyperGraph
-
-
-  /**
-     Set the hyper graph regarding the given set of variables and the saved
-     hyper graph.
-
-     @param[in] savedHyperGraph, the current hyper graph.
-     @param[in] indices, the current set of edges' indices.
-     @param[out] hypergraph, the computed hyper graph.
-   */
-  inline void setHyperGraph(
+  void saveHyperGraph(std::vector<std::vector<unsigned> > &savedHyperGraph);
+  
+  void setHyperGraph(
       std::vector<std::vector<unsigned> > &savedHyperGraph,
       std::vector<unsigned> &indices,
-      HyperGraph &hypergraph)
-  {
-    unsigned *edges = hypergraph.getEdges();
-    hypergraph.setSize(0);
-
-    for(auto idxEdge : indices)
-    {
-      std::vector<unsigned> &tmp = savedHyperGraph[idxEdge];
-      *edges = tmp.size();
-      for(unsigned i = 0 ; i<tmp.size() ; i++) edges[i + 1] = tmp[i];      
-      edges += *edges + 1;
-      hypergraph.incSize();
-    }
-  } // setHyperGraph
+      HyperGraph &hypergraph);
   
 
   void distributePartition(
@@ -144,9 +107,22 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
  public:  
   ~PartitioningHeuristicStatic();
+
+  inline std::vector<unsigned> &getBucketNumber(){return m_bucketNumber;}
+  
+  static PartitioningHeuristicStatic *makePartitioningHeuristicStatic(
+      po::variables_map &vm,
+      WrapperSolver &s,
+      SpecManager &om,
+      int nbClause,
+      int nbVar,
+      int sumSize,
+      const std::string &type);
   
   void computeCutSet(
       std::vector<Var> &component,
       std::vector<Var> &cutSet);
+
+  virtual bool isReady() {return true;}
 };
 } // d4

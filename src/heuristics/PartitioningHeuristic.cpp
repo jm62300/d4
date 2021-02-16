@@ -55,10 +55,12 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
 
   bool reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
   bool equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-  int staticPhase = vm["partitioning-heuristic-bipartite-phase"].as<int>();
+  int staticPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
+  bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();
   out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << " "
       << "reduceFormula(" << reduceFormula << ") "
       << "equivSimp(" << equivSimp << ") "
+      << "dynamicPhase(" << dynamicPhase << ") "
       << "staticPhase(" << staticPhase << ")\n";
   
   

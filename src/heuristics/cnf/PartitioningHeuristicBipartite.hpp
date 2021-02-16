@@ -29,6 +29,7 @@
 
 #include "../PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicStatic.hpp"
+#include "PhaseSelectorManager.hpp"
 
 namespace d4
 {
@@ -38,7 +39,6 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
  private:
   unsigned m_nbStatic;
   unsigned m_nbDynamic;
-  unsigned m_limitPhase;
   
  protected:
   SpecManagerCnf &m_om;  
@@ -49,7 +49,8 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   // to store the hypergraph, and then avoid reallocated memory.
   HyperGraph m_hypergraph;
   HyperGraphExtractor *m_hypergraphExtractor;
-  PartitioningHeuristicStatic *m_staticPartioner;
+  PartitioningHeuristicStatic *m_staticPartitioner;
+  PhaseSelectorManager *m_phaseSelector;
 
   std::vector<bool> m_markedVar;
   std::vector<int> m_partition;
@@ -70,7 +71,7 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
       int _nbVar,
       int _sumSize);
 
-  ~PartitioningHeuristicBipartite();
+  virtual ~PartitioningHeuristicBipartite();
   
   void computeEquivClass(
       std::vector<Var> &component,
@@ -83,12 +84,11 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
                      std::vector<Var> &cutSet);
 
   void displayStat(std::ostream &out);
-  
+
   inline bool isReady(std::vector<Var> &component)
   {
-    return m_staticPartioner ||
+    return m_staticPartitioner->isReady() ||
         (component.size() > 10 && component.size() < 5000);
   }
-
 };
 } // d4

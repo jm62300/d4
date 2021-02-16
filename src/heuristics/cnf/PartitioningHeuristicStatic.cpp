@@ -15,9 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <bitset>
-
+#include "src/exceptions/FactoryException.hpp"
 #include "PartitioningHeuristicStatic.hpp"
+#include "PartitioningHeuristicStaticNone.hpp"
+#include "PartitioningHeuristicStaticDual.hpp"
+#include "PartitioningHeuristicStaticPrimal.hpp"
 
 namespace d4
 {
@@ -69,6 +71,9 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
   
   m_isInitialized = false;
   m_bucketNumber.resize(m_nbVar + 2, 0);
+
+  m_pm = NULL;
+  m_hypergraphExtractor = NULL;
 } // constructor
 
 
@@ -77,8 +82,8 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
 */
 PartitioningHeuristicStatic::~PartitioningHeuristicStatic()
 {
-  delete m_hypergraphExtractor;
-  delete m_pm;
+  if(m_hypergraphExtractor) delete m_hypergraphExtractor;
+  if(m_pm) delete m_pm;
 } // destructor
 
 
@@ -270,5 +275,88 @@ void PartitioningHeuristicStatic::computeDecomposition(
     else m_bucketNumber[v] = m_bucketNumber[equivClass[v]];
   }
 } // computeDecomposition
+
+
+/**
+   Save the current hyper graph.
+
+   @param[out] savedHyperGraph, the structure where is saved the graph.
+*/
+void PartitioningHeuristicStatic::saveHyperGraph(
+    std::vector<std::vector<unsigned> > &savedHyperGraph)
+{
+  for(auto edge : m_hypergraph)
+  {
+    savedHyperGraph.push_back(std::vector<unsigned>());
+    std::vector<unsigned> &tmp = savedHyperGraph.back();
+    for(auto v : edge) tmp.push_back(v);
+  }
+} // savedHyperGraph
+
+
+/**
+   Set the hyper graph regarding the given set of variables and the saved
+   hyper graph.
+
+   @param[in] savedHyperGraph, the current hyper graph.
+   @param[in] indices, the current set of edges' indices.
+   @param[out] hypergraph, the computed hyper graph.
+*/
+void PartitioningHeuristicStatic::setHyperGraph(
+    std::vector<std::vector<unsigned> > &savedHyperGraph,
+    std::vector<unsigned> &indices,
+    HyperGraph &hypergraph)
+{
+  unsigned *edges = hypergraph.getEdges();
+  hypergraph.setSize(0);
+
+  for(auto idxEdge : indices)
+  {
+    std::vector<unsigned> &tmp = savedHyperGraph[idxEdge];
+    *edges = tmp.size();
+    for(unsigned i = 0 ; i<tmp.size() ; i++) edges[i + 1] = tmp[i];      
+    edges += *edges + 1;
+    hypergraph.incSize();
+  }
+} // setHyperGraph
+
+
+/**
+   Generate a static partitioner regarding the given option list.
+
+   @param[in] vm, the option list.
+   @param[in] s, a wrapper to a solver.
+   @param[in] om, a formula manager.
+   @param[in] nbClause, the number of clauses of the formula.
+   @param[in] nbVar, the number of variables of the formula.
+   @param[in] sumSize, the number of literals of the formula.
+   @param[in] type, a string that gives the partioner type.
+
+   \return a static partioner.
+ */
+PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
+    po::variables_map &vm,
+    WrapperSolver &s,
+    SpecManager &om,
+    int nbClause,
+    int nbVar,
+    int sumSize,
+    const std::string &type)
+{
+  int limitPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
+  bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();
+
+  if(limitPhase <= 0 && !dynamicPhase)
+    return new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
+
+  if(type == "dual")
+    return new PartitioningHeuristicStaticDual(vm, s, om, nbClause, nbVar, sumSize);
+
+  if(type == "primal")
+    return new PartitioningHeuristicStaticDual(vm, s, om, nbClause, nbVar, sumSize);
+
+  throw (FactoryException("Cannot create a PartitioningHeuristic",
+                          __FILE__, __LINE__));
+} // makePartitioningHeuristicStatic
 
 } // d4

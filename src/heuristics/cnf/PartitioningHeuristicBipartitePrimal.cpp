@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PartitioningHeuristicBipartitePrimal.hpp"
+#include "PartitioningHeuristicStaticPrimal.hpp"
 
 namespace d4
 {
@@ -64,5 +65,11 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
   m_pm = PartitionerManager::makePartitioner(vm, nbVar, nbClause, sumSize);
   m_hypergraph.init(m_nbClause + sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
+
+  m_staticPartitioner = PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
+      vm, s, om, nbClause, nbVar, sumSize, "primal");
+
+  m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(
+      vm, m_staticPartitioner->getBucketNumber());
 } // constructor
 } // d4
