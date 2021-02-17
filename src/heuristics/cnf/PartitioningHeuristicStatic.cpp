@@ -166,43 +166,71 @@ void PartitioningHeuristicStatic::computeCutSet(
 */
 void PartitioningHeuristicStatic::distributePartition(
     std::vector<std::vector<unsigned> > &hypergraph,
+    std::vector<Var> &cutSet,
     std::vector<unsigned> &indicesFirst,
     std::vector<unsigned> &indicesSecond,
     std::vector<Var> &mappingVar,
-    bool cutIsEmpty,
-    std::vector< std::vector<unsigned> > &stack,
+    std::vector<Strata> &stack,
     unsigned &level)
 {
-  // special case 1.
-  if(cutIsEmpty && !indicesFirst.size() && indicesSecond.size())
-  {
-    setBucketLevelFromEdges(hypergraph, indicesSecond, mappingVar, level);
-    level++;
-    return;
-  }
-
-  // special case 2.
-  if(cutIsEmpty && !indicesSecond.size() && indicesFirst.size())
-  {
-    setBucketLevelFromEdges(hypergraph, indicesFirst, mappingVar, level);
-    level++;
-    return;
-  }
+  unsigned fatherId = stack.back().fatherId;
+  unsigned currentId = level;
+  stack.pop_back();
   
-  if(indicesFirst.size() > LIMIT) stack.push_back(indicesFirst);
+  if(cutSet.size())
+  {
+    for(auto v : cutSet) m_bucketNumber[v] = level;    
+    assert(fatherId < m_separtorLevel.size());
+    m_separtorLevel[fatherId] = level;
+    level++;    
+    m_separtorLevel.push_back(level);
+  } else
+  {
+    // special case 1.
+    if(!indicesFirst.size() && indicesSecond.size())
+    {
+      setBucketLevelFromEdges(hypergraph, indicesSecond, mappingVar, level);
+      m_separtorLevel[currentId] = level;
+      level++;
+      m_separtorLevel.push_back(level);
+      return;
+    }
+
+    // special case 2.
+    if(!indicesSecond.size() && indicesFirst.size())
+    {
+      setBucketLevelFromEdges(hypergraph, indicesFirst, mappingVar, level);
+      m_separtorLevel[currentId] = level;
+      level++;
+      m_separtorLevel.push_back(level);
+      return;
+    }
+  }
+
+  if(indicesSecond.size() > LIMIT) stack.push_back({currentId, indicesSecond});
+  else
+  {
+    setBucketLevelFromEdges(hypergraph, indicesSecond, mappingVar, level);    
+    if(indicesSecond.size())
+    {
+      m_separtorLevel[currentId] = level;
+      level++;
+      m_separtorLevel.push_back(level);
+    }
+  }
+
+  if(indicesFirst.size() > LIMIT) stack.push_back({currentId, indicesFirst});
   else
   {
     setBucketLevelFromEdges(hypergraph, indicesFirst, mappingVar, level);
-    if(indicesFirst.size()) level++;
+    if(indicesFirst.size())
+    {
+      m_separtorLevel[currentId] = level;
+      level++;
+      m_separtorLevel.push_back(level);
+    }
   }
-
-  if(indicesSecond.size() > LIMIT) stack.push_back(indicesSecond);
-  else
-  {
-    setBucketLevelFromEdges(hypergraph, indicesSecond, mappingVar, level);
-    if(indicesSecond.size()) level++;
-  }
-} // splitVarWrtPartition
+} // distributePartition
 
 
 /**
@@ -226,7 +254,7 @@ void PartitioningHeuristicStatic::computeDecomposition(
       m_reduceFormula, considered, m_hypergraph);
 
   // save the hyper graph.
-  std::vector<std::vector<unsigned> > savedHyperGraph;
+  std::vector<std::vector<unsigned>> savedHyperGraph;
   saveHyperGraph(savedHyperGraph);
 
   // preparation. 
@@ -234,18 +262,22 @@ void PartitioningHeuristicStatic::computeDecomposition(
   std::vector<Var> indexToVar(m_maxNbEdges, 0);
 
   // init the stack with all the edges.
-  std::vector< std::vector<unsigned> > stack;
-  stack.push_back(std::vector<unsigned>());
-  for(unsigned i = 0 ; i<savedHyperGraph.size() ; i++) stack[0].push_back(i);
-
+  std::vector<Strata> stack;
+  Strata strata = {0, std::vector<unsigned>()};
+  for(unsigned i = 0 ; i<savedHyperGraph.size() ; i++) strata.part.push_back(i);
+  stack.push_back(strata);
+  
   // reinit the bucket for all.
+  m_separtorLevel.clear();
+  m_separtorLevel.push_back(0);
   for(auto &b : m_bucketNumber) b = 0; 
   unsigned level = 1;
   
   // iteratively consider sub-graph.
   while(stack.size())
-  {    
-    std::vector<unsigned> &current = stack.back();
+  {
+    Strata &strata = stack.back();
+    std::vector<unsigned> &current = strata.part;
     setHyperGraph(savedHyperGraph, current, m_hypergraph);
     m_pm->computePartition(m_hypergraph, Level::QUALITY, partition);
 
@@ -257,13 +289,8 @@ void PartitioningHeuristicStatic::computeDecomposition(
         m_hypergraph, partition, considered, current,
         cutSet, indicesFirst, indicesSecond);
 
-    // set the level for the current cut set.
-    for(auto v : cutSet) m_bucketNumber[v] = level;
-    if(cutSet.size()) level++;
-    stack.pop_back();
-
-    distributePartition(savedHyperGraph, indicesFirst, indicesSecond,
-                        considered, !cutSet.size(), stack, level);
+    distributePartition(savedHyperGraph, cutSet, indicesFirst, indicesSecond,
+                        considered, stack, level);
   }
   
   // set the equivalence.

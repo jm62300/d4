@@ -34,6 +34,12 @@ namespace d4
 namespace po = boost::program_options;
 class PartitioningHeuristicStatic : public PartitioningHeuristic
 {
+  struct Strata
+  {
+    unsigned fatherId;
+    std::vector<unsigned> part;
+  };
+  
  protected:
   WrapperSolver &m_s;  
   SpecManagerCnf &m_om;
@@ -51,6 +57,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
   bool m_isInitialized;
   std::vector<unsigned> m_bucketNumber;
+  std::vector<unsigned> m_separtorLevel;
 
   // options:
   bool m_reduceFormula; 
@@ -68,11 +75,11 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
   void distributePartition(
       std::vector<std::vector<unsigned> > &hypergraph,
+      std::vector<Var> &cutSet,
       std::vector<unsigned> &indicesFirst,
       std::vector<unsigned> &indicesSecond,
       std::vector<Var> &mappingVar,
-      bool cutIsEmpty,
-      std::vector< std::vector<unsigned> > &stack,
+      std::vector<Strata> &stack,
       unsigned &level);
   
   
@@ -109,6 +116,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   ~PartitioningHeuristicStatic();
 
   inline std::vector<unsigned> &getBucketNumber(){return m_bucketNumber;}
+  inline std::vector<unsigned> &getSeparatorLevel(){return m_separtorLevel;}
   
   static PartitioningHeuristicStatic *makePartitioningHeuristicStatic(
       po::variables_map &vm,

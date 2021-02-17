@@ -15,36 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "PhaseSelectorNone.hpp"
+
+#include "PhaseSelectorManager.hpp"
 
 namespace d4
 {
-
-/**
-   Constructor.
-
-   @param[in] bucketNumber, the tree decomposition, given but not used.
- */
-PhaseSelectorNone::PhaseSelectorNone(
-    PartitioningHeuristicStatic *staticPartitioner) :
-    PhaseSelectorManager(staticPartitioner)
+class PhaseSelectorDynamic : public PhaseSelectorManager
 {
-  std::cout << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"
-            << " none\n";  
-} // constructor
-
-
-/**
-   Say if it is still OK to use the static decomposition. Here we return alway
-   no!
-
-   @param[in] component, the set of variables.
-
-   \return false.
- */
-bool PhaseSelectorNone::isStillOk(std::vector<Var> &component)
-{
-  return false;
-} // isStillok
-
+ public:
+  PhaseSelectorDynamic(PartitioningHeuristicStatic *staticPartitioner);  
+  bool isStillOk(std::vector<Var> &component);
+};
 } // d4

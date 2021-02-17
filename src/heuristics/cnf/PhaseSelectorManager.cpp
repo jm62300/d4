@@ -18,6 +18,7 @@
 
 #include "PhaseSelectorManager.hpp"
 #include "PhaseSelectorStatic.hpp"
+#include "PhaseSelectorDynamic.hpp"
 #include "PhaseSelectorNone.hpp"
 
 namespace d4
@@ -54,8 +55,12 @@ PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
   std::string phase = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
   
   if(phase == "none" || (limitPhase <= 0 && !dynamicPhase))
-    return new PhaseSelectorNone(staticPartitioner);  
-  return new PhaseSelectorStatic(staticPartitioner, limitPhase);
+    return new PhaseSelectorNone(staticPartitioner);
+
+  if(!dynamicPhase)
+    return new PhaseSelectorStatic(staticPartitioner, limitPhase);
+
+  return new PhaseSelectorDynamic(staticPartitioner);
 } // makePhaseSelectorManager
 
 } // d4
