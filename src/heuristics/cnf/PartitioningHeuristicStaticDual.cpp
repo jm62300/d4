@@ -63,6 +63,8 @@ PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
     int sumSize) :
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
+  std::cout << "c [CONSTRUCTOR] Static partitioner: dual\n";
+  
   m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
   m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);

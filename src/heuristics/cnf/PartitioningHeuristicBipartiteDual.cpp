@@ -67,7 +67,7 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
       vm, s, om, nbClause, nbVar, sumSize, "dual");
 
   m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(
-      vm, m_staticPartitioner->getBucketNumber());
+      vm, m_staticPartitioner);
 } // constructor
 
 } // d4

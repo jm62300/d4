@@ -26,13 +26,12 @@ namespace d4
 /**
    Constructor.
 
-   @param[in] bucketNumber, give the topological order of the decomposition
-   tree.
+   @param[in] staticPartitioner, give the partitioner used.
  */
 PhaseSelectorManager::PhaseSelectorManager(
-    std::vector<unsigned> &bucketNumber)
+    PartitioningHeuristicStatic *staticPartitioner)
 {
-  m_bucketNumber = bucketNumber;
+  m_staticPartitioner = staticPartitioner;
 } // constructor
 
 
@@ -48,13 +47,15 @@ PhaseSelectorManager::PhaseSelectorManager(
  */
 PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
     po::variables_map &vm,
-    std::vector<unsigned> &bucketNumber)
+    PartitioningHeuristicStatic *staticPartitioner)
 {
   int limitPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
   bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();
+  std::string phase = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
   
-  if(limitPhase <= 0 && !dynamicPhase) return new PhaseSelectorNone(bucketNumber);  
-  return new PhaseSelectorStatic(bucketNumber, limitPhase);
+  if(phase == "none" || (limitPhase <= 0 && !dynamicPhase))
+    return new PhaseSelectorNone(staticPartitioner);  
+  return new PhaseSelectorStatic(staticPartitioner, limitPhase);
 } // makePhaseSelectorManager
 
 } // d4

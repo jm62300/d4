@@ -343,17 +343,16 @@ PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuris
     int sumSize,
     const std::string &type)
 {
-  int limitPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
-  bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();
+  std::string opt = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
 
-  if(limitPhase <= 0 && !dynamicPhase)
+  if(opt == "none")
     return new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
-
-  if(type == "dual")
+  
+  if(opt == "dual" || (opt == "natural" && type == "dual"))
     return new PartitioningHeuristicStaticDual(vm, s, om, nbClause, nbVar, sumSize);
 
-  if(type == "primal")
-    return new PartitioningHeuristicStaticDual(vm, s, om, nbClause, nbVar, sumSize);
+  if(opt == "primal" || (opt == "natural" && type == "primal"))
+    return new PartitioningHeuristicStaticPrimal(vm, s, om, nbClause, nbVar, sumSize);
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",
                           __FILE__, __LINE__));

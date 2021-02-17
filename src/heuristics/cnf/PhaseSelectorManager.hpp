@@ -21,6 +21,7 @@
 #include <boost/program_options.hpp>
 
 #include "src/problem/ProblemTypes.hpp"
+#include "PartitioningHeuristicStatic.hpp"
 
 namespace d4
 {
@@ -29,16 +30,15 @@ namespace po = boost::program_options;
 class PhaseSelectorManager
 {
  protected:
-  std::vector<unsigned> m_bucketNumber;
-
-  PhaseSelectorManager(std::vector<unsigned> &bucketNumber);
+  PartitioningHeuristicStatic *m_staticPartitioner;
+  PhaseSelectorManager(PartitioningHeuristicStatic *staticPartitioner);
   
  public:
   virtual ~PhaseSelectorManager(){}
   
   static PhaseSelectorManager *makePhaseSelectorManager(
       po::variables_map &vm,
-      std::vector<unsigned> &bucketNumber);
+      PartitioningHeuristicStatic *staticPartitioner);
   
   virtual bool isStillOk(std::vector<Var> &component) = 0;
 };

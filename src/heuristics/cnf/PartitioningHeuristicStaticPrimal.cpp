@@ -61,6 +61,8 @@ PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
     int sumSize) :
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
+  std::cout << "c [CONSTRUCTOR] Static partitioner: primal\n";
+  
   m_pm = PartitionerManager::makePartitioner(vm, m_nbVar, m_nbClause, sumSize);
   m_hypergraph.init(m_nbClause + sumSize + 1);  
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);

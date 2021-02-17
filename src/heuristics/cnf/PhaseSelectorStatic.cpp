@@ -27,8 +27,8 @@ namespace d4
    @param[in] limitPhase, give the limit number of variables before switching.
 */
 PhaseSelectorStatic::PhaseSelectorStatic(
-    std::vector<unsigned> &bucketNumber,
-    unsigned limitPhase) : PhaseSelectorManager(bucketNumber)
+    PartitioningHeuristicStatic *staticPartitioner,
+    unsigned limitPhase) : PhaseSelectorManager(staticPartitioner)
 {
   m_limitPhase = limitPhase;
 } // constructor

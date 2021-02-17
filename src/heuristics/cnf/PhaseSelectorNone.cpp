@@ -26,11 +26,11 @@ namespace d4
    @param[in] bucketNumber, the tree decomposition, given but not used.
  */
 PhaseSelectorNone::PhaseSelectorNone(
-    std::vector<unsigned> &bucketNumber) :
-    PhaseSelectorManager(bucketNumber)
+    PartitioningHeuristicStatic *staticPartitioner) :
+    PhaseSelectorManager(staticPartitioner)
 {
   std::cout << "c [CONSTRUCTOR] Switching between static and dynamic decompostion:"
-            << " none\n";
+            << " none\n";  
 } // constructor
 
 

@@ -57,9 +57,12 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
   bool equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
   int staticPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
   bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();
+  std::string phase = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
+  
   out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << " "
       << "reduceFormula(" << reduceFormula << ") "
       << "equivSimp(" << equivSimp << ") "
+      << "phase(" << phase << ") "
       << "dynamicPhase(" << dynamicPhase << ") "
       << "staticPhase(" << staticPhase << ")\n";
   

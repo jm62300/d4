@@ -61,6 +61,9 @@ PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
   std::cout << "c [CONSTRUCTOR] Static partitioner: none\n";
+
+  m_isInitialized = true;
+  m_bucketNumber.resize(nbVar + 1, 1);
 } // constructor
 
 
