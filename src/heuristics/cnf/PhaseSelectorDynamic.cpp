@@ -35,6 +35,12 @@ PhaseSelectorDynamic::PhaseSelectorDynamic(
 } // constructor
 
 
+/**
+   Check out if the current tree decomposition is still OK. To do it we check
+   out if the current decomposition is not too unbalanced.
+
+   @param[in] component, the current set of variables.
+ */
 bool PhaseSelectorDynamic::isStillOk(std::vector<Var> &component)
 {
   if(!component.size() || component.size() <= 10) return true;
