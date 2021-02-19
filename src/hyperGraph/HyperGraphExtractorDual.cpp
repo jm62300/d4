@@ -109,44 +109,6 @@ void HyperGraphExtractorDual::extractCutFromHyperGraph(
 
 
 /**
-   Split the hyper graph into two parts that are induced by the given partition.
-
-   @param[in] hypergraph, the hyper graph we search to split.
-   @param[in] partition, a partition of the nets.
-   @param[in] mappingVar, to map the indices of the edge to the variable.
-   @param[in] mappingEdge, to map the local edge index to the global one.
-   @param[out] cutset, the cutset (that is the variables we are to remove to
-   split the graph).
-   @param[out] indicesFirst, the set of edges regarding the first partition.
-   @param[out] indicesSecond, the set of edges regarding the second partition.
- */
-void HyperGraphExtractorDual::splitWrtPartition(
-    HyperGraph &hypergraph,
-    std::vector<int> &partition,
-    std::vector<Var> &mappingVar,
-    std::vector<unsigned> &mappingEdge,
-    std::vector<Var> &cutSet,
-    std::vector<unsigned> &indicesFirst,
-    std::vector<unsigned> &indicesSecond)
-{
-  for(auto &edge : hypergraph)
-  {    
-    bool clash = false;
-    int part = partition[edge[0]];
-    for(unsigned i = 1 ; !clash && i<edge.getSize() ; i++)
-      clash = part != partition[edge[i]];
-
-    if(clash) cutSet.push_back(mappingVar[mappingEdge[edge.getId()]]);
-    else
-    {
-      if(part) indicesFirst.push_back(mappingEdge[edge.getId()]);
-      else indicesSecond.push_back(mappingEdge[edge.getId()]);
-    }
-  }
-} // splitWrtPartition
-
-
-/**
    Reduce the hyper graph by removing indices of clauses that subsubmes others
    in term of variables.
 

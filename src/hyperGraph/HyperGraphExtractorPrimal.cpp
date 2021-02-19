@@ -63,7 +63,7 @@ void HyperGraphExtractorPrimal::clashHyperEdgeIndex(
   for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
   {
     clash = false;
-    part = partition[edge[1]];
+    part = partition[edge[0]];
 
     for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
     if(clash) indices.push_back(edge);
@@ -85,7 +85,7 @@ void HyperGraphExtractorPrimal::extractCutFromEdges(
       std::vector<unsigned *> &edges,
       std::vector<int> &partition,
       std::vector<int> &cutSet)
-{
+{  
   for(auto &edge : edges)
   {
     int cpt0 = 0, cpt1 = 0;
@@ -109,7 +109,6 @@ void HyperGraphExtractorPrimal::extractCutFromEdges(
   }
   
   for(auto &x : cutSet) m_markedVar[x] = false; // reinit
-
 } // extractCutFromEdges
 
 
@@ -133,54 +132,6 @@ void HyperGraphExtractorPrimal::extractCutFromHyperGraph(
   clashHyperEdgeIndex(hypergraph, partition, edgesCut);
   extractCutFromEdges(edgesCut, partition, cutSet);
 } // extractCutFromHyperGraph
-
-
-/**
-   Split the hyper graph into two parts that are induced by the given partition.
-
-   @param[in] hypergraph, the hyper graph we search to split.
-   @param[in] partition, a partition of the nets.
-   @param[in] mappingVar, to map the nets to the variables.
-   @param[in] mappingEdge, to map the local edge index to the global one. 
-   @param[in] cutset, the cutset (that is the variables we are to remove to
-   split the graph).
-   @param[in] indicesFirst, the set of edges regarding the first partition.
-   @param[in] indicesSecond, the set of edges regarding the second partition.
- */
-void HyperGraphExtractorPrimal::splitWrtPartition(
-    HyperGraph &hypergraph,
-    std::vector<int> &partition,
-    std::vector<Var> &mappingVar,
-    std::vector<unsigned> &mappingEdge,
-    std::vector<Var> &cutSet,
-    std::vector<unsigned> &indicesFirst,
-    std::vector<unsigned> &indicesSecond)
-{
-  // create the partition.
-  bool clash = false;
-  int part = 0;
-  unsigned *edge = hypergraph.getEdges();
-  
-  std::vector<unsigned *> edgesCut;
-  for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
-  {
-    clash = false;
-    part = partition[edge[1]];
-
-    for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
-    if(clash) edgesCut.push_back(edge);
-    else
-    {
-      if(part) indicesFirst.push_back(mappingEdge[i]);
-      else indicesSecond.push_back(mappingEdge[i]);
-    }
-
-    edge = &(edge[*edge + 1]); // next clause.
-  }
-
-  // extract the cutset from the pointed edges (edgescut).
-  extractCutFromEdges(edgesCut, partition, cutSet);
-} // splitWrtPartition
 
 
 /**

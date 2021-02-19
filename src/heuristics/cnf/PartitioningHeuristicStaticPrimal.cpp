@@ -68,6 +68,7 @@ PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
   m_maxNbNodes = m_nbVar + 1;
   m_maxNbEdges = m_nbClause + 1;
+  m_markedVar.resize(m_nbVar + 1, false);
   
   init();
 } // constructor
@@ -99,5 +100,57 @@ void PartitioningHeuristicStaticPrimal::setBucketLevelFromEdges(
   for(auto id : indices)
     for(auto v : hypergraph[id]) m_bucketNumber[v] = level;
 } // setBucketLevelFromEdges
+
+
+/**
+   Compute the cut.
+
+   @param[in] hypergraph, the hyper graph we consider.
+   @param[in] partition, the partition.
+   @param[in] indices, the indices of the edges.
+   @param[in] mapping, not used here.
+   @param[in] level, the level we assign the cut set.
+*/
+void PartitioningHeuristicStaticPrimal::setCutSetBucketLevelFromEdges(
+    std::vector<std::vector<unsigned> > &hypergraph,
+    std::vector<int> &partition,
+    std::vector<unsigned> &indices,
+    std::vector<int> &mapping,
+    unsigned level)
+{
+  std::vector<Var> cutSet;
+  
+  for(auto index : indices)
+  {
+    int cpt0 = 0, cpt1 = 0;
+    for(auto x : hypergraph[index])
+    {
+      if(m_markedVar[x]) continue;
+      if(partition[x]) cpt1++; else cpt0++;
+    }
+    
+    int selected = (cpt0 < cpt1) ? 0 : 1;
+    std::vector<unsigned> &edge = hypergraph[index];
+    unsigned j = 0;
+    for(unsigned i = 0 ; i<edge.size() ; i++)
+    {
+      unsigned x = edge[i];
+      if(!m_markedVar[x] && partition[x] == selected)
+      {
+        m_markedVar[x] = true;
+        cutSet.push_back(x);
+      } else edge[j++] = edge[i];
+    }
+    edge.resize(j);
+    assert(edge.size());
+  }
+  
+  for(auto &x : cutSet)
+  {
+    m_bucketNumber[x] = level;
+    m_markedVar[x] = false; // reinit
+  }
+} // setCutSetBucketLevelFromEdges
+
 
 } // d4

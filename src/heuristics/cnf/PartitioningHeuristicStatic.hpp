@@ -75,13 +75,28 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
   void distributePartition(
       std::vector<std::vector<unsigned> > &hypergraph,
-      std::vector<Var> &cutSet,
-      std::vector<unsigned> &indicesFirst,
-      std::vector<unsigned> &indicesSecond,
+      std::vector<int> &partition,
+      std::vector<unsigned> &mappingEdge,
       std::vector<Var> &mappingVar,
       std::vector<Strata> &stack,
       unsigned &level);
+
+
+  void splitWrtPartition(
+      HyperGraph &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &mappingEdge,
+      std::vector<unsigned> &cutSet,
+      std::vector<unsigned> &indicesFirst,
+      std::vector<unsigned> &indicesSecond);
   
+
+  void assignLevel(
+      std::vector<std::vector<unsigned> > &hypergraph,
+      unsigned idFather,
+      std::vector<unsigned> &indices,
+      std::vector<Var> &mappingVar,
+      unsigned &level);
   
  protected:
   void computeDecomposition(
@@ -97,6 +112,16 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
       std::vector<unsigned> &indices,
       std::vector<int> &mapping,
       unsigned level){}
+
+  virtual void setCutSetBucketLevelFromEdges(
+      std::vector<std::vector<unsigned> > &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &indices,
+      std::vector<int> &mapping,
+      unsigned level)
+  {
+    setBucketLevelFromEdges(hypergraph, indices, mapping, level);
+  }
 
  protected:
   PartitioningHeuristicStatic(

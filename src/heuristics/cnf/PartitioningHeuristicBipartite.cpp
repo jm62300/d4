@@ -106,48 +106,52 @@ void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &cutSet)
 {
   if(m_phaseSelector->isStillOk(component))
-  { 
-    m_nbStatic++;
-    return m_staticPartitioner->computeCutSet(component, cutSet);
-  } else m_nbDynamic++;
-  
-  // search for equiv class if requiered.
-  std::vector<Lit> unitEquiv;
-  std::vector< std::vector<Var> > equivVar;
-  computeEquivClass(component, unitEquiv, m_equivClass, equivVar);
-  
-  // synchronize the SAT solver and the spec manager.
-  m_om.preUpdate(unitEquiv);  
-
-  // construct the hypergraph
-  std::vector<Var> considered;
-  m_hypergraphExtractor->constructHyperGraph(
-      m_om, component, m_equivClass, equivVar,
-      m_reduceFormula, considered, m_hypergraph);
-
-  if(m_hypergraph.getSize() < 5) cutSet = component;
+  {
+    m_nbStatic++;    
+    m_staticPartitioner->computeCutSet(component, cutSet);
+  }
   else
   {
-    // set the level.
-    PartitionerManager::Level level = PartitionerManager::Level::NORMAL;
-    if(m_hypergraph.getSize() >= 200) level = PartitionerManager::Level::QUALITY;
-    
-    m_pm->computePartition(m_hypergraph, level, m_partition);
-    m_hypergraphExtractor->extractCutFromHyperGraph(
-        m_hypergraph, considered, m_partition, cutSet);    
-
-    // extend with equivalence literals.
-    for(auto &v : cutSet) m_markedVar[v] = true;
-    for(auto &v : component)
-    {
-      if(m_markedVar[v]) continue;
-      if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
-    }  
-    for(auto &v : cutSet) m_markedVar[v] = false;
-    if(!cutSet.size()) for(auto l : unitEquiv) cutSet.push_back(l.var());
-  }
+    m_nbDynamic++;
   
-  m_om.postUpdate(unitEquiv);
+    // search for equiv class if requiered.
+    std::vector<Lit> unitEquiv;
+    std::vector< std::vector<Var> > equivVar;
+    computeEquivClass(component, unitEquiv, m_equivClass, equivVar);
+  
+    // synchronize the SAT solver and the spec manager.
+    m_om.preUpdate(unitEquiv);  
+
+    // construct the hypergraph
+    std::vector<Var> considered;
+    m_hypergraphExtractor->constructHyperGraph(
+        m_om, component, m_equivClass, equivVar,
+        m_reduceFormula, considered, m_hypergraph);
+
+    if(m_hypergraph.getSize() < 5) cutSet = component;
+    else
+    {
+      // set the level.
+      PartitionerManager::Level level = PartitionerManager::Level::NORMAL;
+      if(m_hypergraph.getSize() >= 200) level = PartitionerManager::Level::QUALITY;
+    
+      m_pm->computePartition(m_hypergraph, level, m_partition);
+      m_hypergraphExtractor->extractCutFromHyperGraph(
+          m_hypergraph, considered, m_partition, cutSet);    
+
+      // extend with equivalence literals.
+      for(auto &v : cutSet) m_markedVar[v] = true;
+      for(auto &v : component)
+      {
+        if(m_markedVar[v]) continue;
+        if(m_markedVar[m_equivClass[v]]) cutSet.push_back(v);
+      }  
+      for(auto &v : cutSet) m_markedVar[v] = false;
+      if(!cutSet.size()) for(auto l : unitEquiv) cutSet.push_back(l.var());
+    }
+    
+    m_om.postUpdate(unitEquiv);
+  }
 } // computeCutset
 
 

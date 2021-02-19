@@ -45,14 +45,5 @@ class HyperGraphExtractor
       std::vector<Var> &considered,
       std::vector<int> &partition,
       std::vector<int> &cutSet) = 0;
-  
-  virtual void splitWrtPartition(
-      HyperGraph &hypergraph,
-      std::vector<int> &partition,
-      std::vector<Var> &mappingVar,
-      std::vector<unsigned> &mappingEdge,
-      std::vector<Var> &cutSet,
-      std::vector<unsigned> &indicesFirst,
-      std::vector<unsigned> &indicesSecond) = 0;
 };
 } // d4

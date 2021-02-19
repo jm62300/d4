@@ -24,7 +24,8 @@ namespace d4
 class PartitioningHeuristicStaticPrimal : public PartitioningHeuristicStatic
 {
  private:
-
+  std::vector<bool> m_markedVar;
+  
  protected:
   
   void setBucketLevelFromEdges(
@@ -32,7 +33,14 @@ class PartitioningHeuristicStaticPrimal : public PartitioningHeuristicStatic
       std::vector<unsigned> &indices,
       std::vector<int> &mapping,
       unsigned level);
-  
+
+  void setCutSetBucketLevelFromEdges(
+      std::vector<std::vector<unsigned> > &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &indices,
+      std::vector<int> &mapping,
+      unsigned level);
+
  public:
    PartitioningHeuristicStaticPrimal(
       po::variables_map &vm,

@@ -405,9 +405,9 @@ class DpllStyleMethod : public MethodManager
       updateDynamicLimit();
       m_limitUpdateCounter = 0;
     }
-    
+
     // consider each connected component.
-    U ret = m_operation->createTop();
+    U ret = m_operation->createTop();    
     if(nbComponent)
     {
       U tab[nbComponent];      
@@ -429,8 +429,9 @@ class DpllStyleMethod : public MethodManager
         else
         {
           // recursive call
-          std::vector<Var> currPriority;
+          std::vector<Var> currPriority;          
           computePrioritySubSet(connected, priorityVar, currPriority);
+
           tab[cp] = computeDecisionNode(connected, currPriority, out);
           if(cacheActivated) m_cache->addInCache(cb, tab[cp]);
         }
@@ -458,7 +459,7 @@ class DpllStyleMethod : public MethodManager
   {
     if(!priorityVar.size() && m_hCutSet->isReady(connected))
       {
-        m_hCutSet->computeCutSet(connected, priorityVar);        
+        m_hCutSet->computeCutSet(connected, priorityVar);
         callPartitioner++;
       }
 
