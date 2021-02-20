@@ -63,7 +63,7 @@ void HyperGraphExtractorPrimal::clashHyperEdgeIndex(
   for(unsigned i = 0 ; i<hypergraph.getSize() ; i++)
   {
     clash = false;
-    part = partition[edge[0]];
+    part = partition[edge[1]];
 
     for(unsigned j = 1 ; !clash && j<*edge ; j++) clash = part != partition[edge[1 + j]];
     if(clash) indices.push_back(edge);
