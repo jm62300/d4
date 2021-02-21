@@ -17,7 +17,6 @@
 */
 
 #include "PartitioningHeuristicBipartite.hpp"
-#include "PartitioningHeuristicStaticDual.hpp"
 
 namespace d4
 {

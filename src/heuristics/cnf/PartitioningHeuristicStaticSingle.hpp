@@ -1,5 +1,5 @@
 /*
-* d4
+* d4 
 * Copyright (C) 2020  Univ. Artois & CNRS
 * 
 * This program is free software: you can redistribute it and/or modify
@@ -21,33 +21,15 @@
 
 namespace d4
 {
-class PartitioningHeuristicStaticPrimal : public PartitioningHeuristicStatic
+class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
 {
- private:
-  std::vector<bool> m_markedVar;
-  
- protected:
-  
-  void setBucketLevelFromEdges(
-      std::vector<std::vector<unsigned> > &hypergraph,
-      std::vector<unsigned> &indices,
-      std::vector<int> &mapping,
-      unsigned level);
-
-  void setCutSetBucketLevelFromEdges(
-      std::vector<std::vector<unsigned> > &hypergraph,
-      std::vector<int> &partition,
-      std::vector<unsigned> &indices,
-      std::vector<int> &mapping,
-      unsigned level);
-
  public:
-   PartitioningHeuristicStaticPrimal(
+  PartitioningHeuristicStaticSingle(
       po::variables_map &vm,
       WrapperSolver &s,
       SpecManager &om);
 
-  PartitioningHeuristicStaticPrimal(
+  PartitioningHeuristicStaticSingle(
       po::variables_map &vm,
       WrapperSolver &s,
       SpecManager &om,                                 
@@ -55,7 +37,6 @@ class PartitioningHeuristicStaticPrimal : public PartitioningHeuristicStatic
       int nbVar,
       int sumSize);
 
-  
-  ~PartitioningHeuristicStaticPrimal();
+  virtual ~PartitioningHeuristicStaticSingle(){}
 };
 } // d4

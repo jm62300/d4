@@ -1,5 +1,5 @@
 /*
-* d4
+* d4 
 * Copyright (C) 2020  Univ. Artois & CNRS
 * 
 * This program is free software: you can redistribute it and/or modify
@@ -15,26 +15,21 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
-#include "PartitioningHeuristicStaticDual.hpp"
-
+#include "PartitioningHeuristicStaticSingle.hpp"
 
 namespace d4
 {
-
 /**
    Constructor.
 
    @param[in] vm, the option list.
    @param[in] s, a wrapper on a solver.
    @param[in] om, a structure manager.
- */
-PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
+*/
+PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
     po::variables_map &vm,
     WrapperSolver &s,
-    SpecManager &om) :
-    PartitioningHeuristicStaticDual(
+    SpecManager &om) : PartitioningHeuristicStaticSingle(
         vm, s, om,
         dynamic_cast<SpecManagerCnf&>(om).getNbClause(),
         dynamic_cast<SpecManagerCnf&>(om).getNbVariable(),
@@ -54,7 +49,7 @@ PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
    @param[in] nbVar, the number of variables.
    @param[in] sumSize, which give the number of literals.
  */
-PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
+PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
     po::variables_map &vm,
     WrapperSolver &s,
     SpecManager &om,                                 
@@ -63,42 +58,7 @@ PartitioningHeuristicStaticDual::PartitioningHeuristicStaticDual(
     int sumSize) :
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
-  std::cout << "c [CONSTRUCTOR] Static partitioner: dual\n";
   
-  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
-  m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);  
-  m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
-  m_maxNbNodes = m_nbClause + 1;
-  m_maxNbEdges = m_nbVar + 1;
-  
-  init();
 } // constructor
-
-
-/**
-   Destructor.
- */
-PartitioningHeuristicStaticDual::~PartitioningHeuristicStaticDual()
-{
-  
-} // destructor
-
-
-/**
-   Set the elements given by indices in the bucketNumber structure.
-
-   @param[in] hypergraph, the set of edges.
-   @param[in] indices, the indices we want to transfer.
-   @param[in] mapping, to map the edges to variables.
-   @param[in] level, the level we want to assign the varaibles.
- */
-void PartitioningHeuristicStaticDual::setBucketLevelFromEdges(
-    std::vector<std::vector<unsigned> > &hypergraph,
-    std::vector<unsigned> &indices,
-    std::vector<int> &mapping,
-    unsigned level)
-{
-  for(auto &id : indices) m_bucketNumber[mapping[id]] = level;
-} // setBucketLevelFromEdges
 
 } // d4

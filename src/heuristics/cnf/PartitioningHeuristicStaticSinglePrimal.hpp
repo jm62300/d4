@@ -17,14 +17,15 @@
 */
 #pragma once
 
-#include "PartitioningHeuristicStatic.hpp"
+#include "PartitioningHeuristicStaticSingle.hpp"
 
 namespace d4
 {
-class PartitioningHeuristicStaticDual : public PartitioningHeuristicStatic
+class PartitioningHeuristicStaticSinglePrimal : public PartitioningHeuristicStaticSingle
 {
  private:
-
+  std::vector<bool> m_markedVar;
+  
  protected:
   
   void setBucketLevelFromEdges(
@@ -32,14 +33,21 @@ class PartitioningHeuristicStaticDual : public PartitioningHeuristicStatic
       std::vector<unsigned> &indices,
       std::vector<int> &mapping,
       unsigned level);
-  
+
+  void setCutSetBucketLevelFromEdges(
+      std::vector<std::vector<unsigned> > &hypergraph,
+      std::vector<int> &partition,
+      std::vector<unsigned> &indices,
+      std::vector<int> &mapping,
+      unsigned level);
+
  public:
-   PartitioningHeuristicStaticDual(
+   PartitioningHeuristicStaticSinglePrimal(
       po::variables_map &vm,
       WrapperSolver &s,
       SpecManager &om);
 
-  PartitioningHeuristicStaticDual(
+  PartitioningHeuristicStaticSinglePrimal(
       po::variables_map &vm,
       WrapperSolver &s,
       SpecManager &om,                                 
@@ -48,6 +56,6 @@ class PartitioningHeuristicStaticDual : public PartitioningHeuristicStatic
       int sumSize);
 
   
-  ~PartitioningHeuristicStaticDual();
+  ~PartitioningHeuristicStaticSinglePrimal();
 };
 } // d4

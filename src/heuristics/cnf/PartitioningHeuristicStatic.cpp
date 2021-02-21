@@ -18,8 +18,8 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "PartitioningHeuristicStatic.hpp"
 #include "PartitioningHeuristicStaticNone.hpp"
-#include "PartitioningHeuristicStaticDual.hpp"
-#include "PartitioningHeuristicStaticPrimal.hpp"
+#include "PartitioningHeuristicStaticSingleDual.hpp"
+#include "PartitioningHeuristicStaticSinglePrimal.hpp"
 
 namespace d4
 {
@@ -179,7 +179,7 @@ void PartitioningHeuristicStatic::distributePartition(
   unsigned fatherId = stack.back().fatherId;
   unsigned currentId = (cutSet.size()) ? level : fatherId;
   stack.pop_back();  
-  
+
   if(cutSet.size())
   {
     setCutSetBucketLevelFromEdges(hypergraph, partition, cutSet,
@@ -404,10 +404,12 @@ PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuris
     return new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
   
   if(opt == "dual" || (opt == "natural" && type == "dual"))
-    return new PartitioningHeuristicStaticDual(vm, s, om, nbClause, nbVar, sumSize);
+    return new PartitioningHeuristicStaticSingleDual(
+        vm, s, om, nbClause, nbVar, sumSize);
 
   if(opt == "primal" || (opt == "natural" && type == "primal"))
-    return new PartitioningHeuristicStaticPrimal(vm, s, om, nbClause, nbVar, sumSize);
+    return new PartitioningHeuristicStaticSinglePrimal(
+        vm, s, om, nbClause, nbVar, sumSize);
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",
                           __FILE__, __LINE__));

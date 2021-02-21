@@ -16,7 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "src/hyperGraph/HyperGraphExtractorPrimal.hpp"
-#include "PartitioningHeuristicStaticPrimal.hpp"
+#include "PartitioningHeuristicStaticSinglePrimal.hpp"
 
 namespace d4
 {
@@ -28,11 +28,11 @@ namespace d4
    @param[in] s, a wrapper on a solver.
    @param[in] om, a structure manager.
  */
-PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
+PartitioningHeuristicStaticSinglePrimal::PartitioningHeuristicStaticSinglePrimal(
     po::variables_map &vm,
     WrapperSolver &s,
     SpecManager &om) :
-    PartitioningHeuristicStaticPrimal(
+    PartitioningHeuristicStaticSinglePrimal(
         vm, s, om,
         dynamic_cast<SpecManagerCnf&>(om).getNbClause(),
         dynamic_cast<SpecManagerCnf&>(om).getNbVariable(),
@@ -52,14 +52,14 @@ PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
    @param[in] nbVar, the number of variables.
    @param[in] sumSize, which give the number of literals.
  */
-PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
+PartitioningHeuristicStaticSinglePrimal::PartitioningHeuristicStaticSinglePrimal(
     po::variables_map &vm,
     WrapperSolver &s,
     SpecManager &om,                                 
     int nbClause,
     int nbVar,
     int sumSize) :
-    PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
+    PartitioningHeuristicStaticSingle(vm, s, om, nbClause, nbVar, sumSize)
 {
   std::cout << "c [CONSTRUCTOR] Static partitioner: primal\n";
   
@@ -77,7 +77,7 @@ PartitioningHeuristicStaticPrimal::PartitioningHeuristicStaticPrimal(
 /**
    Destructor.
  */
-PartitioningHeuristicStaticPrimal::~PartitioningHeuristicStaticPrimal()
+PartitioningHeuristicStaticSinglePrimal::~PartitioningHeuristicStaticSinglePrimal()
 {
   
 } // destructor
@@ -91,7 +91,7 @@ PartitioningHeuristicStaticPrimal::~PartitioningHeuristicStaticPrimal()
    @param[in] mapping, to map the edges to variables.
    @param[in] level, the level we want to assign the varaibles.
  */
-void PartitioningHeuristicStaticPrimal::setBucketLevelFromEdges(
+void PartitioningHeuristicStaticSinglePrimal::setBucketLevelFromEdges(
     std::vector<std::vector<unsigned> > &hypergraph,
     std::vector<unsigned> &indices,
     std::vector<int> &mapping,
@@ -111,7 +111,7 @@ void PartitioningHeuristicStaticPrimal::setBucketLevelFromEdges(
    @param[in] mapping, not used here.
    @param[in] level, the level we assign the cut set.
 */
-void PartitioningHeuristicStaticPrimal::setCutSetBucketLevelFromEdges(
+void PartitioningHeuristicStaticSinglePrimal::setCutSetBucketLevelFromEdges(
     std::vector<std::vector<unsigned> > &hypergraph,
     std::vector<int> &partition,
     std::vector<unsigned> &indices,
