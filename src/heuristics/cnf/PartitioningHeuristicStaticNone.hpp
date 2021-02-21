@@ -23,6 +23,14 @@ namespace d4
 {
 class PartitioningHeuristicStaticNone : public PartitioningHeuristicStatic
 {
+ protected:
+  void computeDecomposition(
+      std::vector<Var> &component,
+      std::vector<Var> &equivClass,
+      std::vector< std::vector<Var> > &equivVar,
+      std::vector<unsigned> &bucketNumber);
+
+  
  public:
   PartitioningHeuristicStaticNone(
       po::variables_map &vm,
@@ -41,6 +49,10 @@ class PartitioningHeuristicStaticNone : public PartitioningHeuristicStatic
   ~PartitioningHeuristicStaticNone();
 
   inline bool isReady(){return false;}
+
+  void computeCutSet(
+      std::vector<Var> &component,
+      std::vector<Var> &cutSet);
 };
 
 

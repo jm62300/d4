@@ -62,8 +62,7 @@ PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
 {
   std::cout << "c [CONSTRUCTOR] Static partitioner: none\n";
 
-  m_isInitialized = true;
-  m_bucketNumber.resize(nbVar + 1, 1);
+  m_isInitialized = true;  
 } // constructor
 
 
@@ -74,5 +73,38 @@ PartitioningHeuristicStaticNone::~PartitioningHeuristicStaticNone()
 {
   
 } // destructor
+
+
+/**
+   In the case where we do not considere tree decomposition, then we return the
+   all set.
+
+   @param[in] component, the set of variables.
+   @param[out] cutSet, the cut set we compute.
+ */
+void PartitioningHeuristicStaticNone::computeCutSet(
+      std::vector<Var> &component,
+      std::vector<Var> &cutSet)
+{
+  cutSet = component;
+} // computeCutSet
+
+
+/**
+   Put all the variables in the same bucket 1.
+   
+   @param[in] component, the set of varaibles the problem is constructed on.
+   @param[in] equivClass, the equivalence class for each variable.
+   @param[in] equivVar, the list of equivalences.
+   @param[out] bucketNumber, the decomposition tree in term of index.
+ */
+void PartitioningHeuristicStaticNone::computeDecomposition(
+      std::vector<Var> &component,
+      std::vector<Var> &equivClass,
+      std::vector< std::vector<Var> > &equivVar,
+      std::vector<unsigned> &bucketNumber)
+{
+  for(auto &v : component) bucketNumber[v] = 1;
+} // computeDecomposition
 
 } // d4
