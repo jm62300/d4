@@ -465,8 +465,8 @@ class DpllStyleMethod : public MethodManager
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
-    Var v = m_hVar->selectVariable(inVars, *m_specs);
-    if(v == var_Undef) return m_operation->manageTop(connected);
+    Var v = m_hVar->selectVariable(inVars, *m_specs);    
+    if(v == var_Undef) return m_operation->manageTop(connected);    
     
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    

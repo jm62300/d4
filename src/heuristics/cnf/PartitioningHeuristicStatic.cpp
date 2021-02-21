@@ -192,11 +192,11 @@ void PartitioningHeuristicStatic::distributePartition(
   {
     // special case 1.
     if(!indicesFirst.size() && indicesSecond.size())
-      assignLevel(hypergraph, currentId, indicesSecond, mappingVar, level);
+      return assignLevel(hypergraph, currentId, indicesSecond, mappingVar, level);
     
     // special case 2.
     if(!indicesSecond.size() && indicesFirst.size())
-      assignLevel(hypergraph, currentId, indicesFirst, mappingVar, level);
+      return assignLevel(hypergraph, currentId, indicesFirst, mappingVar, level);
   }
 
   if(indicesSecond.size() > LIMIT) stack.push_back({currentId, indicesSecond});
@@ -313,7 +313,7 @@ void PartitioningHeuristicStatic::computeDecomposition(
     Strata &strata = stack.back();
     std::vector<unsigned> &current = strata.part;
     setHyperGraph(savedHyperGraph, current, m_hypergraph);
-    
+
     m_pm->computePartition(m_hypergraph, Level::QUALITY, partition);
 
     // get the cut and split the current set of variables.
