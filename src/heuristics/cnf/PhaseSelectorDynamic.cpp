@@ -85,7 +85,8 @@ bool PhaseSelectorDynamic::isStillOk(std::vector<Var> &component)
     }
   }
   
-  return left && right;
+  if(left < cptCut || right < cptCut) return false;
+  return true;
 } // isStillok
 
 } // d4

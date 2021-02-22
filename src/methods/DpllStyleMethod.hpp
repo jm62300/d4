@@ -387,7 +387,7 @@ class DpllStyleMethod : public MethodManager
              std::ostream &out)
   {
     showRun(out); nbCallCall++;
-    // if(nbCallCall > 114000) {exit(0);}
+    // if(nbCallCall > 130000) {exit(0);}
     
     if(!m_solver->solve(setOfVar)) return m_operation->manageBottom();
     m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals

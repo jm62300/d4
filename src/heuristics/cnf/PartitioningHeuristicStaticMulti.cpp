@@ -142,6 +142,12 @@ void PartitioningHeuristicStaticMulti::computeCutSet(
   assert(m_isInitialized);
   assert(m_isStillOK);
 
+  if(!m_isStillOKDual)
+    return m_partitionStaticPrimal->computeCutSet(component, cutSet);
+
+  if(!m_isStillOKPrimal)
+    return m_partitionStaticDual->computeCutSet(component, cutSet);
+  
   // search for the smallest.
   std::vector<Var> cutSetDual;
   m_partitionStaticDual->computeCutSet(component, cutSetDual);
