@@ -24,6 +24,29 @@ namespace d4
 {
 class PhaseSelectorManager;
 
+struct DistribSize
+{
+  unsigned cutSize;
+  unsigned leftTreeSize;
+  unsigned rightTreeSize;
+  unsigned level;
+
+  void display()
+  {
+    std::cout << "cut size: "<< cutSize << " "
+              << "left size: "<< leftTreeSize << " "
+              << "right size: "<< rightTreeSize << " "
+              << "level: "<< level << "\n";
+  }
+
+  double getRatio()
+  {
+    if(!leftTreeSize || !rightTreeSize) return 0;    
+    if(leftTreeSize > rightTreeSize) return (double) rightTreeSize / (double) leftTreeSize;
+    return (double) leftTreeSize / (double) rightTreeSize;
+  }
+};
+
 class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
 {
  protected:
@@ -37,7 +60,7 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
   {
     unsigned separatorLevel;
     unsigned cutSize;
-  };
+  };  
   
   const unsigned LIMIT = 10;
 
@@ -48,6 +71,9 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
 
   std::vector<unsigned> m_bucketNumber;
   std::vector<LevelInfo> m_levelInfo;
+  std::vector<Var> m_equivClass;
+  std::vector<unsigned> m_levelDistribution;
+  
 
   void distributePartition(
       std::vector<std::vector<unsigned> > &hypergraph,
@@ -124,9 +150,9 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
       std::vector<Var> &cutSet);
 
   bool isStillOk(std::vector<Var> &component);
-
   void init();
-
+  DistribSize computeDistribSize(std::vector<Var> &component);
+  
   inline void setIsInitialized(bool b) {m_isInitialized = b;}
   inline bool getIsInitialized() {return m_isInitialized;}
   inline std::vector<unsigned> &getBucketNumber(){return m_bucketNumber;}

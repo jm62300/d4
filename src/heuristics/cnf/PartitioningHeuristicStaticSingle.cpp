@@ -59,9 +59,10 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
   m_bucketNumber.resize(m_nbVar + 2, 0);
-  m_hypergraphExtractor = NULL;
-
+  m_hypergraphExtractor = NULL;  
   m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(vm, this);
+  m_equivClass.resize(m_nbVar + 1, 0);
+  m_levelDistribution.resize(m_nbVar + 1, 0);
 } // constructor
 
 
@@ -88,20 +89,18 @@ void PartitioningHeuristicStaticSingle::init()
 
   // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
-  std::vector<Var> equivClass;
   std::vector< std::vector<Var> > equivVar;  
-  equivClass.resize(m_nbVar + 1, 0);
   
   if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
-         m_em, m_s, component, unitEquiv, equivClass, equivVar);
-  else for(auto &v : component) equivClass[v] = v;
+         m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
+  else for(auto &v : component) m_equivClass[v] = v;
   
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);
 
   // compute the decomposition.
   std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
-  computeDecomposition(component, equivClass, equivVar, m_bucketNumber);
+  computeDecomposition(component, m_equivClass, equivVar, m_bucketNumber);
   std::cout << "done\n";
   
   // restore the initial state.
@@ -329,7 +328,9 @@ void PartitioningHeuristicStaticSingle::computeDecomposition(
     std::vector<unsigned> &bucketNumber)
 {
   using Level = PartitionerManager::Level;
-  
+  assert(m_equivClass.size() == equivClass.size());
+  for(unsigned i = 0 ; i<equivClass.size() ; i++) m_equivClass[i] = equivClass[i];
+
   // construct the hypergraph
   std::vector<Var> considered;
   m_hypergraphExtractor->constructHyperGraph(
@@ -380,6 +381,42 @@ void PartitioningHeuristicStaticSingle::computeDecomposition(
   }
 } // computeDecomposition
 
+
+/**
+   Compute the distribution.
+   
+   @param[in] component, the current set of variables.
+
+   \return the distribution of variables regarding the saved tree decomposition.
+ */
+DistribSize PartitioningHeuristicStaticSingle::computeDistribSize(
+    std::vector<Var> &component)
+{
+  for(auto v : component)
+  {
+    if(m_equivClass[v] != v) continue;
+    m_levelDistribution[m_bucketNumber[v]]++;
+  }
+
+  unsigned leftTreeSize = 0, rightTreeSize = 0, cutSize = 0, failedCutSize = 0;  
+  unsigned level = 0;
+  for( ; level<m_levelDistribution.size() ; level++)
+    if(m_levelDistribution[level]) break;
+  
+  unsigned limit = m_levelInfo[level].separatorLevel;
+  unsigned limitSup = m_levelDistribution.size();
+
+  cutSize = m_levelDistribution[level];
+  for(unsigned i = level + 1 ; i<limit ; i++)
+    leftTreeSize += m_levelDistribution[i];
+  for(unsigned i = limit ; i<limitSup ; i++)
+    rightTreeSize += m_levelDistribution[i];
+
+  // reinit.
+  for(auto &counter : m_levelDistribution) counter = 0;
+  
+  return {cutSize + failedCutSize, leftTreeSize, rightTreeSize, level};
+} // computeDistribSize
 
 
 } // d4

@@ -44,49 +44,8 @@ PhaseSelectorDynamic::PhaseSelectorDynamic(
 bool PhaseSelectorDynamic::isStillOk(std::vector<Var> &component)
 {
   if(!component.size() || component.size() <= 10) return true;
-  
-  std::vector<unsigned> &bucketNumber = m_staticPartitioner->getBucketNumber();
-  unsigned cptCut = 1, left = 0, right = 0;
-  
-  unsigned minLevel = bucketNumber[component[0]];
-  unsigned limit = m_staticPartitioner->getLimitSeparatorLevel(minLevel);
-
-  for(unsigned i = 1 ; i<component.size() ; i++)
-  {
-    unsigned tmpLevel = bucketNumber[component[i]];
-    if(tmpLevel == minLevel) cptCut++;
-    else
-    {
-      if(tmpLevel < minLevel)
-      {
-        // set the new limit 
-        limit = m_staticPartitioner->getLimitSeparatorLevel(tmpLevel);
-
-        // select if the previous sub-tree go to the left or the right        
-        if(minLevel >= limit)
-        {
-          right = left + right + cptCut;
-          left = 0;
-        }
-        else
-        {
-          left = left + right + cptCut;
-          right = 0;
-        }
-
-        cptCut = 1;
-        minLevel = tmpLevel;
-      }
-      else // > minLevel
-      {
-        if(tmpLevel >= limit) right++;
-        else left++;
-      }
-    }
-  }
-  
-  if(left < cptCut || right < cptCut) return false;
-  return true;
+  DistribSize d = m_staticPartitioner->computeDistribSize(component);  
+  return d.leftTreeSize >= d.cutSize && d.rightTreeSize >= d.cutSize;
 } // isStillok
 
 } // d4
