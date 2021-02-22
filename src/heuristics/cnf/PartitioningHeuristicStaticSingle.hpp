@@ -70,6 +70,7 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
   PhaseSelectorManager *m_phaseSelector;
 
   std::vector<unsigned> m_bucketNumber;
+  std::vector<bool> m_markedVar;
   std::vector<LevelInfo> m_levelInfo;
   std::vector<Var> m_equivClass;
   std::vector<unsigned> m_levelDistribution;
@@ -107,11 +108,13 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
       std::vector<unsigned> &indices,
       HyperGraph &hypergraph);
 
-    virtual void setBucketLevelFromEdges(
+  virtual void setBucketLevelFromEdges(
       std::vector<std::vector<unsigned> > &hypergraph,
       std::vector<unsigned> &indices,
       std::vector<int> &mapping,
-      unsigned level){}
+      unsigned level)
+  {    
+  }
 
   virtual void setCutSetBucketLevelFromEdges(
       std::vector<std::vector<unsigned> > &hypergraph,

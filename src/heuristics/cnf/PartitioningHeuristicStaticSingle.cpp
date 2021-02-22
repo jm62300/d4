@@ -63,6 +63,7 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
   m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(vm, this);
   m_equivClass.resize(m_nbVar + 1, 0);
   m_levelDistribution.resize(m_nbVar + 1, 0);
+  m_markedVar.resize(m_nbVar + 1, 0);
 } // constructor
 
 
@@ -268,10 +269,11 @@ void PartitioningHeuristicStaticSingle::assignLevel(
     std::vector<unsigned> &indices,
     std::vector<Var> &mappingVar,
     unsigned &level)
-{
-  setBucketLevelFromEdges(hypergraph, indices, mappingVar, level);    
+{  
   if(indices.size())
   {
+    setBucketLevelFromEdges(hypergraph, indices, mappingVar, level);
+    
     m_levelInfo[idFather].separatorLevel = level;
     level++;
     m_levelInfo.push_back({level, (unsigned) indices.size()});
@@ -394,7 +396,8 @@ DistribSize PartitioningHeuristicStaticSingle::computeDistribSize(
 {
   for(auto v : component)
   {
-    if(m_equivClass[v] != v) continue;
+    if(m_markedVar[m_equivClass[v]]) continue;
+    m_markedVar[m_equivClass[v]] = true;    
     m_levelDistribution[m_bucketNumber[v]]++;
   }
 
@@ -403,17 +406,22 @@ DistribSize PartitioningHeuristicStaticSingle::computeDistribSize(
   for( ; level<m_levelDistribution.size() ; level++)
     if(m_levelDistribution[level]) break;
   
-  unsigned limit = m_levelInfo[level].separatorLevel;
-  unsigned limitSup = m_levelDistribution.size();
+  if(level >= m_levelInfo.size()) cutSize = component.size();
+  else
+  {  
+    unsigned limit = m_levelInfo[level].separatorLevel;
+    unsigned limitSup = m_levelDistribution.size();
 
-  cutSize = m_levelDistribution[level];
-  for(unsigned i = level + 1 ; i<limit ; i++)
-    leftTreeSize += m_levelDistribution[i];
-  for(unsigned i = limit ; i<limitSup ; i++)
-    rightTreeSize += m_levelDistribution[i];
+    cutSize = m_levelDistribution[level];
+    for(unsigned i = level + 1 ; i<limit ; i++)
+      leftTreeSize += m_levelDistribution[i];
+    for(unsigned i = limit ; i<limitSup ; i++)
+      rightTreeSize += m_levelDistribution[i];
 
-  // reinit.
-  for(auto &counter : m_levelDistribution) counter = 0;
+    // reinit.
+    for(auto &counter : m_levelDistribution) counter = 0;
+    for(auto &v : component) m_markedVar[m_equivClass[v]] = false;
+  }
   
   return {cutSize + failedCutSize, leftTreeSize, rightTreeSize, level};
 } // computeDistribSize
