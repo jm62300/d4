@@ -110,20 +110,15 @@ PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuris
   PartitioningHeuristicStatic *ret = NULL;
   
   if(opt == "none")
-    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
-  
-  if(opt == "dual" || (opt == "natural" && type == "dual"))
+    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);  
+  else if(opt == "dual" || (opt == "natural" && type == "dual"))
     ret = new PartitioningHeuristicStaticSingleDual(
         vm, s, om, nbClause, nbVar, sumSize);
-
-  if(opt == "primal" || (opt == "natural" && type == "primal"))
+  else if(opt == "primal" || (opt == "natural" && type == "primal"))
     ret = new PartitioningHeuristicStaticSinglePrimal(
         vm, s, om, nbClause, nbVar, sumSize);
-
-  throw (FactoryException("Cannot create a PartitioningHeuristic",
-                          __FILE__, __LINE__));
-
-  assert(ret);
+  else throw (FactoryException("Cannot create a PartitioningHeuristic",
+                               __FILE__, __LINE__));
   ret->init();
   return ret;
 } // makePartitioningHeuristicStatic
