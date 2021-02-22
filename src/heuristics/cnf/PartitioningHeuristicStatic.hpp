@@ -50,13 +50,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   bool m_reduceFormula; 
   bool m_equivSimp;
   
- protected:
-  virtual void computeDecomposition(
-      std::vector<Var> &component,
-      std::vector<Var> &equivClass,
-      std::vector< std::vector<Var> > &equivVar,
-      std::vector<unsigned> &bucketNumber) = 0;
-  
+ protected:  
   virtual void init() = 0;
   
  protected:

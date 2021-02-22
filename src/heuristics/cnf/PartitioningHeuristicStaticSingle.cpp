@@ -225,15 +225,16 @@ void PartitioningHeuristicStaticSingle::distributePartition(
   unsigned fatherId = stack.back().fatherId;
   unsigned currentId = (cutSet.size()) ? level : fatherId;
   stack.pop_back();  
-
+  
   if(cutSet.size())
   {
     setCutSetBucketLevelFromEdges(hypergraph, partition, cutSet,
                                   mappingVar, level);
-    assert(fatherId < m_separtorLevel.size());
-    m_separtorLevel[fatherId] = level;
+    assert(fatherId < m_levelInfo.size());
+    m_levelInfo[fatherId].separatorLevel = level;
+    
     level++;    
-    m_separtorLevel.push_back(level);
+    m_levelInfo.push_back({level, (unsigned) cutSet.size()});
   } else
   {
     // special case 1.
@@ -272,9 +273,9 @@ void PartitioningHeuristicStaticSingle::assignLevel(
   setBucketLevelFromEdges(hypergraph, indices, mappingVar, level);    
   if(indices.size())
   {
-    m_separtorLevel[idFather] = level;
+    m_levelInfo[idFather].separatorLevel = level;
     level++;
-    m_separtorLevel.push_back(level);
+    m_levelInfo.push_back({level, (unsigned) indices.size()});
   }
 } // assignLevel
 
@@ -350,8 +351,8 @@ void PartitioningHeuristicStaticSingle::computeDecomposition(
   stack.push_back(strata);
   
   // reinit the bucket for all.
-  m_separtorLevel.clear();
-  m_separtorLevel.push_back(0);
+  m_levelInfo.clear();
+  m_levelInfo.push_back({0, 0});
   for(auto &b : m_bucketNumber) b = 0; 
   unsigned level = 1;
   

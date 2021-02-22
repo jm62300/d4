@@ -32,6 +32,12 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
     unsigned fatherId;
     std::vector<unsigned> part;
   };
+
+  struct LevelInfo
+  {
+    unsigned separatorLevel;
+    unsigned cutSize;
+  };
   
   const unsigned LIMIT = 10;
 
@@ -41,7 +47,7 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
   PhaseSelectorManager *m_phaseSelector;
 
   std::vector<unsigned> m_bucketNumber;
-  std::vector<unsigned> m_separtorLevel;
+  std::vector<LevelInfo> m_levelInfo;
 
   void distributePartition(
       std::vector<std::vector<unsigned> > &hypergraph,
@@ -67,13 +73,7 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
       std::vector<unsigned> &indices,
       std::vector<Var> &mappingVar,
       unsigned &level);
-
-  void computeDecomposition(
-      std::vector<Var> &component,
-      std::vector<Var> &equivClass,
-      std::vector< std::vector<Var> > &equivVar,
-      std::vector<unsigned> &bucketNumber);
-
+  
   void saveHyperGraph(std::vector<std::vector<unsigned> > &savedHyperGraph);
   
   void setHyperGraph(
@@ -113,6 +113,12 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
 
   virtual ~PartitioningHeuristicStaticSingle();
 
+  void computeDecomposition(
+      std::vector<Var> &component,
+      std::vector<Var> &equivClass,
+      std::vector< std::vector<Var> > &equivVar,
+      std::vector<unsigned> &bucketNumber);
+  
   void computeCutSet(
       std::vector<Var> &component,
       std::vector<Var> &cutSet);
@@ -121,7 +127,18 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
 
   void init();
 
+  inline void setIsInitialized(bool b) {m_isInitialized = b;}
+  inline bool getIsInitialized() {return m_isInitialized;}
   inline std::vector<unsigned> &getBucketNumber(){return m_bucketNumber;}
-  inline std::vector<unsigned> &getSeparatorLevel(){return m_separtorLevel;}
+  
+  inline unsigned &getLimitSeparatorLevel(unsigned i)
+  {
+    return m_levelInfo[i].separatorLevel;
+  }
+
+  inline unsigned &getLimitCutSizeLevel(unsigned i)
+  {
+    return m_levelInfo[i].cutSize;
+  }
 };
 } // d4

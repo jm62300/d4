@@ -58,7 +58,11 @@ PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
     int sumSize) :
     PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize)
 {
-  
+  m_partitionStaticDual = new PartitioningHeuristicStaticSingleDual(
+      vm, s, om, nbClause, nbVar, sumSize);
+
+  m_partitionStaticPrimal = new PartitioningHeuristicStaticSinglePrimal(
+      vm, s, om, nbClause, nbVar, sumSize);
 } // constructor
 
 
@@ -67,7 +71,8 @@ PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
  */
 PartitioningHeuristicStaticMulti::~PartitioningHeuristicStaticMulti()
 {
-  
+  if(m_partitionStaticDual) delete m_partitionStaticDual;
+  if(m_partitionStaticPrimal) delete m_partitionStaticPrimal;
 } // destructor
 
 
@@ -83,21 +88,20 @@ void PartitioningHeuristicStaticMulti::init()
   for(unsigned i = 1 ; i <= m_nbVar ; i++) component.push_back(i);
 
   // search for equiv class if requiered.
-  std::vector<Lit> unitEquiv;
-  std::vector<Var> equivClass;
+  std::vector<Lit> unitEquiv;  
   std::vector< std::vector<Var> > equivVar;  
-  equivClass.resize(m_nbVar + 1, 0);
+  m_equivClass.resize(m_nbVar + 1, 0);
   
   if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
-         m_em, m_s, component, unitEquiv, equivClass, equivVar);
-  else for(auto &v : component) equivClass[v] = v;
+         m_em, m_s, component, unitEquiv, m_equivClass, equivVar);
+  else for(auto &v : component) m_equivClass[v] = v;
   
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);
 
   // compute the decomposition.
   std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
-  // TODO: computeDecomposition(component, equivClass, equivVar, m_bucketNumber);
+  computeDecomposition(component, m_equivClass, equivVar);
   std::cout << "done\n";
   
   // restore the initial state.
@@ -116,7 +120,11 @@ void PartitioningHeuristicStaticMulti::init()
 bool PartitioningHeuristicStaticMulti::isStillOk(
     std::vector<Var> &component)
 {
-  return true; // TODO
+  m_isStillOKDual = m_partitionStaticDual->isStillOk(component);
+  m_isStillOKPrimal = m_partitionStaticPrimal->isStillOk(component);
+  m_isStillOK = m_isStillOKDual || m_isStillOKPrimal;
+  
+  return m_isStillOK;
 } // isStillOk
 
 
@@ -132,7 +140,39 @@ void PartitioningHeuristicStaticMulti::computeCutSet(
     std::vector<Var> &cutSet)
 {
   assert(m_isInitialized);
-  // TODO
+  assert(m_isStillOK);
+
+  // search for the smallest.
+  std::vector<Var> cutSetDual;
+  m_partitionStaticDual->computeCutSet(component, cutSetDual);
+
+  std::vector<Var> cutSetPrimal;
+  m_partitionStaticPrimal->computeCutSet(component, cutSetPrimal);
+
+  unsigned cptDual = cutSetDual.size();
+  unsigned cptPrimal = cutSetPrimal.size();
+  unsigned cutPrimal = cptDual + 1000;  
+  
+  if(cptPrimal)
+  {
+    unsigned level = m_partitionStaticPrimal->getBucketNumber()[cutSetPrimal[0]];
+    cutPrimal = m_partitionStaticPrimal->getLimitCutSizeLevel(level);
+  }
+
+  // std::cout << cptDual << " " << cptPrimal << " " << cutPrimal << "\n";
+  
+  if(cptDual > (cutPrimal<<1) || cptDual > cptPrimal)
+  {
+    // std::cout <<  "primal\n";
+    cutSet = cutSetPrimal;
+  }
+  else
+  {
+    // std::cout <<  "dual\n";
+    cutSet = cutSetDual;
+  }
+
+  m_isStillOK = false;
 } // component
 
 
@@ -147,10 +187,19 @@ void PartitioningHeuristicStaticMulti::computeCutSet(
 void PartitioningHeuristicStaticMulti::computeDecomposition(
     std::vector<Var> &component,
     std::vector<Var> &equivClass,
-    std::vector< std::vector<Var> > &equivVar,
-    std::vector<unsigned> &bucketNumber)
+    std::vector< std::vector<Var> > &equivVar)
 {
+  m_isInitialized = true;
+  m_partitionStaticDual->setIsInitialized(true);
+  m_partitionStaticPrimal->setIsInitialized(true);
   
+  m_partitionStaticDual->computeDecomposition(
+      component, equivClass, equivVar,
+      m_partitionStaticDual->getBucketNumber());
+
+  m_partitionStaticPrimal->computeDecomposition(
+      component, equivClass, equivVar,
+      m_partitionStaticPrimal->getBucketNumber());
 } // computeDecomposition
 
 } // d4

@@ -18,6 +18,8 @@
 #pragma once
 
 #include "PartitioningHeuristicStatic.hpp"
+#include "PartitioningHeuristicStaticSingleDual.hpp"
+#include "PartitioningHeuristicStaticSinglePrimal.hpp"
 #include "PhaseSelectorManager.hpp"
 
 namespace d4
@@ -26,13 +28,21 @@ class PhaseSelectorManager;
 
 class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic
 {
+ private:
+  PartitioningHeuristicStaticSingleDual *m_partitionStaticDual;
+  PartitioningHeuristicStaticSinglePrimal *m_partitionStaticPrimal;
+
+  bool m_isStillOKDual;
+  bool m_isStillOKPrimal;
+  bool m_isStillOK;
+
+  std::vector<Var> m_equivClass;
  protected:
   
   void computeDecomposition(
       std::vector<Var> &component,
       std::vector<Var> &equivClass,
-      std::vector< std::vector<Var> > &equivVar,
-      std::vector<unsigned> &bucketNumber);
+      std::vector< std::vector<Var> > &equivVar);
 
  public:
   PartitioningHeuristicStaticMulti(

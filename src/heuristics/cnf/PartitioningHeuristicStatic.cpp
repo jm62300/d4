@@ -18,6 +18,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "PartitioningHeuristicStatic.hpp"
 #include "PartitioningHeuristicStaticNone.hpp"
+#include "PartitioningHeuristicStaticMulti.hpp"
 #include "PartitioningHeuristicStaticSingleDual.hpp"
 #include "PartitioningHeuristicStaticSinglePrimal.hpp"
 
@@ -110,7 +111,9 @@ PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuris
   PartitioningHeuristicStatic *ret = NULL;
   
   if(opt == "none")
-    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);  
+    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
+  if(opt == "multi")
+    ret = new PartitioningHeuristicStaticMulti(vm, s, om, nbClause, nbVar, sumSize);  
   else if(opt == "dual" || (opt == "natural" && type == "dual"))
     ret = new PartitioningHeuristicStaticSingleDual(
         vm, s, om, nbClause, nbVar, sumSize);
