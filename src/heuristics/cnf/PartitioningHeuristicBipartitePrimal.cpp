@@ -67,8 +67,5 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
 
   m_staticPartitioner = PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
       vm, s, om, nbClause, nbVar, sumSize, "primal");
-
-  m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(
-      vm, m_staticPartitioner);
 } // constructor
 } // d4

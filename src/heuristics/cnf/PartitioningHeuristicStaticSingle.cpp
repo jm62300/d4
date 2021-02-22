@@ -60,6 +60,8 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
 {
   m_bucketNumber.resize(m_nbVar + 2, 0);
   m_hypergraphExtractor = NULL;
+
+  m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(vm, this);
 } // constructor
 
 
@@ -69,8 +71,57 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
 PartitioningHeuristicStaticSingle::~PartitioningHeuristicStaticSingle()
 {
   if(m_hypergraphExtractor) delete m_hypergraphExtractor;
+  if(m_phaseSelector) delete m_phaseSelector;
 } // destructor
 
+
+/**
+   Initialize the bucket level.
+*/
+void PartitioningHeuristicStaticSingle::init()
+{
+  m_isInitialized = true;
+
+  // the list of all variables.
+  std::vector<Var> component;
+  for(unsigned i = 1 ; i <= m_nbVar ; i++) component.push_back(i);
+
+  // search for equiv class if requiered.
+  std::vector<Lit> unitEquiv;
+  std::vector<Var> equivClass;
+  std::vector< std::vector<Var> > equivVar;  
+  equivClass.resize(m_nbVar + 1, 0);
+  
+  if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
+         m_em, m_s, component, unitEquiv, equivClass, equivVar);
+  else for(auto &v : component) equivClass[v] = v;
+  
+  // synchronize the SAT solver and the spec manager.
+  m_om.preUpdate(unitEquiv);
+
+  // compute the decomposition.
+  std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
+  computeDecomposition(component, equivClass, equivVar, m_bucketNumber);
+  std::cout << "done\n";
+  
+  // restore the initial state.
+  m_om.postUpdate(unitEquiv);
+}// init
+
+
+
+/**
+   Ask if the current decomposition is still correct.
+
+   @param[in] component, the set of variables.
+
+   \return true if the tree decomposition is 'correct'.
+ */
+bool PartitioningHeuristicStaticSingle::isStillOk(
+    std::vector<Var> &component)
+{
+  return m_phaseSelector->isStillOk(component);
+} // isStillOk
 
 /**
    Save the current hyper graph.

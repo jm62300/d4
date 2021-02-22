@@ -25,7 +25,7 @@ namespace d4
 class PhaseSelectorNone : public PhaseSelectorManager
 {
  public:
-  PhaseSelectorNone(PartitioningHeuristicStatic *staticPartitioner);
+  PhaseSelectorNone(PartitioningHeuristicStaticSingle *staticPartitioner);
   
   bool isStillOk(std::vector<Var> &component);
 };

@@ -18,19 +18,31 @@
 #pragma once
 
 #include "PartitioningHeuristicStatic.hpp"
+#include "PhaseSelectorManager.hpp"
 
 namespace d4
 {
+class PhaseSelectorManager;
+
 class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
 {
  protected:
+  struct Strata
+  {
+    unsigned fatherId;
+    std::vector<unsigned> part;
+  };
+  
   const unsigned LIMIT = 10;
 
   // to store the hypergraph, and then avoid reallocated memory.
   HyperGraph m_hypergraph;
   HyperGraphExtractor *m_hypergraphExtractor;
+  PhaseSelectorManager *m_phaseSelector;
 
-  
+  std::vector<unsigned> m_bucketNumber;
+  std::vector<unsigned> m_separtorLevel;
+
   void distributePartition(
       std::vector<std::vector<unsigned> > &hypergraph,
       std::vector<int> &partition,
@@ -105,5 +117,11 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic
       std::vector<Var> &component,
       std::vector<Var> &cutSet);
 
+  bool isStillOk(std::vector<Var> &component);
+
+  void init();
+
+  inline std::vector<unsigned> &getBucketNumber(){return m_bucketNumber;}
+  inline std::vector<unsigned> &getSeparatorLevel(){return m_separtorLevel;}
 };
 } // d4

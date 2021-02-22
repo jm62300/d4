@@ -27,7 +27,7 @@ class PhaseSelectorStatic : public PhaseSelectorManager
 
  public:
   PhaseSelectorStatic(
-      PartitioningHeuristicStatic *staticPartitioner,
+      PartitioningHeuristicStaticSingle *staticPartitioner,
       unsigned limitPhase);
   
   bool isStillOk(std::vector<Var> &component);

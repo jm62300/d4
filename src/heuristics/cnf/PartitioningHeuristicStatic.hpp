@@ -34,13 +34,7 @@ namespace d4
 namespace po = boost::program_options;
 class PartitioningHeuristicStatic : public PartitioningHeuristic
 {  
- protected:
-  struct Strata
-  {
-    unsigned fatherId;
-    std::vector<unsigned> part;
-  };
-  
+ protected:  
   WrapperSolver &m_s;  
   SpecManagerCnf &m_om;
   EquivExtractor m_em;
@@ -50,10 +44,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   unsigned m_nbClause;
   unsigned m_maxNbNodes;
   unsigned m_maxNbEdges;
-
   bool m_isInitialized;
-  std::vector<unsigned> m_bucketNumber;
-  std::vector<unsigned> m_separtorLevel;
 
   // options:
   bool m_reduceFormula; 
@@ -66,7 +57,7 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
       std::vector< std::vector<Var> > &equivVar,
       std::vector<unsigned> &bucketNumber) = 0;
   
-  void init();
+  virtual void init() = 0;
   
  protected:
   PartitioningHeuristicStatic(
@@ -84,9 +75,6 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
 
  public:  
   virtual ~PartitioningHeuristicStatic();
-
-  inline std::vector<unsigned> &getBucketNumber(){return m_bucketNumber;}
-  inline std::vector<unsigned> &getSeparatorLevel(){return m_separtorLevel;}
   
   static PartitioningHeuristicStatic *makePartitioningHeuristicStatic(
       po::variables_map &vm,
@@ -102,5 +90,6 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
       std::vector<Var> &cutSet) = 0;
 
   virtual bool isReady() {return true;}
+  virtual bool isStillOk(std::vector<Var> &component) = 0;
 };
 } // d4

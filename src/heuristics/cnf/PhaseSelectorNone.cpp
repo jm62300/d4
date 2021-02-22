@@ -26,7 +26,7 @@ namespace d4
    @param[in] bucketNumber, the tree decomposition, given but not used.
  */
 PhaseSelectorNone::PhaseSelectorNone(
-    PartitioningHeuristicStatic *staticPartitioner) :
+    PartitioningHeuristicStaticSingle *staticPartitioner) :
     PhaseSelectorManager(staticPartitioner)
 {
   std::cout << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"

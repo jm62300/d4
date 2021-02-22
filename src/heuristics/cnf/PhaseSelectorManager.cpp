@@ -30,7 +30,7 @@ namespace d4
    @param[in] staticPartitioner, give the partitioner used.
  */
 PhaseSelectorManager::PhaseSelectorManager(
-    PartitioningHeuristicStatic *staticPartitioner)
+    PartitioningHeuristicStaticSingle *staticPartitioner)
 {
   m_staticPartitioner = staticPartitioner;
 } // constructor
@@ -48,7 +48,7 @@ PhaseSelectorManager::PhaseSelectorManager(
  */
 PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
     po::variables_map &vm,
-    PartitioningHeuristicStatic *staticPartitioner)
+    PartitioningHeuristicStaticSingle *staticPartitioner)
 {
   int limitPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
   bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();

@@ -29,7 +29,6 @@
 
 #include "../PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicStatic.hpp"
-#include "PhaseSelectorManager.hpp"
 
 namespace d4
 {
@@ -50,7 +49,6 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
   HyperGraph m_hypergraph;
   HyperGraphExtractor *m_hypergraphExtractor;
   PartitioningHeuristicStatic *m_staticPartitioner;
-  PhaseSelectorManager *m_phaseSelector;
 
   std::vector<bool> m_markedVar;
   std::vector<int> m_partition;

@@ -24,7 +24,7 @@ namespace d4
 class PhaseSelectorDynamic : public PhaseSelectorManager
 {
  public:
-  PhaseSelectorDynamic(PartitioningHeuristicStatic *staticPartitioner);  
+  PhaseSelectorDynamic(PartitioningHeuristicStaticSingle *staticPartitioner);  
   bool isStillOk(std::vector<Var> &component);
 };
 } // d4

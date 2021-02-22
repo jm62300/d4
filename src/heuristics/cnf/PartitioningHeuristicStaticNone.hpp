@@ -49,6 +49,8 @@ class PartitioningHeuristicStaticNone : public PartitioningHeuristicStatic
   ~PartitioningHeuristicStaticNone();
 
   inline bool isReady(){return false;}
+  inline bool isStillOk(std::vector<Var> &component){return false;}
+  inline void init(){m_isInitialized = true;}
 
   void computeCutSet(
       std::vector<Var> &component,

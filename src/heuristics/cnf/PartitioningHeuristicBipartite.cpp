@@ -67,7 +67,6 @@ PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite()
 {
   if(m_staticPartitioner) delete m_staticPartitioner;
   if(m_hypergraphExtractor) delete m_hypergraphExtractor;
-  if(m_phaseSelector) delete m_phaseSelector;
   if(m_pm) delete m_pm;
 } // destructor
 
@@ -104,7 +103,7 @@ void PartitioningHeuristicBipartite::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
-  if(m_phaseSelector->isStillOk(component))
+  if(m_staticPartitioner->isStillOk(component))
   {
     m_nbStatic++;    
     m_staticPartitioner->computeCutSet(component, cutSet);

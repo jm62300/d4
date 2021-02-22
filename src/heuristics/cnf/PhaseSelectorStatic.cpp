@@ -27,7 +27,7 @@ namespace d4
    @param[in] limitPhase, give the limit number of variables before switching.
 */
 PhaseSelectorStatic::PhaseSelectorStatic(
-    PartitioningHeuristicStatic *staticPartitioner,
+    PartitioningHeuristicStaticSingle *staticPartitioner,
     unsigned limitPhase) : PhaseSelectorManager(staticPartitioner)
 {
   std::cout << "c [CONSTRUCTOR] Switching between static and dynamic decompostion:"
