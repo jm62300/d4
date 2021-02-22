@@ -56,7 +56,7 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
   m_nbStatic = 0;
   m_nbDynamic = 0;
   m_pm = NULL;
-  m_hypergraphExtractor = NULL;  
+  m_hypergraphExtractor = NULL;
 } // constructor
 
 

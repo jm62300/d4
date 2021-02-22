@@ -107,19 +107,25 @@ PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuris
 {
   std::string opt = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
 
+  PartitioningHeuristicStatic *ret = NULL;
+  
   if(opt == "none")
-    return new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
+    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
   
   if(opt == "dual" || (opt == "natural" && type == "dual"))
-    return new PartitioningHeuristicStaticSingleDual(
+    ret = new PartitioningHeuristicStaticSingleDual(
         vm, s, om, nbClause, nbVar, sumSize);
 
   if(opt == "primal" || (opt == "natural" && type == "primal"))
-    return new PartitioningHeuristicStaticSinglePrimal(
+    ret = new PartitioningHeuristicStaticSinglePrimal(
         vm, s, om, nbClause, nbVar, sumSize);
 
   throw (FactoryException("Cannot create a PartitioningHeuristic",
                           __FILE__, __LINE__));
+
+  assert(ret);
+  ret->init();
+  return ret;
 } // makePartitioningHeuristicStatic
 
 } // d4

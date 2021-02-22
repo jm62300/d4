@@ -70,8 +70,6 @@ PartitioningHeuristicStaticSingleDual::PartitioningHeuristicStaticSingleDual(
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
   m_maxNbNodes = m_nbClause + 1;
   m_maxNbEdges = m_nbVar + 1;
-  
-  init();
 } // constructor
 
 

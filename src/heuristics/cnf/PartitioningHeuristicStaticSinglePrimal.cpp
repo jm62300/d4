@@ -69,8 +69,6 @@ PartitioningHeuristicStaticSinglePrimal::PartitioningHeuristicStaticSinglePrimal
   m_maxNbNodes = m_nbVar + 1;
   m_maxNbEdges = m_nbClause + 1;
   m_markedVar.resize(m_nbVar + 1, false);
-  
-  init();
 } // constructor
 
 
