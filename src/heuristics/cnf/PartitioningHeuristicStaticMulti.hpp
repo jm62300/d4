@@ -36,6 +36,10 @@ class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic
   bool m_isStillOKPrimal;
   bool m_isStillOK;
 
+  unsigned m_dualCount;
+  unsigned m_primalCount;
+  
+
   std::vector<Var> m_equivClass;
  protected:
   

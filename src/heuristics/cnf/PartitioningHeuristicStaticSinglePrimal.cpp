@@ -121,15 +121,16 @@ void PartitioningHeuristicStaticSinglePrimal::setCutSetBucketLevelFromEdges(
   for(auto index : indices)
   {
     int cpt0 = 0, cpt1 = 0;
-    for(auto x : hypergraph[index])
+    std::vector<unsigned> &edge = hypergraph[index];
+    if(!edge.size()) continue;
+    
+    for(auto x : edge)
     {
       if(m_markedVar[x]) continue;
       if(partition[x]) cpt1++; else cpt0++;
     }
     
-    int selected = (cpt0 < cpt1) ? 0 : 1;
-    std::vector<unsigned> &edge = hypergraph[index];
-    unsigned j = 0;
+    int selected = (cpt0 < cpt1) ? 0 : 1;    
     for(unsigned i = 0 ; i<edge.size() ; i++)
     {
       unsigned x = edge[i];
@@ -137,10 +138,17 @@ void PartitioningHeuristicStaticSinglePrimal::setCutSetBucketLevelFromEdges(
       {
         m_markedVar[x] = true;
         cutSet.push_back(x);
-      } else edge[j++] = edge[i];
+      } 
     }
+  }
+
+  // reduce the hyper graph by removing the variables of the cut.
+  for(auto &edge : hypergraph)
+  {
+    unsigned j = 0;
+    for(unsigned i = 0 ; i<edge.size() ; i++)
+      if(!m_markedVar[edge[i]]) edge[j++] = edge[i];
     edge.resize(j);
-    assert(edge.size());
   }
   
   for(auto &x : cutSet)

@@ -67,6 +67,8 @@ PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
   m_isStillOKDual = true;
   m_isStillOKPrimal = true;
   m_isStillOK = true;
+  m_dualCount = 0;
+  m_primalCount = 0;
 } // constructor
 
 
@@ -151,41 +153,73 @@ void PartitioningHeuristicStaticMulti::computeCutSet(
   
   unsigned cutPrimal = dDual.cutSize + 1000;  
   if(dPrimal.cutSize)
+  {    
     cutPrimal = m_partitionStaticPrimal->getLimitCutSizeLevel(dPrimal.level);
+    if(dPrimal.cutSize > cutPrimal) dPrimal.cutSize = cutPrimal;
+  }
 
   double ratioDual = dDual.getRatio();
   double ratioPrimal = dPrimal.getRatio();
+#define TEST 0
 
-  /*
+#if TEST
+  std::cout << "--------------------------------\n";
+  std::cout << "count = " << m_dualCount << " " << m_primalCount << "\n";
   std::cout << "dual: " << ratioDual << " \n";
   dDual.display();
 
-  std::cout << "primal: " << ratioPrimal << "\n";
+  std::cout << "primal: " << ratioPrimal << " " << cutPrimal << "\n";
   dPrimal.display();
-  */
-  
-  if(ratioDual - ratioPrimal > 0.2)
-  {
-    // std::cout <<  "dual\n";
-    return m_partitionStaticDual->computeCutSet(component, cutSet);
-  }
+#endif
 
-  if(ratioPrimal - ratioDual > 0.2)
+  if(dPrimal.cutSize < 4 && dDual.cutSize - dPrimal.cutSize > 10)
   {
-    // std::cout <<  "primal\n";
-    return m_partitionStaticPrimal->computeCutSet(component, cutSet);
-  }
-  
-  if(dDual.cutSize > dPrimal.cutSize || dDual.cutSize > cutPrimal)
+#if TEST
+    std::cout <<  "primal 1\n";
+#endif    
+    m_primalCount++;
+    m_partitionStaticPrimal->computeCutSet(component, cutSet);
+  } else if(dDual.cutSize < 4 && dPrimal.cutSize - dDual.cutSize > 10)
   {
-    // std::cout <<  "primal\n";
-    return m_partitionStaticPrimal->computeCutSet(component, cutSet);
-  }
-  else 
+#if TEST
+    std::cout <<  "dual 1\n";
+#endif
+    m_dualCount++;
+    m_partitionStaticDual->computeCutSet(component, cutSet);
+  } else if(ratioDual - ratioPrimal > 0.25 || !ratioPrimal)
   {
-    // std::cout <<  "dual\n";
-    return m_partitionStaticDual->computeCutSet(component, cutSet);
+#if TEST
+    std::cout <<  "dual 2\n";
+#endif
+    m_dualCount++;
+    m_partitionStaticDual->computeCutSet(component, cutSet);
+  }else if(ratioPrimal - ratioDual || !ratioDual)
+  {
+#if TEST
+    std::cout <<  "primal 2\n";
+#endif
+    m_primalCount++;
+    m_partitionStaticPrimal->computeCutSet(component, cutSet);
+  } else if(dDual.cutSize > dPrimal.cutSize)
+  {
+#if TEST
+    std::cout <<  "primal 3\n";
+#endif
+    m_primalCount++;
+    m_partitionStaticPrimal->computeCutSet(component, cutSet);
+  } else  
+  {
+#if TEST
+    std::cout <<  "dual 3\n";
+#endif
+    m_dualCount++;
+    m_partitionStaticDual->computeCutSet(component, cutSet);
   }
+#if TEST
+  static int cpt = 0;
+  cpt++;
+  if(cpt > 100) exit(0);
+#endif
 } // component
 
 

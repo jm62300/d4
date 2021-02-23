@@ -159,6 +159,8 @@ void PartitioningHeuristicStaticSingle::setHyperGraph(
   for(auto idxEdge : indices)
   {
     std::vector<unsigned> &tmp = savedHyperGraph[idxEdge];
+    if(!tmp.size()) continue;
+    
     *edges = tmp.size();
     for(unsigned i = 0 ; i<tmp.size() ; i++) edges[i + 1] = tmp[i];      
     edges += *edges + 1;
@@ -221,7 +223,7 @@ void PartitioningHeuristicStaticSingle::distributePartition(
   std::vector<unsigned> cutSet, indicesFirst, indicesSecond;
   splitWrtPartition(m_hypergraph, partition, mappingEdge,
                     cutSet, indicesFirst, indicesSecond);
-
+  
   unsigned fatherId = stack.back().fatherId;
   unsigned currentId = (cutSet.size()) ? level : fatherId;
   stack.pop_back();  
