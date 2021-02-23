@@ -41,9 +41,11 @@ struct DistribSize
 
   double getRatio()
   {
-    if(!leftTreeSize || !rightTreeSize) return 0;    
-    if(leftTreeSize > rightTreeSize) return (double) rightTreeSize / (double) leftTreeSize;
-    return (double) leftTreeSize / (double) rightTreeSize;
+    if(!leftTreeSize || !rightTreeSize) return 0;
+
+    if(leftTreeSize > rightTreeSize)
+      return (double) rightTreeSize / (double) (leftTreeSize + cutSize);
+    return (double) leftTreeSize / (double) (rightTreeSize + cutSize);
   }
 };
 
