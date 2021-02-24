@@ -16,7 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-
 #include "PartitioningHeuristicStatic.hpp"
 #include "PartitioningHeuristicStaticSingleDual.hpp"
 #include "PartitioningHeuristicStaticSinglePrimal.hpp"
@@ -34,12 +33,9 @@ class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic
 
   bool m_isStillOKDual;
   bool m_isStillOKPrimal;
-  bool m_isStillOK;
 
-  unsigned m_dualCount;
-  unsigned m_primalCount;
+  double m_ratio;
   
-
   std::vector<Var> m_equivClass;
  protected:
   

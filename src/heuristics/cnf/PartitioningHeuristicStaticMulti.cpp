@@ -66,9 +66,6 @@ PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
 
   m_isStillOKDual = true;
   m_isStillOKPrimal = true;
-  m_isStillOK = true;
-  m_dualCount = 0;
-  m_primalCount = 0;
 } // constructor
 
 
@@ -105,6 +102,32 @@ void PartitioningHeuristicStaticMulti::init()
   // synchronize the SAT solver and the spec manager.
   m_om.preUpdate(unitEquiv);
 
+  SpecManagerCnf *om = static_cast<SpecManagerCnf *>(&m_om);
+  std::vector<bool> markedVar;
+  markedVar.resize(m_nbVar + 1, false);
+  for(unsigned i = 0 ; i<om->getNbClause() ; i++)
+  {
+    if(om->isSatisfiedClause(i) || om->getInitSize(i) < 10) continue;
+
+    std::vector<Lit> &cl = om->getClause(i);
+    for(auto &l : cl)
+    {
+      if(om->litIsAssigned(l)) continue;
+      markedVar[l.var()] = true;
+    }
+  }
+
+  unsigned cptMarked = 0, cpt = 0;
+  for(auto &v : component)
+  {
+    if(om->varIsAssigned(v)) continue;
+    if(markedVar[v]) cptMarked++;
+    cpt++;
+  }
+
+  m_ratio = (double) cptMarked / (double) cpt;
+  std::cout << "c [TREE DECOMPOSITION] cover ratio: " << m_ratio << "\n";
+
   // compute the decomposition.
   std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
   computeDecomposition(component, m_equivClass, equivVar);
@@ -128,9 +151,7 @@ bool PartitioningHeuristicStaticMulti::isStillOk(
 {
   m_isStillOKDual = m_partitionStaticDual->isStillOk(component);
   m_isStillOKPrimal = m_partitionStaticPrimal->isStillOk(component);
-  m_isStillOK = m_isStillOKDual || m_isStillOKPrimal;
-  
-  return m_isStillOK;
+  return m_isStillOKDual || m_isStillOKPrimal;
 } // isStillOk
 
 
@@ -146,83 +167,9 @@ void PartitioningHeuristicStaticMulti::computeCutSet(
     std::vector<Var> &cutSet)
 {
   if(component.size() <= 10){cutSet = component; return;}
-  
-  assert(m_isInitialized);
-  DistribSize dDual = m_partitionStaticDual->computeDistribSize(component);
 
-  if(component.size() < 100)
-  {
-    m_partitionStaticDual->computeCutSet(component, cutSet);
-    return;
-  }
-  
-  DistribSize dPrimal = m_partitionStaticPrimal->computeDistribSize(component);
-  
-  unsigned cutPrimal = dDual.cutSize + 1000;  
-  if(dPrimal.cutSize) cutPrimal = m_partitionStaticPrimal->getLimitCutSizeLevel(dPrimal.level);
-  
-  double ratioDual = dDual.getRatio();
-  double ratioPrimal = dPrimal.getRatio();
-  
-#define TEST 0
-
-#if TEST // TEST
-  if(component.size() > 10)
-  {
-    std::cout << "--------------------------------\n";
-    std::cout << "component: " << component.size() << "\n";
-    std::cout << "count = " << m_dualCount << " " << m_primalCount << "\n";
-    std::cout << "dual: " << ratioDual << " \n";
-    dDual.display();
-
-    std::cout << "primal: " << ratioPrimal << " " << cutPrimal << "\n";
-    dPrimal.display();
-  }
-#endif
-  
-  if(cutPrimal <= 2 && dDual.cutSize > 7)
-  {
-    m_primalCount++;
-    if(!ratioDual && m_dualCount > 0) m_dualCount--;
-    m_partitionStaticPrimal->computeCutSet(component, cutSet);
-  } else if(cutPrimal > 2 && m_dualCount > m_primalCount + 100)
-  {
-#if TEST
-    std::cout <<  "dual 1\n";
-#endif    
-    if(ratioDual < ratioPrimal) m_dualCount--;
-    m_partitionStaticDual->computeCutSet(component, cutSet);
-  } else if(cutPrimal <= 2 || m_primalCount > m_dualCount + 100)
-  {
-#if TEST
-    std::cout <<  "primal 1\n";
-#endif    
-    if(ratioPrimal < ratioDual) m_primalCount--;
-    m_partitionStaticPrimal->computeCutSet(component, cutSet);    
-  } else if((ratioDual > ratioPrimal))
-  {
-#if TEST
-    std::cout <<  "dual 1\n";
-#endif
-    m_dualCount++;
-    
-    if(!ratioPrimal && m_primalCount > 0) m_primalCount--;
-    m_partitionStaticDual->computeCutSet(component, cutSet);
-  } else 
-  {
-#if TEST
-    std::cout <<  "primal 2\n";
-#endif
-    m_primalCount++;
-    if(!ratioDual && m_dualCount > 0) m_dualCount--;
-    m_partitionStaticPrimal->computeCutSet(component, cutSet);
-  }
-  
-#if TEST
-  static int cpt = 0;
-  cpt++;
-  if(cpt > 100) exit(0);
-#endif
+  if(m_ratio < 0.5) m_partitionStaticDual->computeCutSet(component, cutSet);
+  else m_partitionStaticPrimal->computeCutSet(component, cutSet);  
 } // component
 
 
@@ -240,13 +187,12 @@ void PartitioningHeuristicStaticMulti::computeDecomposition(
     std::vector< std::vector<Var> > &equivVar)
 {
   m_isInitialized = true;
-  m_partitionStaticDual->setIsInitialized(true);
-  m_partitionStaticPrimal->setIsInitialized(true);
-  
+  m_partitionStaticDual->setIsInitialized(true);  
   m_partitionStaticDual->computeDecomposition(
       component, equivClass, equivVar,
       m_partitionStaticDual->getBucketNumber());
-
+  
+  m_partitionStaticPrimal->setIsInitialized(true);
   m_partitionStaticPrimal->computeDecomposition(
       component, equivClass, equivVar,
       m_partitionStaticPrimal->getBucketNumber());

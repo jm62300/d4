@@ -57,7 +57,7 @@ BucketInConstruction::BucketInConstruction(SpecManagerCnf &occM)
   shiftedSizeClause = new unsigned[occM.getNbClause()];
   distribDiffSize = new unsigned[occM.getMaxSizeClause() + 1];
 
-  for(int i = 0 ; i<occM.getNbClause() ; i++) markedAsRedundant[i] = false;    
+  for(unsigned i = 0 ; i<occM.getNbClause() ; i++) markedAsRedundant[i] = false;    
 } // constructor
 
 

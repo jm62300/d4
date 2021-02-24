@@ -76,7 +76,7 @@ class SpecManagerCnf : public SpecManager
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
 
-  int getInitSize(int i){return m_clauses[i].size() - m_infoClauses[i].nbUnsat;}
+  int getInitSize(int i){return m_clauses[i].size();}
   int getCurrentSize(int i){return m_clauses[i].size() - m_infoClauses[i].nbUnsat;}
 
   bool isSatisfiedClause(unsigned idx);
@@ -105,12 +105,12 @@ class SpecManagerCnf : public SpecManager
     return getNbClause(Lit::makeLitFalse(v)) + getNbClause(Lit::makeLitTrue(v));
   }
 
-  inline int getNbClause(Lit l)
+  inline unsigned getNbClause(Lit l)
   {
     return m_occListBin[l.intern()].size() + m_occListNotBin[l.intern()].size();
   }
   
-  inline int getNbClause(){return m_clauses.size();}
+  inline unsigned getNbClause(){return m_clauses.size();}
   inline int getNbVariable(){return m_nbVar;}
   inline int getMaxSizeClause(){return m_maxSizeClause;}
 
