@@ -44,8 +44,8 @@ PhaseSelectorDynamic::PhaseSelectorDynamic(
 bool PhaseSelectorDynamic::isStillOk(std::vector<Var> &component)
 {
   if(!component.size() || component.size() <= 10) return true;
-  DistribSize d = m_staticPartitioner->computeDistribSize(component);  
-  return d.leftTreeSize >= d.cutSize && d.rightTreeSize >= d.cutSize;
+  DistribSize d = m_staticPartitioner->computeDistribSize(component);
+  return d.getRatio() > 0.5;
 } // isStillok
 
 } // d4

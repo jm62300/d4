@@ -28,15 +28,13 @@ class PhaseSelectorManager;
 class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic
 {
  private:
-  PartitioningHeuristicStaticSingleDual *m_partitionStaticDual;
+  PartitioningHeuristicStaticSingle *m_partitionStaticDual;
   PartitioningHeuristicStaticSinglePrimal *m_partitionStaticPrimal;
-
-  bool m_isStillOKDual;
-  bool m_isStillOKPrimal;
-
-  double m_ratio;
+  PartitioningHeuristicStaticSingle *m_partitionStaticUsed;
   
+  double m_ratio;  
   std::vector<Var> m_equivClass;
+  
  protected:
   
   void computeDecomposition(

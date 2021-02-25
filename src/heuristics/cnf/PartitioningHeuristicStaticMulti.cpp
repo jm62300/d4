@@ -64,8 +64,7 @@ PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
   m_partitionStaticPrimal = new PartitioningHeuristicStaticSinglePrimal(
       vm, s, om, nbClause, nbVar, sumSize);
 
-  m_isStillOKDual = true;
-  m_isStillOKPrimal = true;
+  m_partitionStaticUsed = NULL;
 } // constructor
 
 
@@ -127,6 +126,9 @@ void PartitioningHeuristicStaticMulti::init()
 
   m_ratio = (double) cptMarked / (double) cpt;
   std::cout << "c [TREE DECOMPOSITION] cover ratio: " << m_ratio << "\n";
+  
+  if(m_ratio < 0.5) m_partitionStaticUsed = m_partitionStaticDual;
+  else m_partitionStaticUsed = m_partitionStaticPrimal;
 
   // compute the decomposition.
   std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... " << std::flush;
@@ -149,9 +151,7 @@ void PartitioningHeuristicStaticMulti::init()
 bool PartitioningHeuristicStaticMulti::isStillOk(
     std::vector<Var> &component)
 {
-  m_isStillOKDual = m_partitionStaticDual->isStillOk(component);
-  m_isStillOKPrimal = m_partitionStaticPrimal->isStillOk(component);
-  return m_isStillOKDual || m_isStillOKPrimal;
+  return m_partitionStaticUsed->isStillOk(component);
 } // isStillOk
 
 
@@ -166,10 +166,7 @@ void PartitioningHeuristicStaticMulti::computeCutSet(
     std::vector<Var> &component,
     std::vector<Var> &cutSet)
 {
-  if(component.size() <= 10){cutSet = component; return;}
-
-  if(m_ratio < 0.5) m_partitionStaticDual->computeCutSet(component, cutSet);
-  else m_partitionStaticPrimal->computeCutSet(component, cutSet);  
+  m_partitionStaticUsed->computeCutSet(component, cutSet);  
 } // component
 
 
@@ -187,15 +184,11 @@ void PartitioningHeuristicStaticMulti::computeDecomposition(
     std::vector< std::vector<Var> > &equivVar)
 {
   m_isInitialized = true;
-  m_partitionStaticDual->setIsInitialized(true);  
-  m_partitionStaticDual->computeDecomposition(
+
+  m_partitionStaticUsed->setIsInitialized(true);  
+  m_partitionStaticUsed->computeDecomposition(
       component, equivClass, equivVar,
-      m_partitionStaticDual->getBucketNumber());
-  
-  m_partitionStaticPrimal->setIsInitialized(true);
-  m_partitionStaticPrimal->computeDecomposition(
-      component, equivClass, equivVar,
-      m_partitionStaticPrimal->getBucketNumber());
+      m_partitionStaticUsed->getBucketNumber());
 } // computeDecomposition
 
 } // d4
