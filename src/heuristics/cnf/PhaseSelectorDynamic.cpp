@@ -27,11 +27,14 @@ namespace d4
    @param[in] limitPhase, give the limit number of variables before switching.
 */
 PhaseSelectorDynamic::PhaseSelectorDynamic(
-    PartitioningHeuristicStaticSingle *staticPartitioner) :
+    PartitioningHeuristicStaticSingle *staticPartitioner,
+    double limitRatio) :
     PhaseSelectorManager(staticPartitioner)
 {
   std::cout << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"
-            << " dynamic\n";  
+            << " dynamic(" << limitRatio << ")\n";
+
+  m_limitRatio = limitRatio;
 } // constructor
 
 
@@ -45,7 +48,7 @@ bool PhaseSelectorDynamic::isStillOk(std::vector<Var> &component)
 {
   if(!component.size() || component.size() <= 10) return true;
   DistribSize d = m_staticPartitioner->computeDistribSize(component);
-  return d.getRatio() > 0.5;
+  return d.getRatio() > m_limitRatio;
 } // isStillok
 
 } // d4

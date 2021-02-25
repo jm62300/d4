@@ -51,7 +51,7 @@ PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
     PartitioningHeuristicStaticSingle *staticPartitioner)
 {
   int limitPhase = vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
-  bool dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<bool>();
+  double dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
   std::string phase = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
   
   if(phase == "none" || (limitPhase <= 0 && !dynamicPhase))
@@ -60,7 +60,7 @@ PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
   if(!dynamicPhase)
     return new PhaseSelectorStatic(staticPartitioner, limitPhase);
 
-  return new PhaseSelectorDynamic(staticPartitioner);
+  return new PhaseSelectorDynamic(staticPartitioner, dynamicPhase);
 } // makePhaseSelectorManager
 
 } // d4
