@@ -39,6 +39,7 @@ class ScoringMethod
                                           std::ostream &out);
   virtual ~ScoringMethod(){;}
   virtual double computeScore(Var v) = 0;
+  virtual void postProcess(Var v) {}
 
   Var selectVariable(std::vector<Var> &vars,
                      SpecManager &s);
