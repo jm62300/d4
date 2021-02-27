@@ -32,10 +32,5 @@ class ScoringMethodVsads : public ScoringMethod
  public:
   ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a);
   double computeScore(Var v);
-  
-  inline void postProcess(Var v)
-  {
-    activity.bumpActivity(v);
-  }
 };
 } // d4

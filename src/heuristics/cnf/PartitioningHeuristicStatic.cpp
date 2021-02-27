@@ -112,7 +112,7 @@ PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuris
   
   if(opt == "none")
     ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
-  if(opt == "multi")
+  else if(opt == "multi")
     ret = new PartitioningHeuristicStaticMulti(vm, s, om, nbClause, nbVar, sumSize);  
   else if(opt == "dual" || (opt == "natural" && type == "dual"))
     ret = new PartitioningHeuristicStaticSingleDual(

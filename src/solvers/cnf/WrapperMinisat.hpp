@@ -56,12 +56,6 @@ class WrapperMinisat : public WrapperSolver
   
   double getActivity(Var v);
   double getCountConflict(Var v);
-
-  inline void bumpActivity(Var v)
-  {
-    s.varDecayActivity();
-    s.varBumpActivity(v);
-  }
 };
 }
 

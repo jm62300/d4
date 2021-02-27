@@ -46,7 +46,6 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
 {
   std::string meth = vm["partitioning-heuristic"].as<std::string>();  
   std::string inType = vm["input-type"].as<std::string>();
-
   
   if(meth == "none")
   {

@@ -482,8 +482,6 @@ class DpllStyleMethod : public MethodManager
     b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
     m_solver->popAssumption();
 
-    m_hVar->postProcess(v);
-    
     return m_operation->manageDeterministOr(b, 2);
   }// computeDecisionNode
 

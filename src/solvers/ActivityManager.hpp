@@ -26,7 +26,6 @@ namespace d4
 class ActivityManager
 {
  public:
-  virtual void bumpActivity(Var v) = 0;  
   virtual double getActivity(Var v) = 0;
   virtual double getCountConflict(Var v) = 0;
 };
