@@ -49,7 +49,7 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
   
   if(meth == "none")
   {
-    out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << "\n";
+    out << "c [CONSTRUCTOR] Partitioner manager: " << meth << " " << inType << "\n";
     return new PartitioningHeuristicNone();
   }
 
@@ -59,7 +59,7 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
   double dynamicPhase = vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
   std::string phase = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
   
-  out << "c [CONSTRUCTOR] Paritioner manager: " << meth << " " << inType << " "
+  out << "c [CONSTRUCTOR] Partitioner manager: " << meth << " " << inType << " "
       << "reduceFormula(" << reduceFormula << ") "
       << "equivSimp(" << equivSimp << ") "
       << "phase(" << phase << ") "
