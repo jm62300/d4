@@ -86,8 +86,8 @@ class DpllStyleMethod : public MethodManager
   std::ostream m_out;
 
   unsigned limitNbVarCache;
-  double ratioDynamicLimit;
   unsigned limitNbVarCacheDynamic;
+  double ratioDynamicLimit;
 
   Operation<U> *m_operation;
   
