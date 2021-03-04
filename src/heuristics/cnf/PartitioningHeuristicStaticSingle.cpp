@@ -17,6 +17,8 @@
 */
 #include "PartitioningHeuristicStaticSingle.hpp"
 
+#include "src/utils/AtMost1Extractor.hpp"
+
 namespace d4
 {
 /**
@@ -91,6 +93,13 @@ void PartitioningHeuristicStaticSingle::init()
   // search for equiv class if requiered.
   std::vector<Lit> unitEquiv;
   std::vector< std::vector<Var> > equivVar;  
+
+  AtMost1Extractor atMost1(m_nbVar + 1);
+
+  std::vector<AtMost1> atMostList;
+  atMost1.searchAtMost1(m_s, component, atMostList);
+  exit(0);
+
   
   if(m_equivSimp) PartitioningHeuristic::computeEquivClass(
          m_em, m_s, component, unitEquiv, m_equivClass, equivVar);

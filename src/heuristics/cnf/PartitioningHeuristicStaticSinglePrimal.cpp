@@ -150,7 +150,7 @@ void PartitioningHeuristicStaticSinglePrimal::setCutSetBucketLevelFromEdges(
       if(!m_markedVar[edge[i]]) edge[j++] = edge[i];
     edge.resize(j);
   }
-  
+
   for(auto &x : cutSet)
   {
     m_bucketNumber[x] = level;
