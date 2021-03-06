@@ -42,84 +42,47 @@ AtMost1Extractor::AtMost1Extractor(int nbVar)
 void AtMost1Extractor::init(int nbVar)
 {
   m_nbVar = nbVar;
-  m_markedVar.resize(nbVar + 1, false);
+  m_markedLit.resize((nbVar + 1) << 1, false);
+  m_markedVar.resize((nbVar + 1), false);
   m_stamp.resize(nbVar + 1, 0);
+  m_counter.resize((nbVar + 1) << 1, 0);
 } // initAtMost1Extractor
 
 
 /**
-   Compute for each variable given in parameter the list of variables their are
-   link by unit propagation. I.e. varBlock[v] = {a, b, ....} s.t. v -> a ...
+   Compute for each variable given in parameter the list of literals their are
+   linked by unit propagation with. I.e. litBlock[l] = {a, b, ....} s.t. l -> a
+   ...
 
    @param[in] s, the SAT solver.
    @param[in] vars, the set of variables we are looking for.
-   @param[out] varBlock, the computed set of linked variables.
+   @param[out] litBlock, the computed set of linked literals.
  */
-void AtMost1Extractor::extractVarBlock(
+void AtMost1Extractor::extractLitBlock(
     WrapperSolver &s,
     std::vector<Var> &vars,
-    std::vector< std::vector<Var> > &varBlock)
+    std::vector< std::vector<Lit> > &litBlock)
 {
-  varBlock.clear();
-  varBlock.resize(m_nbVar + 1, std::vector<Var>());
-  
-  for(auto v : vars)
+  litBlock.clear();
+  litBlock.resize((m_nbVar + 1) << 1, std::vector<Lit>());
+
+  for(auto &v : vars)
   {
     Lit l = Lit::makeLit(v, false);
-    std::vector<Lit> listPU;    
-    s.decideAndComputeUnit(l, listPU);
 
-    for(auto &x : listPU)
-    {
-      m_markedVar[x.var()] = true;
-      varBlock[v].push_back(x.var());
+    if(s.decideAndComputeUnit(l, litBlock[l.intern()]))
+    {    
+      assert(litBlock[l.intern()].size());
+      litBlock[l.intern()][0] = ~l;
     }
-
-    listPU.clear();    
-    s.decideAndComputeUnit(~l, listPU);
-
-    for(auto &x : listPU)
+    
+    if(s.decideAndComputeUnit(~l, litBlock[(~l).intern()]))
     {
-      if(m_markedVar[x.var()]) continue;
-      
-      m_markedVar[x.var()] = true;
-      varBlock[v].push_back(x.var());
+      assert(litBlock[(~l).intern()].size());
+      litBlock[(~l).intern()][0] = l;
     }
-
-    for(auto &x : varBlock[v]) m_markedVar[x] = false;
   }
 } // extractVarBlock
-
-
-/**
-   Sort the indice list of a list of list in descending order regarding the size
-   of the list.
-
-   @param[in] varBlock, list of list.
-   @param[out] indexsorted, the sorted indices.
- */
-void AtMost1Extractor::computeSortedIndice(
-    std::vector< std::vector<Var> > &varBlock,
-    std::vector<unsigned> &indexSorted)
-{
-  indexSorted.clear();
-  for(unsigned i = 0 ; i <= m_nbVar ; i++) indexSorted.push_back(i);
-
-  struct MapVarBlock
-  {
-    std::vector< std::vector<Var> > &m_varBlock;
-    
-    MapVarBlock(std::vector< std::vector<Var> > varBlock) :
-        m_varBlock(varBlock) {}
-
-    bool operator() (int i, int j)
-    {
-      return m_varBlock[i].size() > m_varBlock[j].size();
-    }
-  };
-
-  std::sort(indexSorted.begin(), indexSorted.end(), MapVarBlock(varBlock));
-} // computeSortedIndice
 
 
 /**
@@ -133,23 +96,88 @@ void AtMost1Extractor::searchAtMost1(
     WrapperSolver &s,
     std::vector<Var> &vars,
     std::vector<AtMost1> &atMostList)
-{ 
+{
+  // init
+  for(auto &v : vars) m_markedVar[v] = true;
+  
   // compute the list of binary block.
-  std::vector< std::vector<Var> > varBlock;
-  extractVarBlock(s, vars, varBlock);
-
+  std::vector< std::vector<Lit> > litBlock;
+  extractLitBlock(s, vars, litBlock);  
+  
   // sort the varblock regarding their size.
   std::vector<unsigned> indexSorted;
-  computeSortedIndice(varBlock, indexSorted);
+  for(unsigned i = 0 ; i < litBlock.size() ; i++) indexSorted.push_back(i);
+  std::sort(indexSorted.begin(), indexSorted.end(), MapLitBlock(litBlock));
 
-  
   for(auto &idx : indexSorted)
   {
-    if(varBlock[idx].size() < 2) continue;
-    
-    for(auto &v : varBlock[idx]) std::cout << v << " ";
-    std::cout << "\n";
+    if(litBlock[idx].size() < 3) continue;
+
+    // init the counter.
+    std::vector<Lit> lits = litBlock[idx]; // copy
+    for(auto &l : lits) m_counter[l.intern()] = 0;
+
+    // consider all the literals and remove not considered variables.
+    unsigned j = 0;
+    for(unsigned i = 0 ; i<lits.size() ; i++)
+    {
+      Lit &l = lits[i];
+      if(!m_markedVar[l.var()]) continue;
+      
+      lits[j++] = l;
+      for(auto &m : litBlock[(~l).intern()])
+        m_counter[m.intern()]++;
+    }
+    lits.resize(j);
+
+    // search for the best clique by iterative intersection.
+    std::vector<Lit> resLits;
+    while(lits.size())
+    {
+      // search the best literal (with the best score).
+      unsigned pos = 0;
+      for(unsigned i = 0 ; i<lits.size() ; i++)
+        if(m_counter[lits[pos].intern()] < m_counter[lits[i].intern()])
+          pos = i;
+
+      // mark the intersection.
+      Lit l = lits[pos];
+      for(auto &m : litBlock[(~l).intern()]) m_markedLit[m.intern()] = true;
+      m_markedLit[l.intern()] = false;
+
+      unsigned j = 0;
+      for(unsigned i = 0 ; i<lits.size() ; i++)
+        if(m_markedLit[lits[i].intern()]) lits[j++] = lits[i];
+        else
+        {
+          // adjust the counter regarding the literals we removed.
+          for(auto &m : litBlock[(~lits[i]).intern()])
+            m_counter[m.intern()]--;
+        }
+      lits.resize(j);
+      
+      for(auto &m : litBlock[(~l).intern()]) m_markedLit[m.intern()] = false;
+      resLits.push_back(l);
+    }
+
+
+    if(resLits.size() > 2)
+    {
+      // reduce.
+      atMostList.push_back(AtMost1());
+      AtMost1 &cur = atMostList.back();
+      
+      for(auto &l : resLits)
+      {
+        cur.list.push_back(l.var());
+        litBlock[l.intern()].clear();
+        litBlock[(~l).intern()].clear();
+      }
+    }
   }
+
+  // re-init
+  for(auto &v : vars) m_markedVar[v] = false;  
 } // searchAtMost1
 
 } // d4

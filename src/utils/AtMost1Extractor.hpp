@@ -38,17 +38,30 @@ struct AtMost1
 class AtMost1Extractor
 {
  private:
+  struct MapLitBlock
+  {
+    std::vector< std::vector<Lit> > &m_litBlock;
+    
+    MapLitBlock(std::vector< std::vector<Lit> > &litBlock) :
+        m_litBlock(litBlock) {}
+
+    bool operator() (int i, int j)
+    {
+      return m_litBlock[i].size() > m_litBlock[j].size();
+    }
+  };
+
+  
+  std::vector<bool> m_markedLit;
   std::vector<bool> m_markedVar;
   std::vector<unsigned> m_stamp;
+  std::vector<unsigned> m_counter;
 
   unsigned m_nbVar;
 
-  void extractVarBlock(WrapperSolver &s,
+  void extractLitBlock(WrapperSolver &s,
                        std::vector<Var> &vars,
-                       std::vector< std::vector<Var> > &varBlock);
-  
-  void computeSortedIndice(std::vector< std::vector<Var> > &varBlock,
-                           std::vector<unsigned> &indexSorted);
+                       std::vector< std::vector<Lit> > &litBlock);
   
  public:
   AtMost1Extractor(){;} // empty constructor 

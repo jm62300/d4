@@ -33,6 +33,8 @@ namespace po = boost::program_options;
 class PartitioningHeuristic
 {
  protected:
+  unsigned m_nbVar;
+  
   void computeEquivClass(
       EquivExtractor &eqManager,
       WrapperSolver &solver,

@@ -40,7 +40,6 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic
   EquivExtractor m_em;
   PartitionerManager *m_pm;
   
-  unsigned m_nbVar;
   unsigned m_nbClause;
   unsigned m_maxNbNodes;
   unsigned m_maxNbEdges;

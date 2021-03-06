@@ -18,6 +18,7 @@ a* it under the terms of the GNU General Public License as published by
 #include <bitset>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/utils/AtMost1Extractor.hpp"
 
 #include "PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicNone.hpp"
@@ -65,7 +66,6 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
       << "phase(" << phase << ") "
       << "dynamicPhase(" << dynamicPhase << ") "
       << "staticPhase(" << staticPhase << ")\n";
-  
   
   if(inType == "cnf" || inType == "dimacs")
   {    
@@ -124,13 +124,25 @@ void PartitioningHeuristic::computeEquivClass(
     assert(equivClass.size() >= (unsigned) v);
     equivClass[v] = v;
   }
+
+  AtMost1Extractor atMost1Extractor(m_nbVar);
+  std::vector<AtMost1> atMostList;
+  atMost1Extractor.searchAtMost1(solver, component, atMostList);
+  for(auto &atMost : atMostList) equivVar.push_back(atMost.list);
   
   eqManager.searchEquiv(solver, component, equivVar);
   solver.whichAreUnits(component, unitEquiv);
-  
+    
   // propagate the equivVar information in equivClass
+  // std::cout <<  "-------------------------------\n";
+  // for(auto &v : component) std::cout << v << " ";
+  // std::cout << "\n";
+    
   for(auto &c : equivVar)
   {
+    // for(auto &v : c) std::cout << v << " ";
+    // std::cout << "\n";
+    
     Var vi = c.back();
     for(auto &v : c) equivClass[v] = vi;             
   }

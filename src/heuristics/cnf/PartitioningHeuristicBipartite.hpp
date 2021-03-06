@@ -56,9 +56,8 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic
 
   // options.
   bool m_equivSimp;
-  bool m_reduceFormula;  
-
-  unsigned m_nbVar;
+  bool m_reduceFormula;
+  
   unsigned m_nbClause;
 
   PartitioningHeuristicBipartite(
