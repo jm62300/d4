@@ -125,24 +125,11 @@ void PartitioningHeuristic::computeEquivClass(
     equivClass[v] = v;
   }
 
-  AtMost1Extractor atMost1Extractor(m_nbVar);
-  std::vector<AtMost1> atMostList;
-  atMost1Extractor.searchAtMost1(solver, component, atMostList);
-  for(auto &atMost : atMostList) equivVar.push_back(atMost.list);
-  
   eqManager.searchEquiv(solver, component, equivVar);
   solver.whichAreUnits(component, unitEquiv);
     
-  // propagate the equivVar information in equivClass
-  // std::cout <<  "-------------------------------\n";
-  // for(auto &v : component) std::cout << v << " ";
-  // std::cout << "\n";
-    
   for(auto &c : equivVar)
   {
-    // for(auto &v : c) std::cout << v << " ";
-    // std::cout << "\n";
-    
     Var vi = c.back();
     for(auto &v : c) equivClass[v] = vi;             
   }
