@@ -58,7 +58,7 @@ void WrapperMinisat::initSolver(ProblemManager &p)
     std::cerr << "bad_cast caught: " << bc.what() << '\n';
     std::cerr << "A CNF formula was expeted\n";
   }
-
+  
   m_activeModel = false;
   m_needModel = false;
   setNeedModel(m_needModel);

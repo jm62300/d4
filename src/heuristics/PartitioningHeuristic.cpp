@@ -32,6 +32,19 @@ namespace d4
 {
 
 /**
+   Simply returns a partitioner that does nothing.
+
+   @param[in] out, the stream where is print out the log.
+ */
+PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristicNone(
+    std::ostream &out)
+{
+  out << "c [CONSTRUCTOR] Partitioner manager: none\n";
+  return new PartitioningHeuristicNone();
+} // makePartitioningHeuristicNone
+
+
+/**
    Create a partitioner.
 
    @param[in] vm, the list of options.
@@ -48,11 +61,7 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
   std::string meth = vm["partitioning-heuristic"].as<std::string>();  
   std::string inType = vm["input-type"].as<std::string>();
   
-  if(meth == "none")
-  {
-    out << "c [CONSTRUCTOR] Partitioner manager: " << meth << " " << inType << "\n";
-    return new PartitioningHeuristicNone();
-  }
+  if(meth == "none") return makePartitioningHeuristicNone(out);
 
   bool reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
   bool equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();

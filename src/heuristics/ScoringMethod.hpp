@@ -31,7 +31,7 @@ namespace d4
 {
 namespace po = boost::program_options;
 class ScoringMethod
-{    
+{
  public: 
   static ScoringMethod *makeScoringMethod(po::variables_map &vm,
                                           SpecManager &p,
@@ -40,9 +40,10 @@ class ScoringMethod
   virtual ~ScoringMethod(){;}
   virtual double computeScore(Var v) = 0;
   virtual void postProcess(Var v) {}
-
+  
   Var selectVariable(std::vector<Var> &vars,
-                     SpecManager &s);
+                     SpecManager &s,
+                     std::vector<bool> &isDecisionVariable);
 };
 }
 

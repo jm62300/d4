@@ -57,7 +57,6 @@ class DpllStyleMethod : public MethodManager
   bool optDomConst;
   bool optReversePolarity;
   
-  unsigned nbNodeInCall;
   unsigned nbCallCall;
   unsigned nbSplit;
   unsigned callPartitioner;
@@ -67,12 +66,14 @@ class DpllStyleMethod : public MethodManager
   unsigned m_limitUpdate;
   unsigned m_limitUpdateCounter;
   bool m_staticLimit;
+  bool m_isProjectedMode;
 
   std::vector<unsigned> stampVar;
   std::vector< std::vector<Lit> > clauses;
 
   std::vector<unsigned long> nbTestCacheVarSize;
   std::vector<unsigned long> nbPosHitCacheVarSize;
+  std::vector<bool> m_isDecisionVariable;
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
@@ -105,13 +106,13 @@ class DpllStyleMethod : public MethodManager
     m_out.clear(std::cout.rdstate());           
     m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
     
-    // the initial problem.
+    // the initial problem.    
     ProblemManager *initProblem = ProblemManager::makeProblemManager(vm, m_out);
     m_out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
     initProblem->displayStat(m_out, "c [INITIAL INPUT] ");
     m_out << "c\n";
-    assert(initProblem);    
-
+    assert(initProblem);
+    
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
     assert(preproc);
@@ -121,7 +122,13 @@ class DpllStyleMethod : public MethodManager
     m_out << "c\n";
     assert(m_problem);
 
-    // we create the SAT solver. 
+    std::cout << "c\n" << "c [PROJECTED VARIABLES] list: ";
+    std::vector<Var> &selected = m_problem->getSelectedVar();
+    std::sort(selected.begin(), selected.end());
+    for(auto v : selected) std::cout << v << " ";
+    std::cout << "\n" << "c\n";
+
+    // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
@@ -134,7 +141,25 @@ class DpllStyleMethod : public MethodManager
     // we initialize the object used to compute score and partition.
     m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);    
     m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
-    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(vm, *m_specs, *m_solver, m_out);
+
+    // specify which variables are decisions, and which are not.
+    m_isDecisionVariable.clear();
+    m_isDecisionVariable.resize(m_problem->getNbVar() + 1, !selected.size());
+    for(auto v : selected) m_isDecisionVariable[v] = true;
+    
+    // select the partioner regarding if it projected model counting or not.
+    if((m_isProjectedMode = selected.size()))
+    {      
+      std::cout << "c [MODE] projected\n";
+      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
+    }
+    else
+    {
+      std::cout << "c [MODE] classic\n";
+      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
+          vm, *m_specs, *m_solver, m_out);
+    }
+    
     assert(m_hVar && m_hPhase && m_hCutSet);
     
     m_cache = new Cache<U>(vm, m_problem->getNbVar(), m_specs, m_out);
@@ -148,8 +173,7 @@ class DpllStyleMethod : public MethodManager
     
     optCached = vm["cache-activated"].as<bool>();
     callPartitioner = 0;
-    nbSplit = nbCallCall = 0;    
-    nbDecisionNode = nbNodeInCall = 0;
+    nbSplit = nbCallCall = 0;
 
     m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
     m_staticLimit = vm["cache-limit-static"].as<bool>();
@@ -177,12 +201,7 @@ class DpllStyleMethod : public MethodManager
     stampIdx = 0;
     stampVar.resize(m_specs->getNbVariable() + 1, 0);
     nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
-    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
-
-    std::cout << "c\n" << "c [PROJECTED VARIABLES] list: ";
-    std::vector<Var> &selected = m_problem->getSelectedVar();
-    for(auto v : selected) std::cout << v << " ";
-    std::cout << "\n" << "c\n";
+    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);    
 
     void *op = Operation<T>::makeOperationManager(vm, m_problem, m_specs, m_solver, m_out);
     m_operation = static_cast<Operation<U> *>(op);
@@ -206,6 +225,28 @@ class DpllStyleMethod : public MethodManager
   } // destructor
 
 
+ private:
+
+  /**
+     Expel from a set of variables the ones they are marked as being decidable.
+
+     @param[out] vars, the set of variables we search to filter.
+     
+     @param[in] isDecisionvariable, a boolean vector that marks as true decision
+     variables.
+   */
+  void expelNoDesionVar(
+      std::vector<Var> &vars,
+      std::vector<bool> &isDecisionVariable)
+  {
+    if(!m_isProjectedMode) return;
+    unsigned j = 0;
+    for(unsigned i = 0 ; i<vars.size() ; i++)
+      if(isDecisionVariable[vars[i]]) vars[j++] = vars[i];
+    vars.resize(j);
+  } // expelNoDesionVar
+
+  
   /**
      Compute the current priority set.
 
@@ -399,6 +440,7 @@ class DpllStyleMethod : public MethodManager
     
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
+    expelNoDesionVar(freeVariable, m_isDecisionVariable);
 
     if(++m_limitUpdateCounter > m_limitUpdate)
     {
@@ -465,17 +507,17 @@ class DpllStyleMethod : public MethodManager
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
-    Var v = m_hVar->selectVariable(inVars, *m_specs);    
-    if(v == var_Undef) return m_operation->manageTop(connected);    
-    
+    Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVariable);
+
+    if(v == var_Undef) return m_operation->manageTop(connected);
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;    
     
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];
-
+    
     m_solver->pushAssumption(l);    
-    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);    
+    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);
     m_solver->popAssumption();
 
     m_solver->pushAssumption(~l);

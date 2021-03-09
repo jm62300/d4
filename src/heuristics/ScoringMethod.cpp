@@ -78,14 +78,16 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm,
    \return the best variable if exists, var_Undef otherwise.
  */
 Var ScoringMethod::selectVariable(std::vector<Var> &vars,
-                                  SpecManager &s)
+                                  SpecManager &s,
+                                  std::vector<bool> &isDecisionVariable)
 {
   Var ret = var_Undef;
   double bestScore = -1;
+  assert(isDecisionVariable.size() >= (unsigned) s.getNbVariable());
 
   for(auto &v : vars)
   {
-    if(s.varIsAssigned(v)) continue;
+    if(s.varIsAssigned(v) || !isDecisionVariable[v]) continue;
     
     if(ret == var_Undef || computeScore(v) > bestScore)
     {
