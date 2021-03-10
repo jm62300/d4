@@ -48,8 +48,11 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   initProblem->displayStat(out, "c [INITIAL INPUT] ");
   out << "c\n";
   assert(initProblem);
-  
-  return makeMethodManager(vm, initProblem, meth, precision, isFloat, out);
+
+  MethodManager *ret = makeMethodManager(vm, initProblem, meth, precision, isFloat, out);
+  delete initProblem;
+
+  return ret;
 } // makeMethodManager
 
 

@@ -158,8 +158,7 @@ class DpllStyleMethod : public MethodManager
     
     m_cache = new Cache<U>(vm, m_problem->getNbVar(), m_specs, m_out);
     
-    // we delete the useless objects.
-    delete initProblem;
+    // we delete the useless object.
     delete preproc;
 
     // init the clock time.
