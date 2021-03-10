@@ -20,6 +20,7 @@
 
 #include "MethodManager.hpp"
 #include "DpllStyleMethod.hpp"
+#include "ProjMCMethod.hpp"
 
 
 #include "OperationManager.hpp"
@@ -32,6 +33,7 @@ namespace mpz = boost::multiprecision;
    Consider the option in order to generate an instance of the wanted method.
 
    @param[in] vm, the map of option.
+   @param[in] out, the stream where are print the information.
  */
 MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                                 std::ostream &out)
@@ -40,21 +42,50 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   int precision = vm["float-precision"].as<int>();
   bool isFloat = vm["float"].as<bool>();
 
+  // the initial problem.    
+  ProblemManager *initProblem = ProblemManager::makeProblemManager(vm, out);
+  out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
+  initProblem->displayStat(out, "c [INITIAL INPUT] ");
+  out << "c\n";
+  assert(initProblem);
+  
+  return makeMethodManager(vm, initProblem, meth, precision, isFloat, out);
+} // makeMethodManager
+
+
+/**
+   Consider the option in order to generate an instance of the wanted method.
+
+   @param[in] vm, the map of option.
+   @param[in] out, the stream where are print the information.
+ */
+MethodManager *MethodManager::makeMethodManager(
+    po::variables_map &vm,
+    ProblemManager *problem,
+    std::string meth,
+    int precision,
+    bool isFloat,
+    std::ostream &out)
+{
   out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";  
   boost::multiprecision::mpf_float::default_precision(precision); // we set the precision
 
   if(meth == "counting")
   {    
-    if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm);
-    else return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(vm);
+    if(!isFloat)
+      return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm, problem);
+    return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(vm, problem);
   }
 
   if(meth == "ddnnf-compiler")
   {
-    if(!isFloat) return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(vm);
-    else return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(vm);
+    if(!isFloat)
+      return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(vm, problem);
+    return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(vm, problem);
   }
 
+  if(meth == "projMC") return new ProjMCMethod(vm, problem);
+  
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
 

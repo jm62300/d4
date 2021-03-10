@@ -18,6 +18,8 @@
 #pragma once
 #include <boost/program_options.hpp>
 
+#include "src/problem/ProblemManager.hpp"
+
 namespace d4
 {
 namespace po = boost::program_options;
@@ -31,6 +33,14 @@ class MethodManager
   
   static MethodManager *makeMethodManager(po::variables_map &vm,
                                           std::ostream &out);
+
+  static MethodManager *makeMethodManager(po::variables_map &vm,
+                                          ProblemManager *problem,
+                                          std::string meth,
+                                          int precision,
+                                          bool isFloat,
+                                          std::ostream &out);
+  
   virtual void run(po::variables_map &vm) = 0;
 
   inline void initTimer(){currentTime = clock();}

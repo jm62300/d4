@@ -99,19 +99,13 @@ class DpllStyleMethod : public MethodManager
 
      @param[in] vm, the list of options.
    */
-  DpllStyleMethod(po::variables_map &vm) : m_out(nullptr)
+  DpllStyleMethod(po::variables_map &vm,
+                  ProblemManager *initProblem) : m_out(nullptr)
   {
     // init the output stream
     m_out.copyfmt(std::cout);                          
     m_out.clear(std::cout.rdstate());           
     m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
-    
-    // the initial problem.    
-    ProblemManager *initProblem = ProblemManager::makeProblemManager(vm, m_out);
-    m_out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input formula\033[0m\n";
-    initProblem->displayStat(m_out, "c [INITIAL INPUT] ");
-    m_out << "c\n";
-    assert(initProblem);
     
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
@@ -239,7 +233,7 @@ class DpllStyleMethod : public MethodManager
       std::vector<Var> &vars,
       std::vector<bool> &isDecisionVariable)
   {
-    if(!m_isProjectedMode) return;
+    if(!m_isProjectedMode) return;    
     unsigned j = 0;
     for(unsigned i = 0 ; i<vars.size() ; i++)
       if(isDecisionVariable[vars[i]]) vars[j++] = vars[i];
