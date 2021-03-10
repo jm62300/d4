@@ -32,7 +32,7 @@ namespace d4
 {
 namespace po = boost::program_options;
 namespace mpz = boost::multiprecision;
-template <class T> class Operation
+template <class T, class U> class Operation
 {
  public:
 
@@ -47,15 +47,14 @@ template <class T> class Operation
 
      \return an operation manager regarding the given options.
   */
-  static void *makeOperationManager(po::variables_map &vm,
-                                            ProblemManager *problem,
-                                            SpecManager *specs,
-                                            WrapperSolver *solver,
-                                            std::ostream &out)
+  static void *makeOperationManager(
+      std::string &meth,
+      bool isFloat,
+      ProblemManager *problem,
+      SpecManager *specs,
+      WrapperSolver *solver,
+      std::ostream &out)
   {
-    std::string meth = vm["method"].as<std::string>();
-    bool isFloat = vm["float"].as<bool>();
-    
     out << "c [CONSTUCTOR] Operation: "
         << "method(" << meth << ") "
         << "float(" << isFloat<< ")\n";
@@ -71,14 +70,16 @@ template <class T> class Operation
   
   virtual ~Operation() {}
   
-  virtual T createTop() = 0;
-  virtual T createBottom() = 0;
-  virtual void manageResult(T &result, po::variables_map &vm,
+  virtual U createTop() = 0;
+  virtual U createBottom() = 0;
+  virtual void manageResult(U &result, po::variables_map &vm,
                             std::ostream &out) = 0;
-  virtual T manageBottom() = 0;
-  virtual T manageTop(std::vector<Var> &component) = 0;
-  virtual T manageBranch(DataBranch<T> &e) = 0;
-  virtual T manageDeterministOr(DataBranch<T> *elts, unsigned size) = 0;
-  virtual T manageDecomposableAnd(T *elts, unsigned size) = 0;
+  virtual U manageBottom() = 0;
+  virtual U manageTop(std::vector<Var> &component) = 0;
+  virtual U manageBranch(DataBranch<U> &e) = 0;
+  virtual U manageDeterministOr(DataBranch<U> *elts, unsigned size) = 0;
+  virtual U manageDecomposableAnd(U *elts, unsigned size) = 0;
+  virtual T count(U &result) = 0;
+  virtual T count(U &result, std::vector<Lit> &assum) = 0;
 };
 } // d4

@@ -18,10 +18,12 @@
 
 #include <boost/multiprecision/gmp.hpp>
 
+#include "src/exceptions/FactoryException.hpp"
+#include "src/exceptions/BadBehaviourException.hpp"
+
 #include "MethodManager.hpp"
 #include "DpllStyleMethod.hpp"
 #include "ProjMCMethod.hpp"
-
 
 #include "OperationManager.hpp"
 
@@ -61,6 +63,12 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
    @param[in] vm, the map of option.
    @param[in] out, the stream where are print the information.
+   @param[in] meth, the method we search to construct.
+   @param[in] precision, the precision for the bignum.
+   @param[in] isFloat, decide if the binum are float or int.
+   @param[in] out, the stream where are printed the information.
+
+   \return a method manager.
  */
 MethodManager *MethodManager::makeMethodManager(
     po::variables_map &vm,
@@ -76,20 +84,30 @@ MethodManager *MethodManager::makeMethodManager(
   if(meth == "counting")
   {    
     if(!isFloat)
-      return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm, problem);
-    return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(vm, problem);
+      return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
+          vm, meth, isFloat, problem, out);
+    else
+      return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
+          vm, meth, isFloat,  problem, out);
   }
 
   if(meth == "ddnnf-compiler")
   {
     if(!isFloat)
-      return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(vm, problem);
-    return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(vm, problem);
+      return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
+          vm, meth, isFloat,  problem, out);
+    else
+      return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
+          vm, meth, isFloat,  problem, out);
   }
 
-  if(meth == "projMC") return new ProjMCMethod(vm, problem);
+  if(meth == "projMC")
+  {
+    if(!isFloat)
+      return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, problem);
+    return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, problem);
+  }
   
   throw (FactoryException("Cannot create a MethodManager",__FILE__, __LINE__));
 } // makeMethodManager
-
 } // d4

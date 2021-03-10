@@ -29,7 +29,9 @@
 namespace d4
 {
 namespace po = boost::program_options;
+namespace mpz = boost::multiprecision;
 
+template<class T>
 class ProjMCMethod : public MethodManager
 {
  private:
@@ -47,6 +49,7 @@ class ProjMCMethod : public MethodManager
    */
   ProjMCMethod(
       po::variables_map &vm,
+      bool isFloat, 
       ProblemManager *initProblem) : m_out(nullptr)
   {
     // init the output stream
@@ -65,16 +68,23 @@ class ProjMCMethod : public MethodManager
 
     // mark the projected variables.
     m_isProjecectVar.resize(m_problem->getNbVar() + 1, false);
-    std::cout << "c\n" << "c [PROJECTED VARIABLES] list: ";
+    m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     std::sort(selected.begin(), selected.end());
     for(auto v : selected)
     {
-      std::cout << v << " ";
+      m_out << v << " ";
       m_isProjecectVar[v] = true;
     }
-    std::cout << "\n" << "c\n";
+    m_out << "\n" << "c\n";
 
+    int precision = vm["float-precision"].as<int>();
+    std::ofstream ofs;
+    ofs.setstate(std::ios_base::badbit);
+    m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
+    Counter<mpz::mpz_int> *counter = Counter<mpz::mpz_int>::makeCounter<mpz::mpz_int>(
+        vm, m_problem, "counting", isFloat, precision, ofs);
+    m_out << counter->count(ofs) << "\n";
   } // constructor
 
 

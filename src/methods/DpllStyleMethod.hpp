@@ -35,6 +35,7 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/utils/MemoryStat.hpp"
 
+#include "Counter.hpp"
 #include "MethodManager.hpp"
 #include "DataBranch.hpp"
 
@@ -51,7 +52,7 @@ namespace d4
 {
 namespace po = boost::program_options;
 template <class T, class U>
-class DpllStyleMethod : public MethodManager
+class DpllStyleMethod : public MethodManager, public Counter<T>
 {
  private:
   bool optDomConst;
@@ -90,7 +91,7 @@ class DpllStyleMethod : public MethodManager
   unsigned limitNbVarCacheDynamic;
   double ratioDynamicLimit;
 
-  Operation<U> *m_operation;
+  Operation<T, U> *m_operation;
   
  public:
 
@@ -100,12 +101,15 @@ class DpllStyleMethod : public MethodManager
      @param[in] vm, the list of options.
    */
   DpllStyleMethod(po::variables_map &vm,
-                  ProblemManager *initProblem) : m_out(nullptr)
+                  std::string &meth,
+                  bool isFloat,
+                  ProblemManager *initProblem,
+                  std::ostream &out) : m_out(nullptr)
   {
     // init the output stream
-    m_out.copyfmt(std::cout);                          
-    m_out.clear(std::cout.rdstate());           
-    m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
+    m_out.copyfmt(out);                          
+    m_out.clear(out.rdstate());           
+    m_out.basic_ios<char>::rdbuf(out.rdbuf());
     
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
@@ -116,11 +120,11 @@ class DpllStyleMethod : public MethodManager
     m_out << "c\n";
     assert(m_problem);
 
-    std::cout << "c\n" << "c [PROJECTED VARIABLES] list: ";
+    m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     std::sort(selected.begin(), selected.end());
-    for(auto v : selected) std::cout << v << " ";
-    std::cout << "\n" << "c\n";
+    for(auto v : selected) m_out << v << " ";
+    m_out << "\n" << "c\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
@@ -144,12 +148,12 @@ class DpllStyleMethod : public MethodManager
     // select the partioner regarding if it projected model counting or not.
     if((m_isProjectedMode = selected.size()))
     {      
-      std::cout << "c [MODE] projected\n";
+      m_out << "c [MODE] projected\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
     }
     else
     {
-      std::cout << "c [MODE] classic\n";
+      m_out << "c [MODE] classic\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
           vm, *m_specs, *m_solver, m_out);
     }
@@ -166,7 +170,7 @@ class DpllStyleMethod : public MethodManager
     
     optCached = vm["cache-activated"].as<bool>();
     callPartitioner = 0;
-    nbSplit = nbCallCall = 0;
+    nbDecisionNode = nbSplit = nbCallCall = 0;
 
     m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
     m_staticLimit = vm["cache-limit-static"].as<bool>();
@@ -196,9 +200,10 @@ class DpllStyleMethod : public MethodManager
     nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
     nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);    
 
-    void *op = Operation<T>::makeOperationManager(vm, m_problem, m_specs, m_solver, m_out);
-    m_operation = static_cast<Operation<U> *>(op);
-    std::cout << "c\n";
+    void *op = Operation<T, U>::makeOperationManager(
+        meth, isFloat, m_problem, m_specs, m_solver, m_out);
+    m_operation = static_cast<Operation<T, U> *>(op);
+    m_out << "c\n";
   } // constructor
 
 
@@ -541,6 +546,24 @@ class DpllStyleMethod : public MethodManager
   }// compute
 
  public:
+
+  /**
+     Given an assumption, we compute the number of models.  That is different
+     from the query strategy, where we first compute and then condition the
+     computed structure.
+
+     @param[in] assumption, the set of literals we want to assign.
+
+     \return the number of models when the formula is simplified by the given
+     assumption.
+   */
+  T count(std::vector<Lit> &assumption, std::ostream &out)
+  {
+    U result = compute(out);
+    printFinalStats(out);
+
+    return m_operation->count(result); //result;
+  } // count
   
   /**
      Run the DPLL style algorithm with the operation manager.

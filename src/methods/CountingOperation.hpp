@@ -17,11 +17,12 @@
 */
 #pragma once
 #include "DataBranch.hpp"
+#include "src/exceptions/BadBehaviourException.hpp"
 
 namespace d4
 {
-template<class T> class Operation;
-template <class T> class CountingOperation : public Operation<T>
+template<class T, class U> class Operation;
+template <class T> class CountingOperation : public Operation<T, T>
 {
  private:
   ProblemManager *m_problem;
@@ -139,6 +140,27 @@ template <class T> class CountingOperation : public Operation<T>
   {
     out << "s " << std::fixed << result << "\n";
   } // manageResult
+
+
+  /**
+     Count the number of model, for this case that means doing noting.
+
+     \return the number of models.
+   */
+  T count(T &result)
+  {
+    return result;
+  } // count
+
+
+  /**
+     Cannot be called, then throws an exception!
+   */
+  T count(T &result, std::vector<Lit> &assum)
+  {
+    throw (BadBehaviourException("This operation is not allowed in this context.",
+                                 __FILE__, __LINE__));
+  } // count
 };
 
 } // d4

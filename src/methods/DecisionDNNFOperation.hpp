@@ -23,8 +23,8 @@
 
 namespace d4
 {
-template<class U> class Operation;
-template <class T, class U> class DecisionDNNFOperation : public Operation<U>
+template<class T, class U> class Operation;
+template <class T, class U> class DecisionDNNFOperation : public Operation<T, U>
 {
  private:
   ProblemManager *m_problem;
@@ -213,6 +213,41 @@ template <class T, class U> class DecisionDNNFOperation : public Operation<U>
     
     m_nodeManager->deallocate(result);
   } // manageResult
+
+
+  /**
+     Compute the number of model on the dDNNF.
+
+     @param[in] root, the root of the dDNNF.
+
+     \return the number of models.
+   */
+  T count(U &root)
+  {
+    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+    return m_nodeManager->computeNbModels(root, fixedValue, *m_problem);
+  } // count
+
+
+  /**
+     Compute the number of model on the dDNNF.
+
+     @param[in] root, the root of the dDNNF.
+     @param[in] assum, a set of literals used to conditioned the dDNNF.
+
+     \return the number of models.
+   */
+  T count(U &root, std::vector<Lit> &assum)
+  {
+    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1, ValueVar::isNotAssigned);
+    for(auto &l : assum)
+    {
+      if((unsigned) l.var() >= fixedValue.size()) continue;
+      fixedValue[l.var()] = (l.sign()) ? ValueVar::isFalse : ValueVar::isTrue;
+    }
+
+    return m_nodeManager->computeNbModels(root, fixedValue, *m_problem);
+  } // count  
 };
 
 } // d4
