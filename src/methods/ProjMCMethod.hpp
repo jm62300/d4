@@ -85,6 +85,8 @@ class ProjMCMethod : public MethodManager
     Counter<mpz::mpz_int> *counter = Counter<mpz::mpz_int>::makeCounter<mpz::mpz_int>(
         vm, m_problem, "counting", isFloat, precision, ofs);
     m_out << counter->count(ofs) << "\n";
+    m_out << counter->count(ofs) << "\n";
+    m_out << counter->count(ofs) << "\n"; 
   } // constructor
 
 
