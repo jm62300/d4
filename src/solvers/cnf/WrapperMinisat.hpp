@@ -51,6 +51,7 @@ class WrapperMinisat : public WrapperSolver
   void setAssumption(std::vector<Lit> &assums);
   void pushAssumption(Lit l);
   void popAssumption();
+  void displayAssumption(std::ostream &out);
   void setNeedModel(bool b);
   void showTrail();
   

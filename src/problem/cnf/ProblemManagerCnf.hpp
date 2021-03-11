@@ -45,6 +45,5 @@ class ProblemManagerCnf : public ProblemManager
   std::vector< std::vector<Lit> > &getClauses(){return m_clauses;}
   void displayStat(std::ostream &out, std::string startLine);
 };
-  
 } // d4
 

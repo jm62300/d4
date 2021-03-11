@@ -501,7 +501,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
       {
         m_hCutSet->computeCutSet(connected, priorityVar);
         callPartitioner++;
-      }
+      }    
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
@@ -529,15 +529,20 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   /**
      Compute U using the trace of a SAT solver.
 
+     @param[in] out, the stream are is print out the logs.     
+     @param[in] warmStart, to activate/deactivate the warm start strategy.
+     /!\ When the warm strat is activated we the assumptions are reset.
+     
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute(std::ostream &out)
+  U compute(std::ostream &out, bool warmStart = true)
   {
     std::vector<Var> setOfVar, priorityVar;
     for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
 
-    if(m_problem->isUnsat() || !m_solver->warmStart(29, 11, setOfVar, m_out))
+    if(m_problem->isUnsat() ||
+       (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
 
     DataBranch<U> b;
@@ -559,7 +564,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
    */
   T count(std::vector<Lit> &assumption, std::ostream &out)
   {
-    U result = compute(out);
+    initAssumption(assumption);
+    U result = compute(out, false);
     printFinalStats(out);
 
     return m_operation->count(result); //result;

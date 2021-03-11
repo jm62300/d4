@@ -278,8 +278,25 @@ void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
 {
   minisat::vec<minisat::Lit> &assumptions = s.assumptions;
   assumptions.clear();
-  for(auto &l : assums) assumptions.push(minisat::mkLit(l.var(), l.sign()));
+  for(auto &l : assums) assumptions.push(minisat::mkLit(l.var(), l.sign()));  
 } // setAssumption
+
+
+/**
+   Print out the assumption.
+
+   @param[in] out, the stream where is print the assumption.
+ */
+void WrapperMinisat::displayAssumption(std::ostream &out)
+{
+  minisat::vec<minisat::Lit> &assumptions = s.assumptions;
+  for(int i = 0 ; i<assumptions.size() ; i++)
+  {
+    minisat::Lit l = assumptions[i];
+    std::cout << (minisat::sign(l) ? "-" : "") << minisat::var(l) << " ";
+  }
+  std::cout << "\n";
+}// displayAssumption
 
 
 /**
