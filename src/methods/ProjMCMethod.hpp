@@ -82,28 +82,7 @@ class ProjMCMethod : public MethodManager
 
     std::vector<std::vector<Lit>> projClause, nprojClause, mix;
     partitionFormula(m_problem, m_isProjecectVar, projClause, nprojClause, mix);
-
-    std::cout << "proj\n";
-    for(auto &cl : projClause)
-    {
-      for(auto &l : cl) std::cout << l << " ";
-      std::cout << "\n";
-    }
     
-    std::cout << "not proj\n";
-    for(auto &cl : nprojClause)
-    {
-      for(auto &l : cl) std::cout << l << " ";
-      std::cout << "\n";
-    }
-
-    std::cout << "mix\n";
-    for(auto &cl : mix)
-    {
-      for(auto &l : cl) std::cout << l << " ";
-      std::cout << "\n";
-    }
-
     int precision = vm["float-precision"].as<int>();
     std::ofstream ofs;
     ofs.setstate(std::ios_base::badbit);
