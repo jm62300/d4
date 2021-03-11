@@ -24,6 +24,7 @@
 
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "MethodManager.hpp"
 
 namespace d4
@@ -78,15 +79,46 @@ class ProjMCMethod : public MethodManager
     }
     m_out << "\n" << "c\n";
 
+
+    std::vector<std::vector<Lit>> projClause, nprojClause, mix;
+    partitionFormula(m_problem, m_isProjecectVar, projClause, nprojClause, mix);
+
+    std::cout << "proj\n";
+    for(auto &cl : projClause)
+    {
+      for(auto &l : cl) std::cout << l << " ";
+      std::cout << "\n";
+    }
+    
+    std::cout << "not proj\n";
+    for(auto &cl : nprojClause)
+    {
+      for(auto &l : cl) std::cout << l << " ";
+      std::cout << "\n";
+    }
+
+    std::cout << "mix\n";
+    for(auto &cl : mix)
+    {
+      for(auto &l : cl) std::cout << l << " ";
+      std::cout << "\n";
+    }
+
     int precision = vm["float-precision"].as<int>();
     std::ofstream ofs;
     ofs.setstate(std::ios_base::badbit);
     m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
     Counter<mpz::mpz_int> *counter = Counter<mpz::mpz_int>::makeCounter<mpz::mpz_int>(
         vm, m_problem, "counting", isFloat, precision, ofs);
+
     m_out << counter->count(ofs) << "\n";
-    m_out << counter->count(ofs) << "\n";
-    m_out << counter->count(ofs) << "\n"; 
+    
+    std::vector<Lit> assums;
+    assums.push_back(Lit::makeLit(1, false));
+    m_out << counter->count(assums, ofs) << "\n";
+
+    assums[0] = ~assums[0];
+    m_out << counter->count(assums, ofs) << "\n";
   } // constructor
 
 
@@ -101,6 +133,43 @@ class ProjMCMethod : public MethodManager
 
  private:
 
+  /**
+     Partition the formula in tree sets regarding the the clauses contain or not
+     projected variable.
+
+     @param[in] prolem, the problem we want to partition.
+     @param[in] isProjectvar, boolean vector that specifies the projected
+     variables.     
+     @param[out] projClause, the clauses that only contain projected variable.     
+     @param[out] nprojClause, the clauses that do not contain projected
+     variable.     
+     @param[out] mix, the clauses that contain both projected variable and not.
+     projected variables.
+   */
+  void partitionFormula(ProblemManager *problem,
+                        std::vector<bool> &isProjectVar,
+                        std::vector<std::vector<Lit>> &projClause,
+                        std::vector<std::vector<Lit>> &nprojClause,
+                        std::vector<std::vector<Lit>> &mix)
+  {
+    ProblemManagerCnf *cnf = static_cast<ProblemManagerCnf *>(problem);
+    std::vector<std::vector<Lit>> &clauses = cnf->getClauses();
+
+    for(auto &cl : clauses)
+    {
+      unsigned nbp = 0, nbn = 0;
+      for(auto l : cl)
+      {
+        if(m_isProjecectVar[l.var()]) nbp++; else nbn++;
+        if(nbp && nbn) break;
+      }
+
+      if(nbp && !nbn) projClause.push_back(cl);
+      else if(!nbp && nbn) nprojClause.push_back(cl);
+      else mix.push_back(cl);
+    }
+  } // partitionFormula
+  
 
  public:
   

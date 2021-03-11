@@ -278,7 +278,7 @@ void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
 {
   minisat::vec<minisat::Lit> &assumptions = s.assumptions;
   assumptions.clear();
-  for(auto &l : assums) assumptions.push(minisat::mkLit(l.var(), l.sign()));  
+  for(auto &l : assums) pushAssumption(l);
 } // setAssumption
 
 
@@ -321,8 +321,6 @@ void WrapperMinisat::pushAssumption(Lit l)
   minisat::Lit ml = minisat::mkLit(l.var(), l.sign());
   m_activeModel = m_activeModel && !s.isAssigned(var(ml));
 
-  // std::cout << "pushassumption " << l << " << " << s.litTrueInLastModel(ml) << "\n";
-  
   (s.assumptions).push(ml);
 
   if(m_activeModel && m_needModel)
