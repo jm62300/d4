@@ -67,6 +67,8 @@ class Counter
                                  __FILE__, __LINE__));
   } // makeCounter
 
+
+  virtual ~Counter() {}
   
   virtual T count(std::vector<Lit> &assumption,
                   std::ostream &out) = 0;

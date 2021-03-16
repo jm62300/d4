@@ -20,6 +20,7 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include <unordered_map>
 #include <boost/program_options.hpp>
 
 #include "src/preprocs/PreprocManager.hpp"
@@ -37,10 +38,11 @@ class ProjMCMethod : public MethodManager
 {
  private:
   std::ostream m_out;
-
+  
   ProblemManager *m_problem;
-
-  std::vector<bool> m_isProjecectVar;
+  std::vector<Lit> m_selectors;
+  std::vector<std::vector<std::vector<Lit>>> selectorToProjClause;
+  std::vector<bool> m_isProjectedVar;
  public:
 
   /**
@@ -66,22 +68,55 @@ class ProjMCMethod : public MethodManager
     m_problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
     m_out << "c\n";
     assert(m_problem);
+    delete preproc;
 
     // mark the projected variables.
-    m_isProjecectVar.resize(m_problem->getNbVar() + 1, false);
+    m_isProjectedVar.resize(m_problem->getNbVar() + 1, false);
     m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     std::sort(selected.begin(), selected.end());
     for(auto v : selected)
     {
       m_out << v << " ";
-      m_isProjecectVar[v] = true;
+      m_isProjectedVar[v] = true;
     }
     m_out << "\n" << "c\n";
 
 
     std::vector<std::vector<Lit>> projClause, nprojClause, mix;
-    partitionFormula(m_problem, m_isProjecectVar, projClause, nprojClause, mix);
+    partitionFormula(m_problem, m_isProjectedVar, projClause, nprojClause, mix);
+
+    // split the mixed clauses.
+    unsigned idxVar = m_problem->getNbVar() + 1;
+    manageMixedClauses(mix, m_isProjectedVar, projClause, nprojClause,
+                       m_selectors, idxVar);
+
+    std::cout <<  "Projected clauses: \n";
+    for(auto &cl : projClause)
+    {
+      for(auto &l : cl) std::cout << l << " ";
+      std::cout << "\n";
+    }
+
+    std::cout <<  "Not projected clauses: \n";
+    for(auto &cl : nprojClause)
+    {
+      for(auto &l : cl) std::cout << l << " ";
+      std::cout << "\n";
+    }
+
+    std::cout <<  "Selector map: \n";
+    unsigned cpt = 0;
+    for(auto &list : selectorToProjClause)
+    {      
+      for(auto &cl : list)
+      {
+        std::cout << cpt << ": ";
+        for(auto &l : cl) std::cout << l << " ";
+        std::cout << "\n";
+      }
+      cpt++;
+    }
     
     int precision = vm["float-precision"].as<int>();
     std::ofstream ofs;
@@ -98,6 +133,7 @@ class ProjMCMethod : public MethodManager
 
     assums[0] = ~assums[0];
     m_out << counter->count(assums, ofs) << "\n";
+    delete counter;
   } // constructor
 
 
@@ -125,11 +161,12 @@ class ProjMCMethod : public MethodManager
      @param[out] mix, the clauses that contain both projected variable and not.
      projected variables.
    */
-  void partitionFormula(ProblemManager *problem,
-                        std::vector<bool> &isProjectVar,
-                        std::vector<std::vector<Lit>> &projClause,
-                        std::vector<std::vector<Lit>> &nprojClause,
-                        std::vector<std::vector<Lit>> &mix)
+  void partitionFormula(
+      ProblemManager *problem,
+      std::vector<bool> &isProjectedVar,
+      std::vector<std::vector<Lit>> &projClause,
+      std::vector<std::vector<Lit>> &nprojClause,
+      std::vector<std::vector<Lit>> &mix)
   {
     ProblemManagerCnf *cnf = static_cast<ProblemManagerCnf *>(problem);
     std::vector<std::vector<Lit>> &clauses = cnf->getClauses();
@@ -139,7 +176,7 @@ class ProjMCMethod : public MethodManager
       unsigned nbp = 0, nbn = 0;
       for(auto l : cl)
       {
-        if(m_isProjecectVar[l.var()]) nbp++; else nbn++;
+        if(isProjectedVar[l.var()]) nbp++; else nbn++;
         if(nbp && nbn) break;
       }
 
@@ -148,7 +185,66 @@ class ProjMCMethod : public MethodManager
       else mix.push_back(cl);
     }
   } // partitionFormula
-  
+
+
+  /**
+     Manage the mixed clauses by adding a selector in order to seperate each
+     clause between projected and not projected variables.
+
+     @param[int] mix, the clauses that contain both projected variable and not.
+     projected variables.     
+     @param[in] isProjectvar, boolean vector that specifies the projected
+     variables.     
+     @param[out] projClause, the clauses that only contain projected variable.     
+     @param[out] nprojClause, the clauses that do not contain projected
+     variable.
+     @param[out] nextVar, the index of the next available variable.
+     
+     @param[out] selectors, the added selectors literals (that can be used to
+     activate the projected part - ¬s v C).
+   */
+  void manageMixedClauses(
+      std::vector<std::vector<Lit>> &mix,
+      std::vector<bool> &isProjectedVar,
+      std::vector<std::vector<Lit>> &projClause,
+      std::vector<std::vector<Lit>> &nprojClause,
+      std::vector<Lit> &selectors,
+      unsigned &nextVar)
+  {
+    std::unordered_map<std::string, Lit> alreadyConsidered;    
+
+    for(auto &cl : mix)
+    {
+      std::vector<Lit> clp, clnp;
+      std::string key = "";
+      for(auto &l : cl)
+        if(isProjectedVar[l.var()]) clp.push_back(l);
+        else
+        {
+          key += "." + std::to_string(l.intern());
+          clnp.push_back(l);
+        }
+
+      Lit s = lit_Undef;
+      if(alreadyConsidered.count(key) > 0) s = alreadyConsidered[key];
+      else
+      {
+        s = Lit::makeLitTrue(nextVar++);
+        alreadyConsidered[key] = s;
+        clnp.push_back(~s);
+        nprojClause.push_back(clnp);
+      }
+
+      // add the selector to the different part of the clauses.
+      // link the selector to the projected part of the considered clause.
+      if((int) selectorToProjClause.size() <= s.var())
+        selectorToProjClause.resize(s.var() + 1,
+                                    std::vector<std::vector<Lit>>());
+      selectorToProjClause[s.var()].push_back(clp);
+      clp.push_back(s);
+      projClause.push_back(clp);
+    }    
+  } // manageMixedClauses
 
  public:
   
