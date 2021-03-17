@@ -68,11 +68,11 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar())
   m_markView.resize(nbClause, false);
 
   m_infoClauses.resize(nbClause);
-
-
+  m_maxSizeClause = 0;
   if(!m_clauses.size()) return;
-  m_maxSizeClause = m_clauses[0].size();
-  
+
+  // get the size of the largest clause.
+  m_maxSizeClause = m_clauses[0].size();  
   for(unsigned i = 0 ; i<m_clauses.size() ; i++)
   {
     std::vector<Lit> &cl = m_clauses[i];

@@ -25,7 +25,7 @@ if(${BUILD_MODE} EQUAL 1)
   # PROFILE
   message("Debug mode activated")
   set(CMAKE_BUILD_TYPE Debug)
-  target_compile_options(d4_debug PUBLIC -std=c++11 -Wall -lz -pg -lgmpxx -lgmp -O2 -Wno-class-memaccess)
+  target_compile_options(d4_debug PUBLIC -std=c++11 -Wall -lz -pg -lgmpxx -lgmp -O2 -Wno-class-memaccess -D DEBUG)
   target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O2 ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug

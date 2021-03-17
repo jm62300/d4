@@ -45,6 +45,7 @@ class ProjMCMethod : public MethodManager
   std::vector<bool> m_isProjectedVar;
 
   WrapperSolver *m_solver;
+  Counter<mpz::mpz_int> *m_counter;
  public:
 
   /**
@@ -97,23 +98,9 @@ class ProjMCMethod : public MethodManager
     std::vector<std::vector<Lit>> satSolverClauses = projClause;
     for(auto &cl : nprojClause) satSolverClauses.push_back(cl);
     initSatSolver(vm, m_problem, satSolverClauses, idxVar);
-    
-    int precision = vm["float-precision"].as<int>();
-    std::ofstream ofs;
-    ofs.setstate(std::ios_base::badbit);
-    m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
-    Counter<mpz::mpz_int> *counter = Counter<mpz::mpz_int>::makeCounter<mpz::mpz_int>(
-        vm, m_problem, "counting", isFloat, precision, ofs);
 
-    m_out << counter->count(ofs) << "\n";
-    
-    std::vector<Lit> assums;
-    assums.push_back(Lit::makeLit(1, false));
-    m_out << counter->count(assums, ofs) << "\n";
-
-    assums[0] = ~assums[0];
-    m_out << counter->count(assums, ofs) << "\n";
-    delete counter;
+    // prepare the counter.
+    initCounter(vm, m_problem, isFloat, projClause, idxVar);
   } // constructor
 
 
@@ -122,11 +109,60 @@ class ProjMCMethod : public MethodManager
    */
   ~ProjMCMethod()
   {
+    if(m_counter) delete m_counter;
+    if(m_solver) delete m_solver;
     delete m_problem;
   } // destructor
 
 
  private:
+
+  /**
+     Init the counter with the projected clauses.
+
+     @param[in] vm, the option to create the SAT solver.     
+     @param[in] problem, the input problem (only used to get information about
+     weight).
+     @param[in] isFloat, specify if the weight are float or int.
+     @param[in] clauses, the set of clauses.
+     @param[in] nbVar, the number of variables of the formula.
+   */
+  void initCounter(
+      po::variables_map &vm,
+      ProblemManager *problem,
+      bool isFloat, 
+      std::vector<std::vector<Lit>> &clauses,
+      unsigned nbVar)
+  {
+    int precision = vm["float-precision"].as<int>();
+#if DEBUG
+    std::ostream &ofs = m_out;
+#else    
+    std::ofstream ofs;
+    ofs.setstate(std::ios_base::badbit);
+#endif
+
+    // init the problem we will pass to the counter.
+    std::vector<double> weightLit(nbVar + 1, 1);
+    std::vector<double> weightVar(nbVar + 1, 2);
+    
+    std::vector<double> &problemWeightLit = problem->getWeightLit();
+    for(unsigned i = 0 ; i<problemWeightLit.size() ; i++)
+      weightLit[i] = problemWeightLit[i];
+
+    std::vector<double> &problemWeightVar = problem->getWeightVar();
+    for(unsigned i = 0 ; i<problemWeightVar.size() ; i++)
+      weightVar[i] = problemWeightVar[i];
+    
+    ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
+    p.setClauses(clauses);
+    
+    // create the counter.
+    m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
+    m_counter = Counter<mpz::mpz_int>::makeCounter<mpz::mpz_int>(
+        vm, &p, "counting", isFloat, precision, ofs);
+  } // initCounter
+  
 
   /**
      Init the SAT solver with a set of clauses (actually two sets).
@@ -146,8 +182,9 @@ class ProjMCMethod : public MethodManager
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(m_solver);
 
-    // prepare the weight vectors.
-    std::vector<double> weightLit(nbVar + 1, 1);
+    // TODO: consider a more general case.
+    // prepare the weight vectors and init the problem.
+    std::vector<double> weightLit((nbVar + 1) << 1, 1);
     std::vector<double> weightVar(nbVar + 1, 2);
     
     std::vector<double> &problemWeightLit = problem->getWeightLit();
@@ -157,12 +194,12 @@ class ProjMCMethod : public MethodManager
     std::vector<double> &problemWeightVar = problem->getWeightVar();
     for(unsigned i = 0 ; i<problemWeightVar.size() ; i++)
       weightVar[i] = problemWeightVar[i];
-
-
-    // TODO: consider a more general case.
-    ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
-    m_solver->initSolver(p);
     
+    ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
+    p.setClauses(clauses);
+    m_solver->initSolver(p);
+
+    // ask for the witness.
     m_solver->setNeedModel(true);
   } // initSatSolver
 

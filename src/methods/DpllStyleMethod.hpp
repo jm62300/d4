@@ -118,7 +118,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the preprocessed formula\033[0m\n";
     m_problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
     m_out << "c\n";
-    assert(m_problem);
+    assert(m_problem);    
+    delete preproc; // the preproc won't be used.
+
 
     m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
@@ -158,12 +160,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
           vm, *m_specs, *m_solver, m_out);
     }
     
-    assert(m_hVar && m_hPhase && m_hCutSet);
-    
+    assert(m_hVar && m_hPhase && m_hCutSet);    
     m_cache = new Cache<U>(vm, m_problem->getNbVar(), m_specs, m_out);
-    
-    // we delete the useless object.
-    delete preproc;
 
     // init the clock time.
     initTimer();
