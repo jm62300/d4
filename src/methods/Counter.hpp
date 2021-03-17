@@ -46,8 +46,7 @@ class Counter
 
      \return a counter.
   */
-  template<class U> 
-  static Counter<U> *makeCounter(
+  static Counter<T> *makeCounter(
       po::variables_map &vm,
       ProblemManager *problem,
       std::string meth,
@@ -59,9 +58,9 @@ class Counter
     boost::multiprecision::mpf_float::default_precision(precision); // we set the precision
 
     if(meth == "counting")
-      return new DpllStyleMethod<U, U>(vm, meth, isFloat, problem, out);
+      return new DpllStyleMethod<T, T>(vm, meth, isFloat, problem, out);
     if(meth == "ddnnf-compiler")
-      return new DpllStyleMethod<U, Node<U> *>(vm, meth, isFloat, problem, out);
+      return new DpllStyleMethod<T, Node<T>*>(vm, meth, isFloat, problem, out);
 
     throw (BadBehaviourException("Cannot create a counter with the given options.",
                                  __FILE__, __LINE__));

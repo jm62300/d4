@@ -45,7 +45,7 @@ class ProjMCMethod : public MethodManager
   std::vector<bool> m_isProjectedVar;
 
   WrapperSolver *m_solver;
-  Counter<mpz::mpz_int> *m_counter;
+  Counter<T> *m_counter;
  public:
 
   /**
@@ -159,7 +159,7 @@ class ProjMCMethod : public MethodManager
     
     // create the counter.
     m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
-    m_counter = Counter<mpz::mpz_int>::makeCounter<mpz::mpz_int>(
+    m_counter = Counter<T>::makeCounter(
         vm, &p, "counting", isFloat, precision, ofs);
   } // initCounter
   
@@ -302,6 +302,9 @@ class ProjMCMethod : public MethodManager
     }    
   } // manageMixedClauses
 
+
+  
+  
  public:
   
   /**
