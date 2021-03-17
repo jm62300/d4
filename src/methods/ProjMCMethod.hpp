@@ -43,6 +43,8 @@ class ProjMCMethod : public MethodManager
   std::vector<Lit> m_selectors;
   std::vector<std::vector<std::vector<Lit>>> selectorToProjClause;
   std::vector<bool> m_isProjectedVar;
+
+  WrapperSolver *m_solver;
  public:
 
   /**
@@ -91,32 +93,10 @@ class ProjMCMethod : public MethodManager
     manageMixedClauses(mix, m_isProjectedVar, projClause, nprojClause,
                        m_selectors, idxVar);
 
-    std::cout <<  "Projected clauses: \n";
-    for(auto &cl : projClause)
-    {
-      for(auto &l : cl) std::cout << l << " ";
-      std::cout << "\n";
-    }
-
-    std::cout <<  "Not projected clauses: \n";
-    for(auto &cl : nprojClause)
-    {
-      for(auto &l : cl) std::cout << l << " ";
-      std::cout << "\n";
-    }
-
-    std::cout <<  "Selector map: \n";
-    unsigned cpt = 0;
-    for(auto &list : selectorToProjClause)
-    {      
-      for(auto &cl : list)
-      {
-        std::cout << cpt << ": ";
-        for(auto &l : cl) std::cout << l << " ";
-        std::cout << "\n";
-      }
-      cpt++;
-    }
+    // prepare the SAT solver.
+    std::vector<std::vector<Lit>> satSolverClauses = projClause;
+    for(auto &cl : nprojClause) satSolverClauses.push_back(cl);
+    initSatSolver(vm, m_problem, satSolverClauses, idxVar);
     
     int precision = vm["float-precision"].as<int>();
     std::ofstream ofs;
@@ -148,6 +128,45 @@ class ProjMCMethod : public MethodManager
 
  private:
 
+  /**
+     Init the SAT solver with a set of clauses (actually two sets).
+
+     @param[in] vm, the option to create the SAT solver.     
+     @param[in] problem, the input problem (only used to get information about
+     weight).
+     @param[in] clauses, the set of clauses.
+     @param[in] nbVar, the number of variables of the formula.
+   */
+  void initSatSolver(
+      po::variables_map &vm,
+      ProblemManager *problem,
+      std::vector<std::vector<Lit>> &clauses,
+      unsigned nbVar)
+  {
+    m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
+    assert(m_solver);
+
+    // prepare the weight vectors.
+    std::vector<double> weightLit(nbVar + 1, 1);
+    std::vector<double> weightVar(nbVar + 1, 2);
+    
+    std::vector<double> &problemWeightLit = problem->getWeightLit();
+    for(unsigned i = 0 ; i<problemWeightLit.size() ; i++)
+      weightLit[i] = problemWeightLit[i];
+
+    std::vector<double> &problemWeightVar = problem->getWeightVar();
+    for(unsigned i = 0 ; i<problemWeightVar.size() ; i++)
+      weightVar[i] = problemWeightVar[i];
+
+
+    // TODO: consider a more general case.
+    ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
+    m_solver->initSolver(p);
+    
+    m_solver->setNeedModel(true);
+  } // initSatSolver
+
+  
   /**
      Partition the formula in tree sets regarding the the clauses contain or not
      projected variable.
