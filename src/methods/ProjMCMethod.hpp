@@ -44,6 +44,7 @@ class ProjMCMethod : public MethodManager
   std::vector<std::vector<std::vector<Lit>>> selectorToProjClause;
   std::vector<bool> m_isProjectedVar;
 
+  SpecManager *m_specs;
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
  public:
@@ -111,6 +112,7 @@ class ProjMCMethod : public MethodManager
   {
     if(m_counter) delete m_counter;
     if(m_solver) delete m_solver;
+    if(m_specs) delete m_specs;
     delete m_problem;
   } // destructor
 
@@ -141,9 +143,8 @@ class ProjMCMethod : public MethodManager
     std::ofstream ofs;
     ofs.setstate(std::ios_base::badbit);
 #endif
-
     // init the problem we will pass to the counter.
-    std::vector<double> weightLit(nbVar + 1, 1);
+    std::vector<double> weightLit((nbVar + 1) << 1, 1);
     std::vector<double> weightVar(nbVar + 1, 2);
     
     std::vector<double> &problemWeightLit = problem->getWeightLit();
@@ -201,6 +202,9 @@ class ProjMCMethod : public MethodManager
 
     // ask for the witness.
     m_solver->setNeedModel(true);
+
+    // prepare the spec manager.
+    m_specs = SpecManager::makeSpecManager(vm, p, m_out);
   } // initSatSolver
 
   
@@ -303,6 +307,32 @@ class ProjMCMethod : public MethodManager
   } // manageMixedClauses
 
 
+  /**
+     Compute the number of model on the projected variables.     
+   */
+  T compute_(
+      std::vector<Var> &setOfVar,
+      std::ostream &out)
+  {
+    if(!m_solver->solve(setOfVar)) return T(0);
+    std::vector<lbool> &model = m_solver->getModel();
+    
+    return T(1);
+  } // compute_
+
+  
+  /**
+     Prepare the computed process.
+
+     
+   */
+  T compute(std::ostream &out)
+  {
+    std::vector<Var> setOfVar ;
+    for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
+    
+    return compute_(setOfVar, out);
+  } // compute
   
   
  public:
@@ -314,7 +344,8 @@ class ProjMCMethod : public MethodManager
    */
   void run(po::variables_map &vm)
   {
-    std::cout << "in construction\n";
+    T res = compute(m_out);
+    std::cout << "s " << res << "\n";
   } // run
 };
 } // d4

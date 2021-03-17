@@ -33,7 +33,8 @@ class WrapperMinisat : public WrapperSolver
  private:
   minisat::Solver s;  
   minisat::vec<minisat::Var> m_setOfVar_m;
-
+  
+  std::vector<lbool> m_model;
   bool m_activeModel;
   bool m_needModel;
   
@@ -54,6 +55,7 @@ class WrapperMinisat : public WrapperSolver
   void displayAssumption(std::ostream &out);
   void setNeedModel(bool b);
   void showTrail();
+  std::vector<lbool> &getModel();
   
   double getActivity(Var v);
   double getCountConflict(Var v);

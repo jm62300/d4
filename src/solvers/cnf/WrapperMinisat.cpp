@@ -43,6 +43,7 @@ void WrapperMinisat::initSolver(ProblemManager &p)
 
     // say to the solver we have pcnf.getNbVar() variables.
     while((unsigned)s.nVars() <= pcnf.getNbVar()) s.newVar();
+    m_model.resize(pcnf.getNbVar() + 1, l_Undef);
 
     // load the clauses
     std::vector<std::vector<Lit>> &clauses = pcnf.getClauses();
@@ -310,6 +311,18 @@ void WrapperMinisat::setNeedModel(bool b)
   s.setNeedModel(b);
 } // setNeedModel
 
+
+std::vector<lbool> &WrapperMinisat::getModel()
+{
+  for(int i = 0 ; i<s.model.size() ; i++)
+  {
+    if(minisat::toInt(s.model[i]) == 0) m_model[i] = l_True;
+    else if(minisat::toInt(s.model[i]) == 1) m_model[i] = l_False;
+    else m_model[i] = l_Undef;
+  }
+  
+  return m_model;
+} // getModel
 
 /**
    Push a new assumption.
