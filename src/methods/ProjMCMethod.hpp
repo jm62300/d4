@@ -37,12 +37,29 @@ template<class T>
 class ProjMCMethod : public MethodManager
 {
  private:
+  struct CoupleNotProjClauseSelector
+  {
+    std::vector<Lit> clause;
+    Lit selector;
+
+    void display()
+    {
+      std::cout << selector << " : ";
+      for(const auto &l : clause) std::cout << l << " ";
+      std::cout << "\n";
+    }
+  };
+  
   std::ostream m_out;
+  std::ostream m_outCounter;
   
   ProblemManager *m_problem;
   std::vector<Lit> m_selectors;
-  std::vector<std::vector<std::vector<Lit>>> selectorToProjClause;
+  std::vector<std::vector<Lit>> selectorToProjClause;
   std::vector<bool> m_isProjectedVar;
+  std::vector<int> m_marked;
+  std::unordered_map<std::string, Lit> mapProjClSelector;
+  std::vector<CoupleNotProjClauseSelector> notProjClauses;
 
   SpecManager *m_specs;
   WrapperSolver *m_solver;
@@ -57,13 +74,13 @@ class ProjMCMethod : public MethodManager
   ProjMCMethod(
       po::variables_map &vm,
       bool isFloat, 
-      ProblemManager *initProblem) : m_out(nullptr)
+      ProblemManager *initProblem) : m_out(nullptr), m_outCounter(nullptr)
   {
     // init the output stream
     m_out.copyfmt(std::cout);                          
     m_out.clear(std::cout.rdstate());           
     m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
-    
+
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
     assert(preproc);
@@ -86,7 +103,6 @@ class ProjMCMethod : public MethodManager
     }
     m_out << "\n" << "c\n";
 
-
     std::vector<std::vector<Lit>> projClause, nprojClause, mix;
     partitionFormula(m_problem, m_isProjectedVar, projClause, nprojClause, mix);
 
@@ -102,6 +118,7 @@ class ProjMCMethod : public MethodManager
 
     // prepare the counter.
     initCounter(vm, m_problem, isFloat, projClause, idxVar);
+    m_marked.resize(idxVar + 1, -1);
   } // constructor
 
 
@@ -138,10 +155,11 @@ class ProjMCMethod : public MethodManager
   {
     int precision = vm["float-precision"].as<int>();
 #if DEBUG
-    std::ostream &ofs = m_out;
+    m_outCounter.copyfmt(m_out);
+    m_outCounter.clear(m_out.rdstate());
+    m_outCounter.basic_ios<char>::rdbuf(m_out.rdbuf());
 #else    
-    std::ofstream ofs;
-    ofs.setstate(std::ios_base::badbit);
+    m_outCounter.setstate(std::ios_base::badbit);
 #endif
     // init the problem we will pass to the counter.
     std::vector<double> weightLit((nbVar + 1) << 1, 1);
@@ -157,11 +175,12 @@ class ProjMCMethod : public MethodManager
     
     ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
     p.setClauses(clauses);
+    p.display(std::cout);
     
     // create the counter.
     m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
     m_counter = Counter<T>::makeCounter(
-        vm, &p, "counting", isFloat, precision, ofs);
+        vm, &p, "counting", isFloat, precision, m_outCounter);
   } // initCounter
   
 
@@ -271,41 +290,79 @@ class ProjMCMethod : public MethodManager
       std::vector<Lit> &selectors,
       unsigned &nextVar)
   {
-    std::unordered_map<std::string, Lit> alreadyConsidered;    
-
     for(auto &cl : mix)
     {
       std::vector<Lit> clp, clnp;
       std::string key = "";
       for(auto &l : cl)
-        if(isProjectedVar[l.var()]) clp.push_back(l);
+        if(!isProjectedVar[l.var()]) clnp.push_back(l);
         else
         {
           key += "." + std::to_string(l.intern());
-          clnp.push_back(l);
+          clp.push_back(l);
         }
 
       Lit s = lit_Undef;
-      if(alreadyConsidered.count(key) > 0) s = alreadyConsidered[key];
+      if(mapProjClSelector.count(key) > 0) s = mapProjClSelector[key];
       else
       {
         s = Lit::makeLitTrue(nextVar++);
-        alreadyConsidered[key] = s;
-        clnp.push_back(~s);
-        nprojClause.push_back(clnp);
-      }
+        mapProjClSelector[key] = s;
+        
+        if((int) selectorToProjClause.size() <= s.var())
+          selectorToProjClause.resize(s.var() + 1, std::vector<Lit>());
+        selectorToProjClause[s.var()] = clp;
 
-      // add the selector to the different part of the clauses.
-      // link the selector to the projected part of the considered clause.
-      if((int) selectorToProjClause.size() <= s.var())
-        selectorToProjClause.resize(s.var() + 1,
-                                    std::vector<std::vector<Lit>>());
-      selectorToProjClause[s.var()].push_back(clp);
-      clp.push_back(s);
-      projClause.push_back(clp);
-    }    
+        clp.push_back(s);
+        projClause.push_back(clp);
+      }
+      
+      // link the selector to the not projected part of the considered clause.
+      notProjClauses.push_back({clnp, s});
+      clnp.push_back(~s);
+      nprojClause.push_back(clnp);      
+    }
   } // manageMixedClauses
 
+
+  /**
+     Extract the selector that correspond to the non projected clauses that are
+     falsified by a given interpretation.
+
+     @param[in] model, the interpretation we check.
+     @param[out] selector, the returned selector.
+   */
+  void extractSelectorFalsifiedNProj(
+      std::vector<lbool> &model,
+      std::vector<Lit> &selector)
+  {
+    for(auto &value : notProjClauses)
+    {
+      const std::vector<Lit> &cl = value.clause;
+      bool isSAT = false;
+      for(auto &l : cl)
+      {
+        if(model[l.var()] == l_Undef) continue;
+        else if(l.sign()) isSAT = model[l.var()] == l_False;
+        else isSAT = model[l.var()] == l_True;
+
+        if(isSAT) break;
+      }
+
+      Lit s = isSAT ? value.selector : ~value.selector;
+      if(s.sign() && m_marked[s.var()] != -1) selector[m_marked[s.var()]] = s;
+      else
+      {
+        m_marked[s.var()] = selector.size();
+        selector.push_back(s);
+      }      
+    }
+
+    // reinit m_marked.
+    for(auto &l : selector) m_marked[l.var()] = -1;
+  } // extractSelectorFalsifiedNProj
+
+  
 
   /**
      Compute the number of model on the projected variables.     
@@ -315,9 +372,29 @@ class ProjMCMethod : public MethodManager
       std::ostream &out)
   {
     if(!m_solver->solve(setOfVar)) return T(0);
-    std::vector<lbool> &model = m_solver->getModel();
+
+    // collect the selectors of the unsatisfied non projected clauses.
+    std::vector<Lit> selector;
+    extractSelectorFalsifiedNProj(m_solver->getModel(), selector);
     
-    return T(1);
+    // prepare the next assumption.
+    std::vector<Lit> assumption;
+    assumption = selector;
+    T ret = m_counter->count(assumption, m_outCounter);
+
+    // compute the clause set.
+    std::vector<std::vector<Lit>> clauses;
+    for(auto &l : selector)
+      if(l.sign()) clauses.push_back(selectorToProjClause[l.var()]);
+    
+    std::cout << "clauses:\n";
+    for(auto &cl : clauses)
+    {
+      for(auto &l : cl) std::cout << l << " ";
+      std::cout << "\n";
+    }
+    
+    return ret;
   } // compute_
 
   
