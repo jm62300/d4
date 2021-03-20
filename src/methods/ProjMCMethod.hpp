@@ -114,10 +114,10 @@ class ProjMCMethod : public MethodManager
     // prepare the SAT solver.
     std::vector<std::vector<Lit>> satSolverClauses = projClause;
     for(auto &cl : nprojClause) satSolverClauses.push_back(cl);
-    initSatSolver(vm, m_problem, satSolverClauses, idxVar);
+    initSatSolver(vm, m_problem, satSolverClauses, idxVar - 1);
 
     // prepare the counter.
-    initCounter(vm, m_problem, isFloat, projClause, idxVar);
+    initCounter(vm, m_problem, isFloat, projClause, idxVar - 1);
     m_marked.resize(idxVar + 1, -1);
   } // constructor
 
@@ -304,7 +304,7 @@ class ProjMCMethod : public MethodManager
       Lit s = lit_Undef;
       if(mapProjClSelector.count(key) > 0) s = mapProjClSelector[key];
       else
-      {
+      {        
         s = Lit::makeLitTrue(nextVar++);
         mapProjClSelector[key] = s;
         
@@ -314,6 +314,9 @@ class ProjMCMethod : public MethodManager
 
         clp.push_back(s);
         projClause.push_back(clp);
+
+        m_isProjectedVar.resize(nextVar);
+        m_isProjectedVar[s.var()] = false;
       }
       
       // link the selector to the not projected part of the considered clause.
@@ -336,7 +339,7 @@ class ProjMCMethod : public MethodManager
       std::vector<Lit> &selector)
   {
     for(auto &value : notProjClauses)
-    {
+    {      
       const std::vector<Lit> &cl = value.clause;
       bool isSAT = false;
       for(auto &l : cl)
@@ -350,7 +353,7 @@ class ProjMCMethod : public MethodManager
 
       Lit s = isSAT ? value.selector : ~value.selector;
       if(s.sign() && m_marked[s.var()] != -1) selector[m_marked[s.var()]] = s;
-      else
+      else if(m_marked[s.var()] == -1)
       {
         m_marked[s.var()] = selector.size();
         selector.push_back(s);
@@ -361,6 +364,29 @@ class ProjMCMethod : public MethodManager
     for(auto &l : selector) m_marked[l.var()] = -1;
   } // extractSelectorFalsifiedNProj
 
+
+  /**
+     Expel from a list of variables, and a list of literals, the elements that
+     are not belonging to the projected set of variables.
+
+     @param[out] litList, the list of literals we want to refine.
+     @param[out] varList, the list of variables want to refine.
+   */
+  void expelNoProjectedElement(
+      std::vector<Lit> &litList,
+      std::vector<Var> &varList)
+  {
+    // only keep the projected.
+    unsigned j = 0;
+    for(unsigned i = 0 ; i<litList.size() ; i++)
+      if(m_isProjectedVar[litList[i].var()]) litList[j++] = litList[i];
+    litList.resize(j);
+
+    j = 0;    
+    for(unsigned i = 0 ; i<varList.size() ; i++)
+      if(m_isProjectedVar[varList[i]]) varList[j++] = varList[i];
+    varList.resize(j);
+  } // expelNoProjectedElement
   
 
   /**
@@ -374,6 +400,7 @@ class ProjMCMethod : public MethodManager
 
     // collect unit literals
     std::vector<Lit> unitLits;
+    
     m_solver->whichAreUnits(setOfVar, unitLits);
     m_specs->preUpdate(unitLits);
 
@@ -381,11 +408,15 @@ class ProjMCMethod : public MethodManager
     std::vector< std::vector<Var> > varConnected;
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-
+    /*
     std::cout << "Really present: ";
     for(auto &v : reallyPresent) std::cout << v << " ";
     std::cout << "\n";
 
+    std::cout << "Unit: ";
+    for(auto &l : unitLits) std::cout << l << " ";
+    std::cout << "\n";
+    */
     // extract the projected variables.
     std::vector<Var> projectSetOfVar;
     for(auto &v : reallyPresent)
@@ -401,7 +432,18 @@ class ProjMCMethod : public MethodManager
       // prepare the next assumption.
       std::vector<Lit> nextAssums(m_solver->getAssumption());
       nextAssums.insert(nextAssums.end(), selector.begin(), selector.end());
+      /*
+      std::cout << "assums: ";
+      for(auto &l : nextAssums) std::cout << l << " ";
+      std::cout << "\n";
+      
+      std::cout << "selector: ";
+      for(auto &l : selector) std::cout << l << " ";
+      std::cout << "\n";
+      */
       ret = m_counter->count(nextAssums, m_outCounter);
+
+      // std::cout << ret << " <<<\n";
 
       // reajust the selectors by only keeping the negative.
       unsigned j = 0;
@@ -411,16 +453,19 @@ class ProjMCMethod : public MethodManager
       
       for(auto &s : selector)
       {
+        // std::cout << "considered selector " << s << "\n";
         auto &cl = selectorToProjClause[s.var()];
         for(auto &l : cl) m_solver->pushAssumption(~l);
         
-        ret += compute_(setOfVar, out);
+        ret += compute_(reallyPresent, out);
         m_solver->popAssumption(cl.size());
         m_solver->pushAssumption(s);
       }
     }
-
+    
     m_specs->postUpdate(unitLits);
+    expelNoProjectedElement(unitLits, freeVariable);
+    
     return ret * m_problem->computeWeightUnitFree<T>(unitLits, freeVariable);
   } // compute_
 

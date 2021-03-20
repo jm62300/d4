@@ -85,6 +85,16 @@ ProblemManagerCnf::~ProblemManagerCnf()
  */
 void ProblemManagerCnf::display(std::ostream &out)
 {
+  out << "weight list: ";
+  for(unsigned i = 1 ; i <= m_nbVar ; i++)
+  {
+    Lit l = Lit::makeLit(i, false);
+    out << i << "["<< m_weightVar[i ]<< "] ";
+    out << l << "(" << m_weightLit[l.intern()]<< ") ";
+    out << ~l << "(" << m_weightLit[(~l).intern()]<< ") ";
+  }
+  out << "\n";
+  
   out << "p cnf " << m_nbVar << " " << m_clauses.size() << "\n";
   for(auto cl : m_clauses)
   {

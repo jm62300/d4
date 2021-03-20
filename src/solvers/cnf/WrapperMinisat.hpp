@@ -63,5 +63,4 @@ class WrapperMinisat : public WrapperSolver
   double getCountConflict(Var v);
 };
 }
-
 #endif

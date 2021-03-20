@@ -81,8 +81,16 @@ class ProblemManager
       std::vector<Lit> &units, std::vector<Var> &frees)
   {
     T tmp = 1;
-    for(auto &l : units) tmp *= T(m_weightLit[l.intern()]);
-    for(auto &v : frees) tmp *= T(m_weightVar[v]);
+    for(auto &l : units)
+    {
+      assert(l.intern() < m_weightLit.size());
+      tmp *= T(m_weightLit[l.intern()]);
+    }
+    for(auto &v : frees)
+    {
+      assert(v < (int)m_weightVar.size());
+      tmp *= T(m_weightVar[v]);
+    }
     return tmp;
   } // computeWeightUnitFree  
 };
