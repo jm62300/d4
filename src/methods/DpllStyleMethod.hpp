@@ -445,7 +445,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     }
 
     // consider each connected component.
-    U ret = m_operation->createTop();    
+    U ret = m_operation->createTop();
     if(nbComponent)
     {
       U tab[nbComponent];      
@@ -564,8 +564,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   {
     initAssumption(assumption);
     U result = compute(out, false);
-    printFinalStats(out);
-
     return m_operation->count(result); //result;
   } // count
   

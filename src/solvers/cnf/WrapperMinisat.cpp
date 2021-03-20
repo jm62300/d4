@@ -279,8 +279,20 @@ void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
 {
   minisat::vec<minisat::Lit> &assumptions = s.assumptions;
   assumptions.clear();
+  m_assumption.clear();
   for(auto &l : assums) pushAssumption(l);
 } // setAssumption
+
+
+/**
+   \return the current assumption.
+
+   @param[in] assums, the set of assumptions
+ */
+std::vector<Lit> &WrapperMinisat::getAssumption()
+{
+  return m_assumption;
+} // getAssumption
 
 
 /**
@@ -335,6 +347,7 @@ void WrapperMinisat::pushAssumption(Lit l)
   m_activeModel = m_activeModel && !s.isAssigned(var(ml));
 
   (s.assumptions).push(ml);
+  m_assumption.push_back(l);
 
   if(m_activeModel && m_needModel)
   {
@@ -357,6 +370,7 @@ void WrapperMinisat::pushAssumption(Lit l)
  */
 void WrapperMinisat::popAssumption()
 {
+  m_assumption.pop_back();
   (s.assumptions).pop();
   (s.cancelUntil)((s.assumptions).size());  
 } // popAssumption

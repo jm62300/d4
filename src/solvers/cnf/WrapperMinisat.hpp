@@ -34,6 +34,7 @@ class WrapperMinisat : public WrapperSolver
   minisat::Solver s;  
   minisat::vec<minisat::Var> m_setOfVar_m;
   
+  std::vector<Lit> m_assumption;
   std::vector<lbool> m_model;
   bool m_activeModel;
   bool m_needModel;
@@ -50,6 +51,7 @@ class WrapperMinisat : public WrapperSolver
   void whichAreUnits(std::vector<Var> &component, std::vector<Lit> &units);
   void restart();
   void setAssumption(std::vector<Lit> &assums);
+  std::vector<Lit> &getAssumption();
   void pushAssumption(Lit l);
   void popAssumption();
   void displayAssumption(std::ostream &out);

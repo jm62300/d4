@@ -45,6 +45,7 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   virtual void getSimplifiedFormula(ProblemManager &p) = 0;
   virtual void restart() = 0;
   virtual void setAssumption(std::vector<Lit> &assums) = 0;
+  virtual std::vector<Lit> &getAssumption() = 0;
   virtual void pushAssumption(Lit l) = 0;
   virtual void popAssumption() = 0;
   virtual void displayAssumption(std::ostream &out) = 0;

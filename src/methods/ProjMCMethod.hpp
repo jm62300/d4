@@ -174,8 +174,7 @@ class ProjMCMethod : public MethodManager
       weightVar[i] = problemWeightVar[i];
     
     ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
-    p.setClauses(clauses);
-    p.display(std::cout);
+    p.setClauses(clauses);    
     
     // create the counter.
     m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
@@ -373,41 +372,68 @@ class ProjMCMethod : public MethodManager
   {
     if(!m_solver->solve(setOfVar)) return T(0);
 
-    // collect the selectors of the unsatisfied non projected clauses.
-    std::vector<Lit> selector;
-    extractSelectorFalsifiedNProj(m_solver->getModel(), selector);
-    
-    // prepare the next assumption.
-    std::vector<Lit> assumption;
-    assumption = selector;
-    T ret = m_counter->count(assumption, m_outCounter);
+    // collect unit literals
+    std::vector<Lit> unitLits;
+    m_solver->whichAreUnits(setOfVar, unitLits);
+    m_specs->preUpdate(unitLits);
 
-    // compute the clause set.
-    std::vector<std::vector<Lit>> clauses;
-    for(auto &l : selector)
-      if(l.sign()) clauses.push_back(selectorToProjClause[l.var()]);
+    std::vector<Var> reallyPresent, freeVariable;
+    std::vector< std::vector<Var> > varConnected;
+    int nbComponent = m_specs->computeConnectedComponent(
+        varConnected, setOfVar, freeVariable, reallyPresent);
+
+    std::cout << "Really present: ";
+    for(auto &v : reallyPresent) std::cout << v << " ";
+    std::cout << "\n";
+
+    // extract the projected variables.
+    std::vector<Var> projectSetOfVar;
+    for(auto &v : reallyPresent)
+      if(m_isProjectedVar[v]) projectSetOfVar.push_back(v);    
     
-    std::cout << "clauses:\n";
-    for(auto &cl : clauses)
+    T ret = 1;
+    if(nbComponent && projectSetOfVar.size())
     {
-      for(auto &l : cl) std::cout << l << " ";
-      std::cout << "\n";
-    }
+      // collect the selectors of the unsatisfied non projected clauses.
+      std::vector<Lit> selector;
+      extractSelectorFalsifiedNProj(m_solver->getModel(), selector);
     
-    return ret;
+      // prepare the next assumption.
+      std::vector<Lit> nextAssums(m_solver->getAssumption());
+      nextAssums.insert(nextAssums.end(), selector.begin(), selector.end());
+      ret = m_counter->count(nextAssums, m_outCounter);
+
+      // reajust the selectors by only keeping the negative.
+      unsigned j = 0;
+      for(unsigned i = 0 ; i<selector.size() ; i++)
+        if(selector[i].sign()) selector[j++] = selector[i];
+      selector.resize(j);
+      
+      for(auto &s : selector)
+      {
+        auto &cl = selectorToProjClause[s.var()];
+        for(auto &l : cl) m_solver->pushAssumption(~l);
+        
+        ret += compute_(setOfVar, out);
+        for(auto &l : cl) m_solver->popAssumption();
+        m_solver->pushAssumption(s);
+      }
+    }
+
+    m_specs->postUpdate(unitLits);
+    return ret * m_problem->computeWeightUnitFree<T>(unitLits, freeVariable);
   } // compute_
 
   
   /**
      Prepare the computed process.
 
-     
+     @param[in] out, the stream used to print the information.
    */
   T compute(std::ostream &out)
   {
     std::vector<Var> setOfVar ;
     for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
-    
     return compute_(setOfVar, out);
   } // compute
   
