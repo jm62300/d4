@@ -63,13 +63,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   unsigned callPartitioner;
   unsigned nbDecisionNode;
   unsigned optCached;
-  unsigned stampIdx;
+  unsigned m_stampIdx;
   unsigned m_limitUpdate;
   unsigned m_limitUpdateCounter;
   bool m_staticLimit;
   bool m_isProjectedMode;
 
-  std::vector<unsigned> stampVar;
+  std::vector<unsigned> m_stampVar;
   std::vector< std::vector<Lit> > clauses;
 
   std::vector<unsigned long> nbTestCacheVarSize;
@@ -193,8 +193,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
           << "freq update(" << m_limitUpdate << ") "
           << "\n";
     
-    stampIdx = 0;
-    stampVar.resize(m_specs->getNbVariable() + 1, 0);
+    m_stampIdx = 0;
+    m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
     nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
     nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);    
 
@@ -255,10 +255,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
                                     std::vector<Var> &currPriority)
   {
     currPriority.clear();
-    stampIdx++;
-    for(auto &v : connected) stampVar[v] = stampIdx;
+    m_stampIdx++;
+    for(auto &v : connected) m_stampVar[v] = m_stampIdx;
     for(auto &v : priorityVar)
-      if(stampVar[v] == stampIdx && !m_specs->varIsAssigned(v))
+      if(m_stampVar[v] == m_stampIdx && !m_specs->varIsAssigned(v))
         currPriority.push_back(v);
   } // computePrioritySet
 
@@ -527,6 +527,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   /**
      Compute U using the trace of a SAT solver.
 
+     @param[in] setOfVar, the set of variables of the considered problem.
      @param[in] out, the stream are is print out the logs.     
      @param[in] warmStart, to activate/deactivate the warm start strategy.
      /!\ When the warm strat is activated we the assumptions are reset.
@@ -534,15 +535,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute(std::ostream &out, bool warmStart = true)
-  {
-    std::vector<Var> setOfVar, priorityVar;
-    for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
-
+  U compute(
+      std::vector<Var> &setOfVar,
+      std::ostream &out,
+      bool warmStart = true)
+  {    
     if(m_problem->isUnsat() ||
        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
 
+    std::vector<Var> priorityVar;
     DataBranch<U> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);    
     return m_operation->manageBranch(b);
@@ -555,15 +557,42 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
      from the query strategy, where we first compute and then condition the
      computed structure.
 
+     @param[in] setOfVar, the set of variables of the considered problem.
      @param[in] assumption, the set of literals we want to assign.
+     @param[in] out, the stream where are print out the log.
 
      \return the number of models when the formula is simplified by the given
      assumption.
    */
-  T count(std::vector<Lit> &assumption, std::ostream &out)
+  T count(
+      std::vector<Var> &setOfVar,
+      std::vector<Lit> &assumption,
+      std::ostream &out)
   {
+    /*
+    std::cout << "In the counter\n";
+    m_solver->displayAssumption(m_out);
+    */
     initAssumption(assumption);
-    U result = compute(out, false);
+
+    // get the unit not in setOfVar.
+    std::vector<Lit> shadowUnits;
+    m_stampIdx++;
+    for(auto &v : setOfVar) m_stampVar[v] = m_stampIdx;
+    for(auto &l : assumption)
+      if(m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
+    
+    m_specs->preUpdate(shadowUnits);
+    /*
+    std::cout << "trail in spec.\n";
+    m_specs->showTrail(m_out);
+    */
+    U result = compute(setOfVar, out, false);
+    m_specs->postUpdate(shadowUnits);
+    /*
+    std::cout << "after still in the counter\n";
+    m_solver->displayAssumption(m_out);
+    */
     return m_operation->count(result); //result;
   } // count
   
@@ -574,7 +603,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
    */
   void run(po::variables_map &vm)
   {
-    U result = compute(m_out);
+    std::vector<Var> setOfVar;
+    for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
+    
+    U result = compute(setOfVar, m_out);
     printFinalStats(m_out);
     m_operation->manageResult(result, vm, m_out);
   } // run

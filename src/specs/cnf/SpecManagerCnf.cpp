@@ -313,6 +313,18 @@ void SpecManagerCnf::showFormula(std::ostream &out)
 }// showFormula
 
 
+void SpecManagerCnf::showTrail(std::ostream &out)
+{
+  for(int i = 0 ; i<getNbVariable() ; i++)
+  {
+    if(!varIsAssigned(i)) continue;
+    Lit l = Lit::makeLit(i, false);
+    if(litIsAssignedToTrue(l)) out << l << " "; else out << ~l << " ";
+  }
+  out << "\n";
+}// showFormula
+
+
 void SpecManagerCnf::showCurrentFormula(std::ostream &out)
 { 
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";

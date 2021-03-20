@@ -49,6 +49,7 @@ class SpecManager
   virtual void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) = 0;
   virtual void showFormula(std::ostream &out) = 0;
   virtual void showCurrentFormula(std::ostream &out) = 0;
+  virtual void showTrail(std::ostream &out) = 0;
   virtual void initFormula(ProblemManager &p) = 0;
   virtual int getNbOccurrence(Lit l) = 0;
   virtual int getNbVariable() = 0;

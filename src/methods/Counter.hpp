@@ -69,15 +69,23 @@ class Counter
 
   virtual ~Counter() {}
   
-  virtual T count(std::vector<Lit> &assumption,
-                  std::ostream &out) = 0;
-
+  virtual T count(
+      std::vector<Var> &setOfVar,
+      std::vector<Lit> &assumption,
+      std::ostream &out) = 0;
+  
   /**
      Count the number of model on the problem.
 
+     @param[in] setOfvar, the set of variables involved in the considered
+     problem.
+     @param[in] out, the stream where are print out the log.
+     
      \return the number of models.
    */
-  T count(std::ostream &out)
+  T count(
+      std::vector<Var> &setOfVar,
+      std::ostream &out)
   {
     std::vector<Lit> assum;
     return count(assum, out);

@@ -75,6 +75,7 @@ class SpecManagerCnf : public SpecManager
   void initFormula(ProblemManager &p) override;  
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
+  void showTrail(std::ostream &out) override;
 
   int getInitSize(int i){return m_clauses[i].size();}
   int getCurrentSize(int i){return m_clauses[i].size() - m_infoClauses[i].nbUnsat;}

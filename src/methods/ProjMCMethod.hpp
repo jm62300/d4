@@ -327,6 +327,8 @@ class ProjMCMethod : public MethodManager
   } // manageMixedClauses
 
 
+#define TEST 0
+  
   /**
      Extract the selector that correspond to the non projected clauses that are
      falsified by a given interpretation.
@@ -337,9 +339,23 @@ class ProjMCMethod : public MethodManager
   void extractSelectorFalsifiedNProj(
       std::vector<lbool> &model,
       std::vector<Lit> &selector)
-  {
+  {  
+#if TEST
+    for(unsigned i = 0 ; i<model.size() ; i++)
+    {
+      if(model[i] == l_Undef) continue;
+      std::cout << i << "(" << (model[i] == l_True) << ")" << " ";
+    }
+    std::cout << "\n";
+#endif
+    
     for(auto &value : notProjClauses)
-    {      
+    {
+      if(m_specs->litIsAssigned(value.selector))
+      {
+        continue;
+      }
+      
       const std::vector<Lit> &cl = value.clause;
       bool isSAT = false;
       for(auto &l : cl)
@@ -387,20 +403,38 @@ class ProjMCMethod : public MethodManager
       if(m_isProjectedVar[varList[i]]) varList[j++] = varList[i];
     varList.resize(j);
   } // expelNoProjectedElement
-  
 
+  
   /**
-     Compute the number of model on the projected variables.     
+     Compute the number of model on the projected variables.
+
+     @param[in] setOfVar, the set of variableswe consider.
+     @param[in] out, the stream where are printed the logs.
+
+     \return the number of models.
    */
   T compute_(
       std::vector<Var> &setOfVar,
       std::ostream &out)
   {
-    if(!m_solver->solve(setOfVar)) return T(0);
+#if TEST
+    std::cout << "solver assumption\n";
+    m_solver->displayAssumption(m_out);
+#endif
+    if(!m_solver->solve(setOfVar))
+    {
+#if TEST
+      std::cout << "UNSAT\n";
+#endif
+      return T(0);
+    }
+
+    // collect the selectors of the unsatisfied non projected clauses.
+    std::vector<Lit> selector;
+    extractSelectorFalsifiedNProj(m_solver->getModel(), selector);
 
     // collect unit literals
     std::vector<Lit> unitLits;
-    
     m_solver->whichAreUnits(setOfVar, unitLits);
     m_specs->preUpdate(unitLits);
 
@@ -408,7 +442,7 @@ class ProjMCMethod : public MethodManager
     std::vector< std::vector<Var> > varConnected;
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    /*
+#if TEST
     std::cout << "Really present: ";
     for(auto &v : reallyPresent) std::cout << v << " ";
     std::cout << "\n";
@@ -416,7 +450,11 @@ class ProjMCMethod : public MethodManager
     std::cout << "Unit: ";
     for(auto &l : unitLits) std::cout << l << " ";
     std::cout << "\n";
-    */
+
+    std::cout << "free: ";
+    for(auto &v : freeVariable) std::cout << v << " ";
+    std::cout << "\n";
+#endif
     // extract the projected variables.
     std::vector<Var> projectSetOfVar;
     for(auto &v : reallyPresent)
@@ -425,14 +463,10 @@ class ProjMCMethod : public MethodManager
     T ret = 1;
     if(nbComponent && projectSetOfVar.size())
     {
-      // collect the selectors of the unsatisfied non projected clauses.
-      std::vector<Lit> selector;
-      extractSelectorFalsifiedNProj(m_solver->getModel(), selector);
-    
       // prepare the next assumption.
       std::vector<Lit> nextAssums(m_solver->getAssumption());
       nextAssums.insert(nextAssums.end(), selector.begin(), selector.end());
-      /*
+#if TEST
       std::cout << "assums: ";
       for(auto &l : nextAssums) std::cout << l << " ";
       std::cout << "\n";
@@ -440,11 +474,11 @@ class ProjMCMethod : public MethodManager
       std::cout << "selector: ";
       for(auto &l : selector) std::cout << l << " ";
       std::cout << "\n";
-      */
-      ret = m_counter->count(nextAssums, m_outCounter);
-
-      // std::cout << ret << " <<<\n";
-
+#endif
+      ret = m_counter->count(reallyPresent, nextAssums, m_outCounter);
+#if TEST
+      std::cout << ret << " <<<\n";
+#endif
       // reajust the selectors by only keeping the negative.
       unsigned j = 0;
       for(unsigned i = 0 ; i<selector.size() ; i++)
@@ -453,18 +487,50 @@ class ProjMCMethod : public MethodManager
       
       for(auto &s : selector)
       {
-        // std::cout << "considered selector " << s << "\n";
+#if TEST
+        std::cout << "considered selector " << s << "\n";
+#endif  
         auto &cl = selectorToProjClause[s.var()];
         for(auto &l : cl) m_solver->pushAssumption(~l);
         
         ret += compute_(reallyPresent, out);
+#if TEST
+        std::cout << "Pop assumption : " << cl.size() << "\n";
+        m_solver->displayAssumption(m_out);
+#endif        
         m_solver->popAssumption(cl.size());
+#if TEST
+        std::cout << "Pop assumption\n";
+        m_solver->displayAssumption(m_out);
+#endif        
         m_solver->pushAssumption(s);
       }
+#if TEST
+        std::cout << "Pop assumption selector: " << selector.size() << "\n";
+        m_solver->displayAssumption(m_out);
+#endif      
+      m_solver->popAssumption(selector.size());
+#if TEST
+      std::cout << "Pop assumption selector\n";
+      m_solver->displayAssumption(m_out);
+#endif
     }
+#if TEST
+    else
+    {
+      std::cout << ret << " >>>\n";
+    }
+#endif
     
     m_specs->postUpdate(unitLits);
     expelNoProjectedElement(unitLits, freeVariable);
+
+#if TEST
+    std::cout << "count free and units: " 
+              << m_problem->computeWeightUnitFree<T>(unitLits, freeVariable)
+              << "\n";
+    std::cout << "ret = " << ret << "\n";
+#endif
     
     return ret * m_problem->computeWeightUnitFree<T>(unitLits, freeVariable);
   } // compute_
