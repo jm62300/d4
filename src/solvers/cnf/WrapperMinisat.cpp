@@ -367,12 +367,14 @@ void WrapperMinisat::pushAssumption(Lit l)
 
 /**
    Remove the last assumption and cancelUntil.
+
+   @param[in] count, the number of element we pop.
  */
-void WrapperMinisat::popAssumption()
+void WrapperMinisat::popAssumption(unsigned count)
 {
-  m_assumption.pop_back();
-  (s.assumptions).pop();
-  (s.cancelUntil)((s.assumptions).size());  
+  m_assumption.resize(m_assumption.size() - count);
+  (s.assumptions).shrink_(count);
+  (s.cancelUntil)((s.assumptions).size());
 } // popAssumption
 
 

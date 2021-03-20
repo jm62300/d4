@@ -415,7 +415,7 @@ class ProjMCMethod : public MethodManager
         for(auto &l : cl) m_solver->pushAssumption(~l);
         
         ret += compute_(setOfVar, out);
-        for(auto &l : cl) m_solver->popAssumption();
+        m_solver->popAssumption(cl.size());
         m_solver->pushAssumption(s);
       }
     }

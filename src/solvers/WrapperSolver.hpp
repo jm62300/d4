@@ -47,7 +47,7 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   virtual void setAssumption(std::vector<Lit> &assums) = 0;
   virtual std::vector<Lit> &getAssumption() = 0;
   virtual void pushAssumption(Lit l) = 0;
-  virtual void popAssumption() = 0;
+  virtual void popAssumption(unsigned count = 1) = 0;
   virtual void displayAssumption(std::ostream &out) = 0;
   virtual bool varIsAssigned(Var v) = 0;
   virtual void setNeedModel(bool b) = 0;
