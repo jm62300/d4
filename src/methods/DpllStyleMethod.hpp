@@ -368,6 +368,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   inline void initAssumption(std::vector<Lit> &assums)
   {
     m_solver->restart();
+    m_solver->popAssumption(m_solver->getAssumption().size());
     m_solver->setAssumption(assums);
   } // initAssumption  
 
@@ -511,15 +512,22 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];
-    
+
+    assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);    
     b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);
     m_solver->popAssumption();
 
-    m_solver->pushAssumption(~l);
-    b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
-    m_solver->popAssumption();
-
+    if(m_solver->isInAssumption(l)) b[1].d = m_operation->manageBottom();
+    else if(m_solver->isInAssumption(~l))
+      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
+    else
+    {
+      m_solver->pushAssumption(~l);
+      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
+      m_solver->popAssumption();
+    }
+    
     return m_operation->manageDeterministOr(b, 2);
   }// computeDecisionNode
 

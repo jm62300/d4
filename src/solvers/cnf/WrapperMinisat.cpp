@@ -63,6 +63,7 @@ void WrapperMinisat::initSolver(ProblemManager &p)
   m_activeModel = false;
   m_needModel = false;
   setNeedModel(m_needModel);
+  m_isInAssumption.resize(p.getNbVar() + 1, 0);
 } // initSolver
 
 
@@ -277,6 +278,7 @@ void WrapperMinisat::restart()
  */
 void WrapperMinisat::setAssumption(std::vector<Lit> &assums)
 {
+  popAssumption(m_assumption.size());
   minisat::vec<minisat::Lit> &assumptions = s.assumptions;
   assumptions.clear();
   m_assumption.clear();
@@ -293,6 +295,34 @@ std::vector<Lit> &WrapperMinisat::getAssumption()
 {
   return m_assumption;
 } // getAssumption
+
+
+/**
+   Check out if a variable is already in the assumption.
+
+   @param[in] l, the literal we want to know if it is already in the assumption
+   list.
+
+   \return true if l is in the assumption list, false otherwise.
+ */
+bool WrapperMinisat::isInAssumption(Lit l)
+{
+  return m_isInAssumption[l.var()] == 1 + l.sign();
+} // isInassumption
+
+
+/**
+   Check out if a variable is already in the assumption.
+
+   @param[in] v, the variable we want to know if it is already in the assumption
+   list.
+
+   \return true if v is in the assumption list, false otherwise.
+ */
+bool WrapperMinisat::isInAssumption(Var v)
+{
+  return m_isInAssumption[v];
+} // isInassumption
 
 
 /**
@@ -348,6 +378,8 @@ void WrapperMinisat::pushAssumption(Lit l)
 
   (s.assumptions).push(ml);
   m_assumption.push_back(l);
+  assert(!m_isInAssumption[l.var()]);
+  m_isInAssumption[l.var()] = 1 + l.sign();
 
   if(m_activeModel && m_needModel)
   {
@@ -372,6 +404,12 @@ void WrapperMinisat::pushAssumption(Lit l)
  */
 void WrapperMinisat::popAssumption(unsigned count)
 {
+  for(unsigned i = m_assumption.size() - count ; i<m_assumption.size() ; i++)
+  {
+    assert(m_isInAssumption[m_assumption[i].var()]);
+    m_isInAssumption[m_assumption[i].var()] = 0;
+  }
+  
   m_assumption.resize(m_assumption.size() - count);
   (s.assumptions).shrink_(count);
   (s.cancelUntil)((s.assumptions).size());

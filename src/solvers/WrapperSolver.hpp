@@ -48,6 +48,8 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   virtual std::vector<Lit> &getAssumption() = 0;
   virtual void pushAssumption(Lit l) = 0;
   virtual void popAssumption(unsigned count = 1) = 0;
+  virtual bool isInAssumption(Lit l) = 0;
+  virtual bool isInAssumption(Var l) = 0;
   virtual void displayAssumption(std::ostream &out) = 0;
   virtual bool varIsAssigned(Var v) = 0;
   virtual void setNeedModel(bool b) = 0;
@@ -60,6 +62,8 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   virtual void whichAreUnits(std::vector<Var> &component,
                              std::vector<Lit> &units) = 0;
 
+  unsigned sizeAssumption(){return getAssumption().size();}
+  
   bool warmStart(int iteration, int sizeQuery,
                  std::vector<Var> &setOfVar,
                  std::ostream &out);

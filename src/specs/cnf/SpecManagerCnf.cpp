@@ -144,7 +144,9 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
   freeVar.resize(0);
   
   int nbComponent = 0;
-  for(auto &v : setOfVar)
+  for(auto &v : setOfVar) assert(m_idxComponent[v] == 0);
+  
+  for(const auto v : setOfVar)
   {
     if(m_currentValue[v] != l_Undef || m_idxComponent[v]) continue;
 
@@ -178,10 +180,11 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
   resetUnMark();
   
   varCo.resize(nbComponent);
-  for(auto &v : setOfVar)
+  for(const auto v : setOfVar)
   {
     if(m_idxComponent[v])
     {
+      assert(m_idxComponent[v] <= (int) varCo.size());
       varCo[m_idxComponent[v] - 1].push_back(v);
       notFreeVar.push_back(v);
       assert(nbComponent);
@@ -190,6 +193,8 @@ int SpecManagerCnf::computeConnectedComponent(std::vector< std::vector<Var> > &v
     m_idxComponent[v] = 0;
   }
 
+  for(auto &v : setOfVar) assert(m_idxComponent[v] == 0);
+  
   return nbComponent;
 }// computeConnectedComponent
 

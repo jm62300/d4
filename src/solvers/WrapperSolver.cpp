@@ -111,7 +111,6 @@ bool WrapperSolver::warmStart(int iteration,
   query.clear();
   setAssumption(query);
   restart();
-
   
   out << "c Warm start process ("<< sizeQuery << "): "
       << nbSAT << "/" << iteration << "\n";

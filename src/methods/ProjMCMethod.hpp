@@ -171,10 +171,14 @@ class ProjMCMethod : public MethodManager
 
     std::vector<double> &problemWeightVar = problem->getWeightVar();
     for(unsigned i = 0 ; i<problemWeightVar.size() ; i++)
-      weightVar[i] = problemWeightVar[i];
-    
-    ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
-    p.setClauses(clauses);    
+    {
+      if(m_isProjectedVar[i]) weightVar[i] = problemWeightVar[i];
+      else weightVar[i] = 1; 
+    }
+
+    std::vector<Var> emptySelectedVar;    
+    ProblemManagerCnf p(nbVar, weightLit, weightVar, emptySelectedVar);
+    p.setClauses(clauses);
     
     // create the counter.
     m_out << "c [CONSTRUCTOR] Create an external counter: " << "counting" << "\n";
@@ -184,7 +188,8 @@ class ProjMCMethod : public MethodManager
   
 
   /**
-     Init the SAT solver with a set of clauses (actually two sets).
+     Init the SAT solver with a set of clauses (actually two sets).  Only deals
+     with CNF formula.
 
      @param[in] vm, the option to create the SAT solver.     
      @param[in] problem, the input problem (only used to get information about
@@ -200,8 +205,7 @@ class ProjMCMethod : public MethodManager
   {
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(m_solver);
-
-    // TODO: consider a more general case.
+    
     // prepare the weight vectors and init the problem.
     std::vector<double> weightLit((nbVar + 1) << 1, 1);
     std::vector<double> weightVar(nbVar + 1, 2);
@@ -346,15 +350,13 @@ class ProjMCMethod : public MethodManager
       if(model[i] == l_Undef) continue;
       std::cout << i << "(" << (model[i] == l_True) << ")" << " ";
     }
+    
     std::cout << "\n";
 #endif
     
     for(auto &value : notProjClauses)
     {
-      if(m_specs->litIsAssigned(value.selector))
-      {
-        continue;
-      }
+      if(m_solver->isInAssumption(value.selector.var())) continue;
       
       const std::vector<Lit> &cl = value.clause;
       bool isSAT = false;
@@ -417,6 +419,8 @@ class ProjMCMethod : public MethodManager
       std::vector<Var> &setOfVar,
       std::ostream &out)
   {
+    unsigned initSizeAssumption = m_solver->sizeAssumption();
+    
 #if TEST
     std::cout << "solver assumption\n";
     m_solver->displayAssumption(m_out);
@@ -437,6 +441,13 @@ class ProjMCMethod : public MethodManager
     std::vector<Lit> unitLits;
     m_solver->whichAreUnits(setOfVar, unitLits);
     m_specs->preUpdate(unitLits);
+
+    // add the unit in the assumption.
+    for(auto &l : unitLits)
+    {
+      assert(!m_solver->isInAssumption(~l));
+      if(!m_solver->isInAssumption(l)) m_solver->pushAssumption(l);
+    }
 
     std::vector<Var> reallyPresent, freeVariable;
     std::vector< std::vector<Var> > varConnected;
@@ -465,7 +476,12 @@ class ProjMCMethod : public MethodManager
     {
       // prepare the next assumption.
       std::vector<Lit> nextAssums(m_solver->getAssumption());
-      nextAssums.insert(nextAssums.end(), selector.begin(), selector.end());
+      for(auto &s : selector)
+      {
+        assert(!m_solver->isInAssumption(~s));
+        if(!m_solver->isInAssumption(s)) nextAssums.push_back(s);
+      }
+
 #if TEST
       std::cout << "assums: ";
       for(auto &l : nextAssums) std::cout << l << " ";
@@ -489,25 +505,41 @@ class ProjMCMethod : public MethodManager
       {
 #if TEST
         std::cout << "considered selector " << s << "\n";
-#endif  
+#endif
+        unsigned countPushInAssumption = 0;
         auto &cl = selectorToProjClause[s.var()];
-        for(auto &l : cl) m_solver->pushAssumption(~l);
+        bool isUnsat = false;
+        for(auto &l : cl)
+        {
+          if(m_solver->isInAssumption(l))
+          {
+            isUnsat = true;
+            break;
+          }
+
+          if(!m_solver->isInAssumption(~l))
+          {
+            m_solver->pushAssumption(~l);
+            countPushInAssumption++;
+          }
+        }
         
-        ret += compute_(reallyPresent, out);
+        if(!isUnsat) ret += compute_(reallyPresent, out);
 #if TEST
         std::cout << "Pop assumption : " << cl.size() << "\n";
         m_solver->displayAssumption(m_out);
 #endif        
-        m_solver->popAssumption(cl.size());
+        m_solver->popAssumption(countPushInAssumption);
 #if TEST
         std::cout << "Pop assumption\n";
         m_solver->displayAssumption(m_out);
 #endif        
-        m_solver->pushAssumption(s);
+        if(m_solver->isInAssumption(~s)) break; // UNSAT.
+        if(!m_solver->isInAssumption(s)) m_solver->pushAssumption(s);
       }
 #if TEST
-        std::cout << "Pop assumption selector: " << selector.size() << "\n";
-        m_solver->displayAssumption(m_out);
+      std::cout << "Pop assumption selector: " << selector.size() << "\n";
+      m_solver->displayAssumption(m_out);
 #endif      
       m_solver->popAssumption(selector.size());
 #if TEST
@@ -531,7 +563,8 @@ class ProjMCMethod : public MethodManager
               << "\n";
     std::cout << "ret = " << ret << "\n";
 #endif
-    
+
+    m_solver->popAssumption(m_solver->sizeAssumption() - initSizeAssumption);
     return ret * m_problem->computeWeightUnitFree<T>(unitLits, freeVariable);
   } // compute_
 
