@@ -58,12 +58,14 @@ class ProjMCMethod : public MethodManager
   std::vector<std::vector<Lit>> selectorToProjClause;
   std::vector<bool> m_isProjectedVar;
   std::vector<int> m_marked;
+  std::vector<bool> m_flag;
   std::unordered_map<std::string, Lit> mapProjClSelector;
   std::vector<CoupleNotProjClauseSelector> notProjClauses;
 
   SpecManager *m_specs;
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
+  Cache<T> *m_cache;
  public:
 
   /**
@@ -116,9 +118,16 @@ class ProjMCMethod : public MethodManager
     for(auto &cl : nprojClause) satSolverClauses.push_back(cl);
     initSatSolver(vm, m_problem, satSolverClauses, idxVar - 1);
 
+    // prepare the cache.
+    m_cache = new Cache<T>(vm, idxVar - 1, m_specs, m_out);
+
+    // init the clock time.
+    initTimer();
+
     // prepare the counter.
     initCounter(vm, m_problem, isFloat, projClause, idxVar - 1);
     m_marked.resize(idxVar + 1, -1);
+    m_flag.resize((idxVar + 1) << 1, false);
   } // constructor
 
 
@@ -329,9 +338,6 @@ class ProjMCMethod : public MethodManager
       nprojClause.push_back(clnp);      
     }
   } // manageMixedClauses
-
-
-#define TEST 0
   
   /**
      Extract the selector that correspond to the non projected clauses that are
@@ -341,22 +347,15 @@ class ProjMCMethod : public MethodManager
      @param[out] selector, the returned selector.
    */
   void extractSelectorFalsifiedNProj(
+      std::vector<Var> &setOfVar,
       std::vector<lbool> &model,
       std::vector<Lit> &selector)
-  {  
-#if TEST
-    for(unsigned i = 0 ; i<model.size() ; i++)
-    {
-      if(model[i] == l_Undef) continue;
-      std::cout << i << "(" << (model[i] == l_True) << ")" << " ";
-    }
-    
-    std::cout << "\n";
-#endif
-    
+  {
+    for(auto &v : setOfVar) m_flag[v] = true;    
     for(auto &value : notProjClauses)
     {
       if(m_solver->isInAssumption(value.selector.var())) continue;
+      if(!m_flag[value.selector.var()]) continue;
       
       const std::vector<Lit> &cl = value.clause;
       bool isSAT = false;
@@ -377,9 +376,10 @@ class ProjMCMethod : public MethodManager
         selector.push_back(s);
       }      
     }
-
+    
     // reinit m_marked.
     for(auto &l : selector) m_marked[l.var()] = -1;
+    for(auto &v : setOfVar) m_flag[v] = false;
   } // extractSelectorFalsifiedNProj
 
 
@@ -419,23 +419,12 @@ class ProjMCMethod : public MethodManager
       std::vector<Var> &setOfVar,
       std::ostream &out)
   {
-    unsigned initSizeAssumption = m_solver->sizeAssumption();
-    
-#if TEST
-    std::cout << "solver assumption\n";
-    m_solver->displayAssumption(m_out);
-#endif
-    if(!m_solver->solve(setOfVar))
-    {
-#if TEST
-      std::cout << "UNSAT\n";
-#endif
-      return T(0);
-    }
+    unsigned initSizeAssumption = m_solver->sizeAssumption();    
+    if(!m_solver->solve(setOfVar)) return T(0);
 
     // collect the selectors of the unsatisfied non projected clauses.
     std::vector<Lit> selector;
-    extractSelectorFalsifiedNProj(m_solver->getModel(), selector);
+    extractSelectorFalsifiedNProj(setOfVar, m_solver->getModel(), selector);
 
     // collect unit literals
     std::vector<Lit> unitLits;
@@ -453,116 +442,70 @@ class ProjMCMethod : public MethodManager
     std::vector< std::vector<Var> > varConnected;
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-#if TEST
-    std::cout << "Really present: ";
-    for(auto &v : reallyPresent) std::cout << v << " ";
-    std::cout << "\n";
 
-    std::cout << "Unit: ";
-    for(auto &l : unitLits) std::cout << l << " ";
-    std::cout << "\n";
-
-    std::cout << "free: ";
-    for(auto &v : freeVariable) std::cout << v << " ";
-    std::cout << "\n";
-#endif
     // extract the projected variables.
     std::vector<Var> projectSetOfVar;
     for(auto &v : reallyPresent)
       if(m_isProjectedVar[v]) projectSetOfVar.push_back(v);    
     
     T ret = 1;
-    if(nbComponent && projectSetOfVar.size())
+    if(projectSetOfVar.size())
     {
-      // prepare the next assumption.
-      std::vector<Lit> nextAssums(m_solver->getAssumption());
-      for(auto &s : selector)
+      if(nbComponent > 1)        
       {
-        assert(!m_solver->isInAssumption(~s));
-        if(!m_solver->isInAssumption(s)) nextAssums.push_back(s);
-      }
-
-#if TEST
-      std::cout << "assums: ";
-      for(auto &l : nextAssums) std::cout << l << " ";
-      std::cout << "\n";
-      
-      std::cout << "selector: ";
-      for(auto &l : selector) std::cout << l << " ";
-      std::cout << "\n";
-#endif
-      ret = m_counter->count(reallyPresent, nextAssums, m_outCounter);
-#if TEST
-      std::cout << ret << " <<<\n";
-#endif
-      // reajust the selectors by only keeping the negative.
-      unsigned j = 0;
-      for(unsigned i = 0 ; i<selector.size() ; i++)
-        if(selector[i].sign()) selector[j++] = selector[i];
-      selector.resize(j);
-      
-      for(auto &s : selector)
+        // consider each component independently
+        for(auto &component : varConnected) ret *= compute_(component, out);
+      } else if(nbComponent == 1)
       {
-#if TEST
-        std::cout << "considered selector " << s << "\n";
-#endif
-        unsigned countPushInAssumption = 0;
-        auto &cl = selectorToProjClause[s.var()];
-        bool isUnsat = false;
-        for(auto &l : cl)
+        TmpEntry<T> cb = m_cache->searchInCache(reallyPresent);
+        if(cb.defined) ret = cb.getValue();
+        else
         {
-          if(m_solver->isInAssumption(l))
+          // prepare the next assumption.
+          std::vector<Lit> nextAssums(m_solver->getAssumption());
+          for(auto &s : selector)
           {
-            isUnsat = true;
-            break;
+            assert(!m_solver->isInAssumption(~s));
+            if(!m_solver->isInAssumption(s)) nextAssums.push_back(s);
           }
 
-          if(!m_solver->isInAssumption(~l))
+          ret = m_counter->count(reallyPresent, nextAssums, m_outCounter);
+
+          // reajust the selectors by only keeping the negative.
+          unsigned j = 0;
+          for(unsigned i = 0 ; i<selector.size() ; i++)
+            if(selector[i].sign()) selector[j++] = selector[i];
+          selector.resize(j);
+      
+          for(auto &s : selector)
           {
-            m_solver->pushAssumption(~l);
-            countPushInAssumption++;
-          }
-        }
+            unsigned countPushInAssumption = 0;
+            auto &cl = selectorToProjClause[s.var()];
+            bool isUnsat = false;
+            for(auto &l : cl)
+            {
+              if(m_solver->isInAssumption(l)){isUnsat = true; break;}
+              if(!m_solver->isInAssumption(~l))
+              {
+                m_solver->pushAssumption(~l);
+                countPushInAssumption++;
+              }
+            }
         
-        if(!isUnsat) ret += compute_(reallyPresent, out);
-#if TEST
-        std::cout << "Pop assumption : " << cl.size() << "\n";
-        m_solver->displayAssumption(m_out);
-#endif        
-        m_solver->popAssumption(countPushInAssumption);
-#if TEST
-        std::cout << "Pop assumption\n";
-        m_solver->displayAssumption(m_out);
-#endif        
-        if(m_solver->isInAssumption(~s)) break; // UNSAT.
-        if(!m_solver->isInAssumption(s)) m_solver->pushAssumption(s);
+            if(!isUnsat) ret += compute_(reallyPresent, out);
+            m_solver->popAssumption(countPushInAssumption);
+            if(m_solver->isInAssumption(~s)) break; // UNSAT.
+            if(!m_solver->isInAssumption(s)) m_solver->pushAssumption(s);
+          }
+      
+          m_solver->popAssumption(selector.size());
+          m_cache->addInCache(cb, ret);
+        }
       }
-#if TEST
-      std::cout << "Pop assumption selector: " << selector.size() << "\n";
-      m_solver->displayAssumption(m_out);
-#endif      
-      m_solver->popAssumption(selector.size());
-#if TEST
-      std::cout << "Pop assumption selector\n";
-      m_solver->displayAssumption(m_out);
-#endif
     }
-#if TEST
-    else
-    {
-      std::cout << ret << " >>>\n";
-    }
-#endif
     
     m_specs->postUpdate(unitLits);
     expelNoProjectedElement(unitLits, freeVariable);
-
-#if TEST
-    std::cout << "count free and units: " 
-              << m_problem->computeWeightUnitFree<T>(unitLits, freeVariable)
-              << "\n";
-    std::cout << "ret = " << ret << "\n";
-#endif
 
     m_solver->popAssumption(m_solver->sizeAssumption() - initSizeAssumption);
     return ret * m_problem->computeWeightUnitFree<T>(unitLits, freeVariable);
@@ -580,7 +523,30 @@ class ProjMCMethod : public MethodManager
     for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
     return compute_(setOfVar, out);
   } // compute
-  
+
+
+  /**
+     Print out the final stat.
+     
+     @param[in] out, the stream we use to print out information.
+  */
+  inline void printFinalStats(std::ostream &out)
+  {
+    out << "c [PROJMC] \n";
+    out << "c [PROJMC] \033[1m\033[31mStatistics \033[0m\n";
+    out << "c [PROJMC] \033[33mCompilation Information\033[0m\n";
+    /*
+    out << "c [PROJMC] Number of recursive call: " << nbCallCall << "\n";
+    out << "c [PROJMC] Number of split formula: " << nbSplit << "\n";
+    out << "c [PROJMC] Number of decision: " << nbDecisionNode << "\n";
+    out << "c [PROJMC] Number of paritioner calls: " << callPartitioner << "\n";
+    */
+    out << "c [PROJMC]\n";
+    m_cache->printCacheInformation(out);
+    out << "c [PROJMC] Final time: " << getTimer() << "\n";
+    out << "c\n";    
+  } // printFinalStat
+
   
  public:
   
@@ -591,7 +557,8 @@ class ProjMCMethod : public MethodManager
    */
   void run(po::variables_map &vm)
   {
-    T res = compute(m_out);
+    T res = compute(m_out);    
+    printFinalStats(m_out);
     std::cout << "s " << res << "\n";
   } // run
 };
