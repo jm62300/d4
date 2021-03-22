@@ -30,8 +30,11 @@ namespace d4
 namespace po = boost::program_options;
 class WrapperSolver : public ActivityManager, public PolarityManager
 {
-  private:
+ private:
 
+ protected:
+  std::vector<char> m_isInAssumption;
+  
  public:
   static WrapperSolver *makeWrapperSolver(po::variables_map &vm,
                                           std::ostream &out);
@@ -48,8 +51,6 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   virtual std::vector<Lit> &getAssumption() = 0;
   virtual void pushAssumption(Lit l) = 0;
   virtual void popAssumption(unsigned count = 1) = 0;
-  virtual bool isInAssumption(Lit l) = 0;
-  virtual bool isInAssumption(Var l) = 0;
   virtual void displayAssumption(std::ostream &out) = 0;
   virtual bool varIsAssigned(Var v) = 0;
   virtual void setNeedModel(bool b) = 0;
@@ -67,5 +68,33 @@ class WrapperSolver : public ActivityManager, public PolarityManager
   bool warmStart(int iteration, int sizeQuery,
                  std::vector<Var> &setOfVar,
                  std::ostream &out);
+
+  /**
+     Check out if a variable is already in the assumption.
+
+     @param[in] l, the literal we want to know if it is already in the assumption
+     list.
+
+     \return true if l is in the assumption list, false otherwise.
+  */
+  inline bool isInAssumption(Lit l)
+  {
+    return m_isInAssumption[l.var()] == 1 + l.sign();
+  } // isInassumption
+
+
+  /**
+     Check out if a variable is already in the assumption.
+
+     @param[in] v, the variable we want to know if it is already in the assumption
+     list.
+
+     \return true if v is in the assumption list, false otherwise.
+  */
+  inline bool isInAssumption(Var v)
+  {
+    return m_isInAssumption[v];
+  } // isInassumption
+  
 };
 } // d4

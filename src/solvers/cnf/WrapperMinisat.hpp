@@ -36,9 +36,11 @@ class WrapperMinisat : public WrapperSolver
   
   std::vector<Lit> m_assumption;
   std::vector<lbool> m_model;
-  std::vector<char> m_isInAssumption;
   bool m_activeModel;
   bool m_needModel;
+
+ protected:
+  using WrapperSolver::m_isInAssumption;
   
  public:
   void initSolver(ProblemManager &p);
@@ -55,8 +57,6 @@ class WrapperMinisat : public WrapperSolver
   std::vector<Lit> &getAssumption();
   void pushAssumption(Lit l);  
   void popAssumption(unsigned count);
-  bool isInAssumption(Lit l);
-  bool isInAssumption(Var l);
   void displayAssumption(std::ostream &out);
   void setNeedModel(bool b);
   void showTrail();

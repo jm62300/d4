@@ -42,7 +42,6 @@
 #define DEC_SIZE 3
 
 #define MASK 16383
-#define MASK_HEADER 1048575
 
 namespace d4
 {

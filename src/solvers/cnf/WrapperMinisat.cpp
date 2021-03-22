@@ -298,34 +298,6 @@ std::vector<Lit> &WrapperMinisat::getAssumption()
 
 
 /**
-   Check out if a variable is already in the assumption.
-
-   @param[in] l, the literal we want to know if it is already in the assumption
-   list.
-
-   \return true if l is in the assumption list, false otherwise.
- */
-bool WrapperMinisat::isInAssumption(Lit l)
-{
-  return m_isInAssumption[l.var()] == 1 + l.sign();
-} // isInassumption
-
-
-/**
-   Check out if a variable is already in the assumption.
-
-   @param[in] v, the variable we want to know if it is already in the assumption
-   list.
-
-   \return true if v is in the assumption list, false otherwise.
- */
-bool WrapperMinisat::isInAssumption(Var v)
-{
-  return m_isInAssumption[v];
-} // isInassumption
-
-
-/**
    Print out the assumption.
 
    @param[in] out, the stream where is print the assumption.

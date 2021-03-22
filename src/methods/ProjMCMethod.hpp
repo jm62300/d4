@@ -49,14 +49,22 @@ class ProjMCMethod : public MethodManager
       std::cout << "\n";
     }
   };
+
+  // constants
+  const unsigned c_NB_SEP = 92;
+  const long unsigned c_MASK_HEADER = 1048575;
+  const long unsigned c_MASK_SHOWRUN = ((2<<13) - 1);
+  const unsigned c_WIDTH_PRINT_COLUMN = 12;
   
   std::ostream m_out;
   std::ostream m_outCounter;
   
   ProblemManager *m_problem;
   std::vector<Lit> m_selectors;
-  std::vector<std::vector<Lit>> selectorToProjClause;
+  std::vector<std::vector<Lit>> m_selectorToProjClause;
+  std::vector<std::vector<unsigned>> m_selectorToNProjClause;
   std::vector<bool> m_isProjectedVar;
+  std::vector<bool> m_isSelector;
   std::vector<int> m_marked;
   std::vector<bool> m_flag;
   std::unordered_map<std::string, Lit> mapProjClSelector;
@@ -66,6 +74,9 @@ class ProjMCMethod : public MethodManager
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
   Cache<T> *m_cache;
+
+  long unsigned m_nbCallRec;
+  long unsigned m_nbSplit;
  public:
 
   /**
@@ -78,6 +89,8 @@ class ProjMCMethod : public MethodManager
       bool isFloat, 
       ProblemManager *initProblem) : m_out(nullptr), m_outCounter(nullptr)
   {
+    m_nbCallRec = m_nbSplit = 0;
+    
     // init the output stream
     m_out.copyfmt(std::cout);                          
     m_out.clear(std::cout.rdstate());           
@@ -95,6 +108,8 @@ class ProjMCMethod : public MethodManager
 
     // mark the projected variables.
     m_isProjectedVar.resize(m_problem->getNbVar() + 1, false);
+    m_isSelector.resize(m_problem->getNbVar() + 1, false);
+    
     m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     std::sort(selected.begin(), selected.end());
@@ -319,11 +334,18 @@ class ProjMCMethod : public MethodManager
       else
       {        
         s = Lit::makeLitTrue(nextVar++);
+        if(s.var() >= (int) m_isSelector.size())
+          m_isSelector.resize(s.var() + 1, false);
+        m_isSelector[s.var()] = true;
+        
         mapProjClSelector[key] = s;
         
-        if((int) selectorToProjClause.size() <= s.var())
-          selectorToProjClause.resize(s.var() + 1, std::vector<Lit>());
-        selectorToProjClause[s.var()] = clp;
+        if((int) m_selectorToProjClause.size() <= s.var())
+        {
+          m_selectorToProjClause.resize(s.var() + 1, std::vector<Lit>());
+          m_selectorToNProjClause.resize(s.var() + 1, std::vector<unsigned>());
+        }
+        m_selectorToProjClause[s.var()] = clp;
 
         clp.push_back(s);
         projClause.push_back(clp);
@@ -333,6 +355,7 @@ class ProjMCMethod : public MethodManager
       }
       
       // link the selector to the not projected part of the considered clause.
+      m_selectorToNProjClause[s.var()].push_back(notProjClauses.size());
       notProjClauses.push_back({clnp, s});
       clnp.push_back(~s);
       nprojClause.push_back(clnp);      
@@ -350,36 +373,37 @@ class ProjMCMethod : public MethodManager
       std::vector<Var> &setOfVar,
       std::vector<lbool> &model,
       std::vector<Lit> &selector)
-  {
-    for(auto &v : setOfVar) m_flag[v] = true;    
-    for(auto &value : notProjClauses)
+  {    
+    for(auto &v : setOfVar)      
     {
-      if(m_solver->isInAssumption(value.selector.var())) continue;
-      if(!m_flag[value.selector.var()]) continue;
-      
-      const std::vector<Lit> &cl = value.clause;
-      bool isSAT = false;
-      for(auto &l : cl)
-      {
-        if(model[l.var()] == l_Undef) continue;
-        else if(l.sign()) isSAT = model[l.var()] == l_False;
-        else isSAT = model[l.var()] == l_True;
+      if(!m_isSelector[v]) continue;
+      if(m_solver->isInAssumption(v)) continue;
 
-        if(isSAT) break;
+      for(auto idx : m_selectorToNProjClause[v])
+      {
+        const std::vector<Lit> &cl = notProjClauses[idx].clause;
+        bool isSAT = false;
+        for(auto &l : cl)
+        {
+          if(model[l.var()] == l_Undef) continue;
+          else if(l.sign()) isSAT = model[l.var()] == l_False;
+          else isSAT = model[l.var()] == l_True;
+
+          if(isSAT) break;
+        }
+
+        Lit s = Lit::makeLit(v, !isSAT);
+        if(s.sign() && m_marked[s.var()] != -1) selector[m_marked[s.var()]] = s;
+        else if(m_marked[s.var()] == -1)
+        {
+          m_marked[s.var()] = selector.size();
+          selector.push_back(s);
+        }      
       }
-
-      Lit s = isSAT ? value.selector : ~value.selector;
-      if(s.sign() && m_marked[s.var()] != -1) selector[m_marked[s.var()]] = s;
-      else if(m_marked[s.var()] == -1)
-      {
-        m_marked[s.var()] = selector.size();
-        selector.push_back(s);
-      }      
     }
     
     // reinit m_marked.
-    for(auto &l : selector) m_marked[l.var()] = -1;
-    for(auto &v : setOfVar) m_flag[v] = false;
+    for(auto &l : selector) m_marked[l.var()] = -1;    
   } // extractSelectorFalsifiedNProj
 
 
@@ -419,12 +443,11 @@ class ProjMCMethod : public MethodManager
       std::vector<Var> &setOfVar,
       std::ostream &out)
   {
+    showRun(out); m_nbCallRec++;
+    // if(m_nbCallRec > 100000) exit(0);
+    
     unsigned initSizeAssumption = m_solver->sizeAssumption();    
     if(!m_solver->solve(setOfVar)) return T(0);
-
-    // collect the selectors of the unsatisfied non projected clauses.
-    std::vector<Lit> selector;
-    extractSelectorFalsifiedNProj(setOfVar, m_solver->getModel(), selector);
 
     // collect unit literals
     std::vector<Lit> unitLits;
@@ -455,8 +478,14 @@ class ProjMCMethod : public MethodManager
       {
         // consider each component independently
         for(auto &component : varConnected) ret *= compute_(component, out);
+        
+        m_nbSplit += nbComponent;        
       } else if(nbComponent == 1)
       {
+        // collect the selectors of the unsatisfied non projected clauses.
+        std::vector<Lit> selector;
+        extractSelectorFalsifiedNProj(setOfVar, m_solver->getModel(), selector);
+        
         TmpEntry<T> cb = m_cache->searchInCache(reallyPresent);
         if(cb.defined) ret = cb.getValue();
         else
@@ -480,7 +509,7 @@ class ProjMCMethod : public MethodManager
           for(auto &s : selector)
           {
             unsigned countPushInAssumption = 0;
-            auto &cl = selectorToProjClause[s.var()];
+            auto &cl = m_selectorToProjClause[s.var()];
             bool isUnsat = false;
             for(auto &l : cl)
             {
@@ -523,6 +552,70 @@ class ProjMCMethod : public MethodManager
     for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
     return compute_(setOfVar, out);
   } // compute
+
+
+
+    /**
+     Print out information about the solving process.
+     
+     @param[in] out, the stream we use to print out information.
+  */
+  inline void showInter(std::ostream &out)
+  {
+    out << "c [PROJMC] "
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << m_nbCallRec
+        << std::fixed << std::setprecision(2)
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << getTimer()
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << m_cache->getNbPositiveHit()
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << m_cache->getNbNegativeHit()
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << m_cache->usedMemory()
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << m_nbSplit
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << MemoryStat::memUsedPeak()
+        << "|\n";
+  } // showInter
+
+  /**
+     Print out a line of dashes.
+     
+     @param[in] out, the stream we use to print out information.
+   */
+  inline void separator(std::ostream &out)
+  {
+    out << "c [PROJMC] ";
+    for(unsigned i = 0 ; i<c_NB_SEP ; i++) out << "-";
+    out << "\n";
+  } // separator
+
+  /**
+     Print out the header information.
+     
+     @param[in] out, the stream we use to print out information.
+  */
+  inline void showHeader(std::ostream &out)
+  {
+    separator(out);
+    out << "c [PROJMC] "
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#rec. call"
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "time" 
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#posHit" 
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#negHit"
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "memory"
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#split" 
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "mem(MB)"
+        << "|\n";
+    separator(out);
+  } // showHeader  
+
+  /**
+     Print out information when it is requiered.
+     
+     @param[in] out, the stream we use to print out information.
+   */
+  inline void showRun(std::ostream &out)
+  {
+    if(!(m_nbCallRec & (c_MASK_HEADER))) showHeader(out);
+    if(m_nbCallRec && !(m_nbCallRec & c_MASK_SHOWRUN)) showInter(out);
+  } // showRun
 
 
   /**

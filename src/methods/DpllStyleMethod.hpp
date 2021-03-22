@@ -42,7 +42,7 @@
 #define NB_SEP_MC 118
 #define MASK_SHOWRUN_MC ((2<<13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
-
+#define MASK_HEADER 1048575
 
 #include "OperationManager.hpp"
 #include "CountingOperation.hpp"
