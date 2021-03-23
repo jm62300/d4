@@ -430,6 +430,17 @@ class ProjMCMethod : public MethodManager
     varList.resize(j);
   } // expelNoProjectedElement
 
+
+  /**
+     Try to reduce the number of falsified selector.
+
+     @param[out] selector, the selector list we try to reduce.
+   */
+  void refine(std::vector<Lit> &selector)
+  {
+    
+  } // reduce
+  
   
   /**
      Compute the number of model on the projected variables.
@@ -484,7 +495,8 @@ class ProjMCMethod : public MethodManager
       {
         // collect the selectors of the unsatisfied non projected clauses.
         std::vector<Lit> selector;
-        extractSelectorFalsifiedNProj(setOfVar, m_solver->getModel(), selector);
+        extractSelectorFalsifiedNProj(reallyPresent, m_solver->getModel(), selector);
+        refine(selector);
         
         TmpEntry<T> cb = m_cache->searchInCache(reallyPresent);
         if(cb.defined) ret = cb.getValue();
