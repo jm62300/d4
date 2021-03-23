@@ -8,7 +8,7 @@
 PWD        = $(shell pwd)
 EXEC      ?= $(notdir $(PWD))
 
-CSRCS      = $(wildcard $(PWD)/*.cc) 
+CSRCS      = $(wildcard $(PWD)/*.cc)
 DSRCS      = $(foreach dir, $(DEPDIR), $(filter-out $(MROOT)/$(dir)/Main.cc, $(wildcard $(MROOT)/$(dir)/*.cc)))
 CHDRS      = $(wildcard $(PWD)/*.h)
 COBJS      = $(CSRCS:.cc=.o) $(DSRCS:.cc=.o)
@@ -18,8 +18,8 @@ DCOBJS     = $(addsuffix d,  $(COBJS))
 RCOBJS     = $(addsuffix r,  $(COBJS))
 
 
-CXX       ?= g++
-CFLAGS    ?= -Wall -Wno-parentheses
+CXX       = g++   # you only need to remove ?
+CFLAGS    ?= -Wall -Wno-parentheses -fpermissive
 LFLAGS    ?= -Wall
 
 COPTIMIZE ?= -O3
@@ -27,7 +27,7 @@ COPTIMIZE ?= -O3
 CFLAGS    += -I$(MROOT) -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
 LFLAGS    += -lz
 
-.PHONY : s p d r rs clean 
+.PHONY : s p d r rs clean
 
 s:	$(EXEC)
 p:	$(EXEC)_profile
@@ -69,7 +69,7 @@ lib$(LIB)_release.a:	$(filter-out */Main.or, $(RCOBJS))
 ## Build rule
 %.o %.op %.od %.or:	%.cc
 	@echo Compiling: $(subst $(MROOT)/,,$@)
-	@$(CXX) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CFLAGS) -c -o $@ $<
 
 ## Linking rules (standard/profile/debug/release)
 $(EXEC) $(EXEC)_profile $(EXEC)_debug $(EXEC)_release $(EXEC)_static:
@@ -89,7 +89,7 @@ libs libp libd libr:
 ## Clean rule
 clean:
 	@rm -f $(EXEC) $(EXEC)_profile $(EXEC)_debug $(EXEC)_release $(EXEC)_static \
-	  $(COBJS) $(PCOBJS) $(DCOBJS) $(RCOBJS) *.core depend.mk 
+	  $(COBJS) $(PCOBJS) $(DCOBJS) $(RCOBJS) *.core depend.mk
 
 ## Make dependencies
 depend.mk: $(CSRCS) $(CHDRS)

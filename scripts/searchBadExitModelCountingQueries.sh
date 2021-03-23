@@ -3,7 +3,7 @@
 # $1 the command
 # $2 the timeout
 
-ROOT_PATH=".."
+ROOT_PATH="."
 CNF_GENERATOR="$ROOT_PATH/cnfuzz"
 SOLVER="$ROOT_PATH/minisat"
 
