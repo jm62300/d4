@@ -379,6 +379,7 @@ class ProjMCMethod : public MethodManager
       if(!m_isSelector[v]) continue;
       if(m_solver->isInAssumption(v)) continue;
 
+      bool allSAT = true;
       for(auto idx : m_selectorToNProjClause[v])
       {
         const std::vector<Lit> &cl = notProjClauses[idx].clause;
@@ -392,18 +393,11 @@ class ProjMCMethod : public MethodManager
           if(isSAT) break;
         }
 
-        Lit s = Lit::makeLit(v, !isSAT);
-        if(s.sign() && m_marked[s.var()] != -1) selector[m_marked[s.var()]] = s;
-        else if(m_marked[s.var()] == -1)
-        {
-          m_marked[s.var()] = selector.size();
-          selector.push_back(s);
-        }      
+        if(!(allSAT = isSAT)) break;
       }
+
+      selector.push_back(Lit::makeLit(v, !allSAT));
     }
-    
-    // reinit m_marked.
-    for(auto &l : selector) m_marked[l.var()] = -1;    
   } // extractSelectorFalsifiedNProj
 
 
@@ -434,12 +428,88 @@ class ProjMCMethod : public MethodManager
   /**
      Try to reduce the number of falsified selector.
 
+     @param[in] setOfVar, the set of variableswe consider.
      @param[out] selector, the selector list we try to reduce.
    */
-  void refine(std::vector<Lit> &selector)
+  void refine(
+      std::vector<Var> &setOfVar,
+      std::vector<Lit> &selector)
   {
+    unsigned initSizeAssumption = m_solver->sizeAssumption();
+
+    // split between true and false selector.
+    std::vector<Lit> falseSelector;
+    unsigned j = 0;
+    for(unsigned i = 0 ; i<selector.size() ; i++)
+    {
+      Lit l = selector[i];
+      if(l.sign()) falseSelector.push_back(l);
+      else
+      {
+        selector[j++] = selector[i];
+        assert(!m_solver->isInAssumption(l.var()));
+        m_solver->pushAssumption(l);
+      }
+    }
+    selector.resize(j);
+
+    // reintegrate false selector regarding if it is possible to flip some.    
+    for(unsigned i = 0 ; i<falseSelector.size() ; i++)
+    {
+      Lit l = falseSelector[i];
+      if(m_solver->isInAssumption(l.var()))
+      {
+        selector.push_back(m_solver->isInAssumption(l) ? l : ~l);
+        continue;
+      }
+      
+      m_solver->pushAssumption(~l);
+      if(m_solver->solve(setOfVar))
+      {
+        std::vector<lbool> &model = m_solver->getModel();          
+        selector.push_back(~l);
+        
+        unsigned kj = i + 1;
+        for(unsigned ki = i + 1 ; ki<falseSelector.size() ; ki++)
+        {
+          bool allSAT = true;
+          for(auto idx : m_selectorToNProjClause[falseSelector[ki].var()])
+          {
+            const std::vector<Lit> &cl = notProjClauses[idx].clause;
+            bool isSAT = false;
+            for(auto &kl : cl)
+            {
+              if(model[kl.var()] == l_Undef) continue;
+              else if(kl.sign()) isSAT = model[kl.var()] == l_False;
+              else isSAT = model[kl.var()] == l_True;
+
+              if(isSAT) break;
+            }
+
+            if(!(allSAT = isSAT)) break;
+          }
+
+          if(allSAT)
+          {            
+            selector.push_back(~falseSelector[ki]);
+            assert(!m_solver->isInAssumption(falseSelector[ki]));
+            if(!m_solver->isInAssumption(~falseSelector[ki]))
+              m_solver->pushAssumption(~falseSelector[ki]);
+          }
+          else falseSelector[kj++] = falseSelector[ki];
+        }        
+        falseSelector.resize(kj);
+      }
+      else
+      {
+        selector.push_back(l);
+        m_solver->popAssumption(1);
+        m_solver->pushAssumption(l);
+      }      
+    }
     
-  } // reduce
+    m_solver->popAssumption(m_solver->sizeAssumption() - initSizeAssumption);
+  } // refine
   
   
   /**
@@ -489,14 +559,13 @@ class ProjMCMethod : public MethodManager
       {
         // consider each component independently
         for(auto &component : varConnected) ret *= compute_(component, out);
-        
         m_nbSplit += nbComponent;        
       } else if(nbComponent == 1)
       {
         // collect the selectors of the unsatisfied non projected clauses.
         std::vector<Lit> selector;
         extractSelectorFalsifiedNProj(reallyPresent, m_solver->getModel(), selector);
-        refine(selector);
+        refine(reallyPresent, selector);
         
         TmpEntry<T> cb = m_cache->searchInCache(reallyPresent);
         if(cb.defined) ret = cb.getValue();
@@ -506,10 +575,9 @@ class ProjMCMethod : public MethodManager
           std::vector<Lit> nextAssums(m_solver->getAssumption());
           for(auto &s : selector)
           {
-            assert(!m_solver->isInAssumption(~s));
+            assert(!m_solver->isInAssumption(s.var()));
             if(!m_solver->isInAssumption(s)) nextAssums.push_back(s);
           }
-
           ret = m_counter->count(reallyPresent, nextAssums, m_outCounter);
 
           // reajust the selectors by only keeping the negative.
