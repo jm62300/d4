@@ -55,7 +55,7 @@ template <class T, class U> class Operation
       WrapperSolver *solver,
       std::ostream &out)
   {
-    out << "c [CONSTUCTOR] Operation: "
+    out << "c [CONSTRUCTOR] Operation: "
         << "method(" << meth << ") "
         << "float(" << isFloat<< ")\n";
 

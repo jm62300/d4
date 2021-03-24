@@ -77,6 +77,8 @@ class ProjMCMethod : public MethodManager
 
   long unsigned m_nbCallRec;
   long unsigned m_nbSplit;
+
+  bool m_refinement;
  public:
 
   /**
@@ -109,7 +111,11 @@ class ProjMCMethod : public MethodManager
     // mark the projected variables.
     m_isProjectedVar.resize(m_problem->getNbVar() + 1, false);
     m_isSelector.resize(m_problem->getNbVar() + 1, false);
-    
+
+    m_refinement = vm["projMC-refinement"].as<bool>();
+    m_out << "c [CONSTRUCTOR] ProjMCMethod: refinement("
+          << m_refinement << ")\n";
+
     m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     std::sort(selected.begin(), selected.end());
@@ -565,7 +571,7 @@ class ProjMCMethod : public MethodManager
         // collect the selectors of the unsatisfied non projected clauses.
         std::vector<Lit> selector;
         extractSelectorFalsifiedNProj(reallyPresent, m_solver->getModel(), selector);
-        refine(reallyPresent, selector);
+        if(m_refinement) refine(reallyPresent, selector);
         
         TmpEntry<T> cb = m_cache->searchInCache(reallyPresent);
         if(cb.defined) ret = cb.getValue();
