@@ -52,10 +52,10 @@ private:
   const long unsigned c_MASK_SHOWRUN = ((2 << 13) - 1);
   const unsigned c_WIDTH_PRINT_COLUMN = 12;
 
+  ProblemManager *m_problem;
   std::ostream m_out;
   std::ostream m_outCounter;
 
-  ProblemManager *m_problem;
   std::vector<Lit> m_selectors;
   std::vector<std::vector<Lit>> m_selectorToProjClause;
   std::vector<std::vector<unsigned>> m_selectorToNProjClause;
@@ -83,7 +83,7 @@ public:
      @param[in] vm, the list of options.
    */
   ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem)
-      : m_out(nullptr), m_outCounter(nullptr) {
+      : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr) {
     m_nbCallRec = m_nbSplit = 0;
 
     // init the output stream
@@ -91,35 +91,15 @@ public:
     m_out.clear(std::cout.rdstate());
     m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
 
-    // we call the preproc and we generate the problem used after.
-    PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
-    assert(preproc);
-    m_problem = preproc->run(*initProblem);
-    m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
-             "preprocessed formula\033[0m\n";
-    m_problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
-    m_out << "c\n";
-    assert(m_problem);
-    delete preproc;
-
     // mark the projected variables.
     m_isProjectedVar.resize(m_problem->getNbVar() + 1, false);
     m_isSelector.resize(m_problem->getNbVar() + 1, false);
+    for (auto v : m_problem->getSelectedVar())
+      m_isProjectedVar[v] = true;
 
     m_refinement = vm["projMC-refinement"].as<bool>();
     m_out << "c [CONSTRUCTOR] ProjMCMethod: refinement(" << m_refinement
           << ")\n";
-
-    m_out << "c\n"
-          << "c [PROJECTED VARIABLES] list: ";
-    std::vector<Var> &selected = m_problem->getSelectedVar();
-    std::sort(selected.begin(), selected.end());
-    for (auto v : selected) {
-      m_out << v << " ";
-      m_isProjectedVar[v] = true;
-    }
-    m_out << "\n"
-          << "c\n";
 
     std::vector<std::vector<Lit>> projClause, nprojClause, mix;
     partitionFormula(m_problem, m_isProjectedVar, projClause, nprojClause, mix);
@@ -151,12 +131,10 @@ public:
      Destructor.
    */
   ~ProjMCMethod() {
-    if (m_counter)
-      delete m_counter;
-    if (m_solver)
-      delete m_solver;
-    if (m_specs)
-      delete m_specs;
+    delete m_counter;
+    delete m_solver;
+    delete m_specs;
+    delete m_cache;
     delete m_problem;
   } // destructor
 
@@ -198,14 +176,15 @@ private:
     }
 
     std::vector<Var> emptySelectedVar;
-    ProblemManagerCnf p(nbVar, weightLit, weightVar, emptySelectedVar);
-    p.setClauses(clauses);
+    ProblemManagerCnf *p =
+        new ProblemManagerCnf(nbVar, weightLit, weightVar, emptySelectedVar);
+    p->setClauses(clauses);
 
     // create the counter.
     m_out << "c [CONSTRUCTOR] Create an external counter: "
           << "counting"
           << "\n";
-    m_counter = Counter<T>::makeCounter(vm, &p, "counting", isFloat, precision,
+    m_counter = Counter<T>::makeCounter(vm, p, "counting", isFloat, precision,
                                         m_outCounter);
   } // initCounter
 

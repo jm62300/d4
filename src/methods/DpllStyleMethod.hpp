@@ -101,31 +101,11 @@ public:
    */
   DpllStyleMethod(po::variables_map &vm, std::string &meth, bool isFloat,
                   ProblemManager *initProblem, std::ostream &out)
-      : m_out(nullptr) {
+      : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
-
-    // we call the preproc and we generate the problem used after.
-    PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
-    assert(preproc);
-    m_problem = preproc->run(*initProblem);
-    m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
-             "preprocessed formula\033[0m\n";
-    m_problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
-    m_out << "c\n";
-    assert(m_problem);
-    delete preproc; // the preproc won't be used.
-
-    m_out << "c\n"
-          << "c [PROJECTED VARIABLES] list: ";
-    std::vector<Var> &selected = m_problem->getSelectedVar();
-    std::sort(selected.begin(), selected.end());
-    for (auto v : selected)
-      m_out << v << " ";
-    m_out << "\n"
-          << "c\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
@@ -144,12 +124,13 @@ public:
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
-    m_isDecisionVariable.resize(m_problem->getNbVar() + 1, !selected.size());
-    for (auto v : selected)
+    m_isDecisionVariable.resize(m_problem->getNbVar() + 1,
+                                !m_problem->getNbSelectedVar());
+    for (auto v : m_problem->getSelectedVar())
       m_isDecisionVariable[v] = true;
 
     // select the partioner regarding if it projected model counting or not.
-    if ((m_isProjectedMode = selected.size())) {
+    if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
       m_out << "c [MODE] projected\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
     } else {
