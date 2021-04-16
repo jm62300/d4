@@ -1,63 +1,63 @@
 /*
-* d4
-* Copyright (C) 2020  Univ. Artois & CNRS
-* 
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* 
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-* 
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-#include <ctime>
 #include <boost/program_options.hpp>
+#include <ctime>
+#include <iomanip>
+#include <iostream>
 
-#include "src/heuristics/ScoringMethod.hpp"
-#include "src/heuristics/PhaseHeuristic.hpp"
-#include "src/heuristics/PartitioningHeuristic.hpp"
-#include "src/problem/ProblemManager.hpp"
-#include "src/problem/ProblemTypes.hpp"
-#include "src/preprocs/PreprocManager.hpp"
-#include "src/specs/SpecManager.hpp"
-#include "src/solvers/WrapperSolver.hpp"
-#include "src/caching/TmpEntry.hpp"
 #include "src/caching/Cache.hpp"
 #include "src/caching/CachedBucket.hpp"
+#include "src/caching/TmpEntry.hpp"
+#include "src/heuristics/PartitioningHeuristic.hpp"
+#include "src/heuristics/PhaseHeuristic.hpp"
+#include "src/heuristics/ScoringMethod.hpp"
+#include "src/preprocs/PreprocManager.hpp"
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
+#include "src/solvers/WrapperSolver.hpp"
+#include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
 #include "Counter.hpp"
-#include "MethodManager.hpp"
 #include "DataBranch.hpp"
+#include "MethodManager.hpp"
 
 #define NB_SEP_MC 118
-#define MASK_SHOWRUN_MC ((2<<13) - 1)
+#define MASK_SHOWRUN_MC ((2 << 13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 1048575
 
-#include "OperationManager.hpp"
 #include "CountingOperation.hpp"
 #include "DecisionDNNFOperation.hpp"
+#include "OperationManager.hpp"
 
-namespace d4
-{
+namespace d4 {
 namespace po = boost::program_options;
+template <class T> class Counter;
+
 template <class T, class U>
-class DpllStyleMethod : public MethodManager, public Counter<T>
-{
- private:
+class DpllStyleMethod : public MethodManager, public Counter<T> {
+private:
   bool optDomConst;
   bool optReversePolarity;
-  
+
   unsigned nbCallCall;
   unsigned nbSplit;
   unsigned callPartitioner;
@@ -70,7 +70,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   bool m_isProjectedMode;
 
   std::vector<unsigned> m_stampVar;
-  std::vector< std::vector<Lit> > clauses;
+  std::vector<std::vector<Lit>> clauses;
 
   std::vector<unsigned long> nbTestCacheVarSize;
   std::vector<unsigned long> nbPosHitCacheVarSize;
@@ -82,7 +82,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
-  TmpEntry<U> NULL_CACHE_ENTRY;  
+  TmpEntry<U> NULL_CACHE_ENTRY;
   Cache<U> *m_cache;
 
   std::ostream m_out;
@@ -92,80 +92,78 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   double ratioDynamicLimit;
 
   Operation<T, U> *m_operation;
-  
- public:
 
+public:
   /**
      Constructor.
 
      @param[in] vm, the list of options.
    */
-  DpllStyleMethod(po::variables_map &vm,
-                  std::string &meth,
-                  bool isFloat,
-                  ProblemManager *initProblem,
-                  std::ostream &out) : m_out(nullptr)
-  {
+  DpllStyleMethod(po::variables_map &vm, std::string &meth, bool isFloat,
+                  ProblemManager *initProblem, std::ostream &out)
+      : m_out(nullptr) {
     // init the output stream
-    m_out.copyfmt(out);                          
-    m_out.clear(out.rdstate());           
+    m_out.copyfmt(out);
+    m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
-    
+
     // we call the preproc and we generate the problem used after.
     PreprocManager *preproc = PreprocManager::makePreprocManager(vm, m_out);
     assert(preproc);
     m_problem = preproc->run(*initProblem);
-    m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the preprocessed formula\033[0m\n";
+    m_out << "c [PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
+             "preprocessed formula\033[0m\n";
     m_problem->displayStat(m_out, "c [PREPROCESSED INPUT] ");
     m_out << "c\n";
-    assert(m_problem);    
+    assert(m_problem);
     delete preproc; // the preproc won't be used.
 
-
-    m_out << "c\n" << "c [PROJECTED VARIABLES] list: ";
+    m_out << "c\n"
+          << "c [PROJECTED VARIABLES] list: ";
     std::vector<Var> &selected = m_problem->getSelectedVar();
     std::sort(selected.begin(), selected.end());
-    for(auto v : selected) m_out << v << " ";
-    m_out << "\n" << "c\n";
+    for (auto v : selected)
+      m_out << v << " ";
+    m_out << "\n"
+          << "c\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
-    
+
     // we initialize the object that will give info about the problem.
     m_specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
     assert(m_specs);
-    
+
     // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);    
-    m_hPhase = PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
+    m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);
+    m_hPhase =
+        PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
     m_isDecisionVariable.resize(m_problem->getNbVar() + 1, !selected.size());
-    for(auto v : selected) m_isDecisionVariable[v] = true;
-    
+    for (auto v : selected)
+      m_isDecisionVariable[v] = true;
+
     // select the partioner regarding if it projected model counting or not.
-    if((m_isProjectedMode = selected.size()))
-    {      
+    if ((m_isProjectedMode = selected.size())) {
       m_out << "c [MODE] projected\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
-    }
-    else
-    {
+    } else {
       m_out << "c [MODE] classic\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
           vm, *m_specs, *m_solver, m_out);
     }
-    
-    assert(m_hVar && m_hPhase && m_hCutSet);    
+
+    assert(m_hVar && m_hPhase && m_hCutSet);
     m_cache = new Cache<U>(vm, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
-    
+
     optCached = vm["cache-activated"].as<bool>();
     callPartitioner = 0;
     nbDecisionNode = nbSplit = nbCallCall = 0;
@@ -174,42 +172,38 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     m_staticLimit = vm["cache-limit-static"].as<bool>();
     m_limitUpdateCounter = 0;
 
-    if(m_staticLimit)
-    {
+    if (m_staticLimit) {
       ratioDynamicLimit = 1;
       limitNbVarCache = m_problem->getNbVar();
-    }else
-    {
-      ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();    
+    } else {
+      ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();
       limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
     }
     limitNbVarCacheDynamic = limitNbVarCache;
-    
+
     m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
-          << "static("<< m_staticLimit << ") "
-          << "limit("<< limitNbVarCache << ") "
-          << "ratio("<< ratioDynamicLimit << ") "
-          << "limitDyn("<< limitNbVarCacheDynamic << ") "
+          << "static(" << m_staticLimit << ") "
+          << "limit(" << limitNbVarCache << ") "
+          << "ratio(" << ratioDynamicLimit << ") "
+          << "limitDyn(" << limitNbVarCacheDynamic << ") "
           << "freq update(" << m_limitUpdate << ") "
           << "\n";
-    
+
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
     nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
-    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);    
+    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
 
-    void *op = Operation<T, U>::makeOperationManager(
-        meth, isFloat, m_problem, m_specs, m_solver, m_out);
+    void *op = Operation<T, U>::makeOperationManager(meth, isFloat, m_problem,
+                                                     m_specs, m_solver, m_out);
     m_operation = static_cast<Operation<T, U> *>(op);
     m_out << "c\n";
   } // constructor
 
-
   /**
      Destructor.
    */
-  ~DpllStyleMethod()
-  {
+  ~DpllStyleMethod() {
     delete m_operation;
     delete m_problem;
     delete m_solver;
@@ -220,29 +214,26 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     delete m_cache;
   } // destructor
 
-
- private:
-
+private:
   /**
      Expel from a set of variables the ones they are marked as being decidable.
 
      @param[out] vars, the set of variables we search to filter.
-     
+
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDesionVar(
-      std::vector<Var> &vars,
-      std::vector<bool> &isDecisionVariable)
-  {
-    if(!m_isProjectedMode) return;    
+  void expelNoDesionVar(std::vector<Var> &vars,
+                        std::vector<bool> &isDecisionVariable) {
+    if (!m_isProjectedMode)
+      return;
     unsigned j = 0;
-    for(unsigned i = 0 ; i<vars.size() ; i++)
-      if(isDecisionVariable[vars[i]]) vars[j++] = vars[i];
+    for (unsigned i = 0; i < vars.size(); i++)
+      if (isDecisionVariable[vars[i]])
+        vars[j++] = vars[i];
     vars.resize(j);
   } // expelNoDesionVar
 
-  
   /**
      Compute the current priority set.
 
@@ -252,93 +243,88 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
   */
   inline void computePrioritySubSet(std::vector<Var> &connected,
                                     std::vector<Var> &priorityVar,
-                                    std::vector<Var> &currPriority)
-  {
+                                    std::vector<Var> &currPriority) {
     currPriority.clear();
     m_stampIdx++;
-    for(auto &v : connected) m_stampVar[v] = m_stampIdx;
-    for(auto &v : priorityVar)
-      if(m_stampVar[v] == m_stampIdx && !m_specs->varIsAssigned(v))
+    for (auto &v : connected)
+      m_stampVar[v] = m_stampIdx;
+    for (auto &v : priorityVar)
+      if (m_stampVar[v] == m_stampIdx && !m_specs->varIsAssigned(v))
         currPriority.push_back(v);
   } // computePrioritySet
 
-
   /**
      Print out information about the solving process.
-     
+
      @param[in] out, the stream we use to print out information.
   */
-  inline void showInter(std::ostream &out)
-  {
+  inline void showInter(std::ostream &out) {
     out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbCallCall
-        << std::fixed << std::setprecision(2)
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbPositiveHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbNegativeHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbCallCall << std::fixed
+        << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << m_cache->getNbPositiveHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbNegativeHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
-        
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
+
         << "|\n";
   } // showInter
 
   /**
      Print out a line of dashes.
-     
+
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out)
-  {
+  inline void separator(std::ostream &out) {
     out << "c ";
-    for(int i = 0 ; i<NB_SEP_MC ; i++) out << "-";
+    for (int i = 0; i < NB_SEP_MC; i++)
+      out << "-";
     out << "\n";
   } // separator
 
   /**
      Print out the header information.
-     
+
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out)
-  {
+  inline void showHeader(std::ostream &out) {
     separator(out);
     out << "c "
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#compile"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" 
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" 
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter"
         << "|\n";
     separator(out);
   } // showHeader
 
-
   /**
      Print out information when it is requiered.
-     
+
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out)
-  {
-    if(!(nbCallCall & (MASK_HEADER))) showHeader(out);
-    if(nbCallCall && !(nbCallCall & MASK_SHOWRUN_MC)) showInter(out);
+  inline void showRun(std::ostream &out) {
+    if (!(nbCallCall & (MASK_HEADER)))
+      showHeader(out);
+    if (nbCallCall && !(nbCallCall & MASK_SHOWRUN_MC))
+      showInter(out);
   } // showRun
-
 
   /**
      Print out the final stat.
-     
+
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out)
-  {
+  inline void printFinalStats(std::ostream &out) {
     separator(out);
     out << "c\n";
     out << "c \033[1m\033[31mStatistics \033[0m\n";
@@ -349,15 +335,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     out << "c Number of paritioner calls: " << callPartitioner << "\n";
     out << "c\n";
     m_cache->printCacheInformation(out);
-    if(m_hCutSet)
-    {
+    if (m_hCutSet) {
       out << "c\n";
       m_hCutSet->displayStat(out);
     }
     out << "c Final time: " << getTimer() << "\n";
-    out << "c\n";    
+    out << "c\n";
   } // printFinalStat
-
 
   /**
      Initialize the assumption in order to compute compiled formula under this
@@ -365,46 +349,44 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
 
      @param[in] assums, the assumption
   */
-  inline void initAssumption(std::vector<Lit> &assums)
-  {
+  inline void initAssumption(std::vector<Lit> &assums) {
     m_solver->restart();
     m_solver->popAssumption(m_solver->getAssumption().size());
     m_solver->setAssumption(assums);
-  } // initAssumption  
-
+  } // initAssumption
 
   /**
      Decide if the cache is realized or not.
    */
-  bool cacheIsActivated(std::vector<Var> &connected)
-  {
-    if(!optCached) return false;
-    if(connected.size() < limitNbVarCache) return true;
-    if(connected.size() < limitNbVarCacheDynamic) return true;
+  bool cacheIsActivated(std::vector<Var> &connected) {
+    if (!optCached)
+      return false;
+    if (connected.size() < limitNbVarCache)
+      return true;
+    if (connected.size() < limitNbVarCacheDynamic)
+      return true;
     return false;
   } // cacheIsActivated
-
 
   /**
      Update the dynamic limit.
    */
-  void updateDynamicLimit()
-  {
+  void updateDynamicLimit() {
     limitNbVarCacheDynamic = 0;
-    if(m_staticLimit) return;
-    
-    for(unsigned i = 0 ; i<nbPosHitCacheVarSize.size() ; i++)
-    {
-      if(nbPosHitCacheVarSize[i]) limitNbVarCacheDynamic = i;
-      nbPosHitCacheVarSize[i] >>= 1;      
+    if (m_staticLimit)
+      return;
+
+    for (unsigned i = 0; i < nbPosHitCacheVarSize.size(); i++) {
+      if (nbPosHitCacheVarSize[i])
+        limitNbVarCacheDynamic = i;
+      nbPosHitCacheVarSize[i] >>= 1;
     }
-    
+
     limitNbVarCacheDynamic *= ratioDynamicLimit;
-    m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic
-          << "/" << limitNbVarCache << "\n";
+    m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic << "/"
+          << limitNbVarCache << "\n";
   } // updateDynamicLimit
-  
-  
+
   /**
      Call the CNF formula into a D-FPiBDD.
 
@@ -418,148 +400,138 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
      \return an element of type U that sums up the given CNF sub-formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute_(std::vector<Var> &setOfVar,
-             std::vector<Lit> &unitsLit,
-             std::vector<Var> &freeVariable,
-             std::vector<Var> &priorityVar,
-             std::ostream &out)
-  {
-    showRun(out); nbCallCall++;
+  U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
+             std::vector<Var> &freeVariable, std::vector<Var> &priorityVar,
+             std::ostream &out) {
+    showRun(out);
+    nbCallCall++;
     // if(nbCallCall > 130000) {exit(0);}
-    
-    if(!m_solver->solve(setOfVar)) return m_operation->manageBottom();
+
+    if (!m_solver->solve(setOfVar))
+      return m_operation->manageBottom();
     m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     m_specs->preUpdate(unitsLit);
-    
+
     // compute the connected composant
     std::vector<Var> reallyPresent;
-    std::vector< std::vector<Var> > varConnected;
-    
+    std::vector<std::vector<Var>> varConnected;
+
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
     expelNoDesionVar(freeVariable, m_isDecisionVariable);
 
-    if(++m_limitUpdateCounter > m_limitUpdate)
-    {
+    if (++m_limitUpdateCounter > m_limitUpdate) {
       updateDynamicLimit();
       m_limitUpdateCounter = 0;
     }
 
     // consider each connected component.
     U ret = m_operation->createTop();
-    if(nbComponent)
-    {
-      U tab[nbComponent];      
+    if (nbComponent) {
+      U tab[nbComponent];
       nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      for(int cp = 0 ; cp<nbComponent ; cp++)
-      {
+      for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         bool cacheActivated = cacheIsActivated(connected);
-        
+
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
-                         : NULL_CACHE_ENTRY;
-        
-        if(cacheActivated) nbTestCacheVarSize[connected.size()]++;
-        if(cacheActivated && cb.defined)
-        {
+                                        : NULL_CACHE_ENTRY;
+
+        if (cacheActivated)
+          nbTestCacheVarSize[connected.size()]++;
+        if (cacheActivated && cb.defined) {
           nbPosHitCacheVarSize[connected.size()]++;
           tab[cp] = cb.getValue();
-        }
-        else
-        {
+        } else {
           // recursive call
-          std::vector<Var> currPriority;          
+          std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
 
           tab[cp] = computeDecisionNode(connected, currPriority, out);
-          if(cacheActivated) m_cache->addInCache(cb, tab[cp]);
+          if (cacheActivated)
+            m_cache->addInCache(cb, tab[cp]);
         }
       }
 
       ret = m_operation->manageDecomposableAnd(tab, nbComponent);
-    }// else we have a tautology
+    } // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
     return ret;
-  }// compute_ 
-
+  } // compute_
 
   /**
      This function select a variable and compile a decision node.
 
      @param[in] connected, the set of variable present in the current problem.
      @param[in] priorityVar, a list of variable we want to branch first.
-     
+
      \return the compiled formula.
   */
   U computeDecisionNode(std::vector<Var> &connected,
-                        std::vector<Var> &priorityVar,
-                        std::ostream &out)
-  {
-    if(!priorityVar.size() && m_hCutSet->isReady(connected))
-      {
-        m_hCutSet->computeCutSet(connected, priorityVar);
-        callPartitioner++;
-      }    
+                        std::vector<Var> &priorityVar, std::ostream &out) {
+    if (!priorityVar.size() && m_hCutSet->isReady(connected)) {
+      m_hCutSet->computeCutSet(connected, priorityVar);
+      callPartitioner++;
+    }
 
     // search the next variable to branch on
     std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
     Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVariable);
 
-    if(v == var_Undef) return m_operation->manageTop(connected);
+    if (v == var_Undef)
+      return m_operation->manageTop(connected);
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
-    nbDecisionNode++;    
-    
+    nbDecisionNode++;
+
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];
 
     assert(!m_solver->isInAssumption(l.var()));
-    m_solver->pushAssumption(l);    
-    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);
+    m_solver->pushAssumption(l);
+    b[0].d =
+        compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);
     m_solver->popAssumption();
 
-    if(m_solver->isInAssumption(l)) b[1].d = m_operation->manageBottom();
-    else if(m_solver->isInAssumption(~l))
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
-    else
-    {
+    if (m_solver->isInAssumption(l))
+      b[1].d = m_operation->manageBottom();
+    else if (m_solver->isInAssumption(~l))
+      b[1].d =
+          compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
+    else {
       m_solver->pushAssumption(~l);
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
+      b[1].d =
+          compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
       m_solver->popAssumption();
     }
-    
-    return m_operation->manageDeterministOr(b, 2);
-  }// computeDecisionNode
 
-  
+    return m_operation->manageDeterministOr(b, 2);
+  } // computeDecisionNode
+
   /**
      Compute U using the trace of a SAT solver.
 
      @param[in] setOfVar, the set of variables of the considered problem.
-     @param[in] out, the stream are is print out the logs.     
+     @param[in] out, the stream are is print out the logs.
      @param[in] warmStart, to activate/deactivate the warm start strategy.
      /!\ When the warm strat is activated we the assumptions are reset.
-     
+
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute(
-      std::vector<Var> &setOfVar,
-      std::ostream &out,
-      bool warmStart = true)
-  {    
-    if(m_problem->isUnsat() ||
-       (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
+  U compute(std::vector<Var> &setOfVar, std::ostream &out,
+            bool warmStart = true) {
+    if (m_problem->isUnsat() ||
+        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
 
     std::vector<Var> priorityVar;
     DataBranch<U> b;
-    b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);    
+    b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);
     return m_operation->manageBranch(b);
-  }// compute
+  } // compute
 
- public:
-
+public:
   /**
      Given an assumption, we compute the number of models.  That is different
      from the query strategy, where we first compute and then condition the
@@ -572,11 +544,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
      \return the number of models when the formula is simplified by the given
      assumption.
    */
-  T count(
-      std::vector<Var> &setOfVar,
-      std::vector<Lit> &assumption,
-      std::ostream &out)
-  {
+  T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
+          std::ostream &out) {
     /*
     std::cout << "In the counter\n";
     m_solver->displayAssumption(m_out);
@@ -586,10 +555,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     // get the unit not in setOfVar.
     std::vector<Lit> shadowUnits;
     m_stampIdx++;
-    for(auto &v : setOfVar) m_stampVar[v] = m_stampIdx;
-    for(auto &l : assumption)
-      if(m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
-    
+    for (auto &v : setOfVar)
+      m_stampVar[v] = m_stampIdx;
+    for (auto &l : assumption)
+      if (m_stampVar[l.var()] != m_stampIdx)
+        shadowUnits.push_back(l);
+
     m_specs->preUpdate(shadowUnits);
     /*
     std::cout << "trail in spec.\n";
@@ -601,22 +572,22 @@ class DpllStyleMethod : public MethodManager, public Counter<T>
     std::cout << "after still in the counter\n";
     m_solver->displayAssumption(m_out);
     */
-    return m_operation->count(result); //result;
-  } // count
-  
+    return m_operation->count(result); // result;
+  }                                    // count
+
   /**
      Run the DPLL style algorithm with the operation manager.
 
      @param[in] vm, the set of options.
    */
-  void run(po::variables_map &vm)
-  {
+  void run(po::variables_map &vm) {
     std::vector<Var> setOfVar;
-    for(int i = 1 ; i <= m_specs->getNbVariable() ; i++) setOfVar.push_back(i);
-    
+    for (int i = 1; i <= m_specs->getNbVariable(); i++)
+      setOfVar.push_back(i);
+
     U result = compute(setOfVar, m_out);
     printFinalStats(m_out);
     m_operation->manageResult(result, vm, m_out);
   } // run
 };
-} // d4
+} // namespace d4

@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "src/methods/MethodManager.hpp"
-
 #include <boost/multiprecision/gmp.hpp>
 
 /**

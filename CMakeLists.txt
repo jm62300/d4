@@ -62,7 +62,7 @@ else()
   add_executable(d4 ${SRCS} ${HEADERS})
 
   message("Classical mode activated")
-  target_compile_options(d4 PUBLIC -std=c++11 -Wall -O3 -Wno-class-memaccess)
+  target_compile_options(d4 PUBLIC -std=c++11 -Wall -O3 -Wno-class-memaccess -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
