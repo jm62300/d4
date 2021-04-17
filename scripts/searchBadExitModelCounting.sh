@@ -10,7 +10,7 @@ SOLVER="$ROOT_PATH/minisat"
 TIMEOUT=$2
 if [ "$TIMEOUT" == "" ]; then TIMEOUT=1; fi
 
-LIMIT_SIZE=100
+LIMIT_SIZE=500
 
 isExecutableReady()
 {

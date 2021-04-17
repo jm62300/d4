@@ -390,6 +390,7 @@ private:
 
     if (!m_solver->solve(setOfVar))
       return m_operation->manageBottom();
+
     m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     m_specs->preUpdate(unitsLit);
 
@@ -449,19 +450,20 @@ private:
 
      \return the compiled formula.
   */
-  U computeDecisionNode(std::vector<Var> &connected,
-                        std::vector<Var> &priorityVar, std::ostream &out) {
-    if (!priorityVar.size() && m_hCutSet->isReady(connected)) {
-      m_hCutSet->computeCutSet(connected, priorityVar);
+  U computeDecisionNode(std::vector<Var> &connected, std::vector<Var> &priority,
+                        std::ostream &out) {
+    if (!priority.size() && m_hCutSet->isReady(connected)) {
+      m_hCutSet->computeCutSet(connected, priority);
       callPartitioner++;
     }
 
     // search the next variable to branch on
-    std::vector<Var> &inVars = (priorityVar.size()) ? priorityVar : connected;
+    std::vector<Var> &inVars = (priority.size()) ? priority : connected;
     Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVariable);
 
     if (v == var_Undef)
       return m_operation->manageTop(connected);
+
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     nbDecisionNode++;
 
@@ -470,19 +472,16 @@ private:
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d =
-        compute_(connected, b[0].unitLits, b[0].freeVars, priorityVar, out);
+    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priority, out);
     m_solver->popAssumption();
 
     if (m_solver->isInAssumption(l))
       b[1].d = m_operation->manageBottom();
     else if (m_solver->isInAssumption(~l))
-      b[1].d =
-          compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
+      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priority, out);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d =
-          compute_(connected, b[1].unitLits, b[1].freeVars, priorityVar, out);
+      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priority, out);
       m_solver->popAssumption();
     }
 
