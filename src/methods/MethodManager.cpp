@@ -24,7 +24,6 @@
 
 #include "DpllStyleMethod.hpp"
 #include "MethodManager.hpp"
-#include "MixedProjMCMethod.hpp"
 #include "ProjMCMethod.hpp"
 
 #include "OperationManager.hpp"
@@ -103,15 +102,6 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
     if (!isFloat)
       return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem);
     return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem);
-  }
-
-  if (meth == "mixedProjMC") {
-    if (!isFloat)
-      return new MixedProjMCMethod<mpz::mpz_int, mpz::mpz_int>(
-          vm, meth, isFloat, runProblem, out);
-    else
-      return new MixedProjMCMethod<mpz::mpf_float, mpz::mpf_float>(
-          vm, meth, isFloat, runProblem, out);
   }
 
   throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));
