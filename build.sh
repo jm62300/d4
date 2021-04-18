@@ -32,7 +32,7 @@ then
     if ! [ -f 3rdParty/glucose-3.0/core/lib_static.a ]
     then
         cd 3rdParty/glucose-3.0/core/
-        make libr       
+        make libst       
     fi
 else
     if ! [ -f 3rdParty/glucose-3.0/core/lib_standard.a ]

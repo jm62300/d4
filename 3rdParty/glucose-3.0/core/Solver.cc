@@ -229,6 +229,7 @@ Var Solver::newVar(bool sign, bool dvar) {
   inTheHeap.push(0);
   permDiff.push(0);
   polarity.push(sign);
+  problemVariable.push(v);
   decision.push();
   trail.capacity(v + 1);
   setDecisionVar(v, dvar);
@@ -1139,12 +1140,14 @@ void Solver::removeSatisfied(vec<CRef> &cs) {
 }
 
 void Solver::rebuildOrderHeap() {
-  vec<Var> vs;
-  for (Var v = 0; v < nVars(); v++)
+  vsRebuildOrderHeap.setSize(0);
+  for (int i = 0; i < problemVariable.size(); i++) {
+    Var v = problemVariable[i];
     if (decision[v] && value(v) == l_Undef)
-      vs.push(v);
-  order_heap.build(vs);
-}
+      vsRebuildOrderHeap.push(v);
+  }
+  order_heap.build(vsRebuildOrderHeap);
+} // rebuildOrderHeap
 
 /*_________________________________________________________________________________________________
 |
@@ -1459,7 +1462,7 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
     fclose(certifiedOutput);
   }
 
-  if (status == l_True) {
+  if (needModel && status == l_True) {
     // Extend & copy model:
     model.growTo(nVars());
     for (int i = 0; i < nVars(); i++)

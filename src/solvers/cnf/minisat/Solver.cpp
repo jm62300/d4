@@ -114,11 +114,6 @@ Var Solver::newVar(bool sign, bool dvar) {
   flags.push(0);
 
   problemVariable.push(v);
-
-  alreadyConsidered.push(false);
-  toUnConsidered.push(false);
-  wasConsideredOcc.push(false);
-
   model.push(l_Undef);
   saveFree.push(0);
   currentModel.push(l_False);
@@ -279,8 +274,6 @@ void Solver::cancelUntil(int lev) {
   if (decisionLevel() > lev) {
     for (int c = trail.size() - 1; c >= trail_lim[lev]; c--) {
       Var x = var(trail[c]);
-      // printf("toUnConsidered[%d] = %d\n", x + 1, wasConsideredOcc[x]);
-      toUnConsidered[x] = wasConsideredOcc[x];
 
       assigns[x] = l_Undef;
       polarity[x] = sign(trail[c]);
@@ -616,11 +609,6 @@ void Solver::uncheckedEnqueue(Lit p, CRef from) {
   assigns[v] = lbool(!sign(p));
   vardata[v] = mkVarData(from, decisionLevel());
   trail.push_(p);
-
-  if (!alreadyConsidered[v] && level(v) <= assumptions.size()) {
-    mustBeConsidered.push(p);
-    alreadyConsidered[v] = true;
-  }
 
   if (cert != nullptr && !decisionLevel()) {
     idxClausesCpt++;

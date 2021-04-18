@@ -426,7 +426,6 @@ public:
   }
 
   // added to be linked with d4.
-
   vec<double> scoreActivity;
   vec<Var> problemVariable;
   vec<Var> vsRebuildOrderHeap;

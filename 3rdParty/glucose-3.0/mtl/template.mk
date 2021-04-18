@@ -39,17 +39,18 @@ libs:	lib$(LIB)_standard.a
 libp:	lib$(LIB)_profile.a
 libd:	lib$(LIB)_debug.a
 libr:	lib$(LIB)_release.a
+libst:	lib$(LIB)_static.a
 
 ## Compile options
 %.o:			CFLAGS +=$(COPTIMIZE) -g -D DEBUG 
 %.op:			CFLAGS +=$(COPTIMIZE) -pg -g -D NDEBUG
-%.od:			CFLAGS +=-O0 -g -D DEBUG
+%.od:			CFLAGS +=-O2 -g -pg -D DEBUG
 %.or:			CFLAGS +=$(COPTIMIZE) -g -D NDEBUG
 
 ## Link options
 $(EXEC):		LFLAGS += -g
 $(EXEC)_profile:	LFLAGS += -g -pg
-$(EXEC)_debug:		LFLAGS += -g
+$(EXEC)_debug:		LFLAGS += -g -pg
 #$(EXEC)_release:	LFLAGS += ...
 $(EXEC)_static:		LFLAGS += --static
 
@@ -64,6 +65,7 @@ lib$(LIB)_standard.a:	$(filter-out */Main.o,  $(COBJS))
 lib$(LIB)_profile.a:	$(filter-out */Main.op, $(PCOBJS))
 lib$(LIB)_debug.a:	$(filter-out */Main.od, $(DCOBJS))
 lib$(LIB)_release.a:	$(filter-out */Main.or, $(RCOBJS))
+lib$(LIB)_static.a:	$(filter-out */Main.or, $(RCOBJS))
 
 
 ## Build rule
@@ -77,12 +79,12 @@ $(EXEC) $(EXEC)_profile $(EXEC)_debug $(EXEC)_release $(EXEC)_static:
 	@$(CXX) $^ $(LFLAGS) -o $@
 
 ## Library rules (standard/profile/debug/release)
-lib$(LIB)_standard.a lib$(LIB)_profile.a lib$(LIB)_release.a lib$(LIB)_debug.a:
+lib$(LIB)_standard.a lib$(LIB)_profile.a lib$(LIB)_release.a lib$(LIB)_debug.a lib$(LIB)_static.a:
 	@echo Making library: "$@ ( $(foreach f,$^,$(subst $(MROOT)/,,$f)) )"
 	@$(AR) -rcsv $@ $^
 
 ## Library Soft Link rule:
-libs libp libd libr:
+libs libp libd libr libst:
 	@echo "Making Soft Link: $^ -> lib$(LIB).a"
 	@ln -sf $^ lib$(LIB).a
 

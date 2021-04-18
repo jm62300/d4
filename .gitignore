@@ -5,6 +5,11 @@ CMakeCache.txt
 rules.ninja
 cmake_install.cmake
 src/cmake_install.cmake
+scripts/cnfuzz
+scripts/minisat
+scripts/gmon.out
+.cache/
+.vscode/
 CMakeFiles
 *.o
 *.a

@@ -400,13 +400,6 @@ public:
   vec<vec<int>> occGtThree;
   bool occGtThreeInit;
 
-  // this variables are used to keep the integrity of the occurence list
-  vec<bool> alreadyConsidered;
-  vec<Lit> mustBeConsidered;
-  vec<bool> toUnConsidered;
-  vec<Lit> heapConsideredOcc;
-  vec<bool> wasConsideredOcc;
-
   vec<Var> problemVariable;
 
 private:
