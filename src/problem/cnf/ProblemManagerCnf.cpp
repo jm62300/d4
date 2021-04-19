@@ -89,6 +89,24 @@ ProblemManager *ProblemManagerCnf::getUnsatProblem() {
 } // getUnsatProblem
 
 /**
+ * @brief Simplify the formula by unit propagation and return the resulting CNF
+ * formula.
+ *
+ * @param units is the set of unit literals we want to condition with.
+ * @return the simplified formula.
+ */
+ProblemManager *
+ProblemManagerCnf::getConditionedFormula(std::vector<Lit> &units) {
+  ProblemManagerCnf *ret =
+      new ProblemManagerCnf(m_nbVar, m_weightLit, m_weightVar, m_selected);
+
+  for (auto cl : m_clauses)
+    ret->getClauses().push_back(cl);
+
+  return ret;
+} // getConditionedFormula
+
+/**
    Display the problem.
 
    @param[out] out, the stream where the messages are redirected.

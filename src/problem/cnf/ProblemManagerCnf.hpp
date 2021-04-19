@@ -40,5 +40,6 @@ public:
   }
   void displayStat(std::ostream &out, std::string startLine) override;
   ProblemManager *getUnsatProblem() override;
+  ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 };
 } // namespace d4

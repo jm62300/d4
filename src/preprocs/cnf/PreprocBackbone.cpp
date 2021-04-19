@@ -41,15 +41,11 @@ PreprocBackbone::~PreprocBackbone() { delete ws; } // destructor
  */
 ProblemManager *PreprocBackbone::run(ProblemManager &pin) {
   ws->initSolver(pin);
-  ProblemManagerCnf *pout =
-      new ProblemManagerCnf(pin.getNbVar(), pin.getWeightLit(),
-                            pin.getWeightVar(), pin.getSelectedVar());
-
   if (!ws->solve())
     return pin.getUnsatProblem();
 
-  ws->getSimplifiedFormula(*pout);
-
-  return pout;
+  std::vector<Lit> units;
+  ws->getUnits(units);
+  return pin.getConditionedFormula(units);
 } // run
 } // namespace d4

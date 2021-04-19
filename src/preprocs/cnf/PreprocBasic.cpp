@@ -42,36 +42,11 @@ PreprocBasic::~PreprocBasic() { delete ws; } // destructor
  */
 ProblemManager *PreprocBasic::run(ProblemManager &pin) {
   ws->initSolver(pin);
-  ProblemManagerCnf *pout =
-      new ProblemManagerCnf(pin.getNbVar(), pin.getWeightLit(),
-                            pin.getWeightVar(), pin.getSelectedVar());
+  if (!ws->solve())
+    return pin.getUnsatProblem();
 
-  try {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pout);
-
-    if (!ws->solve()) // p is UNSAT
-    {
-      std::vector<std::vector<Lit>> &ret = pcnf.getClauses();
-      ret.clear();
-
-      std::vector<Lit> cl;
-      Lit l = Lit::makeLit(1, false);
-
-      cl.push_back(l);
-      ret.push_back(cl);
-
-      cl[0] = l.neg();
-      ret.push_back(cl);
-      pout->isUnsat(true);
-    } else // SAT: extract the clauses from the solver.
-    {
-      ws->getSimplifiedFormula(*pout);
-    }
-  } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
-  }
-
-  return pout;
+  std::vector<Lit> units;
+  ws->getUnits(units);
+  return pin.getConditionedFormula(units);
 } // run
 } // namespace d4
