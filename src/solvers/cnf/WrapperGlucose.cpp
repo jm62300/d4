@@ -230,6 +230,19 @@ void WrapperGlucose::whichAreUnits(std::vector<Var> &component,
 } // whichAreUnits
 
 /**
+ * @brief Get the list of unit literals that are in the trail (we suppose that
+ * the decision level is zero).
+ *
+ * @param[out] units is the list of unit literals.
+ */
+void WrapperGlucose::getUnits(std::vector<Lit> &units) {
+  for (int i = 0; i < s.trail.size(); i++) {
+    Glucose::Lit l = s.trail[i];
+    units.push_back(Lit::makeLit(var(l), sign(l)));
+  }
+} // getUnits
+
+/**
    Check out if the given variable is assigned or not by the solver.
 
    @param[in] v, the variable we search for.

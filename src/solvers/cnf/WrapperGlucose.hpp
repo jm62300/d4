@@ -56,6 +56,7 @@ public:
   void setNeedModel(bool b);
   void showTrail();
   std::vector<lbool> &getModel();
+  void getUnits(std::vector<Lit> &units);
 
   double getActivity(Var v);
   double getCountConflict(Var v);

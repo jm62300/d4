@@ -17,28 +17,22 @@
  */
 #pragma once
 
-#include "../ProblemManager.hpp"
-#include "../ProblemTypes.hpp"
+#include <boost/program_options.hpp>
+#include <vector>
+
+#include "../PreprocManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-class ProblemManagerCnf : public ProblemManager {
+namespace po = boost::program_options;
+class PreprocBasic : public PreprocManager {
 private:
-  std::vector<std::vector<Lit>> m_clauses;
+  WrapperSolver *ws;
 
 public:
-  ProblemManagerCnf();
-  ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                    std::vector<double> &weightVar, std::vector<Var> &selected);
-
-  ProblemManagerCnf(std::string &nameFile);
-  ~ProblemManagerCnf();
-  void display(std::ostream &out) override;
-  std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
-  void setClauses(std::vector<std::vector<Lit>> &clauses) {
-    m_clauses = clauses;
-  }
-  void displayStat(std::ostream &out, std::string startLine) override;
-  ProblemManager *getUnsatProblem() override;
+  PreprocBasic(po::variables_map &vm, std::ostream &out);
+  ~PreprocBasic();
+  ProblemManager *run(ProblemManager &pin);
 };
 } // namespace d4
