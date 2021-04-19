@@ -12,4 +12,5 @@ scripts/gmon.out
 .vscode/
 CMakeFiles
 *.o
+*.o[dr]
 *.a

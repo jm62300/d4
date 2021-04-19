@@ -43,7 +43,7 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
 
     // force glucose to be in incremental mode in order to restart just after
     // the assumptions.
-    s.setIncrementalMode();
+    // s.setIncrementalMode();
 
     // say to the solver we have pcnf.getNbVar() variables.
     while ((unsigned)s.nVars() <= pcnf.getNbVar())

@@ -61,6 +61,8 @@ WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm,
   if (inType == "cnf" || inType == "dimacs") {
     if (s == "minisat")
       return new WrapperMinisat();
+    if (s == "glucose")
+      return new WrapperGlucose();
   }
 
   throw(FactoryException("Cannot create a WrapperSolver", __FILE__, __LINE__));

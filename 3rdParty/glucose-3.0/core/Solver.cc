@@ -171,6 +171,7 @@ Solver::Solver(std::ostream *certif)
       ,
       conflict_budget(-1), propagation_budget(-1), asynch_interrupt(false),
       incremental(opt_incremental), nbVarsInitialFormula(INT32_MAX) {
+  verbEveryConflicts = 10000;
   MYFLAG = 0;
   // Initialize only first time. Useful for incremental solving, useless
   // otherwise
@@ -359,7 +360,8 @@ void Solver::removeClause(CRef cr) {
 }
 
 bool Solver::satisfied(const Clause &c) const {
-  if (incremental) // Check clauses with many selectors is too time consuming
+  // Check clauses with many selectors is too time consuming
+  if (incremental && c.size() > 10)
     return (value(c[0]) == l_True) || (value(c[1]) == l_True);
 
   // Default mode.
