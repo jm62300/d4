@@ -45,8 +45,6 @@ public:
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
   bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) override;
-
-  void getSimplifiedFormula(ProblemManager &p) override;
   void whichAreUnits(std::vector<Var> &component,
                      std::vector<Lit> &units) override;
   void restart() override;

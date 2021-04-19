@@ -93,44 +93,6 @@ bool WrapperMinisat::solve() {
 } // solve
 
 /**
-   Get the problem from the solver and store the result in pout.
-
-   @param[out] pout, save the formulat in pout
- */
-void WrapperMinisat::getSimplifiedFormula(ProblemManager &pout) {
-  try {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(pout);
-    std::vector<std::vector<Lit>> &ret = pcnf.getClauses();
-    ret.clear();
-
-    for (int i = 0; i < s.trail.size(); i++) {
-      std::vector<Lit> cl;
-      cl.push_back(
-          Lit::makeLit(minisat::var(s.trail[i]), minisat::sign(s.trail[i])));
-      ret.push_back(cl);
-    }
-
-    for (int i = 0; i < s.clauses.size(); i++) {
-      minisat::Clause &c = s.ca[s.clauses[i]];
-
-      bool isSAT = false;
-      std::vector<Lit> cl;
-      for (int j = 0; j < c.size() && !isSAT; j++) {
-        if (s.isUndef(c[j]))
-          cl.push_back(Lit::makeLit(minisat::var(c[j]), minisat::sign(c[j])));
-        isSAT = s.isSAT(c[j]);
-      }
-
-      if (!isSAT)
-        ret.push_back(cl);
-    }
-  } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
-  }
-} // getSimplifiedFormula
-
-/**
    An accessor on the activity of a variable.
 
    @param[in] v, the variable we want the activity.

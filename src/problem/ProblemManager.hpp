@@ -43,7 +43,7 @@ public:
   virtual void display(std::ostream &out) = 0;
   virtual void displayStat(std::ostream &out, std::string startLine) = 0;
   virtual ProblemManager *getUnsatProblem() = 0;
-  virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units);
+  virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units) = 0;
 
   inline std::vector<Var> &getSelectedVar() { return m_selected; }
   inline unsigned getNbSelectedVar() { return m_selected.size(); }
