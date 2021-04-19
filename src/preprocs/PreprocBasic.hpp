@@ -15,9 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef d4_src_preprocs_PreprocBasic_hpp
-#define d4_src_preprocs_PreprocBasic_hpp
+#pragma once
 
 #include <boost/program_options.hpp>
 #include <vector>
@@ -37,7 +35,4 @@ public:
   ~PreprocBasic();
   ProblemManager *run(ProblemManager &pin);
 };
-
 } // namespace d4
-
-#endif
