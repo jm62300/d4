@@ -38,27 +38,28 @@ protected:
   using WrapperSolver::m_isInAssumption;
 
 public:
-  void initSolver(ProblemManager &p);
-  bool solve(std::vector<Var> &setOfVar);
-  bool solve();
-  bool varIsAssigned(Var v);
-  bool getPolarity(Var v);
-  bool decideAndComputeUnit(Lit l, std::vector<Lit> &units);
+  void initSolver(ProblemManager &p) override;
+  bool solve(std::vector<Var> &setOfVar) override;
+  bool solve() override;
+  bool varIsAssigned(Var v) override;
+  bool getPolarity(Var v) override;
+  bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) override;
 
-  void getSimplifiedFormula(ProblemManager &p);
-  void whichAreUnits(std::vector<Var> &component, std::vector<Lit> &units);
-  void restart();
-  void setAssumption(std::vector<Lit> &assums);
-  std::vector<Lit> &getAssumption();
-  void pushAssumption(Lit l);
-  void popAssumption(unsigned count);
-  void displayAssumption(std::ostream &out);
-  void setNeedModel(bool b);
-  void showTrail();
-  std::vector<lbool> &getModel();
-  void getUnits(std::vector<Lit> &units);
+  void getSimplifiedFormula(ProblemManager &p) override;
+  void whichAreUnits(std::vector<Var> &component,
+                     std::vector<Lit> &units) override;
+  void restart() override;
+  void setAssumption(std::vector<Lit> &assums) override;
+  std::vector<Lit> &getAssumption() override;
+  void pushAssumption(Lit l) override;
+  void popAssumption(unsigned count) override;
+  void displayAssumption(std::ostream &out) override;
+  void setNeedModel(bool b) override;
+  void showTrail() override;
+  std::vector<lbool> &getModel() override;
+  void getUnits(std::vector<Lit> &units) override;
 
-  double getActivity(Var v);
-  double getCountConflict(Var v);
+  double getActivity(Var v) override;
+  double getCountConflict(Var v) override;
 };
 } // namespace d4
