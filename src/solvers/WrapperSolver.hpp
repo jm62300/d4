@@ -42,6 +42,7 @@ public:
   virtual void initSolver(ProblemManager &p) = 0;
   virtual bool solve(std::vector<Var> &setOfVar) = 0;
   virtual bool solve() = 0;
+  virtual void uncheckedEnqueue(Lit l) = 0;
   virtual void restart() = 0;
   virtual void setAssumption(std::vector<Lit> &assums) = 0;
   virtual std::vector<Lit> &getAssumption() = 0;
@@ -52,7 +53,9 @@ public:
   virtual void setNeedModel(bool b) = 0;
   virtual void showTrail() = 0;
   virtual std::vector<lbool> &getModel() = 0;
+  virtual lbool getModelVar(Var v) = 0;
   virtual void getUnits(std::vector<Lit> &units) = 0;
+  virtual unsigned getNbConflict() = 0;
 
   // this function returns false if the propagation gives a conflict.
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) = 0;

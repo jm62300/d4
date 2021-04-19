@@ -77,8 +77,11 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                                 std::ostream &out) {
   out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";
   boost::multiprecision::mpf_float::default_precision(precision);
-  ProblemManager *runProblem = runPreproc(vm, problem, out);
+
+  bool panicMode = false;
+  ProblemManager *runProblem = runPreproc(vm, problem, out, panicMode);
   displayInfoProjected(runProblem->getSelectedVar(), out);
+  out << "c [MODE] Panic: " << panicMode << "\n";
 
   if (meth == "counting") {
     if (!isFloat)
@@ -124,10 +127,15 @@ void MethodManager::displayInfoProjected(std::vector<Var> &selected,
 /**
  * @brief Run the preproc method before constructing the method.
  *
+ * @param[in] vm is the option list.
+ * @param[in] initProblem is the input problem we want to preproc.
+ * @param[in] out is the stream where will be printed out the log.
+ * @param[out] panicMode is a boolean to know if the preprocessor finished in
+ * panic mode.
  */
 ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
                                           ProblemManager *initProblem,
-                                          std::ostream &out) {
+                                          std::ostream &out, bool &panicMode) {
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm, out);
   assert(preproc);
   ProblemManager *problem = preproc->run(*initProblem);
@@ -136,6 +144,7 @@ ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");
   out << "c\n";
   assert(problem);
+  panicMode = preproc->isInPanic();
   delete preproc; // the preproc won't be used.
 
   return problem;

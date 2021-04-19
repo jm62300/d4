@@ -17,6 +17,8 @@
  */
 #include "PreprocBackbone.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
+#include <bits/types/clock_t.h>
+#include <ctime>
 
 namespace d4 {
 
@@ -40,12 +42,57 @@ PreprocBackbone::~PreprocBackbone() { delete ws; } // destructor
    @param[out] p, the problem we want to preprocess.
  */
 ProblemManager *PreprocBackbone::run(ProblemManager &pin) {
+  // init the solver.
   ws->initSolver(pin);
+  ws->setNeedModel(true);
+  unsigned nbSatCalls = 1;
+  unsigned nbFoundUnit = 0;
+
   if (!ws->solve())
     return pin.getUnsatProblem();
+  panic = ws->getNbConflict() > 100000;
 
+  if (!panic) {
+    // compute the backbone.
+    std::vector<bool> marked(pin.getNbVar() + 1, false);
+    std::vector<lbool> &model = ws->getModel();
+
+    for (unsigned i = 1; i <= pin.getNbVar(); i++) {
+      if (marked[i] || ws->varIsAssigned(i))
+        continue;
+
+      nbSatCalls++;
+
+      // test the negation of the literal in order to verify if it is impllied
+      Lit l = Lit::makeLit(i, (model[i] + 1) & 1);
+      ws->pushAssumption(l);
+      bool isSat = ws->solve();
+      ws->popAssumption();
+
+      if (isSat) {
+        // update the model.
+        for (unsigned j = i + 1; j < model.size(); j++)
+          marked[j] = marked[j] || (model[j] != ws->getModelVar((Var)j));
+      } else {
+        nbFoundUnit++;
+        if (!ws->varIsAssigned(i))
+          ws->uncheckedEnqueue(~l);
+      }
+    }
+  }
+
+  // the list of unit literals.
   std::vector<Lit> units;
   ws->getUnits(units);
+
+  // some statistics.
+  std::cout << "c [PREPOC BACKBONE] Number of SAT call: " << nbSatCalls << "\n";
+  std::cout << "c [PREPOC BACKBONE] Backone size: " << units.size() << "\n";
+  std::cout << "c [PREPOC BACKBONE] Number of unit detected: " << nbFoundUnit
+            << "\n";
+  std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: " << panic
+            << "\n";
+
   return pin.getConditionedFormula(units);
 } // run
 } // namespace d4

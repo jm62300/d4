@@ -90,6 +90,15 @@ bool WrapperGlucose::solve(std::vector<Var> &setOfVar) {
 } // solve
 
 /**
+ * @brief Strong assumption in the sense we push the literal on the stack.
+ *
+ * @param l the literal we want to push.
+ */
+void WrapperGlucose::uncheckedEnqueue(Lit l) {
+  s.uncheckedEnqueue(Glucose::mkLit(l.var(), l.sign()));
+} // uncheckedEnqueue
+
+/**
    Call the SAT solver and return its result.
 
    \return true if the problem is SAT, false otherwise.
@@ -268,6 +277,11 @@ void WrapperGlucose::setNeedModel(bool b) {
   s.setNeedModel(b);
 } // setNeedModel
 
+/**
+ * @brief Return the model computed by the solver.
+ *
+ * @return the model's value (lbool).
+ */
 std::vector<lbool> &WrapperGlucose::getModel() {
   for (int i = 0; i < s.model.size(); i++) {
     if (Glucose::toInt(s.model[i]) == 0)
@@ -280,6 +294,16 @@ std::vector<lbool> &WrapperGlucose::getModel() {
 
   return m_model;
 } // getModel
+
+/**
+ * @brief Get the value given by the last computed model.
+ *
+ * @param v is the variable we want to get the assignment.
+ * @return the last value of v.
+ */
+lbool WrapperGlucose::getModelVar(Var v) {
+  return Glucose::toInt(s.model[v]);
+} // getModelVar
 
 /**
    Push a new assumption.
@@ -324,5 +348,7 @@ void WrapperGlucose::popAssumption(unsigned count) {
   (s.assumptions).shrink_(count);
   (s.cancelUntil)((s.assumptions).size());
 } // popAssumption
+
+inline unsigned WrapperGlucose::getNbConflict() { return s.conflicts; }
 
 } // namespace d4

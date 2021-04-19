@@ -36,6 +36,9 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
 
   if (meth == "basic")
     return new PreprocBasic(vm, out);
+  if (meth == "backbone")
+    return new PreprocBackbone(vm, out);
+
   throw(FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
 } // makePreprocManager
 

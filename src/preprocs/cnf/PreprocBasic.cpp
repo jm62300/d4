@@ -44,6 +44,7 @@ ProblemManager *PreprocBasic::run(ProblemManager &pin) {
   ws->initSolver(pin);
   if (!ws->solve())
     return pin.getUnsatProblem();
+  panic = ws->getNbConflict() > 100000;
 
   std::vector<Lit> units;
   ws->getUnits(units);

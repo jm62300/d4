@@ -23,9 +23,10 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PreprocManager {
-private:
+protected:
+  bool panic = false;
+
 public:
   static PreprocManager *makePreprocManager(po::variables_map &vm,
                                             std::ostream &out);
@@ -35,5 +36,7 @@ public:
   /* The preprocessing is directly applied on pin and the result is save in pout
    */
   virtual ProblemManager *run(ProblemManager &pin) = 0;
+
+  inline bool isInPanic() { return panic; }
 };
 } // namespace d4

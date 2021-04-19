@@ -28,6 +28,8 @@
 #include "minisat/mtl/Vec.hpp"
 
 namespace d4 {
+using minisat::toInt;
+
 /**
    This function initializes the SAT solver with a given problem.  Warning: we
    suppose that p is a CNF, otherwise a bad_cast exception is threw.
@@ -91,6 +93,15 @@ bool WrapperMinisat::solve() {
   s.rebuildWithAllVar();
   return s.solveWithAssumptions();
 } // solve
+
+/**
+ * @brief Strong assumption in the sense we push the literal on the stack.
+ *
+ * @param l the literal we want to push.
+ */
+void WrapperMinisat::uncheckedEnqueue(Lit l) {
+  s.uncheckedEnqueue(minisat::mkLit(l.var(), l.sign()));
+} // uncheckedEnqueue
 
 /**
    An accessor on the activity of a variable.
@@ -261,6 +272,11 @@ void WrapperMinisat::setNeedModel(bool b) {
   s.setNeedModel(b);
 } // setNeedModel
 
+/**
+ * @brief Return the model computed by the solver.
+ *
+ * @return the model's value (lbool).
+ */
 std::vector<lbool> &WrapperMinisat::getModel() {
   for (int i = 0; i < s.model.size(); i++) {
     if (minisat::toInt(s.model[i]) == 0)
@@ -273,6 +289,16 @@ std::vector<lbool> &WrapperMinisat::getModel() {
 
   return m_model;
 } // getModel
+
+/**
+ * @brief Get the value given by the last computed model.
+ *
+ * @param v is the variable we want to get the assignment.
+ * @return the last value of v.
+ */
+lbool WrapperMinisat::getModelVar(Var v) {
+  return minisat::toInt(s.model[v]);
+} // getModelVar
 
 /**
    Push a new assumption.
@@ -317,4 +343,5 @@ void WrapperMinisat::popAssumption(unsigned count) {
   (s.cancelUntil)((s.assumptions).size());
 } // popAssumption
 
+inline unsigned WrapperMinisat::getNbConflict() { return s.conflicts; }
 } // namespace d4

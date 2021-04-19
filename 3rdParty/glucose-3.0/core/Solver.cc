@@ -1261,7 +1261,6 @@ lbool Solver::search(int nof_conflicts) {
       }
 
       if (learnt_clause.size() == 1) {
-        printf("unit clause: %d\n", readableLit(learnt_clause[0]));
         uncheckedEnqueue(learnt_clause[0]);
         nbUn++;
       } else {

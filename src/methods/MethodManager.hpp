@@ -43,7 +43,8 @@ public:
 
   static ProblemManager *runPreproc(po::variables_map &vm,
                                     ProblemManager *initProblem,
-                                    std::ostream &out);
+                                    std::ostream &out, bool &panicMode);
+
   virtual void run(po::variables_map &vm) = 0;
 
   inline void initTimer() { currentTime = clock(); }

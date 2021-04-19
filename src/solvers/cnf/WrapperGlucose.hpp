@@ -41,6 +41,7 @@ public:
   void initSolver(ProblemManager &p) override;
   bool solve(std::vector<Var> &setOfVar) override;
   bool solve() override;
+  void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
   bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) override;
@@ -55,9 +56,11 @@ public:
   void setNeedModel(bool b) override;
   void showTrail() override;
   std::vector<lbool> &getModel() override;
+  lbool getModelVar(Var v) override;
   void getUnits(std::vector<Lit> &units) override;
 
   double getActivity(Var v) override;
   double getCountConflict(Var v) override;
+  unsigned getNbConflict() override;
 };
 } // namespace d4
