@@ -100,8 +100,29 @@ ProblemManagerCnf::getConditionedFormula(std::vector<Lit> &units) {
   ProblemManagerCnf *ret =
       new ProblemManagerCnf(m_nbVar, m_weightLit, m_weightVar, m_selected);
 
-  for (auto cl : m_clauses)
-    ret->getClauses().push_back(cl);
+  std::vector<char> value(m_nbVar + 1, 0);
+  for (auto l : units) {
+    value[l.var()] = l.sign() + 1;
+    ret->getClauses().push_back({l});
+  }
+
+  for (auto cl : m_clauses) {
+    // get the simplified clause.
+    std::vector<Lit> scl;
+    bool isSAT = false;
+    for (auto l : cl) {
+      if (!value[l.var()])
+        scl.push_back(l);
+
+      isSAT = l.sign() + 1 == value[l.var()];
+      if (isSAT)
+        break;
+    }
+
+    // add the simplified clause if needed.
+    if (!isSAT)
+      ret->getClauses().push_back(cl);
+  }
 
   return ret;
 } // getConditionedFormula
