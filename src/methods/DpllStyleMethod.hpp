@@ -86,6 +86,7 @@ private:
   Cache<U> *m_cache;
 
   std::ostream m_out;
+  bool m_panicMode;
 
   unsigned limitNbVarCache;
   unsigned limitNbVarCacheDynamic;
@@ -100,8 +101,9 @@ public:
      @param[in] vm, the list of options.
    */
   DpllStyleMethod(po::variables_map &vm, std::string &meth, bool isFloat,
-                  ProblemManager *initProblem, std::ostream &out)
-      : m_problem(initProblem), m_out(nullptr) {
+                  ProblemManager *initProblem, std::ostream &out,
+                  bool panicMode = false)
+      : m_problem(initProblem), m_out(nullptr), m_panicMode(panicMode) {
     // init the output stream
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
@@ -501,8 +503,8 @@ private:
   */
   U compute(std::vector<Var> &setOfVar, std::ostream &out,
             bool warmStart = true) {
-    if (m_problem->isUnsat() ||
-        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
+    if (m_problem->isUnsat() || (warmStart && !m_panicMode &&
+                                 !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
 
     std::vector<Var> priorityVar;

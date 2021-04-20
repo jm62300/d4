@@ -70,6 +70,7 @@ private:
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
   Cache<T> *m_cache;
+  bool m_panicMode;
 
   long unsigned m_nbCallRec;
   long unsigned m_nbSplit;
@@ -82,8 +83,10 @@ public:
 
      @param[in] vm, the list of options.
    */
-  ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem)
-      : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr) {
+  ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem,
+               bool panicMode = false)
+      : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr),
+        m_panicMode(panicMode) {
     m_nbCallRec = m_nbSplit = 0;
 
     // init the output stream
@@ -185,7 +188,7 @@ private:
           << "counting"
           << "\n";
     m_counter = Counter<T>::makeCounter(vm, p, "counting", isFloat, precision,
-                                        m_outCounter);
+                                        m_outCounter, m_panicMode);
   } // initCounter
 
   /**

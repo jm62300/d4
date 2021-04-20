@@ -85,26 +85,26 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
   if (meth == "counting") {
     if (!isFloat)
-      return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(vm, meth, isFloat,
-                                                             runProblem, out);
+      return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
+          vm, meth, isFloat, runProblem, out, panicMode);
     else
       return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-          vm, meth, isFloat, runProblem, out);
+          vm, meth, isFloat, runProblem, out, panicMode);
   }
 
   if (meth == "ddnnf-compiler") {
     if (!isFloat)
       return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-          vm, meth, isFloat, runProblem, out);
+          vm, meth, isFloat, runProblem, out, panicMode);
     else
       return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-          vm, meth, isFloat, runProblem, out);
+          vm, meth, isFloat, runProblem, out, panicMode);
   }
 
   if (meth == "projMC") {
     if (!isFloat)
-      return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem);
-    return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem);
+      return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem, panicMode);
+    return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem, panicMode);
   }
 
   throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));
