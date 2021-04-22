@@ -15,25 +15,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#include "ActivityManager.hpp"
 
-#include <boost/program_options.hpp>
-#include <vector>
-
-#include "../PreprocManager.hpp"
-#include "src/problem/ProblemTypes.hpp"
-#include "src/solvers/WrapperSolver.hpp"
+#include <cassert>
 
 namespace d4 {
-namespace po = boost::program_options;
-class PreprocBasic : public PreprocManager {
-private:
-  WrapperSolver *ws;
 
-public:
-  PreprocBasic(po::variables_map &vm, std::ostream &out);
-  ~PreprocBasic();
-  ProblemManager *run(ProblemManager &pin,
-                      LastBreathPreproc &lastBreath) override;
-};
+/**
+ * @brief Set the counter of conflicts for all the variables.
+ *
+ * @param[in] counts is the vector of all count.
+ */
+void ActivityManager::setCountConflict(std::vector<double> &counts,
+                                       unsigned minVar, unsigned maxVar) {
+  assert(minVar >= 0 && maxVar < counts.size());
+  for (unsigned i = minVar; i <= maxVar; i++)
+    setCountConflict(i, counts[i]);
+} // setCountConflict
+
 } // namespace d4

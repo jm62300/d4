@@ -36,15 +36,22 @@ PreprocBasic::PreprocBasic(po::variables_map &vm, std::ostream &out) {
 PreprocBasic::~PreprocBasic() { delete ws; } // destructor
 
 /**
-   The preprocessing itself.
-
-   @param[out] p, the problem we want to preprocess.
+ * @brief The preprocessing itself.
+ * @param[out] p, the problem we want to preprocess.
+ * @param[out] lastBreath gives information about the way the    preproc sees
+ * the problem.
  */
-ProblemManager *PreprocBasic::run(ProblemManager &pin) {
+ProblemManager *PreprocBasic::run(ProblemManager &pin,
+                                  LastBreathPreproc &lastBreath) {
   ws->initSolver(pin);
   if (!ws->solve())
     return pin.getUnsatProblem();
-  panic = ws->getNbConflict() > 100000;
+  lastBreath.panic = ws->getNbConflict() > 100000;
+
+  // get the activity given by the solver.
+  lastBreath.countConflict.resize(pin.getNbVar() + 1, 0);
+  for (unsigned i = 1; i <= pin.getNbVar(); i++)
+    lastBreath.countConflict[i] = ws->getCountConflict(i);
 
   std::vector<Lit> units;
   ws->getUnits(units);

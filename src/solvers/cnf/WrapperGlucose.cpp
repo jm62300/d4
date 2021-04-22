@@ -131,6 +131,15 @@ double WrapperGlucose::getCountConflict(Var v) {
 } // getCountConflict
 
 /**
+ * @brief Set the count conflict in the solver.
+ * @param[in] v is the variable we want to set the counter of  conflicts.
+ * @param[in] count is the count we want to assign.
+ */
+void WrapperGlucose::setCountConflict(Var v, double count) {
+  s.scoreActivity[v] = count;
+} // setCountConflict
+
+/**
    Print out the trail on the standard output.
  */
 void WrapperGlucose::showTrail() { s.showTrail(); } // showTrail

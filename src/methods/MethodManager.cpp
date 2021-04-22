@@ -78,33 +78,35 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";
   boost::multiprecision::mpf_float::default_precision(precision);
 
-  bool panicMode = false;
-  ProblemManager *runProblem = runPreproc(vm, problem, out, panicMode);
+  LastBreathPreproc lastBreath;
+  ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
   displayInfoProjected(runProblem->getSelectedVar(), out);
-  out << "c [MODE] Panic: " << panicMode << "\n";
+  out << "c [MODE] Panic: " << lastBreath.panic << "\n";
 
   if (meth == "counting") {
     if (!isFloat)
       return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-          vm, meth, isFloat, runProblem, out, panicMode);
+          vm, meth, isFloat, runProblem, out, lastBreath);
     else
       return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-          vm, meth, isFloat, runProblem, out, panicMode);
+          vm, meth, isFloat, runProblem, out, lastBreath);
   }
 
   if (meth == "ddnnf-compiler") {
     if (!isFloat)
       return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-          vm, meth, isFloat, runProblem, out, panicMode);
+          vm, meth, isFloat, runProblem, out, lastBreath);
     else
       return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-          vm, meth, isFloat, runProblem, out, panicMode);
+          vm, meth, isFloat, runProblem, out, lastBreath);
   }
 
   if (meth == "projMC") {
     if (!isFloat)
-      return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem, panicMode);
-    return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem, panicMode);
+      return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem,
+                                            lastBreath);
+    return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem,
+                                            lastBreath);
   }
 
   throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));
@@ -130,21 +132,21 @@ void MethodManager::displayInfoProjected(std::vector<Var> &selected,
  * @param[in] vm is the option list.
  * @param[in] initProblem is the input problem we want to preproc.
  * @param[in] out is the stream where will be printed out the log.
- * @param[out] panicMode is a boolean to know if the preprocessor finished in
- * panic mode.
+ * @param[out] lastBreath information collected when the preproc has done its
+ * job.
  */
 ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
                                           ProblemManager *initProblem,
-                                          std::ostream &out, bool &panicMode) {
+                                          std::ostream &out,
+                                          LastBreathPreproc &lastBreath) {
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm, out);
   assert(preproc);
-  ProblemManager *problem = preproc->run(*initProblem);
+  ProblemManager *problem = preproc->run(*initProblem, lastBreath);
   out << "c [MAIN PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
          "preprocessed formula\033[0m\n";
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");
   out << "c\n";
   assert(problem);
-  panicMode = preproc->isInPanic();
   delete preproc; // the preproc won't be used.
 
   return problem;

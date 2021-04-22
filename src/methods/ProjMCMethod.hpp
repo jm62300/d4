@@ -70,7 +70,7 @@ private:
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
   Cache<T> *m_cache;
-  bool m_panicMode;
+  LastBreathPreproc m_lastBreath;
 
   long unsigned m_nbCallRec;
   long unsigned m_nbSplit;
@@ -84,10 +84,10 @@ public:
      @param[in] vm, the list of options.
    */
   ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem,
-               bool panicMode = false)
-      : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr),
-        m_panicMode(panicMode) {
+               LastBreathPreproc &lastBreath)
+      : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr) {
     m_nbCallRec = m_nbSplit = 0;
+    m_lastBreath = lastBreath;
 
     // init the output stream
     m_out.copyfmt(std::cout);
@@ -188,7 +188,7 @@ private:
           << "counting"
           << "\n";
     m_counter = Counter<T>::makeCounter(vm, p, "counting", isFloat, precision,
-                                        m_outCounter, m_panicMode);
+                                        m_outCounter, m_lastBreath);
   } // initCounter
 
   /**
@@ -221,6 +221,8 @@ private:
     ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
     p.setClauses(clauses);
     m_solver->initSolver(p);
+    m_solver->setCountConflict(m_lastBreath.countConflict, 1,
+                               m_problem->getNbVar());
 
     // ask for the witness.
     m_solver->setNeedModel(true);

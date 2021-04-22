@@ -233,11 +233,12 @@ public:
   vec<CRef> learnts;  // List of learnt clauses.
   vec<CRef> phantoms; // List of learnt clauses.
 
-  vec<double>
-      scoreActivity; // count the number of time a variable occurs in a conflict
-  double cla_inc;    // Amount to bump next clause with.
-  vec<double>
-      activity;   // A heuristic measurement of the activity of a variable.
+  // count the number of time a variable occurs in a conflict
+  vec<double> scoreActivity;
+  // Amount to bump next clause with.
+  double cla_inc;
+  // A heuristic measurement of the activity of a variable.
+  vec<double> activity;
   double var_inc; // Amount to bump next variable with.
   OccLists<Lit, vec<Watcher>, WatcherDeleted>
       watches; // 'watches[lit]' is a list of constraints watching 'lit' (will

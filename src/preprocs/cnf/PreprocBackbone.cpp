@@ -37,11 +37,13 @@ PreprocBackbone::PreprocBackbone(po::variables_map &vm, std::ostream &out) {
 PreprocBackbone::~PreprocBackbone() { delete ws; } // destructor
 
 /**
-   The preprocessing itself.
-
-   @param[out] p, the problem we want to preprocess.
+ * @brief The preprocessing itself.
+ * @param[out] p, the problem we want to preprocess.
+ * @param[out] lastBreath gives information about the way the    preproc sees
+ * the problem.
  */
-ProblemManager *PreprocBackbone::run(ProblemManager &pin) {
+ProblemManager *PreprocBackbone::run(ProblemManager &pin,
+                                     LastBreathPreproc &lastBreath) {
   // init the solver.
   ws->initSolver(pin);
   ws->setNeedModel(true);
@@ -50,9 +52,9 @@ ProblemManager *PreprocBackbone::run(ProblemManager &pin) {
 
   if (!ws->solve())
     return pin.getUnsatProblem();
-  panic = ws->getNbConflict() > 100000;
+  lastBreath.panic = ws->getNbConflict() > 100000;
 
-  if (!panic) {
+  if (!lastBreath.panic) {
     // compute the backbone.
     std::vector<bool> marked(pin.getNbVar() + 1, false);
     std::vector<lbool> &model = ws->getModel();
@@ -81,17 +83,23 @@ ProblemManager *PreprocBackbone::run(ProblemManager &pin) {
     }
   }
 
+  // get the activity given by the solver.
+  lastBreath.countConflict.resize(pin.getNbVar() + 1, 0);
+  for (unsigned i = 1; i <= pin.getNbVar(); i++)
+    lastBreath.countConflict[i] = ws->getActivity(i);
+
   // the list of unit literals.
   std::vector<Lit> units;
   ws->getUnits(units);
 
   // some statistics.
-  std::cout << "c [PREPOC BACKBONE] Number of SAT call: " << nbSatCalls << "\n";
+  std::cout << "c [PREPOC BACKBONE] Number of SAT calls: " << nbSatCalls
+            << "\n";
   std::cout << "c [PREPOC BACKBONE] Backone size: " << units.size() << "\n";
-  std::cout << "c [PREPOC BACKBONE] Number of unit detected: " << nbFoundUnit
+  std::cout << "c [PREPOC BACKBONE] Number of units detected: " << nbFoundUnit
             << "\n";
-  std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: " << panic
-            << "\n";
+  std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
+            << lastBreath.panic << "\n";
 
   return pin.getConditionedFormula(units);
 } // run

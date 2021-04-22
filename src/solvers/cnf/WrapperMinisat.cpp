@@ -115,15 +115,22 @@ double WrapperMinisat::getActivity(Var v) {
 } // getActivity
 
 /**
-   Return the number of times the variable v occurs in a conflict.
-
-   @param[in] v, the variable we want the activity.
-
-   \return the number of times v occurs in a conflict.
+ * @brief Return the number of times the variable v occurs in a conflict.
+ * @param[in] v, the variable we want the activity.
+ * \return the number of times v occurs in a conflict.
  */
 double WrapperMinisat::getCountConflict(Var v) {
   return s.scoreActivity[v];
 } // getCountConflict
+
+/**
+ * @brief Set the count conflict in the solver.
+ * @param[in] v is the variable we want to set the counter of  conflicts.
+ * @param[in] count is the count we want to assign.
+ */
+void WrapperMinisat::setCountConflict(Var v, double count) {
+  s.scoreActivity[v] = count;
+} // setCountConflict
 
 /**
    Print out the trail on the standard output.

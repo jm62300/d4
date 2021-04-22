@@ -19,6 +19,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
@@ -43,7 +44,8 @@ public:
 
   static ProblemManager *runPreproc(po::variables_map &vm,
                                     ProblemManager *initProblem,
-                                    std::ostream &out, bool &panicMode);
+                                    std::ostream &out,
+                                    LastBreathPreproc &lastBreath);
 
   virtual void run(po::variables_map &vm) = 0;
 

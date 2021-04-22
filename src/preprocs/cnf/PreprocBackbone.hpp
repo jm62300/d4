@@ -33,6 +33,7 @@ private:
 public:
   PreprocBackbone(po::variables_map &vm, std::ostream &out);
   ~PreprocBackbone();
-  ProblemManager *run(ProblemManager &pin);
+  ProblemManager *run(ProblemManager &pin,
+                      LastBreathPreproc &lastBreath) override;
 };
 } // namespace d4

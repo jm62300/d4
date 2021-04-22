@@ -25,24 +25,17 @@
 namespace d4 {
 namespace po = boost::program_options;
 struct LastBreathPreproc {
-  std::vector<unsigned> weightVar;
+  std::vector<double> countConflict;
   bool panic;
 };
 
 class PreprocManager {
-protected:
-  bool panic = false;
-
 public:
   static PreprocManager *makePreprocManager(po::variables_map &vm,
                                             std::ostream &out);
 
   virtual ~PreprocManager() {}
-
-  /* The preprocessing is directly applied on pin and the result is save in pout
-   */
-  virtual ProblemManager *run(ProblemManager &pin) = 0;
-
-  inline bool isInPanic() { return panic; }
+  virtual ProblemManager *run(ProblemManager &pin,
+                              LastBreathPreproc &lastBreath) = 0;
 };
 } // namespace d4
