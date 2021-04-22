@@ -15,10 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef d4_src_caching_DataInfo_hpp
-#define d4_src_caching_DataInfo_hpp
-
+#pragma once
 #include <cassert>
 #include <iostream>
 
@@ -101,5 +98,3 @@ public:
   } // printdata
 };
 } // namespace d4
-
-#endif

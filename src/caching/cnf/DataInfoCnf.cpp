@@ -1,50 +1,40 @@
 /*
-* d4
-* Copyright (C) 2020  Univ. Artois & CNRS
-* 
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* 
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-* 
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "DataInfoCnf.hpp"
 
-namespace d4
-{
+namespace d4 {
 
 /**
    Constructor.
  */
-DataInfoCnf::DataInfoCnf(unsigned szData,         
-                         unsigned nbVar,
-                         unsigned nbLit,
-                         unsigned nbDiffSizeDistrib,
-                         unsigned nbOctetsVar,
-                         unsigned nbOctetsLit,
-                         unsigned nbOctetsDistrib,
-                         unsigned count) :
-    DataInfo(szData, nbVar, nbOctetsLit, nbOctetsVar, count)
-{
-  info1 = info1 |
-          (((uint64_t) nbLit) << 21) |
-          (((uint64_t) nbDiffSizeDistrib) << 42);
+DataInfoCnf::DataInfoCnf(unsigned szData, unsigned nbVar, unsigned nbLit,
+                         unsigned nbDiffSizeDistrib, unsigned nbOctetsVar,
+                         unsigned nbOctetsLit, unsigned nbOctetsDistrib,
+                         unsigned count)
+    : DataInfo(szData, nbVar, nbOctetsLit, nbOctetsVar, count) {
+  info1 =
+      info1 | (((uint64_t)nbLit) << 21) | (((uint64_t)nbDiffSizeDistrib) << 42);
 
-  info2 = info2 |
-          ((uint32_t) (nbOctetsDistrib - 1));
+  info2 = info2 | ((uint32_t)(nbOctetsDistrib - 1));
 } // constructor
 
-
-void DataInfoCnf::print(char *data, std::ostream &out)
-{
+void DataInfoCnf::print(char *data, std::ostream &out) {
 #if 0
   out << "Bucket size = " << szData() << "\n" 
       << "nbVar = " << nbVar() << "\n"
@@ -79,4 +69,4 @@ void DataInfoCnf::print(char *data, std::ostream &out)
   out << "------------------------------------------\n";
 #endif
 }
-}
+} // namespace d4

@@ -1,29 +1,28 @@
 /*
-* d4 
-* Copyright (C) 2020  Univ. Artois & CNRS
-* 
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* 
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-* 
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-#include "src/exceptions/FactoryException.hpp"
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "PartitioningHeuristicStatic.hpp"
-#include "PartitioningHeuristicStaticNone.hpp"
 #include "PartitioningHeuristicStaticMulti.hpp"
+#include "PartitioningHeuristicStaticNone.hpp"
 #include "PartitioningHeuristicStaticSingleDual.hpp"
 #include "PartitioningHeuristicStaticSinglePrimal.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
-namespace d4
-{
+namespace d4 {
 /**
    Constructor.
 
@@ -31,17 +30,14 @@ namespace d4
    @param[in] s, a wrapper on a solver.
    @param[in] om, a structure manager.
 */
-PartitioningHeuristicStatic::PartitioningHeuristicStatic(
-    po::variables_map &vm,
-    WrapperSolver &s,
-    SpecManager &om) :
-    PartitioningHeuristicStatic(vm, s, om,
-                                dynamic_cast<SpecManagerCnf&>(om).getNbClause(),
-                                dynamic_cast<SpecManagerCnf&>(om).getNbVariable(),
-                                dynamic_cast<SpecManagerCnf&>(om).getSumSizeClauses())
-{  
+PartitioningHeuristicStatic::PartitioningHeuristicStatic(po::variables_map &vm,
+                                                         WrapperSolver &s,
+                                                         SpecManager &om)
+    : PartitioningHeuristicStatic(
+          vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
+          dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
+          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()) {
 } // constructor
-
 
 /**
    Constructor.
@@ -53,36 +49,34 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
    @param[in] nbVar, the number of variables.
    @param[in] sumSize, which give the number of literals.
 */
-PartitioningHeuristicStatic::PartitioningHeuristicStatic(
-    po::variables_map &vm,
-    WrapperSolver &s,
-    SpecManager &om,
-    int nbClause,
-    int nbVar,
-    int sumSize) : m_s(s), m_om(dynamic_cast<SpecManagerCnf&>(om))
-{
+PartitioningHeuristicStatic::PartitioningHeuristicStatic(po::variables_map &vm,
+                                                         WrapperSolver &s,
+                                                         SpecManager &om,
+                                                         int nbClause,
+                                                         int nbVar, int sumSize)
+    : m_s(s), m_om(dynamic_cast<SpecManagerCnf &>(om)) {
   m_nbVar = nbVar;
-  m_nbClause = nbClause;  
-  
+  m_nbClause = nbClause;
+
   m_em.initEquivExtractor(m_nbVar + 1);
 
   // get the options.
-  m_reduceFormula = vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
-  m_equivSimp = vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-  
-  m_isInitialized = false;
-  m_pm = NULL;  
-} // constructor
+  m_reduceFormula =
+      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+  m_equivSimp =
+      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
 
+  m_isInitialized = false;
+  m_pm = NULL;
+} // constructor
 
 /**
    Destructor.
 */
-PartitioningHeuristicStatic::~PartitioningHeuristicStatic()
-{  
-  if(m_pm) delete m_pm;
+PartitioningHeuristicStatic::~PartitioningHeuristicStatic() {
+  if (m_pm)
+    delete m_pm;
 } // destructor
-
 
 /**
    Generate a static partitioner regarding the given option list.
@@ -97,33 +91,32 @@ PartitioningHeuristicStatic::~PartitioningHeuristicStatic()
 
    \return a static partioner.
  */
-PartitioningHeuristicStatic *PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
-    po::variables_map &vm,
-    WrapperSolver &s,
-    SpecManager &om,
-    int nbClause,
-    int nbVar,
-    int sumSize,
-    const std::string &type)
-{
-  std::string opt = vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
+PartitioningHeuristicStatic *
+PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
+    po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
+    int nbVar, int sumSize, const std::string &type) {
+  std::string opt =
+      vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
 
   PartitioningHeuristicStatic *ret = NULL;
-  
-  if(opt == "none")
-    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar, sumSize);
-  else if(opt == "multi")
-    ret = new PartitioningHeuristicStaticMulti(vm, s, om, nbClause, nbVar, sumSize);  
-  else if(opt == "dual" || (opt == "natural" && type == "dual"))
-    ret = new PartitioningHeuristicStaticSingleDual(
-        vm, s, om, nbClause, nbVar, sumSize);
-  else if(opt == "primal" || (opt == "natural" && type == "primal"))
-    ret = new PartitioningHeuristicStaticSinglePrimal(
-        vm, s, om, nbClause, nbVar, sumSize);
-  else throw (FactoryException("Cannot create a PartitioningHeuristic",
-                               __FILE__, __LINE__));
+
+  if (opt == "none")
+    ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar,
+                                              sumSize);
+  else if (opt == "multi")
+    ret = new PartitioningHeuristicStaticMulti(vm, s, om, nbClause, nbVar,
+                                               sumSize);
+  else if (opt == "dual" || (opt == "natural" && type == "dual"))
+    ret = new PartitioningHeuristicStaticSingleDual(vm, s, om, nbClause, nbVar,
+                                                    sumSize);
+  else if (opt == "primal" || (opt == "natural" && type == "primal"))
+    ret = new PartitioningHeuristicStaticSinglePrimal(vm, s, om, nbClause,
+                                                      nbVar, sumSize);
+  else
+    throw(FactoryException("Cannot create a PartitioningHeuristic", __FILE__,
+                           __LINE__));
   ret->init();
   return ret;
 } // makePartitioningHeuristicStatic
 
-} // d4
+} // namespace d4

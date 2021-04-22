@@ -15,10 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef d4_src_problem_SpecManager_hpp
-#define d4_src_problem_SpecManager_hpp
-
+#pragma once
 #include <boost/program_options.hpp>
 #include <vector>
 
@@ -52,4 +49,3 @@ public:
   virtual int getNbVariable() = 0;
 };
 } // namespace d4
-#endif

@@ -19,8 +19,8 @@
 
 #include <boost/program_options.hpp>
 
-#include <src/problem/ProblemManager.hpp>
-#include <src/problem/ProblemTypes.hpp>
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 #include "ActivityManager.hpp"
 #include "PolarityManager.hpp"

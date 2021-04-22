@@ -23,6 +23,12 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
+namespace po = boost::program_options;
+struct LastBreathPreproc {
+  std::vector<unsigned> weightVar;
+  bool panic;
+};
+
 class PreprocManager {
 protected:
   bool panic = false;

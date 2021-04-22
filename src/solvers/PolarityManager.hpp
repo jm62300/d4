@@ -16,9 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef d4_src_solvers_PolarityManager_hpp
-#define d4_src_solvers_PolarityManager_hpp
-
+#pragma once
 #include <src/specs/SpecManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 
@@ -30,5 +28,3 @@ class PolarityManager
   virtual bool getPolarity(Var v) = 0;
 };
 } // d4
-
-#endif
