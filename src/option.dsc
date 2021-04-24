@@ -38,4 +38,4 @@
 ("dump-ddnnf", boost::program_options::value<std::string>(), "Print out the decision DNNF formula in a given file.")
 ("query,q", boost::program_options::value<std::string>(), "Perform the queries given in a file (m l1 l2 ... ln 0 for a model counting query, and d l1 l2 ... ln 0 for a satisfiability query).")
 ("projMC-refinement", boost::program_options::value<bool>()->default_value(false), "Try to reduce the set of selector by computing a MSS.")
-("output-format-solution", boost::program_options::value<string>()->default_value("classic"), "The way the solution is printed out (classic is the SAT competition format and competition is the MC competition format).")
+("keyword-output-format-solution", boost::program_options::value<std::string>()->default_value("s"), "The keyword prints in front of the solution when it is printed out.")

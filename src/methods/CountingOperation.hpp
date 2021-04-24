@@ -1,48 +1,42 @@
 /*
-* d4
-* Copyright (C) 2020  Univ. Artois & CNRS
-* 
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* 
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-* 
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 #include "DataBranch.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 
-namespace d4
-{
-template<class T, class U> class Operation;
-template <class T> class CountingOperation : public Operation<T, T>
-{
- private:
+namespace d4 {
+template <class T, class U> class Operation;
+template <class T> class CountingOperation : public Operation<T, T> {
+private:
   ProblemManager *m_problem;
-  
- public:
 
+public:
   CountingOperation() = delete;
-  
+
   /**
      Constructor.
 
      @param[in] problem, allows to get information about the problem such as
      weights.
    */
-  CountingOperation(ProblemManager *problem) : m_problem(problem)
-  {
-    
-  } // constructor.
+  CountingOperation(ProblemManager *problem)
+      : m_problem(problem) {} // constructor.
 
-  
   /**
      Compute the sum of the given elements.
 
@@ -51,19 +45,16 @@ template <class T> class CountingOperation : public Operation<T, T>
 
      \return the product of each element of elts.
   */
-  T manageDeterministOr(DataBranch<T> *elts, unsigned size)
-  {
+  T manageDeterministOr(DataBranch<T> *elts, unsigned size) {
     T ret = 0;
-    for(unsigned i = 0 ; i<size ; i++)
-    {
+    for (unsigned i = 0; i < size; i++) {
       ret = ret + (elts[i].d * m_problem->computeWeightUnitFree<T>(
-          elts[i].unitLits, elts[i].freeVars));
+                                   elts[i].unitLits, elts[i].freeVars));
     }
-    
+
     return ret;
   } // manageDeterministOr
 
-  
   /**
      Compute the product of the given elements.
 
@@ -72,48 +63,42 @@ template <class T> class CountingOperation : public Operation<T, T>
 
      \return the product of each element of elts.
    */
-  T manageDecomposableAnd(T *elts, unsigned size)
-  {
+  T manageDecomposableAnd(T *elts, unsigned size) {
     T ret = 1;
-    for(unsigned i = 0 ; i<size ; i++) ret = ret * elts[i];
+    for (unsigned i = 0; i < size; i++)
+      ret = ret * elts[i];
     return ret;
   } // manageDecomposableAnd
-
 
   /**
      Manage the case where the problem is unsatisfiable.
 
      \return 0 as number of models.
    */
-  T manageBottom()
-  {
-    return T(0);
-  } // manageBottom
-
+  T manageBottom() { return T(0); } // manageBottom
 
   /**
      Manage the case where the problem is a tautology.
 
      @param[in] component, the current set of variables (useless here).
-     
+
      \return 0 as number of models.
    */
-  inline T manageTop(std::vector<Var> &component){return T(1);}
+  inline T manageTop(std::vector<Var> &component) { return T(1); }
 
   /**
      Return true, that is given by the value 1.
 
      \return T(1).
    */
-  inline T createTop(){return T(1);}
+  inline T createTop() { return T(1); }
 
   /**
      Return false, that is given by the value 1.
 
      \return T(0).
-   */  
-  inline T createBottom(){return T(0);}
-
+   */
+  inline T createBottom() { return T(0); }
 
   /**
      Manage the case where we only have a branch in our OR gate.
@@ -122,11 +107,9 @@ template <class T> class CountingOperation : public Operation<T, T>
 
      \return the number of models associate to the given branch.
    */
-  T manageBranch(DataBranch<T> &e)
-  {
+  T manageBranch(DataBranch<T> &e) {
     return e.d * m_problem->computeWeightUnitFree<T>(e.unitLits, e.freeVars);
   } // manageBranch
-
 
   /**
      Manage the final result compute.
@@ -136,33 +119,26 @@ template <class T> class CountingOperation : public Operation<T, T>
      given result.
      @param[in] out, the output stream.
    */
-  void manageResult(T &result, po::variables_map &vm, std::ostream &out)
-  {
-    out << "s " << std::fixed << result << "\n";
+  void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
+    std::string format = vm["keyword-output-format-solution"].as<std::string>();
+    out << format << " ";
+    out << std::fixed << result << "\n";
   } // manageResult
-
 
   /**
      Count the number of model, for this case that means doing noting.
 
      \return the number of models.
    */
-  T count(T &result)
-  {
-    return result;
-  } // count
-
+  T count(T &result) { return result; } // count
 
   /**
      Cannot be called, then throws an exception!
    */
-  T count(T &result, std::vector<Lit> &assum)
-  {
-    throw (BadBehaviourException("This operation is not allowed in this context.",
-                                 __FILE__, __LINE__));
+  T count(T &result, std::vector<Lit> &assum) {
+    throw(BadBehaviourException(
+        "This operation is not allowed in this context.", __FILE__, __LINE__));
   } // count
 };
 
-} // d4
-
-
+} // namespace d4
