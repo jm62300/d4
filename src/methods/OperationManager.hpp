@@ -26,6 +26,7 @@
 #include "CountingOperation.hpp"
 #include "DataBranch.hpp"
 #include "DecisionDNNFOperation.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;

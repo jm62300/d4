@@ -86,6 +86,7 @@ public:
       assert(v < (int)m_weightVar.size());
       tmp *= T(m_weightVar[v]);
     }
+
     return tmp;
   } // computeWeightUnitFree
 };

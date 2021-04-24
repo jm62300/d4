@@ -18,6 +18,7 @@
 #pragma once
 #include "DataBranch.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
+#include <boost/multiprecision/cpp_dec_float.hpp>
 
 namespace d4 {
 template <class T, class U> class Operation;
@@ -122,7 +123,7 @@ public:
   void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
     std::string format = vm["keyword-output-format-solution"].as<std::string>();
     out << format << " ";
-    out << std::fixed << result << "\n";
+    out << std::fixed << std::setprecision(50) << result << "\n";
   } // manageResult
 
   /**
