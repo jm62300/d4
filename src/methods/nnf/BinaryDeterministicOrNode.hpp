@@ -22,6 +22,7 @@
 
 #include "src/problem/ProblemManager.hpp"
 
+#include "../DataBranch.hpp"
 #include "Branch.hpp"
 #include "Node.hpp"
 

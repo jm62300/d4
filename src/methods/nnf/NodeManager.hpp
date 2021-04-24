@@ -20,6 +20,7 @@
 #include <bitset>
 #include <vector>
 
+#include "../DataBranch.hpp"
 #include "BinaryDeterministicOrNode.hpp"
 #include "Branch.hpp"
 #include "DecomposableAndNode.hpp"
@@ -131,7 +132,7 @@ public:
    */
   T computeNbModels(Node<T> *node, std::vector<ValueVar> &fixedValue,
                     ProblemManager &problem) {
-    T (*func[TypeNode::count])
+    T(*func[TypeNode::count])
     (Node<T> * node, T(*t[])(), std::vector<ValueVar> &, ProblemManager &,
      unsigned);
 
