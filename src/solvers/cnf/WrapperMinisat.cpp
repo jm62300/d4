@@ -115,6 +115,15 @@ double WrapperMinisat::getActivity(Var v) {
 } // getActivity
 
 /**
+ * @brief Set the reverse polarity flag to the solver.
+ *
+ * @param value is the value we want to assign.
+ */
+void WrapperMinisat::setReversePolarity(bool value) {
+  s.reversePolarity = value;
+} // setReversePolarity
+
+/**
  * @brief Return the number of times the variable v occurs in a conflict.
  * @param[in] v, the variable we want the activity.
  * \return the number of times v occurs in a conflict.

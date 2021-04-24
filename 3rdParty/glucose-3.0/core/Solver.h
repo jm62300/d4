@@ -426,6 +426,7 @@ public:
   }
 
   // added to be linked with d4.
+  bool reversePolarity = false;
   vec<double> scoreActivity;
   vec<Var> problemVariable;
   vec<Var> vsRebuildOrderHeap;

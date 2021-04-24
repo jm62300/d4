@@ -394,6 +394,7 @@ private:
 public:
   bool phantomMode;
   Lit phantomLit;
+  bool reversePolarity = false;
 
   // deal with the occurrence list which keep information about the
   // number of SAT/UNS lit in clause with a size greater than 2

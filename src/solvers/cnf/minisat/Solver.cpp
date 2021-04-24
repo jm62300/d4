@@ -30,6 +30,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mtl/Vec.hpp"
 
 #include "Solver.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace minisat {
 //=================================================================================================
@@ -291,8 +292,6 @@ void Solver::cancelUntil(int lev) {
 Lit Solver::pickBranchLit() {
   Var next = var_Undef;
 
-  // for(int i = 0 ; i<order_heap.size() ; i++) printf("%d ", order_heap[i]);
-  // printf("\n");
   // Activity based decision:
   while (next == var_Undef || value(next) != l_Undef || !decision[next]) {
     if (order_heap.empty()) {
@@ -302,9 +301,15 @@ Lit Solver::pickBranchLit() {
       next = order_heap.removeMin();
   }
 
-  if (next != var_Undef && insistTruePolarity[next])
-    return mkLit(next, false);
-  return next == var_Undef ? lit_Undef : mkLit(next, polarity[next]);
+  if (next == minisat::var_Undef)
+    return lit_Undef;
+
+  // if (insistTruePolarity[next])
+  // return mkLit(next, false);
+
+  if (reversePolarity)
+    return mkLit(next, !polarity[next]);
+  return mkLit(next, polarity[next]);
 } // pickBranchLit
 
 /**

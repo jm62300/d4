@@ -53,6 +53,7 @@ ProblemManager *PreprocBackbone::run(ProblemManager &pin,
   if (!ws->solve())
     return pin.getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
+  ws->setReversePolarity(true);
 
   if (!lastBreath.panic) {
     // compute the backbone.

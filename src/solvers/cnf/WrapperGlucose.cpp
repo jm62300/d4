@@ -152,6 +152,15 @@ void WrapperGlucose::showTrail() { s.showTrail(); } // showTrail
 bool WrapperGlucose::getPolarity(Var v) { return s.polarity[v]; } // getPolarity
 
 /**
+ * @brief Set the reverse polarity flag to the solver.
+ *
+ * @param value is the value we want to assign.
+ */
+void WrapperGlucose::setReversePolarity(bool value) {
+  s.reversePolarity = value;
+} // setReversePolarity
+
+/**
    Collect the unit literal from the affectation of the literal l to the
    formula.
 

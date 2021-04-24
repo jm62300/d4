@@ -56,6 +56,7 @@ public:
   virtual lbool getModelVar(Var v) = 0;
   virtual void getUnits(std::vector<Lit> &units) = 0;
   virtual unsigned getNbConflict() = 0;
+  virtual void setReversePolarity(bool value) = 0;
 
   // this function returns false if the propagation gives a conflict.
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) = 0;

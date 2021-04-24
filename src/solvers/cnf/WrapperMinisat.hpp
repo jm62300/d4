@@ -64,5 +64,6 @@ public:
   double getCountConflict(Var v) override;
   void setCountConflict(Var v, double count) override;
   unsigned getNbConflict() override;
+  void setReversePolarity(bool value) override;
 };
 } // namespace d4

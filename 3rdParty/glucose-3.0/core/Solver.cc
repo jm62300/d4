@@ -522,9 +522,13 @@ Lit Solver::pickBranchLit() {
     } else
       next = order_heap.removeMin();
 
-  return next == var_Undef
-             ? lit_Undef
-             : mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
+  if (next == var_Undef)
+    return lit_Undef;
+
+  bool p = rnd_pol ? drand(random_seed) < 0.5 : polarity[next];
+  if (reversePolarity)
+    p = !p;
+  return mkLit(next, p);
 }
 
 /*_________________________________________________________________________________________________
