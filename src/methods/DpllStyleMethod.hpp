@@ -531,10 +531,6 @@ public:
    */
   T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
           std::ostream &out) {
-    /*
-    std::cout << "In the counter\n";
-    m_solver->displayAssumption(m_out);
-    */
     initAssumption(assumption);
 
     // get the unit not in setOfVar.
@@ -547,16 +543,9 @@ public:
         shadowUnits.push_back(l);
 
     m_specs->preUpdate(shadowUnits);
-    /*
-    std::cout << "trail in spec.\n";
-    m_specs->showTrail(m_out);
-    */
     U result = compute(setOfVar, out, false);
     m_specs->postUpdate(shadowUnits);
-    /*
-    std::cout << "after still in the counter\n";
-    m_solver->displayAssumption(m_out);
-    */
+
     return m_operation->count(result); // result;
   }                                    // count
 

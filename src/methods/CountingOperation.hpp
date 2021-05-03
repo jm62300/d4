@@ -19,6 +19,7 @@
 #include "DataBranch.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/detail/default_ops.hpp>
 
 namespace d4 {
 template <class T, class U> class Operation;
@@ -122,6 +123,22 @@ public:
    */
   void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
     std::string format = vm["keyword-output-format-solution"].as<std::string>();
+
+    if (result == 0) {
+      out << "s UNSATISFIABLE\n";
+      out << "c " << format << "\n";
+      out << "c s log10 - estimate -inf\n";
+      out << "c s exact quadruple int 0\n";
+    } else {
+      out << "s SATISFIABLE\n";
+      out << "c " << format << "\n";
+      out << "c s log10 - estimate "
+          << boost::multiprecision::log10(
+                 boost::multiprecision::cpp_dec_float_100(result))
+          << "\n";
+      out << "c s exact quadruple int " << result << "\n";
+    }
+
     out << format << " ";
     out << std::fixed << std::setprecision(50) << result << "\n";
   } // manageResult
