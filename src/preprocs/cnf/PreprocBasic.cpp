@@ -44,12 +44,14 @@ PreprocBasic::~PreprocBasic() { delete ws; } // destructor
 ProblemManager *PreprocBasic::run(ProblemManager &pin,
                                   LastBreathPreproc &lastBreath) {
   ws->initSolver(pin);
+  lastBreath.panic = 0;
+  lastBreath.countConflict.resize(pin.getNbVar() + 1, 0);
+
   if (!ws->solve())
     return pin.getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 
   // get the activity given by the solver.
-  lastBreath.countConflict.resize(pin.getNbVar() + 1, 0);
   for (unsigned i = 1; i <= pin.getNbVar(); i++)
     lastBreath.countConflict[i] = ws->getCountConflict(i);
 
