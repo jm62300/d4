@@ -20,6 +20,7 @@
 #include "src/exceptions/BadBehaviourException.hpp"
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/detail/default_ops.hpp>
+#include <boost/multiprecision/gmp.hpp>
 
 namespace d4 {
 template <class T, class U> class Operation;
@@ -123,11 +124,15 @@ public:
    */
   void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
     std::string format = vm["keyword-output-format-solution"].as<std::string>();
-#if 0
+#if 1
+    boost::multiprecision::mpf_float::default_precision(128);
+    out.precision(
+        std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+
     if (result == 0) {
       out << "s UNSATISFIABLE\n";
       out << "c " << format << "\n";
-      out << "c s log10 - estimate -inf\n";
+      out << "c s log10-estimate -inf\n";
       out << "c s exact quadruple int 0\n";
     } else {
       out << "s SATISFIABLE\n";
