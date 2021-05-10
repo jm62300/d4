@@ -13,7 +13,7 @@ PBENCH=$(tempfile)
 timeout 60 ./preproc_static -litImplied -vivification -eliminateLit -iterate=10 -equiv -orGate -affine $BENCH > $PBENCH
 ret=$?
 
-if [ $ret -ne 124 ]; then BENCH=$PBENCH; fi
+if [ $ret -ne 124 ]; then ./preproc_static -rewrite $BENCH > $PBENCH; fi
 
 while getopts ":m:w:p" option; do
     case "${option}" in
