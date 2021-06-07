@@ -102,7 +102,15 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
             weightLit[lit << 1] = w;
           else
             weightLit[((-lit) << 1) + 1] = w;
-        }
+        } else if (in.canConsume("show")) {
+          int v = -1;
+          do {
+            v = in.nextInt();
+            if (v)
+              selected.push_back(v);
+          } while (v);
+        } else
+          in.skipLine();
       }
     } else {
       lits.clear();
