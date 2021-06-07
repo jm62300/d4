@@ -124,32 +124,35 @@ public:
    */
   void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
     std::string format = vm["keyword-output-format-solution"].as<std::string>();
-#if 0
-    boost::multiprecision::mpf_float::default_precision(128);
-    out.precision(
-        std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+    std::string outFormat = vm["output-format"].as<std::string>();
 
-    if (result == 0) {
-      out << "s UNSATISFIABLE\n";
-      out << "c " << format << "\n";
-      out << "c s log10-estimate -inf\n";
-      out << "c s exact quadruple int 0\n";
+    if (outFormat == "competition") {
+      boost::multiprecision::mpf_float::default_precision(128);
+      out.precision(std::numeric_limits<
+                    boost::multiprecision::cpp_dec_float_50>::digits10);
+
+      if (result == 0) {
+        out << "s UNSATISFIABLE\n";
+        out << "c " << format << "\n";
+        out << "c s log10-estimate -inf\n";
+        out << "c s exact quadruple int 0\n";
+      } else {
+        out << "s SATISFIABLE\n";
+        out << "c " << format << "\n";
+        out << "c s log10-estimate "
+            << boost::multiprecision::log10(
+                   boost::multiprecision::cpp_dec_float_100(result))
+            << "\n";
+        if (vm["float"].as<bool>())
+          out << "c s exact quadruple int " << result << "\n";
+        else
+          out << "c s exact arb int " << result << "\n";
+      }
     } else {
-      out << "s SATISFIABLE\n";
-      out << "c " << format << "\n";
-      out << "c s log10-estimate "
-          << boost::multiprecision::log10(
-                 boost::multiprecision::cpp_dec_float_100(result))
-          << "\n";
-      if (vm["float"].as<bool>())
-        out << "c s exact quadruple int " << result << "\n";
-      else
-        out << "c s exact arb int " << result << "\n";
+      assert(outFormat == "classic");
+      out << format << " ";
+      out << std::fixed << std::setprecision(50) << result << "\n";
     }
-#else
-    out << format << " ";
-    out << std::fixed << std::setprecision(50) << result << "\n";
-#endif
   } // manageResult
 
   /**

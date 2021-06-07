@@ -39,3 +39,4 @@
 ("query,q", boost::program_options::value<std::string>(), "Perform the queries given in a file (m l1 l2 ... ln 0 for a model counting query, and d l1 l2 ... ln 0 for a satisfiability query).")
 ("projMC-refinement", boost::program_options::value<bool>()->default_value(false), "Try to reduce the set of selector by computing a MSS.")
 ("keyword-output-format-solution", boost::program_options::value<std::string>()->default_value("s"), "The keyword prints in front of the solution when it is printed out.")
+("output-format", boost::program_options::value<std::string>()->default_value("classic"), "The way the solution is printed out ('classic' only gives the number of solution after printing 's', 'competition' follows the MC competition 2021).")
