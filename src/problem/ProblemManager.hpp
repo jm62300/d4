@@ -46,9 +46,10 @@ public:
   virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units) = 0;
 
   inline std::vector<Var> &getSelectedVar() { return m_selected; }
-  inline unsigned getNbSelectedVar() { return m_selected.size(); }
   inline std::vector<double> &getWeightLit() { return m_weightLit; }
   inline std::vector<double> &getWeightVar() { return m_weightVar; }
+
+  inline unsigned getNbSelectedVar() { return m_selected.size(); }
   inline bool isUnsat() { return m_isUnsat; }
   inline void isUnsat(bool b) { m_isUnsat = b; }
 

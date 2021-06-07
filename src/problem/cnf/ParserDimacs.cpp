@@ -17,15 +17,19 @@
  */
 
 #include "ParserDimacs.hpp"
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include <algorithm>
 
 namespace d4 {
 int ParserDimacs::parse_DIMACS_main(BufferRead &in,
-                                    std::vector<std::vector<Lit>> &clauses,
-                                    std::vector<double> &weightLit,
-                                    std::vector<Var> &selected) {
+                                    ProblemManagerCnf *problemManager) {
   std::vector<Lit> lits;
   std::string s;
+
+  std::vector<Var> &selected = problemManager->getSelectedVar();
+  std::vector<double> &weightLit = problemManager->getWeightLit();
+  std::vector<std::vector<Lit>> &clauses = problemManager->getClauses();
 
   weightLit.resize(0);
   selected.clear();
@@ -152,10 +156,8 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 }
 
 int ParserDimacs::parse_DIMACS(std::string input_stream,
-                               std::vector<std::vector<Lit>> &clauses,
-                               std::vector<double> &weightLit,
-                               std::vector<Var> &selected) {
+                               ProblemManagerCnf *problemManager) {
   BufferRead in(input_stream);
-  return parse_DIMACS_main(in, clauses, weightLit, selected);
+  return parse_DIMACS_main(in, problemManager);
 } // parse_DIMACS
 } // namespace d4

@@ -27,7 +27,7 @@ namespace d4 {
  */
 ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile) {
   ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(nameFile, m_clauses, m_weightLit, m_selected);
+  m_nbVar = parser.parse_DIMACS(nameFile, this);
 
   m_weightVar.resize(m_nbVar + 1, 0);
   for (unsigned i = 0; i <= m_nbVar; i++)
