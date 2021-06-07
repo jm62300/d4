@@ -30,6 +30,7 @@ public:
   ProblemManagerCnf();
   ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
                     std::vector<double> &weightVar, std::vector<Var> &selected);
+  ProblemManagerCnf(ProblemManager *problem);
 
   ProblemManagerCnf(std::string &nameFile);
   ~ProblemManagerCnf();

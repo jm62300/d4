@@ -30,6 +30,8 @@ protected:
   std::vector<double> m_weightLit;
   std::vector<double> m_weightVar;
   std::vector<Var> m_selected;
+  std::vector<Var> m_maxVar;
+  std::vector<Var> m_indVar;
   bool m_isUnsat;
 
 public:
@@ -46,6 +48,8 @@ public:
   virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units) = 0;
 
   inline std::vector<Var> &getSelectedVar() { return m_selected; }
+  inline std::vector<Var> &getMaxVar() { return m_maxVar; }
+  inline std::vector<Var> &getIndVar() { return m_indVar; }
   inline std::vector<double> &getWeightLit() { return m_weightLit; }
   inline std::vector<double> &getWeightVar() { return m_weightVar; }
 

@@ -18,6 +18,7 @@
 
 #include "ProblemManagerCnf.hpp"
 #include "ParserDimacs.hpp"
+#include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
 /**
@@ -41,17 +42,33 @@ ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile) {
 ProblemManagerCnf::ProblemManagerCnf() { m_nbVar = 0; } // constructor
 
 /**
-   Constructor.
+ * @brief Construct a new Problem Manager Cnf:: Problem Manager Cnf object
+ *
+ * @param problem, a problem manager object.
+ */
+ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
+  m_nbVar = problem->getNbVar();
+  m_weightLit = problem->getWeightLit();
+  m_weightVar = problem->getWeightVar();
+  m_selected = problem->getSelectedVar();
+  m_maxVar = problem->getMaxVar();
+  m_indVar = problem->getIndVar();
+  m_isUnsat = false;
+} // constructor
 
-   @param[in] nbVar, the number of variables.
-   @param[in] weightLit, the weights associate with the literals.
-   @param[in] weightVar, the weights associate with the variables (sum of weight
+/**
+ * @brief Construct a new Problem Manager Cnf:: Problem Manager Cnf object
+ *
+ * @param nbVar, the number of variables.
+ * @param weightLit, the weights associate with the literals.
+ * @param weightVar, the weights associate with the variables (sum of weight
    of the lit)
+ * @param selected, the projected variables.
  */
 ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
                                      std::vector<double> &weightVar,
                                      std::vector<Var> &selected) {
-  m_nbVar = nbVar;
+  m_nbVar = getNbVar();
   m_weightLit = weightLit;
   m_weightVar = weightVar;
   m_selected = selected;
@@ -72,8 +89,7 @@ ProblemManagerCnf::~ProblemManagerCnf() {
  * @return an unsatisfiable problem.
  */
 ProblemManager *ProblemManagerCnf::getUnsatProblem() {
-  ProblemManagerCnf *ret =
-      new ProblemManagerCnf(m_nbVar, m_weightLit, m_weightVar, m_selected);
+  ProblemManagerCnf *ret = new ProblemManagerCnf(this);
   ret->m_isUnsat = true;
 
   std::vector<Lit> cl;
@@ -97,8 +113,7 @@ ProblemManager *ProblemManagerCnf::getUnsatProblem() {
  */
 ProblemManager *
 ProblemManagerCnf::getConditionedFormula(std::vector<Lit> &units) {
-  ProblemManagerCnf *ret =
-      new ProblemManagerCnf(m_nbVar, m_weightLit, m_weightVar, m_selected);
+  ProblemManagerCnf *ret = new ProblemManagerCnf(this);
 
   std::vector<char> value(m_nbVar + 1, 0);
   for (auto l : units) {

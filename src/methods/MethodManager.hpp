@@ -39,8 +39,7 @@ public:
                                           std::string meth, int precision,
                                           bool isFloat, std::ostream &out);
 
-  static void displayInfoProjected(std::vector<Var> &selected,
-                                   std::ostream &out);
+  static void displayInfoVariables(ProblemManager *problem, std::ostream &out);
 
   static ProblemManager *runPreproc(po::variables_map &vm,
                                     ProblemManager *initProblem,

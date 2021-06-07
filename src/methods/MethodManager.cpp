@@ -80,7 +80,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
   LastBreathPreproc lastBreath;
   ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
-  displayInfoProjected(runProblem->getSelectedVar(), out);
+  displayInfoVariables(runProblem, out);
   out << "c [MODE] Panic: " << lastBreath.panic << "\n";
 
   if (meth == "counting") {
@@ -117,13 +117,34 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
  * @param[in] selected The list of projected variables.
  * @param[in] out The stream where is printed out the information.
  */
-void MethodManager::displayInfoProjected(std::vector<Var> &selected,
+void MethodManager::displayInfoVariables(ProblemManager *problem,
                                          std::ostream &out) {
-  out << "c\nc [PROJECTED VARIABLES] list: ";
-  std::sort(selected.begin(), selected.end());
-  for (auto v : selected)
-    out << v << " ";
-  out << "\nc\n";
+  std::vector<Var> &selected = problem->getSelectedVar();
+  if (selected.size()) {
+    out << "c\nc [PROJECTED VARIABLES] list: ";
+    std::sort(selected.begin(), selected.end());
+    for (auto v : selected)
+      out << v << " ";
+    out << "\nc\n";
+  }
+
+  std::vector<Var> &maxVar = problem->getMaxVar();
+  if (maxVar.size()) {
+    out << "c\nc [MAX VARIABLES] list: ";
+    std::sort(maxVar.begin(), maxVar.end());
+    for (auto v : maxVar)
+      out << v << " ";
+    out << "\nc\n";
+  }
+
+  std::vector<Var> &indVar = problem->getIndVar();
+  if (indVar.size()) {
+    out << "c\nc [IND VARIABLES] list: ";
+    std::sort(indVar.begin(), indVar.end());
+    for (auto v : indVar)
+      out << v << " ";
+    out << "\nc\n";
+  }
 } // displayInfoProjected
 
 /**

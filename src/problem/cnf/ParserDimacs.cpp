@@ -22,17 +22,60 @@
 #include <algorithm>
 
 namespace d4 {
+
+/**
+ * @brief Read the next integar in the given stream while the value 0 is not
+ * reached.
+ *
+ * @param in, the stream.
+ * @param list, the list of integer we parsed.
+ */
+void ParserDimacs::readListIntTerminatedByZero(BufferRead &in,
+                                               std::vector<int> &list) {
+  int v = -1;
+  do {
+    v = in.nextInt();
+    if (v)
+      list.push_back(v);
+  } while (v);
+} // readListIntTerminatedByZero
+
+/**
+ * @brief Parse a literal index and a weight and store the result in the given
+ * vector.
+ *
+ * @param in, the stream buffer where we get the information.
+ * @param weightLit, the place where is stored the data.
+ */
+void ParserDimacs::parseWeightedLit(BufferRead &in,
+                                    std::vector<double> &weightLit) {
+  int lit = in.nextInt();
+  double w = in.nextDouble();
+
+  if (lit > 0)
+    weightLit[lit << 1] = w;
+  else
+    weightLit[((-lit) << 1) + 1] = w;
+} // parseWeightedLit
+
+/**
+ * @brief Parse the dimacs format in order to extract CNF formula and
+ * different set of variables such projected variables, max variables, ...
+ * but also variables' weights if it is the case that the problem is
+ * weighted.
+ *
+ * @param in, the stream buffer where are read the information.
+ * @param problemManager, the place where is store the result.
+ * @return an integer that gives the problem's number of variables.
+ */
 int ParserDimacs::parse_DIMACS_main(BufferRead &in,
                                     ProblemManagerCnf *problemManager) {
   std::vector<Lit> lits;
   std::string s;
 
-  std::vector<Var> &selected = problemManager->getSelectedVar();
   std::vector<double> &weightLit = problemManager->getWeightLit();
   std::vector<std::vector<Lit>> &clauses = problemManager->getClauses();
 
-  weightLit.resize(0);
-  selected.clear();
   int nbVars = 0;
   int nbClauses = 0;
 
@@ -70,50 +113,33 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       in.consumeChar();
       assert(in.currentChar() == 'p');
       in.consumeChar();
-
-      int v = -1;
-      do {
-        v = in.nextInt();
-        if (v)
-          selected.push_back(v);
-      } while (v);
+      readListIntTerminatedByZero(in, problemManager->getSelectedVar());
     } else if (in.currentChar() == 'w') {
       in.consumeChar();
       in.skipSpace();
-
-      int lit = in.nextInt();
-      double w = in.nextDouble();
-
-      if (lit > 0)
-        weightLit[lit << 1] = w;
-      else
-        weightLit[((-lit) << 1) + 1] = w;
+      parseWeightedLit(in, weightLit);
     } else if (in.currentChar() == 'c') {
       in.consumeChar();
       in.skipSpace();
 
-      if (in.currentChar() != 'p')
-        in.skipLine();
-      else {
+      if (in.currentChar() != 'p') {
+        if (in.canConsume("max")) {
+          readListIntTerminatedByZero(in, problemManager->getMaxVar());
+        } else if (in.canConsume("ind"))
+          readListIntTerminatedByZero(in, problemManager->getIndVar());
+        else
+          in.skipLine();
+      } else {
         in.consumeChar();
         if (in.canConsume("weight")) {
-          int lit = in.nextInt();
-          double w = in.nextDouble();
+          parseWeightedLit(in, weightLit);
+
+          // in this format we have an end line we have to consume.
           [[maybe_unused]] int endLine = in.nextInt();
           assert(!endLine);
-
-          if (lit > 0)
-            weightLit[lit << 1] = w;
-          else
-            weightLit[((-lit) << 1) + 1] = w;
-        } else if (in.canConsume("show")) {
-          int v = -1;
-          do {
-            v = in.nextInt();
-            if (v)
-              selected.push_back(v);
-          } while (v);
-        } else
+        } else if (in.canConsume("show"))
+          readListIntTerminatedByZero(in, problemManager->getSelectedVar());
+        else
           in.skipLine();
       }
     } else {
@@ -122,7 +148,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       do {
         v = in.nextInt();
         if ((v > 0 && nbVars < v) || (-v > 0 && nbVars < -v))
-          std::cerr << "PARSE ERROR! Number of variables given incorrect: " << v
+          std::cerr << "PARSE ERROR! Number of variables incorrect: " << v
                     << "\n",
               exit(3);
 
