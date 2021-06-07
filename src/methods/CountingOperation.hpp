@@ -124,7 +124,7 @@ public:
    */
   void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
     std::string format = vm["keyword-output-format-solution"].as<std::string>();
-#if 1
+#if 0
     boost::multiprecision::mpf_float::default_precision(128);
     out.precision(
         std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);

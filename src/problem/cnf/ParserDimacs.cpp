@@ -79,13 +79,32 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
       int lit = in.nextInt();
       double w = in.nextDouble();
+
       if (lit > 0)
         weightLit[lit << 1] = w;
       else
         weightLit[((-lit) << 1) + 1] = w;
-    } else if (in.currentChar() == 'c')
-      in.skipLine();
-    else {
+    } else if (in.currentChar() == 'c') {
+      in.consumeChar();
+      in.skipSpace();
+
+      if (in.currentChar() != 'p')
+        in.skipLine();
+      else {
+        in.consumeChar();
+        if (in.canConsume("weight")) {
+          int lit = in.nextInt();
+          double w = in.nextDouble();
+          [[maybe_unused]] int endLine = in.nextInt();
+          assert(!endLine);
+
+          if (lit > 0)
+            weightLit[lit << 1] = w;
+          else
+            weightLit[((-lit) << 1) + 1] = w;
+        }
+      }
+    } else {
       lits.clear();
       int v = -1;
       do {

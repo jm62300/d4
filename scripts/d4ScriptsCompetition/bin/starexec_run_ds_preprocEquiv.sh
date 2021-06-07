@@ -20,15 +20,15 @@ while getopts ":m:w:p" option; do
     case "${option}" in
         m)
 	    shift 
-	    $CURR_PATH/d4_static -m counting -i $BENCH --keyword-output-format-solution "s mc" $OPTIONS
+	    $CURR_PATH/d4_static -m counting -i $PBENCH --keyword-output-format-solution "s mc" $OPTIONS
         ;;
         w)
 	    shift 
-	    $CURR_PATH/d4_static -m counting -i $BENCH --keyword-output-format-solution "s wmc" --float 1 $OPTIONS
+	    $CURR_PATH/d4_static -m counting -i $PBENCH --keyword-output-format-solution "s wmc" --float 1 $OPTIONS
 		;;
         p)
         shift 
-	    $CURR_PATH/d4_static -m counting -i $BENCH --keyword-output-format-solution "s pmc" $OPTIONS
+	    $CURR_PATH/d4_static -m counting -i $PBENCH --keyword-output-format-solution "s pmc" $OPTIONS
         ;;
     esac
 done
