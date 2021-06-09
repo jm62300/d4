@@ -10,7 +10,7 @@ SOLVER="$ROOT_PATH/minisat"
 TIMEOUT=$2
 if [ "$TIMEOUT" == "" ]; then TIMEOUT=1; fi
 
-LIMIT_SIZE=200
+LIMIT_SIZE=20
 
 isExecutableReady()
 {
@@ -24,7 +24,7 @@ generateSatisfiableCNF()
     ret=20
     while [ $ret -ne 10 ]
     do
-        $CNF_GENERATOR > /tmp/test.cnf
+        $CNF_GENERATOR | grep -v "^c " > /tmp/test.cnf
 
         nbVar=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f3)
         if [ $nbVar -gt $LIMIT_SIZE ]; then continue; fi

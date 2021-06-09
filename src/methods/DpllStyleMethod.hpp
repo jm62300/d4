@@ -546,8 +546,8 @@ public:
     U result = compute(setOfVar, out, false);
     m_specs->postUpdate(shadowUnits);
 
-    return m_operation->count(result); // result;
-  }                                    // count
+    return m_operation->count(result);
+  } // count
 
   /**
      Run the DPLL style algorithm with the operation manager.

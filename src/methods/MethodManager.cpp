@@ -23,6 +23,7 @@
 #include "src/problem/ProblemManager.hpp"
 
 #include "DpllStyleMethod.hpp"
+#include "MaxSharpSAT.hpp"
 #include "MethodManager.hpp"
 #include "ProjMCMethod.hpp"
 
@@ -107,6 +108,14 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                             lastBreath);
     return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem,
                                             lastBreath);
+  }
+
+  if (meth == "max#sat") {
+    if (!isFloat)
+      return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
+                                           lastBreath);
+    return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
+                                           lastBreath);
   }
 
   throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));

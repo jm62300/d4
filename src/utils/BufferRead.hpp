@@ -73,6 +73,11 @@ public:
       consumeChar();
   }
 
+  inline void skipSimpleSpace() {
+    while (!eof() && (currentChar() == ' ' || currentChar() == '\t'))
+      consumeChar();
+  }
+
   inline void skipLine() {
     while (!eof() && currentChar() != '\n')
       consumeChar();
@@ -99,7 +104,7 @@ public:
    * @return true if the modif can be consumed, false otherwise.
    */
   inline bool canConsume(std::string motif) {
-    skipSpace();
+    skipSimpleSpace();
     for (auto c : motif) {
       if (currentChar() != c)
         return false;

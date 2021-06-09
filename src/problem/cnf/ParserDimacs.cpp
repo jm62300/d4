@@ -103,6 +103,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
       nbVars = in.nextInt();
       nbClauses = in.nextInt();
+
       if (vpActivated)
         std::cout << "c Some variable are marked: " << in.nextInt() << "\n";
       weightLit.resize(((nbVars + 1) << 1), 1);
@@ -120,7 +121,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       parseWeightedLit(in, weightLit);
     } else if (in.currentChar() == 'c') {
       in.consumeChar();
-      in.skipSpace();
+      in.skipSimpleSpace();
 
       if (in.currentChar() != 'p') {
         if (in.canConsume("max")) {
