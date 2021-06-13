@@ -84,7 +84,6 @@ private:
   SpecManager *m_specs;
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
-  PartitioningHeuristic *m_hCutSet;
 
   TmpEntry<T> NULL_CACHE_ENTRY;
   Cache<T> *m_cache;
@@ -145,9 +144,7 @@ public:
     }
 
     // no partitioning heuristic for the moment.
-    m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
-
-    assert(m_hVar && m_hPhase && m_hCutSet);
+    assert(m_hVar && m_hPhase);
     m_cache = new Cache<T>(vm, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
@@ -192,7 +189,6 @@ public:
     delete m_specs;
     delete m_hVar;
     delete m_hPhase;
-    delete m_hCutSet;
     delete m_cache;
   } // destructor
 
@@ -317,10 +313,6 @@ private:
     out << "c Number of paritioner calls: " << callPartitioner << "\n";
     out << "c\n";
     m_cache->printCacheInformation(out);
-    if (m_hCutSet) {
-      out << "c\n";
-      m_hCutSet->displayStat(out);
-    }
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   } // printFinalStat
@@ -338,21 +330,19 @@ private:
   } // initAssumption
 
   /**
-     Call the CNF formula into a D-FPiBDD.
-
-     @param[in] setOfVar, the current set of considered variables
-     @param[in] unitsLit, the set of unit literal detected at this level
-     @param[in] freeVariable, the variables which become free
-     @param[in] priority, select in priority these variable to the next decision
-     node
-     @param[in] out, the stream we use to print out information.
-
-     \return an element of type U that sums up the given CNF sub-formula using a
-     DPLL style algorithm with an operation manager.
-  */
-  T compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-             std::vector<Var> &freeVariable, std::vector<Var> &priorityVar,
-             std::ostream &out) {
+   * Call the CNF formula into a D-FBDD.
+   *
+   * @param[in] setOfVar, the current set of considered variables
+   * @param[in] unitsLit, the set of unit literal detected at this level
+   * @param[in] freeVariable, the variables which become free
+   * decision node
+   * @param[in] out, the stream we use to print out logs.
+   *
+   * \return an element of type U that sums up the given CNF sub-formula using
+   * a DPLL style algorithm with an operation manager.
+   */
+  T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
+              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     nbCallCall++;
 
@@ -381,11 +371,7 @@ private:
         if (cb.defined)
           ret = ret * cb.getValue();
         else {
-          // recursive call
-          std::vector<Var> currPriority;
-          computePrioritySubSet(connected, priorityVar, currPriority);
-
-          T curr = computeDecisionNode(connected, currPriority, out);
+          T curr = countIndDecisionNode(connected, out);
           m_cache->addInCache(cb, curr);
           ret = ret * curr;
         }
@@ -397,23 +383,16 @@ private:
   } // compute_
 
   /**
-     This function select a variable and compile a decision node.
-
-     @param[in] connected, the set of variable present in the current problem.
-     @param[in] priorityVar, a list of variable we want to branch first.
-
-     \return the compiled formula.
-  */
-  T computeDecisionNode(std::vector<Var> &connected, std::vector<Var> &priority,
-                        std::ostream &out) {
-    if (!priority.size() && m_hCutSet->isReady(connected)) {
-      m_hCutSet->computeCutSet(connected, priority);
-      callPartitioner++;
-    }
-
+   * This function select a variable and compile a decision node.
+   *
+   * @param[in] connected, the set of variable present in the current problem.
+   * @param[in] out, the stream we use to print out logs.
+   *
+   * \return the compiled formula.
+   */
+  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
     // search the next variable to branch on
-    std::vector<Var> &inVars = (priority.size()) ? priority : connected;
-    Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVarible);
+    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVarible);
 
     if (v == var_Undef)
       return T(1);
@@ -426,16 +405,16 @@ private:
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priority, out);
+    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out);
     m_solver->popAssumption();
 
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priority, out);
+      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priority, out);
+      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
       m_solver->popAssumption();
     }
 
@@ -461,9 +440,8 @@ private:
                                  !m_solver->warmStart(29, 11, setOfVar, m_out)))
       result.count = T(0);
 
-    std::vector<Var> priorityVar;
     DataBranch<T> b;
-    b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);
+    b.d = countInd_(setOfVar, b.unitLits, b.freeVars, out);
     result.count =
         b.d * m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   } // compute
