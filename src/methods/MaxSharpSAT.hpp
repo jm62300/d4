@@ -41,11 +41,6 @@
 #include "DataBranch.hpp"
 #include "MethodManager.hpp"
 
-#define NB_SEP_MC 118
-#define MASK_SHOWRUN_MC ((2 << 13) - 1)
-#define WIDTH_PRINT_COLUMN_MC 12
-#define MASK_HEADER 1048575
-
 namespace d4 {
 namespace po = boost::program_options;
 template <class T> class Counter;
@@ -59,18 +54,16 @@ template <class T> class MaxSharpSAT : public MethodManager {
   };
 
 private:
+  const unsigned NB_SEP = 105;
+
   bool optDomConst;
   bool optReversePolarity;
 
   unsigned nbCallCall;
   unsigned nbSplit;
-  unsigned callPartitioner;
   unsigned nbDecisionNode;
   unsigned optCached;
   unsigned m_stampIdx;
-  unsigned m_limitUpdate;
-  unsigned m_limitUpdateCounter;
-  bool m_staticLimit;
   bool m_isProjectedMode;
 
   std::vector<unsigned> m_stampVar;
@@ -90,10 +83,6 @@ private:
 
   std::ostream m_out;
   bool m_panicMode;
-
-  unsigned limitNbVarCache;
-  unsigned limitNbVarCacheDynamic;
-  double ratioDynamicLimit;
 
 public:
   /**
@@ -142,6 +131,8 @@ public:
       m_isDecisionVarible[v] = true;
       m_decisionStatus[v] = EXIST_DEC;
     }
+    for (auto v : m_problem->getSelectedVar())
+      m_isDecisionVarible[v] = true;
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
@@ -151,29 +142,7 @@ public:
     initTimer();
 
     optCached = vm["cache-activated"].as<bool>();
-    callPartitioner = 0;
     nbDecisionNode = nbSplit = nbCallCall = 0;
-
-    m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
-    m_staticLimit = vm["cache-limit-static"].as<bool>();
-    m_limitUpdateCounter = 0;
-
-    if (m_staticLimit) {
-      ratioDynamicLimit = 1;
-      limitNbVarCache = m_problem->getNbVar();
-    } else {
-      ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();
-      limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
-    }
-    limitNbVarCacheDynamic = limitNbVarCache;
-
-    m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
-          << "static(" << m_staticLimit << ") "
-          << "limit(" << limitNbVarCache << ") "
-          << "ratio(" << ratioDynamicLimit << ") "
-          << "limitDyn(" << limitNbVarCacheDynamic << ") "
-          << "freq update(" << m_limitUpdate << ") "
-          << "\n";
 
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
@@ -247,8 +216,6 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
-
         << "|\n";
   } // showInter
 
@@ -259,7 +226,7 @@ private:
    */
   inline void separator(std::ostream &out) {
     out << "c ";
-    for (int i = 0; i < NB_SEP_MC; i++)
+    for (int i = 0; i < NB_SEP; i++)
       out << "-";
     out << "\n";
   } // separator
@@ -280,7 +247,6 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter"
         << "|\n";
     separator(out);
   } // showHeader
@@ -310,7 +276,6 @@ private:
     out << "c Number of recursive call: " << nbCallCall << "\n";
     out << "c Number of split formula: " << nbSplit << "\n";
     out << "c Number of decision: " << nbDecisionNode << "\n";
-    out << "c Number of paritioner calls: " << callPartitioner << "\n";
     out << "c\n";
     m_cache->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
