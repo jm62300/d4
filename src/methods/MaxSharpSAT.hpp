@@ -47,12 +47,16 @@
 #define MASK_HEADER 1048575
 
 namespace d4 {
-
 namespace po = boost::program_options;
 template <class T> class Counter;
 
-template <class T> class MaxSharpSAT : public MethodManager, public Counter<T> {
+template <class T> class MaxSharpSAT : public MethodManager {
   enum TypeDecision { NO_DEC, EXIST_DEC, MAX_DEC };
+
+  struct MaxSharpSatResult {
+    unsigned long int *valuation;
+    T count;
+  };
 
 private:
   bool optDomConst;
@@ -72,8 +76,6 @@ private:
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
 
-  std::vector<unsigned long> nbTestCacheVarSize;
-  std::vector<unsigned long> nbPosHitCacheVarSize;
   std::vector<TypeDecision> m_decisionStatus;
   std::vector<bool> m_isDecisionVarible;
 
@@ -178,8 +180,6 @@ public:
 
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
-    nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
-    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
     m_out << "c\n";
   } // constructor
 
@@ -338,38 +338,6 @@ private:
   } // initAssumption
 
   /**
-     Decide if the cache is realized or not.
-   */
-  bool cacheIsActivated(std::vector<Var> &connected) {
-    if (!optCached)
-      return false;
-    if (connected.size() < limitNbVarCache)
-      return true;
-    if (connected.size() < limitNbVarCacheDynamic)
-      return true;
-    return false;
-  } // cacheIsActivated
-
-  /**
-     Update the dynamic limit.
-   */
-  void updateDynamicLimit() {
-    limitNbVarCacheDynamic = 0;
-    if (m_staticLimit)
-      return;
-
-    for (unsigned i = 0; i < nbPosHitCacheVarSize.size(); i++) {
-      if (nbPosHitCacheVarSize[i])
-        limitNbVarCacheDynamic = i;
-      nbPosHitCacheVarSize[i] >>= 1;
-    }
-
-    limitNbVarCacheDynamic *= ratioDynamicLimit;
-    m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic << "/"
-          << limitNbVarCache << "\n";
-  } // updateDynamicLimit
-
-  /**
      Call the CNF formula into a D-FPiBDD.
 
      @param[in] setOfVar, the current set of considered variables
@@ -402,35 +370,23 @@ private:
         varConnected, setOfVar, freeVariable, reallyPresent);
     expelNoDesionVar(freeVariable, m_decisionStatus);
 
-    if (++m_limitUpdateCounter > m_limitUpdate) {
-      updateDynamicLimit();
-      m_limitUpdateCounter = 0;
-    }
-
     // consider each connected component.
     T ret = T(1);
     if (nbComponent) {
       nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        bool cacheActivated = cacheIsActivated(connected);
+        TmpEntry<T> cb = m_cache->searchInCache(connected);
 
-        TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
-                                        : NULL_CACHE_ENTRY;
-
-        if (cacheActivated)
-          nbTestCacheVarSize[connected.size()]++;
-        if (cacheActivated && cb.defined) {
-          nbPosHitCacheVarSize[connected.size()]++;
+        if (cb.defined)
           ret = ret * cb.getValue();
-        } else {
+        else {
           // recursive call
           std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
 
           T curr = computeDecisionNode(connected, currPriority, out);
-          if (cacheActivated)
-            m_cache->addInCache(cb, curr);
+          m_cache->addInCache(cb, curr);
           ret = ret * curr;
         }
       }
@@ -494,56 +450,25 @@ private:
      @param[in] setOfVar, the set of variables of the considered problem.
      @param[in] out, the stream are is print out the logs.
      @param[in] warmStart, to activate/deactivate the warm start strategy.
-     /!\ When the warm strat is activated we the assumptions are reset.
+     /!\ When the warm staet is activated we the assumptions are reset.
 
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  T compute(std::vector<Var> &setOfVar, std::ostream &out,
-            bool warmStart = true) {
+  void compute(std::vector<Var> &setOfVar, std::ostream &out,
+               MaxSharpSatResult &result, bool warmStart = true) {
     if (m_problem->isUnsat() || (warmStart && !m_panicMode &&
                                  !m_solver->warmStart(29, 11, setOfVar, m_out)))
-      return T(0);
+      result.count = T(0);
 
     std::vector<Var> priorityVar;
     DataBranch<T> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);
-    return b.d * m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+    result.count =
+        b.d * m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   } // compute
 
 public:
-  /**
-     Given an assumption, we compute the number of models.  That is different
-     from the query strategy, where we first compute and then condition the
-     computed structure.
-
-     @param[in] setOfVar, the set of variables of the considered problem.
-     @param[in] assumption, the set of literals we want to assign.
-     @param[in] out, the stream where are print out the log.
-
-     \return the number of models when the formula is simplified by the given
-     assumption.
-   */
-  T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
-          std::ostream &out) {
-    initAssumption(assumption);
-
-    // get the unit not in setOfVar.
-    std::vector<Lit> shadowUnits;
-    m_stampIdx++;
-    for (auto &v : setOfVar)
-      m_stampVar[v] = m_stampIdx;
-    for (auto &l : assumption)
-      if (m_stampVar[l.var()] != m_stampIdx)
-        shadowUnits.push_back(l);
-
-    m_specs->preUpdate(shadowUnits);
-    T result = compute(setOfVar, out, false);
-    m_specs->postUpdate(shadowUnits);
-
-    return result;
-  } // count
-
   /**
    * @brief Search for the instanciation of the variable of
    * m_problem->getMaxVar() that maximize the number of the remaining variables
@@ -557,9 +482,10 @@ public:
     for (int i = 1; i <= m_specs->getNbVariable(); i++)
       setOfVar.push_back(i);
 
-    T result = compute(setOfVar, m_out);
+    MaxSharpSatResult result;
+    compute(setOfVar, m_out, result);
     printFinalStats(m_out);
-    std::cout << "s " << result << "\n";
+    std::cout << "s " << result.count << "\n";
   } // run
 };
 } // namespace d4
