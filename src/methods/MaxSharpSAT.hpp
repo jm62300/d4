@@ -170,8 +170,8 @@ private:
      @param[in] isDecisionvariable, a type decision vector that marks as true
      decision variables.
    */
-  void expelNoDesionVar(std::vector<Var> &vars,
-                        std::vector<TypeDecision> &isDecisionVariable) {
+  void expelNoDecisionVar(std::vector<Var> &vars,
+                          std::vector<TypeDecision> &isDecisionVariable) {
     if (!m_isProjectedMode)
       return;
     unsigned j = 0;
@@ -283,18 +283,6 @@ private:
   } // printFinalStat
 
   /**
-     Initialize the assumption in order to compute compiled formula under this
-     one.
-
-     @param[in] assums, the assumption
-  */
-  inline void initAssumption(std::vector<Lit> &assums) {
-    m_solver->restart();
-    m_solver->popAssumption(m_solver->getAssumption().size());
-    m_solver->setAssumption(assums);
-  } // initAssumption
-
-  /**
    * Call the CNF formula into a D-FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -323,7 +311,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    expelNoDesionVar(freeVariable, m_decisionStatus);
+    expelNoDecisionVar(freeVariable, m_decisionStatus);
 
     // consider each connected component.
     T ret = T(1);
@@ -394,7 +382,7 @@ private:
      @param[in] setOfVar, the set of variables of the considered problem.
      @param[in] out, the stream are is print out the logs.
      @param[in] warmStart, to activate/deactivate the warm start strategy.
-     /!\ When the warm staet is activated we the assumptions are reset.
+     /!\ When the warm start is activated we the assumptions are reset.
 
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
