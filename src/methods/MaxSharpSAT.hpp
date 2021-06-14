@@ -49,8 +49,8 @@ template <class T> class MaxSharpSAT : public MethodManager {
   enum TypeDecision { NO_DEC, EXIST_DEC, MAX_DEC };
 
   struct MaxSharpSatResult {
-    unsigned long int *valuation;
     T count;
+    unsigned long int *valuation;
   };
 
 private:
@@ -72,6 +72,10 @@ private:
   std::vector<bool> m_isDecisionVarible;
   std::vector<bool> m_isMaxDecisionVarible;
   T m_maxCount = T(0);
+
+  const unsigned c_sizePage = 1 << 15;
+  std::vector<u_int8_t *> m_memoryPages;
+  unsigned m_posInMemoryPages;
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
@@ -145,6 +149,10 @@ public:
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
     m_out << "c\n";
+
+    // init the memory requierd for storing interpretation.
+    m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+    m_posInMemoryPages = 0;
   } // constructor
 
   /**
@@ -158,6 +166,9 @@ public:
     delete m_hPhase;
     delete m_cacheInd;
     delete m_cacheMax;
+
+    for (auto page : m_memoryPages)
+      delete[] page;
   } // destructor
 
 private:
@@ -308,8 +319,10 @@ private:
         varConnected, setOfVar, freeVariable, reallyPresent);
     expelNoDecisionVar(freeVariable, m_isDecisionVarible);
 
-    // consider each connected component.
+    // init the returned result.
     result.count = T(1);
+
+    // consider each connected component.
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
@@ -318,10 +331,11 @@ private:
 
         if (cb.defined) {
           result.count = result.count * cb.getValue().count;
+
         } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
-          m_cacheMax->addInCache(cb, {NULL, tmpResult.count});
+          m_cacheMax->addInCache(cb, {tmpResult.count, NULL});
           result.count = result.count * tmpResult.count;
         }
       }
@@ -383,7 +397,10 @@ private:
     b[1].d = res[1].count *
              m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
 
-    result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
+    if (b[0].d > b[1].d)
+      result = {b[0].d, res[0].valuation};
+    else
+      result = {b[1].d, res[1].valuation};
 
     if (result.count > m_maxCount)
       m_maxCount = result.count;
