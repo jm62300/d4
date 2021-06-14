@@ -79,7 +79,6 @@ private:
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
 
-  TmpEntry<T> NULL_CACHE_ENTRY;
   Cache<T> *m_cacheInd;
   Cache<MaxSharpSatResult> *m_cacheMax;
 
@@ -315,14 +314,14 @@ private:
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
+        TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
-        if (cb.defined)
-          result.count = result.count * cb.getValue();
-        else {
+        if (cb.defined) {
+          result.count = result.count * cb.getValue().count;
+        } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
-          m_cacheInd->addInCache(cb, tmpResult.count);
+          m_cacheMax->addInCache(cb, {NULL, tmpResult.count});
           result.count = result.count * tmpResult.count;
         }
       }
