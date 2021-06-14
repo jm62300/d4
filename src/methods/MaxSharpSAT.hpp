@@ -69,9 +69,9 @@ private:
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
 
-  std::vector<TypeDecision> m_decisionStatus;
   std::vector<bool> m_isDecisionVarible;
   std::vector<bool> m_isMaxDecisionVarible;
+  T m_maxCount = T(0);
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
@@ -119,25 +119,16 @@ public:
         PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
-    m_decisionStatus.clear();
     m_isDecisionVarible.clear();
     m_isMaxDecisionVarible.clear();
 
     m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
-    m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
-    m_decisionStatus.resize(m_problem->getNbVar() + 1, NO_DEC);
+    for (auto v : m_problem->getIndVar())
+      m_isDecisionVarible[v] = true;
 
-    for (auto v : m_problem->getMaxVar()) {
-      m_isDecisionVarible[v] = true;
+    m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    for (auto v : m_problem->getMaxVar())
       m_isMaxDecisionVarible[v] = true;
-      m_decisionStatus[v] = MAX_DEC;
-    }
-    for (auto v : m_problem->getIndVar()) {
-      m_isDecisionVarible[v] = true;
-      m_decisionStatus[v] = EXIST_DEC;
-    }
-    for (auto v : m_problem->getSelectedVar())
-      m_isDecisionVarible[v] = true;
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
@@ -182,8 +173,7 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|"
-        << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|\n";
   } // showInter
 
   /**
@@ -332,6 +322,9 @@ private:
       }
     } // else we have a tautology
 
+    m_solver->showTrail();
+    std::cout << "=> " << result.count << "\n";
+
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVarible);
   } // searchMaxValuation
@@ -355,6 +348,11 @@ private:
       std::vector<Var> freeVar;
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
+
+      if (result.count > m_maxCount) {
+        m_maxCount = result.count;
+        std::cout << "=> " << m_maxCount << "\n";
+      }
       return;
     }
 
@@ -383,6 +381,11 @@ private:
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
 
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
+
+    if (result.count > m_maxCount) {
+      m_maxCount = result.count;
+      std::cout << "=> " << m_maxCount << "\n";
+    }
   } // searchMaxSharpSatDecision
 
   /**

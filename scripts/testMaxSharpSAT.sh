@@ -67,15 +67,18 @@ do
             fi
         done
     fi
+    
 
-    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')    
+    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')        
+
     if [ $c -gt $max ]; then max=$c; fi
     rm $fileTmpCouter    
 done
 rm $fileTmp
 
-echo $max # > /tmp/sol1.txt
-$TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' # > /tmp/sol2.txt
+
+echo $max > /tmp/sol1.txt
+$TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
 
 # rm $fileTmp
 diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null
