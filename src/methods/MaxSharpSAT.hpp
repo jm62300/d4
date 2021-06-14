@@ -71,6 +71,7 @@ private:
 
   std::vector<TypeDecision> m_decisionStatus;
   std::vector<bool> m_isDecisionVarible;
+  std::vector<bool> m_isMaxDecisionVarible;
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
@@ -120,11 +121,15 @@ public:
     // specify which variables are decisions, and which are not.
     m_decisionStatus.clear();
     m_isDecisionVarible.clear();
+    m_isMaxDecisionVarible.clear();
 
     m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
     m_decisionStatus.resize(m_problem->getNbVar() + 1, NO_DEC);
+
     for (auto v : m_problem->getMaxVar()) {
       m_isDecisionVarible[v] = true;
+      m_isMaxDecisionVarible[v] = true;
       m_decisionStatus[v] = MAX_DEC;
     }
     for (auto v : m_problem->getIndVar()) {
@@ -162,44 +167,6 @@ public:
   } // destructor
 
 private:
-  /**
-     Expel from a set of variables the ones they are marked as being decidable.
-
-     @param[out] vars, the set of variables we search to filter.
-
-     @param[in] isDecisionvariable, a type decision vector that marks as true
-     decision variables.
-   */
-  void expelNoDecisionVar(std::vector<Var> &vars,
-                          std::vector<TypeDecision> &isDecisionVariable) {
-    if (!m_isProjectedMode)
-      return;
-    unsigned j = 0;
-    for (unsigned i = 0; i < vars.size(); i++)
-      if (isDecisionVariable[vars[i]] != NO_DEC)
-        vars[j++] = vars[i];
-    vars.resize(j);
-  } // expelNoDesionVar
-
-  /**
-     Compute the current priority set.
-
-     @param[in] connected, the current component.
-     @param[in] priorityVar, the current priority variables.
-     @param[out] currPriority, the intersection of the two previous sets.
-  */
-  inline void computePrioritySubSet(std::vector<Var> &connected,
-                                    std::vector<Var> &priorityVar,
-                                    std::vector<Var> &currPriority) {
-    currPriority.clear();
-    m_stampIdx++;
-    for (auto &v : connected)
-      m_stampVar[v] = m_stampIdx;
-    for (auto &v : priorityVar)
-      if (m_stampVar[v] == m_stampIdx && !m_specs->varIsAssigned(v))
-        currPriority.push_back(v);
-  } // computePrioritySet
-
   /**
      Print out information about the solving process.
 
@@ -283,12 +250,147 @@ private:
   } // printFinalStat
 
   /**
-   * Call the CNF formula into a D-FBDD.
+   * Expel from a set of variables the ones they are marked as being decidable.
+   * @param[out] vars, the set of variables we search to filter.
+   * @param[in] isDecisionvariable, a type decision vector that marks as true
+   * decision variables.
+   */
+  void expelNoDecisionVar(std::vector<Var> &vars,
+                          std::vector<bool> &isDecisionVariable) {
+    unsigned j = 0;
+    for (unsigned i = 0; i < vars.size(); i++)
+      if (isDecisionVariable[vars[i]])
+        vars[j++] = vars[i];
+    vars.resize(j);
+  } // expelNoDecisionVar
+
+  /**
+   * Expel from a set of variables the ones they are marked as being decidable.
+   * @param[out] vars, the set of variables we search to filter.
+   * @param[in] isDecisionvariable, a type decision vector that marks as true
+   * decision variables.
+   */
+  void expelNoDecisionLit(std::vector<Lit> &lits,
+                          std::vector<bool> &isDecisionVariable) {
+    unsigned j = 0;
+    for (unsigned i = 0; i < lits.size(); i++)
+      if (isDecisionVariable[lits[i].var()])
+        lits[j++] = lits[i];
+    lits.resize(j);
+  } // expelNoDecisionLit
+
+  /**
+   * @brief Search for a valuation of the max variables that maximizes the
+   * number of models on the remaning formula where some variables are forget.
+   *
+   * @param setOfVar, the current set of considered variables.
+   * @param unitsLit, the set of unit literal detected at this level.
+   * @param freeVariable, the variables which become free decision node.
+   * @param out, the stream we use to print out logs.
+   * @param result, the strucre where is solved the result.
+   */
+  void searchMaxValuation(std::vector<Var> &setOfVar,
+                          std::vector<Lit> &unitsLit,
+                          std::vector<Var> &freeVariable, std::ostream &out,
+                          MaxSharpSatResult &result) {
+    showRun(out);
+    nbCallCall++;
+
+    // is the problem still satisifiable?
+    if (!m_solver->solve(setOfVar)) {
+      result.count = T(0);
+      return;
+    }
+
+    m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
+    m_specs->preUpdate(unitsLit);
+
+    // compute the connected composant
+    std::vector<Var> reallyPresent;
+    std::vector<std::vector<Var>> varConnected;
+
+    int nbComponent = m_specs->computeConnectedComponent(
+        varConnected, setOfVar, freeVariable, reallyPresent);
+    expelNoDecisionVar(freeVariable, m_isDecisionVarible);
+
+    // consider each connected component.
+    result.count = T(1);
+    if (nbComponent) {
+      nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      for (int cp = 0; cp < nbComponent; cp++) {
+        std::vector<Var> &connected = varConnected[cp];
+        TmpEntry<T> cb = m_cache->searchInCache(connected);
+
+        if (cb.defined)
+          result.count = result.count * cb.getValue();
+        else {
+          MaxSharpSatResult tmpResult;
+          searchMaxSharpSatDecision(connected, out, tmpResult);
+          m_cache->addInCache(cb, tmpResult.count);
+          result.count = result.count * tmpResult.count;
+        }
+      }
+    } // else we have a tautology
+
+    m_specs->postUpdate(unitsLit);
+    expelNoDecisionLit(unitsLit, m_isDecisionVarible);
+  } // searchMaxValuation
+
+  /**
+   * This function select a variable and compile a decision node.
+   *
+   * @param[in] connected, the set of variable present in the current problem.
+   * @param[in] out, the stream we use to print out logs.
+   * @param[out] result, the best solution found.
+   *
+   * \return the compiled formula.
+   */
+  void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
+                                 MaxSharpSatResult &result) {
+    // search the next variable to branch on
+    Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVarible);
+
+    if (v == var_Undef) {
+      std::vector<Lit> unitsLit;
+      std::vector<Var> freeVar;
+      result.count = countInd_(connected, unitsLit, freeVar, out);
+      result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
+      return;
+    }
+
+    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    nbDecisionNode++;
+
+    // consider the two value for l
+    DataBranch<T> b[2];
+
+    assert(!m_solver->isInAssumption(l.var()));
+    m_solver->pushAssumption(l);
+    b[0].d = searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out);
+    m_solver->popAssumption();
+
+    if (m_solver->isInAssumption(l))
+      b[1].d = 0;
+    else if (m_solver->isInAssumption(~l))
+      b[1].d = searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out);
+    else {
+      m_solver->pushAssumption(~l);
+      b[1].d = searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out);
+      m_solver->popAssumption();
+    }
+
+    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+
+    result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
+  } // searchMaxSharpSatDecision
+
+  /**
+   * Count the number of projected models.
    *
    * @param[in] setOfVar, the current set of considered variables
    * @param[in] unitsLit, the set of unit literal detected at this level
-   * @param[in] freeVariable, the variables which become free
-   * decision node
+   * @param[in] freeVariable, the variables which become free decision node
    * @param[in] out, the stream we use to print out logs.
    *
    * \return an element of type U that sums up the given CNF sub-formula using
@@ -311,7 +413,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    expelNoDecisionVar(freeVariable, m_decisionStatus);
+    expelNoDecisionVar(freeVariable, m_isDecisionVarible);
 
     // consider each connected component.
     T ret = T(1);
@@ -333,7 +435,7 @@ private:
 
     m_specs->postUpdate(unitsLit);
     return ret;
-  } // compute_
+  } // countInd_
 
   /**
    * This function select a variable and compile a decision node.
@@ -401,7 +503,7 @@ private:
 
 public:
   /**
-   * @brief Search for the instanciation of the variable of
+   * @brief Search for the instanciation of the variables of
    * m_problem->getMaxVar() that maximize the number of the remaining variables
    * where the variables not belonging to m_problem->getIndVar() are
    * existantially quatified.
