@@ -54,15 +54,15 @@ template <class T> class MaxSharpSAT : public MethodManager {
   };
 
 private:
-  const unsigned NB_SEP = 105;
+  const unsigned NB_SEP = 118;
 
   bool optDomConst;
   bool optReversePolarity;
 
-  unsigned nbCallCall;
-  unsigned nbSplit;
-  unsigned nbDecisionNode;
-  unsigned optCached;
+  unsigned m_nbCallCall;
+  unsigned m_nbSplit;
+  unsigned m_nbDecisionNode;
+  unsigned m_optCached;
   unsigned m_stampIdx;
   bool m_isProjectedMode;
 
@@ -80,7 +80,8 @@ private:
   PhaseHeuristic *m_hPhase;
 
   TmpEntry<T> NULL_CACHE_ENTRY;
-  Cache<T> *m_cache;
+  Cache<T> *m_cacheInd;
+  Cache<MaxSharpSatResult> *m_cacheMax;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -132,13 +133,15 @@ public:
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
-    m_cache = new Cache<T>(vm, m_problem->getNbVar(), m_specs, m_out);
+    m_cacheInd = new Cache<T>(vm, m_problem->getNbVar(), m_specs, m_out);
+    m_cacheMax =
+        new Cache<MaxSharpSatResult>(vm, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
 
-    optCached = vm["cache-activated"].as<bool>();
-    nbDecisionNode = nbSplit = nbCallCall = 0;
+    m_optCached = vm["cache-activated"].as<bool>();
+    m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
 
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
@@ -154,7 +157,8 @@ public:
     delete m_specs;
     delete m_hVar;
     delete m_hPhase;
-    delete m_cache;
+    delete m_cacheInd;
+    delete m_cacheMax;
   } // destructor
 
 private:
@@ -165,15 +169,16 @@ private:
   */
   inline void showInter(std::ostream &out) {
     out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbCallCall << std::fixed
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall << std::fixed
         << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << m_cache->getNbPositiveHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbNegativeHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit << "|"
+        << m_cacheInd->getNbPositiveHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->getNbNegativeHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_maxCount << "|\n";
   } // showInter
 
   /**
@@ -204,6 +209,7 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count"
         << "|\n";
     separator(out);
   } // showHeader
@@ -214,9 +220,9 @@ private:
      @param[in] out, the stream we use to print out information.
    */
   inline void showRun(std::ostream &out) {
-    if (!(nbCallCall & (MASK_HEADER)))
+    if (!(m_nbCallCall & (MASK_HEADER)))
       showHeader(out);
-    if (nbCallCall && !(nbCallCall & MASK_SHOWRUN_MC))
+    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC))
       showInter(out);
   } // showRun
 
@@ -230,11 +236,11 @@ private:
     out << "c\n";
     out << "c \033[1m\033[31mStatistics \033[0m\n";
     out << "c \033[33mCompilation Information\033[0m\n";
-    out << "c Number of recursive call: " << nbCallCall << "\n";
-    out << "c Number of split formula: " << nbSplit << "\n";
-    out << "c Number of decision: " << nbDecisionNode << "\n";
+    out << "c Number of recursive call: " << m_nbCallCall << "\n";
+    out << "c Number of split formula: " << m_nbSplit << "\n";
+    out << "c Number of decision: " << m_nbDecisionNode << "\n";
     out << "c\n";
-    m_cache->printCacheInformation(out);
+    m_cacheInd->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   } // printFinalStat
@@ -284,7 +290,7 @@ private:
                           std::vector<Var> &freeVariable, std::ostream &out,
                           MaxSharpSatResult &result) {
     showRun(out);
-    nbCallCall++;
+    m_nbCallCall++;
 
     // is the problem still satisifiable?
     if (!m_solver->solve(setOfVar)) {
@@ -306,24 +312,21 @@ private:
     // consider each connected component.
     result.count = T(1);
     if (nbComponent) {
-      nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = m_cache->searchInCache(connected);
+        TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
         if (cb.defined)
           result.count = result.count * cb.getValue();
         else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
-          m_cache->addInCache(cb, tmpResult.count);
+          m_cacheInd->addInCache(cb, tmpResult.count);
           result.count = result.count * tmpResult.count;
         }
       }
     } // else we have a tautology
-
-    m_solver->showTrail();
-    std::cout << "=> " << result.count << "\n";
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVarible);
@@ -349,43 +352,42 @@ private:
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
 
-      if (result.count > m_maxCount) {
+      if (result.count > m_maxCount)
         m_maxCount = result.count;
-        std::cout << "=> " << m_maxCount << "\n";
-      }
       return;
     }
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
-    nbDecisionNode++;
+    m_nbDecisionNode++;
 
     // consider the two value for l
     DataBranch<T> b[2];
+    MaxSharpSatResult res[2];
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d = searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out);
+    searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
     m_solver->popAssumption();
 
     if (m_solver->isInAssumption(l))
-      b[1].d = 0;
+      res[1].count = T(0);
     else if (m_solver->isInAssumption(~l))
-      b[1].d = searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out);
+      searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1]);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d = searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out);
+      searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1]);
       m_solver->popAssumption();
     }
 
-    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
-    b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+    b[0].d = res[0].count *
+             m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    b[1].d = res[1].count *
+             m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
 
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
 
-    if (result.count > m_maxCount) {
+    if (result.count > m_maxCount)
       m_maxCount = result.count;
-      std::cout << "=> " << m_maxCount << "\n";
-    }
   } // searchMaxSharpSatDecision
 
   /**
@@ -402,7 +404,7 @@ private:
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
               std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
-    nbCallCall++;
+    m_nbCallCall++;
 
     if (!m_solver->solve(setOfVar))
       return T(0);
@@ -421,16 +423,16 @@ private:
     // consider each connected component.
     T ret = T(1);
     if (nbComponent) {
-      nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = m_cache->searchInCache(connected);
+        TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
         if (cb.defined)
           ret = ret * cb.getValue();
         else {
           T curr = countIndDecisionNode(connected, out);
-          m_cache->addInCache(cb, curr);
+          m_cacheInd->addInCache(cb, curr);
           ret = ret * curr;
         }
       }
@@ -456,7 +458,7 @@ private:
       return T(1);
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
-    nbDecisionNode++;
+    m_nbDecisionNode++;
 
     // consider the two value for l
     DataBranch<T> b[2];
@@ -499,9 +501,8 @@ private:
       result.count = T(0);
 
     DataBranch<T> b;
-    b.d = countInd_(setOfVar, b.unitLits, b.freeVars, out);
-    result.count =
-        b.d * m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+    searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
+    result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   } // compute
 
 public:

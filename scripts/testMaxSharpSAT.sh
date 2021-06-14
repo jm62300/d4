@@ -35,22 +35,6 @@ for i in "${a[@]}"; do counter+=(0); done
 max=0
 while [ ${#counter[@]} -le ${#a[@]} ]
 do
-    # add one
-    counter[0]=$((counter[0] + 1))    
-
-    # propagate
-    pos=0
-    while [ ${counter[$pos]} -eq 2 ]
-    do
-        counter[$pos]=0
-        pos=$((pos+1))
-        
-        if [ $pos -le ${#counter[@]} ]
-        then
-            counter[$pos]=$((counter[$pos] + 1))
-        fi
-    done
-
     # get the interpretation and call the projected counter.
     fileTmpCouter=$(tempfile)
     cp $fileTmp $fileTmpCouter
@@ -68,11 +52,24 @@ do
         done
     fi
     
-
-    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')        
-
+    # count.
+    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')            
     if [ $c -gt $max ]; then max=$c; fi
     rm $fileTmpCouter    
+
+    # increase the counter.
+    counter[0]=$((counter[0] + 1))    
+    pos=0
+    while [ ${counter[$pos]} -eq 2 ]
+    do
+        counter[$pos]=0
+        pos=$((pos+1))
+        
+        if [ $pos -le ${#counter[@]} ]
+        then
+            counter[$pos]=$((counter[$pos] + 1))
+        fi
+    done
 done
 rm $fileTmp
 
