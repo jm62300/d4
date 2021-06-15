@@ -6,7 +6,12 @@
 ROOT_PATH="."
 SOLVER="$ROOT_PATH/minisat"
 
-$SOLVER $1 > /dev/null
+cp $1 /tmp/bench.cnf
+
+# grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
+# grep -v "^c " $1 >> /tmp/bench.cnf
+
+$SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
 MODEL_COUNTER="../build/d4_debug -m counting -i"
@@ -14,15 +19,31 @@ TESTED_METHOD="../build/d4_debug -m max#sat -i"
 
 
 # get the max variables.
-maxVar=$(grep "c max" $1 | cut -d ' ' -f3- | awk 'NF{NF-=1};1')
+maxVar=$(grep "c max" /tmp/bench.cnf | cut -d ' ' -f3- | awk 'NF{NF-=1};1')
 
 # get the ind variables.
-indVar=$(grep "c ind" $1 | cut -d ' ' -f3-)
+indVar=$(grep "c ind" /tmp/bench.cnf | cut -d ' ' -f3-)
 
 # generate used projected formula
-fileTmp=$(tempfile)
-grep -v "^c " $1 > $fileTmp
+fileTmp=$(mktemp)
+grep -v "^c " /tmp/bench.cnf > $fileTmp
 echo "c p show $indVar" >> $fileTmp
+
+$TESTED_METHOD /tmp/bench.cnf 2>/dev/null  > /tmp/log.txt
+cat /tmp/log.txt | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
+
+valuation=$(grep "^v " /tmp/log.txt | cut -d ' ' -f2- | awk 'NF{NF-=1};1')
+fileTmpCouter=$(mktemp)
+cp $fileTmp $fileTmpCouter
+for v in $valuation
+do 
+    echo "$v 0" >> $fileTmpCouter
+done
+$MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol3.txt
+
+diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
+if [ $? -ne 0 ]; then exit 1; fi
+# exit 0
 
 nbByte=$(echo $maxVar | wc -w)
 nbByte=$((nbByte - 1))
@@ -35,8 +56,7 @@ for i in "${a[@]}"; do counter+=(0); done
 max=0
 while [ ${#counter[@]} -le ${#a[@]} ]
 do
-    # get the interpretation and call the projected counter.
-    fileTmpCouter=$(tempfile)
+    # get the interpretation and call the projected counter.    
     cp $fileTmp $fileTmpCouter
 
     if [ ${#counter[@]} -le ${#a[@]} ]
@@ -54,8 +74,7 @@ do
     
     # count.
     c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')            
-    if [ $c -gt $max ]; then max=$c; fi
-    rm $fileTmpCouter    
+    if [ $c -gt $max ]; then max=$c; fi    
 
     # increase the counter.
     counter[0]=$((counter[0] + 1))    
@@ -71,12 +90,12 @@ do
         fi
     done
 done
-rm $fileTmp
 
 
 echo $max > /tmp/sol1.txt
-$TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
 
-# rm $fileTmp
-diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null
+rm $fileTmp
+rm $fileTmpCouter    
+
+diff  /tmp/sol2.txt /tmp/sol1.txt > /dev/null
 exit $?

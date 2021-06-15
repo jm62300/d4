@@ -50,7 +50,7 @@ template <class T> class MaxSharpSAT : public MethodManager {
 
   struct MaxSharpSatResult {
     T count;
-    unsigned long int *valuation;
+    u_int8_t *valuation;
   };
 
 private:
@@ -73,9 +73,10 @@ private:
   std::vector<bool> m_isMaxDecisionVarible;
   T m_maxCount = T(0);
 
-  const unsigned c_sizePage = 1 << 15;
+  const unsigned c_sizePage = 1 << 18;
   std::vector<u_int8_t *> m_memoryPages;
   unsigned m_posInMemoryPages;
+  unsigned m_sizeArray;
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
@@ -153,6 +154,7 @@ public:
     // init the memory requierd for storing interpretation.
     m_memoryPages.push_back(new u_int8_t[c_sizePage]);
     m_posInMemoryPages = 0;
+    m_sizeArray = m_problem->getMaxVar().size();
   } // constructor
 
   /**
@@ -256,6 +258,23 @@ private:
   } // printFinalStat
 
   /**
+   * @brief Get a pointer on an allocated array of size m_sizeArray (which is
+   * set once in the constructor).
+   *
+   * @return a pointer on a u_int8_t array.
+   */
+  u_int8_t *getArray() {
+    u_int8_t *ret = &(m_memoryPages.back()[m_posInMemoryPages]);
+    m_posInMemoryPages += m_sizeArray;
+    if (m_posInMemoryPages > c_sizePage) {
+      m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+      m_posInMemoryPages = 0;
+      ret = m_memoryPages.back();
+    }
+    return ret;
+  } // getArray
+
+  /**
    * Expel from a set of variables the ones they are marked as being decidable.
    * @param[out] vars, the set of variables we search to filter.
    * @param[in] isDecisionvariable, a type decision vector that marks as true
@@ -305,6 +324,7 @@ private:
     // is the problem still satisifiable?
     if (!m_solver->solve(setOfVar)) {
       result.count = T(0);
+      result.valuation = NULL;
       return;
     }
 
@@ -321,6 +341,9 @@ private:
 
     // init the returned result.
     result.count = T(1);
+    result.valuation = getArray();
+    for (unsigned i = 0; i < m_sizeArray; i++)
+      result.valuation[i] = 0;
 
     // consider each connected component.
     if (nbComponent) {
@@ -331,15 +354,24 @@ private:
 
         if (cb.defined) {
           result.count = result.count * cb.getValue().count;
-
+          for (unsigned i = 0; cb.getValue().valuation && i < m_sizeArray; i++)
+            result.valuation[i] |= cb.getValue().valuation[i];
         } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
-          m_cacheMax->addInCache(cb, {tmpResult.count, NULL});
+          m_cacheMax->addInCache(cb, tmpResult);
           result.count = result.count * tmpResult.count;
+          for (unsigned i = 0; tmpResult.valuation && i < m_sizeArray; i++)
+            result.valuation[i] |= tmpResult.valuation[i];
         }
       }
     } // else we have a tautology
+
+    for (unsigned i = 0; i < m_sizeArray; i++) {
+      Lit l = Lit::makeLit(m_problem->getMaxVar()[i], false);
+      if (m_specs->litIsAssigned(l))
+        result.valuation[i] = m_specs->litIsAssignedToTrue(l);
+    }
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVarible);
@@ -364,6 +396,7 @@ private:
       std::vector<Var> freeVar;
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
+      result.valuation = NULL;
 
       if (result.count > m_maxCount)
         m_maxCount = result.count;
@@ -538,6 +571,12 @@ public:
     MaxSharpSatResult result;
     compute(setOfVar, m_out, result);
     printFinalStats(m_out);
+    std::cout << "v ";
+    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++)
+      std::cout << ((result.valuation[i]) ? "" : "-")
+                << m_problem->getMaxVar()[i] << " ";
+    std::cout << "0\n";
+
     std::cout << "s " << result.count << "\n";
   } // run
 };
