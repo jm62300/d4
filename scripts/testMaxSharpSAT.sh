@@ -8,8 +8,8 @@ SOLVER="$ROOT_PATH/minisat"
 
 cp $1 /tmp/bench.cnf
 
-# grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
-# grep -v "^c " $1 >> /tmp/bench.cnf
+#grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
+#grep -v "^c " $1 >> /tmp/bench.cnf
 
 $SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi

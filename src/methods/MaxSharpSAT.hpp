@@ -71,6 +71,7 @@ private:
 
   std::vector<bool> m_isDecisionVarible;
   std::vector<bool> m_isMaxDecisionVarible;
+  std::vector<unsigned> m_redirectionPos;
   T m_maxCount = T(0);
 
   const unsigned c_sizePage = 1 << 18;
@@ -124,16 +125,24 @@ public:
         PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
+    m_redirectionPos.clear();
     m_isDecisionVarible.clear();
     m_isMaxDecisionVarible.clear();
 
+    m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
     m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
-    for (auto v : m_problem->getIndVar())
+    for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
+      Var v = m_problem->getIndVar()[i];
       m_isDecisionVarible[v] = true;
+      m_redirectionPos[v] = i;
+    }
 
     m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
-    for (auto v : m_problem->getMaxVar())
+    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
+      Var v = m_problem->getMaxVar()[i];
       m_isMaxDecisionVarible[v] = true;
+      m_redirectionPos[v] = i;
+    }
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
@@ -253,6 +262,8 @@ private:
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
     out << "c\n";
     m_cacheInd->printCacheInformation(out);
+    out << "c\n";
+    m_cacheMax->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   } // printFinalStat
@@ -354,15 +365,24 @@ private:
 
         if (cb.defined) {
           result.count = result.count * cb.getValue().count;
-          for (unsigned i = 0; cb.getValue().valuation && i < m_sizeArray; i++)
-            result.valuation[i] |= cb.getValue().valuation[i];
+          if (cb.getValue().valuation) {
+            for (auto v : connected) {
+              if (m_isMaxDecisionVarible[v])
+                result.valuation[m_redirectionPos[v]] |=
+                    cb.getValue().valuation[m_redirectionPos[v]];
+            }
+          }
         } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
           m_cacheMax->addInCache(cb, tmpResult);
           result.count = result.count * tmpResult.count;
-          for (unsigned i = 0; tmpResult.valuation && i < m_sizeArray; i++)
-            result.valuation[i] |= tmpResult.valuation[i];
+
+          for (auto v : connected) {
+            if (m_isMaxDecisionVarible[v])
+              result.valuation[m_redirectionPos[v]] |=
+                  tmpResult.valuation[m_redirectionPos[v]];
+          }
         }
       }
     } // else we have a tautology
