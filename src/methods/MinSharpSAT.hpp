@@ -356,14 +356,14 @@ private:
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
 
-    bool propagateMaxVar = true;
+    Lit propagateMaxVar = lit_Undef;
     for (auto l : unitsLit)
-      if (m_isMaxDecisionVarible[l.var()]) {
-        propagateMaxVar = true;
+      if (!m_solver->isInAssumption(l) && m_isMaxDecisionVarible[l.var()]) {
+        propagateMaxVar = l;
         break;
       }
 
-    if (propagateMaxVar)
+    if (propagateMaxVar != lit_Undef)
       result.count = 0;
     else {
       // consider each connected component.
@@ -405,6 +405,12 @@ private:
       Lit l = Lit::makeLit(m_problem->getMaxVar()[i], false);
       if (m_specs->litIsAssigned(l))
         result.valuation[i] = m_specs->litIsAssignedToTrue(l);
+    }
+
+    if (propagateMaxVar != lit_Undef) {
+      std::cout << propagateMaxVar << "\n";
+      result.valuation[m_redirectionPos[propagateMaxVar.var()]] =
+          propagateMaxVar.sign();
     }
 
     m_specs->postUpdate(unitsLit);
