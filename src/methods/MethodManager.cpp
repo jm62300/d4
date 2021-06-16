@@ -25,6 +25,7 @@
 #include "DpllStyleMethod.hpp"
 #include "MaxSharpSAT.hpp"
 #include "MethodManager.hpp"
+#include "MinSharpSAT.hpp"
 #include "ProjMCMethod.hpp"
 
 #include "OperationManager.hpp"
@@ -115,6 +116,14 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
                                            lastBreath);
     return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
+                                           lastBreath);
+  }
+
+  if (meth == "min#sat") {
+    if (!isFloat)
+      return new MinSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
+                                           lastBreath);
+    return new MinSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
                                            lastBreath);
   }
 
