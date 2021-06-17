@@ -378,6 +378,7 @@ private:
           m_cacheMax->addInCache(cb, tmpResult);
           result.count = result.count * tmpResult.count;
 
+          assert(tmpResult.valuation);
           for (auto v : connected) {
             if (m_isMaxDecisionVarible[v])
               result.valuation[m_redirectionPos[v]] |=

@@ -81,7 +81,12 @@ Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
   double bestScore = -1;
   assert(isDecisionVariable.size() >= (unsigned)s.getNbVariable());
 
+  std::cout << "start: \n";
+
   for (auto &v : vars) {
+    std::cout << v << "  " << s.varIsAssigned(v) << " " << isDecisionVariable[v]
+              << "\n";
+
     if (s.varIsAssigned(v) || !isDecisionVariable[v])
       continue;
 
@@ -90,6 +95,8 @@ Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
       bestScore = computeScore(v);
     }
   }
+
+  std::cout << "stop: \n";
 
   return ret;
 } // selectVariable

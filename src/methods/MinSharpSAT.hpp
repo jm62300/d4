@@ -69,8 +69,8 @@ private:
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
 
-  std::vector<bool> m_isDecisionVarible;
-  std::vector<bool> m_isMaxDecisionVarible;
+  std::vector<bool> m_isDecisionVar;
+  std::vector<bool> m_isMaxDecisionVar;
   std::vector<unsigned> m_redirectionPos;
   T m_minCount = T(-1);
 
@@ -126,21 +126,21 @@ public:
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
-    m_isDecisionVarible.clear();
-    m_isMaxDecisionVarible.clear();
+    m_isDecisionVar.clear();
+    m_isMaxDecisionVar.clear();
 
     m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
-    m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isDecisionVar.resize(m_problem->getNbVar() + 1, false);
     for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
       Var v = m_problem->getIndVar()[i];
-      m_isDecisionVarible[v] = true;
+      m_isDecisionVar[v] = true;
       m_redirectionPos[v] = i;
     }
 
-    m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isMaxDecisionVar.resize(m_problem->getNbVar() + 1, false);
     for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
       Var v = m_problem->getMaxVar()[i];
-      m_isMaxDecisionVarible[v] = true;
+      m_isMaxDecisionVar[v] = true;
       m_redirectionPos[v] = i;
     }
 
@@ -334,8 +334,9 @@ private:
 
     // is the problem still satisifiable?
     if (!m_solver->solve(setOfVar)) {
+      std::cout << "IS UNSAT\n";
       result.count = T(0);
-      result.valuation = NULL;
+      result.valuation = getArray();
       return;
     }
 
@@ -348,7 +349,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    expelNoDecisionVar(freeVariable, m_isDecisionVarible);
+    expelNoDecisionVar(freeVariable, m_isDecisionVar);
 
     // init the returned result.
     result.count = T(1);
@@ -358,7 +359,7 @@ private:
 
     Lit propagateMaxVar = lit_Undef;
     for (auto l : unitsLit)
-      if (!m_solver->isInAssumption(l) && m_isMaxDecisionVarible[l.var()]) {
+      if (!m_solver->isInAssumption(l) && m_isMaxDecisionVar[l.var()]) {
         propagateMaxVar = l;
         break;
       }
@@ -377,21 +378,27 @@ private:
             result.count = result.count * cb.getValue().count;
             if (cb.getValue().valuation) {
               for (auto v : connected) {
-                if (m_isMaxDecisionVarible[v])
+                if (m_isMaxDecisionVar[v])
                   result.valuation[m_redirectionPos[v]] |=
                       cb.getValue().valuation[m_redirectionPos[v]];
               }
             }
           } else {
             MinSharpSatResult tmpResult;
-            searchMaxSharpSatDecision(connected, out, tmpResult);
+            searchMinSharpSatDecision(connected, out, tmpResult);
+            std::cout << tmpResult.count << " RET\n";
             m_cacheMax->addInCache(cb, tmpResult);
             result.count = result.count * tmpResult.count;
 
-            for (auto v : connected) {
-              if (m_isMaxDecisionVarible[v])
-                result.valuation[m_redirectionPos[v]] |=
-                    tmpResult.valuation[m_redirectionPos[v]];
+            if (tmpResult.valuation) {
+              for (auto v : connected) {
+                if (m_isMaxDecisionVar[v]) {
+                  std::cout << v << " ~~~~ " << m_redirectionPos.size() << " "
+                            << m_redirectionPos[v] << "\n";
+                  result.valuation[m_redirectionPos[v]] |=
+                      tmpResult.valuation[m_redirectionPos[v]];
+                }
+              }
             }
           }
 
@@ -414,7 +421,7 @@ private:
     }
 
     m_specs->postUpdate(unitsLit);
-    expelNoDecisionLit(unitsLit, m_isDecisionVarible);
+    expelNoDecisionLit(unitsLit, m_isDecisionVar);
   } // searchMaxValuation
 
   /**
@@ -426,10 +433,13 @@ private:
    *
    * \return the compiled formula.
    */
-  void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
+  void searchMinSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
                                  MinSharpSatResult &result) {
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVarible);
+    std::cout << "searchMin\n";
+    Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVar);
+
+    std::cout << (v == var_Undef) << "<<<<<<\n";
 
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
@@ -437,6 +447,10 @@ private:
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
+
+      for (auto v : connected)
+        std::cout << v << " " << m_isMaxDecisionVar[v] << " "
+                  << m_solver->varIsAssigned(v) << "\n";
 
       if (result.count > m_minCount)
         m_minCount = result.count;
@@ -453,14 +467,16 @@ private:
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
     searchMinValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
+    res[0].valuation[m_redirectionPos[v]] = l.sign();
     m_solver->popAssumption();
 
     if (res[0].count == 0)
-      result = {b[0].d, res[0].valuation};
+      result = {0, res[0].valuation};
     else {
-      if (m_solver->isInAssumption(l))
+      if (m_solver->isInAssumption(l)) {
         res[1].count = T(0);
-      else if (m_solver->isInAssumption(~l))
+        res[1].valuation = getArray();
+      } else if (m_solver->isInAssumption(~l))
         searchMinValuation(connected, b[1].unitLits, b[1].freeVars, out,
                            res[1]);
       else {
@@ -474,6 +490,7 @@ private:
                                   b[0].unitLits, b[0].freeVars);
       b[1].d = res[1].count * m_problem->computeWeightUnitFree<T>(
                                   b[1].unitLits, b[1].freeVars);
+      res[1].valuation[m_redirectionPos[v]] = !l.sign();
 
       if (b[0].d < b[1].d)
         result = {b[0].d, res[0].valuation};
@@ -513,7 +530,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(
         varConnected, setOfVar, freeVariable, reallyPresent);
-    expelNoDecisionVar(freeVariable, m_isDecisionVarible);
+    expelNoDecisionVar(freeVariable, m_isDecisionVar);
 
     // consider each connected component.
     T ret = T(1);
@@ -547,7 +564,7 @@ private:
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVarible);
+    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVar);
 
     if (v == var_Undef)
       return T(1);
