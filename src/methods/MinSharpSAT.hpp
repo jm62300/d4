@@ -334,7 +334,6 @@ private:
 
     // is the problem still satisifiable?
     if (!m_solver->solve(setOfVar)) {
-      std::cout << "IS UNSAT\n";
       result.count = T(0);
       result.valuation = getArray();
       return;
@@ -386,15 +385,12 @@ private:
           } else {
             MinSharpSatResult tmpResult;
             searchMinSharpSatDecision(connected, out, tmpResult);
-            std::cout << tmpResult.count << " RET\n";
             m_cacheMax->addInCache(cb, tmpResult);
             result.count = result.count * tmpResult.count;
 
             if (tmpResult.valuation) {
               for (auto v : connected) {
                 if (m_isMaxDecisionVar[v]) {
-                  std::cout << v << " ~~~~ " << m_redirectionPos.size() << " "
-                            << m_redirectionPos[v] << "\n";
                   result.valuation[m_redirectionPos[v]] |=
                       tmpResult.valuation[m_redirectionPos[v]];
                 }
@@ -415,7 +411,6 @@ private:
     }
 
     if (propagateMaxVar != lit_Undef) {
-      std::cout << propagateMaxVar << "\n";
       result.valuation[m_redirectionPos[propagateMaxVar.var()]] =
           propagateMaxVar.sign();
     }
@@ -436,10 +431,7 @@ private:
   void searchMinSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
                                  MinSharpSatResult &result) {
     // search the next variable to branch on
-    std::cout << "searchMin\n";
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVar);
-
-    std::cout << (v == var_Undef) << "<<<<<<\n";
 
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
@@ -447,10 +439,6 @@ private:
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
-
-      for (auto v : connected)
-        std::cout << v << " " << m_isMaxDecisionVar[v] << " "
-                  << m_solver->varIsAssigned(v) << "\n";
 
       if (result.count > m_minCount)
         m_minCount = result.count;
@@ -467,7 +455,7 @@ private:
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
     searchMinValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
-    res[0].valuation[m_redirectionPos[v]] = l.sign();
+    res[0].valuation[m_redirectionPos[v]] = !l.sign();
     m_solver->popAssumption();
 
     if (res[0].count == 0)
@@ -490,7 +478,7 @@ private:
                                   b[0].unitLits, b[0].freeVars);
       b[1].d = res[1].count * m_problem->computeWeightUnitFree<T>(
                                   b[1].unitLits, b[1].freeVars);
-      res[1].valuation[m_redirectionPos[v]] = !l.sign();
+      res[1].valuation[m_redirectionPos[v]] = l.sign();
 
       if (b[0].d < b[1].d)
         result = {b[0].d, res[0].valuation};

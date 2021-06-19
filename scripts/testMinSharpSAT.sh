@@ -43,7 +43,7 @@ $MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's
 
 diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
 if [ $? -ne 0 ]; then exit 1; fi
-exit 0
+
 
 nbByte=$(echo $maxVar | wc -w)
 nbByte=$((nbByte - 1))
@@ -92,6 +92,7 @@ do
 done
 
 echo $max > /tmp/sol1.txt
+echo $max >> /tmp/saveRes
 
 rm $fileTmp
 rm $fileTmpCouter    
