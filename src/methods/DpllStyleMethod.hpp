@@ -374,7 +374,7 @@ private:
   } // updateDynamicLimit
 
   /**
-     Call the CNF formula into a D-FPiBDD.
+     Call the CNF formula into a FBDD.
 
      @param[in] setOfVar, the current set of considered variables
      @param[in] unitsLit, the set of unit literal detected at this level
@@ -499,7 +499,7 @@ private:
      @param[in] setOfVar, the set of variables of the considered problem.
      @param[in] out, the stream are is print out the logs.
      @param[in] warmStart, to activate/deactivate the warm start strategy.
-     /!\ When the warm strat is activated we the assumptions are reset.
+     /!\ When the warm start is activated the assumptions are reset.
 
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
