@@ -17,6 +17,7 @@
  */
 #include "src/exceptions/FactoryException.hpp"
 
+#include "PartitionerKahypar.hpp"
 #include "PartitionerManager.hpp"
 #include "PartitionerPatoh.hpp"
 
@@ -39,6 +40,8 @@ PartitionerManager::makePartitioner(po::variables_map &vm, unsigned maxNodes,
 
   if (meth == "patoh")
     return new PartitionerPatoh(maxNodes, maxEdges, maxSumEdgeSize);
+  if (meth == "kahypar")
+    return new PartitionerKahypar(maxNodes, maxEdges, maxSumEdgeSize);
 
   throw(FactoryException("Cannot create a Partitioner", __FILE__, __LINE__));
 } // makePartitioner

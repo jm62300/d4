@@ -26,15 +26,6 @@
 namespace d4 {
 class PartitionerKahypar : public PartitionerManager {
 private:
-  std::vector<bool> m_markedNodes;
-  std::vector<int> m_mapNodes;
-
-  int *m_xpins;
-  int *m_pins;
-  int *m_cwghts;
-  int *m_partvec;
-  int *m_partweights;
-
 public:
   PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
                      unsigned maxSumEdgeSize);

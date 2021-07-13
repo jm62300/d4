@@ -18,7 +18,7 @@
 #include <iostream>
 #include <vector>
 
-#include "3rdParty/patoh/patoh.h"
+#include "3rdParty/kahypar/include/libkahypar.h"
 #include "PartitionerKahypar.hpp"
 #include "src/exceptions/OptionException.hpp"
 
@@ -32,31 +32,13 @@ namespace d4 {
  */
 PartitionerKahypar::PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
                                        unsigned maxSumEdgeSize) {
-  // allocate the memory
-  m_pins = new int[maxSumEdgeSize];
-  m_partweights = new int[2];
-  m_xpins = new int[(maxEdges + 3)];
-  m_partvec = new int[(maxNodes + 3)];
-  m_cwghts = new int[(maxNodes + 3)];
 
-  // set all weight to 1
-  for (unsigned i = 0; i < (maxNodes + 3); i++)
-    m_cwghts[i] = 1;
-
-  m_mapNodes.resize(maxNodes + 3, false);
-  m_markedNodes.resize(maxNodes + 3, false);
 } // constructor
 
 /**
    Destructor.
  */
-PartitionerKahypar::~PartitionerKahypar() {
-  delete[] m_pins;
-  delete[] m_partweights;
-  delete[] m_xpins;
-  delete[] m_partvec;
-  delete[] m_cwghts;
-} // destructor
+PartitionerKahypar::~PartitionerKahypar() {} // destructor
 
 /**
    Get a partition from the hypergraph.
@@ -65,60 +47,67 @@ PartitionerKahypar::~PartitionerKahypar() {
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
 void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
-                                          std::vector<int> &partition) {
-  std::vector<unsigned> elts;
+                                          std::vector<int> &partitionRes) {
+  kahypar_context_t *context = kahypar_context_new();
+#if 0 
+  kahypar_configure_context_from_file(context, "/path/to/config.ini");
 
-  // graph initialization and shift the hypergraph
-  unsigned sizeXpins = 0;
-  int posPins = 0;
+  const kahypar_hypernode_id_t num_vertices = 7;
+  const kahypar_hyperedge_id_t num_hyperedges = 4;
 
-  for (auto &edge : hypergraph) {
-    m_xpins[sizeXpins++] = posPins;
-    for (auto x : edge) {
-      assert(x < m_markedNodes.size());
-      if (!m_markedNodes[x]) {
-        m_markedNodes[x] = true;
-        m_mapNodes[x] = elts.size();
-        elts.push_back(x);
-      }
+  std::unique_ptr<kahypar_hyperedge_weight_t[]> hyperedge_weights =
+      std::make_unique<kahypar_hyperedge_weight_t[]>(4);
 
-      m_pins[posPins++] = m_mapNodes[x];
-    }
+  // force the cut to contain hyperedge 0 and 2
+  hyperedge_weights[0] = 1;
+  hyperedge_weights[1] = 1000;
+  hyperedge_weights[2] = 1;
+  hyperedge_weights[3] = 1000;
+
+  std::unique_ptr<size_t[]> hyperedge_indices = std::make_unique<size_t[]>(5);
+
+  hyperedge_indices[0] = 0;
+  hyperedge_indices[1] = 2;
+  hyperedge_indices[2] = 6;
+  hyperedge_indices[3] = 9;
+  hyperedge_indices[4] = 12;
+
+  std::unique_ptr<kahypar_hyperedge_id_t[]> hyperedges =
+      std::make_unique<kahypar_hyperedge_id_t[]>(12);
+
+  // hypergraph from hMetis manual page 14
+  hyperedges[0] = 0;
+  hyperedges[1] = 2;
+  hyperedges[2] = 0;
+  hyperedges[3] = 1;
+  hyperedges[4] = 3;
+  hyperedges[5] = 4;
+  hyperedges[6] = 3;
+  hyperedges[7] = 4;
+  hyperedges[8] = 6;
+  hyperedges[9] = 2;
+  hyperedges[10] = 5;
+  hyperedges[11] = 6;
+
+  const double imbalance = 0.03;
+  const kahypar_partition_id_t k = 2;
+
+  kahypar_hyperedge_weight_t objective = 0;
+
+  std::vector<kahypar_partition_id_t> partition(num_vertices, -1);
+
+  kahypar_partition(num_vertices, num_hyperedges, imbalance, k,
+                    /*vertex_weights */ nullptr, hyperedge_weights.get(),
+                    hyperedge_indices.get(), hyperedges.get(), &objective,
+                    context, partition.data());
+
+  for (int i = 0; i != num_vertices; ++i) {
+    std::cout << i << ":" << partition[i] << std::endl;
   }
 
-  for (auto &x : elts)
-    m_markedNodes[x] = false;
-  m_xpins[sizeXpins] = posPins;
-
-  // hypergraph partitioner
-  PaToH_Parameters args;
-  switch (level) {
-  case NORMAL:
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
-    break;
-  case SPEED:
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_SPEED);
-    break;
-  case QUALITY:
-    PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
-    break;
-  default:
-    throw(OptionException("Wrong option given to the partioner.", __FILE__,
-                          __LINE__));
-  }
-
-  args._k = 2;
-  args.seed = 2911;
-
-  int cut;
-  PaToH_Alloc(&args, elts.size(), sizeXpins, 1, m_cwghts, NULL, m_xpins,
-              m_pins);
-  PaToH_Part(&args, elts.size(), sizeXpins, 1, 0, m_cwghts, NULL, m_xpins,
-             m_pins, NULL, m_partvec, m_partweights, &cut);
-
-  for (unsigned i = 0; i < elts.size(); i++)
-    partition[elts[i]] = m_partvec[i];
-  PaToH_Free();
+  kahypar_context_free(context);
+#endif
+  exit(0);
 } // computePartition
 
 } // namespace d4
