@@ -27,4 +27,4 @@ before_build:
 build:
   project: C:\projects\kahypar-vr7q9\build\KaHyPar.sln
   parallel: true
-  verbosity: normal
+  verbosity: minimal

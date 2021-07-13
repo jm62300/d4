@@ -48,9 +48,9 @@ PartitionerKahypar::~PartitionerKahypar() {} // destructor
  */
 void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
                                           std::vector<int> &partitionRes) {
-  kahypar_context_t *context = kahypar_context_new();
-#if 0 
-  kahypar_configure_context_from_file(context, "/path/to/config.ini");
+  kahypar_context_s *context = kahypar_context_new();
+  kahypar_configure_context_from_file(
+      context, "3rdParty/kahypar/config/cut_rKaHyPar_sea20.ini");
 
   const kahypar_hypernode_id_t num_vertices = 7;
   const kahypar_hyperedge_id_t num_hyperedges = 4;
@@ -93,20 +93,16 @@ void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
   const kahypar_partition_id_t k = 2;
 
   kahypar_hyperedge_weight_t objective = 0;
-
   std::vector<kahypar_partition_id_t> partition(num_vertices, -1);
 
-  kahypar_partition(num_vertices, num_hyperedges, imbalance, k,
-                    /*vertex_weights */ nullptr, hyperedge_weights.get(),
-                    hyperedge_indices.get(), hyperedges.get(), &objective,
-                    context, partition.data());
-
+  kahypar_partition(num_vertices, num_hyperedges, imbalance, k, nullptr,
+                    hyperedge_weights.get(), hyperedge_indices.get(),
+                    hyperedges.get(), &objective, context, partition.data());
   for (int i = 0; i != num_vertices; ++i) {
     std::cout << i << ":" << partition[i] << std::endl;
   }
 
   kahypar_context_free(context);
-#endif
   exit(0);
 } // computePartition
 
