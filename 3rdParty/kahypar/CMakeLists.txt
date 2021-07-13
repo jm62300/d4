@@ -52,19 +52,19 @@ endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
 # defintions for heavy asserts
 option(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS
-  "Enable costly assertions for data structures." ON)
+  "Enable costly assertions for data structures." OFF)
 
 option(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS
-  "Enable costly assertions in preprocessing phase." ON) 
+  "Enable costly assertions in preprocessing phase." OFF) 
 
 option(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS
-  "Enable costly assertions in coarsening phase." ON)
+  "Enable costly assertions in coarsening phase." OFF)
 
 option(KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS
-  "Enable costly assertions in initial partitioning phase." ON)
+  "Enable costly assertions in initial partitioning phase." OFF)
 
 option(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS
-  "Enable costly assertions in refinement phase." ON)
+  "Enable costly assertions in refinement phase." OFF)
 
 if(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
   add_compile_definitions(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
@@ -322,15 +322,15 @@ message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 add_subdirectory(kahypar/application)
 
-if(BUILD_TESTING)
-  include(gmock)
-  enable_testing()
-  add_subdirectory(tests)
-endif()
+# if(BUILD_TESTING)
+#   include(gmock)
+#   enable_testing()
+#   add_subdirectory(tests)
+# endif()
 
-add_subdirectory(tools)
+# add_subdirectory(tools)
 add_subdirectory(lib)
 
-if(KAHYPAR_PYTHON_INTERFACE)
-  add_subdirectory(python)
-endif()
+# if(KAHYPAR_PYTHON_INTERFACE)
+#   add_subdirectory(python)
+# endif()

@@ -1,6 +1,6 @@
 include(GNUInstallDirs)
 
-add_library(kahypar SHARED libkahypar.cc)
+add_library(kahypar STATIC libkahypar.cc)
 target_link_libraries(kahypar ${Boost_LIBRARIES})
 
 set_target_properties(kahypar PROPERTIES
