@@ -24,7 +24,7 @@
 #include "PartitionerManager.hpp"
 
 namespace d4 {
-class PartitionerPatoh : public PartitionerManager {
+class PartitionerKahypar : public PartitionerManager {
 private:
   std::vector<bool> m_markedNodes;
   std::vector<int> m_mapNodes;
@@ -36,10 +36,10 @@ private:
   int *m_partweights;
 
 public:
-  PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
-                   unsigned maxSumEdgeSize);
+  PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
+                     unsigned maxSumEdgeSize);
 
-  ~PartitionerPatoh();
+  ~PartitionerKahypar();
   void computePartition(HyperGraph &hypergraph, Level level,
                         std::vector<int> &partition);
 };

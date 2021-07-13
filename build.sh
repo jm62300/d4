@@ -43,11 +43,11 @@ else
 fi
 
 
-if ! [ -f 3rdParty/kahypar/build/lib/libkahypar.so ]
+if ! [ -f 3rdParty/kahypar/build/lib/libkahypar.a ]
 then
     cd $curRep
     cd 3rdParty/kahypar/
-    mkdir build
+    mkdir -p build
     cd build
     cmake .. -DCMAKE_BUILD_TYPE=RELEASE
     make -j

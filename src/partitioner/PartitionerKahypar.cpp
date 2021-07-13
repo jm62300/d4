@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "3rdParty/patoh/patoh.h"
-#include "PartitionerPatoh.hpp"
+#include "PartitionerKahypar.hpp"
 #include "src/exceptions/OptionException.hpp"
 
 namespace d4 {
@@ -30,8 +30,8 @@ namespace d4 {
    @param[in] maxNodes, the maximal number of nodes.
    @param[in] maxEdges, the maximal number of hyper edges.
  */
-PartitionerPatoh::PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
-                                   unsigned maxSumEdgeSize) {
+PartitionerKahypar::PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
+                                       unsigned maxSumEdgeSize) {
   // allocate the memory
   m_pins = new int[maxSumEdgeSize];
   m_partweights = new int[2];
@@ -50,7 +50,7 @@ PartitionerPatoh::PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
 /**
    Destructor.
  */
-PartitionerPatoh::~PartitionerPatoh() {
+PartitionerKahypar::~PartitionerKahypar() {
   delete[] m_pins;
   delete[] m_partweights;
   delete[] m_xpins;
@@ -64,8 +64,8 @@ PartitionerPatoh::~PartitionerPatoh() {
    @param[in] hypergraph, the graph we search for a partition.
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
-void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
-                                        std::vector<int> &partition) {
+void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
+                                          std::vector<int> &partition) {
   std::vector<unsigned> elts;
 
   // graph initialization and shift the hypergraph
