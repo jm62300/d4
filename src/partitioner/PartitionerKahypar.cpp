@@ -18,7 +18,6 @@
 #include <iostream>
 #include <vector>
 
-#include "3rdParty/kahypar/include/libkahypar.h"
 #include "PartitionerKahypar.hpp"
 #include "src/exceptions/OptionException.hpp"
 
@@ -32,7 +31,17 @@ namespace d4 {
  */
 PartitionerKahypar::PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
                                        unsigned maxSumEdgeSize) {
+  m_pins = std::make_unique<kahypar_hyperedge_id_t[]>(maxSumEdgeSize);
+  m_xpins = std::make_unique<size_t[]>(maxEdges + 3);
+  m_cwghts = std::make_unique<kahypar_hyperedge_weight_t[]>(maxNodes + 3);
+  m_partition = std::vector<kahypar_partition_id_t>(maxNodes + 3);
 
+  // set all weight to 1
+  for (unsigned i = 0; i < (maxNodes + 3); i++)
+    m_cwghts[i] = 1;
+
+  m_mapNodes.resize(maxNodes + 3, false);
+  m_markedNodes.resize(maxNodes + 3, false);
 } // constructor
 
 /**
@@ -47,63 +56,51 @@ PartitionerKahypar::~PartitionerKahypar() {} // destructor
    @param[out] parition, the resulting partition (we suppose it is allocated).
  */
 void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
-                                          std::vector<int> &partitionRes) {
+                                          std::vector<int> &partition) {
   kahypar_context_s *context = kahypar_context_new();
   kahypar_configure_context_from_file(
-      context, "3rdParty/kahypar/config/cut_rKaHyPar_sea20.ini");
+      context, "3rdParty/kahypar/config/cut_kKaHyPar_sea20.ini");
 
-  const kahypar_hypernode_id_t num_vertices = 7;
-  const kahypar_hyperedge_id_t num_hyperedges = 4;
+  std::vector<unsigned> elts;
 
-  std::unique_ptr<kahypar_hyperedge_weight_t[]> hyperedge_weights =
-      std::make_unique<kahypar_hyperedge_weight_t[]>(4);
+  // graph initialization and shift the hypergraph
+  unsigned sizeXpins = 0;
+  int posPins = 0;
 
-  // force the cut to contain hyperedge 0 and 2
-  hyperedge_weights[0] = 1;
-  hyperedge_weights[1] = 1000;
-  hyperedge_weights[2] = 1;
-  hyperedge_weights[3] = 1000;
+  for (auto &edge : hypergraph) {
+    m_xpins[sizeXpins++] = posPins;
+    for (auto x : edge) {
+      assert(x < m_markedNodes.size());
+      if (!m_markedNodes[x]) {
+        m_markedNodes[x] = true;
+        m_mapNodes[x] = elts.size();
+        elts.push_back(x);
+      }
 
-  std::unique_ptr<size_t[]> hyperedge_indices = std::make_unique<size_t[]>(5);
+      m_pins[posPins++] = m_mapNodes[x];
+    }
+  }
 
-  hyperedge_indices[0] = 0;
-  hyperedge_indices[1] = 2;
-  hyperedge_indices[2] = 6;
-  hyperedge_indices[3] = 9;
-  hyperedge_indices[4] = 12;
+  for (auto &x : elts)
+    m_markedNodes[x] = false;
+  m_xpins[sizeXpins] = posPins;
 
-  std::unique_ptr<kahypar_hyperedge_id_t[]> hyperedges =
-      std::make_unique<kahypar_hyperedge_id_t[]>(12);
-
-  // hypergraph from hMetis manual page 14
-  hyperedges[0] = 0;
-  hyperedges[1] = 2;
-  hyperedges[2] = 0;
-  hyperedges[3] = 1;
-  hyperedges[4] = 3;
-  hyperedges[5] = 4;
-  hyperedges[6] = 3;
-  hyperedges[7] = 4;
-  hyperedges[8] = 6;
-  hyperedges[9] = 2;
-  hyperedges[10] = 5;
-  hyperedges[11] = 6;
+  const kahypar_hypernode_id_t num_vertices = elts.size();
+  const kahypar_hyperedge_id_t num_hyperedges = sizeXpins;
 
   const double imbalance = 0.03;
   const kahypar_partition_id_t k = 2;
 
   kahypar_hyperedge_weight_t objective = 0;
-  std::vector<kahypar_partition_id_t> partition(num_vertices, -1);
 
   kahypar_partition(num_vertices, num_hyperedges, imbalance, k, nullptr,
-                    hyperedge_weights.get(), hyperedge_indices.get(),
-                    hyperedges.get(), &objective, context, partition.data());
-  for (int i = 0; i != num_vertices; ++i) {
-    std::cout << i << ":" << partition[i] << std::endl;
-  }
+                    m_cwghts.get(), m_xpins.get(), m_pins.get(), &objective,
+                    context, m_partition.data());
+
+  for (unsigned i = 0; i < elts.size(); i++)
+    partition[elts[i]] = m_partition[i];
 
   kahypar_context_free(context);
-  exit(0);
 } // computePartition
 
 } // namespace d4

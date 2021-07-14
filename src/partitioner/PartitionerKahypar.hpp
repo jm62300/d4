@@ -21,11 +21,20 @@
 #include <functional>
 #include <vector>
 
+#include "3rdParty/kahypar/include/libkahypar.h"
 #include "PartitionerManager.hpp"
 
 namespace d4 {
 class PartitionerKahypar : public PartitionerManager {
 private:
+  std::vector<bool> m_markedNodes;
+  std::vector<int> m_mapNodes;
+
+  std::unique_ptr<kahypar_hyperedge_weight_t[]> m_cwghts;
+  std::unique_ptr<size_t[]> m_xpins;
+  std::unique_ptr<kahypar_hyperedge_id_t[]> m_pins;
+  std::vector<kahypar_partition_id_t> m_partition;
+
 public:
   PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
                      unsigned maxSumEdgeSize);
