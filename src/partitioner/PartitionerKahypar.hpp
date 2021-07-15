@@ -34,6 +34,7 @@ private:
   std::unique_ptr<size_t[]> m_xpins;
   std::unique_ptr<kahypar_hyperedge_id_t[]> m_pins;
   std::vector<kahypar_partition_id_t> m_partition;
+  kahypar_context_s *context;
 
 public:
   PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,

@@ -42,12 +42,17 @@ PartitionerKahypar::PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
 
   m_mapNodes.resize(maxNodes + 3, false);
   m_markedNodes.resize(maxNodes + 3, false);
+
+  context = kahypar_context_new();
+  kahypar_configure_context_cut(context);
 } // constructor
 
 /**
    Destructor.
  */
-PartitionerKahypar::~PartitionerKahypar() {} // destructor
+PartitionerKahypar::~PartitionerKahypar() {
+  kahypar_context_free(context);
+} // destructor
 
 /**
    Get a partition from the hypergraph.
@@ -57,10 +62,6 @@ PartitionerKahypar::~PartitionerKahypar() {} // destructor
  */
 void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
                                           std::vector<int> &partition) {
-  kahypar_context_s *context = kahypar_context_new();
-  kahypar_configure_context_from_file(
-      context, "3rdParty/kahypar/config/cut_kKaHyPar_sea20.ini");
-
   std::vector<unsigned> elts;
 
   // graph initialization and shift the hypergraph
@@ -99,8 +100,6 @@ void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
 
   for (unsigned i = 0; i < elts.size(); i++)
     partition[elts[i]] = m_partition[i];
-
-  kahypar_context_free(context);
 } // computePartition
 
 } // namespace d4
