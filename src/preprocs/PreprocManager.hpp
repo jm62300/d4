@@ -27,6 +27,10 @@ namespace po = boost::program_options;
 struct LastBreathPreproc {
   std::vector<double> countConflict;
   bool panic;
+
+  inline void fitSizeCountConflict(unsigned size) {
+    countConflict.resize(size);
+  }
 };
 
 class PreprocManager {

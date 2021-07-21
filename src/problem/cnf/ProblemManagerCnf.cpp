@@ -68,7 +68,7 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
 ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
                                      std::vector<double> &weightVar,
                                      std::vector<Var> &selected) {
-  m_nbVar = getNbVar();
+  m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
   m_selected = selected;

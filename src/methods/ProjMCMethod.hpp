@@ -124,6 +124,9 @@ public:
     // init the clock time.
     initTimer();
 
+    // update the last breath structure with the additional variables.
+    m_lastBreath.fitSizeCountConflict(idxVar);
+
     // prepare the counter.
     initCounter(vm, m_problem, isFloat, projClause, idxVar - 1);
     m_marked.resize(idxVar + 1, -1);

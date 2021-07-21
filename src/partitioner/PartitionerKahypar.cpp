@@ -82,6 +82,9 @@ void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
     }
   }
 
+  if (!elts.size())
+    return;
+
   for (auto &x : elts)
     m_markedNodes[x] = false;
   m_xpins[sizeXpins] = posPins;

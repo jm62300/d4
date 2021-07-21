@@ -25,6 +25,8 @@ namespace d4 {
  * @brief Set the counter of conflicts for all the variables.
  *
  * @param[in] counts is the vector of all count.
+ * @param[in] minVar is the first variable.
+ * @param[in] maxVar is the last variables (excluded).
  */
 void ActivityManager::setCountConflict(std::vector<double> &counts,
                                        unsigned minVar, unsigned maxVar) {
