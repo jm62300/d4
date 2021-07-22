@@ -30,6 +30,7 @@
 #include "src/heuristics/PartitioningHeuristic.hpp"
 #include "src/heuristics/PhaseHeuristic.hpp"
 #include "src/heuristics/ScoringMethod.hpp"
+#include "src/methods/nnf/Node.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -70,6 +71,7 @@ private:
   std::vector<std::vector<Lit>> clauses;
 
   std::vector<bool> m_isDecisionVarible;
+  std::vector<bool> m_isProjectedVarible;
   std::vector<bool> m_isMaxDecisionVarible;
   std::vector<unsigned> m_redirectionPos;
   T m_maxCount = T(0);
@@ -128,13 +130,16 @@ public:
     m_redirectionPos.clear();
     m_isDecisionVarible.clear();
     m_isMaxDecisionVarible.clear();
+    m_isProjectedVarible.clear();
 
     m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
     m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isProjectedVarible.resize(m_problem->getNbVar() + 1, false);
     for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
       Var v = m_problem->getIndVar()[i];
       m_isDecisionVarible[v] = true;
       m_redirectionPos[v] = i;
+      m_isProjectedVarible[v] = true;
     }
 
     m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
@@ -324,13 +329,22 @@ private:
    * @param freeVariable, the variables which become free decision node.
    * @param out, the stream we use to print out logs.
    * @param result, the strucre where is solved the result.
+   * @param lower, the min we do not want to get by considering this subproblem.
+   * @param upper, the max we can possible get by considering this subproblem.
    */
   void searchMaxValuation(std::vector<Var> &setOfVar,
                           std::vector<Lit> &unitsLit,
                           std::vector<Var> &freeVariable, std::ostream &out,
-                          MaxSharpSatResult &result) {
+                          MaxSharpSatResult &result, T &lower, T &upper) {
     showRun(out);
     m_nbCallCall++;
+
+    if (upper <= lower) {
+      std::cout << "we should backtrack " << upper << " " << lower << "\n";
+      result.count = T(0);
+      result.valuation = NULL;
+      return;
+    }
 
     // is the problem still satisifiable?
     if (!m_solver->solve(setOfVar)) {
@@ -358,6 +372,12 @@ private:
 
     // consider each connected component.
     if (nbComponent) {
+      assert(nbComponent == 1);
+      T lowerComp = m_maxCount, upperComp = upper;
+      for (auto &l : unitsLit)
+        if (m_isProjectedVarible[l.var()])
+          upperComp /= 2;
+
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
@@ -374,10 +394,11 @@ private:
           }
         } else {
           MaxSharpSatResult tmpResult;
-          searchMaxSharpSatDecision(connected, out, tmpResult);
+          searchMaxSharpSatDecision(connected, out, tmpResult, lowerComp,
+                                    upperComp);
           m_cacheMax->addInCache(cb, tmpResult);
           result.count = result.count * tmpResult.count;
-          
+
           for (auto v : connected) {
             if (m_isMaxDecisionVarible[v])
               result.valuation[m_redirectionPos[v]] |=
@@ -403,11 +424,14 @@ private:
    * @param[in] connected, the set of variable present in the current problem.
    * @param[in] out, the stream we use to print out logs.
    * @param[out] result, the best solution found.
+   * @param[in] lower, the min we do not want to get.
+   * @param[in] upper, the max we can possible get.
    *
    * \return the compiled formula.
    */
   void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
-                                 MaxSharpSatResult &result) {
+                                 MaxSharpSatResult &result, T &lower,
+                                 T &upper) {
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVarible);
 
@@ -432,16 +456,19 @@ private:
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
+    searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0],
+                       lower, upper);
     m_solver->popAssumption();
 
     if (m_solver->isInAssumption(l))
       res[1].count = T(0);
     else if (m_solver->isInAssumption(~l))
-      searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1]);
+      searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1],
+                         lower, upper);
     else {
       m_solver->pushAssumption(~l);
-      searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1]);
+      searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1],
+                         lower, upper);
       m_solver->popAssumption();
     }
 
@@ -570,15 +597,21 @@ private:
       result.count = T(0);
 
     DataBranch<T> b;
-    searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
+    T lower = 0, upper = 1;
+    for (auto &v : setOfVar)
+      if (m_isProjectedVarible[v])
+        upper = upper * 2;
+
+    searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result, lower,
+                       upper);
     result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   } // compute
 
 public:
   /**
    * @brief Search for the instanciation of the variables of
-   * m_problem->getMaxVar() that maximize the number of the remaining variables
-   * where the variables not belonging to m_problem->getIndVar() are
+   * m_problem->getMaxVar() that maximize the number of the remaining
+   * variables where the variables not belonging to m_problem->getIndVar() are
    * existantially quatified.
    *
    * @param[in] vm, the set of options.
