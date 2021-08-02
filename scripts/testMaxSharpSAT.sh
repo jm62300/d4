@@ -8,8 +8,8 @@ SOLVER="$ROOT_PATH/minisat"
 
 cp $1 /tmp/bench.cnf
 
-#grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
-#grep -v "^c " $1 >> /tmp/bench.cnf
+grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
+grep -v "^c " $1 >> /tmp/bench.cnf
 
 $SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
@@ -43,7 +43,11 @@ $MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's
 
 diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
 if [ $? -ne 0 ]; then exit 1; fi
-# exit 0
+
+
+
+# if [ "$valuation" == "" ]; then exit 1; fi
+exit 0
 
 nbByte=$(echo $maxVar | wc -w)
 nbByte=$((nbByte - 1))

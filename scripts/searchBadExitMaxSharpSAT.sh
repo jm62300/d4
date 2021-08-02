@@ -10,7 +10,7 @@ SOLVER="$ROOT_PATH/minisat"
 TIMEOUT=$2
 if [ "$TIMEOUT" == "" ]; then TIMEOUT=1; fi
 
-LIMIT_SIZE=100
+LIMIT_SIZE=30
 
 isExecutableReady()
 {
@@ -24,12 +24,12 @@ generateSatisfiableCNF()
     ret=20
     while [ $ret -ne 10 ]
     do
-        $CNF_GENERATOR | grep -v "^c " > /tmp/test.cnf
+        $CNF_GENERATOR | grep -v "^c " > /tmp/test.cnf.raw
 
-        nbVar=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f3)
+        nbVar=$(grep "p cnf" /tmp/test.cnf.raw | cut -d ' ' -f3)
         if [ $nbVar -gt $LIMIT_SIZE ]; then continue; fi
         
-        $SOLVER /tmp/test.cnf > /dev/null
+        $SOLVER /tmp/test.cnf.raw > /dev/null
         ret=$?
 
         # add information for max#sat
@@ -37,10 +37,12 @@ generateSatisfiableCNF()
         then
         s=$(seq 1 $nbVar | shuf)
         r=$((nbVar / 3))
-        echo "c max $(echo $s | cut -d ' ' -f1-$r) 0" >> /tmp/test.cnf
+        echo "c max $(echo $s | cut -d ' ' -f1-$r) 0" > /tmp/test.cnf
         echo "c ind $(echo $s | cut -d ' ' -f$((r+1))-$((2*r))) 0" >> /tmp/test.cnf
         fi
     done
+    cat /tmp/test.cnf.raw >> /tmp/test.cnf
+    rm /tmp/test.cnf.raw
     echo "/tmp/test.cnf"
 }
 

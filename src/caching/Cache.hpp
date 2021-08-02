@@ -186,6 +186,15 @@ public:
   } // searchInCache
 
   /**
+   * @brief Release the memory allocated to store a bucket.
+   *
+   * @param formulaBucket is the bucket we want to release the memory.
+   */
+  void releaseMemory(CachedBucket<T> &formulaBucket) {
+    m_bucketManager->releaseMemory(formulaBucket.data, formulaBucket.szData());
+  } // releaseMemory
+
+  /**
      Create a bucket and store it in the cache.
 
      @param[in] varConnected, the variable

@@ -33,6 +33,7 @@ public:
     defined = defined_;
   }
 
+  inline CachedBucket<T> &getCachedBucket() { return e; }
   inline T getValue() { return e.fc; }
 };
 } // namespace d4
