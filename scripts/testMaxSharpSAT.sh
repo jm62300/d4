@@ -8,14 +8,15 @@ SOLVER="$ROOT_PATH/minisat"
 
 cp $1 /tmp/bench.cnf
 
-grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
-grep -v "^c " $1 >> /tmp/bench.cnf
+#grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
+#grep -v "^c " $1 >> /tmp/bench.cnf
 
 $SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
 MODEL_COUNTER="../build/d4_debug -m counting -i"
 TESTED_METHOD="../build/d4_debug -m max#sat -i"
+COMPARED_METHOD="../build/d4_debug -m max#sat --maxsharpsat-option-cut 0 -i"
 
 
 # get the max variables.
@@ -44,59 +45,8 @@ $MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's
 diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
 if [ $? -ne 0 ]; then exit 1; fi
 
-
-
-# if [ "$valuation" == "" ]; then exit 1; fi
-exit 0
-
-nbByte=$(echo $maxVar | wc -w)
-nbByte=$((nbByte - 1))
-
-a=($maxVar)
-counter=()
-for i in "${a[@]}"; do counter+=(0); done
-
-# run counter.
-max=0
-while [ ${#counter[@]} -le ${#a[@]} ]
-do
-    # get the interpretation and call the projected counter.    
-    cp $fileTmp $fileTmpCouter
-
-    if [ ${#counter[@]} -le ${#a[@]} ]
-    then
-        for i in $(seq 0 $nbByte)
-        do
-            if [ ${counter[$i]} -eq 0 ]
-            then
-                echo "-${a[$i]} 0" >> $fileTmpCouter
-            else   
-                echo "${a[$i]} 0" >> $fileTmpCouter
-            fi
-        done
-    fi
-    
-    # count.
-    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')            
-    if [ $c -gt $max ]; then max=$c; fi    
-
-    # increase the counter.
-    counter[0]=$((counter[0] + 1))    
-    pos=0
-    while [ ${counter[$pos]} -eq 2 ]
-    do
-        counter[$pos]=0
-        pos=$((pos+1))
-        
-        if [ $pos -le ${#counter[@]} ]
-        then
-            counter[$pos]=$((counter[$pos] + 1))
-        fi
-    done
-done
-
-
-echo $max > /tmp/sol1.txt
+$COMPARED_METHOD /tmp/bench.cnf 2>/dev/null  > /tmp/log.txt
+cat /tmp/log.txt | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 
 rm $fileTmp
 rm $fileTmpCouter    

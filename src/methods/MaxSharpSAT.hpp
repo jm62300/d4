@@ -52,6 +52,9 @@ template <class T> class MaxSharpSAT : public MethodManager {
   struct MaxSharpSatResult {
     T count;
     u_int8_t *valuation;
+
+    MaxSharpSatResult() : count(T(0)), valuation(NULL) {}
+    MaxSharpSatResult(const T c, u_int8_t *v) : count(c), valuation(v) {}
   };
 
 private:
@@ -65,14 +68,14 @@ private:
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
-  bool m_isProjectedMode;
+  bool m_cutActivated;
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
 
   std::vector<bool> m_isDecisionVarible;
   std::vector<bool> m_isProjectedVarible;
-  std::vector<bool> m_isMaxDecisionVarible;
+  std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
   T m_maxCount = T(0);
 
@@ -129,7 +132,7 @@ public:
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
     m_isDecisionVarible.clear();
-    m_isMaxDecisionVarible.clear();
+    m_isMaxDecisionVariable.clear();
     m_isProjectedVarible.clear();
 
     m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
@@ -142,10 +145,10 @@ public:
       m_isProjectedVarible[v] = true;
     }
 
-    m_isMaxDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isMaxDecisionVariable.resize(m_problem->getNbVar() + 1, false);
     for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
       Var v = m_problem->getMaxVar()[i];
-      m_isMaxDecisionVarible[v] = true;
+      m_isMaxDecisionVariable[v] = true;
       m_redirectionPos[v] = i;
     }
 
@@ -157,6 +160,9 @@ public:
 
     // init the clock time.
     initTimer();
+
+    m_cutActivated = vm["maxsharpsat-option-cut"].as<bool>();
+    m_out << "c [MAX#SAT] Cut activated: " << m_cutActivated << "\n";
 
     m_optCached = vm["cache-activated"].as<bool>();
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
@@ -347,7 +353,7 @@ private:
   void orOnMaxVar(std::vector<Var> &vars, u_int8_t *resValuation,
                   u_int8_t *orValuation) {
     for (auto v : vars) {
-      if (m_isMaxDecisionVarible[v])
+      if (m_isMaxDecisionVariable[v])
         resValuation[m_redirectionPos[v]] |= orValuation[m_redirectionPos[v]];
     }
   } // disjunctionOnMaxVariable
@@ -382,12 +388,14 @@ private:
       return true;
     }
 
-    T upper = computeUpper(setOfVar);
-    if (upper <= lower) {
-      std::cout << "we should backtrack " << upper << " " << lower << "\n";
-      result.count = T(0);
-      result.valuation = NULL;
-      return false;
+    if (m_cutActivated) {
+      T upper = computeUpper(setOfVar);
+      if (upper <= lower) {
+        std::cout << "we should backtrack " << upper << " " << lower << "\n";
+        result.count = T(0);
+        result.valuation = NULL;
+        return false;
+      }
     }
 
     m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
@@ -407,14 +415,59 @@ private:
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
 
-    bool complete = true;
+    // compute the set of projected variable that has became free.
+    unsigned nbFreeProj = 0;
+    for (auto v : freeVariable)
+      if (m_isProjectedVarible[v])
+        nbFreeProj++;
+
+    // compute the projected variable distribution.
+    std::vector<unsigned> distribution;
+    unsigned nbRemainingProjVar = 0;
+    if (m_cutActivated) {
+      for (int cp = 0; cp < nbComponent; cp++) {
+        std::vector<Var> &connected = varConnected[cp];
+        int nbProj = 0;
+        for (auto v : connected)
+          if (m_isProjectedVarible[v])
+            nbProj++;
+        distribution.push_back(nbProj);
+        nbRemainingProjVar += nbProj;
+
+        // update the valuation if needed.
+        if (!nbProj)
+          for (auto v : connected)
+            if (m_isMaxDecisionVariable[v])
+              result.valuation[m_redirectionPos[v]] |=
+                  (m_solver->getModelVar(v) == l_True) ? 1 : 0;
+        ;
+      }
+    }
 
     // consider each connected component.
+    bool complete = true;
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      T lowerTarget = m_cutActivated ? lower : 0;
+      while (m_cutActivated && nbFreeProj--)
+        lowerTarget /= 2;
+
       for (int cp = 0; cp < nbComponent; cp++) {
-        T lowerComp = (nbComponent > 1) ? 0 : lower;
         std::vector<Var> &connected = varConnected[cp];
+
+        T currentLowerTarget = 0;
+        if (m_cutActivated) {
+          // check if it is useful to consider the current subproblem.
+          if (!distribution[cp])
+            continue;
+          nbRemainingProjVar -= distribution[cp];
+
+          // compute the lower bound for the current sub-problem.
+          currentLowerTarget = lowerTarget / result.count;
+          for (unsigned i = 0; i < nbRemainingProjVar; i++)
+            currentLowerTarget /= 2;
+        }
+
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
         if (cb.defined) {
@@ -423,14 +476,14 @@ private:
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
           MaxSharpSatResult tmpResult;
-          complete = complete && searchMaxSharpSatDecision(
-                                     connected, out, tmpResult, lowerComp);
+          complete = searchMaxSharpSatDecision(connected, out, tmpResult,
+                                               currentLowerTarget);
 
-          std::cout << "complete = " << complete << "\n";
-
-          if (!complete)
+          if (!complete) {
             m_cacheMax->releaseMemory(cb.getCachedBucket());
-          else {
+            result.count = 0;
+            break;
+          } else {
             m_cacheMax->addInCache(cb, tmpResult);
             result.count = result.count * tmpResult.count;
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
@@ -453,18 +506,21 @@ private:
   /**
    * This function select a variable and compile a decision node.
    *
-   * @param[in] connected, the set of variable present in the current problem.
+   * @param[in] connected, the set of variable present in the current
+   * problem.
    * @param[in] out, the stream we use to print out logs.
    * @param[out] result, the best solution found.
    * @param[in] lower, the min we do not want to get.
    * @param[in] upper, the max we can possible get.
    *
-   * \return true if we go until the end of the process, false if we cut before.
+   * \return true if we go until the end of the process, false if we cut
+   * before.
    */
   bool searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
                                  MaxSharpSatResult &result, T &lower) {
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVarible);
+    Var v =
+        m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVariable);
 
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
@@ -494,8 +550,6 @@ private:
     b[0].d = res[0].count *
              m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
 
-    std::cout << l << " -> status 0 " << status0 << "\n";
-
     // search max#sat for the next phase.
     T lowerDecision = (b[0].d > lower) ? b[0].d : lower;
     bool status1 = true;
@@ -511,23 +565,25 @@ private:
       m_solver->popAssumption();
     }
 
-    std::cout << l << " -> status 1 " << status1 << "\n";
-    std::cout << "res " << b[0].d << " --- " << b[1].d << "\n";
-
-    status0 = status0 || status1;
     b[1].d = res[1].count *
              m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
 
-    // aggregation with max.
-    if (b[0].d > b[1].d)
-      result = {b[0].d, res[0].valuation};
-    else
-      result = {b[1].d, res[1].valuation};
+    if (!status0 && !status1)
+      return false;
 
-    if (status0 && result.count > m_maxCount)
+    // aggregation with max.
+    result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
+    result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
+
+    // the call has not been completed.
+    if (result.count == 0)
+      return false;
+
+    // update the global maxcount if needed.
+    if (result.count > m_maxCount)
       m_maxCount = result.count;
 
-    return status0;
+    return true;
   } // searchMaxSharpSatDecision
 
   /**
@@ -538,8 +594,8 @@ private:
    * @param[in] freeVariable, the variables which become free decision node
    * @param[in] out, the stream we use to print out logs.
    *
-   * \return an element of type U that sums up the given CNF sub-formula using
-   * a DPLL style algorithm with an operation manager.
+   * \return an element of type U that sums up the given CNF sub-formula
+   * using a DPLL style algorithm with an operation manager.
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
               std::vector<Var> &freeVariable, std::ostream &out) {
@@ -585,7 +641,8 @@ private:
   /**
    * This function select a variable and compile a decision node.
    *
-   * @param[in] connected, the set of variable present in the current problem.
+   * @param[in] connected, the set of variable present in the current
+   * problem.
    * @param[in] out, the stream we use to print out logs.
    *
    * \return the compiled formula.
@@ -650,8 +707,8 @@ public:
   /**
    * @brief Search for the instanciation of the variables of
    * m_problem->getMaxVar() that maximize the number of the remaining
-   * variables where the variables not belonging to m_problem->getIndVar() are
-   * existantially quatified.
+   * variables where the variables not belonging to m_problem->getIndVar()
+   * are existantially quatified.
    *
    * @param[in] vm, the set of options.
    */
