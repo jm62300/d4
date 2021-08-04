@@ -3,6 +3,7 @@
 ("input-type,it", boost::program_options::value<std::string>()->default_value("cnf"), "The input type")
 ("method,m", boost::program_options::value<std::string>(), "(required) The method we run (counting for model counting, ddnnf-compiler for decision DNNF compilation, projMC for a dedicated projected model counting, max#SAT for running a max#sat solver).")
 ("maxsharpsat-option-cut",boost::program_options::value<bool>()->default_value(true),"Try to cut the search space by considering lower and upper bounds.")
+("maxsharpsat-option-greedy-init",boost::program_options::value<bool>()->default_value(true),"Search for a first max interpretation greedily.")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")
 ("preproc-solver,ps", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use in the preproc")
 ("preproc,p",boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use (basic, backbone).")

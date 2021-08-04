@@ -58,17 +58,19 @@ template <class T> class MaxSharpSAT : public MethodManager {
   };
 
 private:
-  const unsigned NB_SEP = 118;
+  const unsigned NB_SEP = 131;
 
   bool optDomConst;
   bool optReversePolarity;
 
   unsigned m_nbCallCall;
+  unsigned m_nbCallProj;
   unsigned m_nbSplit;
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
   bool m_cutActivated;
+  bool m_greedyInitActivated;
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
@@ -162,10 +164,13 @@ public:
     initTimer();
 
     m_cutActivated = vm["maxsharpsat-option-cut"].as<bool>();
+    m_greedyInitActivated = vm["maxsharpsat-option-greedy-init"].as<bool>();
     m_out << "c [MAX#SAT] Cut activated: " << m_cutActivated << "\n";
+    m_out << "c [MAX#SAT] Greedy init activated: " << m_greedyInitActivated
+          << "\n";
 
     m_optCached = vm["cache-activated"].as<bool>();
-    m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
+    m_nbCallProj = m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
 
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
@@ -202,6 +207,7 @@ private:
   inline void showInter(std::ostream &out) {
     out << "c "
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall << std::fixed
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj << std::fixed
         << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << m_cacheInd->getNbPositiveHit() << "|"
@@ -233,7 +239,8 @@ private:
   inline void showHeader(std::ostream &out) {
     separator(out);
     out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#compile"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(p)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
@@ -252,9 +259,10 @@ private:
      @param[in] out, the stream we use to print out information.
    */
   inline void showRun(std::ostream &out) {
-    if (!(m_nbCallCall & (MASK_HEADER)))
+    unsigned nbCall = m_nbCallCall + m_nbCallProj;
+    if (!(nbCall & (MASK_HEADER)))
       showHeader(out);
-    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC))
+    if (nbCall && !(nbCall & MASK_SHOWRUN_MC))
       showInter(out);
   } // showRun
 
@@ -525,7 +533,9 @@ private:
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-      result.count = countInd_(connected, unitsLit, freeVar, out);
+      if (!countInd_(connected, unitsLit, freeVar, out, result.count, lower))
+        return false;
+
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
 
@@ -593,17 +603,21 @@ private:
    * @param[in] unitsLit, the set of unit literal detected at this level
    * @param[in] freeVariable, the variables which become free decision node
    * @param[in] out, the stream we use to print out logs.
+   * @param[out] result is used to store the result.
+   * @param[in] lower is the lowest number of models possibles.
    *
-   * \return an element of type U that sums up the given CNF sub-formula
-   * using a DPLL style algorithm with an operation manager.
+   * \return true if we complete the search, false otherwise.
    */
-  T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out) {
+  bool countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
+                 std::vector<Var> &freeVariable, std::ostream &out, T &result,
+                 T &lower) {
     showRun(out);
-    m_nbCallCall++;
+    m_nbCallProj++;
 
-    if (!m_solver->solve(setOfVar))
-      return T(0);
+    if (!m_solver->solve(setOfVar)) {
+      result = T(0);
+      return true;
+    }
 
     m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     m_specs->preUpdate(unitsLit);
@@ -617,7 +631,8 @@ private:
     expelNoDecisionVar(freeVariable, m_isDecisionVarible);
 
     // consider each connected component.
-    T ret = T(1);
+    bool complete = true;
+    result = T(1);
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
@@ -625,17 +640,24 @@ private:
         TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
         if (cb.defined)
-          ret = ret * cb.getValue();
+          result = result * cb.getValue();
         else {
-          T curr = countIndDecisionNode(connected, out);
-          m_cacheInd->addInCache(cb, curr);
-          ret = ret * curr;
+          T curr;
+          complete = countIndDecisionNode(connected, out, curr, lower);
+
+          if (complete)
+            m_cacheInd->addInCache(cb, curr);
+          else {
+            m_cacheInd->releaseMemory(cb.getCachedBucket());
+            break;
+          }
+          result = result * curr;
         }
       }
     } // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
-    return ret;
+    return complete;
   } // countInd_
 
   /**
@@ -644,15 +666,20 @@ private:
    * @param[in] connected, the set of variable present in the current
    * problem.
    * @param[in] out, the stream we use to print out logs.
+   * @param[out] result is used to store the result.
+   * @param[in] lower is the lowest number of models possibles.
    *
-   * \return the compiled formula.
+   * \return true if we complete the model counting operation.
    */
-  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+  bool countIndDecisionNode(std::vector<Var> &connected, std::ostream &out,
+                            T &result, T &lower) {
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVarible);
 
-    if (v == var_Undef)
-      return T(1);
+    if (v == var_Undef) {
+      result = T(1);
+      return true;
+    }
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
@@ -662,23 +689,90 @@ private:
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out);
+    bool status0 =
+        countInd_(connected, b[0].unitLits, b[0].freeVars, out, b[0].d, lower);
     m_solver->popAssumption();
 
+    bool status1 = true;
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
-      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
+      status1 = countInd_(connected, b[1].unitLits, b[1].freeVars, out, b[1].d,
+                          lower);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
+      status1 = countInd_(connected, b[1].unitLits, b[1].freeVars, out, b[1].d,
+                          lower);
       m_solver->popAssumption();
     }
 
     b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
-    return b[0].d + b[1].d;
+    result = b[0].d + b[1].d;
+    return true;
   } // computeDecisionNode
+
+  /**
+   * @brief Search for an interpretation that maximize the number of models in a
+   * greedy search.
+   *
+   * @param setOfVar is the set of variables we are considering.
+   * @param out is the stream where is printed out the logs.
+   * @param result is the interpretation and the related number of models.
+   */
+  void greedySearch(std::vector<Var> &setOfVar, std::ostream &out,
+                    MaxSharpSatResult &result) {
+    // first: search for a model to init the interpretation.
+    if (!m_solver->solve(setOfVar)) {
+      result.count = T(0);
+      result.valuation = NULL;
+      return;
+    }
+
+    // collect the model.
+    std::vector<Lit> model;
+    for (auto v : setOfVar)
+      if (m_isMaxDecisionVariable[v])
+        model.push_back(Lit::makeLit(v, m_solver->getModelVar(v) == l_False));
+
+    // compute the number of projected model.
+    m_solver->restart();
+    m_solver->setAssumption(model);
+
+    DataBranch<T> b;
+    T lower = 0;
+    searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result, lower);
+    result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+
+    // try to improve.
+    bool wasImproved = true;
+    while (wasImproved) {
+      wasImproved = false;
+      for (auto &l : model) {
+        l = ~l;
+        m_solver->resetAssumption();
+        m_solver->setAssumption(model);
+
+        b.unitLits.clear();
+        b.freeVars.clear();
+
+        MaxSharpSatResult tres;
+        searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, tres, lower);
+        tres.count *=
+            m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+
+        if (tres.count > result.count) {
+          result = tres;
+          wasImproved = true;
+        } else
+          l = ~l;
+      }
+    }
+
+    m_solver->resetAssumption();
+    m_solver->restart();
+    std::cout << "c Greedy search done: " << result.count << "\n";
+  } // greedySearch
 
   /**
      Compute U using the trace of a SAT solver.
@@ -697,10 +791,23 @@ private:
                                  !m_solver->warmStart(29, 11, setOfVar, m_out)))
       result.count = T(0);
 
+    MaxSharpSatResult greedyResult;
+    if (m_greedyInitActivated)
+      greedySearch(setOfVar, out, greedyResult);
+    else
+      greedyResult.count = T(0);
+
     DataBranch<T> b;
-    T lower = 0;
-    searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result, lower);
-    result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+    T lower = greedyResult.count;
+    bool complete = searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out,
+                                       result, lower);
+
+    assert(complete || m_greedyInitActivated);
+    if (complete)
+      result.count *=
+          m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+    else
+      result = greedyResult;
   } // compute
 
 public:

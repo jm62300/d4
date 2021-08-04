@@ -92,5 +92,11 @@ public:
   inline bool isInAssumption(Var v) {
     return m_isInAssumption[v];
   } // isInassumption
+
+  /**
+   * @brief Pop all the element of the assumption.
+   *
+   */
+  inline void resetAssumption() { popAssumption(getAssumption().size()); }
 };
 } // namespace d4
