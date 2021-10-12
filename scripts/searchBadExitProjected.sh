@@ -18,7 +18,7 @@ generateSatisfiableCNF()
     ret=20
     while [ $ret -ne 10 ]
     do
-        $CNF_GENERATOR > /tmp/test.cnf
+        $CNF_GENERATOR | grep -v "c "> /tmp/test.cnf
 
     	nbVar=$(grep "p cnf " /tmp/test.cnf | cut -d ' ' -f3)
     	if [ $nbVar -gt $1 ]; then continue; fi
@@ -29,19 +29,18 @@ generateSatisfiableCNF()
     # next we modify the formula to add projected variable.
     nbVar=$(grep "p cnf " /tmp/test.cnf | cut -d ' ' -f3)
     size=1
-    if [ $(($RANDOM % 4)) -eq 0 ]; then size=$((nbVar / 7)); fi
-    if [ $(($RANDOM % 4)) -eq 1 ]; then size=$((nbVar / 5)); fi
-    if [ $(($RANDOM % 4)) -eq 2 ]; then size=$((nbVar / 3)); fi
-    if [ $(($RANDOM % 4)) -eq 3 ]; then size=$((nbVar / 2)); fi
+    rdm=$RANDOM
+    if [ $((rdm % 4)) -eq 0 ]; then size=$((nbVar / 7)); fi
+    if [ $((rdm % 4)) -eq 1 ]; then size=$((nbVar / 5)); fi
+    if [ $((rdm % 4)) -eq 2 ]; then size=$((nbVar / 3)); fi
+    if [ $((rdm % 4)) -eq 3 ]; then size=$((nbVar / 2)); fi
     
-    header=$(grep "p cnf" /tmp/test.cnf | sed 's/cnf/pcnf/g')
-    echo "$header $size" > /tmp/test.pcnf 
+    header=$(grep "p cnf" /tmp/test.cnf)
+    echo "$header" > /tmp/test.pcnf 
 
     projected=$(seq 1 $nbVar | sort -R | head -n $size | tr '\n' ' ')
-    echo "vp $projected 0" >> /tmp/test.pcnf
-
+    echo "c p show ${projected}0" >> /tmp/test.pcnf
     grep -v "p " /tmp/test.cnf >> /tmp/test.pcnf
-
     echo "/tmp/test.pcnf"
 }
 
@@ -127,4 +126,4 @@ isExecutableReady
 # nameFileCNF=$(generateSatisfiableCNF)
 # generateQueries $nameFileCNF 5 > /tmp/queries.txt
 # testQueriesSolver $nameFileCNF /tmp/queries.txt
-debugRoutine "$1" 100
+debugRoutine "$1" $2

@@ -18,12 +18,12 @@
 #pragma once
 
 #include "BucketManager.hpp"
-#include "CacheCleaningManager.hpp"
 #include "CachedBucket.hpp"
 
 namespace d4 {
 template <class T> class CacheCleaningManager;
 template <class T> class Cache;
+
 template <class T> class CacheCleaningCachet : public CacheCleaningManager<T> {
 private:
   unsigned long m_limitNbEntry;

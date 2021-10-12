@@ -58,7 +58,7 @@ template <class T> class MaxSharpSAT : public MethodManager {
   };
 
 private:
-  const unsigned NB_SEP = 131;
+  const unsigned NB_SEP = 157;
 
   bool optDomConst;
   bool optReversePolarity;
@@ -69,14 +69,18 @@ private:
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
-  bool m_cutActivated;
+
+  unsigned m_countMaxCut;
+  unsigned m_countIndCut;
+  bool m_cutActivatedMax;
+  bool m_cutActivatedProj;
   bool m_greedyInitActivated;
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
 
   std::vector<bool> m_isDecisionVarible;
-  std::vector<bool> m_isProjectedVarible;
+  std::vector<bool> m_isProjectedVariable;
   std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
   T m_maxCount = T(0);
@@ -135,16 +139,16 @@ public:
     m_redirectionPos.clear();
     m_isDecisionVarible.clear();
     m_isMaxDecisionVariable.clear();
-    m_isProjectedVarible.clear();
+    m_isProjectedVariable.clear();
 
     m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
     m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
-    m_isProjectedVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isProjectedVariable.resize(m_problem->getNbVar() + 1, false);
     for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
       Var v = m_problem->getIndVar()[i];
       m_isDecisionVarible[v] = true;
       m_redirectionPos[v] = i;
-      m_isProjectedVarible[v] = true;
+      m_isProjectedVariable[v] = true;
     }
 
     m_isMaxDecisionVariable.resize(m_problem->getNbVar() + 1, false);
@@ -163,14 +167,17 @@ public:
     // init the clock time.
     initTimer();
 
-    m_cutActivated = vm["maxsharpsat-option-cut"].as<bool>();
+    m_cutActivatedMax = vm["maxsharpsat-option-cut-max"].as<bool>();
+    m_cutActivatedProj = vm["maxsharpsat-option-cut-ind"].as<bool>();
     m_greedyInitActivated = vm["maxsharpsat-option-greedy-init"].as<bool>();
-    m_out << "c [MAX#SAT] Cut activated: " << m_cutActivated << "\n";
+    m_out << "c [MAX#SAT] Cut on max part: " << m_cutActivatedMax << "\n";
+    m_out << "c [MAX#SAT] Cut on ind part: " << m_cutActivatedProj << "\n";
     m_out << "c [MAX#SAT] Greedy init activated: " << m_greedyInitActivated
           << "\n";
 
     m_optCached = vm["cache-activated"].as<bool>();
     m_nbCallProj = m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
+    m_countIndCut = m_countMaxCut = 0;
 
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
@@ -216,7 +223,9 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_maxCount << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_maxCount << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_countMaxCut << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_countIndCut << "|\n";
   } // showInter
 
   /**
@@ -249,6 +258,8 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cut on max"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cut on ind"
         << "|\n";
     separator(out);
   } // showHeader
@@ -279,6 +290,8 @@ private:
     out << "c Number of recursive call: " << m_nbCallCall << "\n";
     out << "c Number of split formula: " << m_nbSplit << "\n";
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
+    out << "c Number of cut on the max part: " << m_countMaxCut << "\n";
+    out << "c Number of cut on the ind part: " << m_countIndCut << "\n";
     out << "c\n";
     m_cacheInd->printCacheInformation(out);
     out << "c\n";
@@ -344,7 +357,7 @@ private:
   T computeUpper(std::vector<Var> &setOfVar) {
     T ret = 1;
     for (auto v : setOfVar)
-      if (m_isProjectedVarible[v])
+      if (m_isProjectedVariable[v])
         ret = ret * 2;
     return ret;
   } // computeUpper
@@ -396,16 +409,6 @@ private:
       return true;
     }
 
-    if (m_cutActivated) {
-      T upper = computeUpper(setOfVar);
-      if (upper <= lower) {
-        std::cout << "we should backtrack " << upper << " " << lower << "\n";
-        result.count = T(0);
-        result.valuation = NULL;
-        return false;
-      }
-    }
-
     m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
     m_specs->preUpdate(unitsLit);
 
@@ -426,18 +429,18 @@ private:
     // compute the set of projected variable that has became free.
     unsigned nbFreeProj = 0;
     for (auto v : freeVariable)
-      if (m_isProjectedVarible[v])
+      if (m_isProjectedVariable[v])
         nbFreeProj++;
 
     // compute the projected variable distribution.
     std::vector<unsigned> distribution;
     unsigned nbRemainingProjVar = 0;
-    if (m_cutActivated) {
+    if (m_cutActivatedMax) {
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         int nbProj = 0;
         for (auto v : connected)
-          if (m_isProjectedVarible[v])
+          if (m_isProjectedVariable[v])
             nbProj++;
         distribution.push_back(nbProj);
         nbRemainingProjVar += nbProj;
@@ -448,7 +451,6 @@ private:
             if (m_isMaxDecisionVariable[v])
               result.valuation[m_redirectionPos[v]] |=
                   (m_solver->getModelVar(v) == l_True) ? 1 : 0;
-        ;
       }
     }
 
@@ -456,18 +458,19 @@ private:
     bool complete = true;
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      T lowerTarget = m_cutActivated ? lower : 0;
-      while (m_cutActivated && nbFreeProj--)
+      T lowerTarget = m_cutActivatedMax ? lower : 0;
+      while (m_cutActivatedMax && nbFreeProj--)
         lowerTarget /= 2;
 
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
 
-        T currentLowerTarget = 0;
-        if (m_cutActivated) {
+        T currentLowerTarget = T(0);
+        if (m_cutActivatedMax) {
           // check if it is useful to consider the current subproblem.
-          if (!distribution[cp])
+          if (!distribution[cp]) {
             continue;
+          }
           nbRemainingProjVar -= distribution[cp];
 
           // compute the lower bound for the current sub-problem.
@@ -475,20 +478,20 @@ private:
           for (unsigned i = 0; i < nbRemainingProjVar; i++)
             currentLowerTarget /= 2;
         }
-
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
         if (cb.defined) {
           result.count = result.count * cb.getValue().count;
+
           if (cb.getValue().valuation)
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
           MaxSharpSatResult tmpResult;
           complete = searchMaxSharpSatDecision(connected, out, tmpResult,
                                                currentLowerTarget);
-
           if (!complete) {
             m_cacheMax->releaseMemory(cb.getCachedBucket());
+            m_countMaxCut++;
             result.count = 0;
             break;
           } else {
@@ -526,6 +529,23 @@ private:
    */
   bool searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
                                  MaxSharpSatResult &result, T &lower) {
+    if (m_cutActivatedMax) {
+      T upper = computeUpper(connected);
+      if (upper <= lower) {
+        result.count = T(0);
+        result.valuation = NULL;
+        return false;
+      }
+    }
+
+    /**
+        unsigned count = 0;
+        for (auto v : connected)
+          if (m_isProjectedVariable[v])
+            count++;
+        std::cout << "=> " << lower << "   " << count << "\n";
+        */
+
     // search the next variable to branch on
     Var v =
         m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVariable);
@@ -533,11 +553,16 @@ private:
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-      if (!countInd_(connected, unitsLit, freeVar, out, result.count, lower))
+      if (!countInd_(connected, unitsLit, freeVar, out, result.count, lower)) {
+        m_countIndCut++;
         return false;
+      }
 
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
+
+      // std::cout << "number of models " << lower << " " << result.count <<
+      // "\n";
 
       if (result.count > m_maxCount)
         m_maxCount = result.count;
@@ -630,20 +655,66 @@ private:
         varConnected, setOfVar, freeVariable, reallyPresent);
     expelNoDecisionVar(freeVariable, m_isDecisionVarible);
 
+    unsigned nbFreeProj = 0;
+    for (auto v : freeVariable)
+      if (m_isProjectedVariable[v])
+        nbFreeProj++;
+
+    /*
+        unsigned count = 0;
+        for (auto v : reallyPresent)
+          if (m_isProjectedVariable[v])
+            count++;
+        std::cout << lower << " " << nbFreeProj << " " << count << " ~~ "
+                  << setOfVar.size() << "\n";
+    */
+    std::vector<unsigned> distribution;
+    unsigned nbRemainingProjVar = 0;
+    if (m_cutActivatedProj) {
+      for (int cp = 0; cp < nbComponent; cp++) {
+        std::vector<Var> &connected = varConnected[cp];
+        int nbProj = 0;
+        for (auto v : connected)
+          if (m_isProjectedVariable[v])
+            nbProj++;
+        distribution.push_back(nbProj);
+        nbRemainingProjVar += nbProj;
+      }
+    }
+
     // consider each connected component.
     bool complete = true;
     result = T(1);
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      T lowerTarget = m_cutActivatedProj ? lower : T(0);
+
+      while (m_cutActivatedProj && nbFreeProj--)
+        lowerTarget /= 2;
+
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
+        T currentLowerTarget = T(0);
+        if (m_cutActivatedProj) {
+          // check if it is useful to consider the current subproblem.
+          if (!distribution[cp])
+            continue;
+          nbRemainingProjVar -= distribution[cp];
+
+          // compute the lower bound for the current sub-problem.
+          currentLowerTarget = currentLowerTarget / result;
+          for (unsigned i = 0; i < nbRemainingProjVar; i++)
+            currentLowerTarget /= 2;
+        }
+
         TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
         if (cb.defined)
           result = result * cb.getValue();
         else {
           T curr;
-          complete = countIndDecisionNode(connected, out, curr, lower);
+          complete =
+              countIndDecisionNode(connected, out, curr, currentLowerTarget);
 
           if (complete)
             m_cacheInd->addInCache(cb, curr);
@@ -681,32 +752,67 @@ private:
       return true;
     }
 
+    // count the number of projected variables.
+    T countProj = 1;
+    if (m_cutActivatedProj) {
+      for (auto &v : connected)
+        if (m_isProjectedVariable[v])
+          countProj = countProj * 2;
+
+      // cannot get enough models.
+      if (countProj <= lower) {
+        result = T(0);
+        return false;
+      }
+    }
+
+    // select a variable for decision.
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
 
     // consider the two value for l
     DataBranch<T> b[2];
 
+    // compute the next lower.
+    T nextLower = m_cutActivatedProj ? lower - (countProj / 2) : T(0);
+    if (nextLower < 0)
+      nextLower = T(0);
+
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    bool status0 =
-        countInd_(connected, b[0].unitLits, b[0].freeVars, out, b[0].d, lower);
+    bool status0 = countInd_(connected, b[0].unitLits, b[0].freeVars, out,
+                             b[0].d, nextLower);
     m_solver->popAssumption();
+
+    assert(status0 || m_cutActivatedProj);
+    if (m_cutActivatedProj && !status0) {
+      result = T(0);
+      return false;
+    }
+
+    // compute the next lower regarding the already compute information.
+    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    nextLower = lower - b[0].d;
 
     bool status1 = true;
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
       status1 = countInd_(connected, b[1].unitLits, b[1].freeVars, out, b[1].d,
-                          lower);
+                          nextLower);
     else {
       m_solver->pushAssumption(~l);
       status1 = countInd_(connected, b[1].unitLits, b[1].freeVars, out, b[1].d,
-                          lower);
+                          nextLower);
       m_solver->popAssumption();
     }
 
-    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    assert(status1 || m_cutActivatedProj);
+    if (m_cutActivatedProj && !status1) {
+      result = T(0);
+      return false;
+    }
+
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
     result = b[0].d + b[1].d;
     return true;
@@ -757,11 +863,12 @@ private:
         b.freeVars.clear();
 
         MaxSharpSatResult tres;
-        searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, tres, lower);
+        bool complete = searchMaxValuation(setOfVar, b.unitLits, b.freeVars,
+                                           out, tres, lower);
         tres.count *=
             m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
 
-        if (tres.count > result.count) {
+        if (complete && tres.count > result.count) {
           result = tres;
           wasImproved = true;
         } else
@@ -802,11 +909,12 @@ private:
     bool complete = searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out,
                                        result, lower);
 
-    assert(complete || m_greedyInitActivated);
     if (complete)
       result.count *=
           m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
-    else
+
+    assert(complete || m_greedyInitActivated);
+    if (!complete || (greedyResult.count > result.count))
       result = greedyResult;
   } // compute
 

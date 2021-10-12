@@ -19,16 +19,15 @@
 
 #include <boost/program_options.hpp>
 
-#include "src/exceptions/FactoryException.hpp"
-
-#include "Cache.hpp"
 #include "CacheCleaningCachet.hpp"
 #include "CacheCleaningExpectation.hpp"
 #include "CacheCleaningNone.hpp"
 #include "CacheCleaningSharpSAT.hpp"
 #include "CachedBucket.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
+template <class T> class Cache;
 namespace po = boost::program_options;
 
 template <class T> class CacheCleaningManager {

@@ -14,11 +14,11 @@ SOLVER="$ROOT_PATH/minisat"
 # if [ $? -ne 10 ]; then return 0; fi
 
 
-MODEL_COUNTER="/home/lagniez/Works/d4/build/d4_debug -m counting --float 0 -i"
-TESTED_METHOD="/home/lagniez/Works/d4/build/d4_debug -m projMC --float 0 -i"
+MODEL_COUNTER="/home/lagniez/Works/d4/build/d4 -m counting --float 0 -i"
+TESTED_METHOD="/home/lagniez/Works/soft3rdParty/counters/GPMC/bin/gpmc"
 
-$TESTED_METHOD $1  | grep "^s "  > /tmp/sol1.txt        
-$MODEL_COUNTER $1  | grep "^s "  2>/dev/null > /tmp/sol2.txt
+$MODEL_COUNTER $1  | grep "^s " | sed 's/s //g' > /tmp/sol1.txt        
+$TESTED_METHOD $1  | grep "c s exact arb int" | sed 's/c s exact arb int //g' 2>/dev/null > /tmp/sol2.txt
 
 diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null
 exit $?

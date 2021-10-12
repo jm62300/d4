@@ -33,7 +33,9 @@
 namespace d4 {
 namespace po = boost::program_options;
 
+template <class T> class CacheCleaningManager;
 template <class T> class BucketManager;
+
 template <class T> class Cache {
 private:
   bool verb;

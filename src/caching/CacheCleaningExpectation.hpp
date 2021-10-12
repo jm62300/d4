@@ -24,6 +24,15 @@
 namespace d4 {
 template <class T> class CacheCleaningManager;
 template <class T> class Cache;
+
+struct StatVarSizeCache {
+  unsigned long sizeVarCacheHit;
+  unsigned long nbCacheWithSizeVar;
+  unsigned wrongSmudge;
+  double ratio;
+  double currentRatio;
+};
+
 template <class T>
 class CacheCleaningExpectation : public CacheCleaningManager<T> {
 private:
@@ -34,11 +43,7 @@ private:
   unsigned long m_limitNegativeHit;
   int m_nbVar;
 
-  std::vector<double> m_ratio;
-  std::vector<unsigned long> m_sizeVarCacheHit;
-  std::vector<unsigned long> m_nbCacheWithSizeVar;
-  std::vector<unsigned> m_wrongSmudge;
-
+  std::vector<StatVarSizeCache> m_statVar;
   using CacheCleaningManager<T>::m_cache;
 
 public:
@@ -63,10 +68,7 @@ public:
     m_smudge = smudge;
     this->m_cache = cache;
 
-    m_ratio.resize(nbVar + 1, ratio);
-    m_wrongSmudge.resize(nbVar + 1, 0);
-    m_sizeVarCacheHit.resize(nbVar + 1, 0);
-    m_nbCacheWithSizeVar.resize(nbVar + 1, 0);
+    m_statVar.resize(nbVar + 1, {0, 0, 0, ratio});
   } // constructor
 
   /**
@@ -78,7 +80,7 @@ public:
   void initCountCachedBucket(CachedBucket<T> *cb) {
     assert(cb);
     cb->reinitCount(cb->nbVar());
-    m_nbCacheWithSizeVar[cb->nbVar()]++;
+    m_statVar[cb->nbVar()].nbCacheWithSizeVar++;
   } // initCountCachedBucket
 
   /**
@@ -92,7 +94,7 @@ public:
    */
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
     if (cb) {
-      m_sizeVarCacheHit[cb->nbVar()]++;
+      m_statVar[cb->nbVar()].sizeVarCacheHit++;
       cb->incCount(1);
       cb->setTrueDirty();
     } else {
@@ -110,15 +112,15 @@ public:
     m_nbFailedInCache = 0;
     m_nbReduceCall++;
 
-#if 1
     for (int i = 0; i < m_nbVar; i++) {
-      if (m_wrongSmudge[i])
-        m_ratio[i] *= 0.99;
+      if (m_statVar[i].wrongSmudge)
+        m_statVar[i].ratio *= 0.99;
       else
-        m_ratio[i] *= 1.01;
-      m_wrongSmudge[i] >>= 1;
+        m_statVar[i].ratio *= 1.01;
+      m_statVar[i].wrongSmudge >>= 1;
+      m_statVar[i].currentRatio = (double)m_statVar[i].sizeVarCacheHit /
+                                  (double)m_statVar[i].nbCacheWithSizeVar;
     }
-#endif
 
     auto &hashTable = m_cache->getHashTable();
     for (unsigned i = 0; i < hashTable.size(); i++) {
@@ -131,25 +133,24 @@ public:
           continue;
         }
 
-        double ratio = (double)m_sizeVarCacheHit[cb.nbVar()] /
-                       (double)m_nbCacheWithSizeVar[cb.nbVar()];
         bool mustBeKept =
-            (cb.count() || cb.dirty() || ratio > m_ratio[cb.nbVar()]);
+            (cb.count() || cb.dirty() ||
+             m_statVar[cb.nbVar()].currentRatio > m_statVar[cb.nbVar()].ratio);
 
         if (mustBeKept) {
           cb.divCount();
           if (!cb.count() && cb.dirty()) {
             cb.setFalseDirty();
-            if (m_sizeVarCacheHit[cb.nbVar()])
-              m_sizeVarCacheHit[cb.nbVar()]--;
+            if (m_statVar[cb.nbVar()].sizeVarCacheHit)
+              m_statVar[cb.nbVar()].sizeVarCacheHit--;
           }
           cb.setFalseDirty();
           j++;
         } else {
-          if (m_sizeVarCacheHit[cb.nbVar()])
-            m_sizeVarCacheHit[cb.nbVar()]--;
-          assert(m_nbCacheWithSizeVar[cb.nbVar()]);
-          m_nbCacheWithSizeVar[cb.nbVar()]--;
+          if (m_statVar[cb.nbVar()].sizeVarCacheHit)
+            m_statVar[cb.nbVar()].sizeVarCacheHit--;
+          assert(m_statVar[cb.nbVar()].nbCacheWithSizeVar);
+          m_statVar[cb.nbVar()].nbCacheWithSizeVar--;
 
           this->releaseMemory(cb.data, cb.szData(), i, m_smudge);
           if (m_smudge) {
@@ -176,7 +177,7 @@ public:
      @param[in] cb, the bucket used.
    */
   void wrongSmudge(CachedBucket<T> &cb) {
-    m_wrongSmudge[cb.nbVar()]++;
+    m_statVar[cb.nbVar()].wrongSmudge++;
   } // wrongSmudge
 
   /**
