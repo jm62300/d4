@@ -50,7 +50,6 @@ private:
 
   // data info
   unsigned nbInitVar;
-  unsigned nbFailedInCache;
   unsigned nbRemoveEntry;
   unsigned long int m_nbCreationBucket;
   unsigned long int m_sumDataSize;
@@ -71,7 +70,6 @@ public:
 
     m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
     m_nbPositiveHit = m_nbNegativeHit = 0;
-    nbFailedInCache = 1;
     nbRemoveEntry = sumAffectedHitCache = 0;
     verb = 0;
 

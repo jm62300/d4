@@ -391,7 +391,7 @@ private:
              std::ostream &out) {
     showRun(out);
     nbCallCall++;
-    // if (nbCallCall > 6000) exit(0);
+    // if (nbCallCall > 15)    exit(0);
 
     if (!m_solver->solve(setOfVar))
       return m_operation->manageBottom();
