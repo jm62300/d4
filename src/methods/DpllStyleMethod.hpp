@@ -255,9 +255,7 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner
-
-        << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner << "|\n";
   } // showInter
 
   /**
