@@ -99,6 +99,15 @@ void WrapperGlucose::uncheckedEnqueue(Lit l) {
 } // uncheckedEnqueue
 
 /**
+ * @brief Enforce the unit propagation of all the assumption literals.
+ *
+ * @return true if we did not reach a conflict, false otherwise.
+ */
+bool WrapperGlucose::propagateAssumption() {
+  return false;
+} // propagateAssumption
+
+/**
    Call the SAT solver and return its result.
 
    \return true if the problem is SAT, false otherwise.

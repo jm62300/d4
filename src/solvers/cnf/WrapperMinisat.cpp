@@ -95,6 +95,15 @@ bool WrapperMinisat::solve() {
 } // solve
 
 /**
+ * @brief Enforce the unit propagation of all the assumption literals.
+ *
+ * @return true if we did not reach a conflict, false otherwise.
+ */
+bool WrapperMinisat::propagateAssumption() {
+  return s.propagateAssumption();
+} // propagateAssumption
+
+/**
  * @brief Strong assumption in the sense we push the literal on the stack.
  *
  * @param l the literal we want to push.

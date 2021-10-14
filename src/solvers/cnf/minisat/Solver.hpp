@@ -74,17 +74,19 @@ public:
   // change the passed vector 'ps'.
 
   // Solving:
-  bool simplify();             // Removes already satisfied clauses.
-  bool solveWithAssumptions(); // Search for a model that respects assumptions
-                               // in attribute 'assumptions'.
-  bool solveWithAssumptions(
-      vec<Lit> &assums,
-      bool model = false); // Search for a model that respects assumptions in
-                           // attribute 'assumptions'.
-  bool solveWithAssumptions(
-      vec<Lit> &assums, vec<Lit> &unit,
-      bool model =
-          false); // idem, but we collect the unit literals under assumptions
+  bool simplify(); // Removes already satisfied clauses.
+
+  // Search for a model that respects assumptions  in attribute 'assumptions'.
+  bool solveWithAssumptions();
+
+  // Search for a model that respects assumptions in  attribute 'assumptions'.
+  bool solveWithAssumptions(vec<Lit> &assums, bool model = false);
+
+  // idem, but we collect the unit literals under assumptions
+  bool solveWithAssumptions(vec<Lit> &assums, vec<Lit> &unit,
+                            bool model = false);
+
+  bool propagateAssumption();
 
   bool solve(const vec<Lit> &assumps); // Search for a model that respects a
                                        // given set of assumptions.
@@ -494,7 +496,6 @@ public:
         }
       }
     }
-
   } // createEquivClass
 
   /**

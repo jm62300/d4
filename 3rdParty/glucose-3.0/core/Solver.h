@@ -31,6 +31,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifndef Glucose_Solver_h
 #define Glucose_Solver_h
+
 #include <fstream>
 #include <iostream>
 
@@ -460,6 +461,13 @@ public:
     bool ret = solve_(false) == l_True;
     return ret;
   } // solveWithAssumptions
+
+  /**
+   * @brief Propagate the assumption.
+   *
+   * @return true if no conflict, false otherwise.
+   */
+  inline bool propagateAssumption();
 
   inline bool isUndef(Lit l) { return value(l) == l_Undef; }
   inline bool isSAT(Lit l) { return value(l) == l_True; }

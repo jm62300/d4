@@ -58,6 +58,7 @@ public:
   std::vector<lbool> &getModel() override;
   lbool getModelVar(Var v) override;
   void getUnits(std::vector<Lit> &units) override;
+  bool propagateAssumption() override;
 
   double getActivity(Var v) override;
   double getCountConflict(Var v) override;

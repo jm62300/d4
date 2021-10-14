@@ -1620,3 +1620,30 @@ void Solver::garbageCollect() {
            to.size() * ClauseAllocator::Unit_Size);
   to.moveTo(ca);
 }
+
+/**
+ * @brief Propagate the assumption.
+ *
+ * @return true if no conflict, false otherwise.
+ */
+bool Solver::propagateAssumption() {
+  while (decisionLevel() < assumptions.size()) {
+    Lit p = assumptions[decisionLevel()];
+
+    if (value(p) == l_False)
+      return false;
+
+    // add a level for the assumption.
+    newDecisionLevel();
+
+    if (value(p) == l_True)
+      continue;
+
+    // push the assumption and apply the unit propagation.
+    uncheckedEnqueue(p);
+    if (propagate() != CRef_Undef)
+      return false;
+  }
+
+  return true;
+} // propagateAssumption
