@@ -34,9 +34,10 @@ public:
   virtual bool litIsAssigned(Lit l) = 0;
   virtual bool litIsAssignedToTrue(Lit l) = 0;
   virtual bool varIsAssigned(Var v) = 0;
-  virtual int computeConnectedComponent(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<Var> &freeVar, std::vector<Var> &notFreeVar) = 0;
+  virtual int
+  computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
+                            std::vector<Var> &setOfVar,
+                            std::vector<Var> &freeVar) = 0;
   virtual void preUpdate(std::vector<Lit> &lits) = 0;
   virtual void postUpdate(std::vector<Lit> &lits) = 0;
   virtual void initialize(std::vector<Var> &setOfVar,

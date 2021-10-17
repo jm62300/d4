@@ -58,11 +58,11 @@ private:
   bool optDomConst;
   bool optReversePolarity;
 
-  unsigned nbCallCall;
-  unsigned nbSplit;
-  unsigned callPartitioner;
-  unsigned nbDecisionNode;
-  unsigned optCached;
+  unsigned m_nbCallCall;
+  unsigned m_nbSplit;
+  unsigned m_callPartitioner;
+  unsigned m_nbDecisionNode;
+  unsigned m_optCached;
   unsigned m_stampIdx;
   unsigned m_limitUpdate;
   unsigned m_limitUpdateCounter;
@@ -70,7 +70,7 @@ private:
   bool m_isProjectedMode;
 
   std::vector<unsigned> m_stampVar;
-  std::vector<std::vector<Lit>> clauses;
+  std::vector<std::vector<Lit>> m_clauses;
 
   std::vector<unsigned long> nbTestCacheVarSize;
   std::vector<unsigned long> nbPosHitCacheVarSize;
@@ -150,9 +150,9 @@ public:
     // init the clock time.
     initTimer();
 
-    optCached = vm["cache-activated"].as<bool>();
-    callPartitioner = 0;
-    nbDecisionNode = nbSplit = nbCallCall = 0;
+    m_optCached = vm["cache-activated"].as<bool>();
+    m_callPartitioner = 0;
+    m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
 
     m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
     m_staticLimit = vm["cache-limit-static"].as<bool>();
@@ -213,6 +213,7 @@ private:
                         std::vector<bool> &isDecisionVariable) {
     if (!m_isProjectedMode)
       return;
+
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
       if (isDecisionVariable[vars[i]])
@@ -230,7 +231,7 @@ private:
   inline void computePrioritySubSet(std::vector<Var> &connected,
                                     std::vector<Var> &priorityVar,
                                     std::vector<Var> &currPriority) {
-    currPriority.clear();
+    currPriority.resize(0);
     m_stampIdx++;
     for (auto &v : connected)
       m_stampVar[v] = m_stampIdx;
@@ -246,16 +247,16 @@ private:
   */
   inline void showInter(std::ostream &out) {
     out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbCallCall << std::fixed
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall << std::fixed
         << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << m_cache->getNbPositiveHit() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbNegativeHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << nbSplit << "|"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << callPartitioner << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_callPartitioner << "|\n";
   } // showInter
 
   /**
@@ -297,9 +298,9 @@ private:
      @param[in] out, the stream we use to print out information.
    */
   inline void showRun(std::ostream &out) {
-    if (!(nbCallCall & (MASK_HEADER)))
+    if (!(m_nbCallCall & (MASK_HEADER)))
       showHeader(out);
-    if (nbCallCall && !(nbCallCall & MASK_SHOWRUN_MC))
+    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC))
       showInter(out);
   } // showRun
 
@@ -313,10 +314,10 @@ private:
     out << "c\n";
     out << "c \033[1m\033[31mStatistics \033[0m\n";
     out << "c \033[33mCompilation Information\033[0m\n";
-    out << "c Number of recursive call: " << nbCallCall << "\n";
-    out << "c Number of split formula: " << nbSplit << "\n";
-    out << "c Number of decision: " << nbDecisionNode << "\n";
-    out << "c Number of paritioner calls: " << callPartitioner << "\n";
+    out << "c Number of recursive call: " << m_nbCallCall << "\n";
+    out << "c Number of split formula: " << m_nbSplit << "\n";
+    out << "c Number of decision: " << m_nbDecisionNode << "\n";
+    out << "c Number of paritioner calls: " << m_callPartitioner << "\n";
     out << "c\n";
     m_cache->printCacheInformation(out);
     if (m_hCutSet) {
@@ -343,7 +344,7 @@ private:
      Decide if the cache is realized or not.
    */
   bool cacheIsActivated(std::vector<Var> &connected) {
-    if (!optCached)
+    if (!m_optCached)
       return false;
     if (connected.size() < limitNbVarCache)
       return true;
@@ -388,8 +389,9 @@ private:
              std::vector<Var> &freeVariable, std::vector<Var> &priorityVar,
              std::ostream &out) {
     showRun(out);
-    nbCallCall++;
-    // if (nbCallCall > 15)    exit(0);
+    m_nbCallCall++;
+    if (m_nbDecisionNode > 1000000)
+      exit(0);
 
     if (!m_solver->solve(setOfVar))
       return m_operation->manageBottom();
@@ -398,11 +400,10 @@ private:
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
-    std::vector<Var> reallyPresent;
     std::vector<std::vector<Var>> varConnected;
 
-    int nbComponent = m_specs->computeConnectedComponent(
-        varConnected, setOfVar, freeVariable, reallyPresent);
+    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
+                                                         freeVariable);
     expelNoDesionVar(freeVariable, m_isDecisionVariable);
 
     if (++m_limitUpdateCounter > m_limitUpdate) {
@@ -414,7 +415,7 @@ private:
     U ret = m_operation->createTop();
     if (nbComponent) {
       U tab[nbComponent];
-      nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         bool cacheActivated = cacheIsActivated(connected);
@@ -457,7 +458,7 @@ private:
                         std::ostream &out) {
     if (!priority.size() && m_hCutSet->isReady(connected)) {
       m_hCutSet->computeCutSet(connected, priority);
-      callPartitioner++;
+      m_callPartitioner++;
     }
 
     // search the next variable to branch on
@@ -468,7 +469,7 @@ private:
       return m_operation->manageTop(connected);
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
-    nbDecisionNode++;
+    m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];

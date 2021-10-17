@@ -511,8 +511,14 @@ private:
 
     std::vector<Var> reallyPresent, freeVariable;
     std::vector<std::vector<Var>> varConnected;
-    int nbComponent = m_specs->computeConnectedComponent(
-        varConnected, setOfVar, freeVariable, reallyPresent);
+    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
+                                                         freeVariable);
+
+    // extract the really present variables.
+    reallyPresent.reserve(setOfVar.size() - freeVariable.size());
+    for (auto &l : varConnected)
+      for (auto &v : l)
+        reallyPresent.push_back(v);
 
     // extract the projected variables.
     std::vector<Var> projectSetOfVar;

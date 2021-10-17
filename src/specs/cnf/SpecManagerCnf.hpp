@@ -31,6 +31,12 @@ struct SpecClauseInfo {
   SpecClauseInfo() : nbSat(0), nbUnsat(0), watcher(lit_Undef) { ; }
 };
 
+struct InfoCluster {
+  unsigned parent;
+  unsigned size;
+  int pos;
+};
+
 class SpecManagerCnf : public SpecManager {
 protected:
   std::vector<std::vector<Lit>> m_clauses;
@@ -42,6 +48,8 @@ protected:
   std::vector<bool> m_inCurrentComponent;
   std::vector<std::vector<int>> m_occListBin;
   std::vector<std::vector<int>> m_occListNotBin;
+
+  std::vector<InfoCluster> m_infoCluster;
 
   // to manage the connected component
   std::vector<int> m_mustUnMark;
@@ -64,8 +72,7 @@ public:
 
   int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
                                 std::vector<Var> &setOfVar,
-                                std::vector<Var> &freeVar,
-                                std::vector<Var> &notFreeVar) override;
+                                std::vector<Var> &freeVar) override;
 
   void initFormula(ProblemManager &p) override;
   void showFormula(std::ostream &out) override;

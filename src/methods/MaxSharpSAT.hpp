@@ -413,11 +413,10 @@ private:
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
-    std::vector<Var> reallyPresent;
     std::vector<std::vector<Var>> varConnected;
 
-    int nbComponent = m_specs->computeConnectedComponent(
-        varConnected, setOfVar, freeVariable, reallyPresent);
+    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
+                                                         freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVarible);
 
     // init the returned result.
@@ -648,11 +647,10 @@ private:
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
-    std::vector<Var> reallyPresent;
     std::vector<std::vector<Var>> varConnected;
 
-    int nbComponent = m_specs->computeConnectedComponent(
-        varConnected, setOfVar, freeVariable, reallyPresent);
+    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
+                                                         freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVarible);
 
     unsigned nbFreeProj = 0;
