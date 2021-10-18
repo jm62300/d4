@@ -21,6 +21,7 @@
 
 #include "SpecManagerCnf.hpp"
 #include "SpecManagerCnfDyn.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
 /**
@@ -193,6 +194,8 @@ int SpecManagerCnf::computeConnectedComponent(
 
 #else
 
+#define TEST 0
+
 /**
    Look all the formula in order to compute the connected component
    of the formula (union find algorithm).
@@ -209,12 +212,17 @@ int SpecManagerCnf::computeConnectedComponent(
     std::vector<Var> &freeVar) {
   freeVar.resize(0);
 
+#if TEST
+  for (auto s : m_markView)
+    assert(!s);
+#endif
+
   for (auto v : setOfVar) {
     m_infoCluster[v].parent = v;
     m_infoCluster[v].size = 1;
   }
 
-#if 0
+#if TEST
   std::cout << "START "
                "---------------------------------------------------------------"
                "----\n";
@@ -239,12 +247,12 @@ int SpecManagerCnf::computeConnectedComponent(
   unsigned nbComponent = setOfVar.size();
   for (auto v : setOfVar) {
     if (m_currentValue[v] != l_Undef) {
-#if 0 
+#if TEST
       std::cout << "already assigned " << v << "\n";
 #endif
       continue;
     }
-#if 0 
+#if TEST
     std::cout << "considere " << v << "\n";
 #endif
 
@@ -275,9 +283,20 @@ int SpecManagerCnf::computeConnectedComponent(
             // already in the same component.
             if (rootV == rootW)
               continue;
-#if 0
-            std::cout << "merge " << rootV << " " << rootW << "\n";
+#if TEST
+            std::cout << "merge " << rootV << " " << rootW << " " << idx
+                      << "\n";
 #endif
+#if TEST
+            for (unsigned i = 0; i < m_infoCluster.size(); i++) {
+              std::cout << i << ": " << m_infoCluster[i].parent << " "
+                        << m_infoCluster[i].size << " |";
+              if (i && !(i % 10))
+                std::cout << "\n";
+            }
+            std::cout << "\n";
+#endif
+
             // because we merge two components.
             nbComponent--;
 
@@ -285,22 +304,25 @@ int SpecManagerCnf::computeConnectedComponent(
             if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
               m_infoCluster[rootV].parent = m_infoCluster[rootW].parent;
               m_infoCluster[rootW].size += m_infoCluster[rootV].size;
+              rootV = rootW;
             } else {
               m_infoCluster[rootW].parent = m_infoCluster[rootV].parent;
               m_infoCluster[rootV].size += m_infoCluster[rootW].size;
             }
+#if TEST
+            for (unsigned i = 0; i < m_infoCluster.size(); i++) {
+              std::cout << i << ": " << m_infoCluster[i].parent << " "
+                        << m_infoCluster[i].size << " |";
+              if (i && !(i % 10))
+                std::cout << "\n";
+            }
+            std::cout << "\n";
+#endif
           }
         }
       }
       l = ~l;
     }
-
-#if 0
-    for (unsigned i = 0; i < m_infoCluster.size(); i++)
-      std::cout << i << ": " << m_infoCluster[i].parent << " "
-                << m_infoCluster[i].size << " \n";
-    std::cout << "\n";
-#endif
   }
 
   // collect the component.
@@ -308,19 +330,16 @@ int SpecManagerCnf::computeConnectedComponent(
   for (auto &v : setOfVar) {
     if (m_currentValue[v] != l_Undef)
       continue;
-#if 0
-    std::cout << "consider: " << v << "[" << m_infoCluster[v].parent << "]\n";
-#endif
 
     if (m_infoCluster[v].parent == v && m_infoCluster[v].size == 1) {
       freeVar.push_back(v);
-#if 0
+#if TEST
       if (getNbClause(v) != 0) {
-        std::cout << "BUG : " << setOfVar.size() << "\n";
+        std::cout << "BUG : " << v << " " << setOfVar.size() << "\n";
         for (auto &w : setOfVar) {
           Lit l = Lit::makeLit(w, false);
           for (unsigned i = 0; i < 2; i++) {
-            std::cout << l << ": ";
+            std::cout << l << "[" << (m_currentValue[v] == l_Undef) << "]: ";
 
             for (unsigned j = 0; j < 2; j++) { // both occurrence lists.
               std::vector<int> &listIndex =
@@ -348,6 +367,10 @@ int SpecManagerCnf::computeConnectedComponent(
           m_infoCluster[m_infoCluster[rootV].parent].parent;
       rootV = m_infoCluster[rootV].parent;
     }
+
+#if TEST
+    std::cout << "consider: " << v << "[" << rootV << "]\n";
+#endif
 
     if (m_infoCluster[rootV].pos == -1) {
       m_infoCluster[rootV].pos = varCo.size();

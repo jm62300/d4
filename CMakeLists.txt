@@ -41,7 +41,7 @@ if(${BUILD_MODE} EQUAL 1)
 
   # PROFILE
   message("Debug mode activated")
-  set(CMAKE_CXX_COMPILER /usr/bin/g++-8 CACHE PATH "" FORCE)
+  set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE PATH "" FORCE)
   
   set(CMAKE_BUILD_TYPE Debug)
   target_compile_options(d4_debug PUBLIC -std=c++17 -Wall -pg -O1 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=1)

@@ -390,8 +390,8 @@ private:
              std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
-    if (m_nbDecisionNode > 1000000)
-      exit(0);
+    // if (m_nbDecisionNode > 100000)
+    // exit(0);
 
     if (!m_solver->solve(setOfVar))
       return m_operation->manageBottom();
