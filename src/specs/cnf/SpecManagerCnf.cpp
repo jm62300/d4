@@ -78,6 +78,8 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
     ptr = &ptr[occList.size()];
   }
 
+  showOccurenceList(std::cout);
+
   // variables:
   m_inCurrentComponent.resize(m_nbVar + 1, false);
   m_currentValue.resize(m_nbVar + 1, l_Undef);

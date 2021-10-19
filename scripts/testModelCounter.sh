@@ -9,7 +9,7 @@ SOLVER="$ROOT_PATH/minisat"
 $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
-MODEL_COUNTER="../build/d4_static -m counting -i"
+MODEL_COUNTER="./d4ScriptsCompetition/bin/d4_static -m counting -i"
 TESTED_METHOD="../build/d4_debug -m counting -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
 

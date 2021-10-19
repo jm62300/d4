@@ -186,18 +186,11 @@ public:
 
   inline void showOccurenceList(std::ostream &out) {
     for (unsigned i = 0; i < m_occurrence.size(); i++) {
-      if (!m_occurrence[i].nbBin)
+      if (!m_occurrence[i].nbBin && !m_occurrence[i].nbNotBin)
         continue;
       out << ((i & 1) ? "-" : "") << (i >> 1) << " --> [ ";
       for (unsigned j = 0; j < m_occurrence[i].nbBin; j++)
         out << m_occurrence[i].bin[j] << " ";
-      out << " ]\n";
-    }
-
-    for (unsigned i = 0; i < m_occurrence.size(); i++) {
-      if (!m_occurrence[i].nbNotBin)
-        continue;
-      out << ((i & 1) ? "-" : "") << (i >> 1) << " --> [ ";
       for (unsigned j = 0; j < m_occurrence[i].nbNotBin; j++)
         out << m_occurrence[i].notBin[j] << " ";
       out << " ]\n";
