@@ -29,7 +29,19 @@ namespace d4 {
    Constructor.
 */
 SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
-  initFormula(p);
+  // get the clauses.
+  try {
+    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(p);
+    m_clauses = pcnf.getClauses();
+  } catch (std::bad_cast &bc) {
+    std::cerr << "bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "A CNF formula was expeted\n";
+  }
+
+  // store the not binary clauses.
+  for (unsigned i = 0; i < m_clauses.size(); i++)
+    if (m_clauses[i].size() > 2)
+      m_clausesNotBin.push_back(i);
 
   // variables:
   m_inCurrentComponent.resize(m_nbVar + 1, false);
@@ -65,28 +77,6 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
 
   m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
 } // construtor
-
-/**
- * @brief
- *
- * @param p
- */
-void SpecManagerCnf::initFormula(ProblemManager &p) {
-  try {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(p);
-    m_clauses = pcnf.getClauses();
-
-    for (unsigned i = 0; i < m_clauses.size(); i++)
-      if (m_clauses[i].size() > 2)
-        m_clausesNotBin.push_back(i);
-  } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
-  }
-
-  for (auto &val : m_currentValue)
-    val = l_Undef;
-} // initFormula
 
 /**
    Look all the formula in order to compute the connected component

@@ -70,7 +70,6 @@ public:
                                 std::vector<Var> &setOfVar,
                                 std::vector<Var> &freeVar) override;
 
-  void initFormula(ProblemManager &p) override;
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
   void showTrail(std::ostream &out) override;
@@ -126,7 +125,7 @@ public:
   inline int getNbBinaryClause(Lit l) {
     int nbBin = m_occListBin[l.intern()].size();
     for (auto &idx : m_occListNotBin[l.intern()])
-      if (m_clauses[idx].size() - m_infoClauses[idx].nbUnsat == 2)
+      if (getSize(idx) == 2)
         nbBin++;
     return nbBin;
   } // getNbBinaryClause
