@@ -64,7 +64,6 @@ protected:
   } // resetUnMark
 
 public:
-  SpecManagerCnf(int nbClause, int nbVar, int maxClauseSize);
   SpecManagerCnf(ProblemManager &p);
 
   int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,

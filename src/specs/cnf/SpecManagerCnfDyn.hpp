@@ -30,7 +30,6 @@ private:
   void initClauses(std::vector<std::vector<Lit>> &clauses);
 
 public:
-  SpecManagerCnfDyn(int nbClause, int nbVar, int maxClauseSize);
   SpecManagerCnfDyn(ProblemManager &p);
 
   void preUpdate(std::vector<Lit> &lits);

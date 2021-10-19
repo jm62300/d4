@@ -20,16 +20,6 @@
 #include "SpecManagerCnf.hpp"
 
 namespace d4 {
-/**
-   OccurrenceManager constructor. This function initialized the
-   structures used.
-
-   @param[in] nbC, the maximum number of clauses allowed
-   @param[in] nbV, the number of variables in the problem
-   @param[in] maxClSz, the largest clause size
- */
-SpecManagerCnfDyn::SpecManagerCnfDyn(int nbC, int nbV, int maxClSz)
-    : SpecManagerCnf(nbC, nbV, maxClSz) {} // SpecManagerCnfDyn
 
 /**
    OccurrenceManager constructor. This function initialized the

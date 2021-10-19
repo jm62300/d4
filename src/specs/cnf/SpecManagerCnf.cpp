@@ -24,25 +24,6 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-/**
-   Constructor.
-*/
-SpecManagerCnf::SpecManagerCnf(int nbClause, int _nbVar, int _m_maxSizeClause)
-    : m_nbVar(_nbVar), m_maxSizeClause(_m_maxSizeClause) {
-  // variables:
-  m_inCurrentComponent.resize(m_nbVar + 1, false);
-  m_currentValue.resize(m_nbVar + 1, l_Undef);
-  m_idxComponent.resize(m_nbVar + 1, 0);
-
-  // occurrences:
-  m_occListBin.resize((m_nbVar + 1) << 1, std::vector<int>());
-  m_occListNotBin.resize((m_nbVar + 1) << 1, std::vector<int>());
-
-  // clauses:
-  m_mustUnMark.reserve(nbClause);
-  m_markView.resize(nbClause, false);
-  m_infoClauses.resize(nbClause);
-} // construtor
 
 /**
    Constructor.
