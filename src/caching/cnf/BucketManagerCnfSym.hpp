@@ -52,7 +52,6 @@ private:
 
   // using: functions
   using BucketManagerCnf<T>::isKeptClause;
-  using BucketManagerCnf<T>::collectIdActiveClauses;
 
 public:
   /**

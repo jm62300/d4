@@ -86,115 +86,26 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
 } // construtor
 
 /**
-   Collect the set of literals connected to l and store the result in
-   varComponent.
+ * @brief
+ *
+ * @param p
+ */
+void SpecManagerCnf::initFormula(ProblemManager &p) {
+  try {
+    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(p);
+    m_clauses = pcnf.getClauses();
 
-   @param[in] l, the considered literal
-   @param[in] v, the label of the previously assigned component (0 if not
-   assigned).
-   @param[in] varComponent, the set of varaible connected to l.
-   @param[in] nbComponent, the component label.
-*/
-void SpecManagerCnf::connectedToLit(Lit l, std::vector<int> &v,
-                                    std::vector<Var> &varComponent,
-                                    int nbComponent) {
-
-  for (unsigned i = 0; i < 2; i++) {
-    std::vector<int> &listIndex =
-        (i) ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
-
-    for (auto &idx : listIndex) {
-      if (m_markView[idx])
-        continue;
-      m_markView[idx] = true;
-      m_mustUnMark.push_back(idx);
-
-      // compute component
-      for (auto &l : m_clauses[idx]) {
-        if (m_currentValue[l.var()] != l_Undef || v[l.var()])
-          continue;
-
-        varComponent.push_back(l.var());
-        v[l.var()] = nbComponent;
-      }
-    }
-  }
-} // connectedToLit
-
-#if 0
-
-/**
-   Look all the formula in order to compute the connected component
-   of the formula.
-
-   @param[out] varCo, the different connected components found
-   @param[in] setOfVar, the current set of variables
-   @param[out] freeVar, the set of variables that are present in setOfVar but
-   not in the problem anymore
-
-   \return the number of component found
-*/
-int SpecManagerCnf::computeConnectedComponent(
-    std::vector<std::vector<Var>> &varCo, std::vector<Var> &setOfVar,
-    std::vector<Var> &freeVar) {
-  freeVar.resize(0);
-
-  varCo.push_back(std::vector<Var>());
-
-  int nbComponent = 0;
-  for (const auto v : setOfVar) {
-    if (m_currentValue[v] != l_Undef || m_idxComponent[v])
-      continue;
-
-    // index a new composant
-    nbComponent++;
-    m_idxComponent[v] = nbComponent;
-
-    // save the variables of connected component
-    assert(!m_tmpVecVar.size());
-    m_tmpVecVar.push_back(v);
-
-    int cpt = 0;
-    while (m_tmpVecVar.size()) {
-      cpt++;
-      Lit l = Lit::makeLit(m_tmpVecVar.back(), false);
-      m_tmpVecVar.pop_back();
-
-      if (getNbOccurrence(l))
-        connectedToLit(l, m_idxComponent, m_tmpVecVar, nbComponent);
-      if (getNbOccurrence(~l))
-        connectedToLit(~l, m_idxComponent, m_tmpVecVar, nbComponent);
-    }
-
-    assert(cpt > 0);
-    if (cpt == 1) {
-      m_idxComponent[v] = 0;
-      nbComponent--; // it is alone ...
-    }
+    for (unsigned i = 0; i < m_clauses.size(); i++)
+      if (m_clauses[i].size() > 2)
+        m_clausesNotBin.push_back(i);
+  } catch (std::bad_cast &bc) {
+    std::cerr << "bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "A CNF formula was expeted\n";
   }
 
-  resetUnMark();
-
-  varCo.resize(nbComponent);
-  for (const auto v : setOfVar) {
-    if (m_idxComponent[v]) {
-      assert(m_idxComponent[v] <= (int)varCo.size());
-      varCo[m_idxComponent[v] - 1].push_back(v);
-      assert(nbComponent);
-    } else if (m_currentValue[v] == l_Undef) {
-      freeVar.push_back(v);
-      assert(getNbClause(v) == 0);
-    }
-
-    m_idxComponent[v] = 0;
-  }
-
-  return nbComponent;
-} // computeConnectedComponent
-
-#else
-
-#define TEST 0
+  for (auto &val : m_currentValue)
+    val = l_Undef;
+} // initFormula
 
 /**
    Look all the formula in order to compute the connected component
@@ -210,54 +121,17 @@ int SpecManagerCnf::computeConnectedComponent(
 int SpecManagerCnf::computeConnectedComponent(
     std::vector<std::vector<Var>> &varCo, std::vector<Var> &setOfVar,
     std::vector<Var> &freeVar) {
-  freeVar.resize(0);
-
-#if TEST
-  for (auto s : m_markView)
-    assert(!s);
-#endif
-
   for (auto v : setOfVar) {
     m_infoCluster[v].parent = v;
     m_infoCluster[v].size = 1;
   }
 
-#if TEST
-  std::cout << "START "
-               "---------------------------------------------------------------"
-               "----\n";
-  for (auto &w : setOfVar) {
-    Lit l = Lit::makeLit(w, false);
-    for (unsigned i = 0; i < 2; i++) {
-      std::cout << l << ": ";
-
-      for (unsigned j = 0; j < 2; j++) { // both occurrence lists.
-        std::vector<int> &listIndex =
-            (j) ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
-
-        for (auto idx : listIndex)
-          std::cout << idx << " ";
-      }
-      std::cout << "\n";
-      l = ~l;
-    }
-  }
-#endif
-
-  unsigned nbComponent = setOfVar.size();
-  for (auto v : setOfVar) {
-    if (m_currentValue[v] != l_Undef) {
-#if TEST
-      std::cout << "already assigned " << v << "\n";
-#endif
+  for (auto const &v : setOfVar) {
+    if (m_currentValue[v] != l_Undef)
       continue;
-    }
-#if TEST
-    std::cout << "considere " << v << "\n";
-#endif
 
     // visit the index clauses
-    unsigned rootV = v;
+    Var rootV = v;
     Lit l = Lit::makeLit(v, false);
 
     for (unsigned i = 0; i < 2; i++) {   // both literals.
@@ -267,13 +141,13 @@ int SpecManagerCnf::computeConnectedComponent(
 
         for (auto &idx : listIndex) {
           if (!m_markView[idx]) {
+            m_markView[idx] = true;
             m_infoCluster[idx + m_nbVar + 1].parent = rootV;
             m_infoCluster[rootV].size++;
-            m_markView[idx] = true;
             m_mustUnMark.push_back(idx);
           } else {
             // search for the root.
-            unsigned rootW = m_infoCluster[idx + m_nbVar + 1].parent;
+            Var rootW = m_infoCluster[idx + m_nbVar + 1].parent;
             while (rootW != m_infoCluster[rootW].parent) {
               m_infoCluster[rootW].parent =
                   m_infoCluster[m_infoCluster[rootW].parent].parent;
@@ -283,41 +157,16 @@ int SpecManagerCnf::computeConnectedComponent(
             // already in the same component.
             if (rootV == rootW)
               continue;
-#if TEST
-            std::cout << "merge " << rootV << " " << rootW << " " << idx
-                      << "\n";
-#endif
-#if TEST
-            for (unsigned i = 0; i < m_infoCluster.size(); i++) {
-              std::cout << i << ": " << m_infoCluster[i].parent << " "
-                        << m_infoCluster[i].size << " |";
-              if (i && !(i % 10))
-                std::cout << "\n";
-            }
-            std::cout << "\n";
-#endif
-
-            // because we merge two components.
-            nbComponent--;
 
             // union.
             if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
-              m_infoCluster[rootV].parent = m_infoCluster[rootW].parent;
               m_infoCluster[rootW].size += m_infoCluster[rootV].size;
+              m_infoCluster[rootV].parent = m_infoCluster[rootW].parent;
               rootV = rootW;
             } else {
-              m_infoCluster[rootW].parent = m_infoCluster[rootV].parent;
               m_infoCluster[rootV].size += m_infoCluster[rootW].size;
+              m_infoCluster[rootW].parent = m_infoCluster[rootV].parent;
             }
-#if TEST
-            for (unsigned i = 0; i < m_infoCluster.size(); i++) {
-              std::cout << i << ": " << m_infoCluster[i].parent << " "
-                        << m_infoCluster[i].size << " |";
-              if (i && !(i % 10))
-                std::cout << "\n";
-            }
-            std::cout << "\n";
-#endif
           }
         }
       }
@@ -327,33 +176,14 @@ int SpecManagerCnf::computeConnectedComponent(
 
   // collect the component.
   std::vector<Var> rootSet;
-  for (auto &v : setOfVar) {
+  freeVar.resize(0);
+
+  for (auto const &v : setOfVar) {
     if (m_currentValue[v] != l_Undef)
       continue;
 
     if (m_infoCluster[v].parent == v && m_infoCluster[v].size == 1) {
       freeVar.push_back(v);
-#if TEST
-      if (getNbClause(v) != 0) {
-        std::cout << "BUG : " << v << " " << setOfVar.size() << "\n";
-        for (auto &w : setOfVar) {
-          Lit l = Lit::makeLit(w, false);
-          for (unsigned i = 0; i < 2; i++) {
-            std::cout << l << "[" << (m_currentValue[v] == l_Undef) << "]: ";
-
-            for (unsigned j = 0; j < 2; j++) { // both occurrence lists.
-              std::vector<int> &listIndex =
-                  (j) ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
-
-              for (auto idx : listIndex)
-                std::cout << idx << " ";
-            }
-            std::cout << "\n";
-            l = ~l;
-          }
-        }
-      }
-#endif
       assert(getNbClause(v) == 0);
       continue;
     }
@@ -367,10 +197,6 @@ int SpecManagerCnf::computeConnectedComponent(
           m_infoCluster[m_infoCluster[rootV].parent].parent;
       rootV = m_infoCluster[rootV].parent;
     }
-
-#if TEST
-    std::cout << "consider: " << v << "[" << rootV << "]\n";
-#endif
 
     if (m_infoCluster[rootV].pos == -1) {
       m_infoCluster[rootV].pos = varCo.size();
@@ -388,7 +214,6 @@ int SpecManagerCnf::computeConnectedComponent(
 
   return varCo.size();
 } // computeConnectedComponent
-#endif
 
 /**
    Test if a given clause is actually satisfied under the current
@@ -470,23 +295,6 @@ void SpecManagerCnf::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
   for (auto &v : component)
     m_inCurrentComponent[v] = false;
 } // getCurrentclauses
-
-void SpecManagerCnf::initFormula(ProblemManager &p) {
-  try {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(p);
-    m_clauses = pcnf.getClauses();
-
-    for (unsigned i = 0; i < m_clauses.size(); i++)
-      if (m_clauses[i].size() > 2)
-        m_clausesNotBin.push_back(i);
-  } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
-  }
-
-  for (auto &val : m_currentValue)
-    val = l_Undef;
-} // initFormula
 
 void SpecManagerCnf::showFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";

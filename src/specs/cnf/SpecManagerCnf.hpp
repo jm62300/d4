@@ -32,7 +32,7 @@ struct SpecClauseInfo {
 };
 
 struct InfoCluster {
-  unsigned parent;
+  Var parent;
   unsigned size;
   int pos;
 };
@@ -62,9 +62,6 @@ protected:
       m_markView[idx] = false;
     m_mustUnMark.resize(0);
   } // resetUnMark
-
-  void connectedToLit(Lit l, std::vector<int> &v,
-                      std::vector<Var> &varComponent, int nbComponent);
 
 public:
   SpecManagerCnf(int nbClause, int nbVar, int maxClauseSize);

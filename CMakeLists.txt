@@ -44,8 +44,11 @@ if(${BUILD_MODE} EQUAL 1)
   set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE PATH "" FORCE)
   
   set(CMAKE_BUILD_TYPE Debug)
-  target_compile_options(d4_debug PUBLIC -std=c++17 -Wall -pg -O1 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
-  target_link_libraries (d4_debug -lz -pg -lgmpxx -lgmp -O1 ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_debug.a)
+  #target_compile_options(d4_debug PUBLIC -std=c++17 -Wall -g -pg -O1 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
+  #target_link_libraries (d4_debug -lz -g -pg -lgmpxx -lgmp -O1 ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_debug.a)
+
+  target_compile_options(d4_debug PUBLIC -std=c++17 -Wall -g -O1 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
+  target_link_libraries (d4_debug -lz -g -lgmpxx -lgmp -O1 ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_debug.a)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug
     DESTINATION bin
