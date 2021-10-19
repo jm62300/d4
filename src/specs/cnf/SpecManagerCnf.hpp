@@ -21,6 +21,7 @@
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 #include "../SpecManager.hpp"
+#include <iterator>
 
 namespace d4 {
 struct SpecClauseInfo {
@@ -37,6 +38,18 @@ struct InfoCluster {
   int pos;
 };
 
+struct DataOccurrence {
+  int *bin;
+  unsigned nbBin;
+  int *notBin;
+  unsigned nbNotBin;
+};
+
+struct IteratorIdxClause {
+  int *start, *end;
+  unsigned size() { return end - start; }
+};
+
 class SpecManagerCnf : public SpecManager {
 protected:
   std::vector<std::vector<Lit>> m_clauses;
@@ -46,8 +59,8 @@ protected:
   std::vector<SpecClauseInfo> m_infoClauses;
 
   std::vector<bool> m_inCurrentComponent;
-  std::vector<std::vector<int>> m_occListBin;
-  std::vector<std::vector<int>> m_occListNotBin;
+  std::vector<DataOccurrence> m_occurrence;
+  int *m_dataOccurrenceMemory;
 
   std::vector<InfoCluster> m_infoCluster;
 
@@ -65,6 +78,7 @@ protected:
 
 public:
   SpecManagerCnf(ProblemManager &p);
+  ~SpecManagerCnf();
 
   int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
                                 std::vector<Var> &setOfVar,
@@ -108,7 +122,7 @@ public:
   }
 
   inline unsigned getNbClause(Lit l) {
-    return m_occListBin[l.intern()].size() + m_occListNotBin[l.intern()].size();
+    return m_occurrence[l.intern()].nbBin + m_occurrence[l.intern()].nbNotBin;
   }
 
   inline unsigned getNbClause() { return m_clauses.size(); }
@@ -123,9 +137,9 @@ public:
   } // getSumSizeClauses
 
   inline int getNbBinaryClause(Lit l) {
-    int nbBin = m_occListBin[l.intern()].size();
-    for (auto &idx : m_occListNotBin[l.intern()])
-      if (getSize(idx) == 2)
+    int nbBin = m_occurrence[l.intern()].nbBin;
+    for (unsigned i = 0; i < m_occurrence[l.intern()].nbNotBin; i++)
+      if (getSize(m_occurrence[l.intern()].notBin[i]) == 2)
         nbBin++;
     return nbBin;
   } // getNbBinaryClause
@@ -155,42 +169,37 @@ public:
       return m_currentValue[l.var()] == l_True;
   }
 
-  // about the occurrence list.
-  inline const std::vector<std::vector<int>> &getOccurrenceListBin() {
-    return m_occListBin;
-  }
-  inline const std::vector<std::vector<int>> &getOccurrenceListNotBin() {
-    return m_occListNotBin;
-  }
-
   inline int getNbOccurrence(Lit l) override { return getNbClause(l); }
 
-  inline std::vector<int> &getVecIdxClauseBin(Lit l) {
-    assert(l.intern() < m_occListBin.size());
-    return m_occListBin[l.intern()];
+  inline IteratorIdxClause getVecIdxClauseBin(Lit l) {
+    assert(l.intern() < m_occurrence.size());
+    return {m_occurrence[l.intern()].bin,
+            m_occurrence[l.intern()].bin + m_occurrence[l.intern()].nbBin};
   }
 
-  inline std::vector<int> &getVecIdxClauseNotBin(Lit l) {
-    assert(l.intern() < m_occListNotBin.size());
-    return m_occListNotBin[l.intern()];
+  inline IteratorIdxClause getVecIdxClauseNotBin(Lit l) {
+    assert(l.intern() < m_occurrence.size());
+    return {m_occurrence[l.intern()].notBin,
+            m_occurrence[l.intern()].notBin +
+                m_occurrence[l.intern()].nbNotBin};
   }
 
   inline void showOccurenceList(std::ostream &out) {
-    for (unsigned i = 0; i < m_occListBin.size(); i++) {
-      if (!m_occListBin[i].size())
+    for (unsigned i = 0; i < m_occurrence.size(); i++) {
+      if (!m_occurrence[i].nbBin)
         continue;
       out << ((i & 1) ? "-" : "") << (i >> 1) << " --> [ ";
-      for (auto l : m_occListBin[i])
-        out << l << " ";
+      for (unsigned j = 0; j < m_occurrence[i].nbBin; j++)
+        out << m_occurrence[i].bin[j] << " ";
       out << " ]\n";
     }
 
-    for (unsigned i = 0; i < m_occListNotBin.size(); i++) {
-      if (!m_occListNotBin[i].size())
+    for (unsigned i = 0; i < m_occurrence.size(); i++) {
+      if (!m_occurrence[i].nbNotBin)
         continue;
       out << ((i & 1) ? "-" : "") << (i >> 1) << " --> [ ";
-      for (auto l : m_occListNotBin[i])
-        out << l << " ";
+      for (unsigned j = 0; j < m_occurrence[i].nbNotBin; j++)
+        out << m_occurrence[i].notBin[j] << " ";
       out << " ]\n";
     }
   }

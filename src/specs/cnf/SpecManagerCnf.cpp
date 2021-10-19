@@ -21,6 +21,7 @@
 
 #include "SpecManagerCnf.hpp"
 #include "SpecManagerCnfDyn.hpp"
+#include "src/methods/nnf/Node.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -39,18 +40,48 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
   }
 
   // store the not binary clauses.
-  for (unsigned i = 0; i < m_clauses.size(); i++)
+  m_maxSizeClause = 0;
+  unsigned count = 0;
+  std::vector<std::vector<int>> occurrence((m_nbVar + 1) << 1);
+  for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_clauses[i].size() > 2)
       m_clausesNotBin.push_back(i);
+
+    for (auto &l : m_clauses[i])
+      occurrence[l.intern()].push_back(i);
+    count += m_clauses[i].size();
+
+    if (m_clauses[i].size() > m_maxSizeClause)
+      m_maxSizeClause = m_clauses[i].size();
+  }
+
+  // reserve the memory to store the occurrence lists.
+  m_occurrence.resize((m_nbVar + 1) << 1, {NULL, 0, NULL, 0});
+  m_dataOccurrenceMemory = new int[count];
+
+  // construct the occurrence list.
+  int *ptr = m_dataOccurrenceMemory;
+  for (unsigned i = 0; i < occurrence.size(); i++) {
+    std::vector<int> &occList = occurrence[i];
+
+    unsigned posNotBin = occList.size() - 1;
+    for (auto const &idx : occList) {
+      if (m_clauses[idx].size() == 2)
+        ptr[m_occurrence[i].nbBin++] = idx;
+      else
+        ptr[posNotBin--] = idx;
+    }
+
+    m_occurrence[i].bin = ptr;
+    m_occurrence[i].notBin = &ptr[posNotBin + 1];
+    m_occurrence[i].nbNotBin = occList.size() - m_occurrence[i].nbBin;
+    ptr = &ptr[occList.size()];
+  }
 
   // variables:
   m_inCurrentComponent.resize(m_nbVar + 1, false);
   m_currentValue.resize(m_nbVar + 1, l_Undef);
   m_idxComponent.resize(m_nbVar + 1, 0);
-
-  // occurrences:
-  m_occListBin.resize((m_nbVar + 1) << 1, std::vector<int>());
-  m_occListNotBin.resize((m_nbVar + 1) << 1, std::vector<int>());
 
   // clauses:
   unsigned nbClause = m_clauses.size();
@@ -58,25 +89,24 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
   m_markView.resize(nbClause, false);
 
   m_infoClauses.resize(nbClause);
-  m_maxSizeClause = 0;
   if (!m_clauses.size())
     return;
 
   // get the size of the largest clause.
-  m_maxSizeClause = m_clauses[0].size();
   for (unsigned i = 0; i < m_clauses.size(); i++) {
-    std::vector<Lit> &cl = m_clauses[i];
-    std::vector<std::vector<int>> &listOcc =
-        (cl.size() == 2) ? m_occListBin : m_occListNotBin;
-    for (auto &l : cl)
-      listOcc[l.intern()].push_back(i);
-    if (cl.size() > m_maxSizeClause)
-      m_maxSizeClause = cl.size();
-    m_infoClauses[i].watcher = cl[0];
+    m_infoClauses[i].watcher = m_clauses[i][0];
   }
 
   m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
 } // construtor
+
+/**
+ * @brief Destroy the Spec Manager Cnf:: Spec Manager Cnf object
+ *
+ */
+SpecManagerCnf::~SpecManagerCnf() {
+  delete[] m_dataOccurrenceMemory;
+} // destructor
 
 /**
    Look all the formula in order to compute the connected component
@@ -107,10 +137,11 @@ int SpecManagerCnf::computeConnectedComponent(
 
     for (unsigned i = 0; i < 2; i++) {   // both literals.
       for (unsigned j = 0; j < 2; j++) { // both occurrence lists.
-        std::vector<int> &listIndex =
+        IteratorIdxClause listIndex =
             (j) ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
 
-        for (auto &idx : listIndex) {
+        for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+          int idx = *ptr;
           if (!m_markView[idx]) {
             m_markView[idx] = true;
             m_infoCluster[idx + m_nbVar + 1].parent = rootV;

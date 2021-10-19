@@ -17,6 +17,7 @@
  */
 
 #include "ScoringMethodJwts.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 
@@ -44,18 +45,20 @@ double ScoringMethodJwts::computeScore(Var v) {
       om.getVecIdxClauseBin(lp).size() + om.getVecIdxClauseBin(~lp).size();
   res /= 4;
 
-  for (auto &idx : om.getVecIdxClauseNotBin(lp)) {
-    assert(!om.isSatisfiedClause(idx));
-    if (om.getInitSize(idx) > 5)
+  IteratorIdxClause listIdx = om.getVecIdxClauseNotBin(lp);
+  for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++) {
+    assert(!om.isSatisfiedClause(*ptr));
+    if (om.getInitSize(*ptr) > 5)
       continue;
-    res += ((double)1.0) / (1 << om.getCurrentSize(idx));
+    res += ((double)1.0) / (1 << om.getCurrentSize(*ptr));
   }
 
-  for (auto &idx : om.getVecIdxClauseNotBin(~lp)) {
-    assert(!om.isSatisfiedClause(idx));
-    if (om.getInitSize(idx) > 5)
+  listIdx = om.getVecIdxClauseNotBin(~lp);
+  for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++) {
+    assert(!om.isSatisfiedClause(*ptr));
+    if (om.getInitSize(*ptr) > 5)
       continue;
-    res += ((double)1.0) / (1 << om.getCurrentSize(idx));
+    res += ((double)1.0) / (1 << om.getCurrentSize(*ptr));
   }
 
   return res;

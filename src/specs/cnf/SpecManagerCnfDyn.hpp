@@ -35,6 +35,7 @@ public:
   void preUpdate(std::vector<Lit> &lits);
   void postUpdate(std::vector<Lit> &lits);
   void removeIdxFromOccList(std::vector<int> &o, int idx);
+  void removeIdxFromOccList(int *p, unsigned &size, int idx);
 
   // we cannot use this function here
   inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {

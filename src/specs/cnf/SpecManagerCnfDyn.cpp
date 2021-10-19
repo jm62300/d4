@@ -44,21 +44,38 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
   for (auto &l : lits) {
     m_currentValue[l.var()] = l.sign() ? l_False : l_True;
 
-    for (unsigned i = 0; i < 2; i++) {
-      std::vector<std::vector<int>> &occList =
-          (i) ? m_occListBin : m_occListNotBin;
-      for (auto &idxCl : occList[l.intern()]) {
-        m_infoClauses[idxCl].nbSat++;
-        for (auto &ll : m_clauses[idxCl])
-          if (m_currentValue[ll.var()] == l_Undef)
-            removeIdxFromOccList(occList[ll.intern()], idxCl);
-      }
+    // not binary clauses.
+    for (unsigned i = 0; i < m_occurrence[l.intern()].nbNotBin; i++) {
+      int idxCl = m_occurrence[l.intern()].notBin[i];
+      m_infoClauses[idxCl].nbSat++;
+      for (auto &ll : m_clauses[idxCl])
+        if (m_currentValue[ll.var()] == l_Undef)
+          removeIdxFromOccList(m_occurrence[ll.intern()].notBin,
+                               m_occurrence[ll.intern()].nbNotBin, idxCl);
+    }
 
-      for (auto &idxCl : occList[(~l).intern()]) {
-        m_infoClauses[idxCl].nbUnsat++;
-        if (m_infoClauses[idxCl].watcher == ~l)
-          reviewWatcher.push_back(idxCl);
-      }
+    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
+      int idxCl = m_occurrence[(~l).intern()].notBin[i];
+      m_infoClauses[idxCl].nbUnsat++;
+      if (m_infoClauses[idxCl].watcher == ~l)
+        reviewWatcher.push_back(idxCl);
+    }
+
+    // binary clauses.
+    for (unsigned i = 0; i < m_occurrence[l.intern()].nbBin; i++) {
+      int idxCl = m_occurrence[l.intern()].bin[i];
+      m_infoClauses[idxCl].nbSat++;
+      for (auto &ll : m_clauses[idxCl])
+        if (m_currentValue[ll.var()] == l_Undef)
+          removeIdxFromOccList(m_occurrence[ll.intern()].bin,
+                               m_occurrence[ll.intern()].nbBin, idxCl);
+    }
+
+    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++) {
+      int idxCl = m_occurrence[(~l).intern()].bin[i];
+      m_infoClauses[idxCl].nbUnsat++;
+      if (m_infoClauses[idxCl].watcher == ~l)
+        reviewWatcher.push_back(idxCl);
     }
   }
 
@@ -87,21 +104,38 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
   for (int i = lits.size() - 1; i >= 0; i--) {
     Lit l = lits[i];
 
-    for (unsigned i = 0; i < 2; i++) {
-      std::vector<std::vector<int>> &occList =
-          (i) ? m_occListBin : m_occListNotBin;
-      for (auto &idxCl : occList[l.intern()]) {
-        m_infoClauses[idxCl].nbSat--;
-        assert(!m_infoClauses[idxCl].nbSat);
+    // for the no binary clauses.
+    for (unsigned i = 0; i < m_occurrence[l.intern()].nbNotBin; i++) {
+      int idxCl = m_occurrence[l.intern()].notBin[i];
+      m_infoClauses[idxCl].nbSat--;
+      assert(!m_infoClauses[idxCl].nbSat);
 
-        for (auto &ll : m_clauses[idxCl]) {
-          if (m_currentValue[ll.var()] == l_Undef)
-            occList[ll.intern()].push_back(idxCl);
-        }
+      for (auto &ll : m_clauses[idxCl]) {
+        if (m_currentValue[ll.var()] == l_Undef)
+          m_occurrence[ll.intern()]
+              .notBin[m_occurrence[ll.intern()].nbNotBin++] = idxCl;
       }
+    }
 
-      for (auto &idxCl : occList[(~l).intern()])
-        m_infoClauses[idxCl].nbUnsat--;
+    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++)
+      m_infoClauses[m_occurrence[(~l).intern()].notBin[i]].nbUnsat--;
+
+    // for the binary clauses.
+    for (unsigned i = 0; i < m_occurrence[l.intern()].nbBin; i++) {
+      int idxCl = m_occurrence[l.intern()].bin[i];
+      m_infoClauses[idxCl].nbSat--;
+      assert(!m_infoClauses[idxCl].nbSat);
+
+      for (auto &ll : m_clauses[idxCl]) {
+        if (m_currentValue[ll.var()] == l_Undef)
+          m_occurrence[ll.intern()].bin[m_occurrence[ll.intern()].nbBin++] =
+              idxCl;
+      }
+    }
+
+    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++) {
+      int idxCl = m_occurrence[l.intern()].bin[i];
+      m_infoClauses[idxCl].nbUnsat--;
     }
 
     m_currentValue[l.var()] = l_Undef;
@@ -118,6 +152,20 @@ void SpecManagerCnfDyn::removeIdxFromOccList(std::vector<int> &o, int idx) {
     if (o[i] == idx) {
       o[i] = o.back();
       o.pop_back();
+      return;
+    }
+  }
+  assert(0);
+} // removeIdxFromOccList
+
+/**
+   Remove a value from a vector.
+*/
+void SpecManagerCnfDyn::removeIdxFromOccList(int *o, unsigned &size, int idx) {
+  for (unsigned i = 0; i < size; i++) {
+    if (o[i] == idx) {
+      o[i] = o[size - 1];
+      size--;
       return;
     }
   }

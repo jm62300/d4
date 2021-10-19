@@ -20,7 +20,6 @@
 #include <algorithm>
 
 #include "BucketInConstruction.hpp"
-#include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
 #include "DataInfoCnfCl.hpp"
 #include "src/caching/Cache.hpp"
@@ -140,10 +139,11 @@ public:
     unsigned nextBucket = m_vecBucketSortInfo.size();
 
     for (unsigned i = (modeStore == ALL) ? 0 : 1; i < 2; i++) {
-      std::vector<int> &listIndex = (i) ? specManager.getVecIdxClauseNotBin(l)
+      IteratorIdxClause listIndex = (i) ? specManager.getVecIdxClauseNotBin(l)
                                         : specManager.getVecIdxClauseBin(l);
 
-      for (auto &idx : listIndex) {
+      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+        int idx = *ptr;
         if (!isKeptClause(idx))
           continue;
 

@@ -141,10 +141,11 @@ public:
     unsigned nextBucket = m_vecBucketSortInfo.size();
 
     for (unsigned i = 0; i < 2; i++) {
-      std::vector<int> &listIndex = (i) ? specManager.getVecIdxClauseBin(l)
-                                        : specManager.getVecIdxClauseNotBin(l);
+      IteratorIdxClause listIndex = (i) ? specManager.getVecIdxClauseNotBin(l)
+                                        : specManager.getVecIdxClauseBin(l);
 
-      for (auto &idx : listIndex) {
+      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+        int idx = *ptr;
         assert((unsigned)idx < m_markIdx.size());
         if (m_markIdx[idx] == -1) {
           inConstruction.sizeClauses[idx] = 1;
