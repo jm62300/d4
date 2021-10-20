@@ -40,12 +40,12 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p)
  */
 void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
   std::vector<int> reviewWatcher;
-
+#if 0
   std::cout << "preUpdate: ";
   for (auto &l : lits)
     std::cout << l << " ";
   std::cout << "\n";
-
+#endif
   for (auto &l : lits) {
     m_currentValue[l.var()] = l.sign() ? l_False : l_True;
 
@@ -97,7 +97,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
     }
   }
 
-  showOccurenceList(std::cout);
+  // showOccurenceList(std::cout);
 } // preUpdate
 
 /**
@@ -108,11 +108,12 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
    @param[in] lits, the new assigned variables
  */
 void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
+#if 0
   std::cout << "postUpdate: ";
   for (auto &l : lits)
     std::cout << l << " ";
   std::cout << "\n";
-
+#endif
   for (int i = lits.size() - 1; i >= 0; i--) {
     Lit l = lits[i];
 
@@ -153,7 +154,7 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
     m_currentValue[l.var()] = l_Undef;
   }
 
-  showOccurenceList(std::cout);
+  // showOccurenceList(std::cout);
 } // postUpdate
 
 /**

@@ -144,6 +144,7 @@ public:
 
       for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         int idx = *ptr;
+        std::cout << "idx clause = " << idx << " " << isKeptClause(idx) << "\n";
         if (!isKeptClause(idx))
           continue;
 

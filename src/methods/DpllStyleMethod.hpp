@@ -420,6 +420,13 @@ private:
         std::vector<Var> &connected = varConnected[cp];
         bool cacheActivated = cacheIsActivated(connected);
 
+        m_specs->showTrail(std::cout);
+        std::cout << "variable: ";
+        for (auto &v : connected)
+          std::cout << v << " ";
+        std::cout << "\n";
+        m_specs->showCurrentFormula(std::cout);
+
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
 
@@ -428,6 +435,7 @@ private:
         if (cacheActivated && cb.defined) {
           nbPosHitCacheVarSize[connected.size()]++;
           tab[cp] = cb.getValue();
+          std::cout << "cache hit\n";
         } else {
           // recursive call
           std::vector<Var> currPriority;
