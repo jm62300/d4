@@ -45,13 +45,19 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
   for (auto &l : lits)
     std::cout << l << " ";
   std::cout << "\n";
+
+  for (unsigned i = 0; i < m_clauses.size(); i++)
+    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
+
 #endif
+
   for (auto &l : lits) {
     m_currentValue[l.var()] = l.sign() ? l_False : l_True;
 
     // not binary clauses.
     for (unsigned i = 0; i < m_occurrence[l.intern()].nbNotBin; i++) {
       int idxCl = m_occurrence[l.intern()].notBin[i];
+
       m_infoClauses[idxCl].nbSat++;
       for (auto &ll : m_clauses[idxCl])
         if (m_currentValue[ll.var()] == l_Undef)
@@ -61,6 +67,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
 
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
       int idxCl = m_occurrence[(~l).intern()].notBin[i];
+
       m_infoClauses[idxCl].nbUnsat++;
       if (m_infoClauses[idxCl].watcher == ~l)
         reviewWatcher.push_back(idxCl);
@@ -97,6 +104,11 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
     }
   }
 
+#if 0
+  for (unsigned i = 0; i < m_clauses.size(); i++)
+    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
+#endif
+
   // showOccurenceList(std::cout);
 } // preUpdate
 
@@ -113,6 +125,9 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
   for (auto &l : lits)
     std::cout << l << " ";
   std::cout << "\n";
+
+  for (unsigned i = 0; i < m_clauses.size(); i++)
+    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
 #endif
   for (int i = lits.size() - 1; i >= 0; i--) {
     Lit l = lits[i];
@@ -146,13 +161,16 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
       }
     }
 
-    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++) {
-      int idxCl = m_occurrence[l.intern()].bin[i];
-      m_infoClauses[idxCl].nbUnsat--;
-    }
+    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++)
+      m_infoClauses[m_occurrence[(~l).intern()].bin[i]].nbUnsat--;
 
     m_currentValue[l.var()] = l_Undef;
   }
+
+#if 0
+  for (unsigned i = 0; i < m_clauses.size(); i++)
+    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
+#endif
 
   // showOccurenceList(std::cout);
 } // postUpdate
