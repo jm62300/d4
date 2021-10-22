@@ -60,6 +60,7 @@ public:
   inline unsigned nbVar() { return header.nbVar(); }
   inline void print(std::ostream &os) { header.print(data, os); }
 
+  inline DataInfo &getDataInfo() { return header; }
   inline bool sameHeader(CachedBucket<T> &b) { return header == b.header; }
 };
 } // namespace d4

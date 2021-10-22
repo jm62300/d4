@@ -128,8 +128,7 @@ public:
      construction.
   */
   void createDistribWrTLit(const Lit &l, BucketInConstruction &inConstruction) {
-    unsigned currentPos =
-        inConstruction.sizeDistrib;  // the place where we put l.
+    unsigned currentPos = inConstruction.sizeDistrib; // where we put l.
     inConstruction.sizeDistrib += 2; // save memory for l and the size.
 
     // associate a bucket to the literal.

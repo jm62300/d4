@@ -31,6 +31,7 @@ protected:
   // For info1 => |free (43 bytes)|nb var (21 bytes)|
   // For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb octets var (2
   // bytes)| free (2 bytes)|
+public:
   uint64_t info1;
   uint32_t info2;
 
@@ -40,13 +41,15 @@ protected:
     unsigned smudge : 1;
   } stats;
 
-public:
   DataInfo();
   DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
            unsigned nbOctetsVar, unsigned count);
 
   inline bool smudge() { return stats.smudge; }
   inline void smudge(bool b) { stats.smudge = b; }
+
+  inline unsigned *getInfo() { return (unsigned *)this; }
+  inline unsigned getSizeInfo() { return 3; }
 
   inline void reinitCount(int v = 0) { stats.count = v; }
   inline void incCount(int v = 1) { stats.count += v; }

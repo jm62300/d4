@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#define SIZE_HASH 999331
+#define SIZE_HASH 5000011
 
 #include <boost/program_options.hpp>
 #include <vector>
@@ -122,7 +122,7 @@ public:
 
   inline unsigned computeHash(CachedBucket<T> &bucket) {
     return hashMethod.hash(bucket.data, bucket.szData());
-  }
+  } // computeHash
 
   /**
      Research in the set of buckets if the bucket pointed by i already exist.
@@ -204,8 +204,8 @@ public:
     CachedBucket<T> *formulaBucket =
         m_bucketManager->collectBuckect(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
-    pushInHashTable(*formulaBucket, hashValue, c); // add the new bucket
-  }                                                // createBucket
+    pushInHashTable(*formulaBucket, hashValue, c);
+  } // createAndStoreBucket
 
   /**
      Set the information concerning the number of clauses, variables
