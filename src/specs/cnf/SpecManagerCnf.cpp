@@ -137,43 +137,41 @@ int SpecManagerCnf::computeConnectedComponent(
     Var rootV = v;
     Lit l = Lit::makeLit(v, false);
 
-    for (unsigned i = 0; i < 2; i++) {   // both literals.
-      for (unsigned j = 0; j < 2; j++) { // both occurrence lists.
-        IteratorIdxClause listIndex =
-            (j) ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
+    for (unsigned i = 0; i < 2; i++) { // both literals.
+      IteratorIdxClause listIndex = getVecIdxClause(l);
 
-        for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
-          int idx = *ptr;
-          if (!m_markView[idx]) {
-            m_markView[idx] = true;
-            m_infoCluster[idx + m_nbVar + 1].parent = rootV;
-            m_infoCluster[rootV].size++;
-            m_mustUnMark.push_back(idx);
+      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+        int idx = *ptr;
+        if (!m_markView[idx]) {
+          m_markView[idx] = true;
+          m_infoCluster[idx + m_nbVar + 1].parent = rootV;
+          m_infoCluster[rootV].size++;
+          m_mustUnMark.push_back(idx);
+        } else {
+          // search for the root.
+          Var rootW = m_infoCluster[idx + m_nbVar + 1].parent;
+          while (rootW != m_infoCluster[rootW].parent) {
+            m_infoCluster[rootW].parent =
+                m_infoCluster[m_infoCluster[rootW].parent].parent;
+            rootW = m_infoCluster[rootW].parent;
+          }
+
+          // already in the same component.
+          if (rootV == rootW)
+            continue;
+
+          // union.
+          if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
+            m_infoCluster[rootW].size += m_infoCluster[rootV].size;
+            m_infoCluster[rootV].parent = m_infoCluster[rootW].parent;
+            rootV = rootW;
           } else {
-            // search for the root.
-            Var rootW = m_infoCluster[idx + m_nbVar + 1].parent;
-            while (rootW != m_infoCluster[rootW].parent) {
-              m_infoCluster[rootW].parent =
-                  m_infoCluster[m_infoCluster[rootW].parent].parent;
-              rootW = m_infoCluster[rootW].parent;
-            }
-
-            // already in the same component.
-            if (rootV == rootW)
-              continue;
-
-            // union.
-            if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
-              m_infoCluster[rootW].size += m_infoCluster[rootV].size;
-              m_infoCluster[rootV].parent = m_infoCluster[rootW].parent;
-              rootV = rootW;
-            } else {
-              m_infoCluster[rootV].size += m_infoCluster[rootW].size;
-              m_infoCluster[rootW].parent = m_infoCluster[rootV].parent;
-            }
+            m_infoCluster[rootV].size += m_infoCluster[rootW].size;
+            m_infoCluster[rootW].parent = m_infoCluster[rootV].parent;
           }
         }
       }
+
       l = ~l;
     }
   }

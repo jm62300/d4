@@ -23,6 +23,7 @@
 #include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
 #include "DataInfoCnfCl.hpp"
+#include "src/caching/BucketManager.hpp"
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
@@ -33,6 +34,8 @@
 namespace d4 {
 template <class T> class BucketManagerCnfSym;
 template <class T> class BucketManagerCnfCl;
+template <class T> class BucketManagerCnfIndex;
+
 template <class T> class BucketManagerCnfCombi : public BucketManagerCnf<T> {
 private:
   std::vector<BucketSortInfo> m_vecBucketSortInfo;
@@ -84,7 +87,7 @@ public:
      allocation.
   */
   BucketManagerCnfCombi(
-      SpecManagerCnf &occM, Cache<T> *cache, int mdStore,
+      SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
       unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
       unsigned limitNbVarSym, unsigned limitNbVarIndex,
       BucketAllocator *bucketAllocator = new BucketAllocator())

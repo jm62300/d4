@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "BucketManagerCnf.hpp"
+#include "src/caching/BucketManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -46,7 +47,7 @@ public:
      pages.
   */
   BucketManagerCnfIndex(
-      SpecManagerCnf &occM, Cache<T> *cache, int mdStore,
+      SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
       unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
       BucketAllocator *bucketAllocator = new BucketAllocator())
       : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,

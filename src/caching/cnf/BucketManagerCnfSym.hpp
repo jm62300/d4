@@ -22,6 +22,7 @@
 #include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
 #include "DataInfoCnfCl.hpp"
+#include "src/caching/BucketManager.hpp"
 #include "src/caching/Cache.hpp"
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -64,7 +65,7 @@ public:
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfSym(SpecManagerCnf &occM, Cache<T> *cache, int mdStore,
+  BucketManagerCnfSym(SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
                       unsigned long sizeFirstPage,
                       unsigned long sizeAdditionalPage,
                       BucketAllocator *bucketAllocator = new BucketAllocator())

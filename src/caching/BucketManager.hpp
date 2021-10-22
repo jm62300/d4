@@ -36,6 +36,7 @@
 #include "cnf/BucketManagerCnfCombi.hpp"
 #include "cnf/BucketManagerCnfIndex.hpp"
 #include "cnf/BucketManagerCnfSym.hpp"
+#include "src/utils/Enum.hpp"
 
 #define ONE_OCTET 2
 #define TWO_OCTET 3
@@ -79,21 +80,21 @@ public:
         << " size_additional_page(" << sizeAdditionalPage << ")"
         << "\n";
 
-    int modeStore = ALL;
+    ModeStore mode = ALL;
     if (css == "not-binary")
-      modeStore = NB;
+      mode = NB;
     if (css == "not-touched")
-      modeStore = NT;
+      mode = NT;
 
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf &>(s);
     if (ccr == "clause")
-      return new BucketManagerCnfCl<T>(scnf, cache, modeStore, sizeFirstPage,
+      return new BucketManagerCnfCl<T>(scnf, cache, mode, sizeFirstPage,
                                        sizeAdditionalPage);
     if (ccr == "sym")
-      return new BucketManagerCnfSym<T>(scnf, cache, modeStore, sizeFirstPage,
+      return new BucketManagerCnfSym<T>(scnf, cache, mode, sizeFirstPage,
                                         sizeAdditionalPage);
     if (ccr == "index")
-      return new BucketManagerCnfIndex<T>(scnf, cache, modeStore, sizeFirstPage,
+      return new BucketManagerCnfIndex<T>(scnf, cache, mode, sizeFirstPage,
                                           sizeAdditionalPage);
     if (ccr == "combi") {
       unsigned limitNbVarSym =
@@ -106,7 +107,7 @@ public:
           << " limit #var index (" << limitNbVarIndex << ") "
           << "\n";
 
-      return new BucketManagerCnfCombi<T>(scnf, cache, modeStore, sizeFirstPage,
+      return new BucketManagerCnfCombi<T>(scnf, cache, mode, sizeFirstPage,
                                           sizeAdditionalPage, limitNbVarSym,
                                           limitNbVarIndex);
     }

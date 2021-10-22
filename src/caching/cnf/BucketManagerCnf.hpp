@@ -24,14 +24,12 @@
 #include "src/caching/cnf/DataInfoCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/utils/Enum.hpp"
 
 #include "../BucketAllocator.hpp"
 #include "../BucketManager.hpp"
 #include "../CachedBucket.hpp"
-
-#define ALL 0
-#define NB 1
-#define NT 2
 
 #define BIT_VECTOR 1
 #define ONE_OCTET 2
@@ -52,7 +50,7 @@ template <class T> class BucketManagerCnf : public BucketManager<T> {
 protected:
   SpecManagerCnf &specManager;
 
-  int modeStore;
+  ModeStore modeStore;
   unsigned nbClauseCnf;
   unsigned nbVarCnf;
   unsigned m_maxSizeClause;
@@ -75,7 +73,7 @@ public:
      pages.
      @param[in] bucketAllocator, a bucket allocator.
   */
-  BucketManagerCnf(SpecManagerCnf &occM, Cache<T> *cache, int mdStore,
+  BucketManagerCnf(SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
                    unsigned long sizeFirstPage,
                    unsigned long sizeAdditionalPage,
                    BucketAllocator *bucketAllocator)

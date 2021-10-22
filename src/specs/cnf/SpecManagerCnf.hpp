@@ -17,10 +17,13 @@
  */
 #pragma once
 
+#include "../SpecManager.hpp"
+#include "DataOccurrence.hpp"
+#include "src/utils/Enum.hpp"
+
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
-#include "../SpecManager.hpp"
 #include <iterator>
 
 namespace d4 {
@@ -36,18 +39,6 @@ struct InfoCluster {
   Var parent;
   unsigned size;
   int pos;
-};
-
-struct DataOccurrence {
-  int *bin;
-  unsigned nbBin;
-  int *notBin;
-  unsigned nbNotBin;
-};
-
-struct IteratorIdxClause {
-  int *start, *end;
-  unsigned size() { return end - start; }
 };
 
 class SpecManagerCnf : public SpecManager {
@@ -173,15 +164,26 @@ public:
 
   inline IteratorIdxClause getVecIdxClauseBin(Lit l) {
     assert(l.intern() < m_occurrence.size());
-    return {m_occurrence[l.intern()].bin,
-            m_occurrence[l.intern()].bin + m_occurrence[l.intern()].nbBin};
+    return m_occurrence[l.intern()].getBinClauses();
   }
 
   inline IteratorIdxClause getVecIdxClauseNotBin(Lit l) {
     assert(l.intern() < m_occurrence.size());
-    return {m_occurrence[l.intern()].notBin,
-            m_occurrence[l.intern()].notBin +
-                m_occurrence[l.intern()].nbNotBin};
+    return m_occurrence[l.intern()].getNotBinClauses();
+  }
+
+  inline IteratorIdxClause getVecIdxClause(Lit l) {
+    assert(l.intern() < m_occurrence.size());
+    return m_occurrence[l.intern()].getClauses();
+  }
+
+  inline IteratorIdxClause getVecIdxClause(Lit l, ModeStore mode) {
+    assert(l.intern() < m_occurrence.size());
+    if (mode == NT)
+      return m_occurrence[l.intern()].getNotBinClauses();
+    if (mode == ALL)
+      return m_occurrence[l.intern()].getClauses();
+    return m_occurrence[l.intern()].getBinClauses();
   }
 
   inline void showOccurenceList(std::ostream &out) {

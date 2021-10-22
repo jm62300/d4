@@ -22,9 +22,12 @@
 #include "BucketInConstruction.hpp"
 #include "BucketSortInfo.hpp"
 #include "DataInfoCnfCl.hpp"
+
 #include "src/caching/Cache.hpp"
+#include "src/caching/cnf/BucketManagerCnf.hpp"
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/utils/Enum.hpp"
 
 namespace d4 {
 template <class T> class BucketManagerCnf;
@@ -65,7 +68,7 @@ public:
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfCl(SpecManagerCnf &occM, Cache<T> *cache, int mdStore,
+  BucketManagerCnfCl(SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
                      unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage,
                      BucketAllocator *bucketAllocator = new BucketAllocator())
@@ -138,16 +141,12 @@ public:
     m_idInVecBucket.resize(0);
     unsigned nextBucket = m_vecBucketSortInfo.size();
 
-    for (unsigned i = (modeStore == ALL) ? 0 : 1; i < 2; i++) {
+    for (unsigned i = (modeStore == ModeStore::ALL) ? 0 : 1; i < 2; i++) {
       IteratorIdxClause listIndex = (i) ? specManager.getVecIdxClauseNotBin(l)
                                         : specManager.getVecIdxClauseBin(l);
 
       for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         int idx = *ptr;
-#if 0
-        std::cout << "idx clause = " << idx << " " << isKeptClause(idx) << " "
-                  << specManager.getNbUnsat(idx) << "\n";
-#endif
         if (!isKeptClause(idx))
           continue;
 

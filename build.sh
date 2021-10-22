@@ -56,5 +56,5 @@ fi
 cd $curRep
 mkdir -p build
 cd build
-cmake -GNinja $* .. -DBUILD_MODE=$opt
+cmake -GNinja $* .. -DBUILD_MODE=$opt 
 ninja 

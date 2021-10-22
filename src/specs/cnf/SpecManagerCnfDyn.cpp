@@ -39,17 +39,7 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p)
    @param[in] lits, the new assigned variables
  */
 void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
-  std::vector<int> reviewWatcher;
-#if 0
-  std::cout << "preUpdate: ";
-  for (auto &l : lits)
-    std::cout << l << " ";
-  std::cout << "\n";
-
-  for (unsigned i = 0; i < m_clauses.size(); i++)
-    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
-
-#endif
+  m_reviewWatcher.resize(0);
 
   for (auto &l : lits) {
     m_currentValue[l.var()] = l.sign() ? l_False : l_True;
@@ -61,8 +51,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       m_infoClauses[idxCl].nbSat++;
       for (auto &ll : m_clauses[idxCl])
         if (m_currentValue[ll.var()] == l_Undef)
-          removeIdxFromOccList(m_occurrence[ll.intern()].notBin,
-                               m_occurrence[ll.intern()].nbNotBin, idxCl);
+          m_occurrence[ll.intern()].removeNotBin(idxCl);
     }
 
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
@@ -70,7 +59,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
 
       m_infoClauses[idxCl].nbUnsat++;
       if (m_infoClauses[idxCl].watcher == ~l)
-        reviewWatcher.push_back(idxCl);
+        m_reviewWatcher.push_back(idxCl);
     }
 
     // binary clauses.
@@ -79,20 +68,19 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       m_infoClauses[idxCl].nbSat++;
       for (auto &ll : m_clauses[idxCl])
         if (m_currentValue[ll.var()] == l_Undef)
-          removeIdxFromOccList(m_occurrence[ll.intern()].bin,
-                               m_occurrence[ll.intern()].nbBin, idxCl);
+          m_occurrence[ll.intern()].removeBin(idxCl);
     }
 
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++) {
       int idxCl = m_occurrence[(~l).intern()].bin[i];
       m_infoClauses[idxCl].nbUnsat++;
       if (m_infoClauses[idxCl].watcher == ~l)
-        reviewWatcher.push_back(idxCl);
+        m_reviewWatcher.push_back(idxCl);
     }
   }
 
   // we search another non assigned literal if requiered
-  for (auto &idxCl : reviewWatcher) {
+  for (auto &idxCl : m_reviewWatcher) {
     if (m_infoClauses[idxCl].nbSat)
       continue;
 
@@ -103,13 +91,6 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       }
     }
   }
-
-#if 0
-  for (unsigned i = 0; i < m_clauses.size(); i++)
-    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
-#endif
-
-  // showOccurenceList(std::cout);
 } // preUpdate
 
 /**
@@ -120,15 +101,6 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
    @param[in] lits, the new assigned variables
  */
 void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
-#if 0
-  std::cout << "postUpdate: ";
-  for (auto &l : lits)
-    std::cout << l << " ";
-  std::cout << "\n";
-
-  for (unsigned i = 0; i < m_clauses.size(); i++)
-    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
-#endif
   for (int i = lits.size() - 1; i >= 0; i--) {
     Lit l = lits[i];
 
@@ -138,11 +110,9 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
       m_infoClauses[idxCl].nbSat--;
       assert(!m_infoClauses[idxCl].nbSat);
 
-      for (auto &ll : m_clauses[idxCl]) {
+      for (auto &ll : m_clauses[idxCl])
         if (m_currentValue[ll.var()] == l_Undef)
-          m_occurrence[ll.intern()]
-              .notBin[m_occurrence[ll.intern()].nbNotBin++] = idxCl;
-      }
+          m_occurrence[ll.intern()].addNotBin(idxCl);
     }
 
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++)
@@ -154,11 +124,9 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
       m_infoClauses[idxCl].nbSat--;
       assert(!m_infoClauses[idxCl].nbSat);
 
-      for (auto &ll : m_clauses[idxCl]) {
+      for (auto &ll : m_clauses[idxCl])
         if (m_currentValue[ll.var()] == l_Undef)
-          m_occurrence[ll.intern()].bin[m_occurrence[ll.intern()].nbBin++] =
-              idxCl;
-      }
+          m_occurrence[ll.intern()].addBin(idxCl);
     }
 
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++)
@@ -166,43 +134,6 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
 
     m_currentValue[l.var()] = l_Undef;
   }
-
-#if 0
-  for (unsigned i = 0; i < m_clauses.size(); i++)
-    std::cout << i << " => " << m_infoClauses[i].nbUnsat << "\n";
-#endif
-
-  // showOccurenceList(std::cout);
 } // postUpdate
-
-/**
-   Remove a value from a vector.
-*/
-void SpecManagerCnfDyn::removeIdxFromOccList(std::vector<int> &o, int idx) {
-  assert(o.size());
-
-  for (unsigned i = 0; i < o.size(); i++) {
-    if (o[i] == idx) {
-      o[i] = o.back();
-      o.pop_back();
-      return;
-    }
-  }
-  assert(0);
-} // removeIdxFromOccList
-
-/**
-   Remove a value from a vector.
-*/
-void SpecManagerCnfDyn::removeIdxFromOccList(int *o, unsigned &size, int idx) {
-  for (unsigned i = 0; i < size; i++) {
-    if (o[i] == idx) {
-      o[i] = o[size - 1];
-      size--;
-      return;
-    }
-  }
-  assert(0);
-} // removeIdxFromOccList
 
 } // namespace d4

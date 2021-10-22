@@ -16,29 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include <cassert>
-#include <vector>
-
-#include <src/problem/ProblemManager.hpp>
-#include <src/problem/ProblemTypes.hpp>
-
-#include "SpecManagerCnf.hpp"
 
 namespace d4 {
-class SpecManagerCnfDyn : public SpecManagerCnf {
-private:
-  std::vector<int> m_reviewWatcher;
-  void initClauses(std::vector<std::vector<Lit>> &clauses);
-
-public:
-  SpecManagerCnfDyn(ProblemManager &p);
-
-  void preUpdate(std::vector<Lit> &lits);
-  void postUpdate(std::vector<Lit> &lits);
-
-  // we cannot use this function here
-  inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {
-    assert(0);
-  }
-};
-} // namespace d4
+enum ModeStore { ALL, NB, NT };
+}
