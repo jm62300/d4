@@ -141,32 +141,28 @@ public:
     m_idInVecBucket.resize(0);
     unsigned nextBucket = m_vecBucketSortInfo.size();
 
-    for (unsigned i = 0; i < 2; i++) {
-      IteratorIdxClause listIndex = (i) ? specManager.getVecIdxClauseNotBin(l)
-                                        : specManager.getVecIdxClauseBin(l);
-
-      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
-        int idx = *ptr;
-        assert((unsigned)idx < m_markIdx.size());
-        if (m_markIdx[idx] == -1) {
-          inConstruction.sizeClauses[idx] = 1;
-          m_mustUnMark.push_back(idx);
-          m_markIdx[idx] = ownBucket;
-          pushSorted(tab, nbElt++, inConstruction.nbClauseInDistrib + counter);
-          counter++;
-        } else {
-          inConstruction.sizeClauses[idx]++;
-          BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
-          if (!b.counter) {
-            assert(nextBucket ==
-                   m_vecBucketSortInfo.size() + m_idInVecBucket.size());
-            b.redirected = nextBucket++;
-            m_idInVecBucket.push_back(m_markIdx[idx]);
-          }
-          m_markIdx[idx] = b.redirected;
-          pushSorted(tab, nbElt++, b.start + b.counter);
-          b.counter++;
+    IteratorIdxClause listIndex = specManager.getVecIdxClause(l);
+    for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+      int idx = *ptr;
+      assert((unsigned)idx < m_markIdx.size());
+      if (m_markIdx[idx] == -1) {
+        inConstruction.sizeClauses[idx] = 1;
+        m_mustUnMark.push_back(idx);
+        m_markIdx[idx] = ownBucket;
+        pushSorted(tab, nbElt++, inConstruction.nbClauseInDistrib + counter);
+        counter++;
+      } else {
+        inConstruction.sizeClauses[idx]++;
+        BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+        if (!b.counter) {
+          assert(nextBucket ==
+                 m_vecBucketSortInfo.size() + m_idInVecBucket.size());
+          b.redirected = nextBucket++;
+          m_idInVecBucket.push_back(m_markIdx[idx]);
         }
+        m_markIdx[idx] = b.redirected;
+        pushSorted(tab, nbElt++, b.start + b.counter);
+        b.counter++;
       }
     }
 
