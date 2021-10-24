@@ -49,13 +49,8 @@ public:
      \return the product of each element of elts.
   */
   T manageDeterministOr(DataBranch<T> *elts, unsigned size) {
-    T ret = 0;
-    for (unsigned i = 0; i < size; i++) {
-      ret = ret + (elts[i].d * m_problem->computeWeightUnitFree<T>(
-                                   elts[i].unitLits, elts[i].freeVars));
-    }
-
-    return ret;
+    assert(size == 2);
+    return elts[0].d + elts[1].d;
   } // manageDeterministOr
 
   /**
@@ -67,6 +62,11 @@ public:
      \return the product of each element of elts.
    */
   T manageDecomposableAnd(T *elts, unsigned size) {
+    if (size == 1)
+      return elts[0];
+    if (size == 2)
+      return elts[0] * elts[1];
+
     T ret = 1;
     for (unsigned i = 0; i < size; i++)
       ret = ret * elts[i];

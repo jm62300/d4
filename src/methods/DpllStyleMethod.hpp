@@ -412,7 +412,6 @@ private:
     }
 
     // consider each connected component.
-    U ret = m_operation->createTop();
     if (nbComponent) {
       U tab[nbComponent];
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
@@ -433,17 +432,18 @@ private:
           std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
 
-          tab[cp] = computeDecisionNode(connected, currPriority, out);
+          computeDecisionNode(connected, currPriority, out, tab[cp]);
           if (cacheActivated)
             m_cache->addInCache(cb, tab[cp]);
         }
       }
 
-      ret = m_operation->manageDecomposableAnd(tab, nbComponent);
+      m_specs->postUpdate(unitsLit);
+      return m_operation->manageDecomposableAnd(tab, nbComponent);
     } // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
-    return ret;
+    return m_operation->createTop();
   } // compute_
 
   /**
@@ -454,8 +454,9 @@ private:
 
      \return the compiled formula.
   */
-  U computeDecisionNode(std::vector<Var> &connected, std::vector<Var> &priority,
-                        std::ostream &out) {
+  void computeDecisionNode(std::vector<Var> &connected,
+                           std::vector<Var> &priority, std::ostream &out,
+                           U &result) {
     if (!priority.size() && m_hCutSet->isReady(connected)) {
       m_hCutSet->computeCutSet(connected, priority);
       m_callPartitioner++;
@@ -465,8 +466,10 @@ private:
     std::vector<Var> &inVars = (priority.size()) ? priority : connected;
     Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVariable);
 
-    if (v == var_Undef)
-      return m_operation->manageTop(connected);
+    if (v == var_Undef) {
+      result = m_operation->manageTop(connected);
+      return;
+    }
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
@@ -489,7 +492,8 @@ private:
       m_solver->popAssumption();
     }
 
-    return m_operation->manageDeterministOr(b, 2);
+    result = m_operation->manageDeterministOr(b, 2);
+    return;
   } // computeDecisionNode
 
   /**
