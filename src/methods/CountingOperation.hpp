@@ -28,6 +28,9 @@ template <class T> class CountingOperation : public Operation<T, T> {
 private:
   ProblemManager *m_problem;
 
+  const T top = T(1);
+  const T bottom = T(1);
+
 public:
   CountingOperation() = delete;
 
@@ -78,7 +81,14 @@ public:
 
      \return 0 as number of models.
    */
-  T manageBottom() { return T(0); } // manageBottom
+  T manageBottom() { return bottom; } // manageBottom
+
+  /**
+     Return false, that is given by the value 1.
+
+     \return T(0).
+   */
+  inline T createBottom() { return bottom; }
 
   /**
      Manage the case where the problem is a tautology.
@@ -87,21 +97,14 @@ public:
 
      \return 0 as number of models.
    */
-  inline T manageTop(std::vector<Var> &component) { return T(1); }
+  inline T manageTop(std::vector<Var> &component) { return top; }
 
   /**
      Return true, that is given by the value 1.
 
      \return T(1).
    */
-  inline T createTop() { return T(1); }
-
-  /**
-     Return false, that is given by the value 1.
-
-     \return T(0).
-   */
-  inline T createBottom() { return T(0); }
+  inline T createTop() { return top; }
 
   /**
      Manage the case where we only have a branch in our OR gate.

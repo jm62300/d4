@@ -431,8 +431,8 @@ private:
           // recursive call
           std::vector<Var> currPriority;
           computePrioritySubSet(connected, priorityVar, currPriority);
+          tab[cp] = computeDecisionNode(connected, currPriority, out);
 
-          computeDecisionNode(connected, currPriority, out, tab[cp]);
           if (cacheActivated)
             m_cache->addInCache(cb, tab[cp]);
         }
@@ -454,9 +454,8 @@ private:
 
      \return the compiled formula.
   */
-  void computeDecisionNode(std::vector<Var> &connected,
-                           std::vector<Var> &priority, std::ostream &out,
-                           U &result) {
+  U computeDecisionNode(std::vector<Var> &connected, std::vector<Var> &priority,
+                        std::ostream &out) {
     if (!priority.size() && m_hCutSet->isReady(connected)) {
       m_hCutSet->computeCutSet(connected, priority);
       m_callPartitioner++;
@@ -466,10 +465,8 @@ private:
     std::vector<Var> &inVars = (priority.size()) ? priority : connected;
     Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVariable);
 
-    if (v == var_Undef) {
-      result = m_operation->manageTop(connected);
-      return;
-    }
+    if (v == var_Undef)
+      return m_operation->manageTop(connected);
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
@@ -492,8 +489,7 @@ private:
       m_solver->popAssumption();
     }
 
-    result = m_operation->manageDeterministOr(b, 2);
-    return;
+    return m_operation->manageDeterministOr(b, 2);
   } // computeDecisionNode
 
   /**
