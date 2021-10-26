@@ -29,7 +29,7 @@ private:
   ProblemManager *m_problem;
 
   const T top = T(1);
-  const T bottom = T(1);
+  const T bottom = T(0);
 
 public:
   CountingOperation() = delete;
@@ -53,7 +53,10 @@ public:
   */
   T manageDeterministOr(DataBranch<T> *elts, unsigned size) {
     assert(size == 2);
-    return elts[0].d + elts[1].d;
+    return elts[0].d * m_problem->computeWeightUnitFree<T>(elts[0].unitLits,
+                                                           elts[0].freeVars) +
+           elts[1].d * m_problem->computeWeightUnitFree<T>(elts[1].unitLits,
+                                                           elts[1].freeVars);
   } // manageDeterministOr
 
   /**

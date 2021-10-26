@@ -76,6 +76,8 @@ private:
   std::vector<unsigned long> nbPosHitCacheVarSize;
   std::vector<bool> m_isDecisionVariable;
 
+  std::vector<bool> m_currentPrioritySet;
+
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
   SpecManager *m_specs;
@@ -133,6 +135,7 @@ public:
                                 !m_problem->getNbSelectedVar());
     for (auto v : m_problem->getSelectedVar())
       m_isDecisionVariable[v] = true;
+    m_currentPrioritySet.resize(m_problem->getNbVar() + 1, false);
 
     // select the partioner regarding if it projected model counting or not.
     if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
@@ -378,16 +381,13 @@ private:
      @param[in] setOfVar, the current set of considered variables
      @param[in] unitsLit, the set of unit literal detected at this level
      @param[in] freeVariable, the variables which become free
-     @param[in] priority, select in priority these variable to the next decision
-     node
      @param[in] out, the stream we use to print out information.
 
      \return an element of type U that sums up the given CNF sub-formula using a
      DPLL style algorithm with an operation manager.
   */
   U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-             std::vector<Var> &freeVariable, std::vector<Var> &priorityVar,
-             std::ostream &out) {
+             std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
     // if (m_nbDecisionNode > 10000000)
@@ -401,7 +401,6 @@ private:
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
-
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDesionVar(freeVariable, m_isDecisionVariable);
@@ -429,9 +428,7 @@ private:
           tab[cp] = cb.getValue();
         } else {
           // recursive call
-          std::vector<Var> currPriority;
-          computePrioritySubSet(connected, priorityVar, currPriority);
-          tab[cp] = computeDecisionNode(connected, currPriority, out);
+          tab[cp] = computeDecisionNode(connected, out);
 
           if (cacheActivated)
             m_cache->addInCache(cb, tab[cp]);
@@ -447,26 +444,58 @@ private:
   } // compute_
 
   /**
+   * @brief Set the Current Priority.
+   *
+   * @param cutSet is the set of variables that become decision variables.
+   */
+  inline void setCurrentPriority(std::vector<Var> &cutSet) {
+    for (auto &v : cutSet)
+      if (m_isDecisionVariable[v])
+        m_currentPrioritySet[v] = true;
+  } // setCurrentPriority
+
+  /**
+   * @brief Unset the Current Priority.
+   *
+   * @param cutSet is the set of variables that become decision variables.
+   */
+  inline void unsetCurrentPriority(std::vector<Var> &cutSet) {
+    for (auto &v : cutSet)
+      if (m_isDecisionVariable[v])
+        m_currentPrioritySet[v] = false;
+  } // setCurrentPriority
+
+  /**
      This function select a variable and compile a decision node.
 
      @param[in] connected, the set of variable present in the current problem.
-     @param[in] priorityVar, a list of variable we want to branch first.
+     @param[in] out, the stream whare are printed out the logs.
 
      \return the compiled formula.
   */
-  U computeDecisionNode(std::vector<Var> &connected, std::vector<Var> &priority,
-                        std::ostream &out) {
-    if (!priority.size() && m_hCutSet->isReady(connected)) {
-      m_hCutSet->computeCutSet(connected, priority);
+  U computeDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+    std::vector<Var> cutSet;
+    bool hasPriority = false, hasVariable = false;
+    for (auto v : connected) {
+      if (m_specs->varIsAssigned(v) || !m_isDecisionVariable[v])
+        continue;
+      hasVariable = true;
+      if ((hasPriority = m_currentPrioritySet[v]))
+        break;
+    }
+
+    if (hasVariable && !hasPriority && m_hCutSet->isReady(connected)) {
+      m_hCutSet->computeCutSet(connected, cutSet);
       m_callPartitioner++;
+      setCurrentPriority(cutSet);
     }
 
     // search the next variable to branch on
-    std::vector<Var> &inVars = (priority.size()) ? priority : connected;
-    Var v = m_hVar->selectVariable(inVars, *m_specs, m_isDecisionVariable);
-
-    if (v == var_Undef)
+    Var v = m_hVar->selectVariable(connected, *m_specs, m_currentPrioritySet);
+    if (v == var_Undef) {
+      unsetCurrentPriority(cutSet);
       return m_operation->manageTop(connected);
+    }
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
@@ -476,19 +505,20 @@ private:
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, priority, out);
+    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
     m_solver->popAssumption();
 
     if (m_solver->isInAssumption(l))
       b[1].d = m_operation->manageBottom();
     else if (m_solver->isInAssumption(~l))
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priority, out);
+      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, priority, out);
+      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
       m_solver->popAssumption();
     }
 
+    unsetCurrentPriority(cutSet);
     return m_operation->manageDeterministOr(b, 2);
   } // computeDecisionNode
 
@@ -509,9 +539,8 @@ private:
                                  !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
 
-    std::vector<Var> priorityVar;
     DataBranch<U> b;
-    b.d = compute_(setOfVar, b.unitLits, b.freeVars, priorityVar, out);
+    b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
     return m_operation->manageBranch(b);
   } // compute
 
