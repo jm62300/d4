@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#define SIZE_HASH 5000011
+#define SIZE_HASH 125033603
 
 #include <boost/program_options.hpp>
 #include <vector>
@@ -69,7 +69,6 @@ public:
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
-    m_nbPositiveHit = m_nbNegativeHit = 0;
     nbRemoveEntry = sumAffectedHitCache = 0;
     verb = 0;
 
@@ -145,6 +144,25 @@ public:
           m_cacheCleaningManager->wrongSmudge(cbi);
         return &cbi;
       }
+    }
+
+    static int cpt = 0;
+    if (listCollision.size() > 0) {
+      for (unsigned i = 0; i < cb.szData(); i++)
+        std::cout << (int)cb.data[i] << " ";
+      std::cout << "\n";
+
+      for (auto &cbi : listCollision) {
+        for (unsigned i = 0; i < cbi.szData(); i++)
+          std::cout << (int)cbi.data[i] << " ";
+        std::cout << "\n";
+      }
+
+      std::cout << cb.szData() << " ==> " << m_nbPositiveHit + m_nbNegativeHit
+                << "\n";
+      cpt++;
+      if (cpt > 10)
+        exit(0);
     }
 
     m_nbNegativeHit++;
