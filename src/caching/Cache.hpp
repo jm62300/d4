@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#define SIZE_HASH 125033603
+#define SIZE_HASH 29111983
 
 #include <boost/program_options.hpp>
 #include <vector>
@@ -37,7 +37,7 @@ template <class T> class CacheCleaningManager;
 template <class T> class BucketManager;
 
 template <class T> class Cache {
-private:
+protected:
   bool verb;
   std::vector<std::vector<CachedBucket<T>>> hashTable;
 
@@ -77,7 +77,7 @@ public:
         CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, nbVar, out);
     m_bucketManager =
         BucketManager<T>::makeBucketManager(vm, this, *specs, out);
-  } // CacheCNF
+  } // Cache
 
   ~Cache() {
     hashTable.clear();
@@ -145,27 +145,22 @@ public:
         return &cbi;
       }
     }
+    m_nbNegativeHit++;
 
-    static int cpt = 0;
-    if (listCollision.size() > 0) {
-      for (unsigned i = 0; i < cb.szData(); i++)
-        std::cout << (int)cb.data[i] << " ";
-      std::cout << "\n";
-
-      for (auto &cbi : listCollision) {
-        for (unsigned i = 0; i < cbi.szData(); i++)
-          std::cout << (int)cbi.data[i] << " ";
-        std::cout << "\n";
+    if (!(m_nbNegativeHit % 100000)) {
+      std::vector<int> count;
+      for (auto &v : hashTable) {
+        while (count.size() <= v.size())
+          count.push_back(0);
+        count[v.size()]++;
       }
 
-      std::cout << cb.szData() << " ==> " << m_nbPositiveHit + m_nbNegativeHit
-                << "\n";
-      cpt++;
-      if (cpt > 10)
-        exit(0);
+      for (int i = 0; i < count.size(); i++)
+        if (count[i])
+          std::cout << i << "[" << count[i] << "] ";
+      std::cout << "\n";
     }
 
-    m_nbNegativeHit++;
     return NULL;
   } // bucketAlreadyExist
 
