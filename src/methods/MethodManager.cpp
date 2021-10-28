@@ -88,6 +88,8 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
   if (meth == "counting") {
     if (!isFloat)
+      // return new DpllStyleMethod<int, int>(vm, meth, isFloat, runProblem,
+      // out,                                 lastBreath);
       return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
           vm, meth, isFloat, runProblem, out, lastBreath);
     else

@@ -146,7 +146,7 @@ public:
       }
     }
     m_nbNegativeHit++;
-
+#if 0
     if (!(m_nbNegativeHit % 100000)) {
       std::vector<int> count;
       for (auto &v : hashTable) {
@@ -160,7 +160,7 @@ public:
           std::cout << i << "[" << count[i] << "] ";
       std::cout << "\n";
     }
-
+#endif
     return NULL;
   } // bucketAlreadyExist
 
