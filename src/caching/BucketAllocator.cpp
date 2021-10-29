@@ -25,8 +25,6 @@ namespace d4 {
 
    @param[in] sizeFirstPage, the amount of bytes for the first page.
    @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
-   @param[in] removeSmudgeEntry, function pointer used to delete the smudge
-   entry.
 */
 void BucketAllocator::init(unsigned long sizeFirstPage,
                            unsigned long sizeAdditionalPage,
@@ -81,6 +79,7 @@ char *BucketAllocator::getArray(unsigned size) {
     m_freeSpace[rSz].push_back(Released(&m_data[m_posInData], -1));
     m_freeMemory += rSz;
 
+    m_consumedMemory = true;
     printf("c Allocate a new page for the cache %lu\n", m_freeMemory);
 
     m_sizeData = m_sizeAdditionalPage;

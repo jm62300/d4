@@ -36,7 +36,6 @@ public:
   }                                            // nothing to do.
   void reduceCache() {}                        // nothing to do.
   void printCleaningInfo(std::ostream &out) {} // nothing to do.
-  void wrongSmudge(CachedBucket<T> &cb) {}     // nothing to do.
 };
 
 } // namespace d4

@@ -26,20 +26,18 @@ template <class T> class CacheCleaningManager;
 template <class T> class Cache;
 
 struct StatVarSizeCache {
-  unsigned long sizeVarCacheHit;
-  unsigned long nbCacheWithSizeVar;
-  unsigned wrongSmudge;
-  double ratio;
-  double currentRatio;
+  unsigned long negative;
+  unsigned long positive;
+  unsigned long number;
 };
 
 template <class T>
 class CacheCleaningExpectation : public CacheCleaningManager<T> {
 private:
-  bool m_smudge;
   unsigned m_nbReduceCall;
   unsigned long m_nbRemoveEntry;
-  unsigned long m_nbFailedInCache;
+  unsigned long m_nbPositiveHit;
+  unsigned long m_nbNegativeHit;
   unsigned long m_limitNegativeHit;
   int m_nbVar;
 
@@ -58,17 +56,17 @@ public:
      reduction.
      @param[in] ratio, the limit ratio.
    */
-  CacheCleaningExpectation(Cache<T> *cache, bool smudge, int nbVar,
+  CacheCleaningExpectation(Cache<T> *cache, int nbVar,
                            unsigned long limitNegativehit, double ratio) {
     m_limitNegativeHit = limitNegativehit;
     m_nbVar = nbVar;
-    m_nbFailedInCache = 0;
+    m_nbNegativeHit = 0;
+    m_nbPositiveHit = 0;
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
-    m_smudge = smudge;
     this->m_cache = cache;
 
-    m_statVar.resize(nbVar + 1, {0, 0, 0, ratio});
+    m_statVar.resize(nbVar + 1, {0, 0, 0});
   } // constructor
 
   /**
@@ -78,107 +76,52 @@ public:
      @param[out] cb, the cached bucket we want to init.
    */
   void initCountCachedBucket(CachedBucket<T> *cb) {
-    assert(cb);
-    cb->reinitCount(cb->nbVar());
-    m_statVar[cb->nbVar()].nbCacheWithSizeVar++;
+    m_statVar[cb->nbVar()].number++;
   } // initCountCachedBucket
 
   /**
-     For the cachet strategy we reinit the score of the bucket, that means newly
-     possitively hit buckets get the priority.
-
-     @param[in] cb, the cached bucket we want to init.
-
-     @param[in] nbVar, a number of variables (because cb can be NULL the number
-     of variables cannot be related to cb).
+   * @brief Update the information about the bucket.
+   *
+   * @param cb is the cached bucket we want to init.
+   * @param nbVar a number of variables (because cb can be NULL the number of
+   * variables cannot be related to cb).
    */
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
     if (cb) {
-      m_statVar[cb->nbVar()].sizeVarCacheHit++;
-      cb->incCount(1);
-      cb->setTrueDirty();
+      m_statVar[nbVar].positive++;
+      m_nbPositiveHit++;
     } else {
-      m_nbFailedInCache++;
+      m_statVar[nbVar].negative++;
+      m_nbNegativeHit++;
     }
   } // updateCountCachedBucket
 
   /**
-     We remove the entry regarding if they have been used recently and depending
-     their number of variables.
+   * @brief We remove the entry regarding if they have been used recently and
+   * depending their number of variables.
    */
   void reduceCache() {
-    if (m_nbFailedInCache < m_limitNegativeHit)
-      return;
-    m_nbFailedInCache = 0;
     m_nbReduceCall++;
 
     for (int i = 0; i < m_nbVar; i++) {
-      if (m_statVar[i].wrongSmudge)
-        m_statVar[i].ratio *= 0.99;
-      else
-        m_statVar[i].ratio *= 1.01;
-      m_statVar[i].wrongSmudge >>= 1;
-      m_statVar[i].currentRatio = (double)m_statVar[i].sizeVarCacheHit /
-                                  (double)m_statVar[i].nbCacheWithSizeVar;
+      if (m_statVar[i].positive || m_statVar[i].negative) {
+        std::cout << i << " " << m_statVar[i].positive << " "
+                  << m_statVar[i].negative << "\n";
+      }
     }
 
     auto &hashTable = m_cache->getHashTable();
     for (unsigned i = 0; i < hashTable.size(); i++) {
-      std::vector<CachedBucket<T>> &v = hashTable[i];
-
-      for (unsigned j = 0; j < v.size();) {
-        CachedBucket<T> &cb = v[j];
-        if (cb.smudge()) {
-          j++;
-          continue;
-        }
-
-        bool mustBeKept =
-            (cb.count() || cb.dirty() ||
-             m_statVar[cb.nbVar()].currentRatio > m_statVar[cb.nbVar()].ratio);
-
-        if (mustBeKept) {
-          cb.divCount();
-          if (!cb.count() && cb.dirty()) {
-            cb.setFalseDirty();
-            if (m_statVar[cb.nbVar()].sizeVarCacheHit)
-              m_statVar[cb.nbVar()].sizeVarCacheHit--;
-          }
-          cb.setFalseDirty();
-          j++;
-        } else {
-          if (m_statVar[cb.nbVar()].sizeVarCacheHit)
-            m_statVar[cb.nbVar()].sizeVarCacheHit--;
-          assert(m_statVar[cb.nbVar()].nbCacheWithSizeVar);
-          m_statVar[cb.nbVar()].nbCacheWithSizeVar--;
-
-          this->releaseMemory(cb.data, cb.szData(), i, m_smudge);
-          if (m_smudge) {
-            cb.smudge(true);
-            j++;
-          } else {
-            v[j] = v.back();
-            v.pop_back();
-          }
-
-          m_nbRemoveEntry++;
-          m_cache->decrementNbEntry();
-        }
-      }
+      // TODO:
     }
+
+    std::cout << "Please find something really smart to manage the cache "
+                 "because your previous ideas was shit!\n";
+    assert(0);
 
     std::cout << "c Number of entries removed: " << m_nbRemoveEntry << "/"
               << m_cache->getNbEntry() << "\n";
   } // reduceCache
-
-  /**
-     We delete cb, but it is useful right now.
-
-     @param[in] cb, the bucket used.
-   */
-  void wrongSmudge(CachedBucket<T> &cb) {
-    m_statVar[cb.nbVar()].wrongSmudge++;
-  } // wrongSmudge
 
   /**
      Print out statistics about the cleaning process.

@@ -23,18 +23,17 @@ namespace d4 {
 /**
    Constructor.
  */
-DataInfo::DataInfo() {
-  info1 = info2 = 0;
-  stats = {0, 0};
-} // constructor
+DataInfo::DataInfo() { info1 = info2 = 0; } // constructor
 
 /**
-   Constructor.
-
-   @param[in] i1, the information place 1.
-   @param[in] i2, the information place 2.
-   @param[in] count, the counter value for initialization.
-*/
+ * @brief Construct a new Data Info:: Data Info object
+ *
+ * @param szData
+ * @param nbVar
+ * @param nbOctetsData
+ * @param nbOctetsVar
+ * @param count
+ */
 DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
                    unsigned nbOctetsVar, unsigned count) {
   info1 = info2 = 0;
@@ -44,7 +43,6 @@ DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
   info1 = (uint64_t)nbVar;
   info2 = ((uint32_t)(nbOctetsData - 1) << 4) |
           ((uint32_t)(nbOctetsVar - 1) << 2) | ((uint32_t)szData << 6);
-  stats = {count, 0, 0};
   assert(szData == this->szData());
 } // constructor
 

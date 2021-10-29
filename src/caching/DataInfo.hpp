@@ -35,45 +35,12 @@ public:
   uint64_t info1;
   uint32_t info2;
 
-  struct {
-    unsigned count : 29;
-    unsigned dirty : 2;
-    unsigned smudge : 1;
-  } stats;
-
   DataInfo();
   DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
            unsigned nbOctetsVar, unsigned count);
 
-  inline bool smudge() { return stats.smudge; }
-  inline void smudge(bool b) { stats.smudge = b; }
-
   inline unsigned *getInfo() { return (unsigned *)this; }
   inline unsigned getSizeInfo() { return 3; }
-
-  inline void reinitCount(int v = 0) { stats.count = v; }
-  inline void incCount(int v = 1) { stats.count += v; }
-  inline void divCount() { stats.count >>= 1; }
-  inline void decCount(int v = 1) {
-    if (v > stats.count)
-      stats.count = 0;
-    else
-      stats.count -= v;
-  }
-  inline int count() { return stats.count; }
-
-  inline int dirty() { return stats.dirty; }
-  inline void reinitDirty() { stats.dirty = 0; }
-  inline void incDirty() {
-    if (stats.dirty < 3)
-      stats.dirty++;
-  }
-  inline void decDirty() {
-    if (stats.dirty > 0)
-      stats.dirty--;
-  }
-  inline void setTrueDirty() { stats.dirty = 1; }
-  inline void setFalseDirty() { stats.dirty = 0; }
 
   bool operator==(const DataInfo &d) const {
     return info1 == d.info1 && info2 == d.info2;

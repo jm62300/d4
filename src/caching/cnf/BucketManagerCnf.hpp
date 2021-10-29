@@ -24,7 +24,6 @@
 #include "src/caching/cnf/DataInfoCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/utils/Enum.hpp"
 
 #include "../BucketAllocator.hpp"
@@ -88,16 +87,8 @@ public:
 
     m_bucketAllocator->init(
         sizeFirstPage, sizeAdditionalPage, [this](char *data, int posInHash) {
-          std::vector<CachedBucket<T>> &v = m_cache->getHashTable()[posInHash];
-          unsigned posRm = v.size();
-
-          for (unsigned i = 0; i < posRm; i++)
-            if (v[i].data == data)
-              posRm = i;
-
-          assert(posRm < v.size());
-          v[posRm] = v.back();
-          v.pop_back();
+          CachedBucket<T> &v = m_cache->getHashTable()[posInHash];
+          v.getDataInfo().info1 = 0;
         });
   } // BucketManager
 

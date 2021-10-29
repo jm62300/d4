@@ -47,6 +47,7 @@ private:
   unsigned long int m_usedMemory;
   bool isInit = false;
   bool cleanup = true;
+  bool m_consumedMemory = false;
 
   std::function<void(char *, int)> m_removeSmudgeEntry;
 
@@ -56,6 +57,9 @@ public:
       delete[] data;
     m_allocateData.clear();
   }
+
+  inline bool getComsumedMemory() { return m_consumedMemory; }
+  inline void reinitComsumedMemory() { m_consumedMemory = false; }
 
   inline void activeCleanUp() { cleanup = true; }
   inline void deactiveCleanUp() { cleanup = false; }

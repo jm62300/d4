@@ -38,9 +38,7 @@ void DataInfoCnfCl::print(char *data, std::ostream &out) {
   out << "Bucket size = " << szData() << "\n"
       << "nbVar = " << nbVar() << "\n"
       << "nbDistrib = " << nbDistrib() << "\n"
-      << "nbLit = " << nbLit() << "\n"
-      << "count = " << count() << "\n"
-      << "dirty = " << dirty() << "\n";
+      << "nbLit = " << nbLit() << "\n";
 
   // print the variable
   out << "Var: " << nbVar() << "(" << nbOctetsVar() << ")\n";

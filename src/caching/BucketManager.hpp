@@ -140,6 +140,13 @@ public:
     return m_bucketAllocator->usedMemory();
   }
 
+  inline bool getComsumedMemory() {
+    return m_bucketAllocator->getComsumedMemory();
+  }
+  inline void reinitComsumedMemory() {
+    m_bucketAllocator->reinitComsumedMemory();
+  }
+
   inline void releaseMemory(char *m, unsigned size, int posInHash = -1) {
     m_bucketAllocator->releaseMemory(m, size, posInHash);
   } // releaseMemory

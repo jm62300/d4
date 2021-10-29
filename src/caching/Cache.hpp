@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#define SIZE_HASH 29111983
+#define SIZE_HASH 9999889
 
 #include <boost/program_options.hpp>
 #include <vector>
@@ -39,14 +39,14 @@ template <class T> class BucketManager;
 template <class T> class Cache {
 protected:
   bool verb;
-  std::vector<std::vector<CachedBucket<T>>> hashTable;
+  std::vector<CachedBucket<T>> hashTable;
 
   // statistics
-  unsigned long m_nbEntry;
-  unsigned long m_nbPositiveHit;
-  unsigned long m_nbNegativeHit;
-  unsigned minAffectedHitCache;
-  double sumAffectedHitCache;
+  unsigned long m_nbEntry = 0;
+  unsigned long m_nbPositiveHit = 0;
+  unsigned long m_nbNegativeHit = 0;
+  unsigned minAffectedHitCache = 0;
+  double sumAffectedHitCache = 0;
 
   // data info
   unsigned nbInitVar;
@@ -95,9 +95,7 @@ public:
   inline unsigned long getNbEntry() { return m_nbEntry; }
   inline void decrementNbEntry() { m_nbEntry--; }
   inline BucketManager<T> *getBucketManager() { return m_bucketManager; }
-  inline std::vector<std::vector<CachedBucket<T>>> &getHashTable() {
-    return hashTable;
-  }
+  inline std::vector<CachedBucket<T>> &getHashTable() { return hashTable; }
 
   inline void printCacheInformation(std::ostream &out) {
     out << "c \033[1m\033[34mCache Information\033[0m\n";
@@ -109,13 +107,17 @@ public:
 
   inline void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
                               T val) {
-    hashTable[hashValue % SIZE_HASH].push_back(cb);
+    CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
 
-    CachedBucket<T> &cbIn = (hashTable[hashValue % SIZE_HASH].back());
-    cbIn.lockedBucket(val);
+    // remove the previous entry if needed.
+    if (cbi.nbVar())
+      m_bucketManager->releaseMemory(cbi.data, cbi.szData());
+
+    cbi = cb;
+    cbi.lockedBucket(val);
     m_nbCreationBucket++;
     m_sumDataSize += cb.szData();
-    m_cacheCleaningManager->initCountCachedBucket(&cbIn);
+    m_cacheCleaningManager->initCountCachedBucket(&cbi);
     m_nbEntry++;
   } // pushinhashtable
 
@@ -131,36 +133,14 @@ public:
   */
   CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned hashValue) {
     char *refData = cb.data;
-    std::vector<CachedBucket<T>> &listCollision =
-        hashTable[hashValue % SIZE_HASH];
 
-    for (auto &cbi : listCollision) {
-      if (!cb.sameHeader(cbi))
-        continue;
-
-      if (!memcmp(refData, cbi.data, cbi.szData())) {
-        m_nbPositiveHit++;
-        if (cbi.smudge())
-          m_cacheCleaningManager->wrongSmudge(cbi);
-        return &cbi;
-      }
+    CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
+    if (cbi.nbVar() && cb.sameHeader(cbi) &&
+        !memcmp(refData, cbi.data, cbi.szData())) {
+      m_nbPositiveHit++;
+      return &cbi;
     }
     m_nbNegativeHit++;
-#if 0
-    if (!(m_nbNegativeHit % 100000)) {
-      std::vector<int> count;
-      for (auto &v : hashTable) {
-        while (count.size() <= v.size())
-          count.push_back(0);
-        count[v.size()]++;
-      }
-
-      for (int i = 0; i < count.size(); i++)
-        if (count[i])
-          std::cout << i << "[" << count[i] << "] ";
-      std::cout << "\n";
-    }
-#endif
     return NULL;
   } // bucketAlreadyExist
 
@@ -180,7 +160,10 @@ public:
      @param[in] varConnected, the variable
   */
   TmpEntry<T> searchInCache(std::vector<Var> &varConnected) {
-    m_cacheCleaningManager->reduceCache();
+    if (m_bucketManager->getComsumedMemory()) {
+      m_cacheCleaningManager->reduceCache();
+      m_bucketManager->reinitComsumedMemory();
+    }
 
     CachedBucket<T> *formulaBucket =
         m_bucketManager->collectBucket(varConnected);
@@ -240,70 +223,7 @@ public:
 
     // init hash tables
     hashTable.clear();
-    hashTable.resize(SIZE_HASH, std::vector<CachedBucket<T>>());
+    hashTable.resize(SIZE_HASH);
   } // initHashTable
-
-  ///////////////////////////////////////////////////////////////////////////
-  ////////////////  Show some information about the hash table  /////////////
-  ///////////////////////////////////////////////////////////////////////////
-  inline void showTabLit(unsigned long int *v, unsigned sz) {
-    for (unsigned i = 0; i < sz; i++)
-      printf("%ld ", v[i]);
-    printf("\n");
-  } // showTabLit
-
-  /**
-     Function that give us the information about the size of the
-     different conflict lists.
-  */
-  void showDistribution() {
-    long int allC = 0;
-    std::vector<int> countElt;
-    for (int i = 0; i < hashTable.size(); i++) {
-      for (int j = 0; j < hashTable[i].size(); j++) {
-        countElt.push_back(hashTable[i][j].count());
-        allC += hashTable[i][j].count();
-      }
-    }
-    std::sort(countElt.begin(), countElt.end());
-
-    int cpt = 1, val = 0, anotherSum = 0;
-    for (int i = 0; i < countElt.size(); i++) {
-      if (countElt[i] == val)
-        cpt++;
-      else {
-        anotherSum += cpt * val;
-        printf("%d %d/%ld %d\n", cpt, val, allC, anotherSum);
-        val = countElt[i];
-        cpt = 1;
-      }
-    }
-    printf("%d %d/%ld %d\n", cpt, val, allC, anotherSum);
-
-    return;
-
-    int biggestIdx = 0;
-    std::vector<int> tabDistrib;
-    for (int i = 0; i < hashTable.size(); i++) {
-      if (!hashTable[i].size())
-        continue;
-      tabDistrib.push_back(hashTable[i].size());
-      if (hashTable[biggestIdx].size() < hashTable[i].size())
-        biggestIdx = i;
-    }
-
-    std::sort(tabDistrib.begin(), tabDistrib.end());
-    for (int i = 0; i < tabDistrib.size(); i++)
-      printf("%d ", tabDistrib[i]);
-    printf("\n");
-
-    float sum = 0;
-    for (int i = 0; i < tabDistrib.size(); i++)
-      sum += tabDistrib[i];
-
-    printf("average size of conflict list %lf %d\n",
-           ((float)sum) / tabDistrib.size(), tabDistrib.size());
-    printf("the median size is %d\n", tabDistrib[tabDistrib.size() >> 1]);
-  } // showDistribution
 };
 } // namespace d4
