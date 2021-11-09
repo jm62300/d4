@@ -55,6 +55,7 @@ public:
   inline unsigned nbOctetsVar() { return 1 + ((info2 >> 2) & ((1 << 2) - 1)); }
   inline unsigned nbOctetsData() { return 1 + ((info2 >> 4) & ((1 << 2) - 1)); }
   inline unsigned nbVar() { return info1 & ((1 << 21) - 1); }
+  inline void resetNbVar() { info1 = 0; }
 
   virtual void print(char *data, std::ostream &out) { out << data; }
 

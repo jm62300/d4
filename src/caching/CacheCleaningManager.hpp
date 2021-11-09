@@ -80,11 +80,8 @@ public:
      @param[in] smudge, control if we want to directly remove the entry or not.
 
    */
-  void releaseMemory(char *data, int size, int posInHash, bool smudge) {
-    if (!smudge)
-      m_cache->getBucketManager()->releaseMemory(data, size, -1);
-    else
-      m_cache->getBucketManager()->releaseMemory(data, size, posInHash);
+  void releaseMemory(char *data, int size) {
+    m_cache->getBucketManager()->releaseMemory(data, size);
   } // releaseMemory
 };
 

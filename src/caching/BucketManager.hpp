@@ -147,8 +147,8 @@ public:
     m_bucketAllocator->reinitComsumedMemory();
   }
 
-  inline void releaseMemory(char *m, unsigned size, int posInHash = -1) {
-    m_bucketAllocator->releaseMemory(m, size, posInHash);
+  inline void releaseMemory(char *m, unsigned size) {
+    m_bucketAllocator->releaseMemory(m, size);
   } // releaseMemory
 
   inline double remainingMemory() {

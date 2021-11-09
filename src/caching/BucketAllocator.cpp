@@ -59,15 +59,28 @@ char *BucketAllocator::getArray(unsigned size) {
   m_usedMemory += size;
   char *ret = NULL;
 
-  if (size < m_freeSpace.size() && m_freeSpace[size].size()) {
-    Released &r = m_freeSpace[size].back();
-    ret = r.data;
+  if (m_freeSpace.size() > size &&
+      (m_freeSpace[size].size() || (size < (m_freeSpace.size() >> 1)))) {
+    // split a space
+    if (!m_freeSpace[size].size()) {
+      unsigned bigSize = m_freeSpace.size() - 1;
+      assert(m_freeSpace[bigSize].size());
+      ret = m_freeSpace[bigSize].back();
 
-    if (r.posInHash != -1)
-      m_removeSmudgeEntry(r.data, r.posInHash);
+      assert(bigSize > size);
+      m_freeSpace[bigSize].pop_back();
+      m_freeSpace[size].push_back(ret);
+      m_freeSpace[bigSize - size].push_back(&ret[size]);
+    }
 
+    assert(m_freeSpace[size].size());
+    ret = m_freeSpace[size].back();
     m_freeSpace[size].pop_back();
     m_freeMemory -= size;
+
+    while (m_freeSpace.size() && !m_freeSpace.back().size())
+      m_freeSpace.resize(m_freeSpace.size() - 1);
+
     return ret;
   }
 
@@ -75,8 +88,8 @@ char *BucketAllocator::getArray(unsigned size) {
   if (m_posInData + size > m_sizeData) {
     unsigned rSz = m_sizeData - m_posInData;
     if (m_freeSpace.size() <= rSz)
-      m_freeSpace.resize(rSz + 1, std::deque<Released>());
-    m_freeSpace[rSz].push_back(Released(&m_data[m_posInData], -1));
+      m_freeSpace.resize(rSz + 1);
+    m_freeSpace[rSz].push_back(&m_data[m_posInData]);
     m_freeMemory += rSz;
 
     m_consumedMemory = true;
@@ -101,17 +114,16 @@ char *BucketAllocator::getArray(unsigned size) {
 
    @param[in] m, the memory we want to release
    @param[in] size, the size of the memory block
-   @param[in] posInHash, a position in the hash table (in the vector).
 */
-void BucketAllocator::releaseMemory(char *m, unsigned size, int posInHash) {
+void BucketAllocator::releaseMemory(char *m, unsigned size) {
   m_usedMemory -= size;
 
   if ((m_posInData - size) > 0 && &m_data[m_posInData - size] == m)
     m_posInData -= size;
   else {
     if (size >= m_freeSpace.size())
-      m_freeSpace.resize(size + 1, std::deque<Released>());
-    m_freeSpace[size].push_front(Released(m, posInHash));
+      m_freeSpace.resize(size + 1);
+    m_freeSpace[size].push_back(m);
     m_freeMemory += size;
   }
 } // reverseLastBucket

@@ -40,6 +40,11 @@ private:
   unsigned long m_nbNegativeHit;
   unsigned long m_limitNegativeHit;
   int m_nbVar;
+  unsigned int m_limitVarCached;
+  double m_threshold;
+
+  const unsigned int MAX_NBVAR_CACHED = 100000;
+  const unsigned int MIN_NBVAR_NOTCACHED = 100;
 
   std::vector<StatVarSizeCache> m_statVar;
   using CacheCleaningManager<T>::m_cache;
@@ -49,8 +54,6 @@ public:
      Constructor.
 
      @param[in] cache, the cache where is applied the cleaning process.
-     @param[in] smudge, control if we directly remove the entries or if we
-     postpone until we really need the memory.
      @param[in] nbVar, the number of variables in the problem.
      @param[in] limitNegativehit, the number of negative hits before calling the
      reduction.
@@ -60,10 +63,12 @@ public:
                            unsigned long limitNegativehit, double ratio) {
     m_limitNegativeHit = limitNegativehit;
     m_nbVar = nbVar;
+    m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
     m_nbNegativeHit = 0;
     m_nbPositiveHit = 0;
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
+    m_threshold = 0;
     this->m_cache = cache;
 
     m_statVar.resize(nbVar + 1, {0, 0, 0});
@@ -103,21 +108,37 @@ public:
   void reduceCache() {
     m_nbReduceCall++;
 
-    for (int i = 0; i < m_nbVar; i++) {
+    // get the last variable that is below the threshold.
+    for (int i = m_limitVarCached; i > MIN_NBVAR_NOTCACHED; i--) {
+      double ratio =
+          (double)m_statVar[i].positive / (double)m_statVar[i].negative;
+
       if (m_statVar[i].positive || m_statVar[i].negative) {
         std::cout << i << " " << m_statVar[i].positive << " "
-                  << m_statVar[i].negative << "\n";
+                  << m_statVar[i].negative << " --> " << ratio << "\n";
       }
     }
 
-    auto &hashTable = m_cache->getHashTable();
-    for (unsigned i = 0; i < hashTable.size(); i++) {
-      // TODO:
+    for (int i = m_limitVarCached; i > MIN_NBVAR_NOTCACHED; i--) {
+      double ratio =
+          (double)m_statVar[i].positive / (double)m_statVar[i].negative;
+
+      if (ratio > m_threshold) {
+        if (m_statVar[i].positive)
+          m_statVar[i].positive--;
+        break;
+      }
+
+      m_limitVarCached--;
     }
 
-    std::cout << "Please find something really smart to manage the cache "
-                 "because your previous ideas was shit!\n";
-    assert(0);
+    for (auto &cb : m_cache->getHashTable()) {
+      if (cb.nbVar() < m_limitVarCached) {
+        this->releaseMemory(cb.data, cb.szData());
+        cb.resetNbVar();
+        m_nbRemoveEntry++;
+      }
+    }
 
     std::cout << "c Number of entries removed: " << m_nbRemoveEntry << "/"
               << m_cache->getNbEntry() << "\n";

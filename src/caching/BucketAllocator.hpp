@@ -24,12 +24,6 @@
 #include <vector>
 
 namespace d4 {
-struct Released {
-  char *data;
-  int posInHash;
-
-  Released(char *_data, int _posInHash) : data(_data), posInHash(_posInHash) {}
-};
 
 class BucketAllocator {
 private:
@@ -41,7 +35,7 @@ private:
   unsigned long m_posInData;
 
   // freespace[i][j] points to a free memory space of size i
-  std::vector<std::deque<Released>> m_freeSpace;
+  std::vector<std::vector<char *>> m_freeSpace;
   unsigned long int m_allMemory;
   unsigned long int m_freeMemory;
   unsigned long int m_usedMemory;
@@ -79,7 +73,7 @@ public:
 
   char *getArray(unsigned size);
 
-  void releaseMemory(char *m, unsigned size, int posInHash = -1);
+  void releaseMemory(char *m, unsigned size);
 };
 
 } // namespace d4
