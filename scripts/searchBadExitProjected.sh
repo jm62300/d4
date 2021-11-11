@@ -97,8 +97,9 @@ debugRoutine(){
         printf "number of instances tested %d\r" "$cpt"
 
         # echo "$1"
-	nameFileCNF=$(generateSatisfiableCNF $2)
-	# grep "p cnf" $nameFileCNF
+
+	    nameFileCNF=$(generateSatisfiableCNF $2)
+	    # grep "p cnf" $nameFileCNF
         timeout 3 $1 $nameFileCNF # > /dev/null 2>/dev/null
 
         code=$?

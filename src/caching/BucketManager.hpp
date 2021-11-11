@@ -69,9 +69,6 @@ public:
         vm["cache-size-first-page"].as<unsigned long>();
     unsigned long sizeAdditionalPage =
         vm["cache-size-additional-page"].as<unsigned long>();
-    if (crs == "expectation")
-      sizeFirstPage = vm["cache-reduction-strategy-expectation-size-first-page"]
-                          .as<unsigned long>();
 
     out << "c [CONSTRUCTOR] Cache bucket manager:"
         << " storage(" << css << ") "

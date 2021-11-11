@@ -49,14 +49,8 @@ public:
     std::string crs = vm["cache-reduction-strategy"].as<std::string>();
 
     if (crs == "expectation") {
-      unsigned long limit =
-          vm["cache-reduction-strategy-expectation-limit"].as<unsigned long>();
-      double ratio =
-          vm["cache-reduction-strategy-expectation-ratio"].as<double>();
-      out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << " limit("
-          << limit << ") "
-          << " ratio(" << ratio << ")\n";
-      return new CacheCleaningExpectation<T>(cache, nbVar, limit, ratio);
+      out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << "\n";
+      return new CacheCleaningExpectation<T>(cache, nbVar);
     } else {
       out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << "\n";
       return new CacheCleaningNone<T>(cache);

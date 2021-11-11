@@ -34,17 +34,15 @@ struct StatVarSizeCache {
 template <class T>
 class CacheCleaningExpectation : public CacheCleaningManager<T> {
 private:
+  const double INC_THRESHOD = 0.01;
+  const double INIT_THRESHOD = 0;
+
   unsigned m_nbReduceCall;
   unsigned long m_nbRemoveEntry;
   unsigned long m_nbPositiveHit;
   unsigned long m_nbNegativeHit;
-  unsigned long m_limitNegativeHit;
   int m_nbVar;
-  unsigned int m_limitVarCached;
   double m_threshold;
-
-  const unsigned int MAX_NBVAR_CACHED = 100000;
-  const unsigned int MIN_NBVAR_NOTCACHED = 100;
 
   std::vector<StatVarSizeCache> m_statVar;
   using CacheCleaningManager<T>::m_cache;
@@ -55,20 +53,17 @@ public:
 
      @param[in] cache, the cache where is applied the cleaning process.
      @param[in] nbVar, the number of variables in the problem.
-     @param[in] limitNegativehit, the number of negative hits before calling the
+     @param[in] limit, the number of negative hits before calling the
      reduction.
      @param[in] ratio, the limit ratio.
    */
-  CacheCleaningExpectation(Cache<T> *cache, int nbVar,
-                           unsigned long limitNegativehit, double ratio) {
-    m_limitNegativeHit = limitNegativehit;
+  CacheCleaningExpectation(Cache<T> *cache, int nbVar) {
     m_nbVar = nbVar;
-    m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
     m_nbNegativeHit = 0;
     m_nbPositiveHit = 0;
     m_nbReduceCall = 0;
     m_nbRemoveEntry = 0;
-    m_threshold = 0;
+    m_threshold = INIT_THRESHOD;
     this->m_cache = cache;
 
     m_statVar.resize(nbVar + 1, {0, 0, 0});
@@ -107,21 +102,12 @@ public:
    */
   void reduceCache() {
     m_nbReduceCall++;
+    unsigned limit = m_cache->getLimitVarCached();
 
-    // get the last variable that is below the threshold.
-    for (int i = m_limitVarCached; i > MIN_NBVAR_NOTCACHED; i--) {
-      double ratio =
-          (double)m_statVar[i].positive / (double)m_statVar[i].negative;
-
-      if (m_statVar[i].positive || m_statVar[i].negative) {
-        std::cout << i << " " << m_statVar[i].positive << " "
-                  << m_statVar[i].negative << " --> " << ratio << "\n";
-      }
-    }
-
-    for (int i = m_limitVarCached; i > MIN_NBVAR_NOTCACHED; i--) {
-      double ratio =
-          (double)m_statVar[i].positive / (double)m_statVar[i].negative;
+    for (int i = limit; i > m_cache->MIN_NBVAR_NOTCACHED; i--) {
+      double ratio = 0;
+      if (m_statVar[i].negative)
+        ratio = ((double)m_statVar[i].positive / (double)m_statVar[i].negative);
 
       if (ratio > m_threshold) {
         if (m_statVar[i].positive)
@@ -129,19 +115,28 @@ public:
         break;
       }
 
-      m_limitVarCached--;
+      limit--;
     }
 
+    // bonus and set the limit for the cache.
+    limit *= 1.1;
+    m_cache->setLimitVarCache(limit);
+    m_threshold += INC_THRESHOD;
+
+    unsigned nbRemoveEntry = 0;
     for (auto &cb : m_cache->getHashTable()) {
-      if (cb.nbVar() < m_limitVarCached) {
+      if (cb.nbVar() && cb.nbVar() >= limit) {
+        assert((int)cb.szData() > 0);
         this->releaseMemory(cb.data, cb.szData());
         cb.resetNbVar();
-        m_nbRemoveEntry++;
+        nbRemoveEntry++;
       }
     }
 
-    std::cout << "c Number of entries removed: " << m_nbRemoveEntry << "/"
-              << m_cache->getNbEntry() << "\n";
+    m_nbRemoveEntry += nbRemoveEntry;
+    std::cout << "c #rm=" << nbRemoveEntry << " #allRm=" << m_nbRemoveEntry
+              << " #entries=" << m_cache->getNbEntry() << " limit=" << limit
+              << "\n";
   } // reduceCache
 
   /**

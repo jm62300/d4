@@ -320,6 +320,8 @@ public:
         continue;
       *p = static_cast<U>(i);
       p++;
+
+      assert(inConstruction.distribDiffSize[i] < (1 << (sizeof(U) - 1)));
       *p = static_cast<U>(inConstruction.distribDiffSize[i]);
       p++;
     }

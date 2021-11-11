@@ -53,6 +53,7 @@ protected:
   unsigned nbRemoveEntry;
   unsigned long int m_nbCreationBucket;
   unsigned long int m_sumDataSize;
+  unsigned int m_limitVarCached;
 
   std::ostream m_out;
   HashString hashMethod;
@@ -60,6 +61,9 @@ protected:
   CacheCleaningManager<T> *m_cacheCleaningManager;
 
 public:
+  unsigned int MAX_NBVAR_CACHED = 100000;
+  unsigned int MIN_NBVAR_NOTCACHED = 100;
+
   Cache(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
         std::ostream &out)
       : m_out(nullptr) {
@@ -71,6 +75,7 @@ public:
     m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
     nbRemoveEntry = sumAffectedHitCache = 0;
     verb = 0;
+    m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
 
     initHashTable(nbVar);
     m_cacheCleaningManager =
@@ -85,6 +90,9 @@ public:
     delete m_bucketManager;
   }
 
+  inline unsigned getLimitVarCached() { return m_limitVarCached; }
+  inline void setLimitVarCache(unsigned val) { m_limitVarCached = val; }
+  inline bool isActivated(unsigned nbVar) { return nbVar <= m_limitVarCached; }
   inline unsigned long int nbCreationBucket() { return m_nbCreationBucket; }
   inline unsigned long int sumDataSize() { return m_sumDataSize; }
   inline unsigned long int usedMemory() {

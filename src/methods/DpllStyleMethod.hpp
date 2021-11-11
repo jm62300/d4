@@ -39,7 +39,7 @@
 #include "DataBranch.hpp"
 #include "MethodManager.hpp"
 
-#define NB_SEP_MC 118
+#define NB_SEP_MC 104
 #define MASK_SHOWRUN_MC ((2 << 13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 1048575
@@ -64,9 +64,6 @@ private:
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
-  unsigned m_limitUpdate;
-  unsigned m_limitUpdateCounter;
-  bool m_staticLimit;
   bool m_isProjectedMode;
 
   std::vector<unsigned> m_stampVar;
@@ -89,10 +86,6 @@ private:
 
   std::ostream m_out;
   bool m_panicMode;
-
-  unsigned limitNbVarCache;
-  unsigned limitNbVarCacheDynamic;
-  double ratioDynamicLimit;
 
   Operation<T, U> *m_operation;
 
@@ -156,28 +149,6 @@ public:
     m_optCached = vm["cache-activated"].as<bool>();
     m_callPartitioner = 0;
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
-
-    m_limitUpdate = vm["cache-limit-update-frequency"].as<unsigned>();
-    m_staticLimit = vm["cache-limit-static"].as<bool>();
-    m_limitUpdateCounter = 0;
-
-    if (m_staticLimit) {
-      ratioDynamicLimit = 1;
-      limitNbVarCache = m_problem->getNbVar();
-    } else {
-      ratioDynamicLimit = vm["cache-limit-ratio-number-variable"].as<double>();
-      limitNbVarCache = vm["cache-limit-number-variable"].as<unsigned>();
-    }
-    limitNbVarCacheDynamic = limitNbVarCache;
-
-    m_out << "c [CONSTRUCTOR] Limit number of variables for caching: "
-          << "static(" << m_staticLimit << ") "
-          << "limit(" << limitNbVarCache << ") "
-          << "ratio(" << ratioDynamicLimit << ") "
-          << "limitDyn(" << limitNbVarCacheDynamic << ") "
-          << "freq update(" << m_limitUpdate << ") "
-          << "\n";
-
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
     nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
@@ -249,14 +220,13 @@ private:
      @param[in] out, the stream we use to print out information.
   */
   inline void showInter(std::ostream &out) {
-    out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall << std::fixed
-        << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << m_cache->getNbPositiveHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbNegativeHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
+    out << "c " << std::fixed << std::setprecision(2) << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbPositiveHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << m_cache->getNbNegativeHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_callPartitioner << "|\n";
@@ -282,7 +252,6 @@ private:
   inline void showHeader(std::ostream &out) {
     separator(out);
     out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#compile"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
@@ -349,31 +318,8 @@ private:
   bool cacheIsActivated(std::vector<Var> &connected) {
     if (!m_optCached)
       return false;
-    if (connected.size() < limitNbVarCache)
-      return true;
-    if (connected.size() < limitNbVarCacheDynamic)
-      return true;
-    return false;
+    return m_cache->isActivated(connected.size());
   } // cacheIsActivated
-
-  /**
-     Update the dynamic limit.
-   */
-  void updateDynamicLimit() {
-    limitNbVarCacheDynamic = 0;
-    if (m_staticLimit)
-      return;
-
-    for (unsigned i = 0; i < nbPosHitCacheVarSize.size(); i++) {
-      if (nbPosHitCacheVarSize[i])
-        limitNbVarCacheDynamic = i;
-      nbPosHitCacheVarSize[i] >>= 1;
-    }
-
-    limitNbVarCacheDynamic *= ratioDynamicLimit;
-    m_out << "c Update dynamic limit: " << limitNbVarCacheDynamic << "/"
-          << limitNbVarCache << "\n";
-  } // updateDynamicLimit
 
   /**
      Call the CNF formula into a FBDD.
@@ -404,11 +350,6 @@ private:
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDesionVar(freeVariable, m_isDecisionVariable);
-
-    if (++m_limitUpdateCounter > m_limitUpdate) {
-      updateDynamicLimit();
-      m_limitUpdateCounter = 0;
-    }
 
     // consider each connected component.
     if (nbComponent) {
