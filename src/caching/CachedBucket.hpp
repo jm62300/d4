@@ -40,7 +40,7 @@ public:
   inline void szData(int s) { header.szData(s); }
   inline unsigned szData() { return header.szData(); }
   inline unsigned nbVar() { return header.nbVar(); }
-  inline void resetNbVar() { header.resetNbVar(); }
+  inline void reset() { header.reset(); }
   inline void print(std::ostream &os) { header.print(data, os); }
 
   inline DataInfo &getDataInfo() { return header; }

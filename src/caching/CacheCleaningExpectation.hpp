@@ -128,7 +128,7 @@ public:
       if (cb.nbVar() && cb.nbVar() >= limit) {
         assert((int)cb.szData() > 0);
         this->releaseMemory(cb.data, cb.szData());
-        cb.resetNbVar();
+        cb.reset();
         nbRemoveEntry++;
       }
     }

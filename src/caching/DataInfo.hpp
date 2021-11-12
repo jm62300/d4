@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <bits/stdint-uintn.h>
 #include <cassert>
 #include <iostream>
 
@@ -23,21 +24,23 @@
 #include <math.h>
 #include <stdio.h>
 
+#define MASK_SIZE (~((((uint64_t)1 << 21) - 1) << 21))
+
 namespace d4 {
 class DataInfo {
 protected:
   // we reserve 96 bytes to store information in the cached bucket
   //   We always at least have the following distribution:
-  // For info1 => |free (43 bytes)|nb var (21 bytes)|
-  // For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb octets var (2
-  // bytes)| free (2 bytes)|
+  // info1 => |free(17)| nbBitVar(5)|nb var(21)|szData(21)|
+  // For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb
+  // octets var (2 bytes)| free (2 bytes)|
 public:
   uint64_t info1;
   uint32_t info2;
 
   DataInfo();
   DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
-           unsigned nbOctetsVar, unsigned count);
+           unsigned nbBitVar, unsigned count);
 
   inline unsigned *getInfo() { return (unsigned *)this; }
   inline unsigned getSizeInfo() { return 3; }
@@ -48,14 +51,22 @@ public:
 
   virtual ~DataInfo() {}
 
-  inline unsigned szData() { return info2 >> 6; }
-  inline void szData(unsigned sz) {
-    info2 = (info2 & ((1 << 6) - 1)) | ((uint32_t)sz << 6);
+  inline unsigned szData() {
+    return ((uint64_t)info1 >> 21) & (((uint64_t)1 << 21) - 1);
   }
+  inline unsigned nbVar() {
+    return (uint64_t)info1 & (((uint64_t)1 << 21) - 1);
+  }
+
+  inline void szData(unsigned sz) {
+    info1 &= ((uint64_t)sz << 21) | MASK_SIZE;
+    assert(szData() == sz);
+  }
+
   inline unsigned nbOctetsVar() { return 1 + ((info2 >> 2) & ((1 << 2) - 1)); }
   inline unsigned nbOctetsData() { return 1 + ((info2 >> 4) & ((1 << 2) - 1)); }
-  inline unsigned nbVar() { return info1 & ((1 << 21) - 1); }
-  inline void resetNbVar() { info1 = 0; }
+
+  inline void reset() { info1 = 0; }
 
   virtual void print(char *data, std::ostream &out) { out << data; }
 

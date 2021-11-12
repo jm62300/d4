@@ -28,9 +28,6 @@ DataInfoCnfCl::DataInfoCnfCl(unsigned szData, unsigned nbVar, unsigned nbLit,
                              unsigned nbOctetsLit, unsigned nbOctetsDistrib,
                              unsigned count)
     : DataInfo(szData, nbVar, nbOctetsLit, nbOctetsVar, count) {
-  info1 =
-      info1 | (((uint64_t)nbLit) << 21) | (((uint64_t)nbDiffSizeDistrib) << 42);
-
   info2 = info2 | ((uint32_t)(nbOctetsDistrib - 1));
 } // constructor
 

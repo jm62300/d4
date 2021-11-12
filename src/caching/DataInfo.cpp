@@ -35,14 +35,17 @@ DataInfo::DataInfo() { info1 = info2 = 0; } // constructor
  * @param count
  */
 DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
-                   unsigned nbOctetsVar, unsigned count) {
+                   unsigned nbBitVar, unsigned count) {
   info1 = info2 = 0;
   assert((nbOctetsData - 1) < 4);
-  assert((nbOctetsVar - 1) < 4);
 
-  info1 = (uint64_t)nbVar;
-  info2 = ((uint32_t)(nbOctetsData - 1) << 4) |
-          ((uint32_t)(nbOctetsVar - 1) << 2) | ((uint32_t)szData << 6);
+  assert(nbBitVar < (1 << 5));
+  assert(nbVar < (1 << 21));
+  assert(szData < (1 << 21));
+
+  info1 =
+      (uint64_t)nbVar | ((uint64_t)szData << 21) | ((uint64_t)nbBitVar << 42);
+  info2 = ((uint32_t)(nbOctetsData - 1) << 4);
   assert(szData == this->szData());
 } // constructor
 
