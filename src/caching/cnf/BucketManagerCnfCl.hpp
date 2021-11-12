@@ -34,24 +34,62 @@
 namespace d4 {
 template <class T> class BucketManagerCnf;
 
-struct AllocSizeInfo {
-  u_int8_t config = 0;
-
-  unsigned nbBitEltVar = 0;
-  unsigned nbByteStoreVar = 0;
-
-  unsigned nbBitEltDistribSizeCl = 0;
-  unsigned nbBitEltDistribNbCl = 0;
-  unsigned nbByteStoreDistrib = 0;
-
-  unsigned nbBitEltClauses = 0;
-  unsigned nbByteStoreClauses = 0;
-
-  unsigned totalByte = 0;
-};
-
 template <class T> class BucketManagerCnfCl : public BucketManagerCnf<T> {
 private:
+  /**
+   * @brief Compute the number of bit needed to encode an unsigned given in
+   * parameter.
+   *
+   * @param v is the value we search for its number of bits.
+   * @return the number of bit needed to encode val (~log2(val)).
+   */
+  inline static unsigned nbBitUnsigned(unsigned v) {
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    int i;
+
+    unsigned int r = 0;      // result of log2(v) will go here
+    for (i = 4; i >= 0; i--) // unroll for speed...
+    {
+      if (v & b[i]) {
+        v >>= S[i];
+        r |= S[i];
+      }
+    }
+
+    return r + 1;
+  } // nbBitUnsigned
+
+  struct AllocSizeInfo {
+    u_int8_t config = 0;
+
+    unsigned nbBitEltVar = 0;
+    unsigned nbByteStoreVar = 0;
+
+    unsigned nbBitEltDistribSizeCl = 0;
+    unsigned nbBitEltDistribNbCl = 0;
+    unsigned nbByteStoreDistrib = 0;
+    unsigned sizeDistrib = 0;
+
+    unsigned nbBitEltClauses = 0;
+    unsigned nbByteStoreClauses = 0;
+
+    unsigned totalByte = 0;
+
+    inline void initDistrib(unsigned maxLenght, unsigned maxSize,
+                            unsigned count) {
+      nbBitEltDistribSizeCl = nbBitUnsigned(maxSize);
+      nbBitEltDistribNbCl = nbBitUnsigned(maxLenght);
+      nbByteStoreDistrib =
+          1 +
+          (((count * (nbBitEltDistribSizeCl + nbBitEltDistribNbCl)) - 1) >> 3);
+
+      std::cout << maxLenght << " " << maxSize << " " << nbBitEltDistribNbCl
+                << " " << nbBitEltDistribSizeCl << " " << count << " "
+                << nbByteStoreDistrib << "\n";
+    }
+  };
+
   std::vector<BucketSortInfo> m_vecBucketSortInfo;
   int m_unusedBucket;
   std::vector<unsigned long int> m_mapVar;
@@ -298,34 +336,11 @@ public:
   } // showListBucketSort
 
   /**
-   * @brief Compute the number of bit needed to encode an unsigned given in
-   * parameter.
-   *
-   * @param v is the value we search for its number of bits.
-   * @return the number of bit needed to encode val (~log2(val)).
-   */
-  inline unsigned nbBitUnsigned(unsigned v) {
-    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-    const unsigned int S[] = {1, 2, 4, 8, 16};
-    int i;
-
-    unsigned int r = 0;      // result of log2(v) will go here
-    for (i = 4; i >= 0; i--) // unroll for speed...
-    {
-      if (v & b[i]) {
-        v >>= S[i];
-        r |= S[i];
-      }
-    }
-
-    return r + 1;
-  } // nbBitUnsigned
-
-  /**
    * @brief Search for the number of bytes needed to store the different element
    * of the bucket.
    *
    * @param component is the set of variables.
+   * @param inConstruction is the bucket that has been constructed.
    * @param nBda
    * @param nbD
    * @param nbEltData
@@ -333,11 +348,13 @@ public:
    * @return an AllocSizeInfo structure with the requiered information.
    */
   inline AllocSizeInfo computeNeededBytes(std::vector<Var> &component,
+                                          BucketInConstruction &inConstruction,
                                           unsigned nBda, unsigned nbD,
                                           unsigned nbEltData,
                                           unsigned nbEltDist) {
     AllocSizeInfo ret;
 
+    // info about the variables.
     ret.config = 0;
     ret.nbBitEltVar = nbBitUnsigned(component.back());
     ret.nbByteStoreVar = 1 + (((ret.nbBitEltVar * component.size()) - 1) >> 3);
@@ -348,17 +365,62 @@ public:
       ret.nbBitEltVar = 0;
     }
 
+    // info about the distribution.
+    unsigned maxSizeCl = 0, maxLenghtDistrib = 0, cptDistrib = 0;
+    for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
+      if (!inConstruction.distribDiffSize[i])
+        continue;
+
+      maxSizeCl = i;
+      cptDistrib++;
+      if (inConstruction.distribDiffSize[i] > maxLenghtDistrib)
+        maxLenghtDistrib = inConstruction.distribDiffSize[i];
+    }
+    if (cptDistrib)
+      ret.initDistrib(maxLenghtDistrib, maxSizeCl, cptDistrib);
+
+    std::cout << ret.nbByteStoreDistrib << "\n";
+
     ret.totalByte =
-        ret.nbByteStoreVar + (nBda * nbEltData) + (nbD * (nbEltDist << 1));
+        ret.nbByteStoreVar + (nBda * nbEltData) + ret.nbByteStoreDistrib;
     return ret;
   } // computeNeededBytes
 
   /**
-
-
-     @param[in] data, the place where we print the data.
-     @param[in] component, the set of variables.
+   * @brief
+   *
+   * @param p
+   * @param val
+   * @param nbBit
+   * @param remainingBit
+   * @return char*
    */
+  inline char *addElementInData(char *p, unsigned val, unsigned nbBit,
+                                unsigned &remainingBit) {
+    if (!remainingBit) {
+      remainingBit = 8;
+      p++;
+    }
+
+    while (nbBit >= remainingBit) {
+      *p <<= remainingBit;
+      *p |= val & ((1 << remainingBit) - 1);
+      val >>= remainingBit;
+      nbBit -= remainingBit;
+      remainingBit = 8;
+      p++;
+    }
+
+    // the remaining bits.
+    if (nbBit) {
+      *p <<= nbBit;
+      *p |= val;
+      remainingBit -= nbBit;
+      assert(remainingBit);
+    }
+
+    return p;
+  } // addElementInData
 
   /**
    * @brief Store the variables respecting the information of size concerning
@@ -370,7 +432,7 @@ public:
    * @param component is the set of variables we want to store.
    * @return the remaining data.
    */
-  void *storeVariables(AllocSizeInfo &info, char *data,
+  char *storeVariables(AllocSizeInfo &info, char *data,
                        std::vector<Var> &component) {
     char *p = data;
 
@@ -421,21 +483,57 @@ public:
    @param[out] inConstruction, place where we store the bucket in
    construction.
  */
-  template <typename U>
-  void *storeDistribInfo(void *data, BucketInConstruction &inConstruction) {
-    U *p = static_cast<U *>(data);
+  char *storeDistribInfo(AllocSizeInfo &info, char *data,
+                         BucketInConstruction &inConstruction) {
+    char *p = data;
+    unsigned remaining = 8, current = 0;
+    for (unsigned i = 0; i < info.nbByteStoreDistrib; i++)
+      p[i] = 0;
+
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
       if (!inConstruction.distribDiffSize[i])
         continue;
-      *p = static_cast<U>(i);
-      p++;
 
-      // assert(inConstruction.distribDiffSize[i] < (1 << (sizeof(U) - 1)));
-      *p = static_cast<U>(inConstruction.distribDiffSize[i]);
-      p++;
+      // we store the size of the current block of clauses.
+      unsigned val = i;
+      current = info.nbBitEltDistribSizeCl;
+      while (current >= remaining) {
+        *p <<= remaining;
+        *p |= val & ((1 << remaining) - 1);
+        val >>= remaining;
+        remaining = 8;
+        p++;
+      }
+
+      if (current) {
+        *p <<= current;
+        *p |= val;
+        val >>= current;
+        remaining -= current;
+        assert(remaining);
+      }
+
+      // the number of clauses of size i.
+      val = inConstruction.distribDiffSize[i];
+      current = info.nbBitEltDistribNbCl;
+      while (current >= remaining) {
+        *p <<= remaining;
+        *p |= val & ((1 << remaining) - 1);
+        val >>= remaining;
+        remaining = 8;
+        p++;
+      }
+
+      if (current) {
+        *p <<= current;
+        *p |= val;
+        val >>= current;
+        remaining -= current;
+        assert(remaining);
+      }
     }
 
-    return p;
+    return &data[info.nbByteStoreDistrib];
   } // storeDistribInfo
 
   /**
@@ -457,7 +555,8 @@ public:
   template <typename U>
   void *storeClauses(void *data, std::vector<Var> &component,
                      BucketInConstruction &inConstruction) {
-    // map the variable to another index regarding their position in component.
+    // map the variable to another index regarding their position in
+    // component.
     for (unsigned i = 0; i < component.size(); i++)
       m_mapVar[component[i]] = i;
 
@@ -558,49 +657,35 @@ public:
     unsigned nbOLit = this->nbOctetToEncodeInt(nbVar << 1);
 
     // ask for memory
-    AllocSizeInfo sizeInfo = computeNeededBytes(component, nbOLit, nbODistrib,
-                                                nbLit, nbDiffClauseSize);
+    AllocSizeInfo sizeInfo =
+        computeNeededBytes(component, m_inConstruction, nbOLit, nbODistrib,
+                           nbLit, nbDiffClauseSize);
     char *data = m_bucketAllocator->getArray(sizeInfo.totalByte);
-    void *p = data;
+    void *p = static_cast<void *>(
+        &data[sizeInfo.nbByteStoreVar + sizeInfo.nbByteStoreDistrib]);
 
-    p = storeVariables(sizeInfo, data, component);
+    storeVariables(sizeInfo, data, component);
 
     if (!m_inConstruction.nbClauseInDistrib)
       goto fillTheBucket;
 
-    // store the clause distribution of the size.
-    switch (nbODistrib) {
-    case 1:
-      p = storeDistribInfo<uint8_t>(p, m_inConstruction);
-      break;
-    case 2:
-      p = storeDistribInfo<uint16_t>(p, m_inConstruction);
-      break;
-    case 4:
-      p = storeDistribInfo<uint32_t>(p, m_inConstruction);
-      break;
-    default:
-      throw(BucketException("Bad number of bytes", __FILE__, __LINE__));
-    }
-    assert(
-        static_cast<char *>(p) ==
-        &data[sizeInfo.nbByteStoreVar + nbODistrib * (nbDiffClauseSize << 1)]);
+    storeDistribInfo(sizeInfo, &data[sizeInfo.nbByteStoreVar],
+                     m_inConstruction);
 
     // store the clauses.
     switch (nbOLit) {
     case 1:
-      p = storeClauses<uint8_t>(p, component, m_inConstruction);
+      storeClauses<uint8_t>(p, component, m_inConstruction);
       break;
     case 2:
-      p = storeClauses<uint16_t>(p, component, m_inConstruction);
+      storeClauses<uint16_t>(p, component, m_inConstruction);
       break;
     case 4:
-      p = storeClauses<uint32_t>(p, component, m_inConstruction);
+      storeClauses<uint32_t>(p, component, m_inConstruction);
       break;
     default:
       throw(BucketException("Bad number of bytes", __FILE__, __LINE__));
     }
-    assert(static_cast<char *>(p) == &data[sizeInfo.totalByte]);
 
   fillTheBucket:
     // put the information into the bucket
