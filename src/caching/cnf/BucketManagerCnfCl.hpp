@@ -19,11 +19,11 @@
 
 #include <algorithm>
 #include <bits/stdint-uintn.h>
+#include <cstring>
 #include <sys/types.h>
 
 #include "BucketInConstruction.hpp"
 #include "BucketSortInfo.hpp"
-#include "DataInfoCnfCl.hpp"
 
 #include "src/caching/Cache.hpp"
 #include "src/caching/cnf/BucketManagerCnf.hpp"
@@ -61,33 +61,11 @@ private:
   } // nbBitUnsigned
 
   struct AllocSizeInfo {
-    u_int8_t config = 0;
-
     unsigned nbBitEltVar = 0;
     unsigned nbByteStoreVar = 0;
-
-    unsigned nbBitEltDistribSizeCl = 0;
-    unsigned nbBitEltDistribNbCl = 0;
-    unsigned nbByteStoreDistrib = 0;
-    unsigned sizeDistrib = 0;
-
-    unsigned nbBitEltClauses = 0;
-    unsigned nbByteStoreClauses = 0;
-
+    unsigned nbByteStoreFormula = 0;
+    unsigned nbBitStoreLit = 0;
     unsigned totalByte = 0;
-
-    inline void initDistrib(unsigned maxLenght, unsigned maxSize,
-                            unsigned count) {
-      nbBitEltDistribSizeCl = nbBitUnsigned(maxSize);
-      nbBitEltDistribNbCl = nbBitUnsigned(maxLenght);
-      nbByteStoreDistrib =
-          1 +
-          (((count * (nbBitEltDistribSizeCl + nbBitEltDistribNbCl)) - 1) >> 3);
-
-      std::cout << maxLenght << " " << maxSize << " " << nbBitEltDistribNbCl
-                << " " << nbBitEltDistribSizeCl << " " << count << " "
-                << nbByteStoreDistrib << "\n";
-    }
   };
 
   std::vector<BucketSortInfo> m_vecBucketSortInfo;
@@ -99,7 +77,8 @@ private:
   std::vector<unsigned> m_idInVecBucket;
 
   BucketInConstruction m_inConstruction;
-  unsigned *m_offsetClauses;
+  unsigned *m_orderedIdxClauses;
+  unsigned *m_sizeBlockOrderedIdxClauses;
 
   // using: variables
   using BucketManagerCnf<T>::specManager;
@@ -134,13 +113,14 @@ public:
         m_inConstruction(occM) {
     m_mapVar.resize(nbVarCnf + 1, 0);
     m_markIdx.resize(nbClauseCnf, -1);
-    m_offsetClauses = new unsigned[nbClauseCnf];
+    m_orderedIdxClauses = new unsigned[nbClauseCnf];
+    m_sizeBlockOrderedIdxClauses = new unsigned[1 + nbVarCnf];
   } // BucketManagerCnfCl
 
   /**
      Destructor.
    */
-  ~BucketManagerCnfCl() { delete[] m_offsetClauses; } // destructor
+  ~BucketManagerCnfCl() { delete[] m_orderedIdxClauses; } // destructor
 
   /**
    * Get an index to store the distribution information.
@@ -347,42 +327,35 @@ public:
    * @param nbEltDist
    * @return an AllocSizeInfo structure with the requiered information.
    */
-  inline AllocSizeInfo computeNeededBytes(std::vector<Var> &component,
-                                          BucketInConstruction &inConstruction,
-                                          unsigned nBda, unsigned nbD,
-                                          unsigned nbEltData,
-                                          unsigned nbEltDist) {
+  inline AllocSizeInfo
+  computeNeededBytes(std::vector<Var> &component,
+                     BucketInConstruction &inConstruction) {
     AllocSizeInfo ret;
 
     // info about the variables.
-    ret.config = 0;
     ret.nbBitEltVar = nbBitUnsigned(component.back());
     ret.nbByteStoreVar = 1 + (((ret.nbBitEltVar * component.size()) - 1) >> 3);
     unsigned nbByteModeArray = 1 + ((component.back() - 1) >> 3);
     if (nbByteModeArray < ret.nbByteStoreVar) {
-      ret.config |= 1;
       ret.nbByteStoreVar = nbByteModeArray;
       ret.nbBitEltVar = 0;
     }
 
+    ret.nbBitStoreLit = nbBitUnsigned(2 + (component.size() << 1));
+
     // info about the distribution.
-    unsigned maxSizeCl = 0, maxLenghtDistrib = 0, cptDistrib = 0;
+    unsigned cptLitFormula, cptDistrib = 0;
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
       if (!inConstruction.distribDiffSize[i])
         continue;
 
-      maxSizeCl = i;
       cptDistrib++;
-      if (inConstruction.distribDiffSize[i] > maxLenghtDistrib)
-        maxLenghtDistrib = inConstruction.distribDiffSize[i];
+      cptLitFormula += i * inConstruction.distribDiffSize[i];
     }
-    if (cptDistrib)
-      ret.initDistrib(maxLenghtDistrib, maxSizeCl, cptDistrib);
 
-    std::cout << ret.nbByteStoreDistrib << "\n";
+    ret.nbByteStoreFormula = 0;
 
-    ret.totalByte =
-        ret.nbByteStoreVar + (nBda * nbEltData) + ret.nbByteStoreDistrib;
+    ret.totalByte = ret.nbByteStoreVar + ret.nbByteStoreFormula;
     return ret;
   } // computeNeededBytes
 
@@ -434,107 +407,55 @@ public:
    */
   char *storeVariables(AllocSizeInfo &info, char *data,
                        std::vector<Var> &component) {
+    // init the array.
     char *p = data;
+    memset(p, 0, info.nbByteStoreVar);
 
-    // init with zero.
-    for (unsigned i = 0; i < info.nbByteStoreVar; i++)
-      p[i] = 0;
-
-    if (info.config & 1) {
+    // fill the array.
+    if (!info.nbBitEltVar) {
       for (auto v : component)
         p[v >> 3] |= ((uint8_t)1) << (v & 7);
     } else {
-      unsigned remaining = 8, current = 0;
+      unsigned remaining = 8;
       for (auto v : component) {
         assert(v <= component.back());
 
-        current = info.nbBitEltVar;
-        while (current >= remaining) {
-          *p <<= remaining;
-          *p |= v & ((1 << remaining) - 1);
-          v >>= remaining;
-          current -= remaining;
-          remaining = 8;
-          p++;
-        }
-
-        // the remaining bits.
-        if (current) {
-          *p <<= current;
-          *p |= v;
-          v >>= current;
-          remaining -= current;
-          assert(remaining);
-        }
-
-        assert(!v);
+        p = addElementInData(p, v, info.nbBitEltVar, remaining);
       }
     }
 
     return &data[info.nbByteStoreVar];
   } // storeVariables
-
+#if 0
   /**
-   Store the variables respecting the information of size concerning the type
-   T to encode each elements and returns the pointer just after the end of the
-   data.
-
-   @param[in] data, the place where we store the information.
-   @param[out] inConstruction, place where we store the bucket in
-   construction.
- */
+   * @brief Store the distribution.
+   *
+   * @param info are information about the number of bit/byte.
+   * @param data is the place where are store the elements.
+   * @param inConstruction is the bucket in construction.
+   * @return a pointer on the end of the stored data.
+   */
   char *storeDistribInfo(AllocSizeInfo &info, char *data,
                          BucketInConstruction &inConstruction) {
+    // init the array.
     char *p = data;
-    unsigned remaining = 8, current = 0;
-    for (unsigned i = 0; i < info.nbByteStoreDistrib; i++)
-      p[i] = 0;
+    memset(p, 0, info.nbByteStoreDistrib);
 
+    // fill the array.
+    unsigned remaining = 8;
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
       if (!inConstruction.distribDiffSize[i])
         continue;
 
       // we store the size of the current block of clauses.
-      unsigned val = i;
-      current = info.nbBitEltDistribSizeCl;
-      while (current >= remaining) {
-        *p <<= remaining;
-        *p |= val & ((1 << remaining) - 1);
-        val >>= remaining;
-        remaining = 8;
-        p++;
-      }
-
-      if (current) {
-        *p <<= current;
-        *p |= val;
-        val >>= current;
-        remaining -= current;
-        assert(remaining);
-      }
-
-      // the number of clauses of size i.
-      val = inConstruction.distribDiffSize[i];
-      current = info.nbBitEltDistribNbCl;
-      while (current >= remaining) {
-        *p <<= remaining;
-        *p |= val & ((1 << remaining) - 1);
-        val >>= remaining;
-        remaining = 8;
-        p++;
-      }
-
-      if (current) {
-        *p <<= current;
-        *p |= val;
-        val >>= current;
-        remaining -= current;
-        assert(remaining);
-      }
+      p = addElementInData(p, i, info.nbBitEltDistribSizeCl, remaining);
+      p = addElementInData(p, inConstruction.distribDiffSize[i],
+                           info.nbBitEltDistribNbCl, remaining);
     }
 
     return &data[info.nbByteStoreDistrib];
   } // storeDistribInfo
+#endif
 
   /**
      Store the formula representation respecting the information of size
@@ -552,41 +473,42 @@ public:
 
      \return a pointer to the end of the data we added
   */
-  template <typename U>
-  void *storeClauses(void *data, std::vector<Var> &component,
+  char *storeClauses(AllocSizeInfo &info, char *data,
+                     std::vector<Var> &component,
                      BucketInConstruction &inConstruction) {
-    // map the variable to another index regarding their position in
-    // component.
-    for (unsigned i = 0; i < component.size(); i++)
-      m_mapVar[component[i]] = i;
+    unsigned remaining = 8, count = 0;
+    char *p = data;
 
-    // get information about the starting offset for the different clause
-    // size.
-    unsigned offSet = 0;
-    unsigned memoryPlaceWrtSizeClause[m_maxSizeClause + 1];
-    for (unsigned i = 0; i <= m_maxSizeClause; i++) {
-      memoryPlaceWrtSizeClause[i] = offSet;
-      offSet += inConstruction.distribDiffSize[i] * i;
+    // map the variables to their position.
+    for (unsigned i = 0; i < component.size(); i++)
+      m_mapVar[component[i]] = i + 1;
+
+    // prepare to reorder the clause indices.
+    for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
+      if (!inConstruction.distribDiffSize[i])
+        continue;
+      p = addElementInData(p, i, info.nbBitStoreLit, remaining);
+      m_sizeBlockOrderedIdxClauses[i] = count;
+      count += inConstruction.distribDiffSize[i];
     }
 
-    // allocate an offset for each clauses.
+    // reorder the clause indices.
     for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {
       unsigned szClause = inConstruction.shiftedSizeClause[i];
       if (!szClause)
         continue;
 
-      m_offsetClauses[i] = memoryPlaceWrtSizeClause[szClause];
-      memoryPlaceWrtSizeClause[szClause] += szClause;
+      m_orderedIdxClauses[m_sizeBlockOrderedIdxClauses[szClause]++] = i;
       inConstruction.shiftedSizeClause[i] = 0;
     }
 
-    // we store the data.
-    U *p = static_cast<U *>(data);
+    specManager.showCurrentFormula(std::cout);
+
     unsigned i = 0;
     while (i < inConstruction.sizeDistrib) {
       unsigned lit = inConstruction.distrib[i++];
+      // unsigned l = ((m_mapVar[lit >> 1] << 1) | (lit & 1));
 
-      U l = static_cast<U>((m_mapVar[lit >> 1] << 1) | (lit & 1));
       unsigned szLitList = inConstruction.distrib[i++];
 
       while (szLitList) {
@@ -596,44 +518,14 @@ public:
             inConstruction.shiftedIndexClause[inConstruction.distrib[i++]];
         if (idx >= inConstruction.nbClauseInDistrib)
           continue;
-        p[m_offsetClauses[idx]] = l;
-        m_offsetClauses[idx]++;
+        std::cout << (lit & 1 ? "-" : "") << (lit >> 1) << " " << idx << "\n";
       }
     }
 
-    p += offSet;
-    return p;
+    exit(0);
+
+    return &data[info.nbByteStoreFormula];
   } // storeClauses
-
-  /**
-     Compute from the m_distribDiffSize the number of different size and the
-     maximum size.
-
-     @param[out] maxNbSizeDistr, the clause size with the maximum number of
-     elements.
-     @parar[out] largestSizeClause, store the size of the largest clause.
-     @param[out] nbDiffClauseSize, the number of different size.
-     @param[out] nbLit, the number of literals in the distribution.
-     @param[out] inConstruction, place where we store the bucket in
-     construction.
-   */
-  inline void getInfoDistributionSize(unsigned &maxNbSizeClause,
-                                      unsigned &largestSizeClause,
-                                      unsigned &nbDiffClauseSize,
-                                      unsigned &nbLit,
-                                      BucketInConstruction &inConstruction) {
-    largestSizeClause = 0;
-    maxNbSizeClause = 0;
-    nbDiffClauseSize = 0;
-    for (unsigned i = 0; i <= m_maxSizeClause; i++)
-      if (inConstruction.distribDiffSize[i]) {
-        largestSizeClause = i;
-        if (maxNbSizeClause < inConstruction.distribDiffSize[i])
-          maxNbSizeClause = inConstruction.distribDiffSize[i];
-        nbDiffClauseSize++;
-        nbLit += inConstruction.distribDiffSize[i] * i;
-      }
-  } // getInfoDistributionSize
 
   /**
      Transfer the formula store in distib in a table given in parameter.
@@ -647,52 +539,20 @@ public:
     collectDistrib(component, m_inConstruction); // built the sorted formula
 
     // get information about the clause distribution
-    unsigned nbLit = 0, nbVar = component.size(), maxNbSizeClause,
-             nbDiffClauseSize, largestSizeClause;
-    getInfoDistributionSize(maxNbSizeClause, largestSizeClause,
-                            nbDiffClauseSize, nbLit, m_inConstruction);
-
-    unsigned nbODistrib =
-        this->nbOctetToEncodeInt(std::max(maxNbSizeClause, largestSizeClause));
-    unsigned nbOLit = this->nbOctetToEncodeInt(nbVar << 1);
 
     // ask for memory
-    AllocSizeInfo sizeInfo =
-        computeNeededBytes(component, m_inConstruction, nbOLit, nbODistrib,
-                           nbLit, nbDiffClauseSize);
+    AllocSizeInfo sizeInfo = computeNeededBytes(component, m_inConstruction);
     char *data = m_bucketAllocator->getArray(sizeInfo.totalByte);
-    void *p = static_cast<void *>(
-        &data[sizeInfo.nbByteStoreVar + sizeInfo.nbByteStoreDistrib]);
 
+    // store the information about the formula.
     storeVariables(sizeInfo, data, component);
+    if (m_inConstruction.nbClauseInDistrib)
+      storeClauses(sizeInfo, &data[sizeInfo.nbByteStoreVar], component,
+                   m_inConstruction);
 
-    if (!m_inConstruction.nbClauseInDistrib)
-      goto fillTheBucket;
-
-    storeDistribInfo(sizeInfo, &data[sizeInfo.nbByteStoreVar],
-                     m_inConstruction);
-
-    // store the clauses.
-    switch (nbOLit) {
-    case 1:
-      storeClauses<uint8_t>(p, component, m_inConstruction);
-      break;
-    case 2:
-      storeClauses<uint16_t>(p, component, m_inConstruction);
-      break;
-    case 4:
-      storeClauses<uint32_t>(p, component, m_inConstruction);
-      break;
-    default:
-      throw(BucketException("Bad number of bytes", __FILE__, __LINE__));
-    }
-
-  fillTheBucket:
     // put the information into the bucket
-    DataInfoCnfCl di(sizeInfo.totalByte, nbVar, nbLit, nbDiffClauseSize,
-                     sizeInfo.nbBitEltVar, nbOLit, nbODistrib);
-
-    assert(di.szData() == sizeInfo.totalByte);
+    DataInfo di(sizeInfo.totalByte, component.size(), sizeInfo.nbBitEltVar,
+                sizeInfo.nbBitStoreLit);
     b.set(data, di);
   } // storeFormula
 };

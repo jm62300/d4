@@ -130,10 +130,12 @@ public:
     }
 
   fillTheBucket:
-    DataInfoCnf di(szData, component.size(), 0, m_idxClauses.size(), nbOVar, 1,
-                   nbOData);
-    assert(di.szData() == szData);
-    b.set(data, di);
+    assert(0);
+    // DataInfoCnf di(szData, component.size(), 0, m_idxClauses.size(), nbOVar,
+    // 1,
+    //               nbOData);
+    // assert(di.szData() == szData);
+    // b.set(data, di);
   } // storeFormula
 };
 } // namespace d4

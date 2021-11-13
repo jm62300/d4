@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <bits/stdint-uintn.h>
 #include <bitset>
 
 #include "DataInfo.hpp"
@@ -23,7 +24,7 @@ namespace d4 {
 /**
    Constructor.
  */
-DataInfo::DataInfo() { info1 = info2 = 0; } // constructor
+DataInfo::DataInfo() { info1 = 0; } // constructor
 
 /**
  * @brief Construct a new Data Info:: Data Info object
@@ -32,20 +33,17 @@ DataInfo::DataInfo() { info1 = info2 = 0; } // constructor
  * @param nbVar
  * @param nbOctetsData
  * @param nbOctetsVar
- * @param count
  */
-DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
-                   unsigned nbBitVar, unsigned count) {
-  info1 = info2 = 0;
-  assert((nbOctetsData - 1) < 4);
+DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
+                   unsigned nbBitFormula) {
+  info1 = 0;
+  info1 = (uint64_t)nbVar | ((uint64_t)szData << 21) |
+          ((uint64_t)nbBitVar << 42) | ((uint64_t)nbBitFormula << 46);
 
+  assert(nbBitFormula < (1 << 5));
   assert(nbBitVar < (1 << 5));
   assert(nbVar < (1 << 21));
   assert(szData < (1 << 21));
-
-  info1 =
-      (uint64_t)nbVar | ((uint64_t)szData << 21) | ((uint64_t)nbBitVar << 42);
-  info2 = ((uint32_t)(nbOctetsData - 1) << 4);
   assert(szData == this->szData());
 } // constructor
 

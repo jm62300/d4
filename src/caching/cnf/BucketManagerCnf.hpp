@@ -21,7 +21,6 @@
 #include <iostream>
 #include <vector>
 
-#include "src/caching/cnf/DataInfoCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/utils/Enum.hpp"
@@ -29,16 +28,6 @@
 #include "../BucketAllocator.hpp"
 #include "../BucketManager.hpp"
 #include "../CachedBucket.hpp"
-
-#define BIT_VECTOR 1
-#define ONE_OCTET 2
-#define TWO_OCTET 3
-#define FOUR_OCTET 4
-#define EIGHT_OCTET 5
-#define MASK_REPR 7
-#define DEC_SIZE 3
-
-#define MASK 16383
 
 namespace d4 {
 template <class T> class BucketManager;

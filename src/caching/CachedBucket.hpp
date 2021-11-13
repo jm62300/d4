@@ -41,7 +41,6 @@ public:
   inline unsigned szData() { return header.szData(); }
   inline unsigned nbVar() { return header.nbVar(); }
   inline void reset() { header.reset(); }
-  inline void print(std::ostream &os) { header.print(data, os); }
 
   inline DataInfo &getDataInfo() { return header; }
   inline bool sameHeader(CachedBucket<T> &b) { return header == b.header; }

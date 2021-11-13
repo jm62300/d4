@@ -21,7 +21,6 @@
 
 #include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
-#include "DataInfoCnfCl.hpp"
 #include "src/caching/BucketManager.hpp"
 #include "src/caching/Cache.hpp"
 #include "src/exceptions/BucketException.hpp"
@@ -485,10 +484,11 @@ public:
     assert(static_cast<char *>(p) == &data[szData]);
 
     // put the information into the bucket
-    DataInfoCnfCl di(szData, nbVar, nbLit, nbDiffClauseSize, 1, nbOLit,
-                     nbODistrib);
-    assert(di.szData() == szData);
-    b.set(data, di);
+    assert(0);
+    // DataInfoCnfCl di(szData, nbVar, nbLit, nbDiffClauseSize, 1, nbOLit,
+    //                 nbODistrib, 0, 0);
+    // assert(di.szData() == szData);
+    // b.set(data, di);
   } // storeFormula
 };
 } // namespace d4

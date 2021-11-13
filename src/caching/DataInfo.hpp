@@ -29,24 +29,21 @@
 namespace d4 {
 class DataInfo {
 protected:
-  // we reserve 96 bytes to store information in the cached bucket
-  //   We always at least have the following distribution:
-  // info1 => |free(17)| nbBitVar(5)|nb var(21)|szData(21)|
-  // For info2 => |szData (26 bytes)|nb octets data (2 bytes)|nb
-  // octets var (2 bytes)| free (2 bytes)|
+  // we reserve 64 bytes to store information in the cached bucket
+  // We always at least have the following distribution:
+  // info1 => |free(12)|nbBitFormula(5)|nbBitVar(5)|nb var(21)|szData(21)|
 public:
   uint64_t info1;
-  uint32_t info2;
 
   DataInfo();
-  DataInfo(unsigned szData, unsigned nbVar, unsigned nbOctetsData,
-           unsigned nbBitVar, unsigned count);
+  DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
+           unsigned nbBitFormula);
 
   inline unsigned *getInfo() { return (unsigned *)this; }
   inline unsigned getSizeInfo() { return 3; }
 
   bool operator==(const DataInfo &d) const {
-    return info1 == d.info1 && info2 == d.info2;
+    return info1 == d.info1;
   } // operator ==
 
   virtual ~DataInfo() {}
@@ -63,12 +60,7 @@ public:
     assert(szData() == sz);
   }
 
-  inline unsigned nbOctetsVar() { return 1 + ((info2 >> 2) & ((1 << 2) - 1)); }
-  inline unsigned nbOctetsData() { return 1 + ((info2 >> 4) & ((1 << 2) - 1)); }
-
   inline void reset() { info1 = 0; }
-
-  virtual void print(char *data, std::ostream &out) { out << data; }
 
   template <typename U> void printData(void *data, int sz, std::ostream &out) {
     U *p = static_cast<U *>(data);
