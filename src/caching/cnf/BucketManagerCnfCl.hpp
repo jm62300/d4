@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <bits/stdint-uintn.h>
+#include <bitset>
 #include <cstring>
 #include <sys/types.h>
 
@@ -66,6 +67,14 @@ private:
     unsigned nbByteStoreFormula = 0;
     unsigned nbBitStoreLit = 0;
     unsigned totalByte = 0;
+
+    inline void display() {
+      std::cout << "nb bit var: " << nbBitEltVar << "\n"
+                << "nb bit lit: " << nbBitStoreLit << "\n"
+                << "nb byte store var: " << nbByteStoreVar << "\n"
+                << "nb byte store formula: " << nbByteStoreFormula << "\n"
+                << "total: " << totalByte << "\n";
+    }
   };
 
   std::vector<BucketSortInfo> m_vecBucketSortInfo;
@@ -77,8 +86,8 @@ private:
   std::vector<unsigned> m_idInVecBucket;
 
   BucketInConstruction m_inConstruction;
-  unsigned *m_orderedIdxClauses;
-  unsigned *m_sizeBlockOrderedIdxClauses;
+  unsigned *m_memoryPosWrtClauseSize;
+  unsigned *m_offsetClauses;
 
   // using: variables
   using BucketManagerCnf<T>::specManager;
@@ -113,14 +122,17 @@ public:
         m_inConstruction(occM) {
     m_mapVar.resize(nbVarCnf + 1, 0);
     m_markIdx.resize(nbClauseCnf, -1);
-    m_orderedIdxClauses = new unsigned[nbClauseCnf];
-    m_sizeBlockOrderedIdxClauses = new unsigned[1 + nbVarCnf];
+    m_memoryPosWrtClauseSize = new unsigned[occM.getMaxSizeClause() + 1];
+    m_offsetClauses = new unsigned[nbClauseCnf + 1];
   } // BucketManagerCnfCl
 
   /**
      Destructor.
    */
-  ~BucketManagerCnfCl() { delete[] m_orderedIdxClauses; } // destructor
+  ~BucketManagerCnfCl() {
+    delete[] m_memoryPosWrtClauseSize;
+    delete[] m_offsetClauses;
+  } // destructor
 
   /**
    * Get an index to store the distribution information.
@@ -344,7 +356,7 @@ public:
     ret.nbBitStoreLit = nbBitUnsigned(2 + (component.size() << 1));
 
     // info about the distribution.
-    unsigned cptLitFormula, cptDistrib = 0;
+    unsigned cptLitFormula = 0, cptDistrib = 0;
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
       if (!inConstruction.distribDiffSize[i])
         continue;
@@ -353,7 +365,11 @@ public:
       cptLitFormula += i * inConstruction.distribDiffSize[i];
     }
 
-    ret.nbByteStoreFormula = 0;
+    ret.nbByteStoreFormula =
+        (!cptDistrib)
+            ? 0
+            : 1 + ((ret.nbBitStoreLit * ((cptDistrib << 1) + cptLitFormula)) >>
+                   3);
 
     ret.totalByte = ret.nbByteStoreVar + ret.nbByteStoreFormula;
     return ret;
@@ -375,8 +391,13 @@ public:
       p++;
     }
 
+#if 0
+    std::cout << "val " << val << "\n";
+    std::cout << "remaining " << remainingBit << "\n";
+    std::cout << "nbBit " << nbBit << "\n";
+    std::cout << "=> " << std::bitset<3>(val) << "\n";
+#endif
     while (nbBit >= remainingBit) {
-      *p <<= remainingBit;
       *p |= val & ((1 << remainingBit) - 1);
       val >>= remainingBit;
       nbBit -= remainingBit;
@@ -386,12 +407,14 @@ public:
 
     // the remaining bits.
     if (nbBit) {
-      *p <<= nbBit;
-      *p |= val;
+      *p |= val << (remainingBit - nbBit);
       remainingBit -= nbBit;
       assert(remainingBit);
     }
 
+#if 0
+    std::cout << "<= " << std::bitset<8>(*p) << "\n";
+#endif
     return p;
   } // addElementInData
 
@@ -419,43 +442,12 @@ public:
       unsigned remaining = 8;
       for (auto v : component) {
         assert(v <= component.back());
-
         p = addElementInData(p, v, info.nbBitEltVar, remaining);
       }
     }
 
     return &data[info.nbByteStoreVar];
   } // storeVariables
-#if 0
-  /**
-   * @brief Store the distribution.
-   *
-   * @param info are information about the number of bit/byte.
-   * @param data is the place where are store the elements.
-   * @param inConstruction is the bucket in construction.
-   * @return a pointer on the end of the stored data.
-   */
-  char *storeDistribInfo(AllocSizeInfo &info, char *data,
-                         BucketInConstruction &inConstruction) {
-    // init the array.
-    char *p = data;
-    memset(p, 0, info.nbByteStoreDistrib);
-
-    // fill the array.
-    unsigned remaining = 8;
-    for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
-      if (!inConstruction.distribDiffSize[i])
-        continue;
-
-      // we store the size of the current block of clauses.
-      p = addElementInData(p, i, info.nbBitEltDistribSizeCl, remaining);
-      p = addElementInData(p, inConstruction.distribDiffSize[i],
-                           info.nbBitEltDistribNbCl, remaining);
-    }
-
-    return &data[info.nbByteStoreDistrib];
-  } // storeDistribInfo
-#endif
 
   /**
      Store the formula representation respecting the information of size
@@ -476,39 +468,47 @@ public:
   char *storeClauses(AllocSizeInfo &info, char *data,
                      std::vector<Var> &component,
                      BucketInConstruction &inConstruction) {
-    unsigned remaining = 8, count = 0;
+    unsigned remaining = 8;
     char *p = data;
+    memset(p, 0, info.nbByteStoreFormula);
 
     // map the variables to their position.
     for (unsigned i = 0; i < component.size(); i++)
       m_mapVar[component[i]] = i + 1;
 
-    // prepare to reorder the clause indices.
+    // store the different size of the distribution.
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
       if (!inConstruction.distribDiffSize[i])
         continue;
       p = addElementInData(p, i, info.nbBitStoreLit, remaining);
-      m_sizeBlockOrderedIdxClauses[i] = count;
-      count += inConstruction.distribDiffSize[i];
     }
 
-    // reorder the clause indices.
+    // Prepare the offset list regarding p.
+    // We also add a zero to separate ditrib from formula.
+    unsigned offSet = (8 - remaining) + info.nbBitStoreLit;
+    for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
+      if (!inConstruction.distribDiffSize[i])
+        continue;
+      m_memoryPosWrtClauseSize[i] = offSet;
+      offSet += inConstruction.distribDiffSize[i] * i * info.nbBitStoreLit;
+    }
+
+    // allocate an offset for each clauses.
     for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {
-      unsigned szClause = inConstruction.shiftedSizeClause[i];
+      unsigned &szClause = inConstruction.shiftedSizeClause[i];
       if (!szClause)
         continue;
 
-      m_orderedIdxClauses[m_sizeBlockOrderedIdxClauses[szClause]++] = i;
-      inConstruction.shiftedSizeClause[i] = 0;
+      m_offsetClauses[i] = m_memoryPosWrtClauseSize[szClause];
+      m_memoryPosWrtClauseSize[szClause] += szClause * info.nbBitStoreLit;
+      szClause = 0; // reinit shiftedSizeClause for the next run.
     }
 
-    specManager.showCurrentFormula(std::cout);
-
+    // store the formula.
     unsigned i = 0;
     while (i < inConstruction.sizeDistrib) {
       unsigned lit = inConstruction.distrib[i++];
-      // unsigned l = ((m_mapVar[lit >> 1] << 1) | (lit & 1));
-
+      unsigned l = (m_mapVar[lit >> 1] << 1) | (lit & 1);
       unsigned szLitList = inConstruction.distrib[i++];
 
       while (szLitList) {
@@ -518,11 +518,17 @@ public:
             inConstruction.shiftedIndexClause[inConstruction.distrib[i++]];
         if (idx >= inConstruction.nbClauseInDistrib)
           continue;
-        std::cout << (lit & 1 ? "-" : "") << (lit >> 1) << " " << idx << "\n";
+
+        // compute the position in the array.
+        unsigned &offSet = m_offsetClauses[idx];
+        char *q = &p[offSet >> 3]; // divide by 8
+        remaining = 8 - (offSet & 7);
+
+        // add the element and move the offset for the next lit.
+        addElementInData(q, l, info.nbBitStoreLit, remaining);
+        offSet += info.nbBitStoreLit;
       }
     }
-
-    exit(0);
 
     return &data[info.nbByteStoreFormula];
   } // storeClauses
@@ -549,7 +555,22 @@ public:
     if (m_inConstruction.nbClauseInDistrib)
       storeClauses(sizeInfo, &data[sizeInfo.nbByteStoreVar], component,
                    m_inConstruction);
+#if 0
+    std::cout << "Formula:\n";
+    specManager.showCurrentFormula(std::cout);
 
+    std::cout << "variables: ";
+    for (auto &v : component)
+      std::cout << v << " ";
+    std::cout << "\n";
+
+    sizeInfo.display();
+
+    for (unsigned i = 0; i < sizeInfo.totalByte; i++) {
+      std::cout << std::bitset<8>(data[i]) << " ";
+    }
+    std::cout << "\n";
+#endif
     // put the information into the bucket
     DataInfo di(sizeInfo.totalByte, component.size(), sizeInfo.nbBitEltVar,
                 sizeInfo.nbBitStoreLit);
