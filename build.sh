@@ -6,7 +6,7 @@ set -o pipefail
 
 opt=0
 
-while getopts 'ds' OPTION
+while getopts 'dsl' OPTION
 do
     case "$OPTION" in
         d)
@@ -14,6 +14,9 @@ do
             ;;
         s)
             opt=2
+            ;;
+        l)
+            opt=3
             ;;
 
     esac

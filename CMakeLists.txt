@@ -21,7 +21,7 @@ file(GLOB_RECURSE INCLUDES ./src/**.hpp)
 set(SRCS ${SOURCES})
 set(HEADERS ${INCLUDES})
 
-set(Boost_USE_STATIC_LIBS   ON)
+set(Boost_USE_STATIC_LIBS ON)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/kahypar/)
@@ -33,8 +33,7 @@ if (NOT DEFINED BUILD_MODE)
    set(BUILD_MODE 1)
 endif()
 
-
-# flags
+# build.
 if(${BUILD_MODE} EQUAL 1)
   # create an executable
   add_executable(d4_debug ${SRCS} ${HEADERS})
@@ -64,17 +63,27 @@ elseif(${BUILD_MODE} EQUAL 2)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_static
     DESTINATION bin
     RENAME ${CMAKE_PROJECT_NAME}-d4_static)
+elseif(${BUILD_MODE} EQUAL 3)
+  message("Library creation")
+  add_library(d4 ${SRCS} ${HEADERS})
+
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++11 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D NDEBUG)
+  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a -D NDEBUG ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_standard.a)
+  target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+  install (TARGETS d4 DESTINATION lib)
+  install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME})
 else()  
-  # create an executable
-  add_executable(d4 ${SRCS} ${HEADERS})
+# create an executable
+add_executable(d4 ${SRCS} ${HEADERS})
 
-  message("Classical mode activated")
-  target_compile_options(d4 PUBLIC -std=c++11 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
-  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_standard.a)
+message("Classical mode activated")
+target_compile_options(d4 PUBLIC -std=c++11 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
+target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_standard.a)
 
-  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
-    DESTINATION bin
-    RENAME ${CMAKE_PROJECT_NAME}-d4)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
+  DESTINATION bin
+  RENAME ${CMAKE_PROJECT_NAME}-d4)
 endif()
 
 

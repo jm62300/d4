@@ -15,15 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "../../src/methods/MethodManager.hpp"
 #include <boost/program_options.hpp>
-#include <cassert>
 #include <iostream>
-#include <vector>
-
-#include "src/methods/MethodManager.hpp"
-#include <boost/multiprecision/gmp.hpp>
-
-#ifndef NOMAIN
 
 /**
    The main function!
@@ -61,4 +55,3 @@ int main(int argc, char **argv) {
 
   return 0;
 } // main
-#endif
