@@ -43,9 +43,6 @@ int main(int argc, char **argv) {
 
   // help or problem with the command line
   if (vm.count("help")) {
-    if (!vm.count("help"))
-      std::cout << "Some parameters are missing, please read the README\n";
-    std::cout << "USAGE: " << argv[0] << " -i INPUT -m METH [OPTIONS]\n";
     std::cout << desc << '\n';
     exit(!vm.count("help"));
   }
