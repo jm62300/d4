@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "PhaseSelectorNone.hpp"
+#include <ostream>
 
 namespace d4 {
 
@@ -25,10 +26,9 @@ namespace d4 {
    @param[in] bucketNumber, the tree decomposition, given but not used.
  */
 PhaseSelectorNone::PhaseSelectorNone(
-    PartitioningHeuristicStaticSingle *staticPartitioner)
+    PartitioningHeuristicStaticSingle *staticPartitioner, std::ostream &out)
     : PhaseSelectorManager(staticPartitioner) {
-  std::cout
-      << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"
+  out << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"
       << " none\n";
 } // constructor
 

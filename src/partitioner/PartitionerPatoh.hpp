@@ -37,7 +37,7 @@ private:
 
 public:
   PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
-                   unsigned maxSumEdgeSize);
+                   unsigned maxSumEdgeSize, std::ostream &out);
 
   ~PartitionerPatoh();
   void computePartition(HyperGraph &hypergraph, Level level,

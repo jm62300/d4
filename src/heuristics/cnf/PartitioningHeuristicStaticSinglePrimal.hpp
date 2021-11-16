@@ -18,6 +18,7 @@
 #pragma once
 
 #include "PartitioningHeuristicStaticSingle.hpp"
+#include <ostream>
 
 namespace d4 {
 class PartitioningHeuristicStaticSinglePrimal
@@ -38,11 +39,13 @@ protected:
 
 public:
   PartitioningHeuristicStaticSinglePrimal(po::variables_map &vm,
-                                          WrapperSolver &s, SpecManager &om);
+                                          WrapperSolver &s, SpecManager &om,
+                                          std::ostream &out);
 
   PartitioningHeuristicStaticSinglePrimal(po::variables_map &vm,
                                           WrapperSolver &s, SpecManager &om,
-                                          int nbClause, int nbVar, int sumSize);
+                                          int nbClause, int nbVar, int sumSize,
+                                          std::ostream &out);
 
   ~PartitioningHeuristicStaticSinglePrimal();
 };

@@ -38,7 +38,7 @@ private:
 
 public:
   PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
-                     unsigned maxSumEdgeSize);
+                     unsigned maxSumEdgeSize, std::ostream &out);
 
   ~PartitionerKahypar();
   void computePartition(HyperGraph &hypergraph, Level level,

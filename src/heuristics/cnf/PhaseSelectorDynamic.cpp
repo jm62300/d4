@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "PhaseSelectorDynamic.hpp"
+#include <ostream>
 
 namespace d4 {
 
@@ -25,10 +26,10 @@ namespace d4 {
    @param[in] limitPhase, give the limit number of variables before switching.
 */
 PhaseSelectorDynamic::PhaseSelectorDynamic(
-    PartitioningHeuristicStaticSingle *staticPartitioner, double limitRatio)
+    PartitioningHeuristicStaticSingle *staticPartitioner, double limitRatio,
+    std::ostream &out)
     : PhaseSelectorManager(staticPartitioner) {
-  std::cout
-      << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"
+  out << "c [CONSTRUCTOR] Switching between static and dynamic decomposition:"
       << " dynamic(" << limitRatio << ")\n";
 
   m_limitRatio = limitRatio;

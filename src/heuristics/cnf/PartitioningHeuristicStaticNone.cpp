@@ -27,11 +27,11 @@ namespace d4 {
    @param[in] om, a structure manager.
  */
 PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om)
+    po::variables_map &vm, WrapperSolver &s, SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticNone(
           vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
-          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()) {
+          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
 } // constructor
 
@@ -47,9 +47,9 @@ PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
  */
 PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
     po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize)
-    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize) {
-  std::cout << "c [CONSTRUCTOR] Static partitioner: none\n";
+    int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize, out) {
+  out << "c [CONSTRUCTOR] Static partitioner: none\n";
 
   m_isInitialized = true;
 } // constructor

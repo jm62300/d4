@@ -18,6 +18,7 @@
 #pragma once
 #include "PartitioningHeuristicStaticSingle.hpp"
 #include "PhaseSelectorManager.hpp"
+#include <ostream>
 
 namespace d4 {
 class PhaseSelectorDynamic : public PhaseSelectorManager {
@@ -26,7 +27,7 @@ private:
 
 public:
   PhaseSelectorDynamic(PartitioningHeuristicStaticSingle *staticPartitioner,
-                       double limitRatio);
+                       double limitRatio, std::ostream &out);
 
   bool isStillOk(std::vector<Var> &component);
 };

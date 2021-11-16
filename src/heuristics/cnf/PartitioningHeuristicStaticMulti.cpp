@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "PartitioningHeuristicStaticMulti.hpp"
+#include <ostream>
 
 namespace d4 {
 /**
@@ -26,11 +27,11 @@ namespace d4 {
    @param[in] om, a structure manager.
 */
 PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om)
+    po::variables_map &vm, WrapperSolver &s, SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticMulti(
           vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
-          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()) {
+          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
 } // constructor
 
@@ -46,13 +47,13 @@ PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
  */
 PartitioningHeuristicStaticMulti::PartitioningHeuristicStaticMulti(
     po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize)
-    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize) {
+    int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize, out) {
   m_partitionStaticDual = new PartitioningHeuristicStaticSingleDual(
-      vm, s, om, nbClause, nbVar, sumSize);
+      vm, s, om, nbClause, nbVar, sumSize, out);
 
   m_partitionStaticPrimal = new PartitioningHeuristicStaticSinglePrimal(
-      vm, s, om, nbClause, nbVar, sumSize);
+      vm, s, om, nbClause, nbVar, sumSize, out);
 
   m_partitionStaticUsed = NULL;
 } // constructor
@@ -70,7 +71,7 @@ PartitioningHeuristicStaticMulti::~PartitioningHeuristicStaticMulti() {
 /**
    Initialize the bucket level.
 */
-void PartitioningHeuristicStaticMulti::init() {
+void PartitioningHeuristicStaticMulti::init(std::ostream &out) {
   m_isInitialized = true;
 
   // the list of all variables.
@@ -118,7 +119,7 @@ void PartitioningHeuristicStaticMulti::init() {
   }
 
   m_ratio = (double)cptMarked / (double)cpt;
-  std::cout << "c [TREE DECOMPOSITION] cover ratio: " << m_ratio << "\n";
+  out << "c [TREE DECOMPOSITION] cover ratio: " << m_ratio << "\n";
 
   if (m_ratio < 0.5)
     m_partitionStaticUsed = m_partitionStaticDual;
@@ -126,10 +127,10 @@ void PartitioningHeuristicStaticMulti::init() {
     m_partitionStaticUsed = m_partitionStaticPrimal;
 
   // compute the decomposition.
-  std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... "
-            << std::flush;
+  out << "c [TREE DECOMPOSITION] Start tree decomposition generation ... "
+      << std::flush;
   computeDecomposition(component, m_equivClass, equivVar);
-  std::cout << "done\n";
+  out << "done\n";
 
   // restore the initial state.
   m_om.postUpdate(unitEquiv);

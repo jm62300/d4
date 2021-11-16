@@ -18,6 +18,7 @@
 #pragma once
 
 #include <boost/program_options.hpp>
+#include <ostream>
 #include <vector>
 
 #include "PartitioningHeuristicStaticSingle.hpp"
@@ -35,9 +36,10 @@ protected:
 public:
   virtual ~PhaseSelectorManager() {}
 
-  static PhaseSelectorManager *makePhaseSelectorManager(
-      po::variables_map &vm,
-      PartitioningHeuristicStaticSingle *staticPartitioner);
+  static PhaseSelectorManager *
+  makePhaseSelectorManager(po::variables_map &vm,
+                           PartitioningHeuristicStaticSingle *staticPartitioner,
+                           std::ostream &out);
 
   virtual bool isStillOk(std::vector<Var> &component) = 0;
 };

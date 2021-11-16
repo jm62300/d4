@@ -20,6 +20,7 @@
 #include "PartitioningHeuristicStaticSingleDual.hpp"
 #include "PartitioningHeuristicStaticSinglePrimal.hpp"
 #include "PhaseSelectorManager.hpp"
+#include <ostream>
 
 namespace d4 {
 class PhaseSelectorManager;
@@ -40,11 +41,11 @@ protected:
 
 public:
   PartitioningHeuristicStaticMulti(po::variables_map &vm, WrapperSolver &s,
-                                   SpecManager &om);
+                                   SpecManager &om, std::ostream &out);
 
   PartitioningHeuristicStaticMulti(po::variables_map &vm, WrapperSolver &s,
                                    SpecManager &om, int nbClause, int nbVar,
-                                   int sumSize);
+                                   int sumSize, std::ostream &out);
 
   virtual ~PartitioningHeuristicStaticMulti();
 
@@ -52,6 +53,6 @@ public:
 
   bool isStillOk(std::vector<Var> &component);
 
-  void init();
+  void init(std::ostream &out);
 };
 } // namespace d4

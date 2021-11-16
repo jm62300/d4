@@ -30,7 +30,8 @@ namespace d4 {
    @param[in] maxEdges, the maximal number of hyper edges.
  */
 PartitionerKahypar::PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
-                                       unsigned maxSumEdgeSize) {
+                                       unsigned maxSumEdgeSize,
+                                       std::ostream &out) {
   m_pins = std::make_unique<kahypar_hyperedge_id_t[]>(maxSumEdgeSize);
   m_xpins = std::make_unique<size_t[]>(maxEdges + 3);
   m_cwghts = std::make_unique<kahypar_hyperedge_weight_t[]>(maxNodes + 3);

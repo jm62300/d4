@@ -78,25 +78,25 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
 
   if (inType == "cnf" || inType == "dimacs") {
     if (meth == "bipartition-primal")
-      return new PartitioningHeuristicBipartitePrimal(vm, ws, s);
+      return new PartitioningHeuristicBipartitePrimal(vm, ws, s, out);
     if (meth == "bipartition-dual")
-      return new PartitioningHeuristicBipartiteDual(vm, ws, s);
+      return new PartitioningHeuristicBipartiteDual(vm, ws, s, out);
     if (meth == "decomposition-static-dual") {
       PartitioningHeuristicStaticSingleDual *ret =
-          new PartitioningHeuristicStaticSingleDual(vm, ws, s);
-      ret->init();
+          new PartitioningHeuristicStaticSingleDual(vm, ws, s, out);
+      ret->init(out);
       return ret;
     }
     if (meth == "decomposition-static-primal") {
       PartitioningHeuristicStaticSinglePrimal *ret =
-          new PartitioningHeuristicStaticSinglePrimal(vm, ws, s);
-      ret->init();
+          new PartitioningHeuristicStaticSinglePrimal(vm, ws, s, out);
+      ret->init(out);
       return ret;
     }
     if (meth == "decomposition-static-multi") {
       PartitioningHeuristicStaticMulti *ret =
-          new PartitioningHeuristicStaticMulti(vm, ws, s);
-      ret->init();
+          new PartitioningHeuristicStaticMulti(vm, ws, s, out);
+      ret->init(out);
       return ret;
     }
   }

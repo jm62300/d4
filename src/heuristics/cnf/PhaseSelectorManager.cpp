@@ -20,6 +20,7 @@
 #include "PhaseSelectorDynamic.hpp"
 #include "PhaseSelectorNone.hpp"
 #include "PhaseSelectorStatic.hpp"
+#include <ostream>
 
 namespace d4 {
 
@@ -44,8 +45,8 @@ PhaseSelectorManager::PhaseSelectorManager(
    static decomposition to the dynamic one.
  */
 PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
-    po::variables_map &vm,
-    PartitioningHeuristicStaticSingle *staticPartitioner) {
+    po::variables_map &vm, PartitioningHeuristicStaticSingle *staticPartitioner,
+    std::ostream &out) {
   int limitPhase =
       vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
   double dynamicPhase =
@@ -54,12 +55,12 @@ PhaseSelectorManager *PhaseSelectorManager::makePhaseSelectorManager(
       vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
 
   if (phase == "none" || (limitPhase <= 0 && !dynamicPhase))
-    return new PhaseSelectorNone(staticPartitioner);
+    return new PhaseSelectorNone(staticPartitioner, out);
 
   if (!dynamicPhase)
-    return new PhaseSelectorStatic(staticPartitioner, limitPhase);
+    return new PhaseSelectorStatic(staticPartitioner, limitPhase, out);
 
-  return new PhaseSelectorDynamic(staticPartitioner, dynamicPhase);
+  return new PhaseSelectorDynamic(staticPartitioner, dynamicPhase, out);
 } // makePhaseSelectorManager
 
 } // namespace d4

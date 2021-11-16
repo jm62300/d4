@@ -18,12 +18,14 @@
 #pragma once
 
 #include "PhaseSelectorManager.hpp"
+#include <ostream>
 
 namespace d4 {
 
 class PhaseSelectorNone : public PhaseSelectorManager {
 public:
-  PhaseSelectorNone(PartitioningHeuristicStaticSingle *staticPartitioner);
+  PhaseSelectorNone(PartitioningHeuristicStaticSingle *staticPartitioner,
+                    std::ostream &out);
 
   bool isStillOk(std::vector<Var> &component);
 };

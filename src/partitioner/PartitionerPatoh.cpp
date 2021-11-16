@@ -31,7 +31,7 @@ namespace d4 {
    @param[in] maxEdges, the maximal number of hyper edges.
  */
 PartitionerPatoh::PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
-                                   unsigned maxSumEdgeSize) {
+                                   unsigned maxSumEdgeSize, std::ostream &out) {
   // allocate the memory
   m_pins = new int[maxSumEdgeSize];
   m_partweights = new int[2];

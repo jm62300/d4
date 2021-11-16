@@ -18,6 +18,7 @@
 #include "PartitioningHeuristicStaticSingle.hpp"
 
 #include "src/utils/AtMost1Extractor.hpp"
+#include <ostream>
 
 namespace d4 {
 /**
@@ -28,11 +29,11 @@ namespace d4 {
    @param[in] om, a structure manager.
 */
 PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om)
+    po::variables_map &vm, WrapperSolver &s, SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticSingle(
           vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
-          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()) {
+          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
 } // constructor
 
@@ -48,11 +49,12 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
  */
 PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
     po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize)
-    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize) {
+    int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize, out) {
   m_bucketNumber.resize(m_nbVar + 2, 0);
   m_hypergraphExtractor = NULL;
-  m_phaseSelector = PhaseSelectorManager::makePhaseSelectorManager(vm, this);
+  m_phaseSelector =
+      PhaseSelectorManager::makePhaseSelectorManager(vm, this, out);
   m_equivClass.resize(m_nbVar + 1, 0);
   m_levelDistribution.resize(m_nbVar + 1, 0);
   m_markedVar.resize(m_nbVar + 1, 0);
@@ -71,7 +73,7 @@ PartitioningHeuristicStaticSingle::~PartitioningHeuristicStaticSingle() {
 /**
    Initialize the bucket level.
 */
-void PartitioningHeuristicStaticSingle::init() {
+void PartitioningHeuristicStaticSingle::init(std::ostream &out) {
   m_isInitialized = true;
 
   // the list of all variables.
@@ -94,10 +96,10 @@ void PartitioningHeuristicStaticSingle::init() {
   m_om.preUpdate(unitEquiv);
 
   // compute the decomposition.
-  std::cout << "c [TREE DECOMPOSITION] Start tree decomposition generation ... "
-            << std::flush;
+  out << "c [TREE DECOMPOSITION] Start tree decomposition generation ... "
+      << std::flush;
   computeDecomposition(component, m_equivClass, equivVar, m_bucketNumber);
-  std::cout << "done\n";
+  out << "done\n";
 
   // restore the initial state.
   m_om.postUpdate(unitEquiv);

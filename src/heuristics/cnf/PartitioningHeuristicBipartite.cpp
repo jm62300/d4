@@ -31,7 +31,7 @@ namespace d4 {
  */
 PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
     po::variables_map &vm, SpecManager &om, WrapperSolver &s, int nbClause,
-    int nbVar, int sumSize)
+    int nbVar, int sumSize, std::ostream &out)
     : m_om(dynamic_cast<SpecManagerCnf &>(om)), m_s(s) {
   m_nbVar = nbVar;
   m_nbClause = nbClause;

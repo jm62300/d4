@@ -60,7 +60,7 @@ protected:
 
   PartitioningHeuristicBipartite(po::variables_map &vm, SpecManager &om,
                                  WrapperSolver &s, int _nbClause, int _nbVar,
-                                 int _sumSize);
+                                 int _sumSize, std::ostream &out);
 
   virtual ~PartitioningHeuristicBipartite();
 

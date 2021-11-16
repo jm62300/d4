@@ -29,17 +29,17 @@ protected:
 
 public:
   PartitioningHeuristicStaticNone(po::variables_map &vm, WrapperSolver &s,
-                                  SpecManager &om);
+                                  SpecManager &om, std::ostream &out);
 
   PartitioningHeuristicStaticNone(po::variables_map &vm, WrapperSolver &s,
                                   SpecManager &om, int nbClause, int nbVar,
-                                  int sumSize);
+                                  int sumSize, std::ostream &out);
 
   ~PartitioningHeuristicStaticNone();
 
   inline bool isInitialized() { return false; }
   inline bool isStillOk(std::vector<Var> &component) { return false; }
-  inline void init() { m_isInitialized = true; }
+  inline void init(std::ostream &out) { m_isInitialized = true; }
 
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 };

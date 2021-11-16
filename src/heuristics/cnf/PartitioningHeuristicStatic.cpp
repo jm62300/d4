@@ -32,11 +32,12 @@ namespace d4 {
 */
 PartitioningHeuristicStatic::PartitioningHeuristicStatic(po::variables_map &vm,
                                                          WrapperSolver &s,
-                                                         SpecManager &om)
+                                                         SpecManager &om,
+                                                         std::ostream &out)
     : PartitioningHeuristicStatic(
           vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
-          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()) {
+          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 } // constructor
 
 /**
@@ -49,11 +50,9 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(po::variables_map &vm,
    @param[in] nbVar, the number of variables.
    @param[in] sumSize, which give the number of literals.
 */
-PartitioningHeuristicStatic::PartitioningHeuristicStatic(po::variables_map &vm,
-                                                         WrapperSolver &s,
-                                                         SpecManager &om,
-                                                         int nbClause,
-                                                         int nbVar, int sumSize)
+PartitioningHeuristicStatic::PartitioningHeuristicStatic(
+    po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
+    int nbVar, int sumSize, std::ostream &out)
     : m_s(s), m_om(dynamic_cast<SpecManagerCnf &>(om)) {
   m_nbVar = nbVar;
   m_nbClause = nbClause;
@@ -94,7 +93,7 @@ PartitioningHeuristicStatic::~PartitioningHeuristicStatic() {
 PartitioningHeuristicStatic *
 PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
     po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize, const std::string &type) {
+    int nbVar, int sumSize, const std::string &type, std::ostream &out) {
   std::string opt =
       vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
 
@@ -102,20 +101,20 @@ PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
 
   if (opt == "none")
     ret = new PartitioningHeuristicStaticNone(vm, s, om, nbClause, nbVar,
-                                              sumSize);
+                                              sumSize, out);
   else if (opt == "multi")
     ret = new PartitioningHeuristicStaticMulti(vm, s, om, nbClause, nbVar,
-                                               sumSize);
+                                               sumSize, out);
   else if (opt == "dual" || (opt == "natural" && type == "dual"))
     ret = new PartitioningHeuristicStaticSingleDual(vm, s, om, nbClause, nbVar,
-                                                    sumSize);
+                                                    sumSize, out);
   else if (opt == "primal" || (opt == "natural" && type == "primal"))
     ret = new PartitioningHeuristicStaticSinglePrimal(vm, s, om, nbClause,
-                                                      nbVar, sumSize);
+                                                      nbVar, sumSize, out);
   else
     throw(FactoryException("Cannot create a PartitioningHeuristic", __FILE__,
                            __LINE__));
-  ret->init();
+  ret->init(out);
   return ret;
 } // makePartitioningHeuristicStatic
 

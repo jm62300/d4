@@ -32,10 +32,10 @@ class PartitioningHeuristicBipartiteDual
     : public PartitioningHeuristicBipartite {
 public:
   PartitioningHeuristicBipartiteDual(po::variables_map &vm, WrapperSolver &s,
-                                     SpecManager &om);
+                                     SpecManager &om, std::ostream &out);
 
   PartitioningHeuristicBipartiteDual(po::variables_map &vm, WrapperSolver &s,
                                      SpecManager &om, int nbClause, int nbVar,
-                                     int sumSize);
+                                     int sumSize, std::ostream &out);
 };
 } // namespace d4

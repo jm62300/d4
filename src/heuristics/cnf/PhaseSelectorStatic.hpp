@@ -17,6 +17,7 @@
  */
 
 #include "PhaseSelectorManager.hpp"
+#include <ostream>
 
 namespace d4 {
 class PhaseSelectorStatic : public PhaseSelectorManager {
@@ -25,7 +26,7 @@ private:
 
 public:
   PhaseSelectorStatic(PartitioningHeuristicStaticSingle *staticPartitioner,
-                      unsigned limitPhase);
+                      unsigned limitPhase, std::ostream &out);
 
   bool isStillOk(std::vector<Var> &component);
 };

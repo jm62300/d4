@@ -17,6 +17,7 @@
  */
 #include <algorithm>
 #include <bitset>
+#include <ostream>
 
 #include "PartitioningHeuristicBipartiteDual.hpp"
 
@@ -28,11 +29,12 @@ namespace d4 {
    @param[in] _om, a structure manager.
 */
 PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
-    po::variables_map &vm, WrapperSolver &_s, SpecManager &_om)
+    po::variables_map &vm, WrapperSolver &_s, SpecManager &_om,
+    std::ostream &out)
     : PartitioningHeuristicBipartiteDual(
           vm, _s, _om, dynamic_cast<SpecManagerCnf &>(_om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(_om).getNbVariable(),
-          dynamic_cast<SpecManagerCnf &>(_om).getSumSizeClauses()) {
+          dynamic_cast<SpecManagerCnf &>(_om).getSumSizeClauses(), out) {
 } // constructor
 
 /**
@@ -43,18 +45,19 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
 */
 PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
     po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize)
-    : PartitioningHeuristicBipartite(vm, om, s, nbClause, nbVar, sumSize) {
+    int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicBipartite(vm, om, s, nbClause, nbVar, sumSize, out) {
   // initialize the vector.
   m_partition.resize(m_nbClause + 1, 0);
 
-  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize);
+  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize,
+                                             out);
   m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
 
   m_staticPartitioner =
       PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
-          vm, s, om, nbClause, nbVar, sumSize, "dual");
+          vm, s, om, nbClause, nbVar, sumSize, "dual", out);
 } // constructor
 
 } // namespace d4

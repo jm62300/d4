@@ -19,6 +19,7 @@
 
 #include "PartitioningHeuristicStatic.hpp"
 #include "PhaseSelectorManager.hpp"
+#include <ostream>
 
 namespace d4 {
 class PhaseSelectorManager;
@@ -107,11 +108,11 @@ protected:
 
 public:
   PartitioningHeuristicStaticSingle(po::variables_map &vm, WrapperSolver &s,
-                                    SpecManager &om);
+                                    SpecManager &om, std::ostream &out);
 
   PartitioningHeuristicStaticSingle(po::variables_map &vm, WrapperSolver &s,
                                     SpecManager &om, int nbClause, int nbVar,
-                                    int sumSize);
+                                    int sumSize, std::ostream &out);
 
   virtual ~PartitioningHeuristicStaticSingle();
 
@@ -123,7 +124,7 @@ public:
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 
   bool isStillOk(std::vector<Var> &component);
-  void init();
+  void init(std::ostream &out);
   DistribSize computeDistribSize(std::vector<Var> &component);
 
   inline void setIsInitialized(bool b) { m_isInitialized = b; }
