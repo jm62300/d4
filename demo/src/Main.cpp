@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "../../src/methods/MethodManager.hpp"
+#include "../../src/methods/Counter.hpp"
 #include <boost/program_options.hpp>
 #include <iostream>
 
@@ -24,6 +24,8 @@
 */
 int main(int argc, char **argv) {
   namespace po = boost::program_options;
+  namespace mpz = boost::multiprecision;
+
   po::options_description desc{"Options"};
   desc.add_options()
 #include "option.dsc"
@@ -40,7 +42,7 @@ int main(int argc, char **argv) {
   }
 
   // help or problem with the command line
-  if (vm.count("help") || !vm.count("input")) {
+  if (vm.count("help")) {
     if (!vm.count("help"))
       std::cout << "Some parameters are missing, please read the README\n";
     std::cout << "USAGE: " << argv[0] << " -i INPUT -m METH [OPTIONS]\n";
@@ -48,10 +50,37 @@ int main(int argc, char **argv) {
     exit(!vm.count("help"));
   }
 
-  d4::MethodManager *method =
-      d4::MethodManager::makeMethodManager(vm, std::cout);
-  method->run(vm);
-  delete method;
+  unsigned nbVar = 3;
+  d4::ProblemManagerCnf problem;
+  problem.setNbVar(nbVar);
 
+  std::vector<double> &weightLit = problem.getWeightLit();
+  std::vector<double> &weightVar = problem.getWeightVar();
+  weightLit.resize((nbVar + 1) << 1, 1);
+  weightVar.resize(nbVar + 1, 2);
+
+  std::vector<std::vector<d4::Lit>> &clauses = problem.getClauses();
+  clauses.push_back({d4::Lit::makeLitFalse(1), d4::Lit::makeLitTrue(2)});
+  clauses.push_back({d4::Lit::makeLitTrue(1), d4::Lit::makeLitTrue(3)});
+
+  problem.display(std::cout);
+
+  d4::LastBreathPreproc lastBreath;
+  d4::PreprocManager *preproc =
+      d4::PreprocManager::makePreprocManager(vm, std::cout);
+  d4::ProblemManager *preprocProblem = preproc->run(problem, lastBreath);
+
+  boost::multiprecision::mpf_float::default_precision(50);
+  d4::Counter<mpz::mpf_float> *method =
+      d4::Counter<mpz::mpf_float>::makeCounter(vm, preprocProblem, "counting",
+                                               true, 50, std::cout, lastBreath);
+
+  std::vector<d4::Var> setOfVar;
+  for (unsigned i = 1; i <= nbVar; i++)
+    setOfVar.push_back(i);
+
+  mpz::mpf_float v = method->count(setOfVar, std::cout);
+  std::cout << "s " << v << "\n";
+  delete method;
   return 0;
 } // main

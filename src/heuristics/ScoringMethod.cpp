@@ -38,7 +38,6 @@ ScoringMethod *ScoringMethod::makeScoringMethod(po::variables_map &vm,
                                                 SpecManager &p,
                                                 ActivityManager &am,
                                                 std::ostream &out) {
-  std::string in = vm["input"].as<std::string>();
   std::string inType = vm["input-type"].as<std::string>();
   std::string meth = vm["scoring-method"].as<std::string>();
 

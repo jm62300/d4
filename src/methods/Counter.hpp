@@ -76,7 +76,7 @@ public:
    */
   T count(std::vector<Var> &setOfVar, std::ostream &out) {
     std::vector<Lit> assum;
-    return count(assum, out);
+    return count(setOfVar, assum, out);
   }
 };
 } // namespace d4

@@ -34,7 +34,7 @@ protected:
   std::vector<Var> m_selected;
   std::vector<Var> m_maxVar;
   std::vector<Var> m_indVar;
-  bool m_isUnsat;
+  bool m_isUnsat = false;
 
 public:
   static ProblemManager *makeProblemManager(po::variables_map &vm,
