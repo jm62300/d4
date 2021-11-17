@@ -591,6 +591,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit> &out_conflict) {
 
   for (int i = trail.size() - 1; i >= trail_lim[0]; i--) {
     Var x = var(trail[i]);
+    scoreActivity[x]++;
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
         assert(level(x) > 0);

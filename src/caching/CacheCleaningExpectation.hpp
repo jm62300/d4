@@ -34,7 +34,7 @@ struct StatVarSizeCache {
 template <class T>
 class CacheCleaningExpectation : public CacheCleaningManager<T> {
 private:
-  const double INC_THRESHOD = 0.01;
+  const double INC_THRESHOD = 0.05;
   const double INIT_THRESHOD = 0;
 
   unsigned m_nbReduceCall;
@@ -106,14 +106,16 @@ public:
 
     for (int i = limit; i > m_cache->MIN_NBVAR_NOTCACHED; i--) {
       double ratio = 0;
-      if (m_statVar[i].negative)
+      if (m_statVar[i].negative) {
         ratio = ((double)m_statVar[i].positive / (double)m_statVar[i].negative);
 
-      if (ratio > m_threshold) {
-        if (m_statVar[i].positive)
-          m_statVar[i].positive--;
-        break;
+        // aging.
+        m_statVar[i].negative >>= 1;
+        m_statVar[i].positive >>= 1;
       }
+
+      if (ratio > m_threshold)
+        break;
 
       limit--;
     }
