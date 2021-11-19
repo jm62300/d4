@@ -98,7 +98,7 @@ Var Solver::newVar(bool sign, bool dvar) {
   assigns.push(l_Undef);
   vardata.push(mkVarData(CRef_Undef, 0));
   // activity .push(0);
-  scoreActivity.push(0);
+  scoreActivity.push(1);
   activity.push(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
   seen.push(0);
   polarity.push(sign);

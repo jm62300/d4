@@ -17,6 +17,7 @@
  */
 #pragma once
 #include <bits/stdint-uintn.h>
+#include <bitset>
 #include <cassert>
 #include <iostream>
 
@@ -31,7 +32,7 @@ class DataInfo {
 protected:
   // we reserve 64 bytes to store information in the cached bucket
   // We always at least have the following distribution:
-  // info1 => |free(12)|nbBitFormula(5)|nbBitVar(5)|nb var(21)|szData(21)|
+  // info1 => |free(12)|nbBitFormula(5)|nbBitVar(5)|szData(21)|nbVar(21)|
 public:
   uint64_t info1;
 
@@ -63,10 +64,9 @@ public:
   inline void reset() { info1 = 0; }
 
   template <typename U> void printData(void *data, int sz, std::ostream &out) {
-    U *p = static_cast<U *>(data);
+    char *p = (char *)data;
     for (int i = 0; i < sz; i++) {
-      out << (unsigned)*p << " ";
-      p++;
+      out << std::bitset<8>(p[i]) << " ";
     }
     out << "\n";
   } // printdata

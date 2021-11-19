@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#define SIZE_HASH 9999889
+#define SIZE_HASH 22041997
 
 #include <boost/program_options.hpp>
 #include <vector>
@@ -130,7 +130,8 @@ public:
   } // pushinhashtable
 
   inline unsigned computeHash(CachedBucket<T> &bucket) {
-    return hashMethod.hash(bucket.data, bucket.szData());
+    return hashMethod.hash(bucket.data, bucket.szData(), bucket.getInfo());
+    // return hashMethod.hash(bucket.data, bucket.szData());
   } // computeHash
 
   /**
@@ -146,8 +147,10 @@ public:
     if (cbi.nbVar() && cb.sameHeader(cbi) &&
         !memcmp(refData, cbi.data, cbi.szData())) {
       m_nbPositiveHit++;
+
       return &cbi;
     }
+
     m_nbNegativeHit++;
     return NULL;
   } // bucketAlreadyExist
@@ -176,6 +179,7 @@ public:
     CachedBucket<T> *formulaBucket =
         m_bucketManager->collectBucket(varConnected);
     unsigned hashValue = computeHash(*formulaBucket);
+
     CachedBucket<T> *cacheBucket =
         bucketAlreadyExist(*formulaBucket, hashValue);
 

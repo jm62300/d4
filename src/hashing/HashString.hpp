@@ -17,7 +17,9 @@
  */
 #pragma once
 
+#include <cstddef>
 #include <iostream>
+#include <sys/types.h>
 #include <typeinfo>
 
 namespace d4 {
@@ -25,6 +27,13 @@ class HashString {
 public:
   inline unsigned hash(char *key, unsigned len) {
     return std::_Hash_bytes(key, len, 29111983);
+  } // hash
+
+  inline unsigned hash(char *key, unsigned len, u_int64_t info) {
+    unsigned dataHash = std::_Hash_bytes(key, len, 29111983);
+    unsigned infoHash = std::_Hash_bytes(&info, sizeof(u_int64_t), 30011989);
+    return dataHash ^
+           (infoHash + 0x9e3779b9 + (dataHash << 6) + (dataHash >> 2));
   } // hash
 };
 } // namespace d4

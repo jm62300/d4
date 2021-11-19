@@ -544,8 +544,6 @@ public:
     initSortBucket(m_inConstruction);
     collectDistrib(component, m_inConstruction); // built the sorted formula
 
-    // get information about the clause distribution
-
     // ask for memory
     AllocSizeInfo sizeInfo = computeNeededBytes(component, m_inConstruction);
     char *data = m_bucketAllocator->getArray(sizeInfo.totalByte);

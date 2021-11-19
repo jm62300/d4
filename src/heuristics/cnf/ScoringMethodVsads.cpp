@@ -39,7 +39,7 @@ ScoringMethodVsads::ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a)
    @param[in] v, the variable we want the score.
  */
 double ScoringMethodVsads::computeScore(Var v) {
-  return activity.getCountConflict(v) * (double)om.getNbClause(v);
+  return activity.getCountConflict(v) + (double)(om.getNbClause(v) << 7);
 }
 
 } // namespace d4

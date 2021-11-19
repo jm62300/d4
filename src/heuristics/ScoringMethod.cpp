@@ -84,9 +84,10 @@ Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
     if (s.varIsAssigned(v) || !isDecisionVariable[v])
       continue;
 
-    if (ret == var_Undef || computeScore(v) > bestScore) {
+    double current = computeScore(v);
+    if (ret == var_Undef || current > bestScore) {
       ret = v;
-      bestScore = computeScore(v);
+      bestScore = current;
     }
   }
 
