@@ -19,6 +19,7 @@
 #pragma once
 #include "src/problem/ProblemTypes.hpp"
 #include <vector>
+#include "src/exceptions/BadBehaviourException.hpp"
 
 #include "DpllStyleMethod.hpp"
 #include "nnf/Node.hpp"
