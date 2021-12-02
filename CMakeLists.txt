@@ -7,6 +7,8 @@ add_custom_target(clean-cmake-files
    COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
 )
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_BUILD_TYPE Release)
 
