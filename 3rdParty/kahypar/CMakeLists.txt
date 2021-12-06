@@ -7,6 +7,8 @@ set(PROJECT_CONTACT "kahypar@sebastianschlag.de")
 set(PROJECT_URL "http://www.kahypar.org")
 set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 set(CMAKE_CXX_STANDARD 17)
 
 include(CTest)
