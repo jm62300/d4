@@ -18,8 +18,9 @@
 #include "src/exceptions/FactoryException.hpp"
 
 #include "PreprocManager.hpp"
-#include "cnf/PreprocBackbone.hpp"
-#include "cnf/PreprocBasic.hpp"
+#include "circuit/PreprocCnfFromCircuit.hpp"
+#include "cnf/PreprocBackboneCnf.hpp"
+#include "cnf/PreprocBasicCnf.hpp"
 
 namespace d4 {
 
@@ -31,13 +32,20 @@ namespace d4 {
 PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
                                                    std::ostream &out) {
   std::string meth = vm["preproc"].as<std::string>();
+  std::string inputType = vm["input-type"].as<std::string>();
 
-  out << "c [CONSTRUCTOR] Preproc: " << meth << "\n";
+  out << "c [CONSTRUCTOR] Preproc: " << meth << " " << inputType << "\n";
 
-  if (meth == "basic")
-    return new PreprocBasic(vm, out);
-  if (meth == "backbone")
-    return new PreprocBackbone(vm, out);
+  if (inputType == "cnf" || inputType == "dimacs") {
+    if (meth == "basic")
+      return new PreprocBasicCnf(vm, out);
+    if (meth == "backbone")
+      return new PreprocBackboneCnf(vm, out);
+  }
+
+  if (inputType == "circuit") {
+    return new PreprocCnfFromCircuit(vm, out);
+  }
 
   throw(FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
 } // makePreprocManager

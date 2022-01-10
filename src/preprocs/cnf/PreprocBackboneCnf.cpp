@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "PreprocBackbone.hpp"
+#include "PreprocBackboneCnf.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include <bits/types/clock_t.h>
 #include <ctime>
@@ -27,14 +27,15 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBackbone::PreprocBackbone(po::variables_map &vm, std::ostream &out) {
+PreprocBackboneCnf::PreprocBackboneCnf(po::variables_map &vm,
+                                       std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
 } // constructor
 
 /**
    Destructor.
  */
-PreprocBackbone::~PreprocBackbone() { delete ws; } // destructor
+PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; } // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -42,25 +43,25 @@ PreprocBackbone::~PreprocBackbone() { delete ws; } // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBackbone::run(ProblemManager &pin,
-                                     LastBreathPreproc &lastBreath) {
+ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
+                                        LastBreathPreproc &lastBreath) {
   // init the solver.
-  ws->initSolver(pin);
+  ws->initSolver(*pin);
   ws->setNeedModel(true);
   unsigned nbSatCalls = 1;
   unsigned nbFoundUnit = 0;
 
   if (!ws->solve())
-    return pin.getUnsatProblem();
+    return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
   ws->setReversePolarity(true);
 
   if (!lastBreath.panic) {
     // compute the backbone.
-    std::vector<bool> marked(pin.getNbVar() + 1, false);
+    std::vector<bool> marked(pin->getNbVar() + 1, false);
     std::vector<lbool> &model = ws->getModel();
 
-    for (unsigned i = 1; i <= pin.getNbVar(); i++) {
+    for (unsigned i = 1; i <= pin->getNbVar(); i++) {
       if (marked[i] || ws->varIsAssigned(i))
         continue;
 
@@ -85,8 +86,8 @@ ProblemManager *PreprocBackbone::run(ProblemManager &pin,
   }
 
   // get the activity given by the solver.
-  lastBreath.countConflict.resize(pin.getNbVar() + 1, 0);
-  for (unsigned i = 1; i <= pin.getNbVar(); i++)
+  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
+  for (unsigned i = 1; i <= pin->getNbVar(); i++)
     lastBreath.countConflict[i] = ws->getActivity(i);
 
   // the list of unit literals.
@@ -102,6 +103,6 @@ ProblemManager *PreprocBackbone::run(ProblemManager &pin,
   std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
             << lastBreath.panic << "\n";
 
-  return pin.getConditionedFormula(units);
+  return pin->getConditionedFormula(units);
 } // run
 } // namespace d4

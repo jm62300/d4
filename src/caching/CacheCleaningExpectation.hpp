@@ -87,6 +87,18 @@ public:
    * variables cannot be related to cb).
    */
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
+#if 0
+    static int cpt = 0;
+    cpt++;
+    if (!(cpt % 1000000)) {
+      for (unsigned i = 0; i < m_statVar.size(); i++) {
+        std::cout << i << "(" << m_statVar[i].positive << ","
+                  << m_statVar[i].negative << ")";
+      }
+      std::cout << "\n";
+    }
+#endif
+
     if (cb) {
       m_statVar[nbVar].positive++;
       m_nbPositiveHit++;

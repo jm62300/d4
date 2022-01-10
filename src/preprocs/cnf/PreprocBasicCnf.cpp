@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "PreprocBasic.hpp"
+#include "PreprocBasicCnf.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -26,14 +26,14 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBasic::PreprocBasic(po::variables_map &vm, std::ostream &out) {
+PreprocBasicCnf::PreprocBasicCnf(po::variables_map &vm, std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
 } // constructor
 
 /**
    Destructor.
  */
-PreprocBasic::~PreprocBasic() { delete ws; } // destructor
+PreprocBasicCnf::~PreprocBasicCnf() { delete ws; } // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -41,22 +41,22 @@ PreprocBasic::~PreprocBasic() { delete ws; } // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBasic::run(ProblemManager &pin,
-                                  LastBreathPreproc &lastBreath) {
-  ws->initSolver(pin);
+ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
+                                     LastBreathPreproc &lastBreath) {
+  ws->initSolver(*pin);
   lastBreath.panic = 0;
-  lastBreath.countConflict.resize(pin.getNbVar() + 1, 0);
+  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
 
   if (!ws->solve())
-    return pin.getUnsatProblem();
+    return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 
   // get the activity given by the solver.
-  for (unsigned i = 1; i <= pin.getNbVar(); i++)
+  for (unsigned i = 1; i <= pin->getNbVar(); i++)
     lastBreath.countConflict[i] = ws->getCountConflict(i);
 
   std::vector<Lit> units;
   ws->getUnits(units);
-  return pin.getConditionedFormula(units);
+  return pin->getConditionedFormula(units);
 } // run
 } // namespace d4

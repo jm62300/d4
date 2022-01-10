@@ -35,7 +35,7 @@ WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm,
 
   out << "c [CONSTRUCTOR] Solver: " << s << " " << inType << "\n";
 
-  if (inType == "cnf" || inType == "dimacs") {
+  if (inType == "cnf" || inType == "dimacs" || inType == "circuit") {
     if (s == "minisat")
       return new WrapperMinisat();
     if (s == "glucose")
@@ -58,7 +58,7 @@ WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm,
 
   out << "c [CONSTRUCTOR] Preproc solver: " << s << " " << inType << "\n";
 
-  if (inType == "cnf" || inType == "dimacs") {
+  if (inType == "cnf" || inType == "dimacs" || inType == "circuit") {
     if (s == "minisat")
       return new WrapperMinisat();
     if (s == "glucose")

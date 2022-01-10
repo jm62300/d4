@@ -183,7 +183,7 @@ ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
                                           LastBreathPreproc &lastBreath) {
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm, out);
   assert(preproc);
-  ProblemManager *problem = preproc->run(*initProblem, lastBreath);
+  ProblemManager *problem = preproc->run(initProblem, lastBreath);
   out << "c [MAIN PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
          "preprocessed formula\033[0m\n";
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");

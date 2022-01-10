@@ -16,30 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include <boost/program_options.hpp>
+
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <limits>
 #include <vector>
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "../ProblemTypes.hpp"
 #include "src/problem/ProblemManager.hpp"
-#include "src/problem/ProblemTypes.hpp"
+#include "src/problem/circuit/ProblemManagerCircuit.hpp"
+#include "src/utils/BufferRead.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
-struct LastBreathPreproc {
-  std::vector<double> countConflict;
-  bool panic;
+class ParserCircuit {
+private:
+  int parse_Circuit_main(BufferRead &in, ProblemManagerCircuit *problemManager);
 
-  inline void fitSizeCountConflict(unsigned size) {
-    countConflict.resize(size);
-  }
-};
-
-class PreprocManager {
 public:
-  static PreprocManager *makePreprocManager(po::variables_map &vm,
-                                            std::ostream &out);
-
-  virtual ~PreprocManager() {}
-  virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) = 0;
+  int parse_Circuit(std::string input_stream,
+                    ProblemManagerCircuit *problemManager);
 };
 } // namespace d4

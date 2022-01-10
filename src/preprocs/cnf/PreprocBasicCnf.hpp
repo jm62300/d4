@@ -26,14 +26,14 @@
 
 namespace d4 {
 namespace po = boost::program_options;
-class PreprocBackbone : public PreprocManager {
+class PreprocBasicCnf : public PreprocManager {
 private:
   WrapperSolver *ws;
 
 public:
-  PreprocBackbone(po::variables_map &vm, std::ostream &out);
-  ~PreprocBackbone();
-  ProblemManager *run(ProblemManager &pin,
-                      LastBreathPreproc &lastBreath) override;
+  PreprocBasicCnf(po::variables_map &vm, std::ostream &out);
+  ~PreprocBasicCnf();
+  virtual ProblemManager *run(ProblemManager *pin,
+                              LastBreathPreproc &lastBreath) override;
 };
 } // namespace d4

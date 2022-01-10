@@ -147,7 +147,6 @@ public:
     if (cbi.nbVar() && cb.sameHeader(cbi) &&
         !memcmp(refData, cbi.data, cbi.szData())) {
       m_nbPositiveHit++;
-
       return &cbi;
     }
 

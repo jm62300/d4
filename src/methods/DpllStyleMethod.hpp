@@ -108,6 +108,7 @@ public:
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(m_solver);
     m_panicMode = lastBreath.panic;
+
     m_solver->initSolver(*m_problem);
     m_solver->setCountConflict(lastBreath.countConflict, 1,
                                m_problem->getNbVar());

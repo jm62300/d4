@@ -16,30 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+
 #include <boost/program_options.hpp>
 #include <vector>
 
-#include "src/problem/ProblemManager.hpp"
+#include "../PreprocManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
-struct LastBreathPreproc {
-  std::vector<double> countConflict;
-  bool panic;
+class PreprocBackboneCnf : public PreprocManager {
+private:
+  WrapperSolver *ws;
 
-  inline void fitSizeCountConflict(unsigned size) {
-    countConflict.resize(size);
-  }
-};
-
-class PreprocManager {
 public:
-  static PreprocManager *makePreprocManager(po::variables_map &vm,
-                                            std::ostream &out);
-
-  virtual ~PreprocManager() {}
+  PreprocBackboneCnf(po::variables_map &vm, std::ostream &out);
+  ~PreprocBackboneCnf();
   virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) = 0;
+                              LastBreathPreproc &lastBreath) override;
 };
 } // namespace d4

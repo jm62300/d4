@@ -44,6 +44,14 @@ SpecManager *SpecManager::makeSpecManager(po::variables_map &vm,
     return NULL;
   }
 
+  if (inType == "circuit") {
+    out << "c Warning: only handle the case where the circuit is translated "
+           "into a CNF formula\n";
+    if (meth == "dynamic")
+      return new SpecManagerCnfDyn(p);
+    return NULL;
+  }
+
   throw(FactoryException("Cannot create a SpecManager", __FILE__, __LINE__));
 } // makeSpecManager
 

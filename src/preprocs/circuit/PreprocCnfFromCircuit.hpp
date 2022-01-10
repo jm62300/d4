@@ -22,18 +22,22 @@
 
 #include "../PreprocManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/problem/circuit/ProblemManagerCircuit.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
-class PreprocBasic : public PreprocManager {
+class PreprocCnfFromCircuit : public PreprocManager {
 private:
   WrapperSolver *ws;
 
+  ProblemManagerCnf *tseytin(ProblemManagerCircuit *circuit);
+
 public:
-  PreprocBasic(po::variables_map &vm, std::ostream &out);
-  ~PreprocBasic();
-  ProblemManager *run(ProblemManager &pin,
+  PreprocCnfFromCircuit(po::variables_map &vm, std::ostream &out);
+  ~PreprocCnfFromCircuit();
+  ProblemManager *run(ProblemManager *pin,
                       LastBreathPreproc &lastBreath) override;
 };
 } // namespace d4
