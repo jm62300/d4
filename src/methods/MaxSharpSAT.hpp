@@ -402,7 +402,7 @@ private:
                                                          freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
     bool wasUnderAnd = m_isUnderAnd;
-    m_isUnderAnd = nbComponent > 1;
+    m_isUnderAnd = wasUnderAnd || nbComponent > 1;
 
     // init the returned result.
     result.count = T(1);
