@@ -131,7 +131,7 @@ public:
       m_isDecisionVariable[v] = true;
     m_currentPrioritySet.resize(m_problem->getNbVar() + 1, false);
 
-    // select the partioner regarding if it projected model counting or not.
+    // select the partitioner regarding if it projected model counting or not.
     if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
       m_out << "c [MODE] projected\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);

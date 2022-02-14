@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#define SIZE_HASH 41997 // 22041997
+#define SIZE_HASH 22041997
 
 #include <boost/program_options.hpp>
 #include <vector>

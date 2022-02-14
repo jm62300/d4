@@ -21,6 +21,7 @@
 #include <boost/program_options.hpp>
 #include <ctime>
 #include <iomanip>
+#include <ios>
 #include <iostream>
 #include <sys/types.h>
 
@@ -70,6 +71,7 @@ private:
   unsigned m_optCached;
   unsigned m_stampIdx;
 
+  bool m_isUnderAnd = false;
   bool m_greedyInitActivated;
 
   std::vector<unsigned> m_stampVar;
@@ -80,6 +82,7 @@ private:
   std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
   T m_maxCount = T(0);
+  unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 18;
   std::vector<u_int8_t *> m_memoryPages;
@@ -214,7 +217,8 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_maxCount << "|\n";
+        << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC) << m_maxCount
+        << "|\n";
   } // showInter
 
   /**
@@ -349,7 +353,7 @@ private:
 
   /**
    * @brief Apply an or logic between resValuation and orValuation (the result
-   * is stroed in resValuation).
+   * is stored in resValuation).
    *
    * @param vars is the set of variables we are considering for the OR.
    * @param[out] resValuation is a 'boolean' vector that also receive the
@@ -397,6 +401,8 @@ private:
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
+    bool wasUnderAnd = m_isUnderAnd;
+    m_isUnderAnd = nbComponent > 1;
 
     // init the returned result.
     result.count = T(1);
@@ -414,7 +420,6 @@ private:
     std::vector<unsigned> distribution;
 
     // consider each connected component.
-    bool complete = true;
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
 
@@ -432,12 +437,15 @@ private:
           searchMaxSharpSatDecision(connected, out, tmpResult);
           m_cacheMax->addInCache(cb, tmpResult);
           result.count = result.count * tmpResult.count;
-          orOnMaxVar(connected, result.valuation, tmpResult.valuation);
+          if (tmpResult.valuation)
+            orOnMaxVar(connected, result.valuation, tmpResult.valuation);
         }
       }
     } // else we have a tautology
 
-    for (unsigned i = 0; i < m_sizeArray && complete; i++) {
+    m_isUnderAnd = wasUnderAnd;
+
+    for (unsigned i = 0; i < m_sizeArray; i++) {
       Lit l = Lit::makeLit(m_problem->getMaxVar()[i], false);
       if (m_specs->litIsAssigned(l))
         result.valuation[i] = m_specs->litIsAssignedToTrue(l);
@@ -468,8 +476,11 @@ private:
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
 
-      if (result.count > m_maxCount)
+      if (!m_isUnderAnd && result.count > m_maxCount) {
         m_maxCount = result.count;
+        out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
+            << std::scientific << m_maxCount << "\n";
+      }
       return;
     }
 
@@ -507,8 +518,12 @@ private:
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
 
     // update the global maxcount if needed.
-    if (result.count > m_maxCount)
+    if (!m_isUnderAnd && result.count > m_maxCount) {
       m_maxCount = result.count;
+      out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " ";
+      out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
+          << std::scientific << m_maxCount << "\n";
+    }
   } // searchMaxSharpSatDecision
 
   /**
