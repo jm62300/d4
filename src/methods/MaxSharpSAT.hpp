@@ -75,7 +75,7 @@ private:
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
 
-  std::vector<bool> m_isDecisionVarible;
+  std::vector<bool> m_isDecisionVariable;
   std::vector<bool> m_isProjectedVariable;
   std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
@@ -133,16 +133,16 @@ public:
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
-    m_isDecisionVarible.clear();
+    m_isDecisionVariable.clear();
     m_isMaxDecisionVariable.clear();
     m_isProjectedVariable.clear();
 
     m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
-    m_isDecisionVarible.resize(m_problem->getNbVar() + 1, false);
+    m_isDecisionVariable.resize(m_problem->getNbVar() + 1, false);
     m_isProjectedVariable.resize(m_problem->getNbVar() + 1, false);
     for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
       Var v = m_problem->getIndVar()[i];
-      m_isDecisionVarible[v] = true;
+      m_isDecisionVariable[v] = true;
       m_redirectionPos[v] = i;
       m_isProjectedVariable[v] = true;
     }
@@ -396,7 +396,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
-    expelNoDecisionVar(freeVariable, m_isDecisionVarible);
+    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
 
     // init the returned result.
     result.count = T(1);
@@ -444,7 +444,7 @@ private:
     }
 
     m_specs->postUpdate(unitsLit);
-    expelNoDecisionLit(unitsLit, m_isDecisionVarible);
+    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
   } // searchMaxValuation
 
   /**
@@ -537,7 +537,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
-    expelNoDecisionVar(freeVariable, m_isDecisionVarible);
+    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
 
     // consider each connected component.
     T result = T(1);
@@ -572,7 +572,7 @@ private:
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVarible);
+    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
 
     if (v == var_Undef)
       return T(1);
