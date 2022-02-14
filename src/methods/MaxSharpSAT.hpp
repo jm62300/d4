@@ -410,19 +410,30 @@ private:
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
 
+    // set a valuation for free variables.
+    T freeCount = T(1);
+    for (auto &v : freeVariable)
+      if (m_isMaxDecisionVariable[v]) {
+        Lit l = Lit::makeLitTrue(v);
+        if (m_problem->getWeightLit(l) > m_problem->getWeightLit(~l)) {
+          result.valuation[v] = 0;
+          freeCount *= T(m_problem->getWeightLit(l));
+        } else {
+          result.valuation[v] = 1;
+          freeCount *= T(m_problem->getWeightLit(~l));
+        }
+      }
+    result.count *= freeCount;
+
     // compute the set of projected variable that has became free.
     unsigned nbFreeProj = 0;
     for (auto v : freeVariable)
       if (m_isProjectedVariable[v])
         nbFreeProj++;
 
-    // compute the projected variable distribution.
-    std::vector<unsigned> distribution;
-
     // consider each connected component.
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
-
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
