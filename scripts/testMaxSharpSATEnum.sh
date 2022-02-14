@@ -14,9 +14,8 @@ cp $1 /tmp/bench.cnf
 $SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
-MODEL_COUNTER="../build/d4_debug -m counting -i"
-TESTED_METHOD="../build/d4_debug -m max#sat -i"
-
+MODEL_COUNTER="../build/d4_debug --float 1 -m counting -i"
+TESTED_METHOD="../build/d4_debug --float 1 -m max#sat -i"
 
 # get the max variables.
 maxVar=$(grep "c max" /tmp/bench.cnf | cut -d ' ' -f3- | awk 'NF{NF-=1};1')
@@ -27,6 +26,7 @@ indVar=$(grep "c ind" /tmp/bench.cnf | cut -d ' ' -f3-)
 # generate used projected formula
 fileTmp=$(mktemp)
 grep -v "^c " /tmp/bench.cnf > $fileTmp
+grep "weight" /tmp/bench.cnf >> $fileTmp
 echo "c p show $indVar" >> $fileTmp
 
 $TESTED_METHOD /tmp/bench.cnf 2>/dev/null  > /tmp/log.txt
@@ -41,8 +41,17 @@ do
 done
 $MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol3.txt
 
-diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
-if [ $? -ne 0 ]; then exit 1; fi
+val1=$(cat /tmp/sol2.txt)
+val2=$(cat /tmp/sol3.txt)
+absDiff=$(bc -l <<< "tmp = $val1 - $val2; if(tmp < 0) tmp = -tmp;print(tmp)")
+echo $absDiff
+
+if [ $(bc -l <<< "$absDiff < 0.000001") -ne 1 ]
+then 
+    rm $fileTmpCouter
+    echo "the given interpretion does not give the good number of models"
+    exit 1
+fi
 
 nbByte=$(echo $maxVar | wc -w)
 nbByte=$((nbByte - 1))
@@ -72,8 +81,8 @@ do
     fi
     
     # count.
-    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')            
-    if [ $c -gt $max ]; then max=$c; fi    
+    c=$($MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g')                
+    if [ $(bc <<< "$c > $max") -eq 1 ]; then max=$c; fi    
 
     # increase the counter.
     counter[0]=$((counter[0] + 1))    
@@ -96,5 +105,15 @@ echo $max > /tmp/sol1.txt
 rm $fileTmp
 rm $fileTmpCouter    
 
-diff  /tmp/sol2.txt /tmp/sol1.txt > /dev/null
-exit $?
+val1=$(cat /tmp/sol2.txt)
+val2=$(cat /tmp/sol1.txt)
+
+absDiff=$(bc -l <<< "tmp = $val1 - $val2; if(tmp < 0) tmp = -tmp;print(tmp)")
+if [ $(bc -l <<< "$absDiff < 0.000001") -ne 1 ]
+then 
+    rm $fileTmpCouter
+    echo "it exists a better model"
+    exit 1
+fi
+
+exit 0

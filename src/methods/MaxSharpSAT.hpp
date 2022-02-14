@@ -397,15 +397,10 @@ private:
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
-
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
-    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
-    bool wasUnderAnd = m_isUnderAnd;
-    m_isUnderAnd = wasUnderAnd || nbComponent > 1;
 
     // init the returned result.
-    result.count = T(1);
     result.valuation = getArray();
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
@@ -416,20 +411,23 @@ private:
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLitTrue(v);
         if (m_problem->getWeightLit(l) > m_problem->getWeightLit(~l)) {
-          result.valuation[v] = 0;
+          result.valuation[m_redirectionPos[v]] = 1;
           freeCount *= T(m_problem->getWeightLit(l));
         } else {
-          result.valuation[v] = 1;
+          result.valuation[m_redirectionPos[v]] = 0;
           freeCount *= T(m_problem->getWeightLit(~l));
         }
       }
-    result.count *= freeCount;
+    result.count = freeCount;
 
-    // compute the set of projected variable that has became free.
-    unsigned nbFreeProj = 0;
-    for (auto v : freeVariable)
-      if (m_isProjectedVariable[v])
-        nbFreeProj++;
+    // consider the unit literals that belong to max
+    for (auto &l : unitsLit)
+      if (m_isMaxDecisionVariable[l.var()])
+        result.count *= T(m_problem->getWeightLit(l));
+
+    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
+    bool wasUnderAnd = m_isUnderAnd;
+    m_isUnderAnd = wasUnderAnd || nbComponent > 1;
 
     // consider each connected component.
     if (nbComponent) {
@@ -506,6 +504,9 @@ private:
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
     searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
+    res[0].count = T(m_problem->getWeightLit(l));
+    res[1].count = T(m_problem->getWeightLit(~l));
+
     m_solver->popAssumption();
     b[0].d = res[0].count *
              m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
@@ -633,8 +634,8 @@ private:
   } // computeDecisionNode
 
   /**
-   * @brief Search for an interpretation that maximize the number of models in a
-   * greedy search.
+   * @brief Search for an interpretation that maximize the number of models in
+   * a greedy search.
    *
    * @param setOfVar is the set of variables we are considering.
    * @param out is the stream where is printed out the logs.
@@ -745,7 +746,8 @@ public:
       std::cout << ((result.valuation[i]) ? "" : "-")
                 << m_problem->getMaxVar()[i] << " ";
     std::cout << "0\n";
-    std::cout << "s " << result.count << "\n";
+    std::cout << "s " << std::fixed << std::setprecision(50) << result.count
+              << "\n";
   } // run
 };
 } // namespace d4
