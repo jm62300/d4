@@ -13,7 +13,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_BUILD_TYPE Release)
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # source/include files
@@ -59,7 +59,7 @@ elseif(${BUILD_MODE} EQUAL 2)
 
   add_executable(d4_static ${SRCS} ${HEADERS})
 
-  target_compile_options(d4_static PUBLIC -std=c++11 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D NDEBUG -static)
+  target_compile_options(d4_static PUBLIC -std=c++17 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D NDEBUG -static)
   target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a -D NDEBUG -static ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_static.a)
   
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_static
@@ -69,7 +69,7 @@ elseif(${BUILD_MODE} EQUAL 3)
   message("Library creation")
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++11 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D NDEBUG)
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -D NDEBUG)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a -D NDEBUG ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_standard.a)
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -80,7 +80,7 @@ else()
 add_executable(d4 ${SRCS} ${HEADERS})
 
 message("Classical mode activated")
-target_compile_options(d4 PUBLIC -std=c++11 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
+target_compile_options(d4 PUBLIC -std=c++17 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
 target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_standard.a)
 
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4

@@ -537,19 +537,12 @@ private:
       }
     }
 
-    /**
-        unsigned count = 0;
-        for (auto v : connected)
-          if (m_isProjectedVariable[v])
-            count++;
-        std::cout << "=> " << lower << "   " << count << "\n";
-        */
-
     // search the next variable to branch on
     Var v =
         m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVariable);
 
     if (v == var_Undef) {
+
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
       if (!countInd_(connected, unitsLit, freeVar, out, result.count, lower)) {
@@ -560,11 +553,10 @@ private:
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
 
-      // std::cout << "number of models " << lower << " " << result.count <<
-      // "\n";
-
-      if (result.count > m_maxCount)
+      if (result.count > m_maxCount) {
+        std::cout << "a) result.count = " << result.count << "\n";
         m_maxCount = result.count;
+      }
       return true;
     }
 
@@ -614,8 +606,10 @@ private:
       return false;
 
     // update the global maxcount if needed.
-    if (result.count > m_maxCount)
+    if (result.count > m_maxCount) {
+      std::cout << "b) result.count = " << result.count << "\n";
       m_maxCount = result.count;
+    }
 
     return true;
   } // searchMaxSharpSatDecision
@@ -658,14 +652,6 @@ private:
       if (m_isProjectedVariable[v])
         nbFreeProj++;
 
-    /*
-        unsigned count = 0;
-        for (auto v : reallyPresent)
-          if (m_isProjectedVariable[v])
-            count++;
-        std::cout << lower << " " << nbFreeProj << " " << count << " ~~ "
-                  << setOfVar.size() << "\n";
-    */
     std::vector<unsigned> distribution;
     unsigned nbRemainingProjVar = 0;
     if (m_cutActivatedProj) {
@@ -918,10 +904,10 @@ private:
 
 public:
   /**
-   * @brief Search for the instanciation of the variables of
+   * @brief Search for the instantiation of the variables of
    * m_problem->getMaxVar() that maximize the number of the remaining
    * variables where the variables not belonging to m_problem->getIndVar()
-   * are existantially quatified.
+   * are existantially quantified.
    *
    * @param[in] vm, the set of options.
    */
