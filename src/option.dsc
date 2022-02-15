@@ -2,6 +2,7 @@
 ("input,i", boost::program_options::value<std::string>(), "(required) Path to get the input file")
 ("input-type,it", boost::program_options::value<std::string>()->default_value("cnf"), "The input type")
 ("method,m", boost::program_options::value<std::string>(), "(required) The method we run (counting for model counting, ddnnf-compiler for decision DNNF compilation, projMC for a dedicated projected model counting, max#SAT for running a max#sat solver).")
+("maxsharpsat-threshold",boost::program_options::value<double>()->default_value(-1.0),"Search if we can find an assignment such that the number of weighted models is greater than a given threshold.")
 ("maxsharpsat-option-cut-max",boost::program_options::value<bool>()->default_value(true),"Try to cut the search space by considering lower and upper bounds in the max part.")
 ("maxsharpsat-option-cut-ind",boost::program_options::value<bool>()->default_value(true),"Try to cut the search space by considering lower and upper bounds in the projected part.")
 ("maxsharpsat-option-greedy-init",boost::program_options::value<bool>()->default_value(false),"Search for a first max interpretation greedily.")

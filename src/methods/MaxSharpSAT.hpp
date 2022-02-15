@@ -102,6 +102,9 @@ private:
   std::ostream m_out;
   bool m_panicMode;
 
+  double m_threshold = -1;
+  bool m_stopProcess = false;
+
 public:
   /**
      Constructor.
@@ -116,6 +119,9 @@ public:
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
+
+    m_threshold = vm["maxsharpsat-threshold"].as<double>();
+    m_out << "c [CONSTRUCTOR MAX#SAT] Threshold: " << m_threshold << "\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
@@ -201,6 +207,21 @@ public:
   } // destructor
 
 private:
+  /**
+   * @brief Print out the solution.
+   *
+   * @param solution is the maxsharp SAT solution we want to print.
+   */
+  void printSolution(MaxSharpSatResult &solution, char status) {
+    std::cout << "v ";
+    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++)
+      std::cout << ((solution.valuation[i]) ? "" : "-")
+                << m_problem->getMaxVar()[i] << " ";
+    std::cout << "0\n";
+    std::cout << status << " " << std::fixed << std::setprecision(50)
+              << solution.count << "\n";
+  } // printSolution
+
   /**
      Print out information about the solving process.
 
@@ -370,6 +391,24 @@ private:
   } // disjunctionOnMaxVariable
 
   /**
+   * @brief Update the bound if needed.
+   *
+   * @param result is a solution we found.
+   */
+  void updateBound(MaxSharpSatResult &result) {
+    if (!m_isUnderAnd && result.count > m_maxCount.count) {
+      m_maxCount = result;
+      if (m_maxCount.count < T(m_threshold))
+        m_out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
+              << std::scientific << m_maxCount.count << "\n";
+      else {
+        printSolution(m_maxCount, 't');
+        m_stopProcess = true;
+      }
+    }
+  } // updateBound
+
+  /**
    * @brief Search for a valuation of the max variables that maximizes the
    * number of models on the remaning formula where some variables are
    * forget.
@@ -384,6 +423,9 @@ private:
                           std::vector<Lit> &unitsLit,
                           std::vector<Var> &freeVariable, std::ostream &out,
                           MaxSharpSatResult &result) {
+    if (m_stopProcess)
+      return;
+
     showRun(out);
     m_nbCallCall++;
 
@@ -475,6 +517,9 @@ private:
    */
   void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
                                  MaxSharpSatResult &result) {
+    if (m_stopProcess)
+      return;
+
     // search the next variable to branch on
     Var v =
         m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVariable);
@@ -485,12 +530,7 @@ private:
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
-
-      if (!m_isUnderAnd && result.count > m_maxCount.count) {
-        m_maxCount = result;
-        out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
-            << std::scientific << m_maxCount.count << "\n";
-      }
+      updateBound(result);
       return;
     }
 
@@ -529,11 +569,7 @@ private:
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
 
     // update the global maxcount if needed.
-    if (!m_isUnderAnd && result.count > m_maxCount.count) {
-      m_maxCount = result;
-      out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
-          << std::scientific << m_maxCount.count << "\n";
-    }
+    updateBound(result);
   } // searchMaxSharpSatDecision
 
   /**
@@ -548,6 +584,9 @@ private:
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
               std::vector<Var> &freeVariable, std::ostream &out) {
+    if (m_stopProcess)
+      return T(0);
+
     showRun(out);
     m_nbCallProj++;
 
@@ -596,6 +635,9 @@ private:
    * \return the number of computed models.
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+    if (m_stopProcess)
+      return T(0);
+
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
 
@@ -719,7 +761,9 @@ private:
 
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
-    result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+    if (!m_stopProcess)
+      result.count *=
+          m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   } // compute
 
 public:
@@ -733,13 +777,7 @@ public:
       std::cout << "No solution found so far\n";
     else {
       std::cout << "Processus interrupted, here is the best solution found\n";
-      std::cout << "v ";
-      for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++)
-        std::cout << ((m_maxCount.valuation[i]) ? "" : "-")
-                  << m_problem->getMaxVar()[i] << " ";
-      std::cout << "0\n";
-      std::cout << "o " << std::fixed << std::setprecision(50)
-                << m_maxCount.count << "\n";
+      printSolution(m_maxCount, 'p');
     }
   } // interrupt
 
@@ -759,13 +797,8 @@ public:
     MaxSharpSatResult result;
     compute(setOfVar, m_out, result);
     printFinalStats(m_out);
-    std::cout << "v ";
-    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++)
-      std::cout << ((result.valuation[i]) ? "" : "-")
-                << m_problem->getMaxVar()[i] << " ";
-    std::cout << "0\n";
-    std::cout << "s " << std::fixed << std::setprecision(50) << result.count
-              << "\n";
+    if (!m_stopProcess)
+      printSolution(result, 's');
   } // run
 };
 } // namespace d4
