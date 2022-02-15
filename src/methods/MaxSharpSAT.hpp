@@ -19,6 +19,7 @@
 
 #include <bits/stdint-uintn.h>
 #include <boost/program_options.hpp>
+#include <cstddef>
 #include <ctime>
 #include <iomanip>
 #include <ios>
@@ -81,7 +82,7 @@ private:
   std::vector<bool> m_isProjectedVariable;
   std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
-  T m_maxCount = T(0);
+  MaxSharpSatResult m_maxCount = {T(0), NULL};
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 18;
@@ -217,8 +218,8 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC) << m_maxCount
-        << "|\n";
+        << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << m_maxCount.count << "|\n";
   } // showInter
 
   /**
@@ -405,11 +406,6 @@ private:
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
 
-#if 0
-    static int cpt = 0;
-    cpt++;
-    int current = cpt;
-#endif
     // set a valuation for free variables.
     T freeCount = T(1);
     for (auto &v : freeVariable)
@@ -422,9 +418,6 @@ private:
           result.valuation[m_redirectionPos[v]] = 0;
           freeCount *= T(m_problem->getWeightLit(~l));
         }
-#if 0
-        std::cout << current << " free " << l << " " << freeCount << "\n";
-#endif
       }
     result.count = freeCount;
 
@@ -432,13 +425,8 @@ private:
     for (auto &l : unitsLit)
       if (m_isMaxDecisionVariable[l.var()]) {
         result.count *= T(m_problem->getWeightLit(l));
-#if 0
-        std::cout << current << " unit " << l << " " << result.count << "\n";
-#endif
       }
-#if 0
-    std::cout << current << " next run\n";
-#endif
+
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
     bool wasUnderAnd = m_isUnderAnd;
     m_isUnderAnd = wasUnderAnd || nbComponent > 1;
@@ -451,10 +439,6 @@ private:
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
         if (cb.defined) {
-#if 0
-          std::cout << current << " defined" << result.count << " "
-                    << cb.getValue().count << "\n";
-#endif
           result.count = result.count * cb.getValue().count;
           if (cb.getValue().valuation)
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
@@ -462,19 +446,13 @@ private:
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
           m_cacheMax->addInCache(cb, tmpResult);
-#if 0
-          std::cout << current << " not defined " << result.count << " "
-                    << tmpResult.count << "\n";
-#endif
           result.count = result.count * tmpResult.count;
           if (tmpResult.valuation)
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
         }
       }
     } // else we have a tautology
-#if 0
-    std::cout << current << " ==> score " << result.count << "\n";
-#endif
+
     m_isUnderAnd = wasUnderAnd;
 
     for (unsigned i = 0; i < m_sizeArray; i++) {
@@ -508,10 +486,10 @@ private:
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
 
-      if (!m_isUnderAnd && result.count > m_maxCount) {
-        m_maxCount = result.count;
+      if (!m_isUnderAnd && result.count > m_maxCount.count) {
+        m_maxCount = result;
         out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
-            << std::scientific << m_maxCount << "\n";
+            << std::scientific << m_maxCount.count << "\n";
       }
       return;
     }
@@ -545,19 +523,16 @@ private:
 
     b[1].d = res[1].count *
              m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
-#if 0
-    std::cout << "in decision: " << res[0].count << " " << res[1].count << "\n";
-#endif
+
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
 
     // update the global maxcount if needed.
-    if (!m_isUnderAnd && result.count > m_maxCount) {
-      m_maxCount = result.count;
-      out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " ";
+    if (!m_isUnderAnd && result.count > m_maxCount.count) {
+      m_maxCount = result;
       out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
-          << std::scientific << m_maxCount << "\n";
+          << std::scientific << m_maxCount.count << "\n";
     }
   } // searchMaxSharpSatDecision
 
@@ -748,6 +723,26 @@ private:
   } // compute
 
 public:
+  /**
+   * @brief Stop the current search and print out the best solution found so
+   * far.
+   *
+   */
+  void interrupt() override {
+    if (m_maxCount.valuation == NULL)
+      std::cout << "No solution found so far\n";
+    else {
+      std::cout << "Processus interrupted, here is the best solution found\n";
+      std::cout << "v ";
+      for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++)
+        std::cout << ((m_maxCount.valuation[i]) ? "" : "-")
+                  << m_problem->getMaxVar()[i] << " ";
+      std::cout << "0\n";
+      std::cout << "o " << std::fixed << std::setprecision(50)
+                << m_maxCount.count << "\n";
+    }
+  } // interrupt
+
   /**
    * @brief Search for the instantiation of the variables of
    * m_problem->getMaxVar() that maximize the number of the remaining

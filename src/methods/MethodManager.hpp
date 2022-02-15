@@ -47,6 +47,7 @@ public:
                                     LastBreathPreproc &lastBreath);
 
   virtual void run(po::variables_map &vm) = 0;
+  virtual void interrupt() {}
 
   inline void initTimer() { currentTime = clock(); }
   inline float getTimer() {

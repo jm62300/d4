@@ -15,15 +15,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 #include <cassert>
 #include <iostream>
+#include <signal.h>
 #include <vector>
 
 #include "src/methods/MethodManager.hpp"
-#include <boost/multiprecision/gmp.hpp>
 
 #ifndef NOMAIN
+
+d4::MethodManager *methodRun = nullptr;
+
+/**
+ * @brief Catch the signal that ask for stopping the method which is running.
+ *
+ * @param signum is the signal.
+ */
+void signalHandler(int signum) {
+  std::cout << "c [MAIN] Method stop\n";
+  if (methodRun != nullptr)
+    methodRun->interrupt();
+  exit(signum);
+} // signalHandler
 
 /**
    The main function!
@@ -35,6 +50,7 @@ int main(int argc, char **argv) {
 #include "option.dsc"
       ;
 
+  signal(SIGINT, signalHandler);
   po::variables_map vm;
   po::store(parse_command_line(argc, argv, desc), vm);
 
@@ -54,10 +70,10 @@ int main(int argc, char **argv) {
     exit(!vm.count("help"));
   }
 
-  d4::MethodManager *method =
-      d4::MethodManager::makeMethodManager(vm, std::cout);
-  method->run(vm);
-  delete method;
+  methodRun = d4::MethodManager::makeMethodManager(vm, std::cout);
+  methodRun->run(vm);
+  delete methodRun;
+  methodRun = nullptr;
 
   return 0;
 } // main
