@@ -8,8 +8,7 @@ SOLVER="$ROOT_PATH/minisat"
 
 cp $1 /tmp/bench.cnf
 
-#grep "^c " /tmp/1test.cnf > /tmp/bench.cnf
-#grep -v "^c " $1 >> /tmp/bench.cnf
+#grep "c " /tmp/1test.cnf >> /tmp/bench.cnf
 
 $SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
@@ -27,7 +26,7 @@ indVar=$(grep "c ind" /tmp/bench.cnf | cut -d ' ' -f3-)
 fileTmp=$(mktemp)
 grep -v "^c " /tmp/bench.cnf > $fileTmp
 grep "weight" /tmp/bench.cnf >> $fileTmp
-echo "c p show $indVar" >> $fileTmp
+echo "c p show $maxVar $indVar" >> $fileTmp
 
 $TESTED_METHOD /tmp/bench.cnf 2>/dev/null  > /tmp/log.txt
 cat /tmp/log.txt | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
@@ -41,10 +40,14 @@ do
 done
 $MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol3.txt
 
+#cat $fileTmpCouter
+#cat /tmp/sol3.txt
+#cat /tmp/sol2.txt
+
 val1=$(cat /tmp/sol2.txt)
 val2=$(cat /tmp/sol3.txt)
 absDiff=$(bc -l <<< "tmp = $val1 - $val2; if(tmp < 0) tmp = -tmp;print(tmp)")
-echo $absDiff
+#echo $absDiff
 
 if [ $(bc -l <<< "$absDiff < 0.000001") -ne 1 ]
 then 

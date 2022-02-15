@@ -405,6 +405,11 @@ private:
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
 
+#if 0
+    static int cpt = 0;
+    cpt++;
+    int current = cpt;
+#endif
     // set a valuation for free variables.
     T freeCount = T(1);
     for (auto &v : freeVariable)
@@ -417,14 +422,23 @@ private:
           result.valuation[m_redirectionPos[v]] = 0;
           freeCount *= T(m_problem->getWeightLit(~l));
         }
+#if 0
+        std::cout << current << " free " << l << " " << freeCount << "\n";
+#endif
       }
     result.count = freeCount;
 
     // consider the unit literals that belong to max
     for (auto &l : unitsLit)
-      if (m_isMaxDecisionVariable[l.var()])
+      if (m_isMaxDecisionVariable[l.var()]) {
         result.count *= T(m_problem->getWeightLit(l));
-
+#if 0
+        std::cout << current << " unit " << l << " " << result.count << "\n";
+#endif
+      }
+#if 0
+    std::cout << current << " next run\n";
+#endif
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
     bool wasUnderAnd = m_isUnderAnd;
     m_isUnderAnd = wasUnderAnd || nbComponent > 1;
@@ -437,21 +451,30 @@ private:
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
         if (cb.defined) {
+#if 0
+          std::cout << current << " defined" << result.count << " "
+                    << cb.getValue().count << "\n";
+#endif
           result.count = result.count * cb.getValue().count;
-
           if (cb.getValue().valuation)
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
           m_cacheMax->addInCache(cb, tmpResult);
+#if 0
+          std::cout << current << " not defined " << result.count << " "
+                    << tmpResult.count << "\n";
+#endif
           result.count = result.count * tmpResult.count;
           if (tmpResult.valuation)
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
         }
       }
     } // else we have a tautology
-
+#if 0
+    std::cout << current << " ==> score " << result.count << "\n";
+#endif
     m_isUnderAnd = wasUnderAnd;
 
     for (unsigned i = 0; i < m_sizeArray; i++) {
@@ -504,8 +527,6 @@ private:
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
     searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
-    res[0].count = T(m_problem->getWeightLit(l));
-    res[1].count = T(m_problem->getWeightLit(~l));
 
     m_solver->popAssumption();
     b[0].d = res[0].count *
@@ -524,7 +545,9 @@ private:
 
     b[1].d = res[1].count *
              m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
-
+#if 0
+    std::cout << "in decision: " << res[0].count << " " << res[1].count << "\n";
+#endif
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;

@@ -38,7 +38,7 @@ generateSatisfiableCNF()
             s=$(seq 1 $nbVar | shuf)
             r=$((nbVar / 3))
             echo "c max $(echo $s | cut -d ' ' -f1-$r) 0" > /tmp/test.cnf
-            echo "c ind $(echo $s | cut -d ' ' -f$((r+1))-$((2*r))) 0" >> /tmp/test.cnf
+            echo "c ind $(echo $s | cut -d ' ' -f$((r+1))-) 0" >> /tmp/test.cnf
 
             # add weight.
             for i in $(seq 1 $nbVar)
