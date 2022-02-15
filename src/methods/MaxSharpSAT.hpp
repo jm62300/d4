@@ -691,47 +691,23 @@ private:
     }
 
     // collect the model.
-    std::vector<Lit> model;
+    unsigned cpt = 0;
     for (auto v : setOfVar)
-      if (m_isMaxDecisionVariable[v])
-        model.push_back(Lit::makeLit(v, m_solver->getModelVar(v) == l_False));
-
-    // compute the number of projected model.
-    m_solver->restart();
-    m_solver->setAssumption(model);
-
-    DataBranch<T> b;
-    searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
-    result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
-
-    // try to improve.
-    bool wasImproved = true;
-    while (wasImproved) {
-      wasImproved = false;
-      for (auto &l : model) {
-        l = ~l;
-        m_solver->resetAssumption();
-        m_solver->setAssumption(model);
-
-        b.unitLits.clear();
-        b.freeVars.clear();
-
-        MaxSharpSatResult tres;
-        searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, tres);
-        tres.count *=
-            m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
-
-        if (tres.count > result.count) {
-          result = tres;
-          wasImproved = true;
-        } else
-          l = ~l;
+      if (m_isMaxDecisionVariable[v]) {
+        Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
+        m_solver->pushAssumption(l);
+        cpt++;
       }
-    }
 
-    m_solver->resetAssumption();
-    m_solver->restart();
-    std::cout << "c Greedy search done: " << result.count << "\n";
+    m_solver->propagateAssumption();
+
+    std::vector<Lit> unitsLit;
+    std::vector<Var> freeVariable;
+    searchMaxValuation(setOfVar, unitsLit, freeVariable, out, result);
+    if (!m_stopProcess)
+      result.count *=
+          m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
+    m_solver->popAssumption(cpt);
   } // greedySearch
 
   /**
@@ -753,11 +729,12 @@ private:
       return;
     }
 
-    MaxSharpSatResult greedyResult;
-    if (m_greedyInitActivated)
+    if (m_greedyInitActivated) {
+      MaxSharpSatResult greedyResult;
       greedySearch(setOfVar, out, greedyResult);
-    else
-      greedyResult.count = T(0);
+      m_maxCount = greedyResult;
+      std::cout << "c Greedy search done: " << greedyResult.count << "\n";
+    }
 
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
@@ -777,7 +754,7 @@ public:
       std::cout << "No solution found so far\n";
     else {
       std::cout << "Processus interrupted, here is the best solution found\n";
-      printSolution(m_maxCount, 'p');
+      printSolution(m_maxCount, 'k');
     }
   } // interrupt
 
