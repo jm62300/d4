@@ -197,6 +197,26 @@ private:
   } // expelNoDesionVar
 
   /**
+     Expel from a set of variables the ones they are marked as being decidable.
+
+     @param[out] lits, the set of literals we search to filter.
+
+     @param[in] isDecisionvariable, a boolean vector that marks as true decision
+     variables.
+   */
+  void expelNoDesionLit(std::vector<Lit> &lits,
+                        std::vector<bool> &isDecisionVariable) {
+    if (!m_isProjectedMode)
+      return;
+
+    unsigned j = 0;
+    for (unsigned i = 0; i < lits.size(); i++)
+      if (isDecisionVariable[lits[i].var()])
+        lits[j++] = lits[i];
+    lits.resize(j);
+  } // expelNoDesionLit
+
+  /**
      Compute the current priority set.
 
      @param[in] connected, the current component.
@@ -337,8 +357,6 @@ private:
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
-    // if (m_nbDecisionNode > 10000000)
-    // exit(0);
 
     if (!m_solver->solve(setOfVar))
       return m_operation->manageBottom();
@@ -351,6 +369,7 @@ private:
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDesionVar(freeVariable, m_isDecisionVariable);
+    expelNoDesionLit(unitsLit, m_isDecisionVariable);
 
     // consider each connected component.
     if (nbComponent) {

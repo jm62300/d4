@@ -56,6 +56,7 @@ public:
   inline std::vector<double> &getWeightVar() { return m_weightVar; }
 
   inline double getWeightLit(Lit l) { return m_weightLit[l.intern()]; }
+  inline double getWeightVar(Var v) { return m_weightVar[v]; }
 
   inline unsigned getNbSelectedVar() { return m_selected.size(); }
   inline bool isUnsat() { return m_isUnsat; }

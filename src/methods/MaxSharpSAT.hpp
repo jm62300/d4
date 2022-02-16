@@ -25,6 +25,7 @@
 #include <ios>
 #include <iostream>
 #include <sys/types.h>
+#include <vector>
 
 #include "src/caching/Cache.hpp"
 #include "src/caching/CachedBucket.hpp"
@@ -57,6 +58,13 @@ template <class T> class MaxSharpSAT : public MethodManager {
 
     MaxSharpSatResult() : count(T(0)), valuation(NULL) {}
     MaxSharpSatResult(const T c, u_int8_t *v) : count(c), valuation(v) {}
+
+    void display(unsigned size) {
+      assert(valuation);
+      for (unsigned i = 0; i < size; i++)
+        std::cout << (int)valuation[i] << " ";
+      std::cout << "\n";
+    }
   };
 
 private:
@@ -82,7 +90,6 @@ private:
   std::vector<bool> m_isProjectedVariable;
   std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
-  MaxSharpSatResult m_maxCount = {T(0), NULL};
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 18;
@@ -104,6 +111,10 @@ private:
 
   double m_threshold = -1;
   bool m_stopProcess = false;
+  bool m_andDig = false;
+
+  MaxSharpSatResult m_scale = {T(1), NULL};
+  MaxSharpSatResult m_maxCount = {T(0), NULL};
 
 public:
   /**
@@ -122,6 +133,9 @@ public:
 
     m_threshold = vm["maxsharpsat-threshold"].as<double>();
     m_out << "c [CONSTRUCTOR MAX#SAT] Threshold: " << m_threshold << "\n";
+    m_andDig = vm["maxsharpsat-option-and-dig"].as<bool>();
+    m_out << "c [CONSTRUCTOR MAX#SAT] Dig for a partial solution under an AND: "
+          << m_andDig << "\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
@@ -188,6 +202,12 @@ public:
     m_memoryPages.push_back(new u_int8_t[c_sizePage]);
     m_posInMemoryPages = 0;
     m_sizeArray = m_problem->getMaxVar().size();
+
+    // set the m_scale variable if needed.
+    m_scale.valuation = getArray();
+    for (unsigned i = 0; i < m_sizeArray; i++)
+      m_scale.valuation[i] = 0;
+    m_maxCount.valuation = getArray();
   } // constructor
 
   /**
@@ -214,6 +234,7 @@ private:
    */
   void printSolution(MaxSharpSatResult &solution, char status) {
     assert(solution.valuation);
+    assert(m_problem->getMaxVar().size() == m_sizeArray);
     std::cout << "v ";
     for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
       std::cout << ((solution.valuation[i]) ? "" : "-")
@@ -266,7 +287,7 @@ private:
     separator(out);
     out << "c "
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(p)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
@@ -396,15 +417,32 @@ private:
    * @brief Update the bound if needed.
    *
    * @param result is a solution we found.
+   * @param vars is the set of variables of the component that is considered to
+   * compute result.
    */
-  void updateBound(MaxSharpSatResult &result) {
-    if (!m_isUnderAnd && result.count > m_maxCount.count) {
-      m_maxCount = result;
-      if (m_threshold < 0 || m_maxCount.count < T(m_threshold))
-        m_out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
-              << std::scientific << m_maxCount.count << "\n";
-      else {
-        printSolution(m_maxCount, 't');
+  void updateBound(MaxSharpSatResult &result, std::vector<Var> &vars) {
+    if (!m_isUnderAnd && result.count * m_scale.count > m_maxCount.count) {
+      m_maxCount.count = result.count * m_scale.count;
+
+      assert(result.valuation);
+      std::cout << std::fixed << result.count << " " << m_scale.count << " "
+                << m_maxCount.count << "\n";
+
+      for (unsigned i = 0; i < m_sizeArray; i++)
+        m_maxCount.valuation[i] = m_scale.valuation[i];
+
+      for (auto v : vars)
+        if (m_isMaxDecisionVariable[v])
+          m_maxCount.valuation[m_redirectionPos[v]] =
+              result.valuation[m_redirectionPos[v]];
+
+      if (m_threshold < 0 || m_maxCount.count < T(m_threshold)) {
+        m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
+              << getTimer() << " " << m_maxCount.count << "\n";
+      } else {
+        m_out << "c Stop because we found out a good enough solution\n";
+        m_out << "r SATISFIABLE\n";
+        printSolution(m_maxCount, 's');
         m_stopProcess = true;
       }
     }
@@ -450,30 +488,50 @@ private:
     for (unsigned i = 0; i < m_sizeArray; i++)
       result.valuation[i] = 0;
 
-    // set a valuation for free variables.
-    T freeCount = T(1);
+    // set a valuation for fixed variables.
+    T saveCount = m_scale.count;
+    T fixCount = T(1), fixInd = T(1);
+
     for (auto &v : freeVariable)
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLitTrue(v);
-        if (m_problem->getWeightLit(l) > m_problem->getWeightLit(~l)) {
-          result.valuation[m_redirectionPos[v]] = 1;
-          freeCount *= T(m_problem->getWeightLit(l));
-        } else {
-          result.valuation[m_redirectionPos[v]] = 0;
-          freeCount *= T(m_problem->getWeightLit(~l));
-        }
-      }
-    result.count = freeCount;
+        if (m_problem->getWeightLit(l) < m_problem->getWeightLit(~l))
+          l = ~l;
+
+        m_scale.valuation[m_redirectionPos[v]] = 1 - l.sign();
+        result.valuation[m_redirectionPos[v]] = 1 - l.sign();
+        fixCount *= T(m_problem->getWeightLit(l));
+      } else if (m_isDecisionVariable[v])
+        fixInd *= T(m_problem->getWeightVar(v));
 
     // consider the unit literals that belong to max
     for (auto &l : unitsLit)
       if (m_isMaxDecisionVariable[l.var()]) {
-        result.count *= T(m_problem->getWeightLit(l));
-      }
+        fixCount *= T(m_problem->getWeightLit(l));
+        m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
+        result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
+      } else if (m_isDecisionVariable[l.var()])
+        fixInd *= T(m_problem->getWeightLit(l));
+
+    result.count = fixCount;
+    m_scale.count = m_scale.count * fixCount * fixInd;
 
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
     bool wasUnderAnd = m_isUnderAnd;
-    m_isUnderAnd = wasUnderAnd || nbComponent > 1;
+
+    // dig for an assignment for each component (execpt the first one).
+    std::vector<MaxSharpSatResult> andCount;
+    if (!m_andDig)
+      m_isUnderAnd = wasUnderAnd || nbComponent > 1;
+    else {
+      for (int cp = 1; cp < nbComponent; cp++) {
+        andCount.push_back({T(0), NULL});
+        greedySearch(varConnected[cp], out, andCount.back());
+        orOnMaxVar(varConnected[cp], m_scale.valuation,
+                   andCount.back().valuation);
+        m_scale.count *= andCount.back().count;
+      }
+    }
 
     // consider each connected component.
     if (nbComponent) {
@@ -487,26 +545,38 @@ private:
           if (cb.getValue().valuation)
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
+          if (m_andDig && cp > 0)
+            m_scale.count = m_scale.count / andCount[cp - 1].count;
+
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
           m_cacheMax->addInCache(cb, tmpResult);
           result.count = result.count * tmpResult.count;
-          if (tmpResult.valuation)
+          if (tmpResult.valuation) {
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
+            if (nbComponent > 1 && m_andDig) {
+              for (auto &v : connected)
+                if (m_isMaxDecisionVariable[v])
+                  m_scale.valuation[m_redirectionPos[v]] =
+                      result.valuation[m_redirectionPos[v]];
+            }
+          }
+          if (nbComponent > 1 && m_andDig)
+            m_scale.count = m_scale.count * tmpResult.count;
         }
       }
     } // else we have a tautology
 
     m_isUnderAnd = wasUnderAnd;
-
-    for (unsigned i = 0; i < m_sizeArray; i++) {
-      Lit l = Lit::makeLit(m_problem->getMaxVar()[i], false);
-      if (m_specs->litIsAssigned(l))
-        result.valuation[i] = m_specs->litIsAssignedToTrue(l);
-    }
+    m_scale.count = saveCount;
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+
+    // update the global maxcount if needed.
+    m_scale.count *= fixInd;
+    updateBound(result, setOfVar);
+    m_scale.count = saveCount;
   } // searchMaxValuation
 
   /**
@@ -532,7 +602,6 @@ private:
       result.count = countInd_(connected, unitsLit, freeVar, out);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
-      updateBound(result);
       return;
     }
 
@@ -569,9 +638,6 @@ private:
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
-
-    // update the global maxcount if needed.
-    updateBound(result);
   } // searchMaxSharpSatDecision
 
   /**
@@ -693,21 +759,32 @@ private:
     }
 
     // collect the model.
-    unsigned cpt = 0;
-    for (auto v : setOfVar)
+    T multiply = T(1);
+    result.valuation = getArray();
+
+    std::vector<Var> vars = setOfVar;
+    unsigned cpt = 0, j = 0;
+    for (unsigned i = 0; i < vars.size(); i++) {
+      Var v = vars[i];
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
         m_solver->pushAssumption(l);
+        multiply *= T(m_problem->getWeightLit(l));
+        result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         cpt++;
-      }
+      } else
+        vars[j++] = vars[i];
+    }
+    vars.resize(j);
 
     m_solver->propagateAssumption();
 
     std::vector<Lit> unitsLit;
     std::vector<Var> freeVariable;
-    searchMaxValuation(setOfVar, unitsLit, freeVariable, out, result);
+    result.count = countInd_(vars, unitsLit, freeVariable, out);
     if (!m_stopProcess)
-      result.count *=
+      result.count =
+          result.count * multiply *
           m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
     m_solver->popAssumption(cpt);
   } // greedySearch
@@ -734,16 +811,20 @@ private:
     if (m_greedyInitActivated) {
       MaxSharpSatResult greedyResult;
       greedySearch(setOfVar, out, greedyResult);
-      m_maxCount = greedyResult;
+      updateBound(greedyResult, setOfVar);
       std::cout << "c Greedy search done: " << greedyResult.count << "\n";
     }
 
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
     assert(result.valuation);
-    if (!m_stopProcess)
+    if (!m_stopProcess) {
       result.count *=
           m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+      std::cout << std::fixed << std::setprecision(50) << result.count << " "
+                << m_maxCount.count << "\n";
+      assert(abs(result.count - m_maxCount.count) < T(0.00000001));
+    }
   } // compute
 
 public:
@@ -753,7 +834,7 @@ public:
    *
    */
   void interrupt() override {
-    if (m_maxCount.valuation == NULL)
+    if (m_maxCount.count < 0)
       std::cout << "No solution found so far\n";
     else {
       std::cout << "Processus interrupted, here is the best solution found\n";
@@ -777,8 +858,20 @@ public:
     MaxSharpSatResult result;
     compute(setOfVar, m_out, result);
     printFinalStats(m_out);
-    if (!m_stopProcess)
-      printSolution(result, 's');
+    if (!m_stopProcess) {
+      if (m_threshold < 0)
+        printSolution(result, 'o');
+      else {
+        if (result.count >= T(m_threshold)) {
+          std::cout << "r SATISFIABLE\n";
+          printSolution(result, 's');
+        } else {
+          std::cout << "r UNSATISFIABLE\n";
+          printSolution(result, 'o');
+        }
+      }
+    }
   } // run
-};
+
+}; // end class
 } // namespace d4
