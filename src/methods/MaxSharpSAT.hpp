@@ -367,10 +367,12 @@ private:
   } // expelNoDecisionVar
 
   /**
-   * Expel from a set of variables the ones they are marked as being decidable.
-   * @param[out] vars, the set of variables we search to filter.
-   * @param[in] isDecisionvariable, a type decision vector that marks as true
-   * decision variables.
+     Expel from a set of variables the ones they are marked as being decidable.
+
+     @param[out] lits, the set of literals we search to filter.
+
+     @param[in] isDecisionvariable, a boolean vector that marks as true decision
+     variables.
    */
   void expelNoDecisionLit(std::vector<Lit> &lits,
                           std::vector<bool> &isDecisionVariable) {
@@ -517,6 +519,7 @@ private:
     m_scale.count = m_scale.count * fixCount * fixInd;
 
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
+    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
     bool wasUnderAnd = m_isUnderAnd;
 
     // dig for an assignment for each component (execpt the first one).

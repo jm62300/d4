@@ -184,8 +184,8 @@ private:
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDesionVar(std::vector<Var> &vars,
-                        std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionVar(std::vector<Var> &vars,
+                          std::vector<bool> &isDecisionVariable) {
     if (!m_isProjectedMode)
       return;
 
@@ -194,7 +194,7 @@ private:
       if (isDecisionVariable[vars[i]])
         vars[j++] = vars[i];
     vars.resize(j);
-  } // expelNoDesionVar
+  } // expelNoDecisionVar
 
   /**
      Expel from a set of variables the ones they are marked as being decidable.
@@ -204,8 +204,8 @@ private:
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDesionLit(std::vector<Lit> &lits,
-                        std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionLit(std::vector<Lit> &lits,
+                          std::vector<bool> &isDecisionVariable) {
     if (!m_isProjectedMode)
       return;
 
@@ -214,7 +214,7 @@ private:
       if (isDecisionVariable[lits[i].var()])
         lits[j++] = lits[i];
     lits.resize(j);
-  } // expelNoDesionLit
+  } // expelNoDecisionLit
 
   /**
      Compute the current priority set.
@@ -368,8 +368,8 @@ private:
     std::vector<std::vector<Var>> varConnected;
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
-    expelNoDesionVar(freeVariable, m_isDecisionVariable);
-    expelNoDesionLit(unitsLit, m_isDecisionVariable);
+    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
+    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
 
     // consider each connected component.
     if (nbComponent) {
