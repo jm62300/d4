@@ -29,7 +29,7 @@ grep "weight" /tmp/bench.cnf >> $fileTmp
 echo "c p show $maxVar $indVar" >> $fileTmp
 
 $TESTED_METHOD /tmp/bench.cnf 2>/dev/null  > /tmp/log.txt
-cat /tmp/log.txt | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
+cat /tmp/log.txt | grep "^o " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
 
 valuation=$(grep "^v " /tmp/log.txt | cut -d ' ' -f2- | awk 'NF{NF-=1};1')
 fileTmpCouter=$(mktemp)
@@ -39,10 +39,6 @@ do
     echo "$v 0" >> $fileTmpCouter
 done
 $MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol3.txt
-
-#cat $fileTmpCouter
-#cat /tmp/sol3.txt
-#cat /tmp/sol2.txt
 
 val1=$(cat /tmp/sol2.txt)
 val2=$(cat /tmp/sol3.txt)

@@ -360,7 +360,7 @@ private:
   void expelNoDecisionVar(std::vector<Var> &vars) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
-      if (m_isDecisionVariable[vars[i]] || m_isMaxDecisionVariable[vars[i]])
+      if (m_isDecisionVariable[vars[i]])
         vars[j++] = vars[i];
     vars.resize(j);
   } // expelNoDecisionVar
@@ -376,8 +376,7 @@ private:
   void expelNoDecisionLit(std::vector<Lit> &lits) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
-      if (m_isDecisionVariable[lits[i].var()] ||
-          m_isMaxDecisionVariable[lits[i].var()])
+      if (m_isDecisionVariable[lits[i].var()])
         lits[j++] = lits[i];
     lits.resize(j);
   } // expelNoDecisionLit
@@ -535,35 +534,40 @@ private:
     }
 
     // consider each connected component.
+    T mustMultiply = T(1);
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
+        // should divide if we are under an AND and if we manage the option.
+        if (m_andDig && cp > 0)
+          m_scale.count = m_scale.count / andCount[cp - 1].count;
+
         if (cb.defined) {
-          result.count = result.count * cb.getValue().count;
+          mustMultiply = cb.getValue().count;
           if (cb.getValue().valuation)
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
-          if (m_andDig && cp > 0)
-            m_scale.count = m_scale.count / andCount[cp - 1].count;
-
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
           m_cacheMax->addInCache(cb, tmpResult);
-          result.count = result.count * tmpResult.count;
-          if (tmpResult.valuation) {
+          mustMultiply = tmpResult.count;
+          if (tmpResult.valuation)
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
-            if (nbComponent > 1 && m_andDig) {
-              for (auto &v : connected)
-                if (m_isMaxDecisionVariable[v])
-                  m_scale.valuation[m_redirectionPos[v]] =
-                      result.valuation[m_redirectionPos[v]];
-            }
-          }
-          if (nbComponent > 1 && m_andDig)
-            m_scale.count = m_scale.count * tmpResult.count;
+        }
+
+        result.count = result.count * mustMultiply;
+
+        // should multiply if we are under an AND and if we manage the option.
+        if (nbComponent > 1 && m_andDig) {
+          m_scale.count = m_scale.count * mustMultiply;
+
+          for (auto &v : connected)
+            if (m_isMaxDecisionVariable[v])
+              m_scale.valuation[m_redirectionPos[v]] =
+                  result.valuation[m_redirectionPos[v]];
         }
       }
     } // else we have a tautology
@@ -692,6 +696,7 @@ private:
     } // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
+    expelNoDecisionLit(unitsLit);
     return result;
   } // countInd_
 
