@@ -213,10 +213,12 @@ private:
    * @param solution is the maxsharp SAT solution we want to print.
    */
   void printSolution(MaxSharpSatResult &solution, char status) {
+    assert(solution.valuation);
     std::cout << "v ";
-    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++)
+    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
       std::cout << ((solution.valuation[i]) ? "" : "-")
                 << m_problem->getMaxVar()[i] << " ";
+    }
     std::cout << "0\n";
     std::cout << status << " " << std::fixed << std::setprecision(50)
               << solution.count << "\n";
@@ -398,7 +400,7 @@ private:
   void updateBound(MaxSharpSatResult &result) {
     if (!m_isUnderAnd && result.count > m_maxCount.count) {
       m_maxCount = result;
-      if (m_maxCount.count < T(m_threshold))
+      if (m_threshold < 0 || m_maxCount.count < T(m_threshold))
         m_out << "o " << ++m_countUpdateMaxCount << " " << getTimer() << " "
               << std::scientific << m_maxCount.count << "\n";
       else {
@@ -738,6 +740,7 @@ private:
 
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
+    assert(result.valuation);
     if (!m_stopProcess)
       result.count *=
           m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
