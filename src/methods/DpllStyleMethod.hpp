@@ -369,7 +369,6 @@ private:
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
-    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
 
     // consider each connected component.
     if (nbComponent) {
@@ -401,6 +400,8 @@ private:
     } // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
+    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+
     return m_operation->createTop();
   } // compute_
 

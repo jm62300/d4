@@ -357,11 +357,10 @@ private:
    * @param[in] isDecisionvariable, a type decision vector that marks as true
    * decision variables.
    */
-  void expelNoDecisionVar(std::vector<Var> &vars,
-                          std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionVar(std::vector<Var> &vars) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
-      if (isDecisionVariable[vars[i]])
+      if (m_isDecisionVariable[vars[i]] || m_isMaxDecisionVariable[vars[i]])
         vars[j++] = vars[i];
     vars.resize(j);
   } // expelNoDecisionVar
@@ -374,11 +373,11 @@ private:
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDecisionLit(std::vector<Lit> &lits,
-                          std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionLit(std::vector<Lit> &lits) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
-      if (isDecisionVariable[lits[i].var()])
+      if (m_isDecisionVariable[lits[i].var()] ||
+          m_isMaxDecisionVariable[lits[i].var()])
         lits[j++] = lits[i];
     lits.resize(j);
   } // expelNoDecisionLit
@@ -518,8 +517,7 @@ private:
     result.count = fixCount;
     m_scale.count = m_scale.count * fixCount * fixInd;
 
-    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
-    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+    expelNoDecisionVar(freeVariable);
     bool wasUnderAnd = m_isUnderAnd;
 
     // dig for an assignment for each component (execpt the first one).
@@ -574,7 +572,7 @@ private:
     m_scale.count = saveCount;
 
     m_specs->postUpdate(unitsLit);
-    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+    expelNoDecisionLit(unitsLit);
 
     // update the global maxcount if needed.
     m_scale.count *= fixInd;
@@ -672,7 +670,7 @@ private:
 
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
-    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
+    expelNoDecisionVar(freeVariable);
 
     // consider each connected component.
     T result = T(1);
