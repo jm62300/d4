@@ -641,7 +641,7 @@ private:
       return;
     }
 
-    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    Lit l = Lit::makeLit(v, selectPhase(v));
     m_nbDecisionNode++;
 
     // consider the two value for l
