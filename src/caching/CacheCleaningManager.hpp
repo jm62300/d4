@@ -26,7 +26,7 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-template <class T> class Cache;
+template <class T> class CacheList;
 namespace po = boost::program_options;
 
 template <class T> class CacheCleaningManager {

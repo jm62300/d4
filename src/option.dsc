@@ -3,6 +3,8 @@
 ("input-type,it", boost::program_options::value<std::string>()->default_value("cnf"), "The input type")
 ("method,m", boost::program_options::value<std::string>(), "(required) The method we run (counting for model counting, ddnnf-compiler for decision DNNF compilation, projMC for a dedicated projected model counting, max#SAT for running a max#sat solver).")
 ("maxsharpsat-threshold",boost::program_options::value<double>()->default_value(-1.0),"Search if we can find an assignment such that the number of weighted models is greater than a given threshold.")
+("maxsharpsat-heuristic-phase",boost::program_options::value<std::string>()->default_value("best"),"The heuristic used to select the phase for the MAX variables (none (use the counter heuristic, weight (test first the literal with the great weight) or best (choose as in the best solution found so far))).")
+("maxsharpsat-heuristic-phase-random",boost::program_options::value<unsigned>()->default_value(5),"That is the percentage of random choice for the phase selection.")
 ("maxsharpsat-option-and-dig",boost::program_options::value<bool>()->default_value(true),"When a decomposable AND node occurs we search for an instantiation to be able to get a bound.")
 ("maxsharpsat-option-greedy-init",boost::program_options::value<bool>()->default_value(false),"Search for a first max interpretation greedily.")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")

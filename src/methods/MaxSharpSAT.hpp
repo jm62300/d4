@@ -20,10 +20,12 @@
 #include <bits/stdint-uintn.h>
 #include <boost/program_options.hpp>
 #include <cstddef>
+#include <cstdlib>
 #include <ctime>
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <string>
 #include <sys/types.h>
 #include <vector>
 
@@ -112,6 +114,8 @@ private:
   double m_threshold = -1;
   bool m_stopProcess = false;
   bool m_andDig = false;
+  std::string m_heuristicMax = "none";
+  unsigned m_heuristicMaxRdm = 0;
 
   MaxSharpSatResult m_scale = {T(1), NULL};
   MaxSharpSatResult m_maxCount = {T(0), NULL};
@@ -131,6 +135,12 @@ public:
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
+    m_heuristicMax = vm["maxsharpsat-heuristic-phase"].as<std::string>();
+    m_out << "c [CONSTRUCTOR MAX#SAT] Heuristic on MAX variables: "
+          << m_heuristicMax << "\n";
+    m_heuristicMaxRdm = vm["maxsharpsat-heuristic-phase-random"].as<unsigned>();
+    m_out << "c [CONSTRUCTOR MAX#SAT] Use random on MAX variables: "
+          << m_heuristicMaxRdm << "\n";
     m_threshold = vm["maxsharpsat-threshold"].as<double>();
     m_out << "c [CONSTRUCTOR MAX#SAT] Threshold: " << m_threshold << "\n";
     m_andDig = vm["maxsharpsat-option-and-dig"].as<bool>();
@@ -426,9 +436,6 @@ private:
       m_maxCount.count = result.count * m_scale.count;
 
       assert(result.valuation);
-      std::cout << std::fixed << result.count << " " << m_scale.count << " "
-                << m_maxCount.count << "\n";
-
       for (unsigned i = 0; i < m_sizeArray; i++)
         m_maxCount.valuation[i] = m_scale.valuation[i];
 
@@ -439,7 +446,9 @@ private:
 
       if (m_threshold < 0 || m_maxCount.count < T(m_threshold)) {
         m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
-              << getTimer() << " " << m_maxCount.count << "\n";
+              << std::setprecision(2) << getTimer() << " ";
+        m_out << std::fixed << std::setprecision(50) << m_maxCount.count
+              << "\n";
       } else {
         m_out << "c Stop because we found out a good enough solution\n";
         m_out << "r SATISFIABLE\n";
@@ -584,6 +593,27 @@ private:
     updateBound(result, setOfVar);
     m_scale.count = saveCount;
   } // searchMaxValuation
+
+  /**
+   * @brief Given the selected heuristic, return the way we want to assign the
+   * given variable (actually we want the sign).
+   *
+   * @param v is the variable we want to assign.
+   * @return 1 if we want to assign to false, 0 otherwise/
+   */
+  inline bool selectPhase(Var v) {
+    assert(m_isMaxDecisionVariable[v]);
+    int rdm = rand() % 100;
+    if (rdm <= m_heuristicMaxRdm)
+      return rdm & 1;
+
+    if (m_heuristicMax == "weight")
+      return m_problem->getWeightLit(Lit::makeLitTrue(v)) <
+             m_problem->getWeightLit(Lit::makeLitFalse(v));
+    if (m_scale.count > 0 && m_heuristicMax == "best")
+      return m_scale.valuation[m_redirectionPos[v]];
+    return m_hPhase->selectPhase(v);
+  } // selectPhase
 
   /**
    * This function select a variable and compile a decision node.
