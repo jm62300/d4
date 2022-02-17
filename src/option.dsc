@@ -31,7 +31,7 @@
 ("cache-limit-number-variable", boost::program_options::value<unsigned>()->default_value(100000), "The number of variables threshold used to decide if the cache is used or not.")
 ("cache-limit-ratio", boost::program_options::value<double>()->default_value(0), "For the dynamic limit, posHit/negHit < ratio.")
 ("cache-activated", boost::program_options::value<bool>()->default_value(true), "Activate or not the cache.")
-("cache-method", boost::program_options::value<std::string>()->default_value("no-collision"), "The way the collision are handled (no-collision or list).")
+("cache-method", boost::program_options::value<std::string>()->default_value("list"), "The way the collision are handled (no-collision or list).")
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(false), "Consider or not the reverse of the current phase.")
 ("float-precision,fp", boost::program_options::value<int>()->default_value(128), "The precision for the float.")
 ("float,f", boost::program_options::value<bool>()->default_value(false), "If the count is computed as a float or not.")
