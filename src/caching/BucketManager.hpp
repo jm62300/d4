@@ -25,6 +25,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "src/caching/CacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/SpecManager.hpp"
@@ -50,7 +51,7 @@ template <class T> class BucketManager {
 protected:
   BucketAllocator *m_bucketAllocator;
   CachedBucket<T> m_bucket;
-  Cache<T> *m_cache; // the cache linked with this BucketManager.
+  CacheManager<T> *m_cache; // the cache linked with this BucketManager.
 
 public:
   virtual ~BucketManager() {
@@ -59,7 +60,8 @@ public:
   } // destructor
 
   static BucketManager<T> *makeBucketManager(po::variables_map &vm,
-                                             Cache<T> *cache, SpecManager &s,
+                                             CacheManager<T> *cache,
+                                             SpecManager &s,
                                              std::ostream &out) {
     std::string css = vm["cache-store-strategy"].as<std::string>();
     std::string ccr = vm["cache-clause-representation"].as<std::string>();

@@ -24,7 +24,7 @@
 #include <iostream>
 #include <sys/types.h>
 
-#include "src/caching/Cache.hpp"
+#include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
@@ -85,8 +85,8 @@ private:
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
 
-  Cache<T> *m_cacheInd;
-  Cache<MinSharpSatResult> *m_cacheMax;
+  CacheManager<T> *m_cacheInd;
+  CacheManager<MinSharpSatResult> *m_cacheMax;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -146,9 +146,10 @@ public:
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
-    m_cacheInd = new Cache<T>(vm, m_problem->getNbVar(), m_specs, m_out);
-    m_cacheMax =
-        new Cache<MinSharpSatResult>(vm, m_problem->getNbVar(), m_specs, m_out);
+    m_cacheInd = CacheManager<T>::makeCacheManager(vm, m_problem->getNbVar(),
+                                                   m_specs, m_out);
+    m_cacheMax = CacheManager<MinSharpSatResult>::makeCacheManager(
+        vm, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();

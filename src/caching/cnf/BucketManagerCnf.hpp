@@ -31,23 +31,19 @@
 
 namespace d4 {
 template <class T> class BucketManager;
-template <class T> class Cache;
-template <class T> class BucketManagerCnf;
+template <class T> class CacheManager;
 
 template <class T> class BucketManagerCnf : public BucketManager<T> {
 protected:
-  SpecManagerCnf &specManager;
+  SpecManagerCnf &m_specManager;
 
-  ModeStore modeStore;
-  unsigned nbClauseCnf;
-  unsigned nbVarCnf;
+  ModeStore m_modeStore;
+  unsigned m_nbClauseCnf;
+  unsigned m_nbVarCnf;
   unsigned m_maxSizeClause;
 
   std::vector<bool> m_varInComponent;
   std::vector<int> m_idxClauses;
-
-  using BucketManager<T>::m_cache;
-  using BucketManager<T>::m_bucketAllocator;
 
 public:
   /**
@@ -61,22 +57,22 @@ public:
      pages.
      @param[in] bucketAllocator, a bucket allocator.
   */
-  BucketManagerCnf(SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
-                   unsigned long sizeFirstPage,
+  BucketManagerCnf(SpecManagerCnf &occM, CacheManager<T> *cache,
+                   ModeStore mdStore, unsigned long sizeFirstPage,
                    unsigned long sizeAdditionalPage,
                    BucketAllocator *bucketAllocator)
-      : specManager(occM) {
+      : m_specManager(occM) {
     this->m_cache = cache;
     this->m_bucketAllocator = bucketAllocator;
-    modeStore = mdStore;
-    nbClauseCnf = occM.getNbClause();
-    nbVarCnf = occM.getNbVariable();
+    m_modeStore = mdStore;
+    m_nbClauseCnf = occM.getNbClause();
+    m_nbVarCnf = occM.getNbVariable();
     m_maxSizeClause = occM.getMaxSizeClause();
-    m_varInComponent.resize(nbVarCnf, false);
+    m_varInComponent.resize(m_nbVarCnf, false);
 
-    m_bucketAllocator->init(
+    this->m_bucketAllocator->init(
         sizeFirstPage, sizeAdditionalPage, [this](char *data, int posInHash) {
-          CachedBucket<T> &v = m_cache->getHashTable()[posInHash];
+          CachedBucket<T> &v = this->m_cache->getHashTable()[posInHash];
           v.getDataInfo().info1 = 0;
         });
   } // BucketManager
@@ -94,11 +90,11 @@ public:
      \return true if the clause is kept, false otherwise.
    */
   bool isKeptClause(int idx) {
-    switch (modeStore) {
+    switch (m_modeStore) {
     case NT:
-      return specManager.getNbUnsat(idx);
+      return m_specManager.getNbUnsat(idx);
     case NB:
-      return specManager.getClause(idx).size() > 2;
+      return m_specManager.getClause(idx).size() > 2;
     default:
       return true;
     }
@@ -115,10 +111,10 @@ public:
                               std::vector<unsigned> &idxClauses) {
     // collect the clauses
     idxClauses.resize(0);
-    if (modeStore == ALL)
-      specManager.getCurrentClauses(idxClauses, component);
+    if (m_modeStore == ALL)
+      m_specManager.getCurrentClauses(idxClauses, component);
     else
-      specManager.getCurrentClausesNotBin(idxClauses, component);
+      m_specManager.getCurrentClausesNotBin(idxClauses, component);
 
     unsigned i, j;
     for (i = j = 0; i < idxClauses.size(); i++) {

@@ -17,8 +17,6 @@
  */
 #pragma once
 
-#define SIZE_HASH 41997 // 22041997
-
 #include <boost/program_options.hpp>
 #include <vector>
 
@@ -30,16 +28,17 @@
 #include "CachedBucket.hpp"
 #include "TmpEntry.hpp"
 
+#include "CacheNoCollision.hpp"
+
 namespace d4 {
 namespace po = boost::program_options;
 
 template <class T> class CacheCleaningManager;
 template <class T> class BucketManager;
 
-template <class T> class Cache {
-protected:
+template <class T> class CacheManager {
+public:
   bool verb;
-  std::vector<CachedBucket<T>> hashTable;
 
   // statistics
   unsigned long m_nbEntry = 0;
@@ -57,53 +56,72 @@ protected:
 
   std::ostream m_out;
   HashString hashMethod;
+
+  const unsigned int MAX_NBVAR_CACHED = 100000;
+  const unsigned int MIN_NBVAR_NOTCACHED = 100;
+
   BucketManager<T> *m_bucketManager;
   CacheCleaningManager<T> *m_cacheCleaningManager;
 
-public:
-  unsigned int MAX_NBVAR_CACHED = 100000;
-  unsigned int MIN_NBVAR_NOTCACHED = 100;
-
-  Cache(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
-        std::ostream &out)
+  /**
+   * @brief Construct a new Cache Manager object
+   *
+   * @param vm is a map to get the option.
+   * @param nbVar is the number of variables.
+   * @param specs is a structure to get data about the formula.
+   * @param out is the stream where are printed out the logs.
+   */
+  CacheManager(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
+               std::ostream &out)
       : m_out(nullptr) {
-    // init the output stream
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
-    nbRemoveEntry = sumAffectedHitCache = 0;
-    verb = 0;
+    verb = nbRemoveEntry = sumAffectedHitCache = 0;
     m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
 
-    initHashTable(nbVar);
     m_cacheCleaningManager =
         CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, nbVar, out);
     m_bucketManager =
         BucketManager<T>::makeBucketManager(vm, this, *specs, out);
-  } // Cache
+  } // constructor
 
-  ~Cache() {
-    hashTable.clear();
+  /**
+   * @brief Destroy the Cache Manager object
+   */
+  virtual ~CacheManager() {
     delete m_cacheCleaningManager;
     delete m_bucketManager;
-  }
+  } // destructor
+
+  static CacheManager<T> *makeCacheManager(po::variables_map &vm,
+                                           unsigned nbVar, SpecManager *specs,
+                                           std::ostream &out) {
+    return new CacheNoCollision<T>(vm, nbVar, specs, out);
+  } // makeCacheManager
+
+  virtual void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
+                               T val) = 0;
+  virtual CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb,
+                                              unsigned hashValue) = 0;
+  virtual void initHashTable(unsigned maxVar) = 0;
+  virtual std::vector<CachedBucket<T>> &getHashTable() = 0;
+  virtual void releaseMemory(char *data, int size) = 0;
+  virtual unsigned long int usedMemory() = 0;
 
   inline unsigned getLimitVarCached() { return m_limitVarCached; }
   inline void setLimitVarCache(unsigned val) { m_limitVarCached = val; }
   inline bool isActivated(unsigned nbVar) { return nbVar <= m_limitVarCached; }
   inline unsigned long int nbCreationBucket() { return m_nbCreationBucket; }
   inline unsigned long int sumDataSize() { return m_sumDataSize; }
-  inline unsigned long int usedMemory() {
-    return m_bucketManager->usedMemory();
-  }
+
   inline unsigned long int getNbPositiveHit() { return m_nbPositiveHit; }
   inline unsigned long int getNbNegativeHit() { return m_nbNegativeHit; }
   inline unsigned long getNbEntry() { return m_nbEntry; }
   inline void decrementNbEntry() { m_nbEntry--; }
   inline BucketManager<T> *getBucketManager() { return m_bucketManager; }
-  inline std::vector<CachedBucket<T>> &getHashTable() { return hashTable; }
 
   inline void printCacheInformation(std::ostream &out) {
     out << "c \033[1m\033[34mCache Information\033[0m\n";
@@ -113,62 +131,35 @@ public:
     out << "c\n";
   } // printCacheInformation
 
-  inline void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
-                              T val) {
-    CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
-
-    // remove the previous entry if needed.
-    if (cbi.nbVar())
-      m_bucketManager->releaseMemory(cbi.data, cbi.szData());
-
-    cbi = cb;
-    cbi.lockedBucket(val);
-    m_nbCreationBucket++;
-    m_sumDataSize += cb.szData();
-    m_cacheCleaningManager->initCountCachedBucket(&cbi);
-    m_nbEntry++;
-  } // pushinhashtable
-
+  /**
+   * @brief Compute the hash value of an entry.
+   *
+   * @param bucket is the entry we want to compute the hash.
+   * @return the value.
+   */
   inline unsigned computeHash(CachedBucket<T> &bucket) {
     return hashMethod.hash(bucket.data, bucket.szData(), bucket.getInfo());
-    // return hashMethod.hash(bucket.data, bucket.szData());
   } // computeHash
 
   /**
-     Research in the set of buckets if the bucket pointed by i already exist.
-     @param[in] idx, the index of the researched bucket
-     \return the index of the identical bucket if this one exists, NULL
-     otherwise
-  */
-  CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned hashValue) {
-    char *refData = cb.data;
-
-    CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
-    if (cbi.nbVar() && cb.sameHeader(cbi) &&
-        !memcmp(refData, cbi.data, cbi.szData())) {
-      m_nbPositiveHit++;
-      return &cbi;
-    }
-
-    m_nbNegativeHit++;
-    return NULL;
-  } // bucketAlreadyExist
-
-  /**
-     Add an entry in the cache.
-  */
+   * @brief Add an entry in the cache structure.
+   *
+   * @param cb
+   * @param val
+   */
   void addInCache(TmpEntry<T> &cb, T val) {
     pushInHashTable(cb.e, cb.hashValue, val);
   } // addInCache
 
   /**
-     Take a bucket manager as well as a set of variables consisting in the
-     variables in the current component and search in the cache if the related
-     formula is present in the cache, if it is not the case the bucket is
-     created and added.
-
-     @param[in] varConnected, the variable
-  */
+   * @brief Take a bucket manager (in attribute) as well as a set of variables
+   * consisting in the variables in the current component and search in the
+   * cache if the related formula is present in the cache, if it is not the case
+   * the bucket is created and added.
+   *
+   * @param varConnected is the set of variables.
+   * @return TmpEntry<T>
+   */
   TmpEntry<T> searchInCache(std::vector<Var> &varConnected) {
     if (m_bucketManager->getComsumedMemory()) {
       m_cacheCleaningManager->reduceCache();
@@ -202,39 +193,15 @@ public:
   } // releaseMemory
 
   /**
-     Create a bucket and store it in the cache.
-
-     @param[in] varConnected, the variable
-     @param[in] c, the value we want to store
-  */
-  inline void createAndStoreBucket(std::vector<Var> &varConnected, T &c) {
-    CachedBucket<T> *formulaBucket =
-        m_bucketManager->collectBuckect(varConnected);
-    unsigned int hashValue = computeHash(*formulaBucket);
-    pushInHashTable(*formulaBucket, hashValue, c);
-  } // createAndStoreBucket
-
-  /**
-     Set the information concerning the number of clauses, variables
-     and the maximum size of the clauses (these information are useful
-     to know the size of the memory blocks we have to allocate).
-
-     @param[in] mVar, the number of variables
-  */
+   * @brief Set the information concerning the number of clauses, variables and
+   * the maximum size of the clauses (these information are useful to know the
+   * size of the memory blocks we have to allocate).
+   *
+   * @param mVar is the number of variable.
+   */
   void setInfoFormula(unsigned mVar) {
     minAffectedHitCache = mVar;
     nbInitVar = mVar;
   } // setInfoFormula
-
-  /**
-     Initialized the hashTable
-  */
-  void initHashTable(unsigned maxVar) {
-    setInfoFormula(maxVar);
-
-    // init hash tables
-    hashTable.clear();
-    hashTable.resize(SIZE_HASH);
-  } // initHashTable
 };
 } // namespace d4

@@ -21,7 +21,7 @@
 
 namespace d4 {
 template <class T> class CacheCleaningManager;
-template <class T> class Cache;
+template <class T> class CacheManager;
 template <class T> class CacheCleaningNone : public CacheCleaningManager<T> {
 public:
   /**
@@ -29,7 +29,9 @@ public:
 
      @param[in] cache, the cache where is applied the cleaning process.
    */
-  CacheCleaningNone(Cache<T> *cache) { this->m_cache = cache; } // constructor
+  CacheCleaningNone(CacheManager<T> *cache) {
+    this->m_cache = cache;
+  } // constructor
 
   void initCountCachedBucket(CachedBucket<T> *cb) {} // nothing to do.
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {

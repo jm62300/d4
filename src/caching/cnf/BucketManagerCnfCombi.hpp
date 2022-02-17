@@ -48,18 +48,6 @@ private:
   BucketInConstruction m_inConstruction;
   unsigned *m_offsetClauses;
 
-  // using: variables
-  using BucketManagerCnf<T>::specManager;
-  using BucketManagerCnf<T>::nbClauseCnf;
-  using BucketManagerCnf<T>::nbVarCnf;
-  using BucketManagerCnf<T>::m_maxSizeClause;
-  using BucketManagerCnf<T>::m_idxClauses;
-  using BucketManagerCnf<T>::modeStore;
-  using BucketManagerCnf<T>::m_bucketAllocator;
-
-  // using: functions
-  using BucketManagerCnf<T>::isKeptClause;
-
   BucketManagerCnfCl<T> *clBucketManagerBis;
   BucketManagerCnfCl<T> *clBucketManager;
   BucketManagerCnfIndex<T> *indexBucketManager;
@@ -86,7 +74,7 @@ public:
      allocation.
   */
   BucketManagerCnfCombi(
-      SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
+      SpecManagerCnf &occM, CacheManager<T> *cache, ModeStore mdStore,
       unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
       unsigned limitNbVarSym, unsigned limitNbVarIndex,
       BucketAllocator *bucketAllocator = new BucketAllocator())
@@ -96,23 +84,23 @@ public:
         m_inConstruction(occM) {
     clBucketManager =
         new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
-                                  sizeAdditionalPage, m_bucketAllocator);
+                                  sizeAdditionalPage, this->m_bucketAllocator);
 
     clBucketManagerBis =
         new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
-                                  sizeAdditionalPage, m_bucketAllocator);
+                                  sizeAdditionalPage, this->m_bucketAllocator);
 
     symBucketManager =
         new BucketManagerCnfSym<T>(occM, cache, mdStore, sizeFirstPage,
-                                   sizeAdditionalPage, m_bucketAllocator);
+                                   sizeAdditionalPage, this->m_bucketAllocator);
 
-    indexBucketManager =
-        new BucketManagerCnfIndex<T>(occM, cache, mdStore, sizeFirstPage,
-                                     sizeAdditionalPage, m_bucketAllocator);
+    indexBucketManager = new BucketManagerCnfIndex<T>(
+        occM, cache, mdStore, sizeFirstPage, sizeAdditionalPage,
+        this->m_bucketAllocator);
 
     m_limitNbVarIndex = limitNbVarIndex;
     m_limitNbVarSym = limitNbVarSym;
-    m_bucketAllocator->deactiveCleanUp();
+    this->m_bucketAllocator->deactiveCleanUp();
   } // BucketManagerCnfCombi
 
   /**
@@ -123,7 +111,7 @@ public:
     delete indexBucketManager;
     delete clBucketManagerBis;
     delete clBucketManager;
-    m_bucketAllocator->activeCleanUp();
+    this->m_bucketAllocator->activeCleanUp();
   } // destructor
 
   /**

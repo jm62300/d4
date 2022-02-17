@@ -27,7 +27,7 @@
 #include <sys/types.h>
 #include <vector>
 
-#include "src/caching/Cache.hpp"
+#include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
@@ -103,8 +103,8 @@ private:
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
 
-  Cache<T> *m_cacheInd;
-  Cache<MaxSharpSatResult> *m_cacheMax;
+  CacheManager<T> *m_cacheInd;
+  CacheManager<MaxSharpSatResult> *m_cacheMax;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -180,9 +180,10 @@ public:
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
-    m_cacheInd = new Cache<T>(vm, m_problem->getNbVar(), m_specs, m_out);
-    m_cacheMax =
-        new Cache<MaxSharpSatResult>(vm, m_problem->getNbVar(), m_specs, m_out);
+    m_cacheInd = CacheManager<T>::makeCacheManager(vm, m_problem->getNbVar(),
+                                                   m_specs, m_out);
+    m_cacheMax = CacheManager<MaxSharpSatResult>::makeCacheManager(
+        vm, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
@@ -824,13 +825,9 @@ private:
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
     assert(result.valuation);
-    if (!m_stopProcess) {
+    if (!m_stopProcess)
       result.count *=
           m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
-      std::cout << std::fixed << std::setprecision(50) << result.count << " "
-                << m_maxCount.count << "\n";
-      assert(abs(result.count - m_maxCount.count) < T(0.00000001));
-    }
   } // compute
 
 public:

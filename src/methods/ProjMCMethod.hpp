@@ -69,7 +69,7 @@ private:
   SpecManager *m_specs;
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
-  Cache<T> *m_cache;
+  CacheManager<T> *m_cache;
   LastBreathPreproc m_lastBreath;
 
   long unsigned m_nbCallRec;
@@ -119,7 +119,7 @@ public:
     initSatSolver(vm, m_problem, satSolverClauses, idxVar - 1);
 
     // prepare the cache.
-    m_cache = new Cache<T>(vm, idxVar - 1, m_specs, m_out);
+    m_cache = CacheManager<T>::makeCacheManager(vm, idxVar - 1, m_specs, m_out);
 
     // init the clock time.
     initTimer();

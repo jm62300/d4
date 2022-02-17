@@ -21,6 +21,7 @@
 
 #include "CacheCleaningExpectation.hpp"
 #include "CacheCleaningNone.hpp"
+#include "CacheManager.hpp"
 #include "CachedBucket.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
@@ -30,7 +31,7 @@ namespace po = boost::program_options;
 
 template <class T> class CacheCleaningManager {
 protected:
-  Cache<T> *m_cache;
+  CacheManager<T> *m_cache;
 
 public:
   virtual ~CacheCleaningManager() {}
@@ -44,8 +45,8 @@ public:
      @param[in] out, the stream where are print out the information.
    */
   static CacheCleaningManager<T> *
-  makeCacheCleaningManager(po::variables_map &vm, Cache<T> *cache, int nbVar,
-                           std::ostream &out) {
+  makeCacheCleaningManager(po::variables_map &vm, CacheManager<T> *cache,
+                           int nbVar, std::ostream &out) {
     std::string crs = vm["cache-reduction-strategy"].as<std::string>();
 
     if (crs == "expectation") {

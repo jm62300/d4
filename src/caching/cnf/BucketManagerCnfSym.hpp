@@ -22,7 +22,7 @@
 #include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
 #include "src/caching/BucketManager.hpp"
-#include "src/caching/Cache.hpp"
+#include "src/caching/CacheManager.hpp"
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
@@ -42,17 +42,6 @@ private:
   BucketInConstruction m_inConstruction;
   unsigned *m_offsetClauses;
 
-  // using: variables
-  using BucketManagerCnf<T>::specManager;
-  using BucketManagerCnf<T>::nbClauseCnf;
-  using BucketManagerCnf<T>::nbVarCnf;
-  using BucketManagerCnf<T>::m_maxSizeClause;
-  using BucketManagerCnf<T>::m_idxClauses;
-  using BucketManagerCnf<T>::m_bucketAllocator;
-
-  // using: functions
-  using BucketManagerCnf<T>::isKeptClause;
-
 public:
   /**
      Function called in order to initialized variables before using
@@ -64,17 +53,17 @@ public:
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfSym(SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
-                      unsigned long sizeFirstPage,
+  BucketManagerCnfSym(SpecManagerCnf &occM, CacheManager<T> *cache,
+                      ModeStore mdStore, unsigned long sizeFirstPage,
                       unsigned long sizeAdditionalPage,
                       BucketAllocator *bucketAllocator = new BucketAllocator())
       : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
                                               sizeFirstPage, sizeAdditionalPage,
                                               bucketAllocator),
         m_inConstruction(occM) {
-    m_mapVar.resize(nbVarCnf + 1, 0);
-    m_markIdx.resize(nbClauseCnf, -1);
-    m_offsetClauses = new unsigned[nbClauseCnf];
+    this->m_mapVar.resize(this->m_nbVarCnf + 1, 0);
+    this->m_markIdx.resize(this->m_nbClauseCnf, -1);
+    this->m_offsetClauses = new unsigned[this->m_nbClauseCnf];
   } // BucketManagerCnfSym
 
   /**
@@ -140,7 +129,7 @@ public:
     m_idInVecBucket.resize(0);
     unsigned nextBucket = m_vecBucketSortInfo.size();
 
-    IteratorIdxClause listIndex = specManager.getVecIdxClause(l);
+    IteratorIdxClause listIndex = this->m_specManager.getVecIdxClause(l);
     for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
       int idx = *ptr;
       assert((unsigned)idx < m_markIdx.size());
@@ -212,7 +201,7 @@ public:
                                  BucketInConstruction &inConstruction) {
     // sort the set of clauses
     for (auto &v : component) {
-      if (specManager.varIsAssigned(v))
+      if (this->m_specManager.varIsAssigned(v))
         continue;
       Lit l = Lit::makeLitFalse(v);
       createDistribWrTLit(l, inConstruction, l);
@@ -228,7 +217,7 @@ public:
           inConstruction.sizeClauses[idx];
       if (b.end != b.start + 1) {
         realSizeDistrib -=
-            (b.end - b.start - 1) * specManager.getCurrentSize(idx);
+            (b.end - b.start - 1) * this->m_specManager.getCurrentSize(idx);
         for (unsigned j = b.start + 1; j < b.end; j++)
           inConstruction.markedAsRedundant[j] = true;
         b.end = b.start + 1;
@@ -351,8 +340,8 @@ public:
     // get the information about the starting offset for the different clause
     // size.
     unsigned offSet = 0;
-    unsigned memoryPlaceWrtSizeClause[m_maxSizeClause + 1];
-    for (unsigned i = 0; i <= m_maxSizeClause; i++) {
+    unsigned memoryPlaceWrtSizeClause[this->m_maxSizeClause + 1];
+    for (unsigned i = 0; i <= this->m_maxSizeClause; i++) {
       memoryPlaceWrtSizeClause[i] = offSet;
       offSet += inConstruction.distribDiffSize[i] * i;
     }
@@ -413,7 +402,7 @@ public:
     largestSizeClause = 0;
     maxNbSizeClause = 0;
     nbDiffClauseSize = 0;
-    for (unsigned i = 0; i <= m_maxSizeClause; i++)
+    for (unsigned i = 0; i <= this->m_maxSizeClause; i++)
       if (inConstruction.distribDiffSize[i]) {
         largestSizeClause = i;
         if (maxNbSizeClause < inConstruction.distribDiffSize[i])
@@ -447,7 +436,7 @@ public:
     // ask for memory
     unsigned szData =
         computeNeededBytes(nbOLit, nbODistrib, nbLit, nbDiffClauseSize);
-    char *data = m_bucketAllocator->getArray(szData);
+    char *data = this->m_bucketAllocator->getArray(szData);
     void *p = data;
 
     // store the clause distribution of the size.
@@ -485,10 +474,6 @@ public:
 
     // put the information into the bucket
     assert(0);
-    // DataInfoCnfCl di(szData, nbVar, nbLit, nbDiffClauseSize, 1, nbOLit,
-    //                 nbODistrib, 0, 0);
-    // assert(di.szData() == szData);
-    // b.set(data, di);
   } // storeFormula
 };
 } // namespace d4

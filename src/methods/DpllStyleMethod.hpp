@@ -22,7 +22,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "src/caching/Cache.hpp"
+#include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
@@ -82,7 +82,7 @@ private:
   PhaseHeuristic *m_hPhase;
   PartitioningHeuristic *m_hCutSet;
   TmpEntry<U> NULL_CACHE_ENTRY;
-  Cache<U> *m_cache;
+  CacheManager<U> *m_cache;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -142,7 +142,8 @@ public:
     }
 
     assert(m_hVar && m_hPhase && m_hCutSet);
-    m_cache = new Cache<U>(vm, m_problem->getNbVar(), m_specs, m_out);
+    m_cache = CacheManager<U>::makeCacheManager(vm, m_problem->getNbVar(),
+                                                m_specs, m_out);
 
     // init the clock time.
     initTimer();

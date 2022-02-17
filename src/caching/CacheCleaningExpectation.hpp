@@ -23,7 +23,7 @@
 
 namespace d4 {
 template <class T> class CacheCleaningManager;
-template <class T> class Cache;
+template <class T> class CacheManager;
 
 struct StatVarSizeCache {
   unsigned long negative;
@@ -57,7 +57,7 @@ public:
      reduction.
      @param[in] ratio, the limit ratio.
    */
-  CacheCleaningExpectation(Cache<T> *cache, int nbVar) {
+  CacheCleaningExpectation(CacheManager<T> *cache, int nbVar) {
     m_nbVar = nbVar;
     m_nbNegativeHit = 0;
     m_nbPositiveHit = 0;
@@ -87,18 +87,6 @@ public:
    * variables cannot be related to cb).
    */
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
-#if 0
-    static int cpt = 0;
-    cpt++;
-    if (!(cpt % 1000000)) {
-      for (unsigned i = 0; i < m_statVar.size(); i++) {
-        std::cout << i << "(" << m_statVar[i].positive << ","
-                  << m_statVar[i].negative << ")";
-      }
-      std::cout << "\n";
-    }
-#endif
-
     if (cb) {
       m_statVar[nbVar].positive++;
       m_nbPositiveHit++;

@@ -26,7 +26,7 @@
 #include "BucketInConstruction.hpp"
 #include "BucketSortInfo.hpp"
 
-#include "src/caching/Cache.hpp"
+#include "src/caching/CacheManager.hpp"
 #include "src/caching/cnf/BucketManagerCnf.hpp"
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -89,18 +89,6 @@ private:
   unsigned *m_memoryPosWrtClauseSize;
   unsigned *m_offsetClauses;
 
-  // using: variables
-  using BucketManagerCnf<T>::specManager;
-  using BucketManagerCnf<T>::nbClauseCnf;
-  using BucketManagerCnf<T>::nbVarCnf;
-  using BucketManagerCnf<T>::m_maxSizeClause;
-  using BucketManagerCnf<T>::m_idxClauses;
-  using BucketManagerCnf<T>::modeStore;
-  using BucketManagerCnf<T>::m_bucketAllocator;
-
-  // using: functions
-  using BucketManagerCnf<T>::isKeptClause;
-
 public:
   /**
      Function called in order to initialized variables before using
@@ -112,18 +100,18 @@ public:
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfCl(SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
-                     unsigned long sizeFirstPage,
+  BucketManagerCnfCl(SpecManagerCnf &occM, CacheManager<T> *cache,
+                     ModeStore mdStore, unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage,
                      BucketAllocator *bucketAllocator = new BucketAllocator())
       : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
                                               sizeFirstPage, sizeAdditionalPage,
                                               bucketAllocator),
         m_inConstruction(occM) {
-    m_mapVar.resize(nbVarCnf + 1, 0);
-    m_markIdx.resize(nbClauseCnf, -1);
+    m_mapVar.resize(this->m_nbVarCnf + 1, 0);
+    m_markIdx.resize(this->m_nbClauseCnf, -1);
     m_memoryPosWrtClauseSize = new unsigned[occM.getMaxSizeClause() + 1];
-    m_offsetClauses = new unsigned[nbClauseCnf + 1];
+    m_offsetClauses = new unsigned[this->m_nbClauseCnf + 1];
   } // BucketManagerCnfCl
 
   /**
@@ -187,10 +175,11 @@ public:
     m_idInVecBucket.resize(0);
     unsigned nextBucket = m_vecBucketSortInfo.size();
 
-    IteratorIdxClause listIndex = specManager.getVecIdxClause(l, modeStore);
+    IteratorIdxClause listIndex =
+        this->m_specManager.getVecIdxClause(l, this->m_modeStore);
     for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
       int idx = *ptr;
-      if (!isKeptClause(idx))
+      if (!this->isKeptClause(idx))
         continue;
 
       assert((unsigned)idx < m_markIdx.size());
@@ -262,7 +251,7 @@ public:
                                  BucketInConstruction &inConstruction) {
     // sort the set of clauses
     for (auto &v : component) {
-      if (specManager.varIsAssigned(v))
+      if (this->m_specManager.varIsAssigned(v))
         continue;
       createDistribWrTLit(Lit::makeLitFalse(v), inConstruction);
       createDistribWrTLit(Lit::makeLitTrue(v), inConstruction);
@@ -277,7 +266,7 @@ public:
           inConstruction.sizeClauses[idx];
       if (b.end != b.start + 1) {
         realSizeDistrib -=
-            (b.end - b.start - 1) * specManager.getCurrentSize(idx);
+            (b.end - b.start - 1) * this->m_specManager.getCurrentSize(idx);
         for (unsigned j = b.start + 1; j < b.end; j++)
           inConstruction.markedAsRedundant[j] = true;
         b.end = b.start + 1;
@@ -546,29 +535,13 @@ public:
 
     // ask for memory
     AllocSizeInfo sizeInfo = computeNeededBytes(component, m_inConstruction);
-    char *data = m_bucketAllocator->getArray(sizeInfo.totalByte);
+    char *data = this->m_bucketAllocator->getArray(sizeInfo.totalByte);
 
     // store the information about the formula.
     storeVariables(sizeInfo, data, component);
     if (m_inConstruction.nbClauseInDistrib)
       storeClauses(sizeInfo, &data[sizeInfo.nbByteStoreVar], component,
                    m_inConstruction);
-#if 0
-    std::cout << "Formula:\n";
-    specManager.showCurrentFormula(std::cout);
-
-    std::cout << "variables: ";
-    for (auto &v : component)
-      std::cout << v << " ";
-    std::cout << "\n";
-
-    sizeInfo.display();
-
-    for (unsigned i = 0; i < sizeInfo.totalByte; i++) {
-      std::cout << std::bitset<8>(data[i]) << " ";
-    }
-    std::cout << "\n";
-#endif
     // put the information into the bucket
     DataInfo di(sizeInfo.totalByte, component.size(), sizeInfo.nbBitEltVar,
                 sizeInfo.nbBitStoreLit);

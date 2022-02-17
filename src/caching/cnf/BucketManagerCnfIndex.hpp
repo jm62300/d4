@@ -25,15 +25,11 @@
 
 namespace d4 {
 
+template <class T> class BucketManagerCnf;
+
 template <class T> class BucketManagerCnfIndex : public BucketManagerCnf<T> {
 private:
   std::vector<unsigned> m_idxClauses;
-
-  // using: variables
-  using BucketManagerCnf<T>::specManager;
-  using BucketManagerCnf<T>::isKeptClause;
-  using BucketManagerCnf<T>::collectIdActiveClauses;
-  using BucketManagerCnf<T>::m_bucketAllocator;
 
 public:
   /**
@@ -47,7 +43,7 @@ public:
      pages.
   */
   BucketManagerCnfIndex(
-      SpecManagerCnf &occM, Cache<T> *cache, ModeStore mdStore,
+      SpecManagerCnf &occM, CacheManager<T> *cache, ModeStore mdStore,
       unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
       BucketAllocator *bucketAllocator = new BucketAllocator())
       : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
@@ -87,7 +83,7 @@ public:
   */
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) {
     // collect the clauses
-    collectIdActiveClauses(component, m_idxClauses);
+    this->collectIdActiveClauses(component, m_idxClauses);
 
     // nb bytes we need to store the information.
     unsigned int nbOVar = this->nbOctetToEncodeInt(component.back() + 1);
@@ -97,7 +93,7 @@ public:
 
     // ask for memory
     unsigned szData = nbOVar * component.size() + nbOData * m_idxClauses.size();
-    char *data = m_bucketAllocator->getArray(szData);
+    char *data = this->m_bucketAllocator->getArray(szData);
     void *p = data;
 
     // store the variables
