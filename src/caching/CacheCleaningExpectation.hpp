@@ -17,6 +17,8 @@
  */
 #pragma once
 
+#include <functional>
+
 #include "BucketManager.hpp"
 #include "CacheCleaningManager.hpp"
 #include "CachedBucket.hpp"
@@ -125,15 +127,9 @@ public:
     m_cache->setLimitVarCache(limit);
     m_threshold += INC_THRESHOD;
 
-    unsigned nbRemoveEntry = 0;
-    for (auto &cb : m_cache->getHashTable()) {
-      if (cb.nbVar() && cb.nbVar() >= limit) {
-        assert((int)cb.szData() > 0);
-        this->releaseMemory(cb.data, cb.szData());
-        cb.reset();
-        nbRemoveEntry++;
-      }
-    }
+    unsigned nbRemoveEntry = m_cache->removeEntry([limit](CachedBucket<T> &c) {
+      return c.nbVar() && c.nbVar() >= limit;
+    });
 
     m_nbRemoveEntry += nbRemoveEntry;
     std::cout << "c #rm=" << nbRemoveEntry << " #allRm=" << m_nbRemoveEntry

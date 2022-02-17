@@ -17,8 +17,6 @@
  */
 #pragma once
 
-#define SIZE_HASH /*2*/ 2041997
-
 #include <boost/program_options.hpp>
 #include <vector>
 
@@ -35,6 +33,9 @@ namespace po = boost::program_options;
 template <class T> class CacheManager;
 
 template <class T> class CacheNoCollision : public CacheManager<T> {
+private:
+  const unsigned SIZE_HASH = 22041997;
+
 protected:
   std::vector<CachedBucket<T>> hashTable;
 
@@ -50,6 +51,7 @@ public:
   CacheNoCollision(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
                    std::ostream &out)
       : CacheManager<T>(vm, nbVar, specs, out) {
+    out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
     initHashTable(nbVar);
   } // constructor
 
@@ -72,7 +74,7 @@ public:
 
     // remove the previous entry if needed.
     if (cbi.nbVar())
-      releaseMemory(cbi.data, cbi.szData());
+      this->releaseMemory(cbi.data, cbi.szData());
 
     cbi = cb;
     cbi.lockedBucket(val);
@@ -82,23 +84,6 @@ public:
     this->m_sumDataSize += cb.szData();
     this->m_nbEntry++;
   } // pushInCache
-
-  /**
-   * @brief Release memory.
-   *
-   * @param data is the data we want to free.
-   * @param size is the number of bytes.
-   */
-  inline void releaseMemory(char *data, int size) override {
-    this->m_bucketManager->releaseMemory(data, size);
-  } // releaseMemory
-
-  /**
-   * @return the amount of memory used.
-   */
-  inline unsigned long int usedMemory() override {
-    return this->m_bucketManager->usedMemory();
-  } // usedMemory
 
   /**
    * @brief Research in the set of buckets if the bucket pointed by i
@@ -138,12 +123,24 @@ public:
   } // initHashTable
 
   /**
-   * @brief Get the Hash Table object.
+   * @brief Clean up the cache.
    *
-   * @return the list of bucket.
+   * @param test is a function that is used to decide if an entry must be
+   * removed.
+   *
+   * @return the number of entry we removed.
    */
-  inline std::vector<CachedBucket<T>> &getHashTable() override {
-    return hashTable;
-  } // getHashTable
+  unsigned removeEntry(std::function<bool(CachedBucket<T> &c)> test) {
+    unsigned nbRemoveEntry = 0;
+    for (auto &cb : hashTable) {
+      if (test(cb)) {
+        assert((int)cb.szData() > 0);
+        this->releaseMemory(cb.data, cb.szData());
+        cb.reset();
+        nbRemoveEntry++;
+      }
+    }
+    return nbRemoveEntry;
+  } // removeEntry
 };
 } // namespace d4

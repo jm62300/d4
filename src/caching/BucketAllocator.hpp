@@ -19,7 +19,6 @@
 
 #include <cassert>
 #include <deque>
-#include <functional>
 #include <iostream>
 #include <vector>
 
@@ -42,8 +41,6 @@ private:
   bool isInit = false;
   bool cleanup = true;
   bool m_consumedMemory = false;
-
-  std::function<void(char *, int)> m_removeSmudgeEntry;
 
 public:
   ~BucketAllocator() {
@@ -68,8 +65,7 @@ public:
            (double)m_allMemory;
   } // remainingMemory
 
-  void init(unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
-            std::function<void(char *, int)> removeSmudgeEntry);
+  void init(unsigned long sizeFirstPage, unsigned long sizeAdditionalPage);
 
   char *getArray(unsigned size);
 

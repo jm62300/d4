@@ -27,13 +27,11 @@ namespace d4 {
    @param[in] sizeAdditionalPage, the amount of bytes for the additional pages.
 */
 void BucketAllocator::init(unsigned long sizeFirstPage,
-                           unsigned long sizeAdditionalPage,
-                           std::function<void(char *, int)> removeSmudgeEntry) {
+                           unsigned long sizeAdditionalPage) {
   if (isInit)
     return;
   isInit = true;
 
-  m_removeSmudgeEntry = removeSmudgeEntry;
   m_allMemory = m_freeMemory = m_posInData = 0;
   m_sizeFirstPage = sizeFirstPage;
   m_sizeAdditionalPage = sizeAdditionalPage;

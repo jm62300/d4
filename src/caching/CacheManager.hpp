@@ -18,6 +18,7 @@
 #pragma once
 
 #include <boost/program_options.hpp>
+#include <functional>
 #include <vector>
 
 #include "src/hashing/HashString.hpp"
@@ -27,7 +28,9 @@
 #include "CacheCleaningManager.hpp"
 #include "CachedBucket.hpp"
 #include "TmpEntry.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
+#include "CacheList.hpp"
 #include "CacheNoCollision.hpp"
 
 namespace d4 {
@@ -48,8 +51,8 @@ public:
   double sumAffectedHitCache = 0;
 
   // data info
-  unsigned nbInitVar;
-  unsigned nbRemoveEntry;
+  unsigned m_nbInitVar;
+  unsigned m_nbRemoveEntry;
   unsigned long int m_nbCreationBucket;
   unsigned long int m_sumDataSize;
   unsigned int m_limitVarCached;
@@ -79,7 +82,7 @@ public:
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
-    verb = nbRemoveEntry = sumAffectedHitCache = 0;
+    verb = m_nbRemoveEntry = sumAffectedHitCache = 0;
     m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
 
     m_cacheCleaningManager =
@@ -96,10 +99,28 @@ public:
     delete m_bucketManager;
   } // destructor
 
+  /**
+   * @brief Factory.
+   *
+   * @param vm are the options.
+   * @param nbVar is the number of variables.
+   * @param specs gives the information about the input formula.
+   * @param out is the stream where are printed out the logs.
+   * @return CacheManager<T>*
+   */
   static CacheManager<T> *makeCacheManager(po::variables_map &vm,
                                            unsigned nbVar, SpecManager *specs,
                                            std::ostream &out) {
-    return new CacheNoCollision<T>(vm, nbVar, specs, out);
+    std::string method = vm["cache-method"].as<std::string>();
+    out << "c [CACHE] Cache method used: " << method << "\n";
+
+    if (method == "no-collision")
+      return new CacheNoCollision<T>(vm, nbVar, specs, out);
+    if (method == "list")
+      return new CacheList<T>(vm, nbVar, specs, out);
+
+    throw(
+        FactoryException("Cannot create a ProblemManager", __FILE__, __LINE__));
   } // makeCacheManager
 
   virtual void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
@@ -107,9 +128,18 @@ public:
   virtual CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb,
                                               unsigned hashValue) = 0;
   virtual void initHashTable(unsigned maxVar) = 0;
-  virtual std::vector<CachedBucket<T>> &getHashTable() = 0;
-  virtual void releaseMemory(char *data, int size) = 0;
-  virtual unsigned long int usedMemory() = 0;
+
+  virtual unsigned
+  removeEntry(std::function<bool(CachedBucket<T> &c)> test) = 0;
+
+  /**
+   * @brief Get the memory used by the cache (to store the ).
+   *
+   * @return unsigned long int
+   */
+  inline unsigned long int usedMemory() {
+    return m_bucketManager->usedMemory();
+  }
 
   inline unsigned getLimitVarCached() { return m_limitVarCached; }
   inline void setLimitVarCache(unsigned val) { m_limitVarCached = val; }
@@ -122,6 +152,16 @@ public:
   inline unsigned long getNbEntry() { return m_nbEntry; }
   inline void decrementNbEntry() { m_nbEntry--; }
   inline BucketManager<T> *getBucketManager() { return m_bucketManager; }
+
+  /**
+   * @brief Release memory.
+   *
+   * @param data is the data we want to free.
+   * @param size is the number of bytes.
+   */
+  inline void releaseMemory(char *data, int size) {
+    this->m_bucketManager->releaseMemory(data, size);
+  } // releaseMemory
 
   inline void printCacheInformation(std::ostream &out) {
     out << "c \033[1m\033[34mCache Information\033[0m\n";
@@ -201,7 +241,7 @@ public:
    */
   void setInfoFormula(unsigned mVar) {
     minAffectedHitCache = mVar;
-    nbInitVar = mVar;
+    m_nbInitVar = mVar;
   } // setInfoFormula
 };
 } // namespace d4

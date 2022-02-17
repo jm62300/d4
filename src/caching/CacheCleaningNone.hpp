@@ -18,6 +18,7 @@
 #pragma once
 
 #include "CacheCleaningManager.hpp"
+#include "CachedBucket.hpp"
 
 namespace d4 {
 template <class T> class CacheCleaningManager;

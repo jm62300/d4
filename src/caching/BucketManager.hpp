@@ -39,11 +39,6 @@
 #include "cnf/BucketManagerCnfSym.hpp"
 #include "src/utils/Enum.hpp"
 
-#define ONE_OCTET 2
-#define TWO_OCTET 3
-#define FOUR_OCTET 4
-#define EIGHT_OCTET 5
-
 namespace d4 {
 namespace po = boost::program_options;
 

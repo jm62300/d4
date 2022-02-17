@@ -70,11 +70,7 @@ public:
     m_maxSizeClause = occM.getMaxSizeClause();
     m_varInComponent.resize(m_nbVarCnf, false);
 
-    this->m_bucketAllocator->init(
-        sizeFirstPage, sizeAdditionalPage, [this](char *data, int posInHash) {
-          CachedBucket<T> &v = this->m_cache->getHashTable()[posInHash];
-          v.getDataInfo().info1 = 0;
-        });
+    this->m_bucketAllocator->init(sizeFirstPage, sizeAdditionalPage);
   } // BucketManager
 
   virtual ~BucketManagerCnf() { ; }
