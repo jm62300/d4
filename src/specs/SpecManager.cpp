@@ -36,7 +36,7 @@ SpecManager *SpecManager::makeSpecManager(po::variables_map &vm,
   std::string inType = vm["input-type"].as<std::string>();
   std::string meth = vm["occurrence-manager"].as<std::string>();
 
-  out << "c [CONSTRUCTOR] Spec manager: " << meth << " " << inType << "\n";
+  out << "c [CONSTRUCTOR SPEC] Spec manager: " << meth << " " << inType << "\n";
 
   if (inType == "cnf" || inType == "dimacs") {
     if (meth == "dynamic")

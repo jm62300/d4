@@ -78,8 +78,6 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
     ptr = &ptr[occList.size()];
   }
 
-  // showOccurenceList(std::cout);
-
   // variables:
   m_inCurrentComponent.resize(m_nbVar + 1, false);
   m_currentValue.resize(m_nbVar + 1, l_Undef);
@@ -91,8 +89,6 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
   m_markView.resize(nbClause, false);
 
   m_infoClauses.resize(nbClause);
-  if (!m_clauses.size())
-    return;
 
   // get the size of the largest clause.
   for (unsigned i = 0; i < m_clauses.size(); i++) {
@@ -125,6 +121,7 @@ int SpecManagerCnf::computeConnectedComponent(
     std::vector<std::vector<Var>> &varCo, std::vector<Var> &setOfVar,
     std::vector<Var> &freeVar) {
   for (auto v : setOfVar) {
+    assert(v < m_infoCluster.size());
     m_infoCluster[v].parent = v;
     m_infoCluster[v].size = 1;
   }
