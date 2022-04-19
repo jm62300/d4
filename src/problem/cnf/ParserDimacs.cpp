@@ -17,9 +17,11 @@
  */
 
 #include "ParserDimacs.hpp"
+
+#include <algorithm>
+
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
-#include <algorithm>
 
 namespace d4 {
 
@@ -35,10 +37,9 @@ void ParserDimacs::readListIntTerminatedByZero(BufferRead &in,
   int v = -1;
   do {
     v = in.nextInt();
-    if (v)
-      list.push_back(v);
+    if (v) list.push_back(v);
   } while (v);
-} // readListIntTerminatedByZero
+}  // readListIntTerminatedByZero
 
 /**
  * @brief Parse a literal index and a weight and store the result in the given
@@ -56,7 +57,25 @@ void ParserDimacs::parseWeightedLit(BufferRead &in,
     weightLit[lit << 1] = w;
   else
     weightLit[((-lit) << 1) + 1] = w;
-} // parseWeightedLit
+}  // parseWeightedLit
+
+/**
+ * @brief Parse a variable index and a weight and store the result in the given
+ * vector.
+ *
+ * @param in, the stream buffer where we get the information.
+ * @param weightLit, the place where is stored the data.
+ */
+Var ParserDimacs::parseVarWeighted(BufferRead &in,
+                                   std::vector<double> &weightLit) {
+  double w = in.nextDouble();
+  int var = in.nextInt();
+
+  weightLit[var << 1] = w;
+  weightLit[(var << 1) + 1] = 1 - w;
+
+  return var;
+}  // parseWeightedLit
 
 /**
  * @brief Parse the dimacs format in order to extract CNF formula and
@@ -79,10 +98,12 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
   int nbVars = 0;
   int nbClauses = 0;
 
+  int cpt = 0;
+  char previousChar = '\0';
+
   for (;;) {
     in.skipSpace();
-    if (in.eof())
-      break;
+    if (in.eof()) break;
 
     if (in.currentChar() == 'p') {
       in.consumeChar();
@@ -93,8 +114,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
         vpActivated = true;
         in.consumeChar();
       }
-      if (in.currentChar() == 'w')
-        in.consumeChar();
+      if (in.currentChar() == 'w') in.consumeChar();
 
       if (in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f')
         std::cerr << "PARSE ERROR! Unexpected char: " << in.currentChar()
@@ -108,8 +128,30 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
         std::cout << "c Some variable are marked: " << in.nextInt() << "\n";
       weightLit.resize(((nbVars + 1) << 1), 1);
 
-      if (nbClauses < 0)
-        printf("parse error\n"), exit(2);
+      if (nbClauses < 0) printf("parse error\n"), exit(2);
+    } else if (in.currentChar() == 'e') {
+      in.consumeChar();
+      if (previousChar != 'e') {
+        cpt++;
+        previousChar = 'e';
+      }
+      assert(cpt <= 3);
+
+      // we only consider the variable if there are max variables.
+      std::vector<Var> vars;
+      readListIntTerminatedByZero(in, vars);
+      if (cpt == 1)
+        for (auto v : vars) problemManager->getMaxVar().push_back(v);
+    } else if (in.currentChar() == 'r') {
+      in.consumeChar();
+      if (previousChar != 'r') {
+        cpt++;
+        previousChar = 'r';
+      }
+      assert(cpt <= 2);
+      Var v = parseVarWeighted(in, weightLit);
+      problemManager->getIndVar().push_back(v);
+      in.skipLine();
     } else if (in.currentChar() == 'v') {
       in.consumeChar();
       assert(in.currentChar() == 'p');
@@ -165,8 +207,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       unsigned j = 1;
       bool isSat = false;
       for (unsigned i = 1; !isSat && i < lits.size(); i++) {
-        if (lits[i] == lits[j - 1])
-          continue;
+        if (lits[i] == lits[j - 1]) continue;
         isSat = lits[i] == ~lits[j - 1];
         lits[j++] = lits[i];
       }
@@ -186,5 +227,5 @@ int ParserDimacs::parse_DIMACS(std::string input_stream,
                                ProblemManagerCnf *problemManager) {
   BufferRead in(input_stream);
   return parse_DIMACS_main(in, problemManager);
-} // parse_DIMACS
-} // namespace d4
+}  // parse_DIMACS
+}  // namespace d4
