@@ -12,26 +12,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 
-#include "nnf/Branch.hpp"
-#include "nnf/Node.hpp"
-#include "nnf/NodeManager.hpp"
-
 #include "CountingOperation.hpp"
 #include "DataBranch.hpp"
 #include "DecisionDNNFOperation.hpp"
+#include "nnf/Branch.hpp"
+#include "nnf/Node.hpp"
+#include "nnf/NodeManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
-template <class T, class U> class Operation {
-public:
+template <class T, class U>
+class Operation {
+ public:
   /**
      Operation factory.
 
@@ -50,14 +51,13 @@ public:
         << "method(" << meth << ") "
         << "float(" << isFloat << ")\n";
 
-    if (meth == "counting")
-      return new CountingOperation<T>(problem);
+    if (meth == "counting") return new CountingOperation<T>(problem);
 
     if (meth == "ddnnf-compiler")
       return new DecisionDNNFOperation<T, Node<T> *>(problem, specs, solver);
 
     throw(FactoryException("Cannot create a Operation", __FILE__, __LINE__));
-  } // makeOperationManager
+  }  // makeOperationManager
 
   virtual ~Operation() {}
 
@@ -73,4 +73,4 @@ public:
   virtual T count(U &result) = 0;
   virtual T count(U &result, std::vector<Lit> &assum) = 0;
 };
-} // namespace d4
+}  // namespace d4

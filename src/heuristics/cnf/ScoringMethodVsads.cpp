@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "ScoringMethodVsads.hpp"
@@ -27,7 +28,7 @@ namespace d4 {
    @param[in] a, an activity manager linked to a solver.
  */
 ScoringMethodVsads::ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a)
-    : om(o), activity(a) {} // constructor
+    : om(o), activity(a) {}  // constructor
 
 /**
    The well-known VSADS heuristic.
@@ -42,4 +43,4 @@ double ScoringMethodVsads::computeScore(Var v) {
   return activity.getCountConflict(v) + (double)(om.getNbClause(v) << 7);
 }
 
-} // namespace d4
+}  // namespace d4

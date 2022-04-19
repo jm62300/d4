@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -25,13 +26,15 @@
 
 namespace d4 {
 
-template <class T> class BucketManagerCnf;
+template <class T>
+class BucketManagerCnf;
 
-template <class T> class BucketManagerCnfIndex : public BucketManagerCnf<T> {
-private:
+template <class T>
+class BucketManagerCnfIndex : public BucketManagerCnf<T> {
+ private:
   std::vector<unsigned> m_idxClauses;
 
-public:
+ public:
   /**
      Function called in order to initialized variables before using
 
@@ -49,12 +52,12 @@ public:
       : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
                                               sizeFirstPage, sizeAdditionalPage,
                                               bucketAllocator) {
-  } // BucketManagerCnfIndex
+  }  // BucketManagerCnfIndex
 
   /**
      Destructor.
    */
-  ~BucketManagerCnfIndex() {} // destructor
+  ~BucketManagerCnfIndex() {}  // destructor
 
   /**
      Store the variables respecting the information of size concerning the type
@@ -72,7 +75,7 @@ public:
     }
 
     return p;
-  } // storeVariables
+  }  // storeVariables
 
   /**
      Transfer the formula store in distib in a table given in parameter.
@@ -98,31 +101,30 @@ public:
 
     // store the variables
     switch (nbOVar) {
-    case 1:
-      p = storeData<uint8_t, Var>(p, component);
-      break;
-    case 2:
-      p = storeData<uint16_t, Var>(p, component);
-      break;
-    default:
-      p = storeData<uint32_t, Var>(p, component);
-      break;
+      case 1:
+        p = storeData<uint8_t, Var>(p, component);
+        break;
+      case 2:
+        p = storeData<uint16_t, Var>(p, component);
+        break;
+      default:
+        p = storeData<uint32_t, Var>(p, component);
+        break;
     }
     assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
-    if (!m_idxClauses.size())
-      goto fillTheBucket;
+    if (!m_idxClauses.size()) goto fillTheBucket;
 
     // strore the clauses
     switch (nbOData) {
-    case 1:
-      p = storeData<uint8_t, unsigned>(p, m_idxClauses);
-      break;
-    case 2:
-      p = storeData<uint16_t, unsigned>(p, m_idxClauses);
-      break;
-    default:
-      p = storeData<uint32_t, unsigned>(p, m_idxClauses);
-      break;
+      case 1:
+        p = storeData<uint8_t, unsigned>(p, m_idxClauses);
+        break;
+      case 2:
+        p = storeData<uint16_t, unsigned>(p, m_idxClauses);
+        break;
+      default:
+        p = storeData<uint32_t, unsigned>(p, m_idxClauses);
+        break;
     }
 
   fillTheBucket:
@@ -132,6 +134,6 @@ public:
     //               nbOData);
     // assert(di.szData() == szData);
     // b.set(data, di);
-  } // storeFormula
+  }  // storeFormula
 };
-} // namespace d4
+}  // namespace d4

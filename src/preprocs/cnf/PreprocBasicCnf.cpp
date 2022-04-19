@@ -12,11 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "PreprocBasicCnf.hpp"
+
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -28,12 +30,12 @@ namespace d4 {
  */
 PreprocBasicCnf::PreprocBasicCnf(po::variables_map &vm, std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
-} // constructor
+}  // constructor
 
 /**
    Destructor.
  */
-PreprocBasicCnf::~PreprocBasicCnf() { delete ws; } // destructor
+PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -47,8 +49,7 @@ ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
 
-  if (!ws->solve())
-    return pin->getUnsatProblem();
+  if (!ws->solve()) return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 
   // get the activity given by the solver.
@@ -58,5 +59,5 @@ ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
   std::vector<Lit> units;
   ws->getUnits(units);
   return pin->getConditionedFormula(units);
-} // run
-} // namespace d4
+}  // run
+}  // namespace d4

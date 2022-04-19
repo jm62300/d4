@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "PhaseHeuristicPolarity.hpp"
@@ -28,7 +29,7 @@ namespace d4 {
 PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p, bool isRev)
     : pm(p) {
   isReversed = isRev;
-} // constructor
+}  // constructor
 
 /**
    We assign the next varaible regarding the polarity given by a solver.  We
@@ -38,6 +39,6 @@ PhaseHeuristicPolarity::PhaseHeuristicPolarity(PolarityManager &p, bool isRev)
  */
 bool PhaseHeuristicPolarity::selectPhase(Var v) {
   return (pm.getPolarity(v) + isReversed) & 1;
-} // selectPhase
+}  // selectPhase
 
-} // namespace d4
+}  // namespace d4

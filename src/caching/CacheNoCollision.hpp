@@ -12,34 +12,36 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
 #include <boost/program_options.hpp>
 #include <vector>
 
-#include "src/hashing/HashString.hpp"
-#include "src/specs/SpecManager.hpp"
-
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
 #include "TmpEntry.hpp"
+#include "src/hashing/HashString.hpp"
+#include "src/specs/SpecManager.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
 
-template <class T> class CacheManager;
+template <class T>
+class CacheManager;
 
-template <class T> class CacheNoCollision : public CacheManager<T> {
-private:
+template <class T>
+class CacheNoCollision : public CacheManager<T> {
+ private:
   const unsigned SIZE_HASH = 22041997;
 
-protected:
+ protected:
   std::vector<CachedBucket<T>> hashTable;
 
-public:
+ public:
   /**
    * @brief Construct a new Cache No Collision object.
    *
@@ -53,13 +55,13 @@ public:
       : CacheManager<T>(vm, nbVar, specs, out) {
     out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
     initHashTable(nbVar);
-  } // constructor
+  }  // constructor
 
   /**
    * @brief Destroy the Cache No Collision object.
    *
    */
-  ~CacheNoCollision() {} // destructor
+  ~CacheNoCollision() {}  // destructor
 
   /**
    * @brief Add an entry in the cache.
@@ -73,8 +75,7 @@ public:
     CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
 
     // remove the previous entry if needed.
-    if (cbi.nbVar())
-      this->releaseMemory(cbi.data, cbi.szData());
+    if (cbi.nbVar()) this->releaseMemory(cbi.data, cbi.szData());
 
     cbi = cb;
     cbi.lockedBucket(val);
@@ -83,7 +84,7 @@ public:
     this->m_nbCreationBucket++;
     this->m_sumDataSize += cb.szData();
     this->m_nbEntry++;
-  } // pushInCache
+  }  // pushInCache
 
   /**
    * @brief Research in the set of buckets if the bucket pointed by i
@@ -107,7 +108,7 @@ public:
 
     this->m_nbNegativeHit++;
     return NULL;
-  } // bucketAlreadyExist
+  }  // bucketAlreadyExist
 
   /**
    * @brief Initialized the hashTable
@@ -120,7 +121,7 @@ public:
     // init hash tables
     hashTable.clear();
     hashTable.resize(SIZE_HASH);
-  } // initHashTable
+  }  // initHashTable
 
   /**
    * @brief Clean up the cache.
@@ -141,6 +142,6 @@ public:
       }
     }
     return nbRemoveEntry;
-  } // removeEntry
+  }  // removeEntry
 };
-} // namespace d4
+}  // namespace d4

@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "ScoringMethodMom.hpp"
@@ -24,7 +25,7 @@ namespace d4 {
 
    @param[in] o, the specification of a CNF problem.
  */
-ScoringMethodMom::ScoringMethodMom(SpecManagerCnf &o) : om(o) {} // constructor
+ScoringMethodMom::ScoringMethodMom(SpecManagerCnf &o) : om(o) {}  // constructor
 
 /**
    Compute the score following the well-known MOM heuristic.
@@ -38,6 +39,6 @@ ScoringMethodMom::ScoringMethodMom(SpecManagerCnf &o) : om(o) {} // constructor
 */
 double ScoringMethodMom::computeScore(Var v) {
   return om.getNbBinaryClause(v) * 0.25;
-} // computeScore
+}  // computeScore
 
-} // namespace d4
+}  // namespace d4

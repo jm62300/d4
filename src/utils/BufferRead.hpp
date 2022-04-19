@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -29,7 +30,7 @@ class BufferRead {
   char buffer[BUFFER_SIZE];
   FILE *f;
 
-public:
+ public:
   BufferRead(std::string &name) {
     pos = 0;
     size = 0;
@@ -45,8 +46,7 @@ public:
   }
 
   ~BufferRead() {
-    if (f)
-      fclose(f);
+    if (f) fclose(f);
   }
 
   inline char currentChar() { return buffer[pos]; }
@@ -79,8 +79,7 @@ public:
   }
 
   inline void skipLine() {
-    while (!eof() && currentChar() != '\n')
-      consumeChar();
+    while (!eof() && currentChar() != '\n') consumeChar();
     consumeChar();
   }
 
@@ -89,8 +88,7 @@ public:
     skipSpace();
 
     bool sign = currentChar() == '-';
-    if (sign)
-      consumeChar();
+    if (sign) consumeChar();
     while (!eof() && currentChar() >= '0' && currentChar() <= '9') {
       ret = ret * 10 + (nextChar() - '0');
     }
@@ -112,14 +110,13 @@ public:
         consumeChar();
     }
     return true;
-  } // canConsume
+  }  // canConsume
 
   inline double nextDouble() {
     skipSpace();
 
     bool sign = currentChar() == '-';
-    if (sign)
-      consumeChar();
+    if (sign) consumeChar();
 
     std::string cur = "";
     while (!eof() && ((currentChar() >= '0' && currentChar() <= '9') ||
@@ -136,4 +133,4 @@ public:
     return (sign) ? -ret : ret;
   }
 };
-} // namespace d4
+}  // namespace d4

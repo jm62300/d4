@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -21,20 +22,22 @@
 #include <iostream>
 #include <vector>
 
+#include "../BucketAllocator.hpp"
+#include "../BucketManager.hpp"
+#include "../CachedBucket.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/utils/Enum.hpp"
 
-#include "../BucketAllocator.hpp"
-#include "../BucketManager.hpp"
-#include "../CachedBucket.hpp"
-
 namespace d4 {
-template <class T> class BucketManager;
-template <class T> class CacheManager;
+template <class T>
+class BucketManager;
+template <class T>
+class CacheManager;
 
-template <class T> class BucketManagerCnf : public BucketManager<T> {
-protected:
+template <class T>
+class BucketManagerCnf : public BucketManager<T> {
+ protected:
   SpecManagerCnf &m_specManager;
 
   ModeStore m_modeStore;
@@ -45,7 +48,7 @@ protected:
   std::vector<bool> m_varInComponent;
   std::vector<int> m_idxClauses;
 
-public:
+ public:
   /**
      Constructor.
 
@@ -71,7 +74,7 @@ public:
     m_varInComponent.resize(m_nbVarCnf, false);
 
     this->m_bucketAllocator->init(sizeFirstPage, sizeAdditionalPage);
-  } // BucketManager
+  }  // BucketManager
 
   virtual ~BucketManagerCnf() { ; }
   virtual void storeFormula(std::vector<Var> &component,
@@ -87,14 +90,14 @@ public:
    */
   bool isKeptClause(int idx) {
     switch (m_modeStore) {
-    case NT:
-      return m_specManager.getNbUnsat(idx);
-    case NB:
-      return m_specManager.getClause(idx).size() > 2;
-    default:
-      return true;
+      case NT:
+        return m_specManager.getNbUnsat(idx);
+      case NB:
+        return m_specManager.getClause(idx).size() > 2;
+      default:
+        return true;
     }
-  } // isKeptClause
+  }  // isKeptClause
 
   /**
      Get the clauses that will be used, that are the clause that respect the
@@ -114,11 +117,10 @@ public:
 
     unsigned i, j;
     for (i = j = 0; i < idxClauses.size(); i++) {
-      if (!isKeptClause(idxClauses[i]))
-        continue;
+      if (!isKeptClause(idxClauses[i])) continue;
       idxClauses[j++] = idxClauses[i];
     }
     idxClauses.resize(j);
-  } // collectIdActiveClauses
+  }  // collectIdActiveClauses
 };
-} // namespace d4
+}  // namespace d4

@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -29,23 +30,22 @@ struct AndGate {
 
   void display() {
     std::cout << output << " <-> ";
-    for (auto &l : input)
-      std::cout << l << " ";
+    for (auto &l : input) std::cout << l << " ";
     std::cout << "\n";
   }
 };
 
 class AndGatesExtractor {
-private:
+ private:
   std::vector<bool> m_markedVar;
   std::vector<u_int8_t> m_flagVar;
 
-public:
-  AndGatesExtractor() { ; } // empty constructor
+ public:
+  AndGatesExtractor() { ; }  // empty constructor
   AndGatesExtractor(int nbVar);
   void init(int nbVar);
 
   void searchAndGates(SpecManagerCnf *om, std::vector<Var> &v,
                       std::vector<AndGate> &gates);
 };
-} // namespace d4
+}  // namespace d4

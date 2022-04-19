@@ -12,11 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "SpecManagerCnfDyn.hpp"
+
 #include "SpecManagerCnf.hpp"
 
 namespace d4 {
@@ -29,7 +31,7 @@ namespace d4 {
    @param[in] _nbVar, the number of variables in the problem
  */
 SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p)
-    : SpecManagerCnf(p) {} // SpecManagerCnfDyn
+    : SpecManagerCnf(p) {}  // SpecManagerCnfDyn
 
 /**
    Update the occurrence list w.r.t. a new set of assigned variables.
@@ -58,8 +60,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       int idxCl = m_occurrence[(~l).intern()].notBin[i];
 
       m_infoClauses[idxCl].nbUnsat++;
-      if (m_infoClauses[idxCl].watcher == ~l)
-        m_reviewWatcher.push_back(idxCl);
+      if (m_infoClauses[idxCl].watcher == ~l) m_reviewWatcher.push_back(idxCl);
     }
 
     // binary clauses.
@@ -74,15 +75,13 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbBin; i++) {
       int idxCl = m_occurrence[(~l).intern()].bin[i];
       m_infoClauses[idxCl].nbUnsat++;
-      if (m_infoClauses[idxCl].watcher == ~l)
-        m_reviewWatcher.push_back(idxCl);
+      if (m_infoClauses[idxCl].watcher == ~l) m_reviewWatcher.push_back(idxCl);
     }
   }
 
   // we search another non assigned literal if requiered
   for (auto &idxCl : m_reviewWatcher) {
-    if (m_infoClauses[idxCl].nbSat)
-      continue;
+    if (m_infoClauses[idxCl].nbSat) continue;
 
     for (auto &l : m_clauses[idxCl]) {
       if (m_currentValue[l.var()] == l_Undef) {
@@ -91,7 +90,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       }
     }
   }
-} // preUpdate
+}  // preUpdate
 
 /**
    Update the occurrence list w.r.t. a new set of unassigned variables.
@@ -134,6 +133,6 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
 
     m_currentValue[l.var()] = l_Undef;
   }
-} // postUpdate
+}  // postUpdate
 
-} // namespace d4
+}  // namespace d4

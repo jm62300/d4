@@ -12,15 +12,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "ParserCircuit.hpp"
+
+#include <algorithm>
+
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/problem/circuit/ProblemManagerCircuit.hpp"
-#include <algorithm>
 
 namespace d4 {
 /**
@@ -41,10 +44,9 @@ int ParserCircuit::parse_Circuit_main(BufferRead &in,
 
   for (;;) {
     in.skipSpace();
-    if (in.eof())
-      break;
+    if (in.eof()) break;
 
-    if (in.currentChar() == 'p') { // reading the header line
+    if (in.currentChar() == 'p') {  // reading the header line
       if (header_read) {
         std::cerr << "PARSE ERROR! Two header line in a noncnf file\n";
         exit(3);
@@ -95,8 +97,7 @@ int ParserCircuit::parse_Circuit_main(BufferRead &in,
                     << "\n",
               exit(3);
         }
-        if (v)
-          wires[g - 1].push_back(v);
+        if (v) wires[g - 1].push_back(v);
       } while (v != 0);
 
       in.consumeChar();
@@ -110,12 +111,12 @@ int ParserCircuit::parse_Circuit_main(BufferRead &in,
   // tseytin(gates, wires);
 
   return nbVars;
-} // parse_Circuit_main
+}  // parse_Circuit_main
 
 int ParserCircuit::parse_Circuit(std::string input_stream,
                                  ProblemManagerCircuit *problemManager) {
   BufferRead in(input_stream);
   return parse_Circuit_main(in, problemManager);
-} // parse_DIMACS
+}  // parse_DIMACS
 
-} // namespace d4
+}  // namespace d4

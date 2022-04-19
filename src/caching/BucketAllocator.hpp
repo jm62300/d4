@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -25,7 +26,7 @@
 namespace d4 {
 
 class BucketAllocator {
-private:
+ private:
   std::vector<char *> m_allocateData;
   char *m_data = NULL;
   unsigned long m_sizeFirstPage;
@@ -42,10 +43,9 @@ private:
   bool cleanup = true;
   bool m_consumedMemory = false;
 
-public:
+ public:
   ~BucketAllocator() {
-    for (auto data : m_allocateData)
-      delete[] data;
+    for (auto data : m_allocateData) delete[] data;
     m_allocateData.clear();
   }
 
@@ -63,7 +63,7 @@ public:
   inline double remainingMemory() {
     return ((double)m_freeMemory + (m_sizeData - m_posInData)) /
            (double)m_allMemory;
-  } // remainingMemory
+  }  // remainingMemory
 
   void init(unsigned long sizeFirstPage, unsigned long sizeAdditionalPage);
 
@@ -72,4 +72,4 @@ public:
   void releaseMemory(char *m, unsigned size);
 };
 
-} // namespace d4
+}  // namespace d4

@@ -12,21 +12,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 #include <boost/program_options.hpp>
-#include <vector>
-
 #include <src/problem/ProblemManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
+#include <vector>
 
 namespace d4 {
 namespace po = boost::program_options;
 class SpecManager {
-
-public:
+ public:
   static SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p,
                                       std::ostream &out);
 
@@ -34,10 +33,9 @@ public:
   virtual bool litIsAssigned(Lit l) = 0;
   virtual bool litIsAssignedToTrue(Lit l) = 0;
   virtual bool varIsAssigned(Var v) = 0;
-  virtual int
-  computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
-                            std::vector<Var> &setOfVar,
-                            std::vector<Var> &freeVar) = 0;
+  virtual int computeConnectedComponent(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<Var> &freeVar) = 0;
   virtual void preUpdate(std::vector<Lit> &lits) = 0;
   virtual void postUpdate(std::vector<Lit> &lits) = 0;
   virtual void initialize(std::vector<Var> &setOfVar,
@@ -48,4 +46,4 @@ public:
   virtual int getNbOccurrence(Lit l) = 0;
   virtual int getNbVariable() = 0;
 };
-} // namespace d4
+}  // namespace d4

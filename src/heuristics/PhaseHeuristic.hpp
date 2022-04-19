@@ -12,12 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 #include <boost/program_options.hpp>
-
 #include <src/problem/ProblemTypes.hpp>
 #include <src/solvers/PolarityManager.hpp>
 #include <src/specs/SpecManager.hpp>
@@ -25,10 +25,10 @@
 namespace d4 {
 namespace po = boost::program_options;
 class PhaseHeuristic {
-protected:
+ protected:
   bool isReversed;
 
-public:
+ public:
   virtual ~PhaseHeuristic() {}
   static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm,
                                             SpecManager &s, PolarityManager &p,
@@ -36,4 +36,4 @@ public:
 
   virtual bool selectPhase(Var v) = 0;
 };
-} // namespace d4
+}  // namespace d4

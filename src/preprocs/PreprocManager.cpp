@@ -12,15 +12,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "src/exceptions/FactoryException.hpp"
-
 #include "PreprocManager.hpp"
+
 #include "circuit/PreprocCnfFromCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -37,10 +38,8 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
   out << "c [CONSTRUCTOR] Preproc: " << meth << " " << inputType << "\n";
 
   if (inputType == "cnf" || inputType == "dimacs") {
-    if (meth == "basic")
-      return new PreprocBasicCnf(vm, out);
-    if (meth == "backbone")
-      return new PreprocBackboneCnf(vm, out);
+    if (meth == "basic") return new PreprocBasicCnf(vm, out);
+    if (meth == "backbone") return new PreprocBackboneCnf(vm, out);
   }
 
   if (inputType == "circuit") {
@@ -48,6 +47,6 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
   }
 
   throw(FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
-} // makePreprocManager
+}  // makePreprocManager
 
-} // namespace d4
+}  // namespace d4

@@ -12,12 +12,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "../../src/methods/Counter.hpp"
 #include <boost/program_options.hpp>
 #include <iostream>
+
+#include "../../src/methods/Counter.hpp"
 
 /**
    The main function!
@@ -62,11 +64,10 @@ int main(int argc, char **argv) {
                                                true, 50, std::cerr, lastBreath);
 
   std::vector<d4::Var> setOfVar;
-  for (unsigned i = 1; i <= nbVar; i++)
-    setOfVar.push_back(i);
+  for (unsigned i = 1; i <= nbVar; i++) setOfVar.push_back(i);
 
   mpz::mpf_float v = method->count(setOfVar, std::cerr);
   std::cout << "s " << v << "\n";
   delete method;
   return 0;
-} // main
+}  // main

@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -21,10 +22,13 @@
 #include "CachedBucket.hpp"
 
 namespace d4 {
-template <class T> class CacheCleaningManager;
-template <class T> class CacheManager;
-template <class T> class CacheCleaningNone : public CacheCleaningManager<T> {
-public:
+template <class T>
+class CacheCleaningManager;
+template <class T>
+class CacheManager;
+template <class T>
+class CacheCleaningNone : public CacheCleaningManager<T> {
+ public:
   /**
      Constructor.
 
@@ -32,13 +36,13 @@ public:
    */
   CacheCleaningNone(CacheManager<T> *cache) {
     this->m_cache = cache;
-  } // constructor
+  }  // constructor
 
-  void initCountCachedBucket(CachedBucket<T> *cb) {} // nothing to do.
+  void initCountCachedBucket(CachedBucket<T> *cb) {}  // nothing to do.
   void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
-  }                                            // nothing to do.
-  void reduceCache() {}                        // nothing to do.
-  void printCleaningInfo(std::ostream &out) {} // nothing to do.
+  }                                             // nothing to do.
+  void reduceCache() {}                         // nothing to do.
+  void printCleaningInfo(std::ostream &out) {}  // nothing to do.
 };
 
-} // namespace d4
+}  // namespace d4

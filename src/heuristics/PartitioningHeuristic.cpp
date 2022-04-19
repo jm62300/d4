@@ -12,21 +12,22 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#include "PartitioningHeuristic.hpp"
+
 #include <bitset>
 
-#include "src/exceptions/FactoryException.hpp"
-#include "src/utils/AtMost1Extractor.hpp"
-
-#include "PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicNone.hpp"
 #include "cnf/PartitioningHeuristicBipartiteDual.hpp"
 #include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
 #include "cnf/PartitioningHeuristicStaticMulti.hpp"
 #include "cnf/PartitioningHeuristicStaticSingleDual.hpp"
 #include "cnf/PartitioningHeuristicStaticSinglePrimal.hpp"
+#include "src/exceptions/FactoryException.hpp"
+#include "src/utils/AtMost1Extractor.hpp"
 
 namespace d4 {
 
@@ -35,11 +36,11 @@ namespace d4 {
 
    @param[in] out, the stream where is print out the log.
  */
-PartitioningHeuristic *
-PartitioningHeuristic::makePartitioningHeuristicNone(std::ostream &out) {
+PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristicNone(
+    std::ostream &out) {
   out << "c [CONSTRUCTOR] Partitioner manager: none\n";
   return new PartitioningHeuristicNone();
-} // makePartitioningHeuristicNone
+}  // makePartitioningHeuristicNone
 
 /**
    Create a partitioner.
@@ -55,8 +56,7 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
   std::string meth = vm["partitioning-heuristic"].as<std::string>();
   std::string inType = vm["input-type"].as<std::string>();
 
-  if (meth == "none")
-    return makePartitioningHeuristicNone(out);
+  if (meth == "none") return makePartitioningHeuristicNone(out);
 
   bool reduceFormula =
       vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
@@ -107,7 +107,7 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
 
   throw(FactoryException("Cannot create a PartitioningHeuristic", __FILE__,
                          __LINE__));
-} // makePartitioningHeuristic
+}  // makePartitioningHeuristic
 
 /**
    Associate for each variable in the component an equivalence class.
@@ -133,9 +133,8 @@ void PartitioningHeuristic::computeEquivClass(
 
   for (auto &c : equivVar) {
     Var vi = c.back();
-    for (auto &v : c)
-      equivClass[v] = vi;
+    for (auto &v : c) equivClass[v] = vi;
   }
-} // computeEquivclass
+}  // computeEquivclass
 
-} // namespace d4
+}  // namespace d4

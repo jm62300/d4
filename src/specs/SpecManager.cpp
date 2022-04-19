@@ -12,13 +12,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "src/exceptions/FactoryException.hpp"
-
 #include "SpecManager.hpp"
+
 #include "cnf/SpecManagerCnfDyn.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -39,20 +40,18 @@ SpecManager *SpecManager::makeSpecManager(po::variables_map &vm,
   out << "c [CONSTRUCTOR SPEC] Spec manager: " << meth << " " << inType << "\n";
 
   if (inType == "cnf" || inType == "dimacs") {
-    if (meth == "dynamic")
-      return new SpecManagerCnfDyn(p);
+    if (meth == "dynamic") return new SpecManagerCnfDyn(p);
     return NULL;
   }
 
   if (inType == "circuit") {
     out << "c Warning: only handle the case where the circuit is translated "
            "into a CNF formula\n";
-    if (meth == "dynamic")
-      return new SpecManagerCnfDyn(p);
+    if (meth == "dynamic") return new SpecManagerCnfDyn(p);
     return NULL;
   }
 
   throw(FactoryException("Cannot create a SpecManager", __FILE__, __LINE__));
-} // makeSpecManager
+}  // makeSpecManager
 
-} // namespace d4
+}  // namespace d4

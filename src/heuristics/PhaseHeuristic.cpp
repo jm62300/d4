@@ -12,16 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "src/exceptions/FactoryException.hpp"
-
 #include "PhaseHeuristic.hpp"
+
 #include "PhaseHeuristicFalse.hpp"
 #include "PhaseHeuristicOccurrence.hpp"
 #include "PhaseHeuristicPolarity.hpp"
 #include "PhaseHeuristicTrue.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -40,16 +41,12 @@ PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm,
   out << "c [CONSTRUCTOR] Phase heuristic: " << meth
       << ((rev) ? "(reversed)" : "") << "\n";
 
-  if (meth == "false")
-    return new PhaseHeuristicFalse(rev);
-  if (meth == "true")
-    return new PhaseHeuristicTrue(rev);
-  if (meth == "polarity")
-    return new PhaseHeuristicPolarity(p, rev);
-  if (meth == "occurrence")
-    return new PhaseHeuristicOccurrence(s, rev);
+  if (meth == "false") return new PhaseHeuristicFalse(rev);
+  if (meth == "true") return new PhaseHeuristicTrue(rev);
+  if (meth == "polarity") return new PhaseHeuristicPolarity(p, rev);
+  if (meth == "occurrence") return new PhaseHeuristicOccurrence(s, rev);
 
   throw(FactoryException("Cannot create a PhaseHeuristic", __FILE__, __LINE__));
-} // makePhaseHeuristic
+}  // makePhaseHeuristic
 
-} // namespace d4
+}  // namespace d4

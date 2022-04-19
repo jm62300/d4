@@ -12,11 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "AndGatesExtractor.hpp"
+
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
@@ -27,7 +29,7 @@ namespace d4 {
 
    @param[in] nbVar, the number of variables.
  */
-AndGatesExtractor::AndGatesExtractor(int nbVar) { init(nbVar); } // constructor
+AndGatesExtractor::AndGatesExtractor(int nbVar) { init(nbVar); }  // constructor
 
 /**
    Init the structure with the good number of variables.
@@ -37,7 +39,7 @@ AndGatesExtractor::AndGatesExtractor(int nbVar) { init(nbVar); } // constructor
 void AndGatesExtractor::init(int nbVar) {
   m_markedVar.resize(nbVar + 1, false);
   m_flagVar.resize(nbVar + 1, 0);
-} // initAndGatesExtractor
+}  // initAndGatesExtractor
 
 /**
    Research equivalences in the set of variable v.
@@ -50,14 +52,12 @@ void AndGatesExtractor::searchAndGates(SpecManagerCnf *om,
                                        std::vector<Var> &vars,
                                        std::vector<AndGate> &gates) {
   for (unsigned i = 0; i < om->getNbClause(); i++) {
-    if (om->isSatisfiedClause(i) || om->getInitSize(i) < 5)
-      continue;
+    if (om->isSatisfiedClause(i) || om->getInitSize(i) < 5) continue;
 
     std::vector<Lit> &cl = om->getClause(i);
     unsigned cpt = 0;
     for (auto &l : cl) {
-      if (om->litIsAssigned(l))
-        continue;
+      if (om->litIsAssigned(l)) continue;
       cpt++;
       m_flagVar[l.var()] = 1 + l.sign();
     }
@@ -65,14 +65,12 @@ void AndGatesExtractor::searchAndGates(SpecManagerCnf *om,
     unsigned cptLinked = 1;
     for (auto &l : cl) {
       IteratorIdxClause lbin = om->getVecIdxClauseBin(~l);
-      if (cpt > lbin.size() + 1)
-        continue;
+      if (cpt > lbin.size() + 1) continue;
 
       for (int *ptr = lbin.start; ptr != lbin.end; ptr++) {
         std::vector<Lit> &clBin = om->getClause(*ptr);
         Lit m = (clBin[0] == ~l) ? clBin[1] : clBin[0];
-        if (m_flagVar[m.var()] + m.sign() + 1 != 3)
-          continue;
+        if (m_flagVar[m.var()] + m.sign() + 1 != 3) continue;
         m_flagVar[m.var()] = 3;
         cptLinked++;
       }
@@ -83,15 +81,13 @@ void AndGatesExtractor::searchAndGates(SpecManagerCnf *om,
 
         ngate.output = l;
         for (auto &m : cl)
-          if (m != l)
-            ngate.input.push_back(~m);
+          if (m != l) ngate.input.push_back(~m);
         break;
       }
     }
 
-    for (auto &l : cl)
-      m_flagVar[l.var()] = 0;
+    for (auto &l : cl) m_flagVar[l.var()] = 0;
   }
-} // searchAndGates
+}  // searchAndGates
 
-} // namespace d4
+}  // namespace d4

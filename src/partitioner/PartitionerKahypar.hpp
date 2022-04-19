@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -26,7 +27,7 @@
 
 namespace d4 {
 class PartitionerKahypar : public PartitionerManager {
-private:
+ private:
   std::vector<bool> m_markedNodes;
   std::vector<int> m_mapNodes;
 
@@ -36,7 +37,7 @@ private:
   std::vector<kahypar_partition_id_t> m_partition;
   kahypar_context_s *context;
 
-public:
+ public:
   PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
                      unsigned maxSumEdgeSize, std::ostream &out);
 
@@ -44,4 +45,4 @@ public:
   void computePartition(HyperGraph &hypergraph, Level level,
                         std::vector<int> &partition);
 };
-} // namespace d4
+}  // namespace d4

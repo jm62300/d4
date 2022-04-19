@@ -12,13 +12,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "PartitioningHeuristicStaticSingleDual.hpp"
-#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
+
 #include <ostream>
+
+#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
 
 namespace d4 {
 
@@ -36,7 +39,7 @@ PartitioningHeuristicStaticSingleDual::PartitioningHeuristicStaticSingleDual(
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
-} // constructor
+}  // constructor
 
 /**
    Constructor.
@@ -61,13 +64,13 @@ PartitioningHeuristicStaticSingleDual::PartitioningHeuristicStaticSingleDual(
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
   m_maxNbNodes = m_nbClause + 1;
   m_maxNbEdges = m_nbVar + 1;
-} // constructor
+}  // constructor
 
 /**
    Destructor.
  */
 PartitioningHeuristicStaticSingleDual::
-    ~PartitioningHeuristicStaticSingleDual() {} // destructor
+    ~PartitioningHeuristicStaticSingleDual() {}  // destructor
 
 /**
    Set the elements given by indices in the bucketNumber structure.
@@ -80,8 +83,7 @@ PartitioningHeuristicStaticSingleDual::
 void PartitioningHeuristicStaticSingleDual::setBucketLevelFromEdges(
     std::vector<std::vector<unsigned>> &hypergraph,
     std::vector<unsigned> &indices, std::vector<int> &mapping, unsigned level) {
-  for (auto &id : indices)
-    m_bucketNumber[mapping[id]] = level;
-} // setBucketLevelFromEdges
+  for (auto &id : indices) m_bucketNumber[mapping[id]] = level;
+}  // setBucketLevelFromEdges
 
-} // namespace d4
+}  // namespace d4

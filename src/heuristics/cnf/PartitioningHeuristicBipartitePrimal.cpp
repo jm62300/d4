@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PartitioningHeuristicBipartitePrimal.hpp"
 
@@ -31,7 +32,7 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
           vm, _s, _om, dynamic_cast<SpecManagerCnf &>(_om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(_om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(_om).getSumSizeClauses(), out) {
-} // constructor
+}  // constructor
 
 /**
    Constructor.
@@ -58,5 +59,5 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
   m_staticPartitioner =
       PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
           vm, s, om, nbClause, nbVar, sumSize, "primal", out);
-} // constructor
-} // namespace d4
+}  // constructor
+}  // namespace d4

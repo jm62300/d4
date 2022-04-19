@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -21,11 +22,11 @@
 
 namespace d4 {
 class BucketSortInfo {
-public:
+ public:
   unsigned start;
   unsigned end;
   unsigned counter;
-  unsigned redirected; // redirected only if counter > 0
+  unsigned redirected;  // redirected only if counter > 0
 
   BucketSortInfo() : start(0), end(0), counter(0), redirected(0) {}
   BucketSortInfo(unsigned init)
@@ -41,4 +42,4 @@ public:
     counter = redirected = 0;
   }
 };
-} // namespace d4
+}  // namespace d4

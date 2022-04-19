@@ -12,23 +12,24 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
+#include "WrapperGlucose.hpp"
+
 #include <bits/stdint-uintn.h>
+
 #include <iostream>
 #include <typeinfo>
 #include <vector>
 
-#include "WrapperGlucose.hpp"
-
-#include "src/problem/ProblemTypes.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
-
 #include "3rdParty/glucose-3.0/core/Solver.h"
 #include "3rdParty/glucose-3.0/core/SolverTypes.h"
 #include "3rdParty/glucose-3.0/mtl/Vec.h"
+#include "src/problem/ProblemTypes.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 /**
@@ -46,16 +47,14 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
     // s.setIncrementalMode();
 
     // say to the solver we have pcnf.getNbVar() variables.
-    while ((unsigned)s.nVars() <= pcnf.getNbVar())
-      s.newVar();
+    while ((unsigned)s.nVars() <= pcnf.getNbVar()) s.newVar();
     m_model.resize(pcnf.getNbVar() + 1, l_Undef);
 
     // load the clauses
     std::vector<std::vector<Lit>> &clauses = pcnf.getClauses();
     for (auto &cl : clauses) {
       Glucose::vec<Glucose::Lit> lits;
-      for (auto &l : cl)
-        lits.push(Glucose::mkLit(l.var(), l.sign()));
+      for (auto &l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
       s.addClause(lits);
     }
   } catch (std::bad_cast &bc) {
@@ -67,7 +66,7 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
   m_needModel = false;
   setNeedModel(m_needModel);
   m_isInAssumption.resize(p.getNbVar() + 1, 0);
-} // initSolver
+}  // initSolver
 
 /**
    Call the SAT solver and return its result.
@@ -77,17 +76,15 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
    \return true if the problem is SAT, false otherwise.
  */
 bool WrapperGlucose::solve(std::vector<Var> &setOfVar) {
-  if (m_activeModel && m_needModel)
-    return true;
+  if (m_activeModel && m_needModel) return true;
 
   m_setOfVar_m.setSize(0);
-  for (auto &v : setOfVar)
-    m_setOfVar_m.push(v);
+  for (auto &v : setOfVar) m_setOfVar_m.push(v);
   s.rebuildWithConnectedComponent(m_setOfVar_m);
 
   m_activeModel = s.solveWithAssumptions();
   return m_activeModel;
-} // solve
+}  // solve
 
 /**
  * @brief Strong assumption in the sense we push the literal on the stack.
@@ -96,7 +93,7 @@ bool WrapperGlucose::solve(std::vector<Var> &setOfVar) {
  */
 void WrapperGlucose::uncheckedEnqueue(Lit l) {
   s.uncheckedEnqueue(Glucose::mkLit(l.var(), l.sign()));
-} // uncheckedEnqueue
+}  // uncheckedEnqueue
 
 /**
  * @brief Enforce the unit propagation of all the assumption literals.
@@ -105,7 +102,7 @@ void WrapperGlucose::uncheckedEnqueue(Lit l) {
  */
 bool WrapperGlucose::propagateAssumption() {
   return false;
-} // propagateAssumption
+}  // propagateAssumption
 
 /**
    Call the SAT solver and return its result.
@@ -115,7 +112,7 @@ bool WrapperGlucose::propagateAssumption() {
 bool WrapperGlucose::solve() {
   s.rebuildWithAllVar();
   return s.solveWithAssumptions();
-} // solve
+}  // solve
 
 /**
    An accessor on the activity of a variable.
@@ -126,7 +123,7 @@ bool WrapperGlucose::solve() {
  */
 double WrapperGlucose::getActivity(Var v) {
   return s.activity[v];
-} // getActivity
+}  // getActivity
 
 /**
    Return the number of times the variable v occurs in a conflict.
@@ -137,7 +134,7 @@ double WrapperGlucose::getActivity(Var v) {
  */
 double WrapperGlucose::getCountConflict(Var v) {
   return s.scoreActivity[v];
-} // getCountConflict
+}  // getCountConflict
 
 /**
  * @brief Set the count conflict in the solver.
@@ -146,19 +143,21 @@ double WrapperGlucose::getCountConflict(Var v) {
  */
 void WrapperGlucose::setCountConflict(Var v, double count) {
   s.scoreActivity[v] = count;
-} // setCountConflict
+}  // setCountConflict
 
 /**
    Print out the trail on the standard output.
  */
-void WrapperGlucose::showTrail() { s.showTrail(); } // showTrail
+void WrapperGlucose::showTrail() { s.showTrail(); }  // showTrail
 
 /**
    An accessor on the polarity of a variable.
 
    @param[in] v, the variable we want the polarity.
  */
-bool WrapperGlucose::getPolarity(Var v) { return s.polarity[v]; } // getPolarity
+bool WrapperGlucose::getPolarity(Var v) {
+  return s.polarity[v];
+}  // getPolarity
 
 /**
  * @brief Set the reverse polarity flag to the solver.
@@ -167,7 +166,7 @@ bool WrapperGlucose::getPolarity(Var v) { return s.polarity[v]; } // getPolarity
  */
 void WrapperGlucose::setReversePolarity(bool value) {
   s.reversePolarity = value;
-} // setReversePolarity
+}  // setReversePolarity
 
 /**
    Collect the unit literal from the affectation of the literal l to the
@@ -182,8 +181,7 @@ void WrapperGlucose::setReversePolarity(bool value) {
 bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
   Glucose::Lit ml = Glucose::mkLit(l.var(), l.sign());
   if (varIsAssigned(l.var())) {
-    if (s.litAssigned(l.var()) != ml)
-      return false;
+    if (s.litAssigned(l.var()) != ml) return false;
     units.push_back(l);
     return true;
   }
@@ -193,7 +191,7 @@ bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
   s.uncheckedEnqueue(ml);
   Glucose::CRef confl = s.propagate();
 
-  if (confl != Glucose::CRef_Undef) // unit literal
+  if (confl != Glucose::CRef_Undef)  // unit literal
   {
     int bt;
     Glucose::vec<Glucose::Lit> learnt_clause;
@@ -208,7 +206,7 @@ bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
     units.push_back(Lit::makeLit(var(s.trail[j]), sign(s.trail[j])));
   s.cancelUntil(s.decisionLevel() - 1);
   return true;
-} // decideAndComputeUnit
+}  // decideAndComputeUnit
 
 /**
    Fill the vector units with the literal l that are units such that l.var() is
@@ -220,12 +218,11 @@ bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
 void WrapperGlucose::whichAreUnits(std::vector<Var> &component,
                                    std::vector<Lit> &units) {
   for (auto &v : component) {
-    if (!s.isAssigned(v))
-      continue;
+    if (!s.isAssigned(v)) continue;
     Glucose::Lit l = s.litAssigned(v);
     units.push_back(Lit::makeLit(var(l), sign(l)));
   }
-} // whichAreUnits
+}  // whichAreUnits
 
 /**
  * @brief Get the list of unit literals that are in the trail (we suppose that
@@ -238,7 +235,7 @@ void WrapperGlucose::getUnits(std::vector<Lit> &units) {
     Glucose::Lit l = s.trail[i];
     units.push_back(Lit::makeLit(var(l), sign(l)));
   }
-} // getUnits
+}  // getUnits
 
 /**
    Check out if the given variable is assigned or not by the solver.
@@ -249,12 +246,12 @@ void WrapperGlucose::getUnits(std::vector<Lit> &units) {
  */
 bool WrapperGlucose::varIsAssigned(Var v) {
   return s.isAssigned(v);
-} // varIsAssigned
+}  // varIsAssigned
 
 /**
    Restart the solver.
  */
-void WrapperGlucose::restart() { s.cancelUntil(0); } // restart
+void WrapperGlucose::restart() { s.cancelUntil(0); }  // restart
 
 /**
    Transfer to the solver the fact we have a set of assumption variables we want
@@ -267,9 +264,8 @@ void WrapperGlucose::setAssumption(std::vector<Lit> &assums) {
   Glucose::vec<Glucose::Lit> &assumptions = s.assumptions;
   assumptions.clear();
   m_assumption.clear();
-  for (auto &l : assums)
-    pushAssumption(l);
-} // setAssumption
+  for (auto &l : assums) pushAssumption(l);
+}  // setAssumption
 
 /**
    \return the current assumption.
@@ -278,7 +274,7 @@ void WrapperGlucose::setAssumption(std::vector<Lit> &assums) {
  */
 std::vector<Lit> &WrapperGlucose::getAssumption() {
   return m_assumption;
-} // getAssumption
+}  // getAssumption
 
 /**
    Print out the assumption.
@@ -292,7 +288,7 @@ void WrapperGlucose::displayAssumption(std::ostream &out) {
     std::cout << (Glucose::sign(l) ? "-" : "") << Glucose::var(l) << " ";
   }
   std::cout << "\n";
-} // displayAssumption
+}  // displayAssumption
 
 /**
    Ask for the model.
@@ -302,7 +298,7 @@ void WrapperGlucose::displayAssumption(std::ostream &out) {
 void WrapperGlucose::setNeedModel(bool b) {
   m_needModel = b;
   s.setNeedModel(b);
-} // setNeedModel
+}  // setNeedModel
 
 /**
  * @brief Return the model computed by the solver.
@@ -320,7 +316,7 @@ std::vector<lbool> &WrapperGlucose::getModel() {
   }
 
   return m_model;
-} // getModel
+}  // getModel
 
 /**
  * @brief Get the value given by the last computed model.
@@ -330,7 +326,7 @@ std::vector<lbool> &WrapperGlucose::getModel() {
  */
 lbool WrapperGlucose::getModelVar(Var v) {
   return Glucose::toInt(s.model[v]);
-} // getModelVar
+}  // getModelVar
 
 /**
    Push a new assumption.
@@ -359,7 +355,7 @@ void WrapperGlucose::pushAssumption(Lit l) {
       assert(cref == Glucose::CRef_Undef);
     }
   }
-} // pushAssumption
+}  // pushAssumption
 
 /**
    Remove the last assumption and cancelUntil.
@@ -374,8 +370,8 @@ void WrapperGlucose::popAssumption(unsigned count) {
   m_assumption.resize(m_assumption.size() - count);
   (s.assumptions).shrink_(count);
   (s.cancelUntil)((s.assumptions).size());
-} // popAssumption
+}  // popAssumption
 
 inline unsigned WrapperGlucose::getNbConflict() { return s.conflicts; }
 
-} // namespace d4
+}  // namespace d4

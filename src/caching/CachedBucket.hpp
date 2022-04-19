@@ -12,17 +12,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include "DataInfo.hpp"
-#include <bitset>
 #include <sys/types.h>
 
+#include <bitset>
+
+#include "DataInfo.hpp"
+
 namespace d4 {
-template <class T> class CachedBucket {
-public:
+template <class T>
+class CachedBucket {
+ public:
   char *data;
   DataInfo header;
   T fc;
@@ -35,7 +39,7 @@ public:
   inline void set(char *d, DataInfo &dnew) {
     data = d;
     header = dnew;
-  } // set
+  }  // set
 
   inline void lockedBucket(T v) { fc = v; }
 
@@ -55,4 +59,4 @@ public:
   inline DataInfo &getDataInfo() { return header; }
   inline bool sameHeader(CachedBucket<T> &b) { return header == b.header; }
 };
-} // namespace d4
+}  // namespace d4

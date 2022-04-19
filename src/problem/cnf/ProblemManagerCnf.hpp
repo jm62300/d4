@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -23,10 +24,10 @@
 
 namespace d4 {
 class ProblemManagerCnf : public ProblemManager {
-private:
+ private:
   std::vector<std::vector<Lit>> m_clauses;
 
-public:
+ public:
   ProblemManagerCnf();
   ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
                     std::vector<double> &weightVar, std::vector<Var> &selected);
@@ -43,4 +44,4 @@ public:
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 };
-} // namespace d4
+}  // namespace d4

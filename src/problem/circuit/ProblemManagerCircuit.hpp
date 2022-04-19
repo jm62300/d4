@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -22,11 +23,11 @@
 
 namespace d4 {
 class ProblemManagerCircuit : public ProblemManager {
-private:
+ private:
   std::vector<unsigned> gates;
   std::vector<std::vector<unsigned>> wires;
 
-public:
+ public:
   ProblemManagerCircuit();
   ~ProblemManagerCircuit();
   ProblemManagerCircuit(std::string &nameFile);
@@ -41,4 +42,4 @@ public:
   inline std::vector<unsigned> &getGates() { return gates; }
   inline std::vector<std::vector<unsigned>> &getWires() { return wires; }
 };
-} // namespace d4
+}  // namespace d4

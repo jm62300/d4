@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "PhaseHeuristicOccurrence.hpp"
@@ -28,7 +29,7 @@ namespace d4 {
 PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s, bool isRev)
     : sm(s) {
   isReversed = isRev;
-} // constructor
+}  // constructor
 
 /**
    Assign the next decision variable regarding the number of occurrence of the
@@ -38,6 +39,6 @@ bool PhaseHeuristicOccurrence::selectPhase(Var v) {
   bool ret = sm.getNbOccurrence(Lit::makeLit(v, false)) <
              sm.getNbOccurrence(Lit::makeLit(v, true));
   return (ret + isReversed) & 1;
-} // selectPhase
+}  // selectPhase
 
-} // namespace d4
+}  // namespace d4

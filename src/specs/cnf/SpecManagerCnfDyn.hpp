@@ -12,25 +12,25 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 #include <cassert>
-#include <vector>
-
 #include <src/problem/ProblemManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
+#include <vector>
 
 #include "SpecManagerCnf.hpp"
 
 namespace d4 {
 class SpecManagerCnfDyn : public SpecManagerCnf {
-private:
+ private:
   std::vector<int> m_reviewWatcher;
   void initClauses(std::vector<std::vector<Lit>> &clauses);
 
-public:
+ public:
   SpecManagerCnfDyn(ProblemManager &p);
 
   void preUpdate(std::vector<Lit> &lits);
@@ -41,4 +41,4 @@ public:
     assert(0);
   }
 };
-} // namespace d4
+}  // namespace d4

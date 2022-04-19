@@ -12,20 +12,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
 #include "../WrapperSolver.hpp"
+#include "3rdParty/glucose-3.0/core/Solver.h"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
-#include "3rdParty/glucose-3.0/core/Solver.h"
-
 namespace d4 {
 class WrapperGlucose : public WrapperSolver {
-private:
+ private:
   Glucose::Solver s;
   Glucose::vec<Glucose::Var> m_setOfVar_m;
 
@@ -34,10 +34,10 @@ private:
   bool m_activeModel;
   bool m_needModel;
 
-protected:
+ protected:
   using WrapperSolver::m_isInAssumption;
 
-public:
+ public:
   void initSolver(ProblemManager &p) override;
   bool solve(std::vector<Var> &setOfVar) override;
   bool solve() override;
@@ -66,4 +66,4 @@ public:
   unsigned getNbConflict() override;
   void setReversePolarity(bool value) override;
 };
-} // namespace d4
+}  // namespace d4

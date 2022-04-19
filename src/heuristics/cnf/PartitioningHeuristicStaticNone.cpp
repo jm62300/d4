@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PartitioningHeuristicStaticNone.hpp"
 
@@ -33,7 +34,7 @@ PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
-} // constructor
+}  // constructor
 
 /**
    Constructor.
@@ -52,14 +53,14 @@ PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
   out << "c [CONSTRUCTOR] Static partitioner: none\n";
 
   m_isInitialized = true;
-} // constructor
+}  // constructor
 
 /**
    Destructor.
  */
 PartitioningHeuristicStaticNone::~PartitioningHeuristicStaticNone() {
 
-} // destructor
+}  // destructor
 
 /**
    In the case where we do not considere tree decomposition, then we return the
@@ -71,7 +72,7 @@ PartitioningHeuristicStaticNone::~PartitioningHeuristicStaticNone() {
 void PartitioningHeuristicStaticNone::computeCutSet(std::vector<Var> &component,
                                                     std::vector<Var> &cutSet) {
   cutSet = component;
-} // computeCutSet
+}  // computeCutSet
 
 /**
    Put all the variables in the same bucket 1.
@@ -85,8 +86,7 @@ void PartitioningHeuristicStaticNone::computeDecomposition(
     std::vector<Var> &component, std::vector<Var> &equivClass,
     std::vector<std::vector<Var>> &equivVar,
     std::vector<unsigned> &bucketNumber) {
-  for (auto &v : component)
-    bucketNumber[v] = 1;
-} // computeDecomposition
+  for (auto &v : component) bucketNumber[v] = 1;
+}  // computeDecomposition
 
-} // namespace d4
+}  // namespace d4

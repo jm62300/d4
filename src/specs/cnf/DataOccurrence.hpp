@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #pragma once
@@ -41,7 +42,7 @@ struct DataOccurrence {
         return;
       }
     }
-    assert(0); // we have to remove one element.
+    assert(0);  // we have to remove one element.
   }
   void removeNotBin(int idx) {
     for (unsigned i = 0; i < nbNotBin; i++) {
@@ -50,7 +51,7 @@ struct DataOccurrence {
         return;
       }
     }
-    assert(0); // we have to remove one element.
+    assert(0);  // we have to remove one element.
   }
 
   inline void addBin(int idx) {
@@ -66,4 +67,4 @@ struct DataOccurrence {
   }
   inline IteratorIdxClause getClauses() { return {bin, &notBin[nbNotBin]}; }
 };
-} // namespace d4
+}  // namespace d4

@@ -12,13 +12,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#include "PartitionerKahypar.hpp"
+
 #include <iostream>
 #include <vector>
 
-#include "PartitionerKahypar.hpp"
 #include "src/exceptions/OptionException.hpp"
 
 namespace d4 {
@@ -38,22 +40,21 @@ PartitionerKahypar::PartitionerKahypar(unsigned maxNodes, unsigned maxEdges,
   m_partition = std::vector<kahypar_partition_id_t>(maxNodes + 3);
 
   // set all weight to 1
-  for (unsigned i = 0; i < (maxNodes + 3); i++)
-    m_cwghts[i] = 1;
+  for (unsigned i = 0; i < (maxNodes + 3); i++) m_cwghts[i] = 1;
 
   m_mapNodes.resize(maxNodes + 3, false);
   m_markedNodes.resize(maxNodes + 3, false);
 
   context = kahypar_context_new();
   kahypar_configure_context_cut(context);
-} // constructor
+}  // constructor
 
 /**
    Destructor.
  */
 PartitionerKahypar::~PartitionerKahypar() {
   kahypar_context_free(context);
-} // destructor
+}  // destructor
 
 /**
    Get a partition from the hypergraph.
@@ -83,11 +84,9 @@ void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
     }
   }
 
-  if (!elts.size())
-    return;
+  if (!elts.size()) return;
 
-  for (auto &x : elts)
-    m_markedNodes[x] = false;
+  for (auto &x : elts) m_markedNodes[x] = false;
   m_xpins[sizeXpins] = posPins;
 
   const kahypar_hypernode_id_t num_vertices = elts.size();
@@ -104,6 +103,6 @@ void PartitionerKahypar::computePartition(HyperGraph &hypergraph, Level level,
 
   for (unsigned i = 0; i < elts.size(); i++)
     partition[elts[i]] = m_partition[i];
-} // computePartition
+}  // computePartition
 
-} // namespace d4
+}  // namespace d4

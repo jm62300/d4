@@ -12,10 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PreprocCnfFromCircuit.hpp"
+
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/circuit/ProblemManagerCircuit.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
@@ -31,8 +33,8 @@ const int NOT = 3;
  * @param circuit is the formula we want to translate using tseytin.
  * @return ProblemManagerCnf* is the computed CNF.
  */
-ProblemManagerCnf *
-PreprocCnfFromCircuit::tseytin(ProblemManagerCircuit *circuit) {
+ProblemManagerCnf *PreprocCnfFromCircuit::tseytin(
+    ProblemManagerCircuit *circuit) {
   ProblemManagerCnf *retCnf = new ProblemManagerCnf(circuit);
   std::vector<std::vector<Lit>> &clauses = retCnf->getClauses();
 
@@ -41,38 +43,38 @@ PreprocCnfFromCircuit::tseytin(ProblemManagerCircuit *circuit) {
 
   for (int i = 0; i < gates.size(); i++) {
     switch (gates[i]) {
-    case AND: {
-      int id = i + 1;
-      std::vector<Lit> c = {Lit::makeLitTrue(id)};
-      for (int v : wires[i]) {
-        clauses.push_back({Lit::makeLitFalse(id), Lit::makeLitTrue(v)});
-        c.push_back(Lit::makeLitFalse(v));
+      case AND: {
+        int id = i + 1;
+        std::vector<Lit> c = {Lit::makeLitTrue(id)};
+        for (int v : wires[i]) {
+          clauses.push_back({Lit::makeLitFalse(id), Lit::makeLitTrue(v)});
+          c.push_back(Lit::makeLitFalse(v));
+        }
+        clauses.push_back(c);
+        break;
       }
-      clauses.push_back(c);
-      break;
-    }
 
-    case OR: {
-      int id = i + 1;
-      std::vector<Lit> c = {Lit::makeLitTrue(id)};
-      for (int v : wires[i]) {
-        clauses.push_back({Lit::makeLitTrue(id), Lit::makeLitFalse(v)});
-        c.push_back(Lit::makeLitTrue(v));
+      case OR: {
+        int id = i + 1;
+        std::vector<Lit> c = {Lit::makeLitTrue(id)};
+        for (int v : wires[i]) {
+          clauses.push_back({Lit::makeLitTrue(id), Lit::makeLitFalse(v)});
+          c.push_back(Lit::makeLitTrue(v));
+        }
+        clauses.push_back(c);
+        break;
       }
-      clauses.push_back(c);
-      break;
-    }
 
-    case NOT: {
-      int id = i + 1;
-      int v = wires[i][0];
-      clauses.push_back({Lit::makeLitFalse(id), Lit::makeLitFalse(v)});
-      clauses.push_back({Lit::makeLitTrue(id), Lit::makeLitTrue(v)});
-    }
+      case NOT: {
+        int id = i + 1;
+        int v = wires[i][0];
+        clauses.push_back({Lit::makeLitFalse(id), Lit::makeLitFalse(v)});
+        clauses.push_back({Lit::makeLitTrue(id), Lit::makeLitTrue(v)});
+      }
     }
   }
   return retCnf;
-} // tseytin
+}  // tseytin
 
 /**
  * @brief Construct a new Preproc Cnf From Circuit:: Preproc Cnf From Circuit
@@ -84,7 +86,7 @@ PreprocCnfFromCircuit::tseytin(ProblemManagerCircuit *circuit) {
 PreprocCnfFromCircuit::PreprocCnfFromCircuit(po::variables_map &vm,
                                              std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
-} // constructor
+}  // constructor
 
 /**
  * @brief Destroy the Preproc Cnf From Circuit:: Preproc Cnf From Circuit object
@@ -106,8 +108,7 @@ ProblemManager *PreprocCnfFromCircuit::run(ProblemManager *pin,
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(cnf->getNbVar() + 1, 0);
 
-  if (!ws->solve())
-    return cnf->getUnsatProblem();
+  if (!ws->solve()) return cnf->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 
   // get the activity given by the solver.
@@ -119,6 +120,6 @@ ProblemManager *PreprocCnfFromCircuit::run(ProblemManager *pin,
   ProblemManager *ret = cnf->getConditionedFormula(units);
   delete cnf;
   return ret;
-} // run
+}  // run
 
-} // namespace d4
+}  // namespace d4

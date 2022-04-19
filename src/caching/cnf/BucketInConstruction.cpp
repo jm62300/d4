@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "BucketInConstruction.hpp"
 
@@ -32,7 +33,7 @@ BucketInConstruction::BucketInConstruction() {
   nbClauseInDistrib = 0;
   sizeDistrib = 0;
   capacityDistrib = 0;
-} // constructor
+}  // constructor
 
 /**
    Constructor.
@@ -54,25 +55,19 @@ BucketInConstruction::BucketInConstruction(SpecManagerCnf &occM) {
 
   for (unsigned i = 0; i < occM.getNbClause(); i++)
     markedAsRedundant[i] = false;
-} // constructor
+}  // constructor
 
 /**
    Destructor.
 */
 BucketInConstruction::~BucketInConstruction() {
-  if (distrib)
-    delete[] distrib;
-  if (shiftedIndexClause)
-    delete[] shiftedIndexClause;
-  if (shiftedSizeClause)
-    delete[] shiftedSizeClause;
-  if (sizeClauses)
-    delete[] sizeClauses;
-  if (distribDiffSize)
-    delete[] distribDiffSize;
-  if (markedAsRedundant)
-    delete[] markedAsRedundant;
-} // destructor
+  if (distrib) delete[] distrib;
+  if (shiftedIndexClause) delete[] shiftedIndexClause;
+  if (shiftedSizeClause) delete[] shiftedSizeClause;
+  if (sizeClauses) delete[] sizeClauses;
+  if (distribDiffSize) delete[] distribDiffSize;
+  if (markedAsRedundant) delete[] markedAsRedundant;
+}  // destructor
 
 /**
    Reinit.
@@ -80,7 +75,6 @@ BucketInConstruction::~BucketInConstruction() {
 void BucketInConstruction::reinit() {
   nbClauseInDistrib = 0;
   sizeDistrib = 0;
-  for (unsigned i = 0; i <= maxSizeClause; i++)
-    distribDiffSize[i] = 0;
-} // reinit
-} // namespace d4
+  for (unsigned i = 0; i <= maxSizeClause; i++) distribDiffSize[i] = 0;
+}  // reinit
+}  // namespace d4

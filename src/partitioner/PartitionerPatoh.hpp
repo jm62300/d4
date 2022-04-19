@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -25,7 +26,7 @@
 
 namespace d4 {
 class PartitionerPatoh : public PartitionerManager {
-private:
+ private:
   std::vector<bool> m_markedNodes;
   std::vector<int> m_mapNodes;
 
@@ -35,7 +36,7 @@ private:
   int *m_partvec;
   int *m_partweights;
 
-public:
+ public:
   PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
                    unsigned maxSumEdgeSize, std::ostream &out);
 
@@ -43,4 +44,4 @@ public:
   void computePartition(HyperGraph &hypergraph, Level level,
                         std::vector<int> &partition);
 };
-} // namespace d4
+}  // namespace d4

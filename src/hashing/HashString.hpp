@@ -12,28 +12,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
+#include <sys/types.h>
+
 #include <cstddef>
 #include <iostream>
-#include <sys/types.h>
 #include <typeinfo>
 
 namespace d4 {
 class HashString {
-public:
+ public:
   inline unsigned hash(char *key, unsigned len) {
     return std::_Hash_bytes(key, len, 29111983);
-  } // hash
+  }  // hash
 
   inline unsigned hash(char *key, unsigned len, u_int64_t info) {
     unsigned dataHash = std::_Hash_bytes(key, len, 29111983);
     unsigned infoHash = std::_Hash_bytes(&info, sizeof(u_int64_t), 30011989);
     return dataHash ^
            (infoHash + 0x9e3779b9 + (dataHash << 6) + (dataHash >> 2));
-  } // hash
+  }  // hash
 };
-} // namespace d4
+}  // namespace d4

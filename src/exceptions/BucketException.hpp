@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -24,18 +25,18 @@
 
 namespace d4 {
 class BucketException : public std::exception {
-private:
+ private:
   std::string m_error_message;
   const char *m_file;
   int m_line;
 
-public:
+ public:
   BucketException(const char *msg, const char *file_, int line_)
       : m_file(file_), m_line(line_) {
     std::ostringstream o;
     o << m_file << ":" << m_line << ": " << msg;
     m_error_message = o.str();
-  } // constructor
+  }  // constructor
 
   /**
      Returns a pointer to the (constant) error description.
@@ -44,4 +45,4 @@ public:
    */
   virtual const char *what() const throw() { return m_error_message.c_str(); }
 };
-} // namespace d4
+}  // namespace d4

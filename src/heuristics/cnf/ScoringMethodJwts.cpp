@@ -12,11 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "ScoringMethodJwts.hpp"
+
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
@@ -27,7 +29,7 @@ namespace d4 {
    @param[in] om, the manager that give information about the CNF formula.
  */
 ScoringMethodJwts::ScoringMethodJwts(SpecManagerCnf &o)
-    : om(o) {} // constructor
+    : om(o) {}  // constructor
 
 /**
    This scoring function favorises the varaibles which appear in
@@ -48,20 +50,18 @@ double ScoringMethodJwts::computeScore(Var v) {
   IteratorIdxClause listIdx = om.getVecIdxClauseNotBin(lp);
   for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++) {
     assert(!om.isSatisfiedClause(*ptr));
-    if (om.getInitSize(*ptr) > 5)
-      continue;
+    if (om.getInitSize(*ptr) > 5) continue;
     res += ((double)1.0) / (1 << om.getCurrentSize(*ptr));
   }
 
   listIdx = om.getVecIdxClauseNotBin(~lp);
   for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++) {
     assert(!om.isSatisfiedClause(*ptr));
-    if (om.getInitSize(*ptr) > 5)
-      continue;
+    if (om.getInitSize(*ptr) > 5) continue;
     res += ((double)1.0) / (1 << om.getCurrentSize(*ptr));
   }
 
   return res;
-} // computeScore
+}  // computeScore
 
-} // namespace d4
+}  // namespace d4

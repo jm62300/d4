@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -26,14 +27,16 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-template <class T> class CacheList;
+template <class T>
+class CacheList;
 namespace po = boost::program_options;
 
-template <class T> class CacheCleaningManager {
-protected:
+template <class T>
+class CacheCleaningManager {
+ protected:
   CacheManager<T> *m_cache;
 
-public:
+ public:
   virtual ~CacheCleaningManager() {}
 
   /**
@@ -44,9 +47,9 @@ public:
      @param[in] nbVar, the number of variables in the problem.
      @param[in] out, the stream where are print out the information.
    */
-  static CacheCleaningManager<T> *
-  makeCacheCleaningManager(po::variables_map &vm, CacheManager<T> *cache,
-                           int nbVar, std::ostream &out) {
+  static CacheCleaningManager<T> *makeCacheCleaningManager(
+      po::variables_map &vm, CacheManager<T> *cache, int nbVar,
+      std::ostream &out) {
     std::string crs = vm["cache-reduction-strategy"].as<std::string>();
 
     if (crs == "expectation") {
@@ -59,7 +62,7 @@ public:
 
     throw(FactoryException("Cannot create a CacheCleaningManager", __FILE__,
                            __LINE__));
-  } // makeCacheCleaningManager
+  }  // makeCacheCleaningManager
 
   virtual void initCountCachedBucket(CachedBucket<T> *cb) = 0;
   virtual void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) = 0;
@@ -77,7 +80,7 @@ public:
    */
   void releaseMemory(char *data, int size) {
     m_cache->getBucketManager()->releaseMemory(data, size);
-  } // releaseMemory
+  }  // releaseMemory
 };
 
-} // namespace d4
+}  // namespace d4

@@ -12,10 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PartitioningHeuristicStatic.hpp"
+
 #include "PartitioningHeuristicStaticMulti.hpp"
 #include "PartitioningHeuristicStaticNone.hpp"
 #include "PartitioningHeuristicStaticSingleDual.hpp"
@@ -38,7 +40,7 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(po::variables_map &vm,
           vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
-} // constructor
+}  // constructor
 
 /**
    Constructor.
@@ -67,15 +69,14 @@ PartitioningHeuristicStatic::PartitioningHeuristicStatic(
 
   m_isInitialized = false;
   m_pm = NULL;
-} // constructor
+}  // constructor
 
 /**
    Destructor.
 */
 PartitioningHeuristicStatic::~PartitioningHeuristicStatic() {
-  if (m_pm)
-    delete m_pm;
-} // destructor
+  if (m_pm) delete m_pm;
+}  // destructor
 
 /**
    Generate a static partitioner regarding the given option list.
@@ -116,6 +117,6 @@ PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
                            __LINE__));
   ret->init(out);
   return ret;
-} // makePartitioningHeuristicStatic
+}  // makePartitioningHeuristicStatic
 
-} // namespace d4
+}  // namespace d4

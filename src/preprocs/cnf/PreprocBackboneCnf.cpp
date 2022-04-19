@@ -12,13 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PreprocBackboneCnf.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
+
 #include <bits/types/clock_t.h>
+
 #include <ctime>
+
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 
@@ -30,12 +34,12 @@ namespace d4 {
 PreprocBackboneCnf::PreprocBackboneCnf(po::variables_map &vm,
                                        std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
-} // constructor
+}  // constructor
 
 /**
    Destructor.
  */
-PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; } // destructor
+PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -51,8 +55,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   unsigned nbSatCalls = 1;
   unsigned nbFoundUnit = 0;
 
-  if (!ws->solve())
-    return pin->getUnsatProblem();
+  if (!ws->solve()) return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
   ws->setReversePolarity(true);
 
@@ -62,8 +65,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
     std::vector<lbool> &model = ws->getModel();
 
     for (unsigned i = 1; i <= pin->getNbVar(); i++) {
-      if (marked[i] || ws->varIsAssigned(i))
-        continue;
+      if (marked[i] || ws->varIsAssigned(i)) continue;
 
       nbSatCalls++;
 
@@ -79,8 +81,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
           marked[j] = marked[j] || (model[j] != ws->getModelVar((Var)j));
       } else {
         nbFoundUnit++;
-        if (!ws->varIsAssigned(i))
-          ws->uncheckedEnqueue(~l);
+        if (!ws->varIsAssigned(i)) ws->uncheckedEnqueue(~l);
       }
     }
   }
@@ -104,5 +105,5 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
             << lastBreath.panic << "\n";
 
   return pin->getConditionedFormula(units);
-} // run
-} // namespace d4
+}  // run
+}  // namespace d4

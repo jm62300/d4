@@ -12,27 +12,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
 #include <boost/program_options.hpp>
 
-#include "src/problem/ProblemManager.hpp"
-#include "src/problem/ProblemTypes.hpp"
-
 #include "ActivityManager.hpp"
 #include "PolarityManager.hpp"
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
 class WrapperSolver : public ActivityManager, public PolarityManager {
-private:
-protected:
+ private:
+ protected:
   std::vector<char> m_isInAssumption;
 
-public:
+ public:
   static WrapperSolver *makeWrapperSolver(po::variables_map &vm,
                                           std::ostream &out);
   static WrapperSolver *makeWrapperSolverPreproc(po::variables_map &vm,
@@ -80,7 +80,7 @@ public:
   */
   inline bool isInAssumption(Lit l) {
     return m_isInAssumption[l.var()] == 1 + l.sign();
-  } // isInassumption
+  }  // isInassumption
 
   /**
      Check out if a variable is already in the assumption.
@@ -92,7 +92,7 @@ public:
   */
   inline bool isInAssumption(Var v) {
     return m_isInAssumption[v];
-  } // isInassumption
+  }  // isInassumption
 
   /**
    * @brief Pop all the element of the assumption.
@@ -100,4 +100,4 @@ public:
    */
   inline void resetAssumption() { popAssumption(getAssumption().size()); }
 };
-} // namespace d4
+}  // namespace d4

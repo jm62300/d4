@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -24,8 +25,10 @@
 #include "CachedBucket.hpp"
 
 namespace d4 {
-template <class T> class CacheCleaningManager;
-template <class T> class CacheManager;
+template <class T>
+class CacheCleaningManager;
+template <class T>
+class CacheManager;
 
 struct StatVarSizeCache {
   unsigned long negative;
@@ -35,7 +38,7 @@ struct StatVarSizeCache {
 
 template <class T>
 class CacheCleaningExpectation : public CacheCleaningManager<T> {
-private:
+ private:
   const double INC_THRESHOD = 0.05;
   const double INIT_THRESHOD = 0;
 
@@ -49,7 +52,7 @@ private:
   std::vector<StatVarSizeCache> m_statVar;
   using CacheCleaningManager<T>::m_cache;
 
-public:
+ public:
   /**
      Constructor.
 
@@ -69,7 +72,7 @@ public:
     this->m_cache = cache;
 
     m_statVar.resize(nbVar + 1, {0, 0, 0});
-  } // constructor
+  }  // constructor
 
   /**
      We init the count of a bucket with the number of times we ask for an entry
@@ -79,7 +82,7 @@ public:
    */
   void initCountCachedBucket(CachedBucket<T> *cb) {
     m_statVar[cb->nbVar()].number++;
-  } // initCountCachedBucket
+  }  // initCountCachedBucket
 
   /**
    * @brief Update the information about the bucket.
@@ -96,7 +99,7 @@ public:
       m_statVar[nbVar].negative++;
       m_nbNegativeHit++;
     }
-  } // updateCountCachedBucket
+  }  // updateCountCachedBucket
 
   /**
    * @brief We remove the entry regarding if they have been used recently and
@@ -116,8 +119,7 @@ public:
         m_statVar[i].positive >>= 1;
       }
 
-      if (ratio > m_threshold)
-        break;
+      if (ratio > m_threshold) break;
 
       limit--;
     }
@@ -135,7 +137,7 @@ public:
     std::cout << "c #rm=" << nbRemoveEntry << " #allRm=" << m_nbRemoveEntry
               << " #entries=" << m_cache->getNbEntry() << " limit=" << limit
               << "\n";
-  } // reduceCache
+  }  // reduceCache
 
   /**
      Print out statistics about the cleaning process.
@@ -148,4 +150,4 @@ public:
   }
 };
 
-} // namespace d4
+}  // namespace d4

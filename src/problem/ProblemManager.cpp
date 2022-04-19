@@ -12,16 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#include "ProblemManager.hpp"
+
 #include <iostream>
 
-#include "src/exceptions/FactoryException.hpp"
-
-#include "ProblemManager.hpp"
 #include "circuit/ProblemManagerCircuit.hpp"
 #include "cnf/ProblemManagerCnf.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -41,15 +42,13 @@ ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm,
   out << "c [CONSTRUCTOR] Problem: " << in << " " << inType << "\n";
 
   ProblemManager *ret = NULL;
-  if (inType == "cnf" || inType == "dimacs")
-    ret = new ProblemManagerCnf(in);
-  if (inType == "circuit")
-    ret = new ProblemManagerCircuit(in);
+  if (inType == "cnf" || inType == "dimacs") ret = new ProblemManagerCnf(in);
+  if (inType == "circuit") ret = new ProblemManagerCircuit(in);
 
   if (!ret)
     throw(
         FactoryException("Cannot create a ProblemManager", __FILE__, __LINE__));
   return ret;
-} // makeProblemManager
+}  // makeProblemManager
 
-} // namespace d4
+}  // namespace d4

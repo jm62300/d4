@@ -12,14 +12,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#include <signal.h>
+
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 #include <cassert>
 #include <iostream>
-#include <signal.h>
 #include <vector>
 
 #include "src/methods/MethodManager.hpp"
@@ -35,10 +37,9 @@ d4::MethodManager *methodRun = nullptr;
  */
 void signalHandler(int signum) {
   std::cout << "c [MAIN] Method stop\n";
-  if (methodRun != nullptr)
-    methodRun->interrupt();
+  if (methodRun != nullptr) methodRun->interrupt();
   exit(signum);
-} // signalHandler
+}  // signalHandler
 
 /**
    The main function!
@@ -76,5 +77,5 @@ int main(int argc, char **argv) {
   methodRun = nullptr;
 
   return 0;
-} // main
+}  // main
 #endif

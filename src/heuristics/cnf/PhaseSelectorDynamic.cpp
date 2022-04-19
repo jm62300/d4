@@ -12,10 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PhaseSelectorDynamic.hpp"
+
 #include <ostream>
 
 namespace d4 {
@@ -33,7 +35,7 @@ PhaseSelectorDynamic::PhaseSelectorDynamic(
       << " dynamic(" << limitRatio << ")\n";
 
   m_limitRatio = limitRatio;
-} // constructor
+}  // constructor
 
 /**
    Check out if the current tree decomposition is still OK. To do it we check
@@ -42,10 +44,9 @@ PhaseSelectorDynamic::PhaseSelectorDynamic(
    @param[in] component, the current set of variables.
  */
 bool PhaseSelectorDynamic::isStillOk(std::vector<Var> &component) {
-  if (!component.size() || component.size() <= 10)
-    return true;
+  if (!component.size() || component.size() <= 10) return true;
   DistribSize d = m_staticPartitioner->computeDistribSize(component);
   return d.getRatio() > m_limitRatio;
-} // isStillok
+}  // isStillok
 
-} // namespace d4
+}  // namespace d4

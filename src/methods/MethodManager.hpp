@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -25,10 +26,10 @@
 namespace d4 {
 namespace po = boost::program_options;
 class MethodManager {
-protected:
+ protected:
   std::clock_t currentTime;
 
-public:
+ public:
   virtual ~MethodManager() {}
 
   static MethodManager *makeMethodManager(po::variables_map &vm,
@@ -54,4 +55,4 @@ public:
     return (float)(clock() - currentTime) / CLOCKS_PER_SEC;
   }
 };
-} // namespace d4
+}  // namespace d4

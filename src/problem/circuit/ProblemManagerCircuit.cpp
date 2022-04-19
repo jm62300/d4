@@ -12,11 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "ProblemManagerCircuit.hpp"
+
 #include "ParserCircuit.hpp"
 #include "src/problem/ProblemManager.hpp"
 
@@ -58,7 +60,7 @@ ProblemManagerCircuit::ProblemManagerCircuit(ProblemManager *problem) {
   m_maxVar = problem->getMaxVar();
   m_indVar = problem->getIndVar();
   m_isUnsat = false;
-} // constructor
+}  // constructor
 
 /**
  * @brief Destroy the Problem Manager Circuit:: Problem Manager Circuit object
@@ -76,16 +78,14 @@ void ProblemManagerCircuit::display(std::ostream &out) {
   assert(gates.size() == wires.size() && gates.size() == m_nbVar);
 
   for (unsigned i = 0; i < gates.size(); i++) {
-    if (!gates[i])
-      continue;
+    if (!gates[i]) continue;
     out << gates[i] << " -1 ";
     out << i + 1 << " ";
 
-    for (auto &v : wires[i])
-      out << v << " ";
+    for (auto &v : wires[i]) out << v << " ";
     out << "0\n";
   }
-} // display
+}  // display
 
 /**
  * @brief
@@ -100,7 +100,7 @@ void ProblemManagerCircuit::displayStat(std::ostream &out,
   // Afficher le nombre de portes
   // Afficher le nomnbre de variables
   // Stat sur le circuit
-} // displayStat
+}  // displayStat
 
 ProblemManager *ProblemManagerCircuit::getUnsatProblem() {
   std::cerr << "Method not corectly implemented yet, just used for compilation "
@@ -115,8 +115,8 @@ ProblemManager *ProblemManagerCircuit::getUnsatProblem() {
  * @param units
  * @return ProblemManager*
  */
-ProblemManager *
-ProblemManagerCircuit::getConditionedFormula(std::vector<Lit> &units) {
+ProblemManager *ProblemManagerCircuit::getConditionedFormula(
+    std::vector<Lit> &units) {
   std::cerr << "Method not corectly implemented yet, just used for compilation "
                "purposes, do not use !";
   assert(0);
@@ -124,4 +124,4 @@ ProblemManagerCircuit::getConditionedFormula(std::vector<Lit> &units) {
   return ret;
 }
 
-} // namespace d4
+}  // namespace d4

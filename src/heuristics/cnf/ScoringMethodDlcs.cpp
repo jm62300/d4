@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #include "ScoringMethodDlcs.hpp"
@@ -26,7 +27,7 @@ namespace d4 {
    @param[in] om, the manager that give information about the CNF formula.
  */
 ScoringMethodDlcs::ScoringMethodDlcs(SpecManagerCnf &o)
-    : om(o) {} // constructor
+    : om(o) {}  // constructor
 
 /**
    This scoring function favorises the variables which appear in
@@ -36,4 +37,4 @@ ScoringMethodDlcs::ScoringMethodDlcs(SpecManagerCnf &o)
  */
 double ScoringMethodDlcs::computeScore(Var v) { return om.getNbClause(v); }
 
-} // namespace d4
+}  // namespace d4

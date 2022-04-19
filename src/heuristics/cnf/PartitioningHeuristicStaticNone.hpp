@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -21,13 +22,13 @@
 
 namespace d4 {
 class PartitioningHeuristicStaticNone : public PartitioningHeuristicStatic {
-protected:
+ protected:
   void computeDecomposition(std::vector<Var> &component,
                             std::vector<Var> &equivClass,
                             std::vector<std::vector<Var>> &equivVar,
                             std::vector<unsigned> &bucketNumber);
 
-public:
+ public:
   PartitioningHeuristicStaticNone(po::variables_map &vm, WrapperSolver &s,
                                   SpecManager &om, std::ostream &out);
 
@@ -44,4 +45,4 @@ public:
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 };
 
-} // namespace d4
+}  // namespace d4

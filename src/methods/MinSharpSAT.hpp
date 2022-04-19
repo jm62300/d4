@@ -12,18 +12,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
 #include <bits/stdint-uintn.h>
+#include <sys/types.h>
+
 #include <boost/program_options.hpp>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
-#include <sys/types.h>
 
+#include "Counter.hpp"
+#include "DataBranch.hpp"
+#include "MethodManager.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
@@ -37,15 +42,13 @@
 #include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
-#include "Counter.hpp"
-#include "DataBranch.hpp"
-#include "MethodManager.hpp"
-
 namespace d4 {
 namespace po = boost::program_options;
-template <class T> class Counter;
+template <class T>
+class Counter;
 
-template <class T> class MinSharpSAT : public MethodManager {
+template <class T>
+class MinSharpSAT : public MethodManager {
   enum TypeDecision { NO_DEC, EXIST_DEC, MAX_DEC };
 
   struct MinSharpSatResult {
@@ -53,7 +56,7 @@ template <class T> class MinSharpSAT : public MethodManager {
     u_int8_t *valuation;
   };
 
-private:
+ private:
   const unsigned NB_SEP = 118;
 
   bool optDomConst;
@@ -91,7 +94,7 @@ private:
   std::ostream m_out;
   bool m_panicMode;
 
-public:
+ public:
   /**
      Constructor.
 
@@ -165,7 +168,7 @@ public:
     m_memoryPages.push_back(new u_int8_t[c_sizePage]);
     m_posInMemoryPages = 0;
     m_sizeArray = m_problem->getMaxVar().size();
-  } // constructor
+  }  // constructor
 
   /**
      Destructor.
@@ -179,11 +182,10 @@ public:
     delete m_cacheInd;
     delete m_cacheMax;
 
-    for (auto page : m_memoryPages)
-      delete[] page;
-  } // destructor
+    for (auto page : m_memoryPages) delete[] page;
+  }  // destructor
 
-private:
+ private:
   /**
      Print out information about the solving process.
 
@@ -201,7 +203,7 @@ private:
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_minCount << "|\n";
-  } // showInter
+  }  // showInter
 
   /**
      Print out a line of dashes.
@@ -210,10 +212,9 @@ private:
    */
   inline void separator(std::ostream &out) {
     out << "c ";
-    for (int i = 0; i < NB_SEP; i++)
-      out << "-";
+    for (int i = 0; i < NB_SEP; i++) out << "-";
     out << "\n";
-  } // separator
+  }  // separator
 
   /**
      Print out the header information.
@@ -234,7 +235,7 @@ private:
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count"
         << "|\n";
     separator(out);
-  } // showHeader
+  }  // showHeader
 
   /**
      Print out information when it is requiered.
@@ -242,11 +243,9 @@ private:
      @param[in] out, the stream we use to print out information.
    */
   inline void showRun(std::ostream &out) {
-    if (!(m_nbCallCall & (MASK_HEADER)))
-      showHeader(out);
-    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC))
-      showInter(out);
-  } // showRun
+    if (!(m_nbCallCall & (MASK_HEADER))) showHeader(out);
+    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) showInter(out);
+  }  // showRun
 
   /**
      Print out the final stat.
@@ -267,7 +266,7 @@ private:
     m_cacheMax->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
-  } // printFinalStat
+  }  // printFinalStat
 
   /**
    * @brief Get a pointer on an allocated array of size m_sizeArray (which is
@@ -284,7 +283,7 @@ private:
       ret = m_memoryPages.back();
     }
     return ret;
-  } // getArray
+  }  // getArray
 
   /**
    * Expel from a set of variables the ones they are marked as being decidable.
@@ -296,10 +295,9 @@ private:
                           std::vector<bool> &isDecisionVariable) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
-      if (isDecisionVariable[vars[i]])
-        vars[j++] = vars[i];
+      if (isDecisionVariable[vars[i]]) vars[j++] = vars[i];
     vars.resize(j);
-  } // expelNoDecisionVar
+  }  // expelNoDecisionVar
 
   /**
    * Expel from a set of variables the ones they are marked as being decidable.
@@ -311,10 +309,9 @@ private:
                           std::vector<bool> &isDecisionVariable) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
-      if (isDecisionVariable[lits[i].var()])
-        lits[j++] = lits[i];
+      if (isDecisionVariable[lits[i].var()]) lits[j++] = lits[i];
     lits.resize(j);
-  } // expelNoDecisionLit
+  }  // expelNoDecisionLit
 
   /**
    * @brief Search for a valuation of the max variables that maximizes the
@@ -340,7 +337,7 @@ private:
       return;
     }
 
-    m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
+    m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -353,8 +350,7 @@ private:
     // init the returned result.
     result.count = T(1);
     result.valuation = getArray();
-    for (unsigned i = 0; i < m_sizeArray; i++)
-      result.valuation[i] = 0;
+    for (unsigned i = 0; i < m_sizeArray; i++) result.valuation[i] = 0;
 
     Lit propagateMaxVar = lit_Undef;
     for (auto l : unitsLit)
@@ -398,10 +394,9 @@ private:
             }
           }
 
-          if (result.count == 0)
-            break;
+          if (result.count == 0) break;
         }
-      } // else we have a tautology
+      }  // else we have a tautology
     }
 
     for (unsigned i = 0; i < m_sizeArray; i++) {
@@ -417,7 +412,7 @@ private:
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVar);
-  } // searchMaxValuation
+  }  // searchMaxValuation
 
   /**
    * This function select a variable and compile a decision node.
@@ -440,8 +435,7 @@ private:
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
 
-      if (result.count > m_minCount)
-        m_minCount = result.count;
+      if (result.count > m_minCount) m_minCount = result.count;
       return;
     }
 
@@ -488,7 +482,7 @@ private:
 
     if (m_minCount == -1 || result.count < m_minCount)
       m_minCount = result.count;
-  } // searchMaxSharpSatDecision
+  }  // searchMaxSharpSatDecision
 
   /**
    * Count the number of projected models.
@@ -506,10 +500,9 @@ private:
     showRun(out);
     m_nbCallCall++;
 
-    if (!m_solver->solve(setOfVar))
-      return T(0);
+    if (!m_solver->solve(setOfVar)) return T(0);
 
-    m_solver->whichAreUnits(setOfVar, unitsLit); // collect unit literals
+    m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -535,11 +528,11 @@ private:
           ret = ret * curr;
         }
       }
-    } // else we have a tautology
+    }  // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
     return ret;
-  } // countInd_
+  }  // countInd_
 
   /**
    * This function select a variable and compile a decision node.
@@ -553,8 +546,7 @@ private:
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVar);
 
-    if (v == var_Undef)
-      return T(1);
+    if (v == var_Undef) return T(1);
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
@@ -580,7 +572,7 @@ private:
     b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
     return b[0].d + b[1].d;
-  } // computeDecisionNode
+  }  // computeDecisionNode
 
   /**
      Compute U using the trace of a SAT solver.
@@ -602,9 +594,9 @@ private:
     DataBranch<T> b;
     searchMinValuation(setOfVar, b.unitLits, b.freeVars, out, result);
     result.count *= m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
-  } // compute
+  }  // compute
 
-public:
+ public:
   /**
    * @brief Search for the instanciation of the variables of
    * m_problem->getMaxVar() that maximize the number of the remaining variables
@@ -615,8 +607,7 @@ public:
    */
   void run(po::variables_map &vm) {
     std::vector<Var> setOfVar;
-    for (int i = 1; i <= m_specs->getNbVariable(); i++)
-      setOfVar.push_back(i);
+    for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
 
     MinSharpSatResult result;
     compute(setOfVar, m_out, result);
@@ -628,6 +619,6 @@ public:
     std::cout << "0\n";
 
     std::cout << "s " << result.count << "\n";
-  } // run
+  }  // run
 };
-} // namespace d4
+}  // namespace d4

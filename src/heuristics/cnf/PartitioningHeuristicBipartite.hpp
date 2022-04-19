@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -21,23 +22,22 @@
 #include <cstdint>
 #include <vector>
 
+#include "../PartitioningHeuristic.hpp"
+#include "PartitioningHeuristicStatic.hpp"
 #include "src/hyperGraph/HyperGraphExtractor.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/utils/EquivExtractor.hpp"
 
-#include "../PartitioningHeuristic.hpp"
-#include "PartitioningHeuristicStatic.hpp"
-
 namespace d4 {
 namespace po = boost::program_options;
 class PartitioningHeuristicBipartite : public PartitioningHeuristic {
-private:
+ private:
   unsigned m_nbStatic;
   unsigned m_nbDynamic;
 
-protected:
+ protected:
   SpecManagerCnf &m_om;
   WrapperSolver &m_s;
   EquivExtractor m_em;
@@ -69,7 +69,7 @@ protected:
                          std::vector<Var> &equivClass,
                          std::vector<std::vector<Var>> &equivVar);
 
-public:
+ public:
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 
   void displayStat(std::ostream &out);
@@ -79,4 +79,4 @@ public:
            (component.size() > 10 && component.size() < 5000);
   }
 };
-} // namespace d4
+}  // namespace d4

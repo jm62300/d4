@@ -12,26 +12,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include "DataBranch.hpp"
-#include "src/exceptions/BadBehaviourException.hpp"
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/detail/default_ops.hpp>
 #include <boost/multiprecision/gmp.hpp>
 
+#include "DataBranch.hpp"
+#include "src/exceptions/BadBehaviourException.hpp"
+
 namespace d4 {
-template <class T, class U> class Operation;
-template <class T> class CountingOperation : public Operation<T, T> {
-private:
+template <class T, class U>
+class Operation;
+template <class T>
+class CountingOperation : public Operation<T, T> {
+ private:
   ProblemManager *m_problem;
 
   const T top = T(1);
   const T bottom = T(0);
 
-public:
+ public:
   CountingOperation() = delete;
 
   /**
@@ -41,7 +45,7 @@ public:
      weights.
    */
   CountingOperation(ProblemManager *problem)
-      : m_problem(problem) {} // constructor.
+      : m_problem(problem) {}  // constructor.
 
   /**
      Compute the sum of the given elements.
@@ -57,7 +61,7 @@ public:
                                                            elts[0].freeVars) +
            elts[1].d * m_problem->computeWeightUnitFree<T>(elts[1].unitLits,
                                                            elts[1].freeVars);
-  } // manageDeterministOr
+  }  // manageDeterministOr
 
   /**
      Compute the product of the given elements.
@@ -68,23 +72,20 @@ public:
      \return the product of each element of elts.
    */
   T manageDecomposableAnd(T *elts, unsigned size) {
-    if (size == 1)
-      return elts[0];
-    if (size == 2)
-      return elts[0] * elts[1];
+    if (size == 1) return elts[0];
+    if (size == 2) return elts[0] * elts[1];
 
     T ret = 1;
-    for (unsigned i = 0; i < size; i++)
-      ret = ret * elts[i];
+    for (unsigned i = 0; i < size; i++) ret = ret * elts[i];
     return ret;
-  } // manageDecomposableAnd
+  }  // manageDecomposableAnd
 
   /**
      Manage the case where the problem is unsatisfiable.
 
      \return 0 as number of models.
    */
-  T manageBottom() { return bottom; } // manageBottom
+  T manageBottom() { return bottom; }  // manageBottom
 
   /**
      Return false, that is given by the value 1.
@@ -118,7 +119,7 @@ public:
    */
   T manageBranch(DataBranch<T> &e) {
     return e.d * m_problem->computeWeightUnitFree<T>(e.unitLits, e.freeVars);
-  } // manageBranch
+  }  // manageBranch
 
   /**
      Manage the final result compute.
@@ -159,14 +160,14 @@ public:
       out << format << " ";
       out << std::fixed << std::setprecision(50) << result << "\n";
     }
-  } // manageResult
+  }  // manageResult
 
   /**
      Count the number of model, for this case that means doing noting.
 
      \return the number of models.
    */
-  T count(T &result) { return result; } // count
+  T count(T &result) { return result; }  // count
 
   /**
      Cannot be called, then throws an exception!
@@ -174,7 +175,7 @@ public:
   T count(T &result, std::vector<Lit> &assum) {
     throw(BadBehaviourException(
         "This operation is not allowed in this context.", __FILE__, __LINE__));
-  } // count
+  }  // count
 };
 
-} // namespace d4
+}  // namespace d4

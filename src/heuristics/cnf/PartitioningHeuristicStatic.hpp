@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
@@ -22,18 +23,17 @@
 #include <ostream>
 #include <vector>
 
+#include "../PartitioningHeuristic.hpp"
 #include "src/hyperGraph/HyperGraphExtractor.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/utils/EquivExtractor.hpp"
 
-#include "../PartitioningHeuristic.hpp"
-
 namespace d4 {
 namespace po = boost::program_options;
 class PartitioningHeuristicStatic : public PartitioningHeuristic {
-protected:
+ protected:
   WrapperSolver &m_s;
   SpecManagerCnf &m_om;
   EquivExtractor m_em;
@@ -48,10 +48,10 @@ protected:
   bool m_reduceFormula;
   bool m_equivSimp;
 
-protected:
+ protected:
   virtual void init(std::ostream &out) = 0;
 
-protected:
+ protected:
   PartitioningHeuristicStatic(po::variables_map &vm, WrapperSolver &s,
                               SpecManager &om, std::ostream &out);
 
@@ -59,7 +59,7 @@ protected:
                               SpecManager &om, int nbClause, int nbVar,
                               int sumSize, std::ostream &out);
 
-public:
+ public:
   virtual ~PartitioningHeuristicStatic();
 
   static PartitioningHeuristicStatic *makePartitioningHeuristicStatic(
@@ -72,4 +72,4 @@ public:
   virtual bool isInitialized() { return true; }
   virtual bool isStillOk(std::vector<Var> &component) = 0;
 };
-} // namespace d4
+}  // namespace d4

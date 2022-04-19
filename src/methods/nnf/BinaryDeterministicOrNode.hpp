@@ -12,24 +12,24 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
 
 #include <iostream>
 #include <vector>
 
-#include "src/problem/ProblemManager.hpp"
-
 #include "../DataBranch.hpp"
 #include "Branch.hpp"
 #include "Node.hpp"
+#include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
 template <class T, typename U>
 class BinaryDeterministicOrNode : public Node<T> {
-public:
+ public:
   using Node<T>::header;
   T nbModels;
   Branch<T, U> l, r;
@@ -51,8 +51,7 @@ public:
      @param[in] globalstamp, get the stamp number.
   */
   static void deallocate(Node<T> *node, void (**func)(), unsigned globalStamp) {
-    if (node->header.stamp == globalStamp)
-      return;
+    if (node->header.stamp == globalStamp) return;
     node->header.stamp = globalStamp;
 
     auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
@@ -61,7 +60,7 @@ public:
         func)[(p->l).d->header.typeNode]((p->l).d, func, globalStamp);
     reinterpret_cast<void (**)(Node<T> *, void (**func)(), unsigned)>(
         func)[(p->r).d->header.typeNode]((p->r).d, func, globalStamp);
-  } // destructor
+  }  // destructor
 
   /**
      Init the two branches using the data coming from the solver.
@@ -84,15 +83,11 @@ public:
     r.nbFree = right.freeVars.size();
 
     unsigned pos = 0;
-    for (auto &lit : left.unitLits)
-      data[pos++] = lit.intern();
-    for (auto &var : left.freeVars)
-      data[pos++] = var;
-    for (auto &lit : right.unitLits)
-      data[pos++] = lit.intern();
-    for (auto &var : right.freeVars)
-      data[pos++] = var;
-  } // constructor
+    for (auto &lit : left.unitLits) data[pos++] = lit.intern();
+    for (auto &var : left.freeVars) data[pos++] = var;
+    for (auto &lit : right.unitLits) data[pos++] = lit.intern();
+    for (auto &var : right.freeVars) data[pos++] = var;
+  }  // constructor
 
   /**
      Ask for the number of models of the formula under an interpretation.
@@ -111,8 +106,7 @@ public:
                            ProblemManager &problem, unsigned globalStamp) {
     auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
 
-    if (node->header.stamp == globalStamp)
-      return p->nbModels;
+    if (node->header.stamp == globalStamp) return p->nbModels;
 
     p->nbModels =
         (p->l).computeNbModels(func, p->data, fixedValue, problem,
@@ -122,7 +116,7 @@ public:
 
     node->header.stamp = globalStamp;
     return p->nbModels;
-  } // computeNbModels
+  }  // computeNbModels
 
   /**
      Ask if the formula is satisfiable under an interpretation.
@@ -138,18 +132,16 @@ public:
                     std::vector<ValueVar> &fixedValue, unsigned globalStamp) {
     auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
 
-    if (node->header.stamp == globalStamp)
-      return p->nbModels == 1;
+    if (node->header.stamp == globalStamp) return p->nbModels == 1;
     node->header.stamp = globalStamp;
 
     p->nbModels = (p->l).isSAT(func, p->data, fixedValue, globalStamp);
-    if (p->nbModels == 1)
-      return true;
+    if (p->nbModels == 1) return true;
 
     p->nbModels = (p->r).isSAT(func, &p->data[p->l.nbUnits + p->l.nbFree],
                                fixedValue, globalStamp);
     return p->nbModels == 1;
-  } // isSAT
+  }  // isSAT
 
   /**
      Print out the NNF in a stream.
@@ -166,8 +158,7 @@ public:
                            std::ostream &out, unsigned &idx,
                            unsigned globalStamp) {
     auto *p = reinterpret_cast<BinaryDeterministicOrNode *>(node);
-    if (p->header.stamp == globalStamp)
-      return (unsigned)p->nbModels;
+    if (p->header.stamp == globalStamp) return (unsigned)p->nbModels;
     p->nbModels = idx++;
 
     out << "o " << (unsigned)p->nbModels << " 0\n";
@@ -177,6 +168,6 @@ public:
 
     p->header.stamp = globalStamp;
     return (unsigned)p->nbModels;
-  } // printNNF
+  }  // printNNF
 };
-} // namespace d4
+}  // namespace d4

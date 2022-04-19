@@ -12,14 +12,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "src/exceptions/FactoryException.hpp"
+#include "PartitionerManager.hpp"
 
 #include "PartitionerKahypar.hpp"
-#include "PartitionerManager.hpp"
 #include "PartitionerPatoh.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -45,5 +46,5 @@ PartitionerManager *PartitionerManager::makePartitioner(po::variables_map &vm,
     return new PartitionerKahypar(maxNodes, maxEdges, maxSumEdgeSize, out);
 
   throw(FactoryException("Cannot create a Partitioner", __FILE__, __LINE__));
-} // makePartitioner
-} // namespace d4
+}  // makePartitioner
+}  // namespace d4

@@ -12,10 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #include "PhaseSelectorStatic.hpp"
+
 #include <ostream>
 
 namespace d4 {
@@ -32,10 +34,10 @@ PhaseSelectorStatic::PhaseSelectorStatic(
   out << "c [CONSTRUCTOR] Switching between static and dynamic decompostion:"
       << " static\n";
   m_limitPhase = limitPhase;
-} // constructor
+}  // constructor
 
 bool PhaseSelectorStatic::isStillOk(std::vector<Var> &component) {
   return component.size() > m_limitPhase;
-} // isStillok
+}  // isStillok
 
-} // namespace d4
+}  // namespace d4

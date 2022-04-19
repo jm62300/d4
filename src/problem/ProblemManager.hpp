@@ -12,8 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #pragma once
@@ -27,7 +28,7 @@
 namespace d4 {
 namespace po = boost::program_options;
 class ProblemManager {
-protected:
+ protected:
   unsigned m_nbVar;
   std::vector<double> m_weightLit;
   std::vector<double> m_weightVar;
@@ -36,7 +37,7 @@ protected:
   std::vector<Var> m_indVar;
   bool m_isUnsat = false;
 
-public:
+ public:
   static ProblemManager *makeProblemManager(po::variables_map &vm,
                                             std::ostream &out);
 
@@ -65,16 +66,18 @@ public:
   /**
      Get the weight for a variable.
    */
-  template <typename T> inline T getWeightVar(Var v) {
+  template <typename T>
+  inline T getWeightVar(Var v) {
     return T(m_weightVar[v]);
-  } // getWeightLar
+  }  // getWeightLar
 
   /**
      Get the weight for a literal.
    */
-  template <typename T> inline T getWeightLit(Lit l) {
+  template <typename T>
+  inline T getWeightLit(Lit l) {
     return T(m_weightLit[l.intern()]);
-  } // getWeightLit
+  }  // getWeightLit
 
   /**
      Compute the value for free and unit variables.
@@ -98,6 +101,6 @@ public:
     }
 
     return tmp;
-  } // computeWeightUnitFree
+  }  // computeWeightUnitFree
 };
-} // namespace d4
+}  // namespace d4
