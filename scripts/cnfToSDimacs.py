@@ -60,9 +60,8 @@ print("0")
 
 for r in random:
     assert r in mapWeight
-    assert -r in mapWeight
-    assert mapWeight[r] + mapWeight[-r] == 1
-    print('r', mapWeight[r], r, '0')
+    assert -r in mapWeight    
+    print('r', mapWeight[r] / (mapWeight[r] + mapWeight[-r]), r, '0')
 
 print('e', end=' ')
 for e in exist2:
