@@ -71,18 +71,24 @@ void ParserDimacs::parseWeightedLit(BufferRead &in,
 void ParserDimacs::parseVarWeighted(BufferRead &in,
                                     std::vector<double> &weightLit,
                                     std::vector<Var> &vars) {
-  double w = in.nextDouble();
+  double currentWeight = -1;
+  double w = 0;
 
-  int var = -1;
   do {
-    var = in.nextInt();
-    assert(((var << 1) + 1) < weightLit.size());
-    weightLit[var << 1] = w;
-    weightLit[(var << 1) + 1] = 1 - w;
+    w = in.nextDouble();
 
-    if (var)
-      vars.push_back(var);
-  } while (var);
+    if (w >= 1) {
+      assert(currentWeight >= 0);
+      int var = (int)w;
+      assert(((var << 1) + 1) < weightLit.size());
+      weightLit[var << 1] = currentWeight;
+      weightLit[(var << 1) + 1] = 1 - currentWeight;
+
+      if (var)
+        vars.push_back(var);
+    } else
+      currentWeight = w;
+  } while (w != 0);
 } // parseWeightedLit
 
 /**
