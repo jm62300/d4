@@ -72,14 +72,15 @@ class MaxSharpSAT : public MethodManager {
   };
 
  private:
-  const unsigned NB_SEP = 131;
+  const unsigned NB_SEP = 170;
 
   bool optDomConst;
   bool optReversePolarity;
 
   unsigned m_nbCallCall;
   unsigned m_nbCallProj;
-  unsigned m_nbSplit;
+  unsigned m_nbSplitMax = 0;
+  unsigned m_nbSplitInd = 0;
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
@@ -205,7 +206,8 @@ class MaxSharpSAT : public MethodManager {
           << "\n";
 
     m_optCached = vm["cache-activated"].as<bool>();
-    m_nbCallProj = m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
+    m_nbCallProj = m_nbDecisionNode = m_nbSplitMax = m_nbSplitInd =
+        m_nbCallCall = 0;
 
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
@@ -272,10 +274,14 @@ class MaxSharpSAT : public MethodManager {
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj << std::fixed
         << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << m_cacheMax->getNbPositiveHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheMax->getNbNegativeHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << m_cacheInd->getNbPositiveHit() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->getNbNegativeHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitMax << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitInd << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
         << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC)
@@ -304,10 +310,13 @@ class MaxSharpSAT : public MethodManager {
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(m)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(m)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(i)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(i)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(m)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(i)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count"
@@ -337,7 +346,8 @@ class MaxSharpSAT : public MethodManager {
         << "c \033[1m\033[31mStatistics \033[0m\n"
         << "c \033[33mCompilation Information\033[0m\n"
         << "c Number of recursive call: " << m_nbCallCall << "\n"
-        << "c Number of split formula: " << m_nbSplit << "\n"
+        << "c Number of split formula (max): " << m_nbSplitMax << "\n"
+        << "c Number of split formula (ind): " << m_nbSplitInd << "\n"
         << "c Number of decision: " << m_nbDecisionNode << "\n"
         << "c\n";
     m_cacheInd->printCacheInformation(out);
@@ -542,7 +552,7 @@ class MaxSharpSAT : public MethodManager {
     // consider each connected component.
     T mustMultiply = T(1);
     if (nbComponent) {
-      m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplitMax += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
@@ -702,7 +712,7 @@ class MaxSharpSAT : public MethodManager {
     // consider each connected component.
     T result = T(1);
     if (nbComponent) {
-      m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplitInd += (nbComponent > 1) ? nbComponent : 0;
 
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
@@ -741,6 +751,7 @@ class MaxSharpSAT : public MethodManager {
 
     // select a variable for decision.
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    assert(m_problem->getWeightLit(l) && m_problem->getWeightLit(~l));
     m_nbDecisionNode++;
 
     // consider the two value for l
@@ -842,12 +853,29 @@ class MaxSharpSAT : public MethodManager {
       std::cout << "c Greedy search done: " << greedyResult.count << "\n";
     }
 
+    // add as  (negated) unit literal with a weight of 0.
+    unsigned nbZero = 0;
+    for (auto v : setOfVar) {
+      Lit l = Lit::makeLit(v, false);
+
+      if (m_problem->getWeightLit(l) == 0) {
+        nbZero++;
+        m_solver->pushAssumption(~l);
+      }
+      if (m_problem->getWeightLit(~l) == 0) {
+        nbZero++;
+        m_solver->pushAssumption(l);
+      }
+    }
+
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
     assert(result.valuation);
     if (!m_stopProcess)
       result.count *=
           m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+
+    if (nbZero) m_solver->popAssumption(nbZero);
   }  // compute
 
  public:
