@@ -61,10 +61,10 @@ print("0")
 for r in random:
     assert r in mapWeight
     assert -r in mapWeight    
-    w = round(mapWeight[r] / (mapWeight[r] + mapWeight[-r]),15)
+    w = round(mapWeight[r] / (mapWeight[r] + mapWeight[-r]),13)
     if w == 0:
         w = 0.00001
-    print('r', '{:.15f}'.format(w), r, '0')
+    print('r', '{:.13f}'.format(w), r, '0')
 
 print('e', end=' ')
 for e in exist2:
