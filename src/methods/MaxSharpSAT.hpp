@@ -868,6 +868,8 @@ class MaxSharpSAT : public MethodManager {
       }
     }
 
+    std::cout << "c Number of zero weight literals: " << nbZero << "\n";
+
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
     assert(result.valuation);
