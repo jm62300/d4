@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT_PATH=".."
+ROOT_PATH="."
 CNF_GENERATOR="$ROOT_PATH/cnfuzz"
 SOLVER="$ROOT_PATH/minisat"
 
@@ -97,7 +97,7 @@ debugRoutine(){
 	nameFileCNF=$(generateSatisfiableCNFLimited 5000)
 	# echo "$1" $nameFileCNF
 	# grep "p cnf " $nameFileCNF
-        timeout 10 $1 $nameFileCNF > /dev/null 2>/dev/null
+        timeout 1 $1 $nameFileCNF > /dev/null 2>/dev/null
 
         code=$?
 	# echo $code
