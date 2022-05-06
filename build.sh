@@ -56,6 +56,13 @@ then
     make -j
 fi
 
+if ! [ -f 3rdParty/reducer/build/libreducer.a ]
+then
+    cd $curRep
+    cd 3rdParty/reducer/
+    ./build.sh -l    
+fi
+
 cd $curRep
 mkdir -p build
 cd build
