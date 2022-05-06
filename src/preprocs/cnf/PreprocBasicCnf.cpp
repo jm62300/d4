@@ -60,6 +60,20 @@ ProblemManager *PreprocVivification::run(ProblemManager *pin,
   std::vector<Lit> units;
   ws->getUnits(units);
 
+  // prepage the clauses.
+  ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
+  std::vector<std::vector<reducer::Lit>> clauses;
+  for (auto l : units)
+    clauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
+  for (auto &cl : pcnf.getClauses()) {
+    clauses.push_back({});
+    for (auto l : cl)
+      clauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
+  }
+
+  // create the problem from the reducer side.
+  reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
+
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

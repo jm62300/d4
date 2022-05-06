@@ -7,6 +7,7 @@ then
     rm -f 3rdParty/glucose-3.0/core/depend.mk
     rm -f 3rdParty/glucose-3.0/utils/*.o*
     rm -rf 3rdParty/kahypar/build
+    rm -rf 3rdParty/reducer/build
 fi
 
 rm -rf build/
