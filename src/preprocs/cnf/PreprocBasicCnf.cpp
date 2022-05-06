@@ -17,8 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "PreprocBasicCnf.hpp"
-
+#include "3rdParty/reducer/src/methods/Vivification.hpp"
+#include "PreprocVivification.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -28,14 +28,15 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBasicCnf::PreprocBasicCnf(po::variables_map &vm, std::ostream &out) {
+PreprocVivification::PreprocVivification(po::variables_map &vm,
+                                         std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
 }  // constructor
 
 /**
    Destructor.
  */
-PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
+PreprocVivification::~PreprocVivification() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -43,8 +44,8 @@ PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
-                                     LastBreathPreproc &lastBreath) {
+ProblemManager *PreprocVivification::run(ProblemManager *pin,
+                                         LastBreathPreproc &lastBreath) {
   ws->initSolver(*pin);
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
@@ -58,6 +59,7 @@ ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
 
   std::vector<Lit> units;
   ws->getUnits(units);
+
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

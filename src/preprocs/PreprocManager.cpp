@@ -21,6 +21,7 @@
 #include "circuit/PreprocCnfFromCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
+#include "cnf/PreprocVivification.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -40,6 +41,7 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
   if (inputType == "cnf" || inputType == "dimacs") {
     if (meth == "basic") return new PreprocBasicCnf(vm, out);
     if (meth == "backbone") return new PreprocBackboneCnf(vm, out);
+    if (meth == "vivification") return new PreprocVivification(vm, out);
   }
 
   if (inputType == "circuit") {
