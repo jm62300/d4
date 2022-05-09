@@ -27,13 +27,16 @@
 
 namespace d4 {
 namespace po = boost::program_options;
-class PreprocVivification : public PreprocManager {
+class PreprocReducer : public PreprocManager {
  private:
   WrapperSolver *ws;
+  std::string m_method;
+  int m_nbIteration;
 
  public:
-  PreprocVivification(po::variables_map &vm, std::ostream &out);
-  ~PreprocVivification();
+  PreprocReducer(po::variables_map &vm, std::string &method, int nbIteration,
+                 std::ostream &out);
+  ~PreprocReducer();
   virtual ProblemManager *run(ProblemManager *pin,
                               LastBreathPreproc &lastBreath) override;
 };

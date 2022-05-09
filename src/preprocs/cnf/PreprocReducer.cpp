@@ -17,9 +17,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "PreprocVivification.hpp"
+#include "PreprocReducer.hpp"
 
-#include "3rdParty/reducer/src/methods/Vivification.hpp"
+#include "3rdParty/reducer/src/methods/Method.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -29,15 +29,17 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocVivification::PreprocVivification(po::variables_map &vm,
-                                         std::ostream &out) {
+PreprocReducer::PreprocReducer(po::variables_map &vm, std::string &method,
+                               int nbIteration, std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
+  m_method = method;
+  m_nbIteration = nbIteration;
 }  // constructor
 
 /**
    Destructor.
  */
-PreprocVivification::~PreprocVivification() { delete ws; }  // destructor
+PreprocReducer::~PreprocReducer() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -45,8 +47,8 @@ PreprocVivification::~PreprocVivification() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocVivification::run(ProblemManager *pin,
-                                         LastBreathPreproc &lastBreath) {
+ProblemManager *PreprocReducer::run(ProblemManager *pin,
+                                    LastBreathPreproc &lastBreath) {
   ws->initSolver(*pin);
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
@@ -74,11 +76,10 @@ ProblemManager *PreprocVivification::run(ProblemManager *pin,
 
   // create the problem from the reducer side.
   reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
-  reducer::Method *vivifier =
-      reducer::Method::makeMethod("vivification", std::cout);
+  reducer::Method *reducer = reducer::Method::makeMethod(m_method, std::cout);
 
   std::vector<std::vector<reducer::Lit>> clausesVivi;
-  vivifier->run(problem, 1, true, clausesVivi);
+  reducer->run(problem, m_nbIteration, true, clausesVivi);
 
   ProblemManagerCnf *ret = new ProblemManagerCnf(
       pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
@@ -90,6 +91,8 @@ ProblemManager *PreprocVivification::run(ProblemManager *pin,
     for (auto &l : cl)
       clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
   }
+
+  delete reducer;
 
   return ret;
 }  // run
