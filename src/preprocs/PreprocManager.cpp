@@ -46,7 +46,8 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
     if (meth == "backbone") return new PreprocBackboneCnf(vm, out);
     if (meth == "vivification" || meth == "occElimination" ||
         meth == "combinaison")
-      return new PreprocReducer(vm, meth, vm["preproc-reducer"].as<int>(), out);
+      return new PreprocReducer(vm, meth,
+                                vm["preproc-reducer-iteration"].as<int>(), out);
   }
 
   if (inputType == "circuit") {
