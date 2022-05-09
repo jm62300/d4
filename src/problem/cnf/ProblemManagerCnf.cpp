@@ -66,6 +66,31 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
  * @param weightVar, the weights associate with the variables (sum of weight
    of the lit)
  * @param selected, the projected variables.
+ * @param maxVar is the set of existential variables.
+ * @param indVar is the set of randomized variables.
+ */
+ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
+                                     std::vector<double> &weightVar,
+                                     std::vector<Var> &selected,
+                                     std::vector<Var> &maxVar,
+                                     std::vector<Var> &indVar) {
+  m_nbVar = nbVar;
+  m_weightLit = weightLit;
+  m_weightVar = weightVar;
+  m_selected = selected;
+  m_maxVar = maxVar;
+  m_indVar = indVar;
+  m_isUnsat = false;
+}  // constructor
+
+/**
+ * @brief Construct a new Problem Manager Cnf:: Problem Manager Cnf object
+ *
+ * @param nbVar, the number of variables.
+ * @param weightLit, the weights associate with the literals.
+ * @param weightVar, the weights associate with the variables (sum of weight
+   of the lit)
+ * @param selected, the projected variables.
  */
 ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
                                      std::vector<double> &weightVar,

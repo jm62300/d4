@@ -17,8 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "3rdParty/reducer/src/methods/Vivification.hpp"
-#include "PreprocVivification.hpp"
+#include "PreprocBasicCnf.hpp"
+
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -28,15 +28,14 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocVivification::PreprocVivification(po::variables_map &vm,
-                                         std::ostream &out) {
+PreprocBasicCnf::PreprocBasicCnf(po::variables_map &vm, std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
 }  // constructor
 
 /**
    Destructor.
  */
-PreprocVivification::~PreprocVivification() { delete ws; }  // destructor
+PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -44,8 +43,8 @@ PreprocVivification::~PreprocVivification() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocVivification::run(ProblemManager *pin,
-                                         LastBreathPreproc &lastBreath) {
+ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
+                                     LastBreathPreproc &lastBreath) {
   ws->initSolver(*pin);
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
@@ -59,21 +58,6 @@ ProblemManager *PreprocVivification::run(ProblemManager *pin,
 
   std::vector<Lit> units;
   ws->getUnits(units);
-
-  // prepage the clauses.
-  ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
-  std::vector<std::vector<reducer::Lit>> clauses;
-  for (auto l : units)
-    clauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
-  for (auto &cl : pcnf.getClauses()) {
-    clauses.push_back({});
-    for (auto l : cl)
-      clauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
-  }
-
-  // create the problem from the reducer side.
-  reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
-
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

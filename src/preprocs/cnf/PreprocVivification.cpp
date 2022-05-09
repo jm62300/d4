@@ -17,7 +17,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "PreprocBasicCnf.hpp"
+#include "PreprocVivification.hpp"
+
+#include "3rdParty/reducer/src/methods/Vivification.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -27,14 +29,15 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBasicCnf::PreprocBasicCnf(po::variables_map &vm, std::ostream &out) {
+PreprocVivification::PreprocVivification(po::variables_map &vm,
+                                         std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
 }  // constructor
 
 /**
    Destructor.
  */
-PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
+PreprocVivification::~PreprocVivification() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -42,8 +45,8 @@ PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
-                                     LastBreathPreproc &lastBreath) {
+ProblemManager *PreprocVivification::run(ProblemManager *pin,
+                                         LastBreathPreproc &lastBreath) {
   ws->initSolver(*pin);
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
@@ -57,6 +60,37 @@ ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
 
   std::vector<Lit> units;
   ws->getUnits(units);
-  return pin->getConditionedFormula(units);
+
+  // prepage the clauses.3
+  ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
+  std::vector<std::vector<reducer::Lit>> clauses;
+  for (auto l : units)
+    clauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
+  for (auto &cl : pcnf.getClauses()) {
+    clauses.push_back({});
+    for (auto l : cl)
+      clauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
+  }
+
+  // create the problem from the reducer side.
+  reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
+  reducer::Method *vivifier =
+      reducer::Method::makeMethod("vivification", std::cout);
+
+  std::vector<std::vector<reducer::Lit>> clausesVivi;
+  vivifier->run(problem, 1, true, clausesVivi);
+
+  ProblemManagerCnf *ret = new ProblemManagerCnf(
+      pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
+      pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
+
+  std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
+  for (auto &cl : clausesVivi) {
+    clausesAfter.push_back({});
+    for (auto &l : cl)
+      clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
+  }
+
+  return ret;
 }  // run
 }  // namespace d4

@@ -36,7 +36,7 @@ if (NOT DEFINED BUILD_MODE)
    set(BUILD_MODE 1)
 endif()
 
-set(libList ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_debug.a)
+set(libList ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_glucose.a ${CMAKE_SOURCE_DIR}/3rdParty/reducer/build/libreducer.a)
 set(wnoOption -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
 
 # build.
@@ -62,7 +62,7 @@ elseif(${BUILD_MODE} EQUAL 2)
   add_executable(d4_static ${SRCS} ${HEADERS})
 
   target_compile_options(d4_static PUBLIC -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG -static)
-  target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${libList})
+  target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${libList} -static)
   
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_static
     DESTINATION bin

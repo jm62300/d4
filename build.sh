@@ -25,23 +25,26 @@ done
 curRep=$PWD
 if [ $opt -eq 1 ]
 then
-   if ! [ -f 3rdParty/glucose-3.0/core/lib_debug.a ]
+   if ! [ -f 3rdParty/glucose-3.0/core/lib_glucose.a ]
    then
        cd 3rdParty/glucose-3.0/core/
        make libd       
+       mv lib_debug.a lib_glucose.a
    fi
 elif [ $opt -eq 2 ]
 then
-    if ! [ -f 3rdParty/glucose-3.0/core/lib_static.a ]
+    if ! [ -f 3rdParty/glucose-3.0/core/lib_glucose.a ]
     then
         cd 3rdParty/glucose-3.0/core/
         make libst       
+        mv lib_static.a lib_glucose.a
     fi
 else
-    if ! [ -f 3rdParty/glucose-3.0/core/lib_standard.a ]
+    if ! [ -f 3rdParty/glucose-3.0/core/lib_glucose.a ]
     then
         cd 3rdParty/glucose-3.0/core/
         make libs
+        mv lib_standard.a lib_glucose.a
     fi
 fi
 
