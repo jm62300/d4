@@ -36,7 +36,7 @@ if (NOT DEFINED BUILD_MODE)
    set(BUILD_MODE 1)
 endif()
 
-set(libList ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_glucose.a ${CMAKE_SOURCE_DIR}/3rdParty/reducer/build/libreducer.a)
+set(libList ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_glucose.a ${CMAKE_SOURCE_DIR}/3rdParty/reducer/build/libreducer.a ${CMAKE_SOURCE_DIR}/3rdParty/bipe/build/libbipe.a)
 set(wnoOption -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
 
 # build.
