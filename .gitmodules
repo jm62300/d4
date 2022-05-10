@@ -2,5 +2,5 @@
 	path = 3rdParty/reducer
 	url = https://gitlab.univ-artois.fr/preprocessing/reducer.git
 [submodule "bipe"]
-	path = bipe
+	path = 3rdParty/bipe
 	url = https://gitlab.univ-artois.fr/preprocessing/bipe.git
