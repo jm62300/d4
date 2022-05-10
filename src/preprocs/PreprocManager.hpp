@@ -35,12 +35,22 @@ struct LastBreathPreproc {
 };
 
 class PreprocManager {
+ protected:
+  static PreprocManager *s_isRunning;
+
  public:
   static PreprocManager *makePreprocManager(po::variables_map &vm,
                                             std::ostream &out);
 
-  virtual ~PreprocManager() {}
+  virtual ~PreprocManager() { s_isRunning = nullptr; }
+
   virtual ProblemManager *run(ProblemManager *pin,
                               LastBreathPreproc &lastBreath) = 0;
+
+  virtual void interrupt() {}
+
+  static void static_handler(int signum) {
+    if (s_isRunning) s_isRunning->interrupt();
+  }
 };
 }  // namespace d4

@@ -20,6 +20,7 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <csignal>
 
 #include "circuit/PreprocCnfFromCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
@@ -29,32 +30,53 @@
 
 namespace d4 {
 
-/**
-   Create the preproc manager.
+PreprocManager *PreprocManager::s_isRunning = nullptr;
 
-   @param[in] vm, the option for the preprocessing.
+/**
+ * @brief Preproc factory.
+ *
+ * @param vm gives the options.
+ * @param out is the stream where are printed out the logs.
+ * @return a preproc.
  */
 PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
                                                    std::ostream &out) {
   std::string meth = vm["preproc"].as<std::string>();
   std::string inputType = vm["input-type"].as<std::string>();
+  int timeout = vm["preproc-timeout"].as<int>();
 
-  out << "c [CONSTRUCTOR] Preproc: " << meth << " " << inputType << "\n";
+  out << "c [PREPROC] Method: " << meth << " " << inputType << "\n";
+  out << "c [PREPROC] Timeout: " << timeout << "\n";
 
+  PreprocManager *ret = nullptr;
   if (inputType == "cnf" || inputType == "dimacs") {
-    if (meth == "basic") return new PreprocBasicCnf(vm, out);
-    if (meth == "backbone") return new PreprocBackboneCnf(vm, out);
-    if (meth == "vivification" || meth == "occElimination" ||
-        meth == "combinaison")
-      return new PreprocReducer(vm, meth,
-                                vm["preproc-reducer-iteration"].as<int>(), out);
+    if (meth == "basic")
+      ret = new PreprocBasicCnf(vm, out);
+    else if (meth == "backbone")
+      ret = new PreprocBackboneCnf(vm, out);
+    else if (meth == "vivification" || meth == "occElimination" ||
+             meth == "combinaison")
+      ret = new PreprocReducer(vm, meth,
+                               vm["preproc-reducer-iteration"].as<int>(), out);
   }
 
   if (inputType == "circuit") {
-    return new PreprocCnfFromCircuit(vm, out);
+    ret = new PreprocCnfFromCircuit(vm, out);
   }
 
-  throw(FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
+  if (!ret)
+    throw(
+        FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
+
+  if (timeout != -1) {
+    out << "c [PREPROC] Set the signal handler\n";
+    assert(!s_isRunning);
+    s_isRunning = ret;
+    signal(SIGALRM, PreprocManager::static_handler);
+    alarm(timeout);
+  }
+
+  return ret;
 }  // makePreprocManager
 
 }  // namespace d4

@@ -19,7 +19,6 @@
 
 #include "PreprocReducer.hpp"
 
-#include "3rdParty/reducer/src/methods/Method.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -76,10 +75,10 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
 
   // create the problem from the reducer side.
   reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
-  reducer::Method *reducer = reducer::Method::makeMethod(m_method, std::cout);
+  m_isRunning = reducer::Method::makeMethod(m_method, std::cout);
 
   std::vector<std::vector<reducer::Lit>> clausesVivi;
-  reducer->run(problem, m_nbIteration, true, clausesVivi);
+  m_isRunning->run(problem, m_nbIteration, true, clausesVivi);
 
   ProblemManagerCnf *ret = new ProblemManagerCnf(
       pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
@@ -92,8 +91,9 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
       clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
   }
 
-  delete reducer;
-
+  reducer::Method *rm = m_isRunning;
+  m_isRunning = NULL;
+  delete rm;
   return ret;
 }  // run
 }  // namespace d4

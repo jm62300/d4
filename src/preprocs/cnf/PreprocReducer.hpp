@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
+#include "3rdParty/reducer/src/methods/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
@@ -32,6 +33,7 @@ class PreprocReducer : public PreprocManager {
   WrapperSolver *ws;
   std::string m_method;
   int m_nbIteration;
+  reducer::Method *m_isRunning = NULL;
 
  public:
   PreprocReducer(po::variables_map &vm, std::string &method, int nbIteration,
@@ -39,5 +41,16 @@ class PreprocReducer : public PreprocManager {
   ~PreprocReducer();
   virtual ProblemManager *run(ProblemManager *pin,
                               LastBreathPreproc &lastBreath) override;
+
+  /**
+   * @brief Stop.
+   *
+   */
+  inline void interrupt() {
+    if (m_isRunning) {
+      std::cout << "c [REDUCE PREPROC] Stop because timeout\n";
+      m_isRunning->interrupt();
+    }
+  }  // interrupt
 };
 }  // namespace d4
