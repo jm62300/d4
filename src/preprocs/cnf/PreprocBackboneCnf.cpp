@@ -22,8 +22,7 @@
 
 #include <ctime>
 
-#include "3rdParty/bipe/src/methods/Backbone.hpp"
-#include "3rdParty/bipe/src/methods/Method.hpp"
+#include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -54,35 +53,62 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   // init the solver.
   ws->initSolver(*pin);
   ws->setNeedModel(true);
-  unsigned nbSatCalls = 1;
-  unsigned nbFoundUnit = 0;
 
   if (!ws->solve()) return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 
+  // get the activity given by the solver.
+  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
+  for (unsigned i = 1; i <= pin->getNbVar(); i++)
+    lastBreath.countConflict[i] = ws->getCountConflict(i);
+
+  // get the unit.
+  std::vector<Lit> units;
+  ws->getUnits(units);
+
   // create the problem regarding the bipe library.
-  std::vector<Var> protect;
-  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), pin->getSelectedVar(),
-                   protect);
+  std::vector<Var> protect, selected;
+  if (pin->getSelectedVar().size())
+    selected = pin->getSelectedVar();
+  else
+    for (unsigned i = 1; i <= pin->getNbVar(); i++) selected.push_back(i);
+
+  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
+
+  ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
+  std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
+  for (auto l : units)
+    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
+  for (auto &cl : pcnf.getClauses()) {
+    clauses.push_back({});
+    for (auto l : cl)
+      clauses.back().push_back(bipe::Lit::makeLit(l.var(), l.sign()));
+  }
 
   // call the preprocessor to compute the backbone.
   bipe::Backbone bb;
-
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bipe::lbool>> setOfModels;
-  bool res = bb.run(pb, gates, -1, std::cout, "glucose", true, setOfModels);
+
+  std::cerr << "c [PREPOC BACKBONE] Is running ...\n";
+  m_isRunning = &bb;
+  bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
+
+  if (!res) {
+    std::cerr << "c [PREPOC BACKBONE] We already checked that is SAT Oo\n";
+    exit(-1);
+  }
 
   // the list of unit literals.
-  std::vector<Lit> units;
+  units.clear();
   for (auto g : gates)
     units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
 
   std::cout << "c [PREPOC BACKBONE] Backone size: " << units.size() << "\n";
-  std::cout << "c [PREPOC BACKBONE] Number of units detected: " << nbFoundUnit
-            << "\n";
   std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
             << lastBreath.panic << "\n";
 
+  m_isRunning = NULL;
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

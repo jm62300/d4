@@ -62,7 +62,7 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
   std::vector<Lit> units;
   ws->getUnits(units);
 
-  // prepage the clauses.3
+  // prepage the clauses.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<reducer::Lit>> clauses;
   for (auto l : units)

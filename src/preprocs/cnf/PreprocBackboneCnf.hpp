@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
+#include "3rdParty/bipe/srcBipe/methods/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
@@ -30,11 +31,23 @@ namespace po = boost::program_options;
 class PreprocBackboneCnf : public PreprocManager {
  private:
   WrapperSolver *ws;
+  bipe::Method *m_isRunning = NULL;
 
  public:
   PreprocBackboneCnf(po::variables_map &vm, std::ostream &out);
   ~PreprocBackboneCnf();
   virtual ProblemManager *run(ProblemManager *pin,
                               LastBreathPreproc &lastBreath) override;
+
+  /**
+   * @brief Stop.
+   *
+   */
+  inline void interrupt() {
+    if (m_isRunning) {
+      std::cout << "c [REDUCE PREPROC] Stop because timeout\n";
+      m_isRunning->interrupt();
+    }
+  }  // interrupt
 };
 }  // namespace d4
