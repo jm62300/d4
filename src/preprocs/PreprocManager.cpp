@@ -27,6 +27,7 @@
 #include "cnf/PreprocBasicCnf.hpp"
 #include "cnf/PreprocEquiv.hpp"
 #include "cnf/PreprocReducer.hpp"
+#include "cnf/PreprocSharpEquiv.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -58,6 +59,9 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
     else if (meth == "equiv")
       ret = new PreprocEquiv(vm, meth,
                              vm["preproc-reducer-iteration"].as<int>(), out);
+    else if (meth == "#equiv")
+      ret = new PreprocSharpEquiv(
+          vm, meth, vm["preproc-reducer-iteration"].as<int>(), out);
     else if (meth == "vivification" || meth == "occElimination" ||
              meth == "combinaison")
       ret = new PreprocReducer(vm, meth,
