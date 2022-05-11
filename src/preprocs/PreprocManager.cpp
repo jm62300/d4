@@ -59,7 +59,7 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
     else if (meth == "equiv")
       ret = new PreprocEquiv(vm, meth,
                              vm["preproc-reducer-iteration"].as<int>(), out);
-    else if (meth == "#equiv")
+    else if (meth == "sharp-equiv")
       ret = new PreprocSharpEquiv(
           vm, meth, vm["preproc-reducer-iteration"].as<int>(), out);
     else if (meth == "vivification" || meth == "occElimination" ||

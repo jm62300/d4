@@ -92,7 +92,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bipe::lbool>> setOfModels;
 
-  std::cerr << "c [PREPOC #EQUIV] Backbone is running ...\n";
+  std::cerr << "c [PREPROC #EQUIV] Backbone is running ...\n";
   m_isRunningBackbone = &bb;
   bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
 
