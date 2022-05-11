@@ -19,7 +19,7 @@
 
 #include "PreprocSharpEquiv.hpp"
 
-#include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
+#include "3rdParty/bipe/srcBipe/methods/Bipartition.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -88,13 +88,14 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   }
 
   // call the preprocessor to compute the backbone.
-  bipe::Backbone bb;
-  std::vector<bipe::Gate> gates;
-  std::vector<std::vector<bipe::lbool>> setOfModels;
+  bipe::Bipartition bp;
 
-  std::cerr << "c [PREPROC #EQUIV] Backbone is running ...\n";
-  m_isRunningBackbone = &bb;
-  bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
+  std::vector<bipe::Var> input;
+  std::vector<bipe::Gate> gates;
+  std::cerr << "c [PREPROC #EQUIV] Bipartition is running ...\n";
+  bool res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC", true,
+                    true, true, true, true, std::cout);
+  m_isRunningBackbone = &bp;
 
   if (!res) {
     std::cerr << "c [PREPOC #EQUIV] We already checked that is SAT Oo\n";
@@ -103,8 +104,10 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
 
   // the list of unit literals.
   units.clear();
-  for (auto g : gates)
-    units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
+  for (auto g : gates) {
+    if (g.type == bipe::UNIT)
+      units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
+  }
 
   if (!m_isInterrupted) {
     // apply the vivification and the occurrence elimination proccess.
