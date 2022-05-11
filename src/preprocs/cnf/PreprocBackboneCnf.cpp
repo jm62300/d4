@@ -22,6 +22,8 @@
 
 #include <ctime>
 
+#include "3rdParty/bipe/src/methods/Backbone.hpp"
+#include "3rdParty/bipe/src/methods/Method.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -57,47 +59,24 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
 
   if (!ws->solve()) return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
-  ws->setReversePolarity(true);
 
-  if (!lastBreath.panic) {
-    // compute the backbone.
-    std::vector<bool> marked(pin->getNbVar() + 1, false);
-    std::vector<lbool> &model = ws->getModel();
+  // create the problem regarding the bipe library.
+  std::vector<Var> protect;
+  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), pin->getSelectedVar(),
+                   protect);
 
-    for (unsigned i = 1; i <= pin->getNbVar(); i++) {
-      if (marked[i] || ws->varIsAssigned(i)) continue;
+  // call the preprocessor to compute the backbone.
+  bipe::Backbone bb;
 
-      nbSatCalls++;
-
-      // test the negation of the literal in order to verify if it is impllied
-      Lit l = Lit::makeLit(i, (model[i] + 1) & 1);
-      ws->pushAssumption(l);
-      bool isSat = ws->solve();
-      ws->popAssumption();
-
-      if (isSat) {
-        // update the model.
-        for (unsigned j = i + 1; j < model.size(); j++)
-          marked[j] = marked[j] || (model[j] != ws->getModelVar((Var)j));
-      } else {
-        nbFoundUnit++;
-        if (!ws->varIsAssigned(i)) ws->uncheckedEnqueue(~l);
-      }
-    }
-  }
-
-  // get the activity given by the solver.
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
-  for (unsigned i = 1; i <= pin->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getActivity(i);
+  std::vector<bipe::Gate> gates;
+  std::vector<std::vector<bipe::lbool>> setOfModels;
+  bool res = bb.run(pb, gates, -1, std::cout, "glucose", true, setOfModels);
 
   // the list of unit literals.
   std::vector<Lit> units;
-  ws->getUnits(units);
+  for (auto g : gates)
+    units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
 
-  // some statistics.
-  std::cout << "c [PREPOC BACKBONE] Number of SAT calls: " << nbSatCalls
-            << "\n";
   std::cout << "c [PREPOC BACKBONE] Backone size: " << units.size() << "\n";
   std::cout << "c [PREPOC BACKBONE] Number of units detected: " << nbFoundUnit
             << "\n";
