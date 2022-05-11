@@ -25,6 +25,7 @@
 #include "circuit/PreprocCnfFromCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
+#include "cnf/PreprocEquiv.hpp"
 #include "cnf/PreprocReducer.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
@@ -54,6 +55,9 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
       ret = new PreprocBasicCnf(vm, out);
     else if (meth == "backbone")
       ret = new PreprocBackboneCnf(vm, out);
+    else if (meth == "equiv")
+      ret = new PreprocEquiv(vm, meth,
+                             vm["preproc-reducer-iteration"].as<int>(), out);
     else if (meth == "vivification" || meth == "occElimination" ||
              meth == "combinaison")
       ret = new PreprocReducer(vm, meth,

@@ -16,11 +16,8 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "PreprocBackboneCnf.hpp"
 
-#include <bits/types/clock_t.h>
-
-#include <ctime>
+#include "PreprocEquiv.hpp"
 
 #include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
@@ -32,15 +29,17 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBackboneCnf::PreprocBackboneCnf(po::variables_map &vm,
-                                       std::ostream &out) {
+PreprocEquiv::PreprocEquiv(po::variables_map &vm, std::string &method,
+                           int nbIteration, std::ostream &out) {
   ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
+  m_method = method;
+  m_nbIteration = nbIteration;
 }  // constructor
 
 /**
    Destructor.
  */
-PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; }  // destructor
+PreprocEquiv::~PreprocEquiv() { delete ws; }  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -48,25 +47,27 @@ PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
-                                        LastBreathPreproc &lastBreath) {
-  // init the solver.
+ProblemManager *PreprocEquiv::run(ProblemManager *pin,
+                                  LastBreathPreproc &lastBreath) {
+  std::cout << "c [EQUIV PREPROC] Start\n";
   ws->initSolver(*pin);
-  ws->setNeedModel(true);
+  lastBreath.panic = 0;
+  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
 
   if (!ws->solve()) return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 
   // get the activity given by the solver.
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
   for (unsigned i = 1; i <= pin->getNbVar(); i++)
     lastBreath.countConflict[i] = ws->getCountConflict(i);
 
-  // get the unit.
   std::vector<Lit> units;
   ws->getUnits(units);
 
-  // create the problem regarding the bipe library.
+  // get the cnf.
+  ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
+
+  // compute the backbone.
   std::vector<Var> protect, selected;
   if (pin->getSelectedVar().size())
     selected = pin->getSelectedVar();
@@ -77,8 +78,6 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
         selected.push_back(i);
 
   bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
-
-  ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
   for (auto l : units)
     clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
@@ -93,12 +92,12 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bipe::lbool>> setOfModels;
 
-  std::cerr << "c [PREPOC BACKBONE] Is running ...\n";
-  m_isRunning = &bb;
+  std::cerr << "c [PREPOC EQUIV] Backbone is running ...\n";
+  m_isRunningBackbone = &bb;
   bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
 
   if (!res) {
-    std::cerr << "c [PREPOC BACKBONE] We already checked that is SAT Oo\n";
+    std::cerr << "c [PREPOC EQUIV] We already checked that is SAT Oo\n";
     exit(-1);
   }
 
@@ -107,11 +106,43 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   for (auto g : gates)
     units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
 
-  std::cout << "c [PREPOC BACKBONE] Backone size: " << units.size() << "\n";
-  std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
-            << lastBreath.panic << "\n";
+  if (!m_isInterrupted) {
+    // apply the vivification and the occurrence elimination proccess.
+    std::vector<std::vector<reducer::Lit>> fclauses;
+    for (auto l : units)
+      fclauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
+    for (auto &cl : pcnf.getClauses()) {
+      fclauses.push_back({});
+      for (auto l : cl)
+        fclauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
+    }
 
-  m_isRunning = NULL;
-  return pin->getConditionedFormula(units);
+    // create the problem from the reducer side.
+    reducer::Problem problem(fclauses, pcnf.getNbVar(), std::cout, false);
+    m_isRunningReducer = reducer::Method::makeMethod("combinaison", std::cout);
+
+    std::vector<std::vector<reducer::Lit>> clausesVivi;
+    m_isRunningReducer->run(problem, m_nbIteration, true, clausesVivi);
+
+    ProblemManagerCnf *ret = new ProblemManagerCnf(
+        pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
+        pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
+
+    std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
+    for (auto &cl : clausesVivi) {
+      clausesAfter.push_back({});
+      for (auto &l : cl)
+        clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
+    }
+
+    reducer::Method *rm = m_isRunningReducer;
+    m_isRunningReducer = NULL;
+    m_isRunningBackbone = NULL;
+    delete rm;
+    return ret;
+  } else {
+    m_isRunningBackbone = NULL;
+    return pin->getConditionedFormula(units);
+  }
 }  // run
 }  // namespace d4
