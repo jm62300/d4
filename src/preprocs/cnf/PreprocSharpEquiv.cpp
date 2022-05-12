@@ -25,9 +25,9 @@
 namespace d4 {
 
 /**
-   The constructor.
-
-   @param[in] vm, the options used (solver).
+ * The constructor.
+ *
+ * @param[in] vm, the options used (solver).
  */
 PreprocSharpEquiv::PreprocSharpEquiv(po::variables_map &vm, std::string &method,
                                      int nbIteration, std::ostream &out) {
