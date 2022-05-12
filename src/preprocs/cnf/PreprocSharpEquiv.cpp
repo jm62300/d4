@@ -114,7 +114,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
                                   return eliminator::Lit::makeLit(var, sign);
                                 });
   expressDacInEliminatorFormat(gates, dac);
-  el.eliminateDac(clausesAfterElim, dac, eliminated);
+  el.eliminateDac(pin->getNbVar(), clausesAfterElim, dac, eliminated);
 
   if (!m_isInterrupted) {
     // apply the vivification and the occurrence elimination proccess.
