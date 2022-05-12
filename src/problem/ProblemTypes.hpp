@@ -52,6 +52,29 @@ struct Lit {
   static inline Lit makeLit(Var v, bool sign) { return {(v << 1) + sign}; }
   static inline Lit makeLitFalse(Var v) { return {(v << 1) + 1}; }
   static inline Lit makeLitTrue(Var v) { return {v << 1}; }
+
+  template <class T>
+  inline static void rewrite(std::vector<std::vector<Lit>> &clauses,
+                             std::vector<Lit> &units,
+                             std::vector<std::vector<T>> &res,
+                             T (*createLit)(unsigned var, bool sign)) {
+    for (auto &l : units) res.push_back({createLit(l.var(), l.sign())});
+
+    for (auto &cl : clauses) {
+      res.push_back(std::vector<T>());
+      for (auto &l : cl) res.back().push_back(createLit(l.var(), l.sign()));
+    }
+  }  // rewrite
+
+  template <class T1, class T2>
+  inline static void rewrite(std::vector<std::vector<T1>> &clauses,
+                             std::vector<std::vector<T2>> &res,
+                             T2 (*createLit)(T1)) {
+    for (auto &cl : clauses) {
+      res.push_back(std::vector<T2>());
+      for (auto &l : cl) res.back().push_back(createLit(l));
+    }
+  }  // rewrite
 };
 
 const Lit lit_Undef = {-2};  // }- Useful special constants.

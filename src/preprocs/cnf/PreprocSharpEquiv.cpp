@@ -78,14 +78,9 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
         selected.push_back(i);
 
   bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
-  std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
-  for (auto l : units)
-    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
-  for (auto &cl : pcnf.getClauses()) {
-    clauses.push_back({});
-    for (auto l : cl)
-      clauses.back().push_back(bipe::Lit::makeLit(l.var(), l.sign()));
-  }
+  Lit::rewrite<bipe::Lit>(
+      pcnf.getClauses(), units, pb.getClauses(),
+      [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
 
   // call the preprocessor to compute the backbone.
   bipe::Bipartition bp;
@@ -102,6 +97,11 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
     exit(-1);
   }
 
+  eliminator::Eliminator el;
+  std::vector<eliminator::Lit> eliminated;
+  std::vector<std::vector<eliminator::Lit>> clausesAfterElim;
+  std::vector<eliminator::Gate> dac;
+
   // the list of unit literals.
   units.clear();
   for (auto g : gates) {
@@ -109,16 +109,20 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
       units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
   }
 
+  Lit::rewrite<eliminator::Lit>(pcnf.getClauses(), units, clausesAfterElim,
+                                [](unsigned var, bool sign) {
+                                  return eliminator::Lit::makeLit(var, sign);
+                                });
+  expressDacInEliminatorFormat(gates, dac);
+  el.eliminateDac(clausesAfterElim, dac, eliminated);
+
   if (!m_isInterrupted) {
     // apply the vivification and the occurrence elimination proccess.
     std::vector<std::vector<reducer::Lit>> fclauses;
-    for (auto l : units)
-      fclauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
-    for (auto &cl : pcnf.getClauses()) {
-      fclauses.push_back({});
-      for (auto l : cl)
-        fclauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
-    }
+    Lit::rewrite<eliminator::Lit, reducer::Lit>(
+        clausesAfterElim, fclauses, [](eliminator::Lit l) {
+          return reducer::Lit::makeLit(l.var(), l.sign());
+        });
 
     // create the problem from the reducer side.
     reducer::Problem problem(fclauses, pcnf.getNbVar(), std::cout, false);
@@ -148,4 +152,42 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
     return pin->getConditionedFormula(units);
   }
 }  // run
+
+/**
+ * @brief expressDacInEliminatorFormat implementation.
+ */
+void PreprocSharpEquiv::expressDacInEliminatorFormat(
+    std::vector<bipe::Gate> &gates, std::vector<eliminator::Gate> &dac) {
+  for (auto &g : gates) {
+    dac.push_back(eliminator::Gate());
+    dac.back().output =
+        eliminator::Lit::makeLit(g.output.var(), g.output.sign());
+
+    switch (g.type) {
+      case bipe::UNIT:
+        dac.back().type = eliminator::UNIT;
+        break;
+      case bipe::EQUIV:
+        dac.back().type = eliminator::EQUIV;
+        break;
+      case bipe::AND:
+        dac.back().type = eliminator::AND;
+        break;
+      case bipe::OR:
+        dac.back().type = eliminator::OR;
+        break;
+      case bipe::XOR:
+        dac.back().type = eliminator::XOR;
+        break;
+      default:
+        std::cerr << "c This gate is not supported\n";
+        exit(EXIT_FAILURE);
+        break;
+    }
+
+    for (auto l : g.input)
+      dac.back().input.push_back(eliminator::Lit::makeLit(l.var(), l.sign()));
+  }
+}  // expressDacInEliminatorFormat
+
 }  // namespace d4

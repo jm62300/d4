@@ -23,6 +23,7 @@
 
 #include "../PreprocManager.hpp"
 #include "3rdParty/bipe/srcBipe/methods/Method.hpp"
+#include "3rdParty/eliminator/srcEliminator/Eliminator.hpp"
 #include "3rdParty/reducer/src/methods/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
@@ -37,6 +38,16 @@ class PreprocSharpEquiv : public PreprocManager {
   bool m_isInterrupted = false;
   reducer::Method *m_isRunningReducer = NULL;
   bipe::Method *m_isRunningBackbone = NULL;
+
+  /**
+   * @brief Rewrite the DAC computed using bipe in another DAC ready to be used
+   * with the eliminator library.
+   *
+   * @param gates is the DAC computed using bipe.
+   * @param dac is the DAC that can be used with eliminator.
+   */
+  void expressDacInEliminatorFormat(std::vector<bipe::Gate> &gates,
+                                    std::vector<eliminator::Gate> &dac);
 
  public:
   PreprocSharpEquiv(po::variables_map &vm, std::string &method, int nbIteration,

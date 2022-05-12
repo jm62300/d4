@@ -4,3 +4,6 @@
 [submodule "bipe"]
 	path = 3rdParty/bipe
 	url = https://gitlab.univ-artois.fr/preprocessing/bipe.git
+[submodule "3rdParty/eliminator"]
+	path = 3rdParty/eliminator
+	url = https://gitlab.univ-artois.fr/preprocessing/eliminator.git

@@ -29,6 +29,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/kahypar/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/reducer/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/bipe/)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/eliminator/)
 
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
@@ -37,8 +38,8 @@ if (NOT DEFINED BUILD_MODE)
    set(BUILD_MODE 1)
 endif()
 
-set(libList ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_glucose.a ${CMAKE_SOURCE_DIR}/3rdParty/reducer/build/libreducer.a ${CMAKE_SOURCE_DIR}/3rdParty/bipe/build/libbipe.a)
-set(wnoOption -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
+set(libList ${CMAKE_SOURCE_DIR}/3rdParty/kahypar/build/lib/libkahypar.a ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/3rdParty/patoh/libpatoh.a ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/lib_glucose.a ${CMAKE_SOURCE_DIR}/3rdParty/reducer/build/libreducer.a ${CMAKE_SOURCE_DIR}/3rdParty/bipe/build/libbipe.a ${CMAKE_SOURCE_DIR}/3rdParty/eliminator/build/libeliminator.a)
+set(wnoOption -Wno-strict-aliasing -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
 
 # build.
 if(${BUILD_MODE} EQUAL 1)

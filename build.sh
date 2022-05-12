@@ -67,6 +67,9 @@ cd $curRep
 cd 3rdParty/bipe/
 ./build.sh -l    
 
+cd $curRep
+cd 3rdParty/eliminator
+./build.sh -l    
 
 cd $curRep
 mkdir -p build
