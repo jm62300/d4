@@ -61,6 +61,7 @@ struct Lit {
     for (auto &l : units) res.push_back({createLit(l.var(), l.sign())});
 
     for (auto &cl : clauses) {
+      if (cl.size() == 0) continue;
       res.push_back(std::vector<T>());
       for (auto &l : cl) res.back().push_back(createLit(l.var(), l.sign()));
     }
@@ -71,6 +72,7 @@ struct Lit {
                              std::vector<std::vector<T2>> &res,
                              T2 (*createLit)(T1)) {
     for (auto &cl : clauses) {
+      if (cl.size() == 0) continue;
       res.push_back(std::vector<T2>());
       for (auto &l : cl) res.back().push_back(createLit(l));
     }
