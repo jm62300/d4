@@ -62,12 +62,13 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
     lastBreath.countConflict[i] = ws->getCountConflict(i);
 
   std::vector<Lit> units;
+  std::vector<bool> isAdded(pin->getNbVar() + 1, false);
   ws->getUnits(units);
 
   // get the cnf.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
 
-  // compute the backbone.
+  // call the preprocessor to compute the bipartition.
   std::vector<Var> protect, selected;
   if (pin->getSelectedVar().size())
     selected = pin->getSelectedVar();
@@ -82,14 +83,12 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
       pcnf.getClauses(), units, pb.getClauses(),
       [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
 
-  // call the preprocessor to compute the backbone.
   bipe::Bipartition bp;
-
   std::vector<bipe::Var> input;
   std::vector<bipe::Gate> gates;
   std::cerr << "c [PREPROC #EQUIV] Bipartition is running ...\n";
-  bool res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC", true,
-                    true, true, true, true, std::cout);
+  bool res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC",
+                    false, true, true, true, true, std::cout);
   m_isRunningBackbone = &bp;
 
   if (!res) {
@@ -97,24 +96,26 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
     exit(-1);
   }
 
+  // call the method to eliminate variables.
   eliminator::Eliminator el;
   std::vector<eliminator::Lit> eliminated;
   std::vector<std::vector<eliminator::Lit>> clausesAfterElim;
   std::vector<eliminator::Gate> dac;
 
-  // the list of unit literals.
-  units.clear();
-  for (auto g : gates) {
-    if (g.type == bipe::UNIT)
-      units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
-  }
-
+  // prepare the problem for elimination.
   Lit::rewrite<eliminator::Lit>(pcnf.getClauses(), units, clausesAfterElim,
                                 [](unsigned var, bool sign) {
                                   return eliminator::Lit::makeLit(var, sign);
                                 });
   expressDacInEliminatorFormat(gates, dac);
   el.eliminateDac(pin->getNbVar(), clausesAfterElim, dac, eliminated);
+
+  for (auto &l : units) isAdded[l.var()] = true;
+  for (auto &l : eliminated)
+    if (!isAdded[l.var()]) {
+      units.push_back(Lit::makeLit(l.var(), l.sign()));
+      isAdded[l.var()] = true;
+    }
 
   if (!m_isInterrupted) {
     // apply the vivification and the occurrence elimination proccess.
@@ -141,6 +142,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
       for (auto &l : cl)
         clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
     }
+    for (auto &l : units) clausesAfter.push_back({l});
 
     reducer::Method *rm = m_isRunningReducer;
     m_isRunningReducer = NULL;

@@ -10,7 +10,7 @@ $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
 MODEL_COUNTER="./d4ScriptsCompetition/bin/d4_static -m counting -i"
-PREPROC="../build/d4_debug -m counting -p equiv --preproc-timeout 1 -i"
+PREPROC="../build/d4_debug -m counting -p sharp-equiv --preproc-timeout 1 -i"
 
 
 
