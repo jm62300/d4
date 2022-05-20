@@ -34,12 +34,13 @@ generateSatisfiableCNF()
     done
 
 
-    rdm=$(($RANDOM % 30))
+    rdm=$(($RANDOM % 40))
     nbVar=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f3)
     tab=$(seq 1 $nbVar)
     
 
     cpt=3
+    addedClauses=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f4)
     while [ $rdm -lt 30 ]
     do
         rdm=$((rdm + 10))
@@ -79,11 +80,12 @@ generateSatisfiableCNF()
                 tmp=$((tmp / 2))
             done
             echo "0" >> /tmp/test.cnf
+            addedClauses=$((addedClauses + 1))
         done
         cpt=$((cpt + 1))
-
     done
 
+    sed -i "s/p cnf .*/p cnf $nbVar $addedClauses/" /tmp/test.cnf    
     echo "/tmp/test.cnf"
 }
 
@@ -98,7 +100,7 @@ while [ true ]
 do
     printf "number of instances tested %d\r" "$cpt" 
 
-    benchName=$(generateSatisfiableCNF)
+    benchName=$(generateSatisfiableCNF)    
     timeout $TIMEOUT $1 $benchName > /dev/null 2>/dev/null
 
     code=$?
