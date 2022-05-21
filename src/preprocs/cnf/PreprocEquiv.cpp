@@ -19,6 +19,8 @@
 
 #include "PreprocEquiv.hpp"
 
+#include <csignal>
+
 #include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
@@ -95,12 +97,23 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
 
   std::cerr << "c [PREPOC EQUIV] Backbone is running ...\n";
   m_isRunningBackbone = &bb;
+
+  PreprocManager::s_isRunning = this;
+  signal(SIGALRM, [](int s) {
+    if (PreprocManager::s_isRunning)
+      ((PreprocEquiv *)PreprocManager::s_isRunning)->interrupt();
+  });
+  alarm(timeout / 2);
+
   bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
 
   if (!res) {
     std::cerr << "c [PREPOC EQUIV] We already checked that is SAT Oo\n";
     exit(-1);
   }
+
+  m_isInterrupted = false;
+  alarm(timeout / 2);
 
   // the list of unit literals.
   units.clear();

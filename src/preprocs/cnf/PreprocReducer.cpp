@@ -19,6 +19,8 @@
 
 #include "PreprocReducer.hpp"
 
+#include <csignal>
+
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -77,6 +79,13 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
   // create the problem from the reducer side.
   reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
   m_isRunning = reducer::Method::makeMethod(m_method, std::cout);
+
+  PreprocManager::s_isRunning = this;
+  signal(SIGALRM, [](int s) {
+    if (PreprocManager::s_isRunning)
+      ((PreprocReducer *)PreprocManager::s_isRunning)->interrupt();
+  });
+  alarm(timeout / 2);
 
   std::vector<std::vector<reducer::Lit>> clausesVivi;
   m_isRunning->run(problem, m_nbIteration, true, clausesVivi);

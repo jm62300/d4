@@ -38,7 +38,6 @@ class PreprocSharpEquiv : public PreprocManager {
   int m_nbIteration;
   bool m_isInterrupted = false;
   reducer::Method *m_isRunningReducer = NULL;
-  bipe::Method *m_isRunningBackbone = NULL;
   eliminator::Eliminator *m_isRunningEliminator = NULL;
 
   /**
@@ -59,10 +58,11 @@ class PreprocSharpEquiv : public PreprocManager {
    * @param[out] units stores the unit literals.
    * @param[out] input stores the input variables.
    * @param[out] gates stores the extracted gates.
+   * @param timeout is the timeout for computing the bipartition.
    */
   void computeBipartition(ProblemManagerCnf &pcnf, std::vector<Lit> &units,
                           std::vector<bipe::Var> &input,
-                          std::vector<bipe::Gate> &gates);
+                          std::vector<bipe::Gate> &gates, unsigned timeout);
 
   /**
    * @brief Apply distillation to a given set of clauses (with units).
@@ -120,12 +120,6 @@ class PreprocSharpEquiv : public PreprocManager {
     if (m_isRunningReducer) {
       std::cout << "c [PREPROC #EQUIV] Stop the reducer because timeout\n";
       m_isRunningReducer->interrupt();
-    }
-
-    if (m_isRunningBackbone) {
-      std::cout
-          << "c [PREPROC #EQUIV] Stop the backbone extractor because timeout\n";
-      m_isRunningBackbone->interrupt();
     }
 
     if (m_isRunningEliminator) {

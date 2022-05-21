@@ -31,8 +31,7 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-
-PreprocManager *PreprocManager::s_isRunning = nullptr;
+void *PreprocManager::s_isRunning = nullptr;
 
 /**
  * @brief Preproc factory.
@@ -45,10 +44,8 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
                                                    std::ostream &out) {
   std::string meth = vm["preproc"].as<std::string>();
   std::string inputType = vm["input-type"].as<std::string>();
-  int timeout = vm["preproc-timeout"].as<int>();
 
   out << "c [PREPROC] Method: " << meth << " " << inputType << "\n";
-  out << "c [PREPROC] Timeout: " << timeout << "\n";
 
   PreprocManager *ret = nullptr;
   if (inputType == "cnf" || inputType == "dimacs") {
@@ -75,14 +72,6 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
   if (!ret)
     throw(
         FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
-
-  if (timeout != -1) {
-    out << "c [PREPROC] Set the signal handler\n";
-    assert(!s_isRunning);
-    s_isRunning = ret;
-    signal(SIGALRM, PreprocManager::static_handler);
-    alarm(timeout);
-  }
 
   return ret;
 }  // makePreprocManager

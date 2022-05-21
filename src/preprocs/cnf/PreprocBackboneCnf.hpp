@@ -39,16 +39,5 @@ class PreprocBackboneCnf : public PreprocManager {
   virtual ProblemManager *run(ProblemManager *pin,
                               LastBreathPreproc &lastBreath,
                               unsigned timeout) override;
-
-  /**
-   * @brief Stop.
-   *
-   */
-  inline void interrupt() {
-    if (m_isRunning) {
-      std::cout << "c [REDUCE PREPROC] Stop because timeout\n";
-      m_isRunning->interrupt();
-    }
-  }  // interrupt
 };
 }  // namespace d4

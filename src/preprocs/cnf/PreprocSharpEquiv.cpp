@@ -42,7 +42,8 @@ PreprocSharpEquiv::PreprocSharpEquiv(po::variables_map &vm, std::string &method,
 void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
                                            std::vector<Lit> &units,
                                            std::vector<bipe::Var> &input,
-                                           std::vector<bipe::Gate> &gates) {
+                                           std::vector<bipe::Gate> &gates,
+                                           unsigned timeout) {
   std::vector<Var> protect, selected;
   if (pcnf.getSelectedVar().size())
     selected = pcnf.getSelectedVar();
@@ -59,14 +60,18 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
 
   bipe::Bipartition bp;
   std::cout << "c [PREPROC #EQUIV] Bipartition is running ...\n";
-  m_isRunningBackbone = &bp;
+  PreprocManager::s_isRunning = &bp;
   bool res = true;
 
-  if (!m_isInterrupted) {
-    res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC", true,
-                 true, true, true, true, std::cout);
-  }
-  m_isRunningBackbone = nullptr;
+  signal(SIGALRM, [](int s) {
+    if (PreprocManager::s_isRunning)
+      ((bipe::Bipartition *)PreprocManager::s_isRunning)->interrupt();
+  });
+  alarm(timeout);
+
+  res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC", true,
+               true, true, true, true, std::cout);
+  PreprocManager::s_isRunning = nullptr;
   std::cout << "c [PREPROC #EQUIV] ... done\n";
 
   if (!res) {
@@ -195,7 +200,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   // call the preprocessor to compute the bipartition.
   std::vector<bipe::Var> input;
   std::vector<bipe::Gate> gates;
-  computeBipartition(pcnf, units, input, gates);
+  computeBipartition(pcnf, units, input, gates, timeout / 2);
 
   // prepare the formula we will return.
   ProblemManagerCnf *ret = new ProblemManagerCnf(
@@ -217,6 +222,13 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   std::vector<eliminator::Gate> dac;
   expressDacInEliminatorFormat(gates, dac);
 
+  PreprocManager::s_isRunning = this;
+  signal(SIGALRM, [](int s) {
+    if (PreprocManager::s_isRunning)
+      ((PreprocSharpEquiv *)PreprocManager::s_isRunning)->interrupt();
+  });
+  alarm(timeout / 2);
+
   bool hasBeenModified = true;
   for (unsigned ite = 0;
        hasBeenModified && !m_isInterrupted && ite < m_nbIteration; ite++) {
@@ -234,15 +246,17 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
               << m_nbIteration << "\t#clause: " << ret->getClauses().size()
               << "\t#eliminated: " << eliminated.size() << "\n";
   }
+  PreprocManager::s_isRunning = nullptr;
+
+  unsigned nbUsedGate = 0;
+  for (auto &g : dac)
+    if (g.input.size() && g.type == eliminator::RM) nbUsedGate++;
+  std::cout << "c [PREPROC #EQUIV] Number gates used: " << nbUsedGate << "\n";
 
   // get the 'unit literals'.
   for (auto &l : units) ret->getClauses().push_back({l});
 
-  // prepare to return.
-  reducer::Method *rm = m_isRunningReducer;
-  m_isRunningReducer = NULL;
-  m_isRunningEliminator = NULL;
-  delete rm;
+  delete m_isRunningReducer;
   return ret;
 }  // run
 
@@ -251,6 +265,8 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
  */
 void PreprocSharpEquiv::expressDacInEliminatorFormat(
     std::vector<bipe::Gate> &gates, std::vector<eliminator::Gate> &dac) {
+  unsigned nbEquiv = 0, nbUnit = 0, nbXor = 0, nbOr = 0;
+
   for (auto &g : gates) {
     dac.push_back(eliminator::Gate());
     dac.back().output =
@@ -259,17 +275,22 @@ void PreprocSharpEquiv::expressDacInEliminatorFormat(
     switch (g.type) {
       case bipe::UNIT:
         dac.back().type = eliminator::UNIT;
+        nbUnit++;
         break;
       case bipe::EQUIV:
         dac.back().type = eliminator::EQUIV;
+        nbEquiv++;
         break;
       case bipe::AND:
+        nbOr++;
         dac.back().type = eliminator::AND;
         break;
       case bipe::OR:
+        nbOr++;
         dac.back().type = eliminator::OR;
         break;
       case bipe::XOR:
+        nbXor++;
         dac.back().type = eliminator::XOR;
         break;
       default:
@@ -281,6 +302,11 @@ void PreprocSharpEquiv::expressDacInEliminatorFormat(
     for (auto l : g.input)
       dac.back().input.push_back(eliminator::Lit::makeLit(l.var(), l.sign()));
   }
+
+  std::cout << "c [PREPROC #EQUIV] #unit = " << nbUnit << "\t"
+            << "#equiv = " << nbEquiv << "\t"
+            << "#or = " << nbOr << "\t"
+            << "#xor = " << nbXor << "\n";
 }  // expressDacInEliminatorFormat
 
 }  // namespace d4

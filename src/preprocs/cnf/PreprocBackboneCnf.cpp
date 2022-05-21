@@ -20,6 +20,7 @@
 
 #include <bits/types/clock_t.h>
 
+#include <csignal>
 #include <ctime>
 
 #include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
@@ -95,7 +96,16 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   std::vector<std::vector<bipe::lbool>> setOfModels;
 
   std::cerr << "c [PREPOC BACKBONE] Is running ...\n";
-  m_isRunning = &bb;
+  PreprocManager::s_isRunning = &bb;
+
+  // change the handler.
+  void (*handler)(int) = [](int s) {
+    if (PreprocManager::s_isRunning)
+      ((bipe::Backbone *)PreprocManager::s_isRunning)->interrupt();
+  };
+  signal(SIGALRM, handler);
+  alarm(timeout);
+
   bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
 
   if (!res) {
