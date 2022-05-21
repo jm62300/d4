@@ -47,7 +47,8 @@ PreprocReducer::~PreprocReducer() { delete ws; }  // destructor
  * the problem.
  */
 ProblemManager *PreprocReducer::run(ProblemManager *pin,
-                                    LastBreathPreproc &lastBreath) {
+                                    LastBreathPreproc &lastBreath,
+                                    unsigned timeout) {
   ws->initSolver(*pin);
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);

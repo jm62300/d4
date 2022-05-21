@@ -16,11 +16,11 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-
 #include "PreprocSharpEquiv.hpp"
 
+#include <csignal>
+
 #include "3rdParty/bipe/srcBipe/methods/Bipartition.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 
@@ -37,7 +37,127 @@ PreprocSharpEquiv::PreprocSharpEquiv(po::variables_map &vm, std::string &method,
 }  // constructor
 
 /**
-   Destructor.
+ * @brief computeBipartition implementation.
+ */
+void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
+                                           std::vector<Lit> &units,
+                                           std::vector<bipe::Var> &input,
+                                           std::vector<bipe::Gate> &gates) {
+  std::vector<Var> protect, selected;
+  if (pcnf.getSelectedVar().size())
+    selected = pcnf.getSelectedVar();
+  else
+    for (unsigned i = 1; i <= pcnf.getNbVar(); i++)
+      if (pcnf.getWeightLit(Lit::makeLitTrue(i)) ==
+          pcnf.getWeightLit(Lit::makeLitFalse(i)))
+        selected.push_back(i);
+
+  bipe::Problem pb(pcnf.getNbVar(), pcnf.getWeightLit(), selected, protect);
+  Lit::rewrite<bipe::Lit>(
+      pcnf.getClauses(), units, pb.getClauses(),
+      [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
+
+  bipe::Bipartition bp;
+  std::cout << "c [PREPROC #EQUIV] Bipartition is running ...\n";
+  m_isRunningBackbone = &bp;
+  bool res = true;
+
+  if (!m_isInterrupted) {
+    res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC", true,
+                 true, true, true, true, std::cout);
+  }
+  m_isRunningBackbone = nullptr;
+  std::cout << "c [PREPROC #EQUIV] ... done\n";
+
+  if (!res) {
+    std::cerr << "c [PREPOC #EQUIV] We already checked that is SAT Oo\n";
+    exit(-1);
+  }
+}  // computeBipartition
+
+/**
+ * @brief applyDistillation implementation.
+ */
+bool PreprocSharpEquiv::applyDistillation(
+    std::vector<std::vector<Lit>> &clauses, std::vector<Lit> &units,
+    std::vector<bool> &isUnit, unsigned nbVar,
+    std::vector<std::vector<Lit>> &resClauses) {
+  // the clauses that will given to the distillation process.
+  unsigned initSize = clauses.size();
+  std::vector<std::vector<reducer::Lit>> dclauses, resDist;
+
+  // prepare the problem for distillation.
+  Lit::rewrite<reducer::Lit>(
+      clauses, units, dclauses,
+      [](unsigned var, bool sign) { return reducer::Lit::makeLit(var, sign); });
+
+  reducer::Problem problem(dclauses, nbVar, std::cout, false);
+  m_isRunningReducer->run(problem, 1, false, resDist);
+
+  // rewrite in the main d4 format.
+  resClauses.clear();
+  for (auto &cl : resDist) {
+    if (!cl.size()) continue;
+    if (cl.size() == 1) {
+      if (!isUnit[cl[0].var()])
+        units.push_back(Lit::makeLit(cl[0].var(), cl[0].sign()));
+      continue;
+    }
+
+    resClauses.push_back({});
+    for (auto &l : cl)
+      resClauses.back().push_back(Lit::makeLit(l.var(), l.sign()));
+  }
+
+  return initSize > resClauses.size();
+}  // applyDistillation
+
+/**
+ * @brief applyElimination implementation.
+ */
+bool PreprocSharpEquiv::applyElimination(
+    std::vector<std::vector<Lit>> &clauses, std::vector<Lit> &units,
+    std::vector<bool> &isUnit, unsigned nbVar, std::vector<bipe::Var> &input,
+    std::vector<eliminator::Gate> &dac,
+    std::vector<eliminator::Lit> &eliminated,
+    std::vector<std::vector<Lit>> &resClauses, unsigned limitNbClauses) {
+  // prepare the clause for the elimination method.
+  std::vector<std::vector<eliminator::Lit>> clausesAfterElim;
+
+  Lit::rewrite<eliminator::Lit>(clauses, units, clausesAfterElim,
+                                [](unsigned var, bool sign) {
+                                  return eliminator::Lit::makeLit(var, sign);
+                                });
+
+  unsigned initElim = eliminated.size();
+  m_isRunningEliminator->eliminateDac(nbVar, clausesAfterElim, dac, eliminated,
+                                      false, limitNbClauses);
+
+  resClauses.clear();
+  for (auto &cl : clausesAfterElim) {
+    if (!cl.size()) continue;
+    if (cl.size() == 1) {
+      if (!isUnit[cl[0].var()])
+        units.push_back(Lit::makeLit(cl[0].var(), cl[0].sign()));
+      continue;
+    }
+
+    resClauses.push_back({});
+    for (auto &l : cl)
+      resClauses.back().push_back(Lit::makeLit(l.var(), l.sign()));
+  }
+
+  for (unsigned i = initElim; i < eliminated.size(); i++) {
+    if (isUnit[eliminated[i].var()]) continue;
+    isUnit[eliminated[i].var()] = true;
+    units.push_back(Lit::makeLit(eliminated[i].var(), eliminated[i].sign()));
+  }
+
+  return initElim < eliminated.size();
+}  // applyElimination
+
+/**
+ * @brief Destroy the Preproc Sharp Equiv:: Preproc Sharp Equiv object
  */
 PreprocSharpEquiv::~PreprocSharpEquiv() { delete ws; }  // destructor
 
@@ -48,7 +168,8 @@ PreprocSharpEquiv::~PreprocSharpEquiv() { delete ws; }  // destructor
  * the problem.
  */
 ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
-                                       LastBreathPreproc &lastBreath) {
+                                       LastBreathPreproc &lastBreath,
+                                       unsigned timeout) {
   std::cout << "c [PREPROC #EQUIV] Start\n";
   ws->initSolver(*pin);
   lastBreath.panic = 0;
@@ -62,97 +183,67 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
     lastBreath.countConflict[i] = ws->getCountConflict(i);
 
   std::vector<Lit> units;
-  std::vector<bool> isAdded(pin->getNbVar() + 1, false);
   ws->getUnits(units);
+
+  std::vector<bool> isUnit(pin->getNbVar() + 1, false);
+  for (auto &l : units) isUnit[l.var()] = true;
 
   // get the cnf.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
+  unsigned limitNbClauses = pcnf.getClauses().size();
 
   // call the preprocessor to compute the bipartition.
-  std::vector<Var> protect, selected;
-  if (pin->getSelectedVar().size())
-    selected = pin->getSelectedVar();
-  else
-    for (unsigned i = 1; i <= pin->getNbVar(); i++)
-      if (pin->getWeightLit(Lit::makeLitTrue(i)) ==
-          pin->getWeightLit(Lit::makeLitFalse(i)))
-        selected.push_back(i);
-
-  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
-  Lit::rewrite<bipe::Lit>(
-      pcnf.getClauses(), units, pb.getClauses(),
-      [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
-
-  bipe::Bipartition bp;
   std::vector<bipe::Var> input;
   std::vector<bipe::Gate> gates;
-  std::cerr << "c [PREPROC #EQUIV] Bipartition is running ...\n";
-  bool res = bp.run(pb, input, gates, false, "Glucose_bipe", 0, "OCC_ASC",
-                    false, true, true, true, true, std::cout);
-  m_isRunningBackbone = &bp;
+  computeBipartition(pcnf, units, input, gates);
 
-  if (!res) {
-    std::cerr << "c [PREPOC #EQUIV] We already checked that is SAT Oo\n";
-    exit(-1);
-  }
+  // prepare the formula we will return.
+  ProblemManagerCnf *ret = new ProblemManagerCnf(
+      pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
+      pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
 
-  // call the method to eliminate variables.
+  // Start by trying to reduce the formula using distillation.
+  int nbInitialClause = (int)pcnf.getClauses().size();
+  m_isRunningReducer = reducer::Method::makeMethod("combinaison", std::cout);
+  applyDistillation(pcnf.getClauses(), units, isUnit, pcnf.getNbVar(),
+                    ret->getClauses());
+  std::cout << "c [PREPROC #EQUIV] First call, #remove clauses: "
+            << nbInitialClause - (int)ret->getClauses().size() << "\n";
+
+  // prepare the method to eliminate variables.
   eliminator::Eliminator el;
+  m_isRunningEliminator = &el;
   std::vector<eliminator::Lit> eliminated;
-  std::vector<std::vector<eliminator::Lit>> clausesAfterElim;
   std::vector<eliminator::Gate> dac;
-
-  // prepare the problem for elimination.
-  Lit::rewrite<eliminator::Lit>(pcnf.getClauses(), units, clausesAfterElim,
-                                [](unsigned var, bool sign) {
-                                  return eliminator::Lit::makeLit(var, sign);
-                                });
   expressDacInEliminatorFormat(gates, dac);
-  el.eliminateDac(pin->getNbVar(), clausesAfterElim, dac, eliminated);
 
-  for (auto &l : units) isAdded[l.var()] = true;
-  for (auto &l : eliminated)
-    if (!isAdded[l.var()]) {
-      units.push_back(Lit::makeLit(l.var(), l.sign()));
-      isAdded[l.var()] = true;
-    }
+  bool hasBeenModified = true;
+  for (unsigned ite = 0;
+       hasBeenModified && !m_isInterrupted && ite < m_nbIteration; ite++) {
+    // elimination.
+    hasBeenModified = applyElimination(ret->getClauses(), units, isUnit,
+                                       pcnf.getNbVar(), input, dac, eliminated,
+                                       ret->getClauses(), limitNbClauses);
 
-  if (!m_isInterrupted) {
-    // apply the vivification and the occurrence elimination proccess.
-    std::vector<std::vector<reducer::Lit>> fclauses;
-    Lit::rewrite<eliminator::Lit, reducer::Lit>(
-        clausesAfterElim, fclauses, [](eliminator::Lit l) {
-          return reducer::Lit::makeLit(l.var(), l.sign());
-        });
+    // reduction.
+    hasBeenModified = hasBeenModified ||
+                      applyDistillation(ret->getClauses(), units, isUnit,
+                                        pcnf.getNbVar(), ret->getClauses());
 
-    // create the problem from the reducer side.
-    reducer::Problem problem(fclauses, pcnf.getNbVar(), std::cout, false);
-    m_isRunningReducer = reducer::Method::makeMethod("combinaison", std::cout);
-
-    std::vector<std::vector<reducer::Lit>> clausesVivi;
-    m_isRunningReducer->run(problem, m_nbIteration, true, clausesVivi);
-
-    ProblemManagerCnf *ret = new ProblemManagerCnf(
-        pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
-        pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
-
-    std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
-    for (auto &cl : clausesVivi) {
-      clausesAfter.push_back({});
-      for (auto &l : cl)
-        clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
-    }
-    for (auto &l : units) clausesAfter.push_back({l});
-
-    reducer::Method *rm = m_isRunningReducer;
-    m_isRunningReducer = NULL;
-    m_isRunningBackbone = NULL;
-    delete rm;
-    return ret;
-  } else {
-    m_isRunningBackbone = NULL;
-    return pin->getConditionedFormula(units);
+    std::cout << "c [PREPROC #EQUIV] #iteration: " << ite << "/"
+              << m_nbIteration << "\t#clause: " << ret->getClauses().size()
+              << "\t#eliminated: " << eliminated.size() << "\n";
   }
+
+  // get the 'unit literals'.
+  for (auto &l : units) ret->getClauses().push_back({l});
+
+  // prepare to return.
+  reducer::Method *rm = m_isRunningReducer;
+  m_isRunningReducer = NULL;
+  m_isRunningEliminator = NULL;
+  delete rm;
+  return ret;
 }  // run
 
 /**

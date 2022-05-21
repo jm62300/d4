@@ -45,7 +45,8 @@ class PreprocManager {
   virtual ~PreprocManager() { s_isRunning = nullptr; }
 
   virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) = 0;
+                              LastBreathPreproc &lastBreath,
+                              unsigned timeout) = 0;
 
   virtual void interrupt() {}
 

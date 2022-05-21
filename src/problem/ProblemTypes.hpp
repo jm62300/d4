@@ -58,6 +58,7 @@ struct Lit {
                              std::vector<Lit> &units,
                              std::vector<std::vector<T>> &res,
                              T (*createLit)(unsigned var, bool sign)) {
+    res.clear();
     for (auto &l : units) res.push_back({createLit(l.var(), l.sign())});
 
     for (auto &cl : clauses) {

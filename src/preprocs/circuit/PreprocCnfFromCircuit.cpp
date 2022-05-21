@@ -102,7 +102,8 @@ PreprocCnfFromCircuit::~PreprocCnfFromCircuit() { delete ws; }
  * @return ProblemManager*
  */
 ProblemManager *PreprocCnfFromCircuit::run(ProblemManager *pin,
-                                           LastBreathPreproc &lastBreath) {
+                                           LastBreathPreproc &lastBreath,
+                                           unsigned timeout) {
   ProblemManagerCnf *cnf = tseytin(static_cast<ProblemManagerCircuit *>(pin));
   ws->initSolver(*cnf);
   lastBreath.panic = 0;

@@ -49,7 +49,8 @@ PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; }  // destructor
  * the problem.
  */
 ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
-                                        LastBreathPreproc &lastBreath) {
+                                        LastBreathPreproc &lastBreath,
+                                        unsigned timeout) {
   // init the solver.
   ws->initSolver(*pin);
   ws->setNeedModel(true);

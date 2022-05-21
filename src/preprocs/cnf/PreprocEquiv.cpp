@@ -48,7 +48,8 @@ PreprocEquiv::~PreprocEquiv() { delete ws; }  // destructor
  * the problem.
  */
 ProblemManager *PreprocEquiv::run(ProblemManager *pin,
-                                  LastBreathPreproc &lastBreath) {
+                                  LastBreathPreproc &lastBreath,
+                                  unsigned timeout) {
   std::cout << "c [EQUIV PREPROC] Start\n";
   ws->initSolver(*pin);
   lastBreath.panic = 0;

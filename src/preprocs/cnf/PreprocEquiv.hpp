@@ -43,7 +43,8 @@ class PreprocEquiv : public PreprocManager {
                std::ostream &out);
   ~PreprocEquiv();
   virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) override;
+                              LastBreathPreproc &lastBreath,
+                              unsigned timeout) override;
 
   /**
    * @brief Stop.

@@ -40,7 +40,8 @@ class PreprocReducer : public PreprocManager {
                  std::ostream &out);
   ~PreprocReducer();
   virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) override;
+                              LastBreathPreproc &lastBreath,
+                              unsigned timeout) override;
 
   /**
    * @brief Stop.

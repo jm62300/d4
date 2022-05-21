@@ -35,6 +35,7 @@ class PreprocBasicCnf : public PreprocManager {
   PreprocBasicCnf(po::variables_map &vm, std::ostream &out);
   ~PreprocBasicCnf();
   virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) override;
+                              LastBreathPreproc &lastBreath,
+                              unsigned timeout) override;
 };
 }  // namespace d4

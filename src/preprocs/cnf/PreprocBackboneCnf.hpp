@@ -37,7 +37,8 @@ class PreprocBackboneCnf : public PreprocManager {
   PreprocBackboneCnf(po::variables_map &vm, std::ostream &out);
   ~PreprocBackboneCnf();
   virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath) override;
+                              LastBreathPreproc &lastBreath,
+                              unsigned timeout) override;
 
   /**
    * @brief Stop.
