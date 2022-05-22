@@ -135,8 +135,8 @@ bool PreprocSharpEquiv::applyElimination(
                                 });
 
   unsigned initElim = eliminated.size();
-  m_isRunningEliminator->eliminateDac(nbVar, clausesAfterElim, dac, eliminated,
-                                      false, limitNbClauses);
+  m_isRunningEliminator->eliminate(nbVar, clausesAfterElim, input, dac,
+                                   eliminated, false, limitNbClauses);
 
   resClauses.clear();
   for (auto &cl : clausesAfterElim) {
