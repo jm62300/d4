@@ -256,6 +256,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   // get the 'unit literals'.
   for (auto &l : units) ret->getClauses().push_back({l});
 
+  alarm(0);
   delete m_isRunningReducer;
   return ret;
 }  // run

@@ -97,6 +97,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
 
   std::cerr << "c [PREPOC EQUIV] Backbone is running ...\n";
   m_isRunningBackbone = &bb;
+  m_isRunningReducer = nullptr;
 
   PreprocManager::s_isRunning = this;
   signal(SIGALRM, [](int s) {
@@ -149,10 +150,8 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
         clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
     }
 
-    reducer::Method *rm = m_isRunningReducer;
-    m_isRunningReducer = NULL;
-    m_isRunningBackbone = NULL;
-    delete rm;
+    alarm(0);
+    delete m_isRunningReducer;
     return ret;
   } else {
     m_isRunningBackbone = NULL;

@@ -8,9 +8,9 @@ CNF_GENERATOR="$ROOT_PATH/cnfuzz"
 SOLVER="$ROOT_PATH/minisat"
 
 TIMEOUT=$2
-if [ "$TIMEOUT" == "" ]; then TIMEOUT=1; fi
+if [ "$TIMEOUT" == "" ]; then TIMEOUT=2; fi
 
-LIMIT_SIZE=300
+LIMIT_SIZE=50
 
 isExecutableReady()
 {

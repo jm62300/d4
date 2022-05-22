@@ -123,6 +123,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
             << lastBreath.panic << "\n";
 
   m_isRunning = NULL;
+  alarm(0);
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4
