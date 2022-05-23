@@ -69,9 +69,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> m_clauses;
-
-  std::vector<unsigned long> nbTestCacheVarSize;
-  std::vector<unsigned long> nbPosHitCacheVarSize;
   std::vector<bool> m_isDecisionVariable;
 
   std::vector<bool> m_currentPrioritySet;
@@ -153,8 +150,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
-    nbTestCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
-    nbPosHitCacheVarSize.resize(m_specs->getNbVariable() + 1, 0);
 
     void *op = Operation<T, U>::makeOperationManager(meth, isFloat, m_problem,
                                                      m_specs, m_solver, m_out);
@@ -372,11 +367,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
 
-        if (cacheActivated) nbTestCacheVarSize[connected.size()]++;
-        if (cacheActivated && cb.defined) {
-          nbPosHitCacheVarSize[connected.size()]++;
+        if (cacheActivated && cb.defined)
           tab[cp] = cb.getValue();
-        } else {
+        else {
           // recursive call
           tab[cp] = computeDecisionNode(connected, out);
 
