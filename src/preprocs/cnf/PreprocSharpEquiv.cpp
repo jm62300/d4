@@ -104,8 +104,10 @@ bool PreprocSharpEquiv::applyDistillation(
   for (auto &cl : resDist) {
     if (!cl.size()) continue;
     if (cl.size() == 1) {
-      if (!isUnit[cl[0].var()])
+      if (!isUnit[cl[0].var()]) {
         units.push_back(Lit::makeLit(cl[0].var(), cl[0].sign()));
+        isUnit[cl[0].var()] = true;
+      }
       continue;
     }
 
