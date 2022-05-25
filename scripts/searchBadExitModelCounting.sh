@@ -38,6 +38,7 @@ generateSatisfiableCNF()
     nbVar=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f3)
     tab=$(seq 1 $nbVar)
     
+    rdm=100
 
     cpt=3
     addedClauses=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f4)

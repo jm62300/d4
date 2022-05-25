@@ -109,8 +109,10 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     m_nbReduceCall++;
     unsigned limit = m_cache->getLimitVarCached();
 
-    for (int i = limit; i > m_cache->MIN_NBVAR_NOTCACHED; i--) {
+    for (int i = limit;
+         i < m_statVar.size() && i > m_cache->MIN_NBVAR_NOTCACHED; i--) {
       double ratio = 0;
+      assert(i < m_statVar.size());
       if (m_statVar[i].negative) {
         ratio = ((double)m_statVar[i].positive / (double)m_statVar[i].negative);
 
@@ -127,6 +129,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     // bonus and set the limit for the cache.
     limit *= 1.1;
     m_cache->setLimitVarCache(limit);
+    limit = m_cache->getLimitVarCached();
     m_threshold += INC_THRESHOD;
 
     unsigned nbRemoveEntry = m_cache->removeEntry([limit](CachedBucket<T> &c) {

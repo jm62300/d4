@@ -143,7 +143,9 @@ class CacheManager {
   }
 
   inline unsigned getLimitVarCached() { return m_limitVarCached; }
-  inline void setLimitVarCache(unsigned val) { m_limitVarCached = val; }
+  inline void setLimitVarCache(unsigned val) {
+    m_limitVarCached = (val <= m_nbInitVar) ? val : m_nbInitVar;
+  }
   inline bool isActivated(unsigned nbVar) { return nbVar <= m_limitVarCached; }
   inline unsigned long int nbCreationBucket() { return m_nbCreationBucket; }
   inline unsigned long int sumDataSize() { return m_sumDataSize; }
