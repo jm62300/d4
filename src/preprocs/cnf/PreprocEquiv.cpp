@@ -145,6 +145,9 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
 
     std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
     for (auto &cl : clausesVivi) {
+      for (auto &l : cl) std::cout << l << " ";
+      std::cout << "0\n";
+
       clausesAfter.push_back({});
       for (auto &l : cl)
         clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
