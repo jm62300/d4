@@ -379,12 +379,6 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
       p++;
     }
 
-#if 0
-    std::cout << "val " << val << "\n";
-    std::cout << "remaining " << remainingBit << "\n";
-    std::cout << "nbBit " << nbBit << "\n";
-    std::cout << "=> " << std::bitset<3>(val) << "\n";
-#endif
     while (nbBit >= remainingBit) {
       *p |= val & ((1 << remainingBit) - 1);
       val >>= remainingBit;
@@ -400,9 +394,6 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
       assert(remainingBit);
     }
 
-#if 0
-    std::cout << "<= " << std::bitset<8>(*p) << "\n";
-#endif
     return p;
   }  // addElementInData
 
@@ -460,8 +451,9 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
     memset(p, 0, info.nbByteStoreFormula);
 
     // map the variables to their position.
-    for (unsigned i = 0; i < component.size(); i++)
+    for (unsigned i = 0; i < component.size(); i++) {
       m_mapVar[component[i]] = i + 1;
+    }
 
     // store the different size of the distribution.
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
@@ -475,7 +467,8 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
     for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
       if (!inConstruction.distribDiffSize[i]) continue;
       m_memoryPosWrtClauseSize[i] = offSet;
-      offSet += inConstruction.distribDiffSize[i] * i * info.nbBitStoreLit;
+      offSet += info.nbBitStoreLit +
+                inConstruction.distribDiffSize[i] * i * info.nbBitStoreLit;
     }
 
     // allocate an offset for each clauses.
@@ -504,7 +497,7 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
 
         // compute the position in the array.
         unsigned &offSet = m_offsetClauses[idx];
-        char *q = &p[offSet >> 3];  // divide by 8
+        char *q = &p[offSet >> 3];  // divided by 8
         remaining = 8 - (offSet & 7);
 
         // add the element and move the offset for the next lit.

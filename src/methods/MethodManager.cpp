@@ -83,6 +83,10 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
   LastBreathPreproc lastBreath;
   ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
+
+  // runProblem->display(std::cout);
+  // exit(0);
+
   displayInfoVariables(runProblem, out);
   out << "c [MODE] Panic: " << lastBreath.panic << "\n";
 
@@ -180,7 +184,8 @@ ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
                                           LastBreathPreproc &lastBreath) {
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm, out);
   assert(preproc);
-  ProblemManager *problem = preproc->run(initProblem, lastBreath, vm["preproc-timeout"].as<int>());
+  ProblemManager *problem =
+      preproc->run(initProblem, lastBreath, vm["preproc-timeout"].as<int>());
   out << "c [MAIN PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
          "preprocessed formula\033[0m\n";
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");

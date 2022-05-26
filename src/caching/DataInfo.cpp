@@ -40,7 +40,7 @@ DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
                    unsigned nbBitFormula) {
   info1 = 0;
   info1 = (uint64_t)nbVar | ((uint64_t)szData << 21) |
-          ((uint64_t)nbBitVar << 42) | ((uint64_t)nbBitFormula << 46);
+          ((uint64_t)nbBitVar << 42) | ((uint64_t)nbBitFormula << 47);
 
   assert(nbBitFormula < (1 << 5));
   assert(nbBitVar < (1 << 5));

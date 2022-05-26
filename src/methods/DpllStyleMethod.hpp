@@ -363,10 +363,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         bool cacheActivated = cacheIsActivated(connected);
-
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
-
         if (cacheActivated && cb.defined)
           tab[cp] = cb.getValue();
         else {

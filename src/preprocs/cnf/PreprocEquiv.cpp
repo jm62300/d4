@@ -95,7 +95,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bipe::lbool>> setOfModels;
 
-  std::cerr << "c [PREPOC EQUIV] Backbone is running ...\n";
+  std::cout << "c [PREPOC EQUIV] Backbone is running ...\n";
   m_isRunningBackbone = &bb;
   m_isRunningReducer = nullptr;
 
@@ -145,9 +145,6 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
 
     std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
     for (auto &cl : clausesVivi) {
-      for (auto &l : cl) std::cout << l << " ";
-      std::cout << "0\n";
-
       clausesAfter.push_back({});
       for (auto &l : cl)
         clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
