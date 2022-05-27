@@ -65,6 +65,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
+  unsigned m_freqDecay;
   bool m_isProjectedMode;
 
   std::vector<unsigned> m_stampVar;
@@ -101,6 +102,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
+
+    m_freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
+    out << "c [DPLL STYLE METHOD] Decay frequency: " << m_freqDecay << "\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
@@ -439,6 +443,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
+
+    if (!(m_nbDecisionNode % m_freqDecay)) m_hVar->decayCountConflict();
 
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];

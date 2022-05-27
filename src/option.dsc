@@ -13,6 +13,7 @@
 ("preproc-reducer-iteration",boost::program_options::value<int>()->default_value(10), "The number of iterations for the preproc that call reducer (-1 means we want to apply until we reach a fix point).")
 ("preproc-timeout",boost::program_options::value<int>()->default_value(-1), "The time in second given to the preproc (-1 means no timeout).")
 ("scoring-method,sm",boost::program_options::value<std::string>()->default_value("vsads"),"The scoring method used for selecting the next variable. [mom, dlcs, vsids, vsads, jwts]")
+("scoring-method-freq-decay",boost::program_options::value<unsigned>()->default_value(128),"Gives the decay frequency")
 ("occurrence-manager,om",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used. [add a description]")
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected (false, true, polarity or occurrence).")
 ("partitioning-heuristic,pvh",boost::program_options::value<std::string>()->default_value("decomposition-static-dual"),"The method used to compute a cut. [none, decomposition-static, bipartition-primal or bipartition-dual]")

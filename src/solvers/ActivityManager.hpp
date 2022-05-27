@@ -25,6 +25,7 @@ class ActivityManager {
   virtual double getActivity(Var v) = 0;
   virtual double getCountConflict(Var v) = 0;
   virtual void setCountConflict(Var v, double count) = 0;
+  virtual void decayCountConflict() = 0;
 
   void setCountConflict(std::vector<double> &counts, unsigned minVar,
                         unsigned maxVar);

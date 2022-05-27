@@ -137,6 +137,15 @@ double WrapperGlucose::getCountConflict(Var v) {
 }  // getCountConflict
 
 /**
+ * @brief decayCountConflict implementation.
+ *
+ */
+void WrapperGlucose::decayCountConflict() {
+  for (unsigned i = 0; i < s.scoreActivity.size(); i++)
+    s.scoreActivity[i] = s.scoreActivity[i] / 2;
+}  // decayCountConflict
+
+/**
  * @brief Set the count conflict in the solver.
  * @param[in] v is the variable we want to set the counter of  conflicts.
  * @param[in] count is the count we want to assign.

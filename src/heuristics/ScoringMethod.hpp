@@ -34,6 +34,7 @@ class ScoringMethod {
   virtual ~ScoringMethod() { ; }
   virtual double computeScore(Var v) = 0;
   virtual void postProcess(Var v) {}
+  virtual void decayCountConflict() {}
 
   Var selectVariable(std::vector<Var> &vars, SpecManager &s,
                      std::vector<bool> &isDecisionVariable);

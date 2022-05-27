@@ -31,5 +31,7 @@ class ScoringMethodVsads : public ScoringMethod {
  public:
   ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a);
   double computeScore(Var v);
+
+  inline void decayCountConflict() { activity.decayCountConflict(); }
 };
 }  // namespace d4
