@@ -416,6 +416,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   U computeDecisionNode(std::vector<Var> &connected, std::ostream &out) {
     std::vector<Var> cutSet;
     bool hasPriority = false, hasVariable = false;
+
     for (auto v : connected) {
       if (m_specs->varIsAssigned(v) || !m_isDecisionVariable[v]) continue;
       hasVariable = true;
@@ -434,6 +435,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       unsetCurrentPriority(cutSet);
       return m_operation->manageTop(connected);
     }
+    assert(!hasPriority || m_currentPrioritySet[v]);
 
     Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
     m_nbDecisionNode++;
