@@ -52,6 +52,8 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
       if (pcnf.getWeightLit(Lit::makeLitTrue(i)) ==
           pcnf.getWeightLit(Lit::makeLitFalse(i)))
         selected.push_back(i);
+      else
+        protect.push_back(i);
 
   bipe::Problem pb(pcnf.getNbVar(), pcnf.getWeightLit(), selected, protect);
   Lit::rewrite<bipe::Lit>(

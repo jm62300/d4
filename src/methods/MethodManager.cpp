@@ -78,7 +78,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                                 std::string meth, int precision,
                                                 bool isFloat,
                                                 std::ostream &out) {
-  out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";
+  out << "c [METHOD MANAGER] Constructor: " << meth << "\n";
   boost::multiprecision::mpf_float::default_precision(precision);
 
   LastBreathPreproc lastBreath;
@@ -88,7 +88,15 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   // exit(0);
 
   displayInfoVariables(runProblem, out);
-  out << "c [MODE] Panic: " << lastBreath.panic << "\n";
+  out << "c [METHOD MANAGER] Panic mode: " << lastBreath.panic << "\n";
+
+  for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
+    Lit l = Lit::makeLitTrue(i);
+    if (problem->getWeightLit(l) != 1 || problem->getWeightLit(~l) != 1) {
+      isFloat = 1;
+      out << "c [METHOD MANAGER] Change to float mode!\n";
+    }
+  }
 
   if (meth == "counting") {
     if (!isFloat)
