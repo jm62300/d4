@@ -76,3 +76,40 @@ mkdir -p build
 cd build
 cmake -GNinja .. -DBUILD_MODE=$opt 
 ninja 
+
+
+if [ $opt -eq 3 ]
+then        
+    mkdir -p kahypar
+    cd kahypar
+    ar -x ../../3rdParty/kahypar/build/lib/libkahypar.a
+    cd ..
+
+    mkdir -p patoh
+    cd patoh
+    ar -x ../../3rdParty/patoh/libpatoh.a
+    cd ..
+
+    mkdir -p glucose 
+    cd glucose
+    ar -x ../../3rdParty/glucose-3.0/core/lib_glucose.a
+    cd ..
+
+    mkdir -p reducer
+    cd reducer    
+    ar -x ../../3rdParty/reducer/build/libreducer.a
+    cd ..
+
+    mkdir -p bipe
+    cd bipe
+    ar -x ../../3rdParty/bipe/build/libbipe.a
+    cd ..
+
+    mkdir -p eliminator
+    cd eliminator
+    ar -x ../../3rdParty/eliminator/build/libeliminator.a
+    cd ..
+
+    ar -x libd4.a    
+    ar -rc libd4.a *.o kahypar/* patoh/* glucose/* reducer/* bipe/* eliminator/*
+fi
