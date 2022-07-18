@@ -76,7 +76,7 @@ mkdir -p build
 cd build
 cmake -GNinja .. -DBUILD_MODE=$opt 
 
-if [ $opt -eq 3 ]; then rm libd4.a; fi
+if [ $opt -eq 3 ]; then rm -f libd4.a; fi
 ninja 
 
 

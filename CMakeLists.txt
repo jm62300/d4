@@ -73,8 +73,8 @@ elseif(${BUILD_MODE} EQUAL 3)
   message("Library creation")
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG)
-  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${libList})
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG -static)
+  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${libList} -static)
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
   install (TARGETS d4 DESTINATION lib)
