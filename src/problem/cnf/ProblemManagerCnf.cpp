@@ -181,6 +181,10 @@ void ProblemManagerCnf::display(std::ostream &out) {
   }
   out << "\n";
 
+  out << "selected var: ";
+  for (auto v : getSelectedVar()) out << v << " ";
+  out << "\n";
+
   out << "p cnf " << m_nbVar << " " << m_clauses.size() << "\n";
   for (auto cl : m_clauses) {
     for (auto &l : cl) out << l << " ";

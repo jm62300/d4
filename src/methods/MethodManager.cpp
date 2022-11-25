@@ -23,6 +23,7 @@
 #include <boost/multiprecision/gmp.hpp>
 
 #include "DpllStyleMethod.hpp"
+#include "Erosion.hpp"
 #include "MaxSharpSAT.hpp"
 #include "MinSharpSAT.hpp"
 #include "OperationManager.hpp"
@@ -84,9 +85,6 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   LastBreathPreproc lastBreath;
   ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
 
-  // runProblem->display(std::cout);
-  // exit(0);
-
   displayInfoVariables(runProblem, out);
   out << "c [METHOD MANAGER] Panic mode: " << lastBreath.panic << "\n";
 
@@ -124,6 +122,11 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                             lastBreath);
     return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem,
                                             lastBreath);
+  }
+
+  if (meth == "erosion") {
+    if (!isFloat) return new Erosion<mpz::mpz_int>(vm, isFloat, runProblem);
+    return new Erosion<mpz::mpf_float>(vm, isFloat, runProblem);
   }
 
   if (meth == "max#sat") {
