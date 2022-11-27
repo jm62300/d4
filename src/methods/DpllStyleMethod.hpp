@@ -102,9 +102,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
+    m_out.setstate(out.rdstate());
 
     m_freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
-    out << "c [DPLL STYLE METHOD] Decay frequency: " << m_freqDecay << "\n";
+    m_out << "c [DPLL STYLE METHOD] Decay frequency: " << m_freqDecay << "\n";
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);

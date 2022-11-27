@@ -29,9 +29,24 @@ struct LastBreathPreproc {
   std::vector<double> countConflict;
   bool panic;
 
+  /**
+   * @brief Construct a new Last Breath Preproc object
+   */
+  LastBreathPreproc() { panic = false; }  // constructor
+
+  /**
+   * @brief Construct a new Last Breath Preproc object.
+   *
+   * @param p the mode.
+   * @param nbVar the number of variables.
+   */
+  LastBreathPreproc(bool p, unsigned nbVar) : panic(p) {
+    countConflict.resize(nbVar, 0);
+  }  // constructor.
+
   inline void fitSizeCountConflict(unsigned size) {
     countConflict.resize(size);
-  }
+  }  // fitSizeCountConflict
 };
 
 class PreprocManager {
