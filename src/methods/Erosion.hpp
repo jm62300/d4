@@ -61,6 +61,70 @@ class Erosion : public MethodManager {
 
  private:
   /**
+   * @brief Apply the erosion process on the clauses.
+   *
+   * @param[in,out] clauses is the set of clauses (we suppose that the clauses
+   * are sorted).
+   * @return true if the problem is not trivially SAT, false otherwise.
+   */
+  bool erode(std::vector<std::vector<Lit>> &clauses, int nbVar) {
+    std::vector<std::vector<Lit>> tmpClauses = clauses;
+    std::vector<unsigned long> hashValue;
+    clauses.clear();
+
+    // generate.
+    for (auto &c : tmpClauses) {
+      if (c.size() == 1) return false;
+
+      // generate the clauses.
+      for (unsigned i = 0; i < c.size(); i++) {
+        clauses.push_back(std::vector<Lit>());
+        std::vector<Lit> &cl = clauses.back();
+        cl.reserve(c.size());
+        unsigned long currentHash = 0;
+
+        for (unsigned j = 0; j < c.size(); j++) {
+          if (i == j) continue;
+          cl.push_back(c[j]);
+          currentHash |= 1 << (c[j].intern() & 63);
+        }
+        hashValue.push_back(currentHash);
+      }
+    }
+
+    // reduce.
+    std::vector<bool> marked(2 * (nbVar + 1), false);
+    for (unsigned i = 0; i < clauses.size(); i++) {
+      std::vector<Lit> &c = clauses[i];
+      for (auto &l : c) marked[l.intern()] = true;
+
+      // check if the clause is already subsume.
+      bool isSubsume = false;
+      for (unsigned j = 0; j < i; j++) {
+        std::vector<Lit> &d = clauses[j];
+        if (!d.size()) continue;
+        isSubsume = true;
+        for (auto &l : d) {
+          isSubsume = marked[l.intern()];
+          if (!isSubsume) break;
+        }
+        if (isSubsume) break;
+      }
+
+      // restore mark.
+      for (auto &l : c) marked[l.intern()] = false;
+      if (isSubsume) c.clear();
+    }
+
+    unsigned j = 0;
+    for (unsigned i = 0; i < clauses.size(); i++)
+      if (clauses[i].size()) clauses[j++] = clauses[i];
+    clauses.resize(j);
+
+    return true;
+  }  // erode
+
+  /**
    * @brief Run the method.
    *
    * @param vm is the options.
@@ -79,12 +143,15 @@ class Erosion : public MethodManager {
     outCounter.setstate(std::ios_base::badbit);
 
     bool isUnsat = false;
-    int nbErosion = vm["erosion-option-depth"].as<int>();
-    if (nbErosion < 0) nbErosion = m_problem->getNbVar();
+    int nbErosion = m_depth < 0 ? m_problem->getNbVar() : m_depth;
 
     // the CNF formula.
     std::vector<std::vector<Lit>> clauses =
         static_cast<ProblemManagerCnf *>(m_problem)->getClauses();
+    std::sort(clauses.begin(), clauses.end(),
+              [](std::vector<Lit> &c1, std::vector<Lit> &c2) {
+                return c1.size() < c2.size();
+              });
 
     // require to init the solver
     LastBreathPreproc lastBreath(0, m_problem->getNbVar() + 1);
@@ -96,7 +163,8 @@ class Erosion : public MethodManager {
     // or until the formula is UNSAT.
     for (int cptErosion = 0; cptErosion <= nbErosion; cptErosion++) {
       if (isUnsat) {
-        std::cout << "s " << cptErosion << " " << 0 << " \n";
+        m_out << "c Erosion finished because empty clause.\n";
+        m_out << "s " << cptErosion << " " << 0 << " \n";
         break;
       }
 
@@ -121,26 +189,7 @@ class Erosion : public MethodManager {
       if (count == 0) break;
 
       // erosion step.
-      std::vector<std::vector<Lit>> tmpClauses = clauses;
-      clauses.clear();
-
-      for (auto &c : tmpClauses) {
-        if (c.size() == 1) {
-          isUnsat = true;
-          break;
-        }
-
-        for (unsigned i = 0; i < c.size(); i++) {
-          clauses.push_back(std::vector<Lit>());
-          std::vector<Lit> &cl = clauses.back();
-          cl.reserve(c.size());
-
-          for (unsigned j = 0; j < c.size(); j++) {
-            if (i == j) continue;
-            cl.push_back(c[j]);
-          }
-        }
-      }
+      isUnsat = !erode(clauses, m_problem->getNbVar());
     }
   }
 
