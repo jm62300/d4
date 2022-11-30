@@ -176,10 +176,11 @@ bool WrapperMinisat::getPolarity(Var v) {
    @param[in] l, the literal we want to branch on.
    @param[out] units, the unit literals
 
-   \return true if assign l and propagate does not give a conflict, false
-   otherwise.
+   \return true if assigning l and propagating it does not give a conflict,
+   false otherwise.
  */
 bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
+  if (!s.okay()) return false;
   minisat::Lit ml = minisat::mkLit(l.var(), l.sign());
   if (varIsAssigned(l.var())) {
     if (s.litAssigned(l.var()) != ml) return false;
@@ -373,4 +374,5 @@ void WrapperMinisat::popAssumption(unsigned count) {
 }  // popAssumption
 
 inline unsigned WrapperMinisat::getNbConflict() { return s.conflicts; }
+bool WrapperMinisat::isUnsat() { return !s.okay(); }
 }  // namespace d4

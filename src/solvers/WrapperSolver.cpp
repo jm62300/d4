@@ -80,7 +80,6 @@ WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm,
 bool WrapperSolver::warmStart(int iteration, int sizeQuery,
                               std::vector<Var> &setOfVar, std::ostream &out) {
   if (!solve()) return false;
-
   int nbSAT = 0;
   std::vector<Lit> query(sizeQuery);
 

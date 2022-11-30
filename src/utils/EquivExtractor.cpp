@@ -89,6 +89,10 @@ void EquivExtractor::searchEquiv(WrapperSolver &s, std::vector<Var> &vars,
 
     std::vector<Var> eqv;
     if (interCollectUnit(s, v, eqv, m_flagVar)) {
+      if (s.isUnsat()) {
+        equivVar.clear();
+        return;
+      }
       assert(eqv.size() > 0);
       if (eqv.size() == 1) continue;
       equivVar.push_back(eqv);

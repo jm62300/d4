@@ -68,6 +68,14 @@ class Erosion : public MethodManager {
    * @return true if the problem is not trivially SAT, false otherwise.
    */
   bool erode(std::vector<std::vector<Lit>> &clauses, int nbVar) {
+#if 0
+    printf("CNF\n");
+    for (auto &cl : clauses) {
+      for (auto &l : cl) std::cout << l << " ";
+      std::cout << "0\n";
+    }
+#endif
+
     std::vector<std::vector<Lit>> tmpClauses = clauses;
     std::vector<unsigned long> hashValue;
     clauses.clear();
@@ -91,6 +99,15 @@ class Erosion : public MethodManager {
         hashValue.push_back(currentHash);
       }
     }
+
+#if 0
+    printf("Resultat CNF\n");
+    for (auto &cl : clauses) {
+      for (auto &l : cl) std::cout << l << " ";
+      std::cout << "0\n";
+    }
+    std::cout << "---------------------------------\n";
+#endif
 
     // reduce.
     std::vector<bool> marked(2 * (nbVar + 1), false);
@@ -148,11 +165,12 @@ class Erosion : public MethodManager {
     // the CNF formula.
     std::vector<std::vector<Lit>> clauses =
         static_cast<ProblemManagerCnf *>(m_problem)->getClauses();
+#if 0
     std::sort(clauses.begin(), clauses.end(),
               [](std::vector<Lit> &c1, std::vector<Lit> &c2) {
                 return c1.size() < c2.size();
               });
-
+#endif
     // require to init the solver
     LastBreathPreproc lastBreath(0, m_problem->getNbVar() + 1);
     std::vector<Var> setOfVar;
@@ -161,6 +179,7 @@ class Erosion : public MethodManager {
 
     // iterate until the number of erosion realized is less than a given value
     // or until the formula is UNSAT.
+    T lastCount = T(0);
     for (int cptErosion = 0; cptErosion <= nbErosion; cptErosion++) {
       if (isUnsat) {
         m_out << "c Erosion finished because empty clause.\n";
@@ -172,7 +191,8 @@ class Erosion : public MethodManager {
       ProblemManagerCnf *p = new ProblemManagerCnf(
           m_problem->getNbVar(), m_problem->getWeightLit(),
           m_problem->getWeightVar(), m_problem->getSelectedVar());
-      p->setClauses(clauses);
+      std::vector<std::vector<Lit>> tmpClauses = clauses;
+      p->setClauses(tmpClauses);
 
       // create the counter.
       outCounter << "c [CONSTRUCTOR] Create an external counter: counting\n";
@@ -185,6 +205,9 @@ class Erosion : public MethodManager {
       T count = counter->count(setOfVar, assumption, outCounter);
       m_out << "s " << cptErosion << " " << count << "\n";
       delete counter;
+
+      if (cptErosion) assert(count <= lastCount);
+      lastCount = count;
 
       if (count == 0) break;
 

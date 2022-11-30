@@ -382,5 +382,5 @@ void WrapperGlucose::popAssumption(unsigned count) {
 }  // popAssumption
 
 inline unsigned WrapperGlucose::getNbConflict() { return s.conflicts; }
-
+inline bool WrapperGlucose::isUnsat() { return !s.okay(); }
 }  // namespace d4

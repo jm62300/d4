@@ -50,6 +50,9 @@ ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
 
+  std::vector<Lit> units2;
+  return pin->getConditionedFormula(units2);
+
   if (!ws->solve()) return pin->getUnsatProblem();
   lastBreath.panic = ws->getNbConflict() > 100000;
 

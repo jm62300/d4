@@ -94,7 +94,7 @@ debugRoutine(){
     do
         printf "number of instances tested %d\r" "$cpt"
 
-	nameFileCNF=$(generateSatisfiableCNFLimited 5000)
+	nameFileCNF=$(generateSatisfiableCNFLimited 200)
 	# echo "$1" $nameFileCNF
 	# grep "p cnf " $nameFileCNF
         timeout 1 $1 $nameFileCNF > /dev/null 2>/dev/null

@@ -349,7 +349,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
-
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
@@ -485,7 +484,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     if (m_problem->isUnsat() || (warmStart && !m_panicMode &&
                                  !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
-
     DataBranch<U> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
     return m_operation->manageBranch(b);
