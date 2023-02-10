@@ -798,13 +798,6 @@ class MaxSharpSAT : public MethodManager {
       return;
     }
 
-    std::cout << "Greedy trail: ";
-    m_solver->showTrail();
-
-    std::cout << "The set of vars: ";
-    for (auto &v : setOfVar) std::cout << v << " ";
-    std::cout << "\n";
-
     // collect the model.
     T multiply = T(1);
     result.valuation = getArray();
