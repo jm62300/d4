@@ -730,6 +730,7 @@ class MaxSharpSAT : public MethodManager {
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit);
+
     return result;
   }  // countInd_
 
