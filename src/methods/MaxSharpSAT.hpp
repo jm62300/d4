@@ -777,6 +777,7 @@ class MaxSharpSAT : public MethodManager {
     }
 
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+
     return b[0].d + b[1].d;
   }  // computeDecisionNode
 
@@ -797,17 +798,27 @@ class MaxSharpSAT : public MethodManager {
       return;
     }
 
+    std::cout << "Greedy trail: ";
+    m_solver->showTrail();
+
+    std::cout << "The set of vars: ";
+    for (auto &v : setOfVar) std::cout << v << " ";
+    std::cout << "\n";
+
     // collect the model.
     T multiply = T(1);
     result.valuation = getArray();
 
+    std::vector<Lit> unitsAssums;
     std::vector<Var> vars = setOfVar;
     unsigned cpt = 0, j = 0;
     for (unsigned i = 0; i < vars.size(); i++) {
       Var v = vars[i];
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
+
         m_solver->pushAssumption(l);
+        unitsAssums.push_back(l);
         multiply *= T(m_problem->getWeightLit(l));
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         cpt++;
@@ -820,12 +831,17 @@ class MaxSharpSAT : public MethodManager {
 
     std::vector<Lit> unitsLit;
     std::vector<Var> freeVariable;
+    m_specs->preUpdate(unitsAssums);
+
     result.count = countInd_(vars, unitsLit, freeVariable, out);
+
     if (!m_stopProcess)
       result.count =
           result.count * multiply *
           m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
+
     m_solver->popAssumption(cpt);
+    m_specs->postUpdate(unitsAssums);
   }  // greedySearch
 
   /**
