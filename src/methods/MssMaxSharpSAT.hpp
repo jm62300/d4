@@ -150,24 +150,6 @@ class MssMaxSharpSAT : public MethodManager {
     m_out << "c [CONSTRUCTOR MAX#SAT] Dig for a partial solution under an AND: "
           << m_andDig << "\n";
 
-    // we create the SAT solver.
-    m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
-    assert(m_solver);
-    m_panicMode = lastBreath.panic;
-    m_solver->initSolver(*m_problem);
-    m_solver->setCountConflict(lastBreath.countConflict, 1,
-                               m_problem->getNbVar());
-    m_solver->setNeedModel(true);
-
-    // we initialize the object that will give info about the problem.
-    m_specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
-    assert(m_specs);
-
-    // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);
-    m_hPhase =
-        PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
-
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
     m_isDecisionVariable.clear();
@@ -190,6 +172,64 @@ class MssMaxSharpSAT : public MethodManager {
       m_isMaxDecisionVariable[v] = true;
       m_redirectionPos[v] = i;
     }
+
+    ProblemManagerCnf *cnf = static_cast<ProblemManagerCnf *>(initProblem);
+    std::vector<std::pair<std::vector<Lit>, std::vector<Lit>>> splitCnf;
+    std::vector<std::vector<Lit>> notSplitCnf;  // without max var.
+
+    for (auto &cl : cnf->getClauses()) {
+      std::vector<Lit> maxCl, notMaxCl;
+      for (auto &l : cl) {
+        if (m_isMaxDecisionVariable[l.var()])
+          maxCl.push_back(l);
+        else
+          notMaxCl.push_back(l);
+      }
+
+      if (!maxCl.size())
+        notSplitCnf.push_back(notMaxCl);
+      else {
+        splitCnf.push_back(std::make_pair(notMaxCl, maxCl));
+      }
+    }
+
+    m_out << "Without max var: " << notSplitCnf.size() << "\n";
+    for (auto &cl : notSplitCnf) {
+      for (auto &l : cl) m_out << l << " ";
+      m_out << "\n";
+    }
+
+    m_out << "With max var\n";
+    for (auto &p : splitCnf) {
+      for (auto &l : p.first) {
+        m_out << l << " ";
+      }
+      m_out << " -- ";
+      for (auto &l : p.second) {
+        m_out << l << " ";
+      }
+      m_out << "\n";
+    }
+
+    exit(0);
+
+    // we create the SAT solver.
+    m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
+    assert(m_solver);
+    m_panicMode = lastBreath.panic;
+    m_solver->initSolver(*m_problem);
+    m_solver->setCountConflict(lastBreath.countConflict, 1,
+                               m_problem->getNbVar());
+    m_solver->setNeedModel(true);
+
+    // we initialize the object that will give info about the problem.
+    m_specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
+    assert(m_specs);
+
+    // we initialize the object used to compute score and partition.
+    m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);
+    m_hPhase =
+        PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
@@ -537,17 +577,7 @@ class MssMaxSharpSAT : public MethodManager {
 
     // dig for an assignment for each component (execpt the first one).
     std::vector<MssMaxSharpSatResult> andCount;
-    if (!m_andDig)
-      m_isUnderAnd = wasUnderAnd || nbComponent > 1;
-    else {
-      for (int cp = 1; cp < nbComponent; cp++) {
-        andCount.push_back({T(0), NULL});
-        greedySearch(varConnected[cp], out, andCount.back());
-        orOnMaxVar(varConnected[cp], m_scale.valuation,
-                   andCount.back().valuation);
-        m_scale.count *= andCount.back().count;
-      }
-    }
+    m_isUnderAnd = wasUnderAnd || nbComponent > 1;
 
     // consider each connected component.
     T mustMultiply = T(1);
