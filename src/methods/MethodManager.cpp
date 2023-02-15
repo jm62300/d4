@@ -26,6 +26,7 @@
 #include "Erosion.hpp"
 #include "MaxSharpSAT.hpp"
 #include "MinSharpSAT.hpp"
+#include "MssMaxSharpSAT.hpp"
 #include "OperationManager.hpp"
 #include "ProjMCMethod.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
@@ -135,6 +136,14 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                            lastBreath);
     return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
                                            lastBreath);
+  }
+
+  if (meth == "mss#sat") {
+    if (!isFloat)
+      return new MssMaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem,
+                                              out, lastBreath);
+    return new MssMaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem,
+                                              out, lastBreath);
   }
 
   if (meth == "min#sat") {
