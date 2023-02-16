@@ -193,12 +193,6 @@ class MssMaxSharpSAT : public MethodManager {
       }
     }
 
-    m_out << "Without max var: " << notSplitCnf.size() << "\n";
-    for (auto &cl : notSplitCnf) {
-      for (auto &l : cl) m_out << l << " ";
-      m_out << "\n";
-    }
-
     m_out << "With max var\n";
     for (auto &p : splitCnf) {
       for (auto &l : p.first) {
@@ -208,6 +202,12 @@ class MssMaxSharpSAT : public MethodManager {
       for (auto &l : p.second) {
         m_out << l << " ";
       }
+      m_out << "\n";
+    }
+
+    m_out << "Without max var: " << notSplitCnf.size() << "\n";
+    for (auto &cl : notSplitCnf) {
+      for (auto &l : cl) m_out << l << " ";
       m_out << "\n";
     }
 
