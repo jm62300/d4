@@ -180,7 +180,7 @@ class MssMaxSharpSAT : public MethodManager {
     for (auto &cl : cnf->getClauses()) {
       std::vector<Lit> maxCl, notMaxCl;
       for (auto &l : cl) {
-        if (m_isMaxDecisionVariable[l.var()])
+        if (!m_isProjectedVariable[l.var()])
           maxCl.push_back(l);
         else
           notMaxCl.push_back(l);
@@ -195,6 +195,8 @@ class MssMaxSharpSAT : public MethodManager {
 
     m_out << "With max var\n";
     for (auto &p : splitCnf) {
+      if (!p.first.size()) continue;
+
       for (auto &l : p.first) {
         m_out << l << " ";
       }
