@@ -22,13 +22,13 @@
 #include <boost/program_options.hpp>
 #include <vector>
 
-#include "src/hyperGraph/HyperGraph.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/solvers/WrapperSolver.hpp"
-#include "src/specs/SpecManager.hpp"
-#include "src/utils/EquivExtractor.hpp"
 
 namespace d4 {
+class WrapperSolver;
+class SpecManager;
+class EquivExtractor;
+
 namespace po = boost::program_options;
 class PartitioningHeuristic {
  protected:
