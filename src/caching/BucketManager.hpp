@@ -26,9 +26,7 @@
 #include <iostream>
 #include <vector>
 
-#include "BucketAllocator.hpp"
 #include "CachedBucket.hpp"
-#include "cnf/BucketManagerCnf.hpp"
 #include "cnf/BucketManagerCnfCl.hpp"
 #include "cnf/BucketManagerCnfCombi.hpp"
 #include "cnf/BucketManagerCnfIndex.hpp"
@@ -40,6 +38,9 @@
 #include "src/utils/Enum.hpp"
 
 namespace d4 {
+// forward declaration
+class BucketAllocator;
+
 namespace po = boost::program_options;
 
 template <class T>

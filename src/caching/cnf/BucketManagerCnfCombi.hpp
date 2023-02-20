@@ -26,8 +26,6 @@
 #include "BucketManagerCnfIndex.hpp"
 #include "BucketManagerCnfSym.hpp"
 #include "BucketSortInfo.hpp"
-#include "src/caching/BucketManager.hpp"
-#include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

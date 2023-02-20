@@ -35,7 +35,7 @@ d4::MethodManager *methodRun = nullptr;
  *
  * @param signum is the signal.
  */
-void signalHandler(int signum) {
+static void signalHandler(int signum) {
   std::cout << "c [MAIN] Method stop\n";
   if (methodRun != nullptr) methodRun->interrupt();
   exit(signum);

@@ -22,7 +22,6 @@
 
 #include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
-#include "src/caching/BucketManager.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"

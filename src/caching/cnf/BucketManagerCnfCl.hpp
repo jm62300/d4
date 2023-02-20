@@ -29,7 +29,6 @@
 #include "BucketSortInfo.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/cnf/BucketManagerCnf.hpp"
-#include "src/exceptions/BucketException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/utils/Enum.hpp"
 

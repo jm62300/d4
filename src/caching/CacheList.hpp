@@ -21,11 +21,7 @@
 #include <boost/program_options.hpp>
 #include <vector>
 
-#include "BucketManager.hpp"
-#include "CacheCleaningManager.hpp"
 #include "CachedBucket.hpp"
-#include "src/caching/cnf/BucketManagerCnf.hpp"
-#include "src/hashing/HashString.hpp"
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {

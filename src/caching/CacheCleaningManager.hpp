@@ -23,12 +23,11 @@
 #include "CacheCleaningExpectation.hpp"
 #include "CacheCleaningNone.hpp"
 #include "CacheManager.hpp"
-#include "CachedBucket.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 template <class T>
-class CacheList;
+class CachedBucket;
 namespace po = boost::program_options;
 
 template <class T>

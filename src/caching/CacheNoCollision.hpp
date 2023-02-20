@@ -23,15 +23,10 @@
 
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
-#include "TmpEntry.hpp"
-#include "src/hashing/HashString.hpp"
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
-
-template <class T>
-class CacheManager;
 
 template <class T>
 class CacheNoCollision : public CacheManager<T> {

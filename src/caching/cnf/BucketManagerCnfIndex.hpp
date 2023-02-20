@@ -21,7 +21,6 @@
 #include <algorithm>
 
 #include "BucketManagerCnf.hpp"
-#include "src/caching/BucketManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

@@ -20,7 +20,6 @@
 
 #include <functional>
 
-#include "BucketManager.hpp"
 #include "CacheCleaningManager.hpp"
 #include "CachedBucket.hpp"
 
@@ -75,8 +74,8 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
   }  // constructor
 
   /**
-     We init the count of a bucket with the number of times we ask for an entry
-     in the cache.
+     We init the count of a bucket with the number of times we ask for an
+     entry in the cache.
 
      @param[out] cb, the cached bucket we want to init.
    */

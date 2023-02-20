@@ -20,6 +20,7 @@
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
+
 class BucketInConstruction {
  public:
   unsigned *distrib;

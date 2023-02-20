@@ -19,7 +19,7 @@
 #pragma once
 
 #include "CacheCleaningManager.hpp"
-#include "CachedBucket.hpp"
+#include "CacheManager.hpp"
 
 namespace d4 {
 template <class T>
