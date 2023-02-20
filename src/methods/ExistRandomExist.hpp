@@ -72,7 +72,7 @@ class ExistRandomExist : public MethodManager {
   };
 
  private:
-  const unsigned NB_SEP = 196;
+  const unsigned NB_SEP = 222;
 
   bool optDomConst;
   bool optReversePolarity;
@@ -86,6 +86,8 @@ class ExistRandomExist : public MethodManager {
   unsigned m_stampIdx;
   unsigned m_nbCutUpperBoundMaxPart = 0;
   unsigned m_nbCutUpperBoundIndPart = 0;
+  unsigned m_nbPureMax = 0;
+  unsigned m_nbPureInd = 0;
 
   bool m_isUnderAnd = false;
   bool m_greedyInitActivated;
@@ -289,6 +291,8 @@ class ExistRandomExist : public MethodManager {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitInd << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCutUpperBoundMaxPart << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCutUpperBoundIndPart << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbPureMax << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbPureInd << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
@@ -326,6 +330,8 @@ class ExistRandomExist : public MethodManager {
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(i)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutUb(m)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutUb(i)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#pure(m)"
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#pure(i)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
@@ -358,6 +364,8 @@ class ExistRandomExist : public MethodManager {
         << "c Number of recursive call: " << m_nbCallCall << "\n"
         << "c Number of split formula (max): " << m_nbSplitMax << "\n"
         << "c Number of split formula (ind): " << m_nbSplitInd << "\n"
+        << "c Number of units because pure (max): " << m_nbPureMax << "\n"
+        << "c Number of units because pure (ind): " << m_nbPureInd << "\n"
         << "c Number of cut because upper bound (max): "
         << m_nbCutUpperBoundMaxPart << "\n"
         << "c Number of cut because upper bound (ind): "
@@ -510,10 +518,53 @@ class ExistRandomExist : public MethodManager {
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
+    // look for pure literal.
+    std::vector<Lit> pureLit;
+    for (auto &v : setOfVar) {
+      if (m_isProjectedVariable[v]) continue;
+      if (m_specs->varIsAssigned(v)) continue;
+
+      Lit l = Lit::makeLitTrue(v);
+      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
+        pureLit.push_back(~l);
+      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
+        pureLit.push_back(l);
+    }
+    if (pureLit.size()) {
+      for (auto &l : pureLit) unitsLit.push_back(l);
+      m_specs->preUpdate(pureLit);
+      m_nbPureMax += pureLit.size();
+    }
+
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
+
+#if 0
+    static int cptXZVar = 0;
+    if (nbComponent > 1) {
+      for (auto &vars : varConnected) {
+        bool onlyYZ = true;
+        for (auto &v : vars)
+          if (m_isMaxDecisionVariable[v]) {
+            onlyYZ = false;
+            break;
+          }
+
+        if (onlyYZ) {
+          cptXZVar++;
+          std::cout << "remove set of size: " << vars.size() << "\n";
+          for (unsigned i = 0; i < nbComponent; i++)
+            std::cout << varConnected[i].size() << " ";
+          std::cout << "\n";
+          if (cptXZVar && !(cptXZVar % 100)) {
+            std::cout << "we could remove " << cptXZVar << " groups\n";
+          }
+        }
+      }
+    }
+#endif
 
     // init the returned result.
     result.valuation = getArray();
@@ -719,6 +770,24 @@ class ExistRandomExist : public MethodManager {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
+
+    // look for pure literal.
+    std::vector<Lit> pureLit;
+    for (auto &v : setOfVar) {
+      if (m_isProjectedVariable[v]) continue;
+      if (m_specs->varIsAssigned(v)) continue;
+
+      Lit l = Lit::makeLitTrue(v);
+      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
+        pureLit.push_back(~l);
+      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
+        pureLit.push_back(l);
+    }
+    if (pureLit.size()) {
+      for (auto &l : pureLit) unitsLit.push_back(l);
+      m_specs->preUpdate(pureLit);
+      m_nbPureInd += pureLit.size();
+    }
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
