@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -162,6 +163,8 @@ class ExistRandomExist : public MethodManager {
     m_out << "c [CONSTRUCTOR ERE] Compute the connected component regarding "
              "the projected variables: "
           << m_cutUpperMax << "\n";
+
+    srand(0);
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
@@ -872,7 +875,7 @@ class ExistRandomExist : public MethodManager {
    * @param result is the interpretation and the related number of models.
    */
   void greedySearch(std::vector<Var> &setOfVar, std::ostream &out,
-                    MaxSharpSatResult &result) {
+                    MaxSharpSatResult &result, bool runOnce = true) {
     // first: search for a model to init the interpretation.
     if (!m_solver->solve(setOfVar)) {
       result.count = T(0);
@@ -881,42 +884,81 @@ class ExistRandomExist : public MethodManager {
     }
 
     // collect the model.
-    T multiply = T(1);
     result.valuation = getArray();
+    result.count = T(0);
 
+    // create the assumption and get the variables for the couting process.
     std::vector<Lit> unitsAssums;
     std::vector<Var> vars = setOfVar;
-    unsigned cpt = 0, j = 0;
+    unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++) {
-      Var v = vars[i];
-      if (m_isMaxDecisionVariable[v]) {
-        Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
-
-        m_solver->pushAssumption(l);
-        unitsAssums.push_back(l);
-        multiply *= T(m_problem->getWeightLit(l));
-        result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
-        cpt++;
-      } else
+      if (m_isMaxDecisionVariable[vars[i]])
+        unitsAssums.push_back(
+            Lit::makeLit(vars[i], m_solver->getModelVar(vars[i]) == l_False));
+      else
         vars[j++] = vars[i];
     }
     vars.resize(j);
 
-    m_solver->propagateAssumption();
+    // explore around the current assumption.
+    std::vector<Lit> negTest = unitsAssums;
+    for (auto &l : negTest) l = ~l;
+    std::random_shuffle(negTest.begin(), negTest.end());
 
-    std::vector<Lit> unitsLit;
-    std::vector<Var> freeVariable;
-    m_specs->preUpdate(unitsAssums);
+    bool first = true;
+    while (!m_stopProcess && (first || negTest.size())) {
+      first = false;
+      if (!runOnce)
+        m_out << "c [ERE] Greedy: " << negTest.size() << " " << result.count
+              << " \n";
+      for (auto &l : unitsAssums) m_solver->pushAssumption(l);
+      m_solver->propagateAssumption();
 
-    result.count = countInd_(vars, unitsLit, freeVariable, out);
+      std::vector<Lit> unitsLit;
+      std::vector<Var> freeVariable;
+      m_specs->preUpdate(unitsAssums);
 
-    if (!m_stopProcess)
-      result.count =
-          result.count * multiply *
-          m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
+      T tmpCount = countInd_(vars, unitsLit, freeVariable, out);
+      if (!m_stopProcess) {
+        tmpCount = tmpCount *
+                   m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
 
-    m_solver->popAssumption(cpt);
-    m_specs->postUpdate(unitsAssums);
+        if (tmpCount > result.count) {
+          result.count = tmpCount;
+          for (auto &l : unitsAssums)
+            result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
+        }
+      }
+
+      m_solver->popAssumption(unitsAssums.size());
+      m_specs->postUpdate(unitsAssums);
+
+      if (runOnce) break;
+
+      // update for the next round.
+      bool isSat = false;
+      while (!isSat && negTest.size()) {
+        Lit l = negTest.back();
+        negTest.pop_back();
+
+        m_solver->pushAssumption(l);
+        isSat = m_solver->solve(setOfVar);
+        if (isSat) {
+          // get the next assumption.
+          for (auto &l : unitsAssums)
+            l = Lit::makeLit(l.var(),
+                             m_solver->getModelVar(l.var()) == l_False);
+
+          j = 0;
+          for (unsigned i = 0; i < negTest.size(); i++)
+            if ((m_solver->getModelVar(negTest[i].var()) == l_False) !=
+                l.sign())
+              negTest[j++] = negTest[i];
+          negTest.resize(j);
+        }
+        m_solver->popAssumption();
+      }
+    }
   }  // greedySearch
 
   /**
@@ -940,7 +982,7 @@ class ExistRandomExist : public MethodManager {
 
     if (m_greedyInitActivated) {
       MaxSharpSatResult greedyResult;
-      greedySearch(setOfVar, out, greedyResult);
+      greedySearch(setOfVar, out, greedyResult, false);
       updateBound(greedyResult, setOfVar);
       std::cout << "c Greedy search done: " << greedyResult.count << "\n";
     }
