@@ -122,6 +122,7 @@ class ExistRandomExist : public MethodManager {
   bool m_stopProcess = false;
   bool m_andDig = false;
   bool m_cutUpperMax = false;
+  bool m_componentOnProjected = false;
   std::string m_heuristicMax = "none";
   unsigned m_heuristicMaxRdm = 0;
 
@@ -144,6 +145,7 @@ class ExistRandomExist : public MethodManager {
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     m_cutUpperMax = vm["ere-cut-upperBound"].as<bool>();
+    m_componentOnProjected = vm["ere-component-on-projected"].as<bool>();
     m_heuristicMax = vm["maxsharpsat-heuristic-phase"].as<std::string>();
     m_out << "c [CONSTRUCTOR ERE] Heuristic on MAX variables: "
           << m_heuristicMax << "\n";
@@ -156,6 +158,9 @@ class ExistRandomExist : public MethodManager {
     m_out << "c [CONSTRUCTOR ERE] Dig for a partial solution under an AND: "
           << m_andDig << "\n";
     m_out << "c [CONSTRUCTOR ERE] Cut on MAX tree when low UB: "
+          << m_cutUpperMax << "\n";
+    m_out << "c [CONSTRUCTOR ERE] Compute the connected component regarding "
+             "the projected variables: "
           << m_cutUpperMax << "\n";
 
     // we create the SAT solver.
@@ -490,6 +495,24 @@ class ExistRandomExist : public MethodManager {
   }  // updateBound
 
   /**
+   * @brief Compute the connected component.
+   *
+   * @param[out] varCo is the list of connected component.
+   * @param setOfVar is the current set of variables.
+   * @param[out] freeVar is the set of free variables.
+   * @return the number of component.
+   */
+  int computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
+                                std::vector<Var> &setOfVar,
+                                std::vector<Var> &freeVar) {
+    if (m_componentOnProjected)
+      return m_specs->computeConnectedComponentTargeted(
+          varCo, setOfVar, m_isProjectedVariable, freeVar);
+
+    return m_specs->computeConnectedComponent(varCo, setOfVar, freeVar);
+  }  // computeConnectedComponent
+
+  /**
    * @brief Search for a valuation of the max variables that maximizes the
    * number of models on the remaning formula where some variables are
    * forget.
@@ -538,33 +561,8 @@ class ExistRandomExist : public MethodManager {
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
-    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
-                                                         freeVariable);
-
-#if 0
-    static int cptXZVar = 0;
-    if (nbComponent > 1) {
-      for (auto &vars : varConnected) {
-        bool onlyYZ = true;
-        for (auto &v : vars)
-          if (m_isMaxDecisionVariable[v]) {
-            onlyYZ = false;
-            break;
-          }
-
-        if (onlyYZ) {
-          cptXZVar++;
-          std::cout << "remove set of size: " << vars.size() << "\n";
-          for (unsigned i = 0; i < nbComponent; i++)
-            std::cout << varConnected[i].size() << " ";
-          std::cout << "\n";
-          if (cptXZVar && !(cptXZVar % 100)) {
-            std::cout << "we could remove " << cptXZVar << " groups\n";
-          }
-        }
-      }
-    }
-#endif
+    int nbComponent =
+        computeConnectedComponent(varConnected, setOfVar, freeVariable);
 
     // init the returned result.
     result.valuation = getArray();
@@ -575,9 +573,7 @@ class ExistRandomExist : public MethodManager {
 
     for (auto &v : freeVariable)
       if (m_isMaxDecisionVariable[v]) {
-        Lit l = Lit::makeLitTrue(v);
-        if (m_problem->getWeightLit(l) < m_problem->getWeightLit(~l)) l = ~l;
-
+        Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
         m_scale.valuation[m_redirectionPos[v]] = 1 - l.sign();
         result.valuation[m_redirectionPos[v]] = 1 - l.sign();
       } else if (m_isDecisionVariable[v])
@@ -791,9 +787,8 @@ class ExistRandomExist : public MethodManager {
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
-
-    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
-                                                         freeVariable);
+    int nbComponent =
+        computeConnectedComponent(varConnected, setOfVar, freeVariable);
     expelNoDecisionVar(freeVariable);
 
     // consider each connected component.

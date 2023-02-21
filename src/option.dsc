@@ -8,6 +8,7 @@
 ("maxsharpsat-option-and-dig",boost::program_options::value<bool>()->default_value(true),"When a decomposable AND node occurs we search for an instantiation to be able to get a bound.")
 ("maxsharpsat-option-greedy-init",boost::program_options::value<bool>()->default_value(false),"Search for a first max interpretation greedily.")
 ("ere-cut-upperBound",boost::program_options::value<bool>()->default_value(true),"Activate the cutting process on the max variables regarding an upper bound.")
+("ere-component-on-projected",boost::program_options::value<bool>()->default_value(true),"Compute the connected component regarding or not the set of projected variables.")
 ("erosion-option-depth",boost::program_options::value<int>()->default_value(-1),"Give the maximum number of iteration for the erosion process.")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")
 ("preproc-solver,ps", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use in the preproc")

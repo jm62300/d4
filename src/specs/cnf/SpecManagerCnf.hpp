@@ -74,6 +74,13 @@ class SpecManagerCnf : public SpecManager {
                                 std::vector<Var> &setOfVar,
                                 std::vector<Var> &freeVar) override;
 
+  void connectedToLit(Lit l, std::vector<int> &v,
+                      std::vector<Var> &varComponent, int nbComponent);
+
+  int computeConnectedComponentTargeted(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<bool> &isProjected, std::vector<Var> &freeVar) override;
+
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
   void showTrail(std::ostream &out) override;
