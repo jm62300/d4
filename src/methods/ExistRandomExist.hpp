@@ -90,8 +90,11 @@ class ExistRandomExist : public MethodManager {
   unsigned m_nbPureMax = 0;
   unsigned m_nbPureInd = 0;
 
+  bool m_hasBeenStop = false;
   bool m_isUnderAnd = false;
   bool m_greedyInitActivated;
+
+  unsigned m_nbCallIndSaved = 0;
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> clauses;
@@ -573,7 +576,7 @@ class ExistRandomExist : public MethodManager {
   void searchMaxValuation(std::vector<Var> &setOfVar,
                           std::vector<Lit> &unitsLit,
                           std::vector<Var> &freeVariable, std::ostream &out,
-                          MaxSharpSatResult &result, T currentUpper) {
+                          MaxSharpSatResult &result, T ifTaut) {
     if (m_stopProcess) return;
 
     showRun(out);
@@ -617,7 +620,7 @@ class ExistRandomExist : public MethodManager {
       } else if (m_isDecisionVariable[l.var()])
         fixInd *= T(m_problem->getWeightLit(l));
 
-    if (m_cutUpperMax && currentUpper * fixInd <= m_maxCount.count) {
+    if (m_cutUpperMax && ifTaut * fixInd <= m_maxCount.count) {
       result.count = T(0);
       m_nbCutUpperBoundMaxPart++;
       m_specs->postUpdate(unitsLit);
@@ -661,8 +664,7 @@ class ExistRandomExist : public MethodManager {
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
           MaxSharpSatResult tmpResult;
-          searchMaxSharpSatDecision(connected, out, tmpResult,
-                                    currentUpper * fixInd);
+          searchMaxSharpSatDecision(connected, out, tmpResult, ifTaut * fixInd);
           m_cacheMax->addInCache(cb, tmpResult);
           mustMultiply = tmpResult.count;
           if (tmpResult.valuation)
@@ -704,7 +706,7 @@ class ExistRandomExist : public MethodManager {
    * @param[out] result, the best solution found.
    */
   void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
-                                 MaxSharpSatResult &result, T currentUpper) {
+                                 MaxSharpSatResult &result, T ifTaut) {
     if (m_stopProcess) return;
 
     // search the next variable to branch on
@@ -714,9 +716,23 @@ class ExistRandomExist : public MethodManager {
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-      result.count = countInd_(connected, unitsLit, freeVar, out, currentUpper);
+      m_hasBeenStop = false;
+      result.count = countInd_(connected, unitsLit, freeVar, out,
+                               m_maxCount.count / ifTaut);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
+
+      static unsigned nbPrint = 1;
+      if (m_hasBeenStop) {
+        assert(result.count < m_maxCount.count);
+        if (m_nbCallIndSaved > nbPrint * 1000) {
+          std::cout << "stop for " << m_nbCallIndSaved << "\n";
+          nbPrint++;
+        }
+      } else {
+        assert(result.count >= m_maxCount.count);
+      }
+
       return;
     }
 
@@ -731,7 +747,7 @@ class ExistRandomExist : public MethodManager {
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
     searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0],
-                       currentUpper);
+                       ifTaut);
 
     m_solver->popAssumption();
     b[0].d = res[0].count *
@@ -742,11 +758,11 @@ class ExistRandomExist : public MethodManager {
       res[1].count = T(0);
     else if (m_solver->isInAssumption(~l))
       searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1],
-                         currentUpper);
+                         ifTaut);
     else {
       m_solver->pushAssumption(~l);
       searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1],
-                         currentUpper);
+                         ifTaut);
       m_solver->popAssumption();
     }
 
@@ -770,7 +786,10 @@ class ExistRandomExist : public MethodManager {
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
               std::vector<Var> &freeVariable, std::ostream &out, T targetMin) {
+    if (m_hasBeenStop) m_nbCallIndSaved++;
     if (m_stopProcess) return T(0);
+
+    if (targetMin > T(1)) m_hasBeenStop = true;
 
     showRun(out);
     m_nbCallProj++;
@@ -779,6 +798,12 @@ class ExistRandomExist : public MethodManager {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
+
+    T fixInd = T(1);
+    for (auto &l : unitsLit)
+      if (m_isProjectedVariable[l.var()])
+        fixInd *= T(m_problem->getWeightLit(l));
+
     assignPureLiteral(setOfVar, unitsLit, m_nbPureInd);
 
     // compute the connected composant
@@ -799,7 +824,8 @@ class ExistRandomExist : public MethodManager {
         if (cb.defined)
           result = result * cb.getValue();
         else {
-          T curr = countIndDecisionNode(connected, out, targetMin);
+          T curr = countIndDecisionNode(connected, out,
+                                        (targetMin / result) / fixInd);
           m_cacheInd->addInCache(cb, curr);
           result = result * curr;
         }
@@ -826,11 +852,11 @@ class ExistRandomExist : public MethodManager {
 
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
-
     if (v == var_Undef) return T(1);
 
     // select a variable for decision.
-    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    Lit l = Lit::makeLit(
+        v, m_problem->getWeightLit(~l) > m_problem->getWeightLit(l));
     assert(m_problem->getWeightLit(l) && m_problem->getWeightLit(~l));
     m_nbDecisionNode++;
 
@@ -839,7 +865,8 @@ class ExistRandomExist : public MethodManager {
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out, targetMin);
+    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out,
+                       targetMin - T(m_problem->getWeightLit(~l)));
     m_solver->popAssumption();
 
     // compute the next lower regarding the already compute information.
@@ -848,12 +875,12 @@ class ExistRandomExist : public MethodManager {
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
-      b[1].d =
-          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetMin);
+      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out,
+                         targetMin - b[0].d);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d =
-          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetMin);
+      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out,
+                         targetMin - b[0].d);
       m_solver->popAssumption();
     }
 
