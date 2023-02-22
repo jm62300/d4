@@ -516,6 +516,50 @@ class ExistRandomExist : public MethodManager {
   }  // computeConnectedComponent
 
   /**
+   * @brief Given the selected heuristic, return the way we want to assign the
+   * given variable (actually we want the sign).
+   *
+   * @param v is the variable we want to assign.
+   * @return 1 if we want to assign to false, 0 otherwise/
+   */
+  inline bool selectPhase(Var v) {
+    assert(m_isMaxDecisionVariable[v]);
+    int rdm = rand() % 100;
+    if (rdm <= m_heuristicMaxRdm) return rdm & 1;
+
+    if (m_scale.count > 0 && m_heuristicMax == "best")
+      return m_scale.valuation[m_redirectionPos[v]];
+    return m_hPhase->selectPhase(v);
+  }  // selectPhase
+
+  /**
+   * @brief Dig for pure literals we can assign.
+   *
+   * @param setOfVar, the current set of considered variables
+   * @param[out] unitsLit is the place where the new literals assigned will be
+   * pushed.
+   */
+  void assignPureLiteral(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
+                         unsigned &countPure) {
+    std::vector<Lit> pureLit;
+    for (auto &v : setOfVar) {
+      if (m_isProjectedVariable[v]) continue;
+      if (m_specs->varIsAssigned(v)) continue;
+
+      Lit l = Lit::makeLitTrue(v);
+      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
+        pureLit.push_back(~l);
+      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
+        pureLit.push_back(l);
+    }
+    if (pureLit.size()) {
+      for (auto &l : pureLit) unitsLit.push_back(l);
+      m_specs->preUpdate(pureLit);
+      countPure += pureLit.size();
+    }
+  }  // assignPureLiteral
+
+  /**
    * @brief Search for a valuation of the max variables that maximizes the
    * number of models on the remaning formula where some variables are
    * forget.
@@ -652,50 +696,6 @@ class ExistRandomExist : public MethodManager {
   }  // searchMaxValuation
 
   /**
-   * @brief Given the selected heuristic, return the way we want to assign the
-   * given variable (actually we want the sign).
-   *
-   * @param v is the variable we want to assign.
-   * @return 1 if we want to assign to false, 0 otherwise/
-   */
-  inline bool selectPhase(Var v) {
-    assert(m_isMaxDecisionVariable[v]);
-    int rdm = rand() % 100;
-    if (rdm <= m_heuristicMaxRdm) return rdm & 1;
-
-    if (m_scale.count > 0 && m_heuristicMax == "best")
-      return m_scale.valuation[m_redirectionPos[v]];
-    return m_hPhase->selectPhase(v);
-  }  // selectPhase
-
-  /**
-   * @brief Dig for pure literals we can assign.
-   *
-   * @param setOfVar, the current set of considered variables
-   * @param[out] unitsLit is the place where the new literals assigned will be
-   * pushed.
-   */
-  void assignPureLiteral(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-                         unsigned &countPure) {
-    std::vector<Lit> pureLit;
-    for (auto &v : setOfVar) {
-      if (m_isProjectedVariable[v]) continue;
-      if (m_specs->varIsAssigned(v)) continue;
-
-      Lit l = Lit::makeLitTrue(v);
-      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
-        pureLit.push_back(~l);
-      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
-        pureLit.push_back(l);
-    }
-    if (pureLit.size()) {
-      for (auto &l : pureLit) unitsLit.push_back(l);
-      m_specs->preUpdate(pureLit);
-      countPure += pureLit.size();
-    }
-  }  // assignPureLiteral
-
-  /**
    * This function select a variable and compile a decision node.
    *
    * @param[in] connected, the set of variable present in the current
@@ -714,7 +714,7 @@ class ExistRandomExist : public MethodManager {
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-      result.count = countInd_(connected, unitsLit, freeVar, out, T(0));
+      result.count = countInd_(connected, unitsLit, freeVar, out, currentUpper);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
       return;
@@ -769,8 +769,7 @@ class ExistRandomExist : public MethodManager {
    * \return the number of models.
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out,
-              T targetLower) {
+              std::vector<Var> &freeVariable, std::ostream &out, T targetMin) {
     if (m_stopProcess) return T(0);
 
     showRun(out);
@@ -800,7 +799,7 @@ class ExistRandomExist : public MethodManager {
         if (cb.defined)
           result = result * cb.getValue();
         else {
-          T curr = countIndDecisionNode(connected, out, targetLower);
+          T curr = countIndDecisionNode(connected, out, targetMin);
           m_cacheInd->addInCache(cb, curr);
           result = result * curr;
         }
@@ -822,7 +821,7 @@ class ExistRandomExist : public MethodManager {
    * \return the number of computed models.
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out,
-                         T targetLower) {
+                         T targetMin) {
     if (m_stopProcess) return T(0);
 
     // search the next variable to branch on
@@ -840,8 +839,7 @@ class ExistRandomExist : public MethodManager {
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d =
-        countInd_(connected, b[0].unitLits, b[0].freeVars, out, targetLower);
+    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out, targetMin);
     m_solver->popAssumption();
 
     // compute the next lower regarding the already compute information.
@@ -851,11 +849,11 @@ class ExistRandomExist : public MethodManager {
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
       b[1].d =
-          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetLower);
+          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetMin);
     else {
       m_solver->pushAssumption(~l);
       b[1].d =
-          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetLower);
+          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetMin);
       m_solver->popAssumption();
     }
 
