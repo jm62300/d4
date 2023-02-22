@@ -543,24 +543,7 @@ class ExistRandomExist : public MethodManager {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-
-    // look for pure literal.
-    std::vector<Lit> pureLit;
-    for (auto &v : setOfVar) {
-      if (m_isProjectedVariable[v]) continue;
-      if (m_specs->varIsAssigned(v)) continue;
-
-      Lit l = Lit::makeLitTrue(v);
-      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
-        pureLit.push_back(~l);
-      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
-        pureLit.push_back(l);
-    }
-    if (pureLit.size()) {
-      for (auto &l : pureLit) unitsLit.push_back(l);
-      m_specs->preUpdate(pureLit);
-      m_nbPureMax += pureLit.size();
-    }
+    assignPureLiteral(setOfVar, unitsLit, m_nbPureMax);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -686,6 +669,33 @@ class ExistRandomExist : public MethodManager {
   }  // selectPhase
 
   /**
+   * @brief Dig for pure literals we can assign.
+   *
+   * @param setOfVar, the current set of considered variables
+   * @param[out] unitsLit is the place where the new literals assigned will be
+   * pushed.
+   */
+  void assignPureLiteral(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
+                         unsigned &countPure) {
+    std::vector<Lit> pureLit;
+    for (auto &v : setOfVar) {
+      if (m_isProjectedVariable[v]) continue;
+      if (m_specs->varIsAssigned(v)) continue;
+
+      Lit l = Lit::makeLitTrue(v);
+      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
+        pureLit.push_back(~l);
+      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
+        pureLit.push_back(l);
+    }
+    if (pureLit.size()) {
+      for (auto &l : pureLit) unitsLit.push_back(l);
+      m_specs->preUpdate(pureLit);
+      countPure += pureLit.size();
+    }
+  }  // assignPureLiteral
+
+  /**
    * This function select a variable and compile a decision node.
    *
    * @param[in] connected, the set of variable present in the current
@@ -704,7 +714,7 @@ class ExistRandomExist : public MethodManager {
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-      result.count = countInd_(connected, unitsLit, freeVar, out);
+      result.count = countInd_(connected, unitsLit, freeVar, out, T(0));
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
       return;
@@ -759,7 +769,8 @@ class ExistRandomExist : public MethodManager {
    * \return the number of models.
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out) {
+              std::vector<Var> &freeVariable, std::ostream &out,
+              T targetLower) {
     if (m_stopProcess) return T(0);
 
     showRun(out);
@@ -769,24 +780,7 @@ class ExistRandomExist : public MethodManager {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-
-    // look for pure literal.
-    std::vector<Lit> pureLit;
-    for (auto &v : setOfVar) {
-      if (m_isProjectedVariable[v]) continue;
-      if (m_specs->varIsAssigned(v)) continue;
-
-      Lit l = Lit::makeLitTrue(v);
-      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
-        pureLit.push_back(~l);
-      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
-        pureLit.push_back(l);
-    }
-    if (pureLit.size()) {
-      for (auto &l : pureLit) unitsLit.push_back(l);
-      m_specs->preUpdate(pureLit);
-      m_nbPureInd += pureLit.size();
-    }
+    assignPureLiteral(setOfVar, unitsLit, m_nbPureInd);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -806,7 +800,7 @@ class ExistRandomExist : public MethodManager {
         if (cb.defined)
           result = result * cb.getValue();
         else {
-          T curr = countIndDecisionNode(connected, out);
+          T curr = countIndDecisionNode(connected, out, targetLower);
           m_cacheInd->addInCache(cb, curr);
           result = result * curr;
         }
@@ -827,7 +821,8 @@ class ExistRandomExist : public MethodManager {
    * @param out, the stream we use to print out logs.
    * \return the number of computed models.
    */
-  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out,
+                         T targetLower) {
     if (m_stopProcess) return T(0);
 
     // search the next variable to branch on
@@ -845,7 +840,8 @@ class ExistRandomExist : public MethodManager {
 
     assert(!m_solver->isInAssumption(l.var()));
     m_solver->pushAssumption(l);
-    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out);
+    b[0].d =
+        countInd_(connected, b[0].unitLits, b[0].freeVars, out, targetLower);
     m_solver->popAssumption();
 
     // compute the next lower regarding the already compute information.
@@ -854,10 +850,12 @@ class ExistRandomExist : public MethodManager {
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
-      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
+      b[1].d =
+          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetLower);
     else {
       m_solver->pushAssumption(~l);
-      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
+      b[1].d =
+          countInd_(connected, b[1].unitLits, b[1].freeVars, out, targetLower);
       m_solver->popAssumption();
     }
 
@@ -918,7 +916,7 @@ class ExistRandomExist : public MethodManager {
       std::vector<Var> freeVariable;
       m_specs->preUpdate(unitsAssums);
 
-      T tmpCount = countInd_(vars, unitsLit, freeVariable, out);
+      T tmpCount = countInd_(vars, unitsLit, freeVariable, out, T(0));
       if (!m_stopProcess) {
         tmpCount = tmpCount *
                    m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
