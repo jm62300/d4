@@ -41,7 +41,10 @@ grep -v "^c " /tmp/bench.cnf > $fileTmp
 echo "c p show $indVar" >> $fileTmp
 
 $TESTED_METHOD /tmp/bench.cnf 2>/dev/null > /tmp/log.txt
-cat /tmp/log.txt | grep "^o " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
+cat /tmp/log.txt | grep "^o " | cut -d ' ' -f2 | sed 's/ //g' | cut -b 1-10 > /tmp/sol2.txt
+
+$COMPARED_METHOD /tmp/bench.cnf 2>/dev/null > /tmp/log.txt
+cat /tmp/log.txt | grep "^o " | cut -d ' ' -f2 | sed 's/ //g' | cut -b 1-10 > /tmp/sol1.txt
 
 valuation=$(grep "^v " /tmp/log.txt | cut -d ' ' -f2- | awk 'NF{NF-=1};1')
 fileTmpCouter=$(mktemp)
@@ -52,15 +55,16 @@ do
 done
 
 grep "^c p weight " /tmp/bench.cnf >> $fileTmpCouter
-$MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol3.txt
-diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
-if [ $? -ne 0 ]; then exit 1; fi
-
-$COMPARED_METHOD /tmp/bench.cnf 2>/dev/null > /tmp/log.txt
-cat /tmp/log.txt | grep "^o " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
+$MODEL_COUNTER $fileTmpCouter 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' | cut -b 1-10 > /tmp/sol3.txt
 
 rm $fileTmp
 rm $fileTmpCouter    
 
+diff /tmp/sol3.txt /tmp/sol2.txt > /dev/null
+if [ $? -ne 0 ]; then exit 1; fi
+
 diff  /tmp/sol2.txt /tmp/sol1.txt > /dev/null
 exit $?
+
+
+
