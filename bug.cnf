@@ -1,0 +1,16 @@
+p cnf 8 3
+c max 3 6 0
+c ind 5 2 1 4 7  0
+c p weight -1 .5266 0
+c p weight 1 .4734 0
+c p weight -2 .2328 0
+c p weight 2 .7672 0
+c p weight -4 .4992 0
+c p weight 4 .5008 0
+c p weight -5 .1944 0
+c p weight 5 .8056 0
+c p weight -7 .7910 0
+c p weight 7 .2090 0
+-4 3 5 0
+-3 -6 0
+7 2 1 0
