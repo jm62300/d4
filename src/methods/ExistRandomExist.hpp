@@ -147,25 +147,29 @@ class ExistRandomExist : public MethodManager {
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
-
     m_cutUpperMax = vm["ere-cut-upperBound"].as<bool>();
     m_componentOnProjected = vm["ere-component-on-projected"].as<bool>();
     m_heuristicMax = vm["maxsharpsat-heuristic-phase"].as<std::string>();
-    m_out << "c [CONSTRUCTOR ERE] Heuristic on MAX variables: "
-          << m_heuristicMax << "\n";
+    m_greedyInitActivated = vm["maxsharpsat-option-greedy-init"].as<bool>();
+    m_optCached = vm["cache-activated"].as<bool>();
     m_heuristicMaxRdm = vm["maxsharpsat-heuristic-phase-random"].as<unsigned>();
-    m_out << "c [CONSTRUCTOR ERE] Use random on MAX variables: "
-          << m_heuristicMaxRdm << "\n";
     m_threshold = vm["maxsharpsat-threshold"].as<double>();
-    m_out << "c [CONSTRUCTOR ERE] Threshold: " << m_threshold << "\n";
     m_andDig = vm["maxsharpsat-option-and-dig"].as<bool>();
-    m_out << "c [CONSTRUCTOR ERE] Dig for a partial solution under an AND: "
-          << m_andDig << "\n";
-    m_out << "c [CONSTRUCTOR ERE] Cut on MAX tree when low UB: "
-          << m_cutUpperMax << "\n";
-    m_out << "c [CONSTRUCTOR ERE] Compute the connected component regarding "
+
+    m_out << "c [CONSTRUCTOR ERE] Heuristic on MAX variables: "
+          << m_heuristicMax << "\n"
+          << "c [CONSTRUCTOR ERE] Use random on MAX variables: "
+          << m_heuristicMaxRdm << "\n"
+          << "c [CONSTRUCTOR ERE] Threshold: " << m_threshold << "\n"
+          << "c [CONSTRUCTOR ERE] Dig for a partial solution under an AND: "
+          << m_andDig << "\n"
+          << "c [CONSTRUCTOR ERE] Cut on MAX tree when low UB: "
+          << m_cutUpperMax << "\n"
+          << "c [CONSTRUCTOR ERE] Compute the connected component regarding "
              "the projected variables: "
-          << m_cutUpperMax << "\n";
+          << m_cutUpperMax << "\n"
+          << "c [CONSTRUCTOR ERE] Greedy init activated: "
+          << m_greedyInitActivated << "\n";
 
     srand(0);
 
@@ -220,11 +224,6 @@ class ExistRandomExist : public MethodManager {
     // init the clock time.
     initTimer();
 
-    m_greedyInitActivated = vm["maxsharpsat-option-greedy-init"].as<bool>();
-    m_out << "c [MAX#SAT] Greedy init activated: " << m_greedyInitActivated
-          << "\n";
-
-    m_optCached = vm["cache-activated"].as<bool>();
     m_nbCallProj = m_nbDecisionNode = m_nbSplitMax = m_nbSplitInd =
         m_nbCallCall = 0;
 
@@ -722,9 +721,14 @@ class ExistRandomExist : public MethodManager {
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
 
+      /*
+            std::cout << "compute on ind: " << result.count << " ==> "
+                      << m_maxCount.count << "/" << ifTaut << " = "
+                      << m_maxCount.count / ifTaut << "\n";
+      */
       static unsigned nbPrint = 1;
       if (m_hasBeenStop) {
-        assert(result.count < m_maxCount.count);
+        assert(result.count * ifTaut < m_maxCount.count);
         if (m_nbCallIndSaved > nbPrint * 1000) {
           std::cout << "stop for " << m_nbCallIndSaved << "\n";
           nbPrint++;
@@ -750,8 +754,7 @@ class ExistRandomExist : public MethodManager {
                        ifTaut);
 
     m_solver->popAssumption();
-    b[0].d = res[0].count *
-             m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    b[0].d = res[0].count * m_problem->computeWeightUnitFree<T>(b[0]);
 
     // search max#sat for the next phase.
     if (m_solver->isInAssumption(l))
@@ -766,8 +769,7 @@ class ExistRandomExist : public MethodManager {
       m_solver->popAssumption();
     }
 
-    b[1].d = res[1].count *
-             m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+    b[1].d = res[1].count * m_problem->computeWeightUnitFree<T>(b[1]);
 
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
@@ -829,6 +831,8 @@ class ExistRandomExist : public MethodManager {
           m_cacheInd->addInCache(cb, curr);
           result = result * curr;
         }
+
+        if (result < targetMin) m_hasBeenStop = true;
       }
     }  // else we have a tautology
 
@@ -860,6 +864,9 @@ class ExistRandomExist : public MethodManager {
     assert(m_problem->getWeightLit(l) && m_problem->getWeightLit(~l));
     m_nbDecisionNode++;
 
+    // m_specs->showTrail(std::cout);
+    // std::cout << "decision " << l << "\n";
+
     // consider the two value for l
     DataBranch<T> b[2];
 
@@ -870,7 +877,8 @@ class ExistRandomExist : public MethodManager {
     m_solver->popAssumption();
 
     // compute the next lower regarding the already compute information.
-    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0]);
+    // std::cout << "decision " << l << " " << b[0].d << "\n";
 
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
@@ -884,7 +892,8 @@ class ExistRandomExist : public MethodManager {
       m_solver->popAssumption();
     }
 
-    b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+    b[1].d *= m_problem->computeWeightUnitFree<T>(b[1]);
+    // std::cout << "decision " << ~l << " " << b[1].d << "\n";
 
     return b[0].d + b[1].d;
   }  // computeDecisionNode

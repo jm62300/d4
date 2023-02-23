@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "src/problem/ProblemManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
 template <class T>

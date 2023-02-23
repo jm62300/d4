@@ -23,6 +23,7 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 
+#include "src/methods/DataBranch.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -101,6 +102,18 @@ class ProblemManager {
     }
 
     return tmp;
+  }  // computeWeightUnitFree
+
+  /**
+   * @brief Compute the value for a branch regarding its unit literals and the
+   * free variables.
+   *
+   * @param[in] b, the branch we want to compute the weight.
+   * \return the right value
+   */
+  template <typename T>
+  inline T computeWeightUnitFree(DataBranch<T> &b) {
+    return computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   }  // computeWeightUnitFree
 };
 }  // namespace d4
