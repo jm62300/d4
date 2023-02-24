@@ -576,10 +576,31 @@ class ExistRandomExist : public MethodManager {
                           std::vector<Lit> &unitsLit,
                           std::vector<Var> &freeVariable, std::ostream &out,
                           MaxSharpSatResult &result, T ifTaut) {
+    assert(!m_hasBeenStop);
     if (m_stopProcess) return;
 
     showRun(out);
     m_nbCallCall++;
+#if 0
+    // test
+    std::vector<Lit> testUnitsLit;
+    std::vector<Var> testFreeVar;
+    m_hasBeenStop = false;
+    std::cout << "Run\n";
+    result.count = countInd_(setOfVar, testUnitsLit, testFreeVar, out,
+                             m_maxCount.count / ifTaut);
+
+    // count the number of variables.
+    unsigned cpt = 0;
+    for (auto &v : setOfVar)
+      if (m_isMaxDecisionVariable[v]) cpt++;
+
+    std::cout << result.count << " " << cpt << " <<<<\n";
+    m_hasBeenStop = false;
+    if (result.count < m_maxCount.count) {
+      return;
+    }
+#endif
 
     // is the problem still satisfiable?
     if (!m_solver->solve(setOfVar)) {
@@ -642,6 +663,7 @@ class ExistRandomExist : public MethodManager {
         greedySearch(varConnected[cp], out, andCount.back());
         orOnMaxVar(varConnected[cp], m_scale.valuation,
                    andCount.back().valuation);
+        assert(andCount.back().count != T(0));
         m_scale.count *= andCount.back().count;
       }
     }
@@ -720,23 +742,7 @@ class ExistRandomExist : public MethodManager {
                                m_maxCount.count / ifTaut);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
-
-      /*
-            std::cout << "compute on ind: " << result.count << " ==> "
-                      << m_maxCount.count << "/" << ifTaut << " = "
-                      << m_maxCount.count / ifTaut << "\n";
-      */
-      static unsigned nbPrint = 1;
-      if (m_hasBeenStop) {
-        assert(result.count * ifTaut < m_maxCount.count);
-        if (m_nbCallIndSaved > nbPrint * 1000) {
-          std::cout << "stop for " << m_nbCallIndSaved << "\n";
-          nbPrint++;
-        }
-      } else {
-        assert(result.count >= m_maxCount.count);
-      }
-
+      m_hasBeenStop = false;
       return;
     }
 
@@ -788,10 +794,13 @@ class ExistRandomExist : public MethodManager {
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
               std::vector<Var> &freeVariable, std::ostream &out, T targetMin) {
-    if (m_hasBeenStop) m_nbCallIndSaved++;
+    if (m_hasBeenStop) return T(0);
     if (m_stopProcess) return T(0);
 
-    if (targetMin > T(1)) m_hasBeenStop = true;
+    if (targetMin > T(1)) {
+      m_hasBeenStop = true;
+      m_nbCutUpperBoundIndPart++;
+    }
 
     showRun(out);
     m_nbCallProj++;
@@ -819,7 +828,7 @@ class ExistRandomExist : public MethodManager {
     if (nbComponent) {
       m_nbSplitInd += (nbComponent > 1) ? nbComponent : 0;
 
-      for (int cp = 0; cp < nbComponent; cp++) {
+      for (int cp = 0; !m_hasBeenStop && cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
         TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
@@ -828,11 +837,17 @@ class ExistRandomExist : public MethodManager {
         else {
           T curr = countIndDecisionNode(connected, out,
                                         (targetMin / result) / fixInd);
-          m_cacheInd->addInCache(cb, curr);
+          if (!m_hasBeenStop)
+            m_cacheInd->addInCache(cb, curr);
+          else
+            m_cacheInd->releaseMemory(cb.getCachedBucket());
           result = result * curr;
         }
 
-        if (result < targetMin) m_hasBeenStop = true;
+        if (!m_hasBeenStop && result < targetMin) {
+          m_hasBeenStop = true;
+          m_nbCutUpperBoundIndPart++;
+        }
       }
     }  // else we have a tautology
 
@@ -864,9 +879,6 @@ class ExistRandomExist : public MethodManager {
     assert(m_problem->getWeightLit(l) && m_problem->getWeightLit(~l));
     m_nbDecisionNode++;
 
-    // m_specs->showTrail(std::cout);
-    // std::cout << "decision " << l << "\n";
-
     // consider the two value for l
     DataBranch<T> b[2];
 
@@ -878,7 +890,6 @@ class ExistRandomExist : public MethodManager {
 
     // compute the next lower regarding the already compute information.
     b[0].d *= m_problem->computeWeightUnitFree<T>(b[0]);
-    // std::cout << "decision " << l << " " << b[0].d << "\n";
 
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
@@ -893,7 +904,6 @@ class ExistRandomExist : public MethodManager {
     }
 
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1]);
-    // std::cout << "decision " << ~l << " " << b[1].d << "\n";
 
     return b[0].d + b[1].d;
   }  // computeDecisionNode
@@ -908,6 +918,8 @@ class ExistRandomExist : public MethodManager {
    */
   void greedySearch(std::vector<Var> &setOfVar, std::ostream &out,
                     MaxSharpSatResult &result, bool runOnce = true) {
+    assert(!m_hasBeenStop);
+
     // first: search for a model to init the interpretation.
     if (!m_solver->solve(setOfVar)) {
       result.count = T(0);
@@ -952,6 +964,7 @@ class ExistRandomExist : public MethodManager {
 
       T tmpCount = countInd_(vars, unitsLit, freeVariable, out, T(0));
       if (!m_stopProcess) {
+        assert(tmpCount != T(0));
         tmpCount = tmpCount *
                    m_problem->computeWeightUnitFree<T>(unitsLit, freeVariable);
 
