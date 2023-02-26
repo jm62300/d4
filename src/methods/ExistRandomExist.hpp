@@ -581,24 +581,35 @@ class ExistRandomExist : public MethodManager {
 
     showRun(out);
     m_nbCallCall++;
-#if 0
-    // test
-    std::vector<Lit> testUnitsLit;
-    std::vector<Var> testFreeVar;
-    m_hasBeenStop = false;
-    std::cout << "Run\n";
-    result.count = countInd_(setOfVar, testUnitsLit, testFreeVar, out,
-                             m_maxCount.count / ifTaut);
-
+#if 1
     // count the number of variables.
     unsigned cpt = 0;
     for (auto &v : setOfVar)
       if (m_isMaxDecisionVariable[v]) cpt++;
 
-    std::cout << result.count << " " << cpt << " <<<<\n";
-    m_hasBeenStop = false;
-    if (result.count < m_maxCount.count) {
-      return;
+    static unsigned counter = 0, nbCallCounter = 0;
+    static unsigned long sizeVars = 0;
+
+    if (cpt < 100) {
+      // test
+      nbCallCounter++;
+      std::vector<Lit> testUnitsLit;
+      std::vector<Var> testFreeVar;
+      m_hasBeenStop = false;
+      result.count = countInd_(setOfVar, testUnitsLit, testFreeVar, out,
+                               m_maxCount.count / ifTaut);
+
+      m_hasBeenStop = false;
+      if (result.count <= m_maxCount.count / ifTaut) {
+        counter++;
+        sizeVars += cpt;
+
+        if (!(counter % 100)) {
+          std::cout << result.count << " " << counter << "/" << nbCallCounter
+                    << " " << sizeVars / counter << " <<<<\n";
+        }
+        return;
+      }
     }
 #endif
 
