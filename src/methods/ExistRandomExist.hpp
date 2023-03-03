@@ -40,6 +40,7 @@
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
 #include "src/heuristics/PhaseHeuristic.hpp"
+#include "src/heuristics/PhaseHeuristicPolarity.hpp"
 #include "src/heuristics/ScoringMethod.hpp"
 #include "src/methods/nnf/Node.hpp"
 #include "src/preprocs/PreprocManager.hpp"
@@ -115,6 +116,7 @@ class ExistRandomExist : public MethodManager {
   SpecManager *m_specs;
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
+  PhaseHeuristic *m_hPhaseInd;
 
   CacheManager<T> *m_cacheInd;
   CacheManager<MaxSharpSatResult> *m_cacheMax;
@@ -190,6 +192,7 @@ class ExistRandomExist : public MethodManager {
     m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);
     m_hPhase =
         PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
+    m_hPhaseInd = new PhaseHeuristicPolarity(*m_solver, true);
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
@@ -597,55 +600,6 @@ class ExistRandomExist : public MethodManager {
     int nbComponent =
         computeConnectedComponent(varConnected, setOfVar, freeVariable);
 
-#if 0
-    if (nbComponent == 1) {
-      std::vector<Var> vars = varConnected[0];
-
-      // count the number of variables.
-      unsigned cpt = 0;
-      for (auto &v : vars)
-        if (m_isMaxDecisionVariable[v]) cpt++;
-      for (auto &l : unitsLit)
-        if (m_isMaxDecisionVariable[l.var()]) cpt--;
-
-      static unsigned counter = 0, nbCallCounter = 0;
-      static unsigned long sizeVars = 0;
-
-      if (cpt > 3 && cpt < 1000) {
-        // test
-        nbCallCounter++;
-        std::vector<Lit> testUnitsLit;
-        std::vector<Var> testFreeVar;
-        m_hasBeenStop = false;
-        result.count = countInd_(vars, testUnitsLit, testFreeVar, out,
-                                 m_maxCount.count / ifTaut);
-
-        for (auto &l : testUnitsLit) {
-          unitsLit.push_back(l);
-        }
-        m_specs->preUpdate(testUnitsLit);
-
-        std::cout << result.count << " " << counter << "/" << nbCallCounter
-                  << " " << m_maxCount.count / ifTaut << " " << cpt
-                  << " <<<<\n";
-
-        m_hasBeenStop = false;
-        if (result.count <= m_maxCount.count / ifTaut) {
-          counter++;
-          sizeVars += cpt;
-
-          if (!(counter % 100)) {
-            std::cout << result.count << " " << counter << "/" << nbCallCounter
-                      << " " << sizeVars / counter << "  " << cpt << " <<<<\n";
-          }
-
-          m_specs->postUpdate(unitsLit);
-          return;
-        }
-      }
-    }
-#endif
-
     // init the returned result.
     result.valuation = getArray();
     for (unsigned i = 0; i < m_sizeArray; i++) result.valuation[i] = 0;
@@ -767,12 +721,19 @@ class ExistRandomExist : public MethodManager {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
       m_hasBeenStop = false;
+
+      std::cout << "Variables: ";
+      for (auto &v : connected) {
+        if (m_isProjectedVariable[v]) std::cout << v << " ";
+      }
+      std::cout << "\n";
+
       result.count = countInd_(connected, unitsLit, freeVar, out,
                                m_maxCount.count / ifTaut);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
       m_hasBeenStop = false;
-      exit(0);
+      std::cout << "\n";
       return;
     }
 
@@ -848,7 +809,8 @@ class ExistRandomExist : public MethodManager {
     for (auto &l : unitsLit)
       if (m_isProjectedVariable[l.var()]) {
         if (!m_solver->isInAssumption(l.var()))
-          std::cout << "Propagate: " << m_problem->getWeightLit(l) << "\n";
+          std::cout << "Propagate: " << l.human() << " "
+                    << m_problem->getWeightLit(l) << "\n";
 
         fixInd *= T(m_problem->getWeightLit(l));
       }
@@ -912,18 +874,22 @@ class ExistRandomExist : public MethodManager {
                          T targetMin) {
     if (m_stopProcess) return T(0);
 
+    static int counterCall = 0;
+    int currentCall = ++counterCall;
+
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
     if (v == var_Undef) {
-      std::cout << "Taut\n";
+      std::cout << currentCall << " Taut\n";
       return T(1);
     }
 
     // select a variable for decision.
-    Lit l = Lit::makeLit(
-        v, m_problem->getWeightLit(~l) > m_problem->getWeightLit(l));
-    assert(m_problem->getWeightLit(l) && m_problem->getWeightLit(~l));
+    Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
     m_nbDecisionNode++;
+
+    std::cout << currentCall << " Target Min = " << targetMin << "\n";
+    std::cout << currentCall << " Decision up:" << l.human() << "\n";
 
     // consider the two value for l
     DataBranch<T> b[2];
@@ -936,6 +902,10 @@ class ExistRandomExist : public MethodManager {
 
     // compute the next lower regarding the already compute information.
     b[0].d *= m_problem->computeWeightUnitFree<T>(b[0]);
+
+    std::cout << currentCall << " result from decision " << l.human() << " = "
+              << b[0].d << "\n";
+    std::cout << currentCall << " Decision back: " << (~l).human() << "\n";
 
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
@@ -950,6 +920,9 @@ class ExistRandomExist : public MethodManager {
     }
 
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1]);
+
+    std::cout << currentCall << " result from decision " << (~l).human()
+              << " = " << b[1].d << "\n";
 
     return b[0].d + b[1].d;
   }  // computeDecisionNode
