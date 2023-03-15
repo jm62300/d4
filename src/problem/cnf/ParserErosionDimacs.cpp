@@ -17,13 +17,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "ParserDimacs.hpp"
+#include "ParserErosionDimacs.hpp"
 
 #include <algorithm>
 
 #include "src/problem/ProblemManager.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
-#include "src/utils/Parsing.hpp"
 
 namespace d4 {
 
@@ -37,19 +35,18 @@ namespace d4 {
  * @param problemManager, the place where is store the result.
  * @return an integer that gives the problem's number of variables.
  */
-int ParserDimacs::parse_DIMACS_main(BufferRead &in,
-                                    ProblemManagerCnf *problemManager) {
+int ParserErosionDimacs::parse_erosion_DIMACS_main(
+    BufferRead &in, ProblemManagerErosionCnf *problemManager) {
   std::vector<Lit> lits;
   std::string s;
 
   std::vector<double> &weightLit = problemManager->getWeightLit();
-  std::vector<std::vector<Lit>> &clauses = problemManager->getClauses();
+  std::vector<std::vector<Lit>> &softClauses = problemManager->getSoftClauses();
+  std::vector<std::vector<Lit>> &hardClauses = problemManager->getHardClauses();
 
   int nbVars = 0;
   int nbClauses = 0;
-
-  int cpt = 0;
-  char previousChar = '\0';
+  bool theoryClause = false;
 
   for (;;) {
     in.skipSpace();
@@ -64,8 +61,6 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
         vpActivated = true;
         in.consumeChar();
       }
-      if (in.currentChar() == 'w') in.consumeChar();
-
       if (in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f')
         std::cerr << "PARSE ERROR! Unexpected char: " << in.currentChar()
                   << "\n",
@@ -73,73 +68,10 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
       nbVars = in.nextInt();
       nbClauses = in.nextInt();
-
-      if (vpActivated)
-        std::cout << "c Some variable are marked: " << in.nextInt() << "\n";
       weightLit.resize(((nbVars + 1) << 1), 1);
-
-      if (nbClauses < 0) printf("parse error\n"), exit(2);
-    } else if (in.currentChar() == 'e') {
+    } else if (in.currentChar() == 't') {
       in.consumeChar();
-      if (previousChar != 'e') {
-        cpt++;
-        previousChar = 'e';
-      }
-      assert(cpt <= 3);
-
-      // we only consider the variable if there are max variables.
-      std::vector<Var> vars;
-      Parsing::readListIntTerminatedByZero(in, vars);
-      if (cpt == 1)
-        for (auto v : vars) problemManager->getMaxVar().push_back(v);
-    } else if (in.currentChar() == 'r') {
-      in.consumeChar();
-      if (previousChar != 'r') {
-        cpt++;
-        previousChar = 'r';
-      }
-      assert(cpt <= 2);
-
-      std::vector<Var> vars;
-      Parsing::parseRandonVars(in, weightLit, vars);
-
-      for (auto v : vars) problemManager->getIndVar().push_back(v);
-      in.skipLine();
-    } else if (in.currentChar() == 'v') {
-      in.consumeChar();
-      assert(in.currentChar() == 'p');
-      in.consumeChar();
-      Parsing::readListIntTerminatedByZero(in,
-                                           problemManager->getSelectedVar());
-    } else if (in.currentChar() == 'w') {
-      in.consumeChar();
-      in.skipSpace();
-      Parsing::parseNextWeightedLits(in, weightLit);
-    } else if (in.currentChar() == 'c') {
-      in.consumeChar();
-      in.skipSimpleSpace();
-
-      if (in.currentChar() != 'p') {
-        if (in.canConsume("max")) {
-          Parsing::readListIntTerminatedByZero(in, problemManager->getMaxVar());
-        } else if (in.canConsume("ind"))
-          Parsing::readListIntTerminatedByZero(in, problemManager->getIndVar());
-        else
-          in.skipLine();
-      } else {
-        in.consumeChar();
-        if (in.canConsume("weight")) {
-          Parsing::parseNextWeightedLits(in, weightLit);
-
-          // in this format we have an end line we have to consume.
-          [[maybe_unused]] int endLine = in.nextInt();
-          assert(!endLine);
-        } else if (in.canConsume("show"))
-          Parsing::readListIntTerminatedByZero(
-              in, problemManager->getSelectedVar());
-        else
-          in.skipLine();
-      }
+      theoryClause = true;
     } else {
       lits.clear();
       int v = -1;
@@ -170,17 +102,22 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       // add the clause only if not SAT.
       if (!isSat) {
         lits.resize(j);
-        clauses.push_back(lits);
+        if (theoryClause)
+          hardClauses.push_back(lits);
+        else
+          softClauses.push_back(lits);
       }
+
+      theoryClause = false;
     }
   }
 
   return nbVars;
 }
 
-int ParserDimacs::parse_DIMACS(std::string input_stream,
-                               ProblemManagerCnf *problemManager) {
+int ParserErosionDimacs::parse_erosion_DIMACS(
+    std::string input_stream, ProblemManagerErosionCnf *problemManager) {
   BufferRead in(input_stream);
-  return parse_DIMACS_main(in, problemManager);
+  return parse_erosion_DIMACS_main(in, problemManager);
 }  // parse_DIMACS
 }  // namespace d4

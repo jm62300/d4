@@ -28,15 +28,17 @@
 #include <vector>
 
 #include "../ProblemTypes.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
+#include "src/problem/cnf/ProblemManagerErosionCnf.hpp"
 #include "src/utils/BufferRead.hpp"
 
 namespace d4 {
-class ParserDimacs {
+class ParserErosionDimacs {
  private:
-  int parse_DIMACS_main(BufferRead &in, ProblemManagerCnf *problemManager);
+  int parse_erosion_DIMACS_main(BufferRead &in,
+                                ProblemManagerErosionCnf *problemManager);
 
  public:
-  int parse_DIMACS(std::string input_stream, ProblemManagerCnf *problemManager);
+  int parse_erosion_DIMACS(std::string input_stream,
+                           ProblemManagerErosionCnf *problemManager);
 };
 }  // namespace d4

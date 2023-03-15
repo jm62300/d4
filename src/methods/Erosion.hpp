@@ -24,7 +24,7 @@
 #include "src/methods/Counter.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
+#include "src/problem/cnf/ProblemManagerErosionCnf.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
@@ -68,14 +68,6 @@ class Erosion : public MethodManager {
    * @return true if the problem is not trivially SAT, false otherwise.
    */
   bool erode(std::vector<std::vector<Lit>> &clauses, int nbVar) {
-#if 0
-    printf("CNF\n");
-    for (auto &cl : clauses) {
-      for (auto &l : cl) std::cout << l << " ";
-      std::cout << "0\n";
-    }
-#endif
-
     std::vector<std::vector<Lit>> tmpClauses = clauses;
     std::vector<unsigned long> hashValue;
     clauses.clear();
@@ -99,15 +91,6 @@ class Erosion : public MethodManager {
         hashValue.push_back(currentHash);
       }
     }
-
-#if 0
-    printf("Resultat CNF\n");
-    for (auto &cl : clauses) {
-      for (auto &l : cl) std::cout << l << " ";
-      std::cout << "0\n";
-    }
-    std::cout << "---------------------------------\n";
-#endif
 
     // reduce.
     std::vector<bool> marked(2 * (nbVar + 1), false);
@@ -149,28 +132,17 @@ class Erosion : public MethodManager {
   void run(po::variables_map &vm) {
     // preprare the stream.
     std::ostream outCounter(nullptr);
-#if DEBUG
-    outCounter.copyfmt(std::cout);
-    outCounter.clear(m_out.rdstate());
-    outCounter.basic_ios<char>::rdbuf(m_out.rdbuf());
-#else
-    outCounter.setstate(std::ios_base::badbit);
-#endif
-
     outCounter.setstate(std::ios_base::badbit);
 
     bool isUnsat = false;
     int nbErosion = m_depth < 0 ? m_problem->getNbVar() : m_depth;
 
     // the CNF formula.
-    std::vector<std::vector<Lit>> clauses =
-        static_cast<ProblemManagerCnf *>(m_problem)->getClauses();
-#if 0
-    std::sort(clauses.begin(), clauses.end(),
-              [](std::vector<Lit> &c1, std::vector<Lit> &c2) {
-                return c1.size() < c2.size();
-              });
-#endif
+    std::vector<std::vector<Lit>> softClauses =
+        static_cast<ProblemManagerErosionCnf *>(m_problem)->getSoftClauses();
+    std::vector<std::vector<Lit>> hardClauses =
+        static_cast<ProblemManagerErosionCnf *>(m_problem)->getHardClauses();
+
     // require to init the solver
     LastBreathPreproc lastBreath(0, m_problem->getNbVar() + 1);
     std::vector<Var> setOfVar;
@@ -191,7 +163,11 @@ class Erosion : public MethodManager {
       ProblemManagerCnf *p = new ProblemManagerCnf(
           m_problem->getNbVar(), m_problem->getWeightLit(),
           m_problem->getWeightVar(), m_problem->getSelectedVar());
-      std::vector<std::vector<Lit>> tmpClauses = clauses;
+      std::vector<std::vector<Lit>> tmpClauses = softClauses;
+
+      // add the theory clauses.
+      for (auto &cl : hardClauses) tmpClauses.push_back(cl);
+
       p->setClauses(tmpClauses);
 
       // create the counter.
@@ -212,7 +188,7 @@ class Erosion : public MethodManager {
       if (count == 0) break;
 
       // erosion step.
-      isUnsat = !erode(clauses, m_problem->getNbVar());
+      isUnsat = !erode(softClauses, m_problem->getNbVar());
     }
   }
 

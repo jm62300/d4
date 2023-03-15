@@ -48,7 +48,7 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
   out << "c [PREPROC] Method: " << meth << " " << inputType << "\n";
 
   PreprocManager *ret = nullptr;
-  if (inputType == "cnf" || inputType == "dimacs") {
+  if (inputType == "cnf" || inputType == "dimacs" || inputType == "tcnf") {
     if (meth == "basic")
       ret = new PreprocBasicCnf(vm, out);
     else if (meth == "backbone")

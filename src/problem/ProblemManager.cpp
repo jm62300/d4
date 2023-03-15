@@ -22,6 +22,7 @@
 
 #include "circuit/ProblemManagerCircuit.hpp"
 #include "cnf/ProblemManagerCnf.hpp"
+#include "cnf/ProblemManagerErosionCnf.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -43,6 +44,7 @@ ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm,
 
   ProblemManager *ret = NULL;
   if (inType == "cnf" || inType == "dimacs") ret = new ProblemManagerCnf(in);
+  if (inType == "tcnf") ret = new ProblemManagerErosionCnf(in);
   if (inType == "circuit") ret = new ProblemManagerCircuit(in);
 
   if (!ret)

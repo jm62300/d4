@@ -39,7 +39,7 @@ SpecManager *SpecManager::makeSpecManager(po::variables_map &vm,
 
   out << "c [CONSTRUCTOR SPEC] Spec manager: " << meth << " " << inType << "\n";
 
-  if (inType == "cnf" || inType == "dimacs") {
+  if (inType == "cnf" || inType == "dimacs" || inType == "tcnf") {
     if (meth == "dynamic") return new SpecManagerCnfDyn(p);
     return NULL;
   }

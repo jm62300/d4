@@ -27,16 +27,20 @@
 #include <limits>
 #include <vector>
 
-#include "../ProblemTypes.hpp"
+#include "src/problem/ProblemTypes.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/utils/BufferRead.hpp"
 
 namespace d4 {
-class ParserDimacs {
- private:
-  int parse_DIMACS_main(BufferRead &in, ProblemManagerCnf *problemManager);
-
+class Parsing {
  public:
-  int parse_DIMACS(std::string input_stream, ProblemManagerCnf *problemManager);
+  static void readListIntTerminatedByZero(BufferRead &in,
+                                          std::vector<int> &list);
+
+  static void parseNextWeightedLits(BufferRead &in,
+                                    std::vector<double> &weightLit);
+
+  static void parseRandonVars(BufferRead &in, std::vector<double> &weightLit,
+                              std::vector<Var> &vars);
 };
 }  // namespace d4

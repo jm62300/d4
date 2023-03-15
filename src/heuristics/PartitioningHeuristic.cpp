@@ -76,7 +76,8 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
       << "dynamicPhase(" << dynamicPhase << ") "
       << "staticPhase(" << staticPhase << ")\n";
 
-  if (inType == "cnf" || inType == "dimacs" || inType == "circuit") {
+  if (inType == "cnf" || inType == "dimacs" || inType == "tcnf" ||
+      inType == "circuit") {
     if (inType == "circuit")
       out << "c Warning: only handle the case where the circuit is translated "
              "into a CNF formula\n";

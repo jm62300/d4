@@ -17,9 +17,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "ProblemManagerCnf.hpp"
+#include "ProblemManagerErosionCnf.hpp"
 
-#include "ParserDimacs.hpp"
+#include "ParserErosionDimacs.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
@@ -28,9 +28,9 @@ namespace d4 {
 
    @param[in] nameFile, parse the instance from a file
  */
-ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile) {
-  ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(nameFile, this);
+ProblemManagerErosionCnf::ProblemManagerErosionCnf(std::string &nameFile) {
+  ParserErosionDimacs parser;
+  m_nbVar = parser.parse_erosion_DIMACS(nameFile, this);
 
   m_weightVar.resize(m_nbVar + 1, 0);
   for (unsigned i = 0; i <= m_nbVar; i++)
@@ -41,14 +41,16 @@ ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile) {
    Constructor.
    Construct an empty formula.
  */
-ProblemManagerCnf::ProblemManagerCnf() { m_nbVar = 0; }  // constructor
+ProblemManagerErosionCnf::ProblemManagerErosionCnf() {
+  m_nbVar = 0;
+}  // constructor
 
 /**
  * @brief Construct a new Problem Manager Cnf:: Problem Manager Cnf object
  *
  * @param problem, a problem manager object.
  */
-ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
+ProblemManagerErosionCnf::ProblemManagerErosionCnf(ProblemManager *problem) {
   m_nbVar = problem->getNbVar();
   m_weightLit = problem->getWeightLit();
   m_weightVar = problem->getWeightVar();
@@ -56,6 +58,11 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
   m_maxVar = problem->getMaxVar();
   m_indVar = problem->getIndVar();
   m_isUnsat = false;
+
+  m_softClauses =
+      static_cast<ProblemManagerErosionCnf *>(problem)->getSoftClauses();
+  m_hardClauses =
+      static_cast<ProblemManagerErosionCnf *>(problem)->getHardClauses();
 }  // constructor
 
 /**
@@ -69,11 +76,10 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
  * @param maxVar is the set of existential variables.
  * @param indVar is the set of randomized variables.
  */
-ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                                     std::vector<double> &weightVar,
-                                     std::vector<Var> &selected,
-                                     std::vector<Var> &maxVar,
-                                     std::vector<Var> &indVar) {
+ProblemManagerErosionCnf::ProblemManagerErosionCnf(
+    int nbVar, std::vector<double> &weightLit, std::vector<double> &weightVar,
+    std::vector<Var> &selected, std::vector<Var> &maxVar,
+    std::vector<Var> &indVar) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
@@ -92,9 +98,9 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
    of the lit)
  * @param selected, the projected variables.
  */
-ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                                     std::vector<double> &weightVar,
-                                     std::vector<Var> &selected) {
+ProblemManagerErosionCnf::ProblemManagerErosionCnf(
+    int nbVar, std::vector<double> &weightLit, std::vector<double> &weightVar,
+    std::vector<Var> &selected) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
@@ -105,8 +111,9 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
 /**
    Destructor.
  */
-ProblemManagerCnf::~ProblemManagerCnf() {
-  m_clauses.clear();
+ProblemManagerErosionCnf::~ProblemManagerErosionCnf() {
+  m_softClauses.clear();
+  m_hardClauses.clear();
   m_nbVar = 0;
 }  // destructor
 
@@ -115,40 +122,40 @@ ProblemManagerCnf::~ProblemManagerCnf() {
  *
  * @return an unsatisfiable problem.
  */
-ProblemManager *ProblemManagerCnf::getUnsatProblem() {
-  ProblemManagerCnf *ret = new ProblemManagerCnf(this);
+ProblemManager *ProblemManagerErosionCnf::getUnsatProblem() {
+  ProblemManagerErosionCnf *ret = new ProblemManagerErosionCnf(this);
   ret->m_isUnsat = true;
 
   std::vector<Lit> cl;
   Lit l = Lit::makeLit(1, false);
 
   cl.push_back(l);
-  ret->getClauses().push_back(cl);
+  ret->getHardClauses().push_back(cl);
 
   cl[0] = l.neg();
-  ret->getClauses().push_back(cl);
+  ret->getHardClauses().push_back(cl);
 
   return ret;
 }  // getUnsatProblem
 
 /**
- * @brief Simplify the formula by unit propagation and return the resulting CNF
- * formula.
+ * @brief Simplify the formula by unit propagation and return the resulting
+ * CNF formula.
  *
  * @param units is the set of unit literals we want to condition with.
  * @return the simplified formula.
  */
-ProblemManager *ProblemManagerCnf::getConditionedFormula(
+ProblemManager *ProblemManagerErosionCnf::getConditionedFormula(
     std::vector<Lit> &units) {
-  ProblemManagerCnf *ret = new ProblemManagerCnf(this);
+  ProblemManagerErosionCnf *ret = new ProblemManagerErosionCnf(this);
 
   std::vector<char> value(m_nbVar + 1, 0);
   for (auto l : units) {
     value[l.var()] = l.sign() + 1;
-    ret->getClauses().push_back({l});
+    ret->getSoftClauses().push_back({l});
   }
 
-  for (auto cl : m_clauses) {
+  for (auto cl : m_softClauses) {
     // get the simplified clause.
     std::vector<Lit> scl;
     bool isSAT = false;
@@ -160,7 +167,22 @@ ProblemManager *ProblemManagerCnf::getConditionedFormula(
     }
 
     // add the simplified clause if needed.
-    if (!isSAT) ret->getClauses().push_back(scl);
+    if (!isSAT) ret->getSoftClauses().push_back(scl);
+  }
+
+  for (auto cl : m_hardClauses) {
+    // get the simplified clause.
+    std::vector<Lit> scl;
+    bool isSAT = false;
+    for (auto l : cl) {
+      if (!value[l.var()]) scl.push_back(l);
+
+      isSAT = l.sign() + 1 == value[l.var()];
+      if (isSAT) break;
+    }
+
+    // add the simplified clause if needed.
+    if (!isSAT) ret->getHardClauses().push_back(scl);
   }
 
   return ret;
@@ -171,7 +193,7 @@ ProblemManager *ProblemManagerCnf::getConditionedFormula(
 
    @param[out] out, the stream where the messages are redirected.
  */
-void ProblemManagerCnf::display(std::ostream &out) {
+void ProblemManagerErosionCnf::display(std::ostream &out) {
   out << "weight list: ";
   for (unsigned i = 1; i <= m_nbVar; i++) {
     Lit l = Lit::makeLit(i, false);
@@ -185,8 +207,15 @@ void ProblemManagerCnf::display(std::ostream &out) {
   for (auto v : getSelectedVar()) out << v << " ";
   out << "\n";
 
-  out << "p cnf " << m_nbVar << " " << m_clauses.size() << "\n";
-  for (auto cl : m_clauses) {
+  out << "p cnf " << m_nbVar << " "
+      << m_softClauses.size() + m_hardClauses.size() << "\n";
+  for (auto cl : m_softClauses) {
+    for (auto &l : cl) out << l << " ";
+    out << "0\n";
+  }
+
+  for (auto cl : m_hardClauses) {
+    out << "t ";
     for (auto &l : cl) out << l << " ";
     out << "0\n";
   }
@@ -199,26 +228,43 @@ void ProblemManagerCnf::display(std::ostream &out) {
    @param[in] out, the stream where the messages are redirected.
    @param[in] startLine, each line will start with this string.
  */
-void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
-  unsigned nbLits = 0;
-  unsigned nbBin = 0;
-  unsigned nbTer = 0;
-  unsigned nbMoreThree = 0;
+void ProblemManagerErosionCnf::displayStat(std::ostream &out,
+                                           std::string startLine) {
+  unsigned nbSoftLits = 0, nbSoftBin = 0, nbSoftTer = 0, nbSoftMoreThree = 0;
+  unsigned nbHardLits = 0, nbHardBin = 0, nbHardTer = 0, nbHardMoreThree = 0;
 
-  for (auto &c : m_clauses) {
-    nbLits += c.size();
-    if (c.size() == 2) nbBin++;
-    if (c.size() == 3) nbTer++;
-    if (c.size() > 3) nbMoreThree++;
+  for (auto &c : m_softClauses) {
+    nbSoftLits += c.size();
+    if (c.size() == 2) nbSoftBin++;
+    if (c.size() == 3) nbSoftTer++;
+    if (c.size() > 3) nbSoftMoreThree++;
+  }
+
+  for (auto &c : m_hardClauses) {
+    nbHardLits += c.size();
+    if (c.size() == 2) nbHardBin++;
+    if (c.size() == 3) nbHardTer++;
+    if (c.size() > 3) nbHardMoreThree++;
   }
 
   out << startLine << "Number of variables: " << m_nbVar << "\n";
-  out << startLine << "Number of clauses: " << m_clauses.size() << "\n";
-  out << startLine << "Number of binary clauses: " << nbBin << "\n";
-  out << startLine << "Number of ternary clauses: " << nbTer << "\n";
-  out << startLine << "Number of clauses larger than 3: " << nbMoreThree
+  out << startLine << "Number of soft clauses: " << m_softClauses.size()
       << "\n";
-  out << startLine << "Number of literals: " << nbLits << "\n";
+  out << startLine << "Number of binary soft clauses: " << nbSoftBin << "\n";
+  out << startLine << "Number of ternary soft clauses: " << nbSoftTer << "\n";
+  out << startLine
+      << "Number of soft clauses larger than 3: " << nbSoftMoreThree << "\n";
+  out << startLine << "Number of literals in soft clauses: " << nbSoftLits
+      << "\n";
+
+  out << startLine << "Number of hard clauses: " << m_hardClauses.size()
+      << "\n";
+  out << startLine << "Number of binary hard clauses: " << nbHardBin << "\n";
+  out << startLine << "Number of ternary hard clauses: " << nbHardTer << "\n";
+  out << startLine
+      << "Number of hard clauses larger than 3: " << nbHardMoreThree << "\n";
+  out << startLine << "Number of literals in hard clauses: " << nbHardLits
+      << "\n";
 }  // displaystat
 
 }  // namespace d4

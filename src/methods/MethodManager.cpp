@@ -83,72 +83,72 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   out << "c [METHOD MANAGER] Constructor: " << meth << "\n";
   boost::multiprecision::mpf_float::default_precision(precision);
 
-  LastBreathPreproc lastBreath;
-  ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
+  if (meth != "erosion") {
+    LastBreathPreproc lastBreath;
+    ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
 
-  displayInfoVariables(runProblem, out);
-  out << "c [METHOD MANAGER] Panic mode: " << lastBreath.panic << "\n";
+    displayInfoVariables(runProblem, out);
+    out << "c [METHOD MANAGER] Panic mode: " << lastBreath.panic << "\n";
 
-  for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
-    Lit l = Lit::makeLitTrue(i);
-    if (problem->getWeightLit(l) != 1 || problem->getWeightLit(~l) != 1) {
-      isFloat = 1;
-      out << "c [METHOD MANAGER] Change to float mode!\n";
+    for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
+      Lit l = Lit::makeLitTrue(i);
+      if (problem->getWeightLit(l) != 1 || problem->getWeightLit(~l) != 1) {
+        isFloat = 1;
+        out << "c [METHOD MANAGER] Change to float mode!\n";
+      }
     }
-  }
 
-  if (meth == "counting") {
-    if (!isFloat)
-      // return new DpllStyleMethod<int, int>(vm, meth, isFloat, runProblem,
-      // out,                                 lastBreath);
-      return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-          vm, meth, isFloat, runProblem, out, lastBreath);
-    else
-      return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-          vm, meth, isFloat, runProblem, out, lastBreath);
-  }
+    if (meth == "counting") {
+      if (!isFloat)
+        // return new DpllStyleMethod<int, int>(vm, meth, isFloat, runProblem,
+        // out,                                 lastBreath);
+        return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
+            vm, meth, isFloat, runProblem, out, lastBreath);
+      else
+        return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
+            vm, meth, isFloat, runProblem, out, lastBreath);
+    }
 
-  if (meth == "ddnnf-compiler") {
-    if (!isFloat)
-      return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-          vm, meth, isFloat, runProblem, out, lastBreath);
-    else
-      return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-          vm, meth, isFloat, runProblem, out, lastBreath);
-  }
+    if (meth == "ddnnf-compiler") {
+      if (!isFloat)
+        return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
+            vm, meth, isFloat, runProblem, out, lastBreath);
+      else
+        return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
+            vm, meth, isFloat, runProblem, out, lastBreath);
+    }
 
-  if (meth == "projMC") {
-    if (!isFloat)
-      return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem,
-                                            lastBreath);
-    return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem,
-                                            lastBreath);
-  }
+    if (meth == "projMC") {
+      if (!isFloat)
+        return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem,
+                                              lastBreath);
+      return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem,
+                                              lastBreath);
+    }
 
-  if (meth == "erosion") {
-    if (!isFloat) return new Erosion<mpz::mpz_int>(vm, isFloat, runProblem);
-    return new Erosion<mpz::mpf_float>(vm, isFloat, runProblem);
-  }
+    if (meth == "max#sat") {
+      if (!isFloat)
+        return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
+                                             lastBreath);
+      return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
+                                             lastBreath);
+    }
 
-  if (meth == "max#sat") {
-    if (!isFloat)
-      return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
-                                           lastBreath);
-    return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
-                                           lastBreath);
-  }
+    if (meth == "ere") {
+      return new ExistRandomExist<mpz::mpf_float>(vm, meth, runProblem, out,
+                                                  lastBreath);
+    }
 
-  if (meth == "ere") {
-    return new ExistRandomExist<mpz::mpf_float>(vm, meth, runProblem, out,
-                                                lastBreath);
-  }
-
-  if (meth == "min#sat") {
-    if (!isFloat)
-      return new MinSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
-                                           lastBreath);
-    return new MinSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
-                                           lastBreath);
+    if (meth == "min#sat") {
+      if (!isFloat)
+        return new MinSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
+                                             lastBreath);
+      return new MinSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
+                                             lastBreath);
+    }
+  } else {
+    return new Erosion<mpz::mpz_int>(vm, isFloat,
+                                     new ProblemManagerErosionCnf(problem));
   }
 
   throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));
