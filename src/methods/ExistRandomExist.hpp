@@ -50,6 +50,8 @@
 #include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
+#define TEST 0
+
 namespace d4 {
 namespace po = boost::program_options;
 template <class T>
@@ -721,19 +723,21 @@ class ExistRandomExist : public MethodManager {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
       m_hasBeenStop = false;
-
+#if TEST
       std::cout << "Variables: ";
       for (auto &v : connected) {
         if (m_isProjectedVariable[v]) std::cout << v << " ";
       }
       std::cout << "\n";
-
+#endif
       result.count = countInd_(connected, unitsLit, freeVar, out,
                                m_maxCount.count / ifTaut);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
       m_hasBeenStop = false;
+#if TEST
       std::cout << "\n";
+#endif
       return;
     }
 
@@ -787,9 +791,10 @@ class ExistRandomExist : public MethodManager {
               std::vector<Var> &freeVariable, std::ostream &out, T targetMin) {
     if (m_hasBeenStop) return T(0);
     if (m_stopProcess) return T(0);
-
-    if (targetMin > T(1)) {
-      std::cout << "coucou\n";
+#if TEST
+    std::cout << "countInd: " << targetMin << "\n";
+#endif
+    if (targetMin >= T(1)) {
       m_hasBeenStop = true;
       m_nbCutUpperBoundIndPart++;
     }
@@ -798,7 +803,9 @@ class ExistRandomExist : public MethodManager {
     m_nbCallProj++;
 
     if (!m_solver->solve(setOfVar)) {
+#if TEST
       std::cout << "Is unsat\n";
+#endif
       return T(0);
     }
 
@@ -808,13 +815,17 @@ class ExistRandomExist : public MethodManager {
     T fixInd = T(1);
     for (auto &l : unitsLit)
       if (m_isProjectedVariable[l.var()]) {
+#if TEST
         if (!m_solver->isInAssumption(l.var()))
           std::cout << "Propagate: " << l.human() << " "
                     << m_problem->getWeightLit(l) << "\n";
-
+#endif
         fixInd *= T(m_problem->getWeightLit(l));
       }
 
+#if TEST
+    std::cout << "fixInd = " << fixInd << " -> " << targetMin << "\n";
+#endif
     assignPureLiteral(setOfVar, unitsLit, m_nbPureInd);
 
     // compute the connected composant
@@ -853,12 +864,12 @@ class ExistRandomExist : public MethodManager {
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit);
-
+#if TEST
     std::cout << "result " << result << " ---> ";
     for (auto &l : m_solver->getAssumption())
       if (m_isProjectedVariable[l.var()]) std::cout << l << " ";
     std::cout << "\n";
-
+#endif
     return result;
   }  // countInd_
 
@@ -872,25 +883,35 @@ class ExistRandomExist : public MethodManager {
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out,
                          T targetMin) {
+    if (targetMin >= T(1)) {
+      m_hasBeenStop = true;
+      m_nbCutUpperBoundIndPart++;
+      return T(0);
+    }
     if (m_stopProcess) return T(0);
 
     static int counterCall = 0;
     int currentCall = ++counterCall;
+#if TEST
+    if (currentCall == 10000) exit(0);
+#endif
 
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
     if (v == var_Undef) {
+#if TEST
       std::cout << currentCall << " Taut\n";
+#endif
       return T(1);
     }
 
     // select a variable for decision.
     Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
     m_nbDecisionNode++;
-
+#if TEST
     std::cout << currentCall << " Target Min = " << targetMin << "\n";
     std::cout << currentCall << " Decision up:" << l.human() << "\n";
-
+#endif
     // consider the two value for l
     DataBranch<T> b[2];
 
@@ -902,11 +923,11 @@ class ExistRandomExist : public MethodManager {
 
     // compute the next lower regarding the already compute information.
     b[0].d *= m_problem->computeWeightUnitFree<T>(b[0]);
-
+#if TEST
     std::cout << currentCall << " result from decision " << l.human() << " = "
               << b[0].d << "\n";
     std::cout << currentCall << " Decision back: " << (~l).human() << "\n";
-
+#endif
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
     else if (m_solver->isInAssumption(~l))
@@ -920,10 +941,10 @@ class ExistRandomExist : public MethodManager {
     }
 
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1]);
-
+#if TEST
     std::cout << currentCall << " result from decision " << (~l).human()
               << " = " << b[1].d << "\n";
-
+#endif
     return b[0].d + b[1].d;
   }  // computeDecisionNode
 
