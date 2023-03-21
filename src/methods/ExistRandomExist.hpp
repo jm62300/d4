@@ -671,7 +671,12 @@ class ExistRandomExist : public MethodManager {
         } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult, ifTaut * fixInd);
-          m_cacheMax->addInCache(cb, tmpResult);
+
+          if (!m_hasBeenStop)
+            m_cacheMax->addInCache(cb, tmpResult);
+          else
+            m_cacheMax->releaseMemory(cb.getCachedBucket());
+
           mustMultiply = tmpResult.count;
           if (tmpResult.valuation)
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
@@ -735,9 +740,8 @@ class ExistRandomExist : public MethodManager {
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
       m_hasBeenStop = false;
-#if TEST
+
       std::cout << "\n";
-#endif
       return;
     }
 
@@ -803,9 +807,7 @@ class ExistRandomExist : public MethodManager {
     m_nbCallProj++;
 
     if (!m_solver->solve(setOfVar)) {
-#if TEST
-      std::cout << "Is unsat\n";
-#endif
+      m_solver->getCore();
       return T(0);
     }
 
@@ -815,11 +817,11 @@ class ExistRandomExist : public MethodManager {
     T fixInd = T(1);
     for (auto &l : unitsLit)
       if (m_isProjectedVariable[l.var()]) {
-#if TEST
         if (!m_solver->isInAssumption(l.var()))
           std::cout << "Propagate: " << l.human() << " "
                     << m_problem->getWeightLit(l) << "\n";
-#endif
+
+        m_solver->getLastIUP(l);
         fixInd *= T(m_problem->getWeightLit(l));
       }
 

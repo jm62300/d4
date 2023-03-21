@@ -67,5 +67,8 @@ class WrapperMinisat : public WrapperSolver {
   void setReversePolarity(bool value) override;
   void decayCountConflict() override;
   bool isUnsat() override;
+
+  void getCore() override;
+  void getLastIUP(Lit l) override;
 };
 }  // namespace d4

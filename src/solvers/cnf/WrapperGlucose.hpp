@@ -67,5 +67,8 @@ class WrapperGlucose : public WrapperSolver {
   void setReversePolarity(bool value) override;
   void decayCountConflict() override;
   bool isUnsat() override;
+
+  inline void getCore() { assert(0); }
+  inline void getLastIUP(Lit l) { assert(0); }
 };
 }  // namespace d4

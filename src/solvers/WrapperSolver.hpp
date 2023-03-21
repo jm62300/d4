@@ -71,6 +71,9 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   bool warmStart(int iteration, int sizeQuery, std::vector<Var> &setOfVar,
                  std::ostream &out);
 
+  virtual void getCore() = 0;
+  virtual void getLastIUP(Lit l) = 0;
+
   /**
      Check out if a variable is already in the assumption.
 

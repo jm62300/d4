@@ -375,4 +375,41 @@ void WrapperMinisat::popAssumption(unsigned count) {
 
 inline unsigned WrapperMinisat::getNbConflict() { return s.conflicts; }
 bool WrapperMinisat::isUnsat() { return !s.okay(); }
+
+/**
+ * @brief Compute the core.
+ *
+ */
+void WrapperMinisat::getCore() {
+  for (unsigned i = 0; i < s.conflict.size(); i++) {
+    minisat::Lit l = s.conflict[i];
+    std::cout << (minisat::sign(l) ? "-" : "") << minisat::var(l) << "("
+              << s.level(var(l)) << ") ";
+  }
+  std::cout << "  ---> " << s.decisionLevel() << "\n";
+}  // getCore
+
+/**
+ * @brief
+ *
+ * @param l
+ */
+void WrapperMinisat::getLastIUP(Lit dl) {
+  minisat::Lit ml = minisat::mkLit(dl.var(), dl.sign());
+  if (s.reason(minisat::var(ml)) == minisat::CRef_Undef) {
+    std::cout << "decision\n";
+    return;
+  }
+
+  minisat::vec<minisat::Lit> conf;
+  s.analyzeFinal(ml, conf);
+
+  for (unsigned i = 0; i < conf.size(); i++) {
+    minisat::Lit l = conf[i];
+    std::cout << (minisat::sign(l) ? "-" : "") << minisat::var(l) << "("
+              << s.level(var(l)) << ") ";
+  }
+  std::cout << "  ---> " << s.decisionLevel() << "\n";
+}  // getLastIUP
+
 }  // namespace d4
