@@ -892,8 +892,8 @@ class ExistRandomExist : public MethodManager {
     }
     if (m_stopProcess) return T(0);
 
-    static int counterCall = 0;
-    int currentCall = ++counterCall;
+    [[maybe_unused]] static int counterCall = 0;
+    [[maybe_unused]] int currentCall = ++counterCall;
 #if TEST
     if (currentCall == 10000) exit(0);
 #endif
