@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
-#include "3rdParty/bipe/srcBipe/methods/Method.hpp"
+#include "3rdParty/bipe/src/bipartition/methods/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
@@ -31,7 +31,7 @@ namespace po = boost::program_options;
 class PreprocBackboneCnf : public PreprocManager {
  private:
   WrapperSolver *ws;
-  bipe::Method *m_isRunning = NULL;
+  bipe::bipartition::Method *m_isRunning = NULL;
 
  public:
   PreprocBackboneCnf(po::variables_map &vm, std::ostream &out);

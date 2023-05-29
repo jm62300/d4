@@ -20,8 +20,6 @@
 
 #include <csignal>
 
-#include "3rdParty/bipe/srcBipe/methods/Bipartition.hpp"
-
 namespace d4 {
 
 /**
@@ -44,6 +42,7 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
                                            std::vector<bipe::Var> &input,
                                            std::vector<bipe::Gate> &gates,
                                            unsigned timeout) {
+#if 0
   std::vector<Var> protect, selected;
   if (pcnf.getSelectedVar().size())
     selected = pcnf.getSelectedVar();
@@ -80,6 +79,7 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
     std::cerr << "c [PREPOC #EQUIV] We already checked that is SAT Oo\n";
     exit(-1);
   }
+#endif
 }  // computeBipartition
 
 /**
@@ -89,6 +89,7 @@ bool PreprocSharpEquiv::applyDistillation(
     std::vector<std::vector<Lit>> &clauses, std::vector<Lit> &units,
     std::vector<bool> &isUnit, unsigned nbVar,
     std::vector<std::vector<Lit>> &resClauses) {
+#if 0
   // the clauses that will given to the distillation process.
   unsigned initSize = clauses.size();
   std::vector<std::vector<reducer::Lit>> dclauses, resDist;
@@ -119,6 +120,8 @@ bool PreprocSharpEquiv::applyDistillation(
   }
 
   return initSize > resClauses.size();
+#endif
+  return true;
 }  // applyDistillation
 
 /**
@@ -127,9 +130,9 @@ bool PreprocSharpEquiv::applyDistillation(
 bool PreprocSharpEquiv::applyElimination(
     std::vector<std::vector<Lit>> &clauses, std::vector<Lit> &units,
     std::vector<bool> &isUnit, unsigned nbVar, std::vector<bipe::Var> &input,
-    std::vector<eliminator::Gate> &dac,
-    std::vector<eliminator::Lit> &eliminated,
+    std::vector<bipe::Gate> &dac, std::vector<bipe::Lit> &eliminated,
     std::vector<std::vector<Lit>> &resClauses, unsigned limitNbClauses) {
+#if 0
   // prepare the clause for the elimination method.
   std::vector<std::vector<eliminator::Lit>> clausesAfterElim;
 
@@ -163,6 +166,8 @@ bool PreprocSharpEquiv::applyElimination(
   }
 
   return initElim < eliminated.size();
+#endif
+  return true;
 }  // applyElimination
 
 /**
@@ -179,6 +184,7 @@ PreprocSharpEquiv::~PreprocSharpEquiv() { delete ws; }  // destructor
 ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
                                        LastBreathPreproc &lastBreath,
                                        unsigned timeout) {
+#if 0
   std::cout << "c [PREPROC #EQUIV] Start\n";
   ws->initSolver(*pin);
   lastBreath.panic = 0;
@@ -263,13 +269,16 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   alarm(0);
   delete m_isRunningReducer;
   return ret;
+#endif
+  return nullptr;
 }  // run
 
 /**
  * @brief expressDacInEliminatorFormat implementation.
  */
 void PreprocSharpEquiv::expressDacInEliminatorFormat(
-    std::vector<bipe::Gate> &gates, std::vector<eliminator::Gate> &dac) {
+    std::vector<bipe::Gate> &gates, std::vector<bipe::Gate> &dac) {
+#if 0
   unsigned nbEquiv = 0, nbUnit = 0, nbXor = 0, nbOr = 0;
 
   for (auto &g : gates) {
@@ -312,6 +321,8 @@ void PreprocSharpEquiv::expressDacInEliminatorFormat(
             << "#equiv = " << nbEquiv << "\t"
             << "#or = " << nbOr << "\t"
             << "#xor = " << nbXor << "\n";
+
+#endif
 }  // expressDacInEliminatorFormat
 
 }  // namespace d4

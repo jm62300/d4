@@ -21,7 +21,6 @@
 
 #include <csignal>
 
-#include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -52,6 +51,8 @@ PreprocEquiv::~PreprocEquiv() { delete ws; }  // destructor
 ProblemManager *PreprocEquiv::run(ProblemManager *pin,
                                   LastBreathPreproc &lastBreath,
                                   unsigned timeout) {
+#if 0
+
   std::cout << "c [EQUIV PREPROC] Start\n";
   ws->initSolver(*pin);
   lastBreath.panic = 0;
@@ -157,5 +158,8 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
     m_isRunningBackbone = NULL;
     return pin->getConditionedFormula(units);
   }
+#endif
+  return nullptr;
+
 }  // run
 }  // namespace d4

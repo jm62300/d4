@@ -51,6 +51,7 @@ PreprocReducer::~PreprocReducer() { delete ws; }  // destructor
 ProblemManager *PreprocReducer::run(ProblemManager *pin,
                                     LastBreathPreproc &lastBreath,
                                     unsigned timeout) {
+#if 0
   ws->initSolver(*pin);
   lastBreath.panic = 0;
   lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
@@ -105,5 +106,7 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
   m_isRunning = NULL;
   delete rm;
   return ret;
+#endif
+  return nullptr;
 }  // run
 }  // namespace d4

@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
-#include "3rdParty/bipe/srcBipe/methods/Method.hpp"
-#include "3rdParty/eliminator/srcEliminator/Eliminator.hpp"
-#include "3rdParty/reducer/src/methods/Method.hpp"
+#include "3rdParty/bipe/src/bipartition/methods/Method.hpp"
+#include "3rdParty/bipe/src/eliminator/Eliminator.hpp"
+#include "3rdParty/bipe/src/reducer/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/solvers/WrapperSolver.hpp"
@@ -37,8 +37,8 @@ class PreprocSharpEquiv : public PreprocManager {
   std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
-  reducer::Method *m_isRunningReducer = NULL;
-  eliminator::Eliminator *m_isRunningEliminator = NULL;
+  bipe::reducer::Method *m_isRunningReducer = NULL;
+  bipe::eliminator::Eliminator *m_isRunningEliminator = NULL;
 
   /**
    * @brief Rewrite the DAC computed using bipe in another DAC ready to be used
@@ -48,7 +48,7 @@ class PreprocSharpEquiv : public PreprocManager {
    * @param dac is the DAC that can be used with eliminator.
    */
   void expressDacInEliminatorFormat(std::vector<bipe::Gate> &gates,
-                                    std::vector<eliminator::Gate> &dac);
+                                    std::vector<bipe::Gate> &dac);
 
   /**
    * @brief Compute the bipartition.
@@ -64,7 +64,7 @@ class PreprocSharpEquiv : public PreprocManager {
                           std::vector<bipe::Var> &input,
                           std::vector<bipe::Gate> &gates, unsigned timeout);
 
-  /**
+  /**eliminator
    * @brief Apply distillation to a given set of clauses (with units).
    *
    * @param clauses is the set of clauses.
@@ -98,8 +98,8 @@ class PreprocSharpEquiv : public PreprocManager {
   bool applyElimination(std::vector<std::vector<Lit>> &clauses,
                         std::vector<Lit> &units, std::vector<bool> &isUnit,
                         unsigned nbVar, std::vector<bipe::Var> &input,
-                        std::vector<eliminator::Gate> &dac,
-                        std::vector<eliminator::Lit> &eliminated,
+                        std::vector<bipe::Gate> &dac,
+                        std::vector<bipe::Lit> &eliminated,
                         std::vector<std::vector<Lit>> &resClauses,
                         unsigned limitNbClauses);
 
