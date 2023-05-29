@@ -13,14 +13,6 @@ then
     cd 3rdParty/bipe/
     ./clean.sh 1
     cd $curRep
-
-    cd 3rdParty/reducer
-    ./clean.sh 1
-    cd $curRep
-
-    cd 3rdParty/eliminator
-    ./clean.sh 1
-    cd $curRep
 fi
 
 rm -rf build/
