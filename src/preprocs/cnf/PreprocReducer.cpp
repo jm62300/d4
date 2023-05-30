@@ -86,6 +86,7 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
       pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
       pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
 
+  // transfer the clauses to the returned formula.
   std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
   for (auto &cl : clauses) {
     clausesAfter.push_back({});

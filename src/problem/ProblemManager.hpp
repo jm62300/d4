@@ -27,12 +27,14 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
+namespace mpz = boost::multiprecision;
 namespace po = boost::program_options;
+
 class ProblemManager {
  protected:
   unsigned m_nbVar;
-  std::vector<double> m_weightLit;
-  std::vector<double> m_weightVar;
+  std::vector<mpz::mpf_float> m_weightLit;
+  std::vector<mpz::mpf_float> m_weightVar;
   std::vector<Var> m_selected;
   std::vector<Var> m_maxVar;
   std::vector<Var> m_indVar;
@@ -54,11 +56,11 @@ class ProblemManager {
   inline std::vector<Var> &getSelectedVar() { return m_selected; }
   inline std::vector<Var> &getMaxVar() { return m_maxVar; }
   inline std::vector<Var> &getIndVar() { return m_indVar; }
-  inline std::vector<double> &getWeightLit() { return m_weightLit; }
-  inline std::vector<double> &getWeightVar() { return m_weightVar; }
+  inline std::vector<mpz::mpf_float> &getWeightLit() { return m_weightLit; }
+  inline std::vector<mpz::mpf_float> &getWeightVar() { return m_weightVar; }
 
-  inline double getWeightLit(Lit l) { return m_weightLit[l.intern()]; }
-  inline double getWeightVar(Var v) { return m_weightVar[v]; }
+  inline mpz::mpf_float getWeightLit(Lit l) { return m_weightLit[l.intern()]; }
+  inline mpz::mpf_float getWeightVar(Var v) { return m_weightVar[v]; }
 
   inline unsigned getNbSelectedVar() { return m_selected.size(); }
   inline bool isUnsat() { return m_isUnsat; }

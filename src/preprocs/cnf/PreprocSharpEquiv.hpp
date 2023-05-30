@@ -54,45 +54,6 @@ class PreprocSharpEquiv : public PreprocManager {
                           std::vector<bipe::Var> &output,
                           std::vector<bipe::Gate> &gates, unsigned timeout);
 
-  /**eliminator
-   * @brief Apply distillation to a given set of clauses (with units).
-   *
-   * @param clauses is the set of clauses.
-   * @param[out] units is the set of unit clauses.
-   * @param[out] isUnit gives the variables that are unit.
-   * @param nbVar is the number of variables.
-   * @param[out] resClauses is the simplified formula (without the units).
-   *
-   * \return true if the formula has been modified.
-   */
-  bool applyDistillation(std::vector<std::vector<Lit>> &clauses,
-                         std::vector<Lit> &units, std::vector<bool> &isUnit,
-                         unsigned nbVar,
-                         std::vector<std::vector<Lit>> &resClauses);
-
-  /**
-   * @brief Try to eliminate some variables.
-   *
-   * @param clauses is the CNF formula.
-   * @param units is the set of unit literals.
-   * @param isUnit gives if a variable is unit or not.
-   * @param nbVar is the number of variables.
-   * @param input are the input variables.
-   * @param dac is the set of gates.
-   * @param eliminated are the variables removed.
-   * @param resClauses is the resulting CNF.
-   * @param limitNbClauses give the maximum number of clause we can have in the
-   * result.
-   * @return true if we remove some variables, false otherwise.
-   */
-  bool applyElimination(std::vector<std::vector<Lit>> &clauses,
-                        std::vector<Lit> &units, std::vector<bool> &isUnit,
-                        unsigned nbVar, std::vector<bipe::Var> &input,
-                        std::vector<bipe::Gate> &dac,
-                        std::vector<bipe::Lit> &eliminated,
-                        std::vector<std::vector<Lit>> &resClauses,
-                        unsigned limitNbClauses);
-
  public:
   PreprocSharpEquiv(po::variables_map &vm, std::string &method, int nbIteration,
                     std::ostream &out);

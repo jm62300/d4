@@ -78,7 +78,8 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
           pin->getWeightLit(Lit::makeLitFalse(i)))
         selected.push_back(i);
 
-  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
+  std::vector<double> tmp(pin->getNbVar() + 1, 1.0);
+  bipe::Problem pb(pin->getNbVar(), tmp, selected, protect);
 
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();

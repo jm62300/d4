@@ -77,9 +77,9 @@ ProblemManagerErosionCnf::ProblemManagerErosionCnf(ProblemManager *problem) {
  * @param indVar is the set of randomized variables.
  */
 ProblemManagerErosionCnf::ProblemManagerErosionCnf(
-    int nbVar, std::vector<double> &weightLit, std::vector<double> &weightVar,
-    std::vector<Var> &selected, std::vector<Var> &maxVar,
-    std::vector<Var> &indVar) {
+    int nbVar, std::vector<mpz::mpf_float> &weightLit,
+    std::vector<mpz::mpf_float> &weightVar, std::vector<Var> &selected,
+    std::vector<Var> &maxVar, std::vector<Var> &indVar) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
@@ -99,8 +99,8 @@ ProblemManagerErosionCnf::ProblemManagerErosionCnf(
  * @param selected, the projected variables.
  */
 ProblemManagerErosionCnf::ProblemManagerErosionCnf(
-    int nbVar, std::vector<double> &weightLit, std::vector<double> &weightVar,
-    std::vector<Var> &selected) {
+    int nbVar, std::vector<mpz::mpf_float> &weightLit,
+    std::vector<mpz::mpf_float> &weightVar, std::vector<Var> &selected) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;

@@ -40,7 +40,7 @@ int ParserErosionDimacs::parse_erosion_DIMACS_main(
   std::vector<Lit> lits;
   std::string s;
 
-  std::vector<double> &weightLit = problemManager->getWeightLit();
+  std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
   std::vector<std::vector<Lit>> &softClauses = problemManager->getSoftClauses();
   std::vector<std::vector<Lit>> &hardClauses = problemManager->getHardClauses();
 

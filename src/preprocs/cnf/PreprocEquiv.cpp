@@ -79,7 +79,8 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
           pin->getWeightLit(Lit::makeLitFalse(i)))
         selected.push_back(i);
 
-  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
+  std::vector<double> tmp(pin->getNbVar() + 1, 1.0);
+  bipe::Problem pb(pin->getNbVar(), tmp, selected, protect);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
   for (auto l : units)
     clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});

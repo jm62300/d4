@@ -69,8 +69,9 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
  * @param maxVar is the set of existential variables.
  * @param indVar is the set of randomized variables.
  */
-ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                                     std::vector<double> &weightVar,
+ProblemManagerCnf::ProblemManagerCnf(int nbVar,
+                                     std::vector<mpz::mpf_float> &weightLit,
+                                     std::vector<mpz::mpf_float> &weightVar,
                                      std::vector<Var> &selected,
                                      std::vector<Var> &maxVar,
                                      std::vector<Var> &indVar) {
@@ -92,8 +93,9 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
    of the lit)
  * @param selected, the projected variables.
  */
-ProblemManagerCnf::ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                                     std::vector<double> &weightVar,
+ProblemManagerCnf::ProblemManagerCnf(int nbVar,
+                                     std::vector<mpz::mpf_float> &weightLit,
+                                     std::vector<mpz::mpf_float> &weightVar,
                                      std::vector<Var> &selected) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;

@@ -42,7 +42,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
   std::vector<Lit> lits;
   std::string s;
 
-  std::vector<double> &weightLit = problemManager->getWeightLit();
+  std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
   std::vector<std::vector<Lit>> &clauses = problemManager->getClauses();
 
   int nbVars = 0;
@@ -50,6 +50,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
   int cpt = 0;
   char previousChar = '\0';
+  bool weightedProblem = false;
 
   for (;;) {
     in.skipSpace();
@@ -119,7 +120,13 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       in.consumeChar();
       in.skipSimpleSpace();
 
-      if (in.currentChar() != 'p') {
+      if (in.currentChar() == 't') {
+        in.consumeChar();
+        weightedProblem = (in.currentChar() == 'w');
+        in.skipLine();
+        std::cout << "c [PASER] " << (weightedProblem ? "Weighted " : " ")
+                  << "Model Counting problem\n";
+      } else if (in.currentChar() != 'p') {
         if (in.canConsume("max")) {
           Parsing::readListIntTerminatedByZero(in, problemManager->getMaxVar());
         } else if (in.canConsume("ind"))

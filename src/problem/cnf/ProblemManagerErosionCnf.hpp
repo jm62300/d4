@@ -30,11 +30,11 @@ class ProblemManagerErosionCnf : public ProblemManager {
 
  public:
   ProblemManagerErosionCnf();
-  ProblemManagerErosionCnf(int nbVar, std::vector<double> &weightLit,
-                           std::vector<double> &weightVar,
+  ProblemManagerErosionCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
+                           std::vector<mpz::mpf_float> &weightVar,
                            std::vector<Var> &selected);
-  ProblemManagerErosionCnf(int nbVar, std::vector<double> &weightLit,
-                           std::vector<double> &weightVar,
+  ProblemManagerErosionCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
+                           std::vector<mpz::mpf_float> &weightVar,
                            std::vector<Var> &selected, std::vector<Var> &maxVar,
                            std::vector<Var> &indVar);
   ProblemManagerErosionCnf(ProblemManager *problem);

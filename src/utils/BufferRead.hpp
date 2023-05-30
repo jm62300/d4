@@ -18,19 +18,21 @@
  */
 #pragma once
 
+#include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
 
 #define BUFFER_SIZE 65536
 
 namespace d4 {
+
 class BufferRead {
   int pos;
   int size;
   char buffer[BUFFER_SIZE];
   FILE *f;
 
-public:
+ public:
   BufferRead(std::string &name) {
     pos = 0;
     size = 0;
@@ -46,8 +48,7 @@ public:
   }
 
   ~BufferRead() {
-    if (f)
-      fclose(f);
+    if (f) fclose(f);
   }
 
   inline char currentChar() { return buffer[pos]; }
@@ -80,8 +81,7 @@ public:
   }
 
   inline void skipLine() {
-    while (!eof() && currentChar() != '\n')
-      consumeChar();
+    while (!eof() && currentChar() != '\n') consumeChar();
     consumeChar();
   }
 
@@ -90,8 +90,7 @@ public:
     skipSpace();
 
     bool sign = currentChar() == '-';
-    if (sign)
-      consumeChar();
+    if (sign) consumeChar();
     while (!eof() && currentChar() >= '0' && currentChar() <= '9') {
       ret = ret * 10 + (nextChar() - '0');
     }
@@ -113,14 +112,13 @@ public:
         consumeChar();
     }
     return true;
-  } // canConsume
+  }  // canConsume
 
   inline double nextDouble() {
     skipSpace();
 
     bool sign = currentChar() == '-';
-    if (sign)
-      consumeChar();
+    if (sign) consumeChar();
 
     std::string cur = "";
     while (!eof() && ((currentChar() >= '0' && currentChar() <= '9') ||
@@ -136,5 +134,28 @@ public:
 
     return (sign) ? -ret : ret;
   }
+
+  /**
+   * @brief Read on the buffer the next float.
+   *
+   * @return an mpz::mpf_float that encode the float we read.
+   */
+  inline boost::multiprecision::mpf_float nextMpf_float() {
+    skipSpace();
+    bool sign = currentChar() == '-';
+    if (sign) consumeChar();
+
+    std::string cur = "";
+    while (!eof() && ((currentChar() >= '0' && currentChar() <= '9') ||
+                      currentChar() == '.' || currentChar() == 'e' ||
+                      currentChar() == '-')) {
+      cur += currentChar();
+      nextChar();
+    }
+
+    boost::multiprecision::mpf_float ret =
+        boost::multiprecision::mpf_float(cur);
+    return (sign) ? -ret : ret;
+  }
 };
-} // namespace d4
+}  // namespace d4
