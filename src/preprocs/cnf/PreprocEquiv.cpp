@@ -97,6 +97,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
 
   std::cerr << "c [PREPOC BACKBONE] Is running for at most " << timeout
             << " seconds\n";
+
   PreprocManager::s_isRunning = &bb;
 
   // change the handler.
@@ -107,13 +108,13 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
   signal(SIGALRM, handler);
   alarm(timeout);
 
-  bool res = bb.simplifyBackbone(
-      pb, (bipe::bipartition::OptionBackbone){true, timeout, true, "Glucose"},
-      gates, std::cout, setOfModels);
+  bool res = bb.simplifyBackbone(pb, {true, timeout, true, "Glucose"}, gates,
+                                 std::cout, setOfModels);
+  s_isRunning = nullptr;
 
   if (!res) {
-    std::cerr << "c [PREPOC BACKBONE] We already checked that is SAT Oo\n";
-    exit(-1);
+    std::cout
+        << "c [PREPOC BACKBONE] The preproc has been stopped before the end\n";
   }
 
   if (!m_isInterrupted) {

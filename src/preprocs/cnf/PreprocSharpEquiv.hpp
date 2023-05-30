@@ -37,18 +37,6 @@ class PreprocSharpEquiv : public PreprocManager {
   std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
-  bipe::reducer::Method *m_isRunningReducer = NULL;
-  bipe::eliminator::Eliminator *m_isRunningEliminator = NULL;
-
-  /**
-   * @brief Rewrite the DAC computed using bipe in another DAC ready to be used
-   * with the eliminator library.
-   *
-   * @param gates is the DAC computed using bipe.
-   * @param dac is the DAC that can be used with eliminator.
-   */
-  void expressDacInEliminatorFormat(std::vector<bipe::Gate> &gates,
-                                    std::vector<bipe::Gate> &dac);
 
   /**
    * @brief Compute the bipartition.
@@ -57,11 +45,13 @@ class PreprocSharpEquiv : public PreprocManager {
    * gates).
    * @param[out] units stores the unit literals.
    * @param[out] input stores the input variables.
+   * @param[out] output is the set of output variables.
    * @param[out] gates stores the extracted gates.
    * @param timeout is the timeout for computing the bipartition.
    */
   void computeBipartition(ProblemManagerCnf &pcnf, std::vector<Lit> &units,
                           std::vector<bipe::Var> &input,
+                          std::vector<bipe::Var> &output,
                           std::vector<bipe::Gate> &gates, unsigned timeout);
 
   /**eliminator
@@ -115,18 +105,6 @@ class PreprocSharpEquiv : public PreprocManager {
    * @brief Stop.
    *
    */
-  inline void interrupt() {
-    m_isInterrupted = true;
-    if (m_isRunningReducer) {
-      std::cout << "c [PREPROC #EQUIV] Stop the reducer because timeout\n";
-      m_isRunningReducer->interrupt();
-    }
-
-    if (m_isRunningEliminator) {
-      std::cout
-          << "c [PREPROC #EQUIV] Stop the elmination process because timeout\n";
-      m_isRunningEliminator->interrupt();
-    }
-  }  // interrupt
+  inline void interrupt() { m_isInterrupted = true; }  // interrupt
 };
 }  // namespace d4

@@ -40,6 +40,7 @@ PreprocSharpEquiv::PreprocSharpEquiv(po::variables_map &vm, std::string &method,
 void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
                                            std::vector<Lit> &units,
                                            std::vector<bipe::Var> &input,
+                                           std::vector<bipe::Var> &output,
                                            std::vector<bipe::Gate> &gates,
                                            unsigned timeout) {
 #if 0
@@ -184,7 +185,6 @@ PreprocSharpEquiv::~PreprocSharpEquiv() { delete ws; }  // destructor
 ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
                                        LastBreathPreproc &lastBreath,
                                        unsigned timeout) {
-#if 0
   std::cout << "c [PREPROC #EQUIV] Start\n";
   ws->initSolver(*pin);
   lastBreath.panic = 0;
@@ -204,125 +204,66 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   for (auto &l : units) isUnit[l.var()] = true;
 
   // get the cnf.
+  // create the problem regarding the bipe library.
+  std::vector<Var> protect, selected;
+  if (pin->getSelectedVar().size())
+    selected = pin->getSelectedVar();
+  else
+    for (unsigned i = 1; i <= pin->getNbVar(); i++)
+      if (pin->getWeightLit(Lit::makeLitTrue(i)) ==
+          pin->getWeightLit(Lit::makeLitFalse(i)))
+        selected.push_back(i);
+
+  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
+
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
+  std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
+  for (auto l : units)
+    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
+  for (auto &cl : pcnf.getClauses()) {
+    clauses.push_back({});
+    for (auto l : cl)
+      clauses.back().push_back(bipe::Lit::makeLit(l.var(), l.sign()));
+  }
+
   unsigned limitNbClauses = pcnf.getClauses().size();
 
   // call the preprocessor to compute the bipartition.
-  std::vector<bipe::Var> input;
+  std::vector<bipe::Var> input, output;
   std::vector<bipe::Gate> gates;
-  computeBipartition(pcnf, units, input, gates, timeout / 2);
+  computeBipartition(pcnf, units, input, output, gates, timeout);
 
-  // prepare the formula we will return.
+  // create the problem from the reducer side.
+  bipe::eliminator::Eliminator e;
+  bipe::reducer::Method *rm =
+      bipe::reducer::Method::makeMethod("combinaison", std::cout);
+
+  // the reduction + elimination + reduction phase.
+  rm->run(pin->getNbVar(), clauses, 5, true, clauses);
+  std::vector<bipe::Lit> eliminated;
+  e.eliminate(pin->getNbVar(), clauses, input, gates, eliminated, false,
+              limitNbClauses);
+  rm->run(pin->getNbVar(), clauses, 5, true, clauses);
+
+  // the problem we return.
   ProblemManagerCnf *ret = new ProblemManagerCnf(
       pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
       pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
 
-  // Start by trying to reduce the formula using distillation.
-  int nbInitialClause = (int)pcnf.getClauses().size();
-  m_isRunningReducer = reducer::Method::makeMethod("combinaison", std::cout);
-  applyDistillation(pcnf.getClauses(), units, isUnit, pcnf.getNbVar(),
-                    ret->getClauses());
-  std::cout << "c [PREPROC #EQUIV] First call, #remove clauses: "
-            << nbInitialClause - (int)ret->getClauses().size() << "\n";
-
-  // prepare the method to eliminate variables.
-  eliminator::Eliminator el;
-  m_isRunningEliminator = &el;
-  std::vector<eliminator::Lit> eliminated;
-  std::vector<eliminator::Gate> dac;
-  expressDacInEliminatorFormat(gates, dac);
-
-  PreprocManager::s_isRunning = this;
-  signal(SIGALRM, [](int s) {
-    if (PreprocManager::s_isRunning)
-      ((PreprocSharpEquiv *)PreprocManager::s_isRunning)->interrupt();
-  });
-  alarm(timeout / 2);
-
-  bool hasBeenModified = true;
-  for (unsigned ite = 0;
-       hasBeenModified && !m_isInterrupted && ite < m_nbIteration; ite++) {
-    // elimination.
-    hasBeenModified = applyElimination(ret->getClauses(), units, isUnit,
-                                       pcnf.getNbVar(), input, dac, eliminated,
-                                       ret->getClauses(), limitNbClauses);
-
-    // reduction.
-    hasBeenModified = hasBeenModified ||
-                      applyDistillation(ret->getClauses(), units, isUnit,
-                                        pcnf.getNbVar(), ret->getClauses());
-
-    std::cout << "c [PREPROC #EQUIV] #iteration: " << ite << "/"
-              << m_nbIteration << "\t#clause: " << ret->getClauses().size()
-              << "\t#eliminated: " << eliminated.size() << "\n";
+  // transfer the clauses.
+  std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
+  for (auto &cl : clauses) {
+    clausesAfter.push_back({});
+    for (auto &l : cl)
+      clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
   }
-  PreprocManager::s_isRunning = nullptr;
 
-  unsigned nbUsedGate = 0;
-  for (auto &g : dac)
-    if (g.input.size() && g.type == eliminator::RM) nbUsedGate++;
-  std::cout << "c [PREPROC #EQUIV] Number gates used: " << nbUsedGate << "\n";
+  // to be sure to expel the removed variables.
+  for (auto &l : eliminated)
+    clausesAfter.push_back({Lit::makeLit(l.var(), l.sign())});
 
-  // get the 'unit literals'.
-  for (auto &l : units) ret->getClauses().push_back({l});
-
-  alarm(0);
-  delete m_isRunningReducer;
+  delete rm;
   return ret;
-#endif
-  return nullptr;
 }  // run
-
-/**
- * @brief expressDacInEliminatorFormat implementation.
- */
-void PreprocSharpEquiv::expressDacInEliminatorFormat(
-    std::vector<bipe::Gate> &gates, std::vector<bipe::Gate> &dac) {
-#if 0
-  unsigned nbEquiv = 0, nbUnit = 0, nbXor = 0, nbOr = 0;
-
-  for (auto &g : gates) {
-    dac.push_back(eliminator::Gate());
-    dac.back().output =
-        eliminator::Lit::makeLit(g.output.var(), g.output.sign());
-
-    switch (g.type) {
-      case bipe::UNIT:
-        dac.back().type = eliminator::UNIT;
-        nbUnit++;
-        break;
-      case bipe::EQUIV:
-        dac.back().type = eliminator::EQUIV;
-        nbEquiv++;
-        break;
-      case bipe::AND:
-        nbOr++;
-        dac.back().type = eliminator::AND;
-        break;
-      case bipe::OR:
-        nbOr++;
-        dac.back().type = eliminator::OR;
-        break;
-      case bipe::XOR:
-        nbXor++;
-        dac.back().type = eliminator::XOR;
-        break;
-      default:
-        std::cerr << "c This gate is not supported\n";
-        exit(EXIT_FAILURE);
-        break;
-    }
-
-    for (auto l : g.input)
-      dac.back().input.push_back(eliminator::Lit::makeLit(l.var(), l.sign()));
-  }
-
-  std::cout << "c [PREPROC #EQUIV] #unit = " << nbUnit << "\t"
-            << "#equiv = " << nbEquiv << "\t"
-            << "#or = " << nbOr << "\t"
-            << "#xor = " << nbXor << "\n";
-
-#endif
-}  // expressDacInEliminatorFormat
 
 }  // namespace d4

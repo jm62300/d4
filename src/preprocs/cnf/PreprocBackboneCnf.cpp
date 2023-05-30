@@ -97,6 +97,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
 
   std::cerr << "c [PREPOC BACKBONE] Is running for at most " << timeout
             << " seconds\n";
+
   PreprocManager::s_isRunning = &bb;
 
   // change the handler.
@@ -110,10 +111,11 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   bool res = bb.simplifyBackbone(
       pb, (bipe::bipartition::OptionBackbone){true, timeout, true, "Glucose"},
       gates, std::cout, setOfModels);
+  s_isRunning = nullptr;
 
   if (!res) {
-    std::cerr << "c [PREPOC BACKBONE] We already checked that is SAT Oo\n";
-    exit(-1);
+    std::cout
+        << "c [PREPROC BACKBONE] The process has been stopped before the end\n";
   }
 
   // the list of unit literals.
@@ -125,8 +127,6 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
             << lastBreath.panic << "\n";
 
-  m_isRunning = NULL;
-  alarm(0);
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4
