@@ -354,6 +354,29 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
+    static unsigned countPure = 0, limitPure = 100000;
+    std::vector<Lit> pureLit;
+    for (auto &v : setOfVar) {
+      if (m_isDecisionVariable[v]) continue;
+      if (m_specs->varIsAssigned(v)) continue;
+
+      Lit l = Lit::makeLitTrue(v);
+      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
+        pureLit.push_back(~l);
+      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
+        pureLit.push_back(l);
+    }
+    if (pureLit.size()) {
+      for (auto &l : pureLit) unitsLit.push_back(l);
+      m_specs->preUpdate(pureLit);
+      countPure += pureLit.size();
+
+      if (countPure > limitPure) {
+        std::cout << "c countpure = " << countPure << "\n";
+        limitPure += 100000;
+      }
+    }
+
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,

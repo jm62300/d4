@@ -9,8 +9,8 @@ SOLVER="$ROOT_PATH/minisat"
 $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
-MODEL_COUNTER="../build/d4_debug -m counting -i"
-TESTED_METHOD="../build/d4_debug -m counting -p sharp-equiv --preproc-timeout 100 -i"
+MODEL_COUNTER="../build/d4_static -m counting -i"
+TESTED_METHOD="../build/d4_static -m counting -p sharp-equiv --preproc-timeout 100 -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
 
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
