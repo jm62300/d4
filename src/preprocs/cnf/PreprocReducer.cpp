@@ -67,42 +67,33 @@ ProblemManager *PreprocReducer::run(ProblemManager *pin,
 
   // prepage the clauses.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
-  std::vector<std::vector<reducer::Lit>> clauses;
+  std::vector<std::vector<bipe::Lit>> clauses;
   for (auto l : units)
-    clauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
+    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
   for (auto &cl : pcnf.getClauses()) {
     clauses.push_back({});
     for (auto l : cl)
-      clauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
+      clauses.back().push_back(bipe::Lit::makeLit(l.var(), l.sign()));
   }
 
   // create the problem from the reducer side.
-  reducer::Problem problem(clauses, pcnf.getNbVar(), std::cout, false);
-  m_isRunning = reducer::Method::makeMethod(m_method, std::cout);
+  bipe::reducer::Method *rm =
+      bipe::reducer::Method::makeMethod("combinaison", std::cout);
 
-  PreprocManager::s_isRunning = this;
-  signal(SIGALRM, [](int s) {
-    if (PreprocManager::s_isRunning)
-      ((PreprocReducer *)PreprocManager::s_isRunning)->interrupt();
-  });
-  alarm(timeout / 2);
-
-  std::vector<std::vector<reducer::Lit>> clausesVivi;
-  m_isRunning->run(problem, m_nbIteration, true, clausesVivi);
+  rm->run(pin->getNbVar(), clauses, 10, true, clauses);
 
   ProblemManagerCnf *ret = new ProblemManagerCnf(
       pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
       pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
 
+  // transfer the clauses to the returned formula.
   std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
-  for (auto &cl : clausesVivi) {
+  for (auto &cl : clauses) {
     clausesAfter.push_back({});
     for (auto &l : cl)
       clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
   }
 
-  reducer::Method *rm = m_isRunning;
-  m_isRunning = NULL;
   delete rm;
   return ret;
 }  // run

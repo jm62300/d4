@@ -29,11 +29,16 @@ class ProblemManagerCnf : public ProblemManager {
 
  public:
   ProblemManagerCnf();
-  ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                    std::vector<double> &weightVar, std::vector<Var> &selected);
-  ProblemManagerCnf(int nbVar, std::vector<double> &weightLit,
-                    std::vector<double> &weightVar, std::vector<Var> &selected,
-                    std::vector<Var> &maxVar, std::vector<Var> &indVar);
+
+  ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
+                    std::vector<mpz::mpf_float> &weightVar,
+                    std::vector<Var> &selected);
+
+  ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
+                    std::vector<mpz::mpf_float> &weightVar,
+                    std::vector<Var> &selected, std::vector<Var> &maxVar,
+                    std::vector<Var> &indVar);
+
   ProblemManagerCnf(ProblemManager *problem);
 
   ProblemManagerCnf(std::string &nameFile);

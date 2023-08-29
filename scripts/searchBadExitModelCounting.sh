@@ -10,7 +10,7 @@ SOLVER="$ROOT_PATH/minisat"
 TIMEOUT=$2
 if [ "$TIMEOUT" == "" ]; then TIMEOUT=2; fi
 
-LIMIT_SIZE=50
+LIMIT_SIZE=500
 
 isExecutableReady()
 {
@@ -42,50 +42,7 @@ generateSatisfiableCNF()
 
     cpt=3
     addedClauses=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f4)
-    while [ $rdm -lt 30 ]
-    do
-        rdm=$((rdm + 10))
-        tab=$(echo $tab | tr ' ' '\n' | shuf | tr '\n' ' ')        
-        xor=""
-                
-        for l in $(echo $tab | cut -d ' ' -f1-$cpt)
-        do
-            sign=""
-            if [ $((RANDOM % 2)) -eq 0 ]; then sign="-"; fi
-
-            xor="$xor $sign$l"
-        done
-
-        nbClause=$(((2 ** cpt) - 1))
-        for i in $(seq 0 $nbClause)
-        do
-            tmp=$i
-            parity=0
-            while [ $tmp -ne 0 ]
-            do
-                if [ $((tmp % 2)) -eq 1 ]; then parity=$((parity + 1)); fi
-                tmp=$((tmp / 2))
-            done
-
-            if [ $((parity % 2)) -ne 0 ]; then continue; fi
-
-            tmp=$i
-            for l in $xor
-            do
-                if [ $((tmp % 2)) -eq 1 ]
-                then
-                    echo -n "$((l * -1)) " >> /tmp/test.cnf
-                else
-                    echo -n "$l " >> /tmp/test.cnf
-                fi                
-                tmp=$((tmp / 2))
-            done
-            echo "0" >> /tmp/test.cnf
-            addedClauses=$((addedClauses + 1))
-        done
-        cpt=$((cpt + 1))
-    done
-
+    
     sed -i "s/p cnf .*/p cnf $nbVar $addedClauses/" /tmp/test.cnf    
     echo "/tmp/test.cnf"
 }

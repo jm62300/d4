@@ -21,7 +21,6 @@
 
 #include <csignal>
 
-#include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -80,7 +79,8 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
           pin->getWeightLit(Lit::makeLitFalse(i)))
         selected.push_back(i);
 
-  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
+  std::vector<double> tmp(pin->getNbVar() + 1, 1.0);
+  bipe::Problem pb(pin->getNbVar(), tmp, selected, protect);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
   for (auto l : units)
     clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
@@ -91,69 +91,63 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
   }
 
   // call the preprocessor to compute the backbone.
-  bipe::Backbone bb;
+  // call the preprocessor to compute the backbone.
+  bipe::bipartition::Method bb;
   std::vector<bipe::Gate> gates;
-  std::vector<std::vector<bipe::lbool>> setOfModels;
+  std::vector<std::vector<bool>> setOfModels;
 
-  std::cout << "c [PREPOC EQUIV] Backbone is running ...\n";
-  m_isRunningBackbone = &bb;
-  m_isRunningReducer = nullptr;
+  std::cerr << "c [PREPOC BACKBONE] Is running for at most " << timeout
+            << " seconds\n";
 
-  PreprocManager::s_isRunning = this;
-  signal(SIGALRM, [](int s) {
+  PreprocManager::s_isRunning = &bb;
+
+  // change the handler.
+  void (*handler)(int) = [](int s) {
     if (PreprocManager::s_isRunning)
-      ((PreprocEquiv *)PreprocManager::s_isRunning)->interrupt();
-  });
-  alarm(timeout / 2);
+      ((bipe::bipartition::Method *)PreprocManager::s_isRunning)->interrupt();
+  };
+  signal(SIGALRM, handler);
+  alarm(timeout);
 
-  bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
+  bool res = bb.simplifyBackbone(pb, {true, timeout, true, "Glucose"}, gates,
+                                 std::cout, setOfModels);
+  s_isRunning = nullptr;
 
   if (!res) {
-    std::cerr << "c [PREPOC EQUIV] We already checked that is SAT Oo\n";
-    exit(-1);
+    std::cout
+        << "c [PREPOC BACKBONE] The preproc has been stopped before the end\n";
   }
 
-  m_isInterrupted = false;
-  alarm(timeout / 2);
-
-  // the list of unit literals.
-  units.clear();
-  for (auto g : gates)
-    units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
-
   if (!m_isInterrupted) {
-    // apply the vivification and the occurrence elimination proccess.
-    std::vector<std::vector<reducer::Lit>> fclauses;
-    for (auto l : units)
-      fclauses.push_back({reducer::Lit::makeLit(l.var(), l.sign())});
-    for (auto &cl : pcnf.getClauses()) {
-      fclauses.push_back({});
-      for (auto l : cl)
-        fclauses.back().push_back(reducer::Lit::makeLit(l.var(), l.sign()));
-    }
+    // the list of unit literals.
+    for (auto g : gates)
+      clauses.push_back({bipe::Lit::makeLit(g.output.var(), g.output.sign())});
 
     // create the problem from the reducer side.
-    reducer::Problem problem(fclauses, pcnf.getNbVar(), std::cout, false);
-    m_isRunningReducer = reducer::Method::makeMethod("combinaison", std::cout);
+    bipe::reducer::Method *rm =
+        bipe::reducer::Method::makeMethod("combinaison", std::cout);
 
-    std::vector<std::vector<reducer::Lit>> clausesVivi;
-    m_isRunningReducer->run(problem, m_nbIteration, true, clausesVivi);
+    rm->run(pin->getNbVar(), clauses, 10, true, clauses);
 
     ProblemManagerCnf *ret = new ProblemManagerCnf(
         pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
         pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
 
     std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
-    for (auto &cl : clausesVivi) {
+    for (auto &cl : clauses) {
       clausesAfter.push_back({});
       for (auto &l : cl)
         clausesAfter.back().push_back(Lit::makeLit(l.var(), l.sign()));
     }
 
-    alarm(0);
-    delete m_isRunningReducer;
+    delete rm;
     return ret;
   } else {
+    // the list of unit literals.
+    units.clear();
+    for (auto g : gates)
+      units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
+
     m_isRunningBackbone = NULL;
     return pin->getConditionedFormula(units);
   }

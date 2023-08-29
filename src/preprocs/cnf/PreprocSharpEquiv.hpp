@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
-#include "3rdParty/bipe/srcBipe/methods/Method.hpp"
-#include "3rdParty/eliminator/srcEliminator/Eliminator.hpp"
-#include "3rdParty/reducer/src/methods/Method.hpp"
+#include "3rdParty/bipe/src/bipartition/methods/Method.hpp"
+#include "3rdParty/bipe/src/eliminator/Eliminator.hpp"
+#include "3rdParty/bipe/src/reducer/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/solvers/WrapperSolver.hpp"
@@ -37,18 +37,6 @@ class PreprocSharpEquiv : public PreprocManager {
   std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
-  reducer::Method *m_isRunningReducer = NULL;
-  eliminator::Eliminator *m_isRunningEliminator = NULL;
-
-  /**
-   * @brief Rewrite the DAC computed using bipe in another DAC ready to be used
-   * with the eliminator library.
-   *
-   * @param gates is the DAC computed using bipe.
-   * @param dac is the DAC that can be used with eliminator.
-   */
-  void expressDacInEliminatorFormat(std::vector<bipe::Gate> &gates,
-                                    std::vector<eliminator::Gate> &dac);
 
   /**
    * @brief Compute the bipartition.
@@ -57,51 +45,14 @@ class PreprocSharpEquiv : public PreprocManager {
    * gates).
    * @param[out] units stores the unit literals.
    * @param[out] input stores the input variables.
+   * @param[out] output is the set of output variables.
    * @param[out] gates stores the extracted gates.
    * @param timeout is the timeout for computing the bipartition.
    */
   void computeBipartition(ProblemManagerCnf &pcnf, std::vector<Lit> &units,
                           std::vector<bipe::Var> &input,
+                          std::vector<bipe::Var> &output,
                           std::vector<bipe::Gate> &gates, unsigned timeout);
-
-  /**
-   * @brief Apply distillation to a given set of clauses (with units).
-   *
-   * @param clauses is the set of clauses.
-   * @param[out] units is the set of unit clauses.
-   * @param[out] isUnit gives the variables that are unit.
-   * @param nbVar is the number of variables.
-   * @param[out] resClauses is the simplified formula (without the units).
-   *
-   * \return true if the formula has been modified.
-   */
-  bool applyDistillation(std::vector<std::vector<Lit>> &clauses,
-                         std::vector<Lit> &units, std::vector<bool> &isUnit,
-                         unsigned nbVar,
-                         std::vector<std::vector<Lit>> &resClauses);
-
-  /**
-   * @brief Try to eliminate some variables.
-   *
-   * @param clauses is the CNF formula.
-   * @param units is the set of unit literals.
-   * @param isUnit gives if a variable is unit or not.
-   * @param nbVar is the number of variables.
-   * @param input are the input variables.
-   * @param dac is the set of gates.
-   * @param eliminated are the variables removed.
-   * @param resClauses is the resulting CNF.
-   * @param limitNbClauses give the maximum number of clause we can have in the
-   * result.
-   * @return true if we remove some variables, false otherwise.
-   */
-  bool applyElimination(std::vector<std::vector<Lit>> &clauses,
-                        std::vector<Lit> &units, std::vector<bool> &isUnit,
-                        unsigned nbVar, std::vector<bipe::Var> &input,
-                        std::vector<eliminator::Gate> &dac,
-                        std::vector<eliminator::Lit> &eliminated,
-                        std::vector<std::vector<Lit>> &resClauses,
-                        unsigned limitNbClauses);
 
  public:
   PreprocSharpEquiv(po::variables_map &vm, std::string &method, int nbIteration,
@@ -115,18 +66,6 @@ class PreprocSharpEquiv : public PreprocManager {
    * @brief Stop.
    *
    */
-  inline void interrupt() {
-    m_isInterrupted = true;
-    if (m_isRunningReducer) {
-      std::cout << "c [PREPROC #EQUIV] Stop the reducer because timeout\n";
-      m_isRunningReducer->interrupt();
-    }
-
-    if (m_isRunningEliminator) {
-      std::cout
-          << "c [PREPROC #EQUIV] Stop the elmination process because timeout\n";
-      m_isRunningEliminator->interrupt();
-    }
-  }  // interrupt
+  inline void interrupt() { m_isInterrupted = true; }  // interrupt
 };
 }  // namespace d4

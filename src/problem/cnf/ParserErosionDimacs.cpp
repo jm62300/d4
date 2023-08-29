@@ -40,7 +40,7 @@ int ParserErosionDimacs::parse_erosion_DIMACS_main(
   std::vector<Lit> lits;
   std::string s;
 
-  std::vector<double> &weightLit = problemManager->getWeightLit();
+  std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
   std::vector<std::vector<Lit>> &softClauses = problemManager->getSoftClauses();
   std::vector<std::vector<Lit>> &hardClauses = problemManager->getHardClauses();
 
@@ -56,11 +56,6 @@ int ParserErosionDimacs::parse_erosion_DIMACS_main(
       in.consumeChar();
       in.skipSpace();
 
-      bool vpActivated = false;
-      if (in.currentChar() == 'p') {
-        vpActivated = true;
-        in.consumeChar();
-      }
       if (in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f')
         std::cerr << "PARSE ERROR! Unexpected char: " << in.currentChar()
                   << "\n",
@@ -78,7 +73,7 @@ int ParserErosionDimacs::parse_erosion_DIMACS_main(
       do {
         v = in.nextInt();
         if ((v > 0 && nbVars < v) || (-v > 0 && nbVars < -v))
-          std::cerr << "PARSE ERROR! Number of variables incorrect: " << v
+          std::cerr << "c PARSE ERROR! Number of variables incorrect: " << v
                     << "\n",
               exit(3);
 
@@ -110,6 +105,10 @@ int ParserErosionDimacs::parse_erosion_DIMACS_main(
 
       theoryClause = false;
     }
+  }
+
+  if (nbClauses != hardClauses.size() + softClauses.size()) {
+    std::cerr << "c [WARNING] The number of clauses is incorrect.\n";
   }
 
   return nbVars;

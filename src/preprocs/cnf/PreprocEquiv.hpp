@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
-#include "3rdParty/bipe/srcBipe/methods/Method.hpp"
-#include "3rdParty/reducer/src/methods/Method.hpp"
+#include "3rdParty/bipe/src/bipartition/methods/Method.hpp"
+#include "3rdParty/bipe/src/reducer/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
@@ -35,8 +35,8 @@ class PreprocEquiv : public PreprocManager {
   std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
-  reducer::Method *m_isRunningReducer = NULL;
-  bipe::Method *m_isRunningBackbone = NULL;
+  bipe::reducer::Method *m_isRunningReducer = NULL;
+  bipe::bipartition::Method *m_isRunningBackbone = NULL;
 
  public:
   PreprocEquiv(po::variables_map &vm, std::string &method, int nbIteration,

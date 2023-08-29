@@ -38,9 +38,10 @@ class Parsing {
                                           std::vector<int> &list);
 
   static void parseNextWeightedLits(BufferRead &in,
-                                    std::vector<double> &weightLit);
+                                    std::vector<mpz::mpf_float> &weightLit);
 
-  static void parseRandonVars(BufferRead &in, std::vector<double> &weightLit,
+  static void parseRandonVars(BufferRead &in,
+                              std::vector<mpz::mpf_float> &weightLit,
                               std::vector<Var> &vars);
 };
 }  // namespace d4

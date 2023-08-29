@@ -60,15 +60,7 @@ then
 fi
 
 cd $curRep
-cd 3rdParty/reducer/
-./build.sh -l    
-
-cd $curRep
 cd 3rdParty/bipe/
-./build.sh -l    
-
-cd $curRep
-cd 3rdParty/eliminator
 ./build.sh -l    
 
 cd $curRep

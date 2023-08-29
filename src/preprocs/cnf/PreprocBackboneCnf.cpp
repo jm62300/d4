@@ -23,7 +23,7 @@
 #include <csignal>
 #include <ctime>
 
-#include "3rdParty/bipe/srcBipe/methods/Backbone.hpp"
+#include "3rdParty/bipe/src/bipartition/methods/Method.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -78,7 +78,8 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
           pin->getWeightLit(Lit::makeLitFalse(i)))
         selected.push_back(i);
 
-  bipe::Problem pb(pin->getNbVar(), pin->getWeightLit(), selected, protect);
+  std::vector<double> tmp(pin->getNbVar() + 1, 1.0);
+  bipe::Problem pb(pin->getNbVar(), tmp, selected, protect);
 
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
@@ -91,26 +92,31 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   }
 
   // call the preprocessor to compute the backbone.
-  bipe::Backbone bb;
+  bipe::bipartition::Method bb;
   std::vector<bipe::Gate> gates;
-  std::vector<std::vector<bipe::lbool>> setOfModels;
+  std::vector<std::vector<bool>> setOfModels;
 
-  std::cerr << "c [PREPOC BACKBONE] Is running ...\n";
+  std::cerr << "c [PREPOC BACKBONE] Is running for at most " << timeout
+            << " seconds\n";
+
   PreprocManager::s_isRunning = &bb;
 
   // change the handler.
   void (*handler)(int) = [](int s) {
     if (PreprocManager::s_isRunning)
-      ((bipe::Backbone *)PreprocManager::s_isRunning)->interrupt();
+      ((bipe::bipartition::Method *)PreprocManager::s_isRunning)->interrupt();
   };
   signal(SIGALRM, handler);
   alarm(timeout);
 
-  bool res = bb.run(pb, gates, 0, std::cout, "Glucose_bipe", true, setOfModels);
+  bool res = bb.simplifyBackbone(
+      pb, (bipe::bipartition::OptionBackbone){true, timeout, true, "Glucose"},
+      gates, std::cout, setOfModels);
+  s_isRunning = nullptr;
 
   if (!res) {
-    std::cerr << "c [PREPOC BACKBONE] We already checked that is SAT Oo\n";
-    exit(-1);
+    std::cout
+        << "c [PREPROC BACKBONE] The process has been stopped before the end\n";
   }
 
   // the list of unit literals.
@@ -122,8 +128,6 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
             << lastBreath.panic << "\n";
 
-  m_isRunning = NULL;
-  alarm(0);
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

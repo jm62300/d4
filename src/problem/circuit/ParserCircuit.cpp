@@ -40,7 +40,7 @@ int ParserCircuit::parse_Circuit_main(BufferRead &in,
   bool header_read = false;
   int nbVars = 0;
 
-  std::vector<double> &weightLit = problemManager->getWeightLit();
+  std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
 
   for (;;) {
     in.skipSpace();

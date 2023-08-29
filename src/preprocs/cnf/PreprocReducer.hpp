@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "../PreprocManager.hpp"
-#include "3rdParty/reducer/src/methods/Method.hpp"
+#include "3rdParty/bipe/src/reducer/Method.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
@@ -33,7 +33,7 @@ class PreprocReducer : public PreprocManager {
   WrapperSolver *ws;
   std::string m_method;
   int m_nbIteration;
-  reducer::Method *m_isRunning = NULL;
+  bipe::reducer::Method *m_isRunning = NULL;
 
  public:
   PreprocReducer(po::variables_map &vm, std::string &method, int nbIteration,

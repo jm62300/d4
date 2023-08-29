@@ -49,9 +49,9 @@ void Parsing::readListIntTerminatedByZero(BufferRead &in,
  * @param weightLit, the place where is stored the data.
  */
 void Parsing::parseNextWeightedLits(BufferRead &in,
-                                    std::vector<double> &weightLit) {
+                                    std::vector<mpz::mpf_float> &weightLit) {
   int lit = in.nextInt();
-  double w = in.nextDouble();
+  mpz::mpf_float w = in.nextMpf_float();
 
   if (lit > 0)
     weightLit[lit << 1] = w;
@@ -66,7 +66,8 @@ void Parsing::parseNextWeightedLits(BufferRead &in,
  * @param in, the stream buffer where we get the information.
  * @param weightLit, the place where is stored the data.
  */
-void Parsing::parseRandonVars(BufferRead &in, std::vector<double> &weightLit,
+void Parsing::parseRandonVars(BufferRead &in,
+                              std::vector<mpz::mpf_float> &weightLit,
                               std::vector<Var> &vars) {
   double currentWeight = -1;
   double w = 0;

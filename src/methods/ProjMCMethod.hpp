@@ -165,14 +165,14 @@ class ProjMCMethod : public MethodManager {
     m_outCounter.setstate(std::ios_base::badbit);
 #endif
     // init the problem we will pass to the counter.
-    std::vector<double> weightLit((nbVar + 1) << 1, 1);
-    std::vector<double> weightVar(nbVar + 1, 2);
+    std::vector<mpz::mpf_float> weightLit((nbVar + 1) << 1, 1);
+    std::vector<mpz::mpf_float> weightVar(nbVar + 1, 2);
 
-    std::vector<double> &problemWeightLit = problem->getWeightLit();
+    std::vector<mpz::mpf_float> &problemWeightLit = problem->getWeightLit();
     for (unsigned i = 0; i < problemWeightLit.size(); i++)
       weightLit[i] = problemWeightLit[i];
 
-    std::vector<double> &problemWeightVar = problem->getWeightVar();
+    std::vector<mpz::mpf_float> &problemWeightVar = problem->getWeightVar();
     for (unsigned i = 0; i < problemWeightVar.size(); i++) {
       if (m_isProjectedVar[i])
         weightVar[i] = problemWeightVar[i];
@@ -209,14 +209,14 @@ class ProjMCMethod : public MethodManager {
     assert(m_solver);
 
     // prepare the weight vectors and init the problem.
-    std::vector<double> weightLit((nbVar + 1) << 1, 1);
-    std::vector<double> weightVar(nbVar + 1, 2);
+    std::vector<mpz::mpf_float> weightLit((nbVar + 1) << 1, 1);
+    std::vector<mpz::mpf_float> weightVar(nbVar + 1, 2);
 
-    std::vector<double> &problemWeightLit = problem->getWeightLit();
+    std::vector<mpz::mpf_float> &problemWeightLit = problem->getWeightLit();
     for (unsigned i = 0; i < problemWeightLit.size(); i++)
       weightLit[i] = problemWeightLit[i];
 
-    std::vector<double> &problemWeightVar = problem->getWeightVar();
+    std::vector<mpz::mpf_float> &problemWeightVar = problem->getWeightVar();
     for (unsigned i = 0; i < problemWeightVar.size(); i++)
       weightVar[i] = problemWeightVar[i];
 
