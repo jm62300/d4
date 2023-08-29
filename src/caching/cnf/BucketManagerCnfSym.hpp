@@ -469,8 +469,10 @@ class BucketManagerCnfSym : public BucketManagerCnf<T> {
     }
     assert(static_cast<char *>(p) == &data[szData]);
 
-    // put the information into the bucket
-    assert(0);
+    DataInfo di(szData, component.size(), 0,
+                this->nbBitUnsigned(2 + (component.size() << 1)));
+    assert(di.szData() == szData);
+    b.set(data, di);
   }  // storeFormula
 };
 }  // namespace d4

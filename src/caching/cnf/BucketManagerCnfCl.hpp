@@ -39,30 +39,6 @@ class BucketManagerCnf;
 template <class T>
 class BucketManagerCnfCl : public BucketManagerCnf<T> {
  private:
-  /**
-   * @brief Compute the number of bit needed to encode an unsigned given in
-   * parameter.
-   *
-   * @param v is the value we search for its number of bits.
-   * @return the number of bit needed to encode val (~log2(val)).
-   */
-  inline static unsigned nbBitUnsigned(unsigned v) {
-    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-    const unsigned int S[] = {1, 2, 4, 8, 16};
-    int i;
-
-    unsigned int r = 0;       // result of log2(v) will go here
-    for (i = 4; i >= 0; i--)  // unroll for speed...
-    {
-      if (v & b[i]) {
-        v >>= S[i];
-        r |= S[i];
-      }
-    }
-
-    return r + 1;
-  }  // nbBitUnsigned
-
   struct AllocSizeInfo {
     unsigned nbBitEltVar = 0;
     unsigned nbByteStoreVar = 0;
@@ -333,15 +309,17 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
     AllocSizeInfo ret;
 
     // info about the variables.
-    ret.nbBitEltVar = nbBitUnsigned(component.back());
+    ret.nbBitEltVar = this->nbBitUnsigned(component.back());
     ret.nbByteStoreVar = 1 + (((ret.nbBitEltVar * component.size()) - 1) >> 3);
     unsigned nbByteModeArray = 1 + ((component.back() - 1) >> 3);
+
+    // check if we can use a bit representation of the variables.
     if (nbByteModeArray < ret.nbByteStoreVar) {
       ret.nbByteStoreVar = nbByteModeArray;
       ret.nbBitEltVar = 0;
     }
 
-    ret.nbBitStoreLit = nbBitUnsigned(2 + (component.size() << 1));
+    ret.nbBitStoreLit = this->nbBitUnsigned(2 + (component.size() << 1));
 
     // info about the distribution.
     unsigned cptLitFormula = 0, cptDistrib = 0;

@@ -48,6 +48,30 @@ class BucketManagerCnf : public BucketManager<T> {
   std::vector<bool> m_varInComponent;
   std::vector<int> m_idxClauses;
 
+  /**
+   * @brief Compute the number of bit needed to encode an unsigned given in
+   * parameter.
+   *
+   * @param v is the value we search for its number of bits.
+   * @return the number of bit needed to encode val (~log2(val)).
+   */
+  inline static unsigned nbBitUnsigned(unsigned v) {
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    int i;
+
+    unsigned int r = 0;       // result of log2(v) will go here
+    for (i = 4; i >= 0; i--)  // unroll for speed...
+    {
+      if (v & b[i]) {
+        v >>= S[i];
+        r |= S[i];
+      }
+    }
+
+    return r + 1;
+  }  // nbBitUnsigned
+
  public:
   /**
      Constructor.

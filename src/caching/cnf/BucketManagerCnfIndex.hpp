@@ -84,7 +84,6 @@ class BucketManagerCnfIndex : public BucketManagerCnf<T> {
      @param[out] szTmpFormula, to collect the size of the stored formula
   */
   inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) {
-    // collect the clauses
     this->collectIdActiveClauses(component, m_idxClauses);
 
     // nb bytes we need to store the information.
@@ -113,7 +112,7 @@ class BucketManagerCnfIndex : public BucketManagerCnf<T> {
     assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
     if (!m_idxClauses.size()) goto fillTheBucket;
 
-    // strore the clauses
+    // store the clauses
     switch (nbOData) {
       case 1:
         p = storeData<uint8_t, unsigned>(p, m_idxClauses);
@@ -127,12 +126,9 @@ class BucketManagerCnfIndex : public BucketManagerCnf<T> {
     }
 
   fillTheBucket:
-    assert(0);
-    // DataInfoCnf di(szData, component.size(), 0, m_idxClauses.size(), nbOVar,
-    // 1,
-    //               nbOData);
-    // assert(di.szData() == szData);
-    // b.set(data, di);
+    DataInfo di(szData, component.size(), nbOVar, nbOData);
+    assert(di.szData() == szData);
+    b.set(data, di);
   }  // storeFormula
 };
 }  // namespace d4
