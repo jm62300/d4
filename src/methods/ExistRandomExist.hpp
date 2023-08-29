@@ -901,18 +901,10 @@ class ExistRandomExist : public MethodManager {
     }
     if (m_stopProcess) return T(0);
 
-<<<<<<< HEAD
     static int counterCall = 0;
     int currentCall = ++counterCall;
 
     if (currentCall == 10310) exit(0);
-=======
-    [[maybe_unused]] static int counterCall = 0;
-    [[maybe_unused]] int currentCall = ++counterCall;
-#if TEST
-    if (currentCall == 10000) exit(0);
-#endif
->>>>>>> 4c6e407bf918dea3db24eb8e5bf5bb7854a02e4e
 
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
