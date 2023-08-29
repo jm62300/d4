@@ -366,6 +366,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
+
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;

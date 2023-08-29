@@ -622,8 +622,11 @@ class ExistRandomExist : public MethodManager {
       if (m_isMaxDecisionVariable[l.var()]) {
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
-      } else if (m_isDecisionVariable[l.var()])
+      } else if (m_isDecisionVariable[l.var()]) {
+        std::cout << "Propagate one literal from the ind " << l.human() << "\n";
+        exit(0);
         fixInd *= T(m_problem->getWeightLit(l));
+      }
 
     if (m_cutUpperMax && ifTaut * fixInd <= m_maxCount.count) {
       result.count = T(0);
@@ -728,25 +731,29 @@ class ExistRandomExist : public MethodManager {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
       m_hasBeenStop = false;
-#if TEST
+
+      exit(0);
+
       std::cout << "Variables: ";
       for (auto &v : connected) {
         if (m_isProjectedVariable[v]) std::cout << v << " ";
       }
-      std::cout << "\n";
-#endif
+      std::cout << " ---> " << m_maxCount.count / ifTaut << "\n";
+
       result.count = countInd_(connected, unitsLit, freeVar, out,
                                m_maxCount.count / ifTaut);
       result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
       result.valuation = NULL;
       m_hasBeenStop = false;
 
-      std::cout << "\n";
+      std::cout << " result = " << result.count << "\n\n";
       return;
     }
 
     Lit l = Lit::makeLit(v, selectPhase(v));
     m_nbDecisionNode++;
+
+    std::cout << "Max Decision : " << l << " 0\n";
 
     // consider the two value for l
     DataBranch<T> b[2];
@@ -807,6 +814,7 @@ class ExistRandomExist : public MethodManager {
     m_nbCallProj++;
 
     if (!m_solver->solve(setOfVar)) {
+      std::cout << "unsat\n";
       m_solver->getCore();
       return T(0);
     }
@@ -845,9 +853,10 @@ class ExistRandomExist : public MethodManager {
         std::vector<Var> &connected = varConnected[cp];
         TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
-        if (cb.defined)
+        if (cb.defined) {
+          std::cout << "Hit positive\n";
           result = result * cb.getValue();
-        else {
+        } else {
           T curr = countIndDecisionNode(connected, out,
                                         (targetMin / result) / fixInd);
           if (!m_hasBeenStop)
@@ -894,9 +903,8 @@ class ExistRandomExist : public MethodManager {
 
     static int counterCall = 0;
     int currentCall = ++counterCall;
-#if TEST
-    if (currentCall == 10000) exit(0);
-#endif
+
+    if (currentCall == 10310) exit(0);
 
     // search the next variable to branch on
     Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
@@ -910,10 +918,10 @@ class ExistRandomExist : public MethodManager {
     // select a variable for decision.
     Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
     m_nbDecisionNode++;
-#if TEST
+
     std::cout << currentCall << " Target Min = " << targetMin << "\n";
     std::cout << currentCall << " Decision up:" << l.human() << "\n";
-#endif
+
     // consider the two value for l
     DataBranch<T> b[2];
 
@@ -925,14 +933,15 @@ class ExistRandomExist : public MethodManager {
 
     // compute the next lower regarding the already compute information.
     b[0].d *= m_problem->computeWeightUnitFree<T>(b[0]);
-#if TEST
+
     std::cout << currentCall << " result from decision " << l.human() << " = "
               << b[0].d << "\n";
     std::cout << currentCall << " Decision back: " << (~l).human() << "\n";
-#endif
-    if (m_solver->isInAssumption(l))
+
+    if (m_solver->isInAssumption(l)) {
+      std::cout << "unsat on the left\n";
       b[1].d = 0;
-    else if (m_solver->isInAssumption(~l))
+    } else if (m_solver->isInAssumption(~l))
       b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out,
                          targetMin - b[0].d);
     else {
@@ -943,10 +952,10 @@ class ExistRandomExist : public MethodManager {
     }
 
     b[1].d *= m_problem->computeWeightUnitFree<T>(b[1]);
-#if TEST
+
     std::cout << currentCall << " result from decision " << (~l).human()
               << " = " << b[1].d << "\n";
-#endif
+
     return b[0].d + b[1].d;
   }  // computeDecisionNode
 
