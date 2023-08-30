@@ -27,7 +27,6 @@
 #include "../CachedBucket.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
-#include "src/utils/Enum.hpp"
 
 namespace d4 {
 template <class T>

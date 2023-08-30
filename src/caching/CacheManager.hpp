@@ -89,8 +89,18 @@ class CacheManager {
 
     m_cacheCleaningManager =
         CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, nbVar, out);
+
+    OptionBucketManager optBM = {
+        ModeStoreManager::getModeStore(
+            vm["cache-store-strategy"].as<std::string>()),
+        ClauseRepresentationManager::getClauseRepresentation(
+            vm["cache-clause-representation"].as<std::string>()),
+        vm["cache-size-first-page"].as<unsigned long>(),
+        vm["cache-size-additional-page"].as<unsigned long>(),
+        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
+        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
     m_bucketManager =
-        BucketManager<T>::makeBucketManager(vm, this, *specs, out);
+        BucketManager<T>::makeBucketManager(optBM, this, *specs, out);
   }  // constructor
 
   /**

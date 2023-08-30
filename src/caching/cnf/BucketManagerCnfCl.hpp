@@ -30,7 +30,6 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/cnf/BucketManagerCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/utils/Enum.hpp"
 
 namespace d4 {
 template <class T>

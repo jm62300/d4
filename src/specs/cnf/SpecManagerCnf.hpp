@@ -22,9 +22,9 @@
 
 #include "../SpecManager.hpp"
 #include "DataOccurrence.hpp"
+#include "src/caching/OptionBucketManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
-#include "src/utils/Enum.hpp"
 
 namespace d4 {
 struct SpecClauseInfo {
