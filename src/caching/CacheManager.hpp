@@ -87,8 +87,12 @@ class CacheManager {
     verb = m_nbRemoveEntry = sumAffectedHitCache = 0;
     m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
 
-    m_cacheCleaningManager =
-        CacheCleaningManager<T>::makeCacheCleaningManager(vm, this, nbVar, out);
+    OptionCacheCleaningManager optCleaning = {
+        CacheCleaningStrategyManager::getCacheCleaningStrategy(
+            vm["cache-reduction-strategy"].as<std::string>())};
+
+    m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(
+        optCleaning, this, nbVar, out);
 
     OptionBucketManager optBM = {
         ModeStoreManager::getModeStore(

@@ -18,17 +18,15 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "../CacheManager.hpp"
 #include "CacheCleaningExpectation.hpp"
 #include "CacheCleaningNone.hpp"
+#include "OptionCacheCleaningManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 template <class T>
 class CachedBucket;
-namespace po = boost::program_options;
 
 template <class T>
 class CacheCleaningManager {
@@ -47,17 +45,14 @@ class CacheCleaningManager {
      @param[in] out, the stream where are print out the information.
    */
   static CacheCleaningManager<T> *makeCacheCleaningManager(
-      po::variables_map &vm, CacheManager<T> *cache, int nbVar,
-      std::ostream &out) {
-    std::string crs = vm["cache-reduction-strategy"].as<std::string>();
+      const OptionCacheCleaningManager &options, CacheManager<T> *cache,
+      int nbVar, std::ostream &out) {
+    out << "c [CACHE CLEANING MANAGER] " << options << '\n';
 
-    if (crs == "expectation") {
-      out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << "\n";
+    if (options.cacheCleaningStrategy == EXPECTATION)
       return new CacheCleaningExpectation<T>(cache, nbVar);
-    } else {
-      out << "c [CONSTRUCTOR] Cache cleaning manager: " << crs << "\n";
+    if (options.cacheCleaningStrategy == NONE)
       return new CacheCleaningNone<T>(cache);
-    }
 
     throw(FactoryException("Cannot create a CacheCleaningManager", __FILE__,
                            __LINE__));
