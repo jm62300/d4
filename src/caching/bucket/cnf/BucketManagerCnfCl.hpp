@@ -26,9 +26,9 @@
 #include <cstring>
 
 #include "BucketInConstruction.hpp"
+#include "BucketManagerCnf.hpp"
 #include "BucketSortInfo.hpp"
 #include "src/caching/CacheManager.hpp"
-#include "src/caching/cnf/BucketManagerCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

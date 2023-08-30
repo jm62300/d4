@@ -22,12 +22,12 @@
 #include <functional>
 #include <vector>
 
-#include "BucketManager.hpp"
 #include "CacheCleaningManager.hpp"
 #include "CacheList.hpp"
 #include "CacheNoCollision.hpp"
 #include "CachedBucket.hpp"
 #include "TmpEntry.hpp"
+#include "bucket/BucketManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/hashing/HashString.hpp"
 #include "src/specs/SpecManager.hpp"

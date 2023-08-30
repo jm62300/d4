@@ -25,7 +25,7 @@
 #include <iostream>
 #include <vector>
 
-#include "CachedBucket.hpp"
+#include "../CachedBucket.hpp"
 #include "OptionBucketManager.hpp"
 #include "cnf/BucketManagerCnfCl.hpp"
 #include "cnf/BucketManagerCnfCombi.hpp"

@@ -22,9 +22,9 @@
 #include <iostream>
 #include <vector>
 
+#include "../../CachedBucket.hpp"
 #include "../BucketAllocator.hpp"
 #include "../BucketManager.hpp"
-#include "../CachedBucket.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
