@@ -39,7 +39,7 @@ class CacheCleaningManager {
   /**
      Create an operator to manage the cache reduction process.
 
-     @param[in] vm, the option list.
+     @param[in] options, the option list.
      @param[in] cache, the cache where we want to clean.
      @param[in] nbVar, the number of variables in the problem.
      @param[in] out, the stream where are print out the information.

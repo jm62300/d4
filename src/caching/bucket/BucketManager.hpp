@@ -52,6 +52,15 @@ class BucketManager {
     if (m_bucketAllocator->getCleanup()) delete m_bucketAllocator;
   }  // destructor
 
+  /**
+   * @brief Create a bucket manager regarding the given options.
+   *
+   * @param options are the options.
+   * @param cache is the cache manager which is linked to the bucket manager.
+   * @param s is the spect manager which is linked to the bucket manager.
+   * @param out is the stream where is printed out the logs.
+   * @return BucketManager<T>*
+   */
   static BucketManager<T> *makeBucketManager(OptionBucketManager options,
                                              CacheManager<T> *cache,
                                              SpecManager &s,
