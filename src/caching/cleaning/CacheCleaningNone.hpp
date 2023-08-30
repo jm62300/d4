@@ -19,13 +19,14 @@
 #pragma once
 
 #include "CacheCleaningManager.hpp"
-#include "CacheManager.hpp"
 
 namespace d4 {
 template <class T>
 class CacheCleaningManager;
+
 template <class T>
 class CacheManager;
+
 template <class T>
 class CacheCleaningNone : public CacheCleaningManager<T> {
  public:

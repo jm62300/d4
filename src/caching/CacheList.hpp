@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "CachedBucket.hpp"
+#include "cleaning/CacheCleaningManager.hpp"
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {

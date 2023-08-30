@@ -20,9 +20,9 @@
 
 #include <boost/program_options.hpp>
 
+#include "../CacheManager.hpp"
 #include "CacheCleaningExpectation.hpp"
 #include "CacheCleaningNone.hpp"
-#include "CacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
