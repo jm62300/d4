@@ -25,9 +25,9 @@
 #include "CacheList.hpp"
 #include "CacheNoCollision.hpp"
 #include "CachedBucket.hpp"
+#include "OptionCacheManager.hpp"
 #include "TmpEntry.hpp"
 #include "bucket/BucketManager.hpp"
-#include "cleaning/CacheCleaningManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/hashing/HashString.hpp"
 #include "src/specs/SpecManager.hpp"
@@ -71,13 +71,13 @@ class CacheManager {
   /**
    * @brief Construct a new Cache Manager object
    *
-   * @param vm is a map to get the option.
+   * @param options gives the selected options.
    * @param nbVar is the number of variables.
    * @param specs is a structure to get data about the formula.
    * @param out is the stream where are printed out the logs.
    */
-  CacheManager(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
-               std::ostream &out)
+  CacheManager(const OptionCacheManager &options, unsigned nbVar,
+               SpecManager *specs, std::ostream &out)
       : m_out(nullptr) {
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
@@ -87,24 +87,11 @@ class CacheManager {
     verb = m_nbRemoveEntry = sumAffectedHitCache = 0;
     m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
 
-    OptionCacheCleaningManager optCleaning = {
-        CacheCleaningStrategyManager::getCacheCleaningStrategy(
-            vm["cache-reduction-strategy"].as<std::string>())};
-
     m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(
-        optCleaning, this, nbVar, out);
+        options.optionCacheCleaningManager, this, nbVar, out);
 
-    OptionBucketManager optBM = {
-        ModeStoreManager::getModeStore(
-            vm["cache-store-strategy"].as<std::string>()),
-        ClauseRepresentationManager::getClauseRepresentation(
-            vm["cache-clause-representation"].as<std::string>()),
-        vm["cache-size-first-page"].as<unsigned long>(),
-        vm["cache-size-additional-page"].as<unsigned long>(),
-        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
-        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
-    m_bucketManager =
-        BucketManager<T>::makeBucketManager(optBM, this, *specs, out);
+    m_bucketManager = BucketManager<T>::makeBucketManager(
+        options.optionBucketManager, this, *specs, out);
   }  // constructor
 
   /**
@@ -130,9 +117,26 @@ class CacheManager {
     std::string method = vm["cache-method"].as<std::string>();
     out << "c [CACHE] Cache method used: " << method << "\n";
 
+    OptionCacheManager optionCacheManager;
+
+    optionCacheManager.optionCacheCleaningManager = {
+        CacheCleaningStrategyManager::getCacheCleaningStrategy(
+            vm["cache-reduction-strategy"].as<std::string>())};
+
+    optionCacheManager.optionBucketManager = {
+        ModeStoreManager::getModeStore(
+            vm["cache-store-strategy"].as<std::string>()),
+        ClauseRepresentationManager::getClauseRepresentation(
+            vm["cache-clause-representation"].as<std::string>()),
+        vm["cache-size-first-page"].as<unsigned long>(),
+        vm["cache-size-additional-page"].as<unsigned long>(),
+        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
+        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
+
     if (method == "no-collision")
-      return new CacheNoCollision<T>(vm, nbVar, specs, out);
-    if (method == "list") return new CacheList<T>(vm, nbVar, specs, out);
+      return new CacheNoCollision<T>(optionCacheManager, nbVar, specs, out);
+    if (method == "list")
+      return new CacheList<T>(optionCacheManager, nbVar, specs, out);
 
     throw(
         FactoryException("Cannot create a ProblemManager", __FILE__, __LINE__));

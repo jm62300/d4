@@ -21,7 +21,9 @@
 #include <boost/program_options.hpp>
 #include <vector>
 
+#include "CacheManager.hpp"
 #include "CachedBucket.hpp"
+#include "OptionCacheManager.hpp"
 #include "cleaning/CacheCleaningManager.hpp"
 #include "src/specs/SpecManager.hpp"
 
@@ -37,14 +39,14 @@ class CacheList : public CacheManager<T> {
   /**
    * @brief Construct a new Cache List object
    *
-   * @param vm is a map to get the option.
+   * @param options are the selected options.
    * @param nbVar is the number of variables.
    * @param specs is a structure to get data about the formula.
    * @param out is the stream where are printed out the logs.
    */
-  CacheList(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
-            std::ostream &out)
-      : CacheManager<T>(vm, nbVar, specs, out) {
+  CacheList(const OptionCacheManager &options, unsigned nbVar,
+            SpecManager *specs, std::ostream &out)
+      : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE LIST CONSTRUCTOR]\n";
     initHashTable(nbVar);
   }  // constructor

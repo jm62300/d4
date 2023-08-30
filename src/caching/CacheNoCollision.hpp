@@ -23,6 +23,7 @@
 
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
+#include "OptionCacheManager.hpp"
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {
@@ -40,14 +41,14 @@ class CacheNoCollision : public CacheManager<T> {
   /**
    * @brief Construct a new Cache No Collision object.
    *
-   * @param vm is a map to get the option.
+   * @param options are the selected options.
    * @param nbVar is the number of variables.
    * @param specs is a structure to get data about the formula.
    * @param out is the stream where are printed out the logs.
    */
-  CacheNoCollision(po::variables_map &vm, unsigned nbVar, SpecManager *specs,
-                   std::ostream &out)
-      : CacheManager<T>(vm, nbVar, specs, out) {
+  CacheNoCollision(const OptionCacheManager &options, unsigned nbVar,
+                   SpecManager *specs, std::ostream &out)
+      : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
     initHashTable(nbVar);
   }  // constructor

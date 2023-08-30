@@ -24,6 +24,7 @@
 #include "src/methods/Counter.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/problem/cnf/ProblemManagerErosionCnf.hpp"
 
 namespace d4 {
