@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <vector>
 
 #include "CacheManager.hpp"
@@ -28,7 +27,7 @@
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
+
 template <class T>
 class CacheList : public CacheManager<T> {
  private:
