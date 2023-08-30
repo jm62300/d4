@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <functional>
 #include <vector>
 
@@ -33,7 +32,6 @@
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 
 template <class T>
 class CacheCleaningManager;
@@ -105,41 +103,21 @@ class CacheManager {
   /**
    * @brief Factory.
    *
-   * @param vm are the options.
+   * @param options are the options.
    * @param nbVar is the number of variables.
    * @param specs gives the information about the input formula.
    * @param out is the stream where are printed out the logs.
    * @return CacheManager<T>*
    */
-  static CacheManager<T> *makeCacheManager(po::variables_map &vm,
+  static CacheManager<T> *makeCacheManager(const OptionCacheManager &options,
                                            unsigned nbVar, SpecManager *specs,
                                            std::ostream &out) {
-    std::string method = vm["cache-method"].as<std::string>();
-    out << "c [CACHE] Cache method used: " << method << "\n";
+    if (options.cachingMethod == NO_COL)
+      return new CacheNoCollision<T>(options, nbVar, specs, out);
+    if (options.cachingMethod == LIST)
+      return new CacheList<T>(options, nbVar, specs, out);
 
-    OptionCacheManager optionCacheManager;
-
-    optionCacheManager.optionCacheCleaningManager = {
-        CacheCleaningStrategyManager::getCacheCleaningStrategy(
-            vm["cache-reduction-strategy"].as<std::string>())};
-
-    optionCacheManager.optionBucketManager = {
-        ModeStoreManager::getModeStore(
-            vm["cache-store-strategy"].as<std::string>()),
-        ClauseRepresentationManager::getClauseRepresentation(
-            vm["cache-clause-representation"].as<std::string>()),
-        vm["cache-size-first-page"].as<unsigned long>(),
-        vm["cache-size-additional-page"].as<unsigned long>(),
-        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
-        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
-
-    if (method == "no-collision")
-      return new CacheNoCollision<T>(optionCacheManager, nbVar, specs, out);
-    if (method == "list")
-      return new CacheList<T>(optionCacheManager, nbVar, specs, out);
-
-    throw(
-        FactoryException("Cannot create a ProblemManager", __FILE__, __LINE__));
+    throw(FactoryException("Cannot create a CacheManager", __FILE__, __LINE__));
   }  // makeCacheManager
 
   virtual void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,

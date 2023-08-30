@@ -28,6 +28,7 @@
 #include "MethodManager.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
+#include "src/caching/OptionCacheManager.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
 #include "src/heuristics/PhaseHeuristic.hpp"
@@ -144,8 +145,27 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     }
 
     assert(m_hVar && m_hPhase && m_hCutSet);
-    m_cache = CacheManager<U>::makeCacheManager(vm, m_problem->getNbVar(),
-                                                m_specs, m_out);
+
+    OptionCacheManager optionCacheManager;
+    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
+        vm["cache-method"].as<std::string>()),
+
+    optionCacheManager.optionCacheCleaningManager = {
+        CacheCleaningStrategyManager::getCacheCleaningStrategy(
+            vm["cache-reduction-strategy"].as<std::string>())};
+
+    optionCacheManager.optionBucketManager = {
+        ModeStoreManager::getModeStore(
+            vm["cache-store-strategy"].as<std::string>()),
+        ClauseRepresentationManager::getClauseRepresentation(
+            vm["cache-clause-representation"].as<std::string>()),
+        vm["cache-size-first-page"].as<unsigned long>(),
+        vm["cache-size-additional-page"].as<unsigned long>(),
+        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
+        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
+
+    m_cache = CacheManager<U>::makeCacheManager(
+        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();

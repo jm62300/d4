@@ -118,7 +118,26 @@ class ProjMCMethod : public MethodManager {
     initSatSolver(vm, m_problem, satSolverClauses, idxVar - 1);
 
     // prepare the cache.
-    m_cache = CacheManager<T>::makeCacheManager(vm, idxVar - 1, m_specs, m_out);
+    OptionCacheManager optionCacheManager;
+    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
+        vm["cache-method"].as<std::string>()),
+
+    optionCacheManager.optionCacheCleaningManager = {
+        CacheCleaningStrategyManager::getCacheCleaningStrategy(
+            vm["cache-reduction-strategy"].as<std::string>())};
+
+    optionCacheManager.optionBucketManager = {
+        ModeStoreManager::getModeStore(
+            vm["cache-store-strategy"].as<std::string>()),
+        ClauseRepresentationManager::getClauseRepresentation(
+            vm["cache-clause-representation"].as<std::string>()),
+        vm["cache-size-first-page"].as<unsigned long>(),
+        vm["cache-size-additional-page"].as<unsigned long>(),
+        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
+        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
+
+    m_cache = CacheManager<T>::makeCacheManager(optionCacheManager, idxVar - 1,
+                                                m_specs, m_out);
 
     // init the clock time.
     initTimer();

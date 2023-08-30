@@ -193,10 +193,28 @@ class MaxSharpSAT : public MethodManager {
 
     // no partitioning heuristic for the moment.
     assert(m_hVar && m_hPhase);
-    m_cacheInd = CacheManager<T>::makeCacheManager(vm, m_problem->getNbVar(),
-                                                   m_specs, m_out);
+    OptionCacheManager optionCacheManager;
+    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
+        vm["cache-method"].as<std::string>()),
+
+    optionCacheManager.optionCacheCleaningManager = {
+        CacheCleaningStrategyManager::getCacheCleaningStrategy(
+            vm["cache-reduction-strategy"].as<std::string>())};
+
+    optionCacheManager.optionBucketManager = {
+        ModeStoreManager::getModeStore(
+            vm["cache-store-strategy"].as<std::string>()),
+        ClauseRepresentationManager::getClauseRepresentation(
+            vm["cache-clause-representation"].as<std::string>()),
+        vm["cache-size-first-page"].as<unsigned long>(),
+        vm["cache-size-additional-page"].as<unsigned long>(),
+        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
+        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
+
+    m_cacheInd = CacheManager<T>::makeCacheManager(
+        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
     m_cacheMax = CacheManager<MaxSharpSatResult>::makeCacheManager(
-        vm, m_problem->getNbVar(), m_specs, m_out);
+        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
