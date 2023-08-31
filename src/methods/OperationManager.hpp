@@ -23,6 +23,7 @@
 #include "CountingOperation.hpp"
 #include "DataBranch.hpp"
 #include "DecisionDNNFOperation.hpp"
+#include "OptionOperationManager.hpp"
 #include "nnf/Branch.hpp"
 #include "nnf/Node.hpp"
 #include "nnf/NodeManager.hpp"
@@ -36,7 +37,7 @@ class Operation {
   /**
      Operation factory.
 
-     @param[in] meth is the kind of operation we want to perform.
+     @param[in] options are the options given to the operator manager.
      @param[in] problem, the problem description.
      @param[in] specs, the problem specification.
      @param[in] solver, the SAT solver used for the compiler.
@@ -44,16 +45,15 @@ class Operation {
 
      \return an operation manager regarding the given options.
   */
-  static void *makeOperationManager(std::string &meth, bool isFloat,
+  static void *makeOperationManager(const OptionOperationManager &options,
                                     ProblemManager *problem, SpecManager *specs,
                                     WrapperSolver *solver, std::ostream &out) {
-    out << "c [CONSTRUCTOR] Operation: "
-        << "method(" << meth << ") "
-        << "float(" << isFloat << ")\n";
+    out << "c [OPERATION MANAGER]" << options << '\n';
 
-    if (meth == "counting") return new CountingOperation<T>(problem);
+    if (options.operatorType == COUNTING)
+      return new CountingOperation<T>(problem);
 
-    if (meth == "ddnnf-compiler")
+    if (options.operatorType == DDNNF_COMPILER)
       return new DecisionDNNFOperation<T, Node<T> *>(problem, specs, solver);
 
     throw(FactoryException("Cannot create a Operation", __FILE__, __LINE__));

@@ -28,6 +28,7 @@
 #include "MaxSharpSAT.hpp"
 #include "MinSharpSAT.hpp"
 #include "OperationManager.hpp"
+#include "OptionMethodManager.hpp"
 #include "ProjMCMethod.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
@@ -103,22 +104,26 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       }
     }
 
+    OptionMethodManager optionMethodManager;
+    optionMethodManager.optionOperationManager.operatorType =
+        OperationTypeManager::getOperatorType(meth);
+
     if (meth == "counting") {
       if (!isFloat)
         return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-            vm, meth, isFloat, runProblem, out);
+            vm, optionMethodManager, runProblem, out);
       else
         return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-            vm, meth, isFloat, runProblem, out);
+            vm, optionMethodManager, runProblem, out);
     }
 
     if (meth == "ddnnf-compiler") {
       if (!isFloat)
         return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-            vm, meth, isFloat, runProblem, out);
+            vm, optionMethodManager, runProblem, out);
       else
         return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-            vm, meth, isFloat, runProblem, out);
+            vm, optionMethodManager, runProblem, out);
     }
 
     if (meth == "projMC") {

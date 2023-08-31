@@ -20,37 +20,17 @@
 
 #include <string>
 
+#include "OptionOperationManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-enum SolverName { GLUCOSE_CNF, MINISAT_CNF };
-
-class SolverNameManager {
+class OptionMethodManager {
  public:
-  static std::string getSolverName(const SolverName& m) {
-    if (m == GLUCOSE_CNF) return "glucose cnf";
-    if (m == MINISAT_CNF) return "minisat cnf";
+  OptionOperationManager optionOperationManager;
 
-    throw(FactoryException("Solver Name unknown", __FILE__, __LINE__));
-  }  // getSolverName
-
-  static SolverName getSolverName(const std::string& m) {
-    if (m == "glucose") return GLUCOSE_CNF;
-    if (m == "minisat") return MINISAT_CNF;
-
-    throw(FactoryException("Solver Name unknown", __FILE__, __LINE__));
-  }  // getSolverName
-};
-
-class OptionSolver {
- public:
-  SolverName solverName;
-
-  friend std::ostream& operator<<(std::ostream& out, const OptionSolver& dt) {
-    out << " Option Solver:"
-        << " solver name(" << SolverNameManager::getSolverName(dt.solverName)
-        << ")";
-
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const OptionMethodManager& dt) {
+    out << " Option Method:";
     return out;
   }  // <<
 };

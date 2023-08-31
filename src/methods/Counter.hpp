@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "DpllStyleMethod.hpp"
+#include "OptionMethodManager.hpp"
 #include "nnf/Node.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -52,10 +53,15 @@ class Counter {
     boost::multiprecision::mpf_float::default_precision(
         precision);  // we set the precision
 
+    OptionMethodManager optionMethodManager;
+    optionMethodManager.optionOperationManager.operatorType =
+        OperationTypeManager::getOperatorType(meth);
+
     if (meth == "counting")
-      return new DpllStyleMethod<T, T>(vm, meth, isFloat, problem, out);
+      return new DpllStyleMethod<T, T>(vm, optionMethodManager, problem, out);
     if (meth == "ddnnf-compiler")
-      return new DpllStyleMethod<T, Node<T> *>(vm, meth, isFloat, problem, out);
+      return new DpllStyleMethod<T, Node<T> *>(vm, optionMethodManager, problem,
+                                               out);
 
     throw(BadBehaviourException(
         "Cannot create a counter with the given options.", __FILE__, __LINE__));

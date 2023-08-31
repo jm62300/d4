@@ -23,10 +23,34 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-class OptionMethod {
+
+enum OperationType { COUNTING, DDNNF_COMPILER };
+
+class OperationTypeManager {
  public:
-  friend std::ostream& operator<<(std::ostream& out, const OptionMethod& dt) {
-    out << " Option Method:";
+  static std::string getOperatorType(const OperationType& m) {
+    if (m == COUNTING) return "counting";
+    if (m == DDNNF_COMPILER) return "ddnnf-compiler";
+
+    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+
+  static OperationType getOperatorType(const std::string& m) {
+    if (m == "counting") return COUNTING;
+    if (m == "ddnnf-compiler") return DDNNF_COMPILER;
+
+    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+};
+
+class OptionOperationManager {
+ public:
+  OperationType operatorType;
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const OptionOperationManager& dt) {
+    out << " Operator option:"
+        << " operator type("
+        << OperationTypeManager::getOperatorType(dt.operatorType) << ")";
     return out;
   }  // <<
 };
