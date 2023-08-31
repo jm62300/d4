@@ -110,7 +110,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   alarm(timeout);
 
   bool res = bb.simplifyBackbone(
-      pb, (bipe::bipartition::OptionBackbone){true, timeout, true, "Glucose"},
+      pb, (bipe::bipartition::OptionBackbone){true, timeout, true, "glucose"},
       gates, std::cout, setOfModels);
   s_isRunning = nullptr;
 
