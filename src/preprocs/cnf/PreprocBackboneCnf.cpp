@@ -33,15 +33,12 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBackboneCnf::PreprocBackboneCnf(po::variables_map &vm,
-                                       std::ostream &out) {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
-}  // constructor
+PreprocBackboneCnf::PreprocBackboneCnf(std::ostream &out) {}  // constructor
 
 /**
    Destructor.
  */
-PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; }  // destructor
+PreprocBackboneCnf::~PreprocBackboneCnf() {}  // destructor
 
 /**
  * @brief PreprocBackboneCnf::run implementation.

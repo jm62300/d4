@@ -30,9 +30,8 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocEquiv::PreprocEquiv(po::variables_map &vm, std::string &method,
-                           int nbIteration, std::ostream &out) {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
+PreprocEquiv::PreprocEquiv(std::string &method, int nbIteration,
+                           std::ostream &out) {
   m_method = method;
   m_nbIteration = nbIteration;
 }  // constructor
@@ -40,7 +39,7 @@ PreprocEquiv::PreprocEquiv(po::variables_map &vm, std::string &method,
 /**
    Destructor.
  */
-PreprocEquiv::~PreprocEquiv() { delete ws; }  // destructor
+PreprocEquiv::~PreprocEquiv() {}  // destructor
 
 /**
  * @brief The preprocessing itself.

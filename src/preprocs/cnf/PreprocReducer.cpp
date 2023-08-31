@@ -30,9 +30,8 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocReducer::PreprocReducer(po::variables_map &vm, std::string &method,
-                               int nbIteration, std::ostream &out) {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
+PreprocReducer::PreprocReducer(std::string &method, int nbIteration,
+                               std::ostream &out) {
   m_method = method;
   m_nbIteration = nbIteration;
 }  // constructor
@@ -40,7 +39,7 @@ PreprocReducer::PreprocReducer(po::variables_map &vm, std::string &method,
 /**
    Destructor.
  */
-PreprocReducer::~PreprocReducer() { delete ws; }  // destructor
+PreprocReducer::~PreprocReducer() {}  // destructor
 
 /**
  * @brief PreprocReducer::run implementation.

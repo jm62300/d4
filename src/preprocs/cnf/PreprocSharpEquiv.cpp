@@ -31,9 +31,8 @@ namespace d4 {
  *
  * @param[in] vm, the options used (solver).
  */
-PreprocSharpEquiv::PreprocSharpEquiv(po::variables_map &vm, std::string &method,
-                                     int nbIteration, std::ostream &out) {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
+PreprocSharpEquiv::PreprocSharpEquiv(std::string &method, int nbIteration,
+                                     std::ostream &out) {
   m_method = method;
   m_nbIteration = nbIteration;
 }  // constructor
@@ -122,7 +121,7 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
 /**
  * @brief Destroy the Preproc Sharp Equiv:: Preproc Sharp Equiv object
  */
-PreprocSharpEquiv::~PreprocSharpEquiv() { delete ws; }  // destructor
+PreprocSharpEquiv::~PreprocSharpEquiv() {}  // destructor
 
 /**
  * @brief The preprocessing itself.

@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <vector>
 
 #include "../PreprocManager.hpp"
@@ -28,10 +27,8 @@
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PreprocEquiv : public PreprocManager {
  private:
-  WrapperSolver *ws;
   std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
@@ -39,8 +36,7 @@ class PreprocEquiv : public PreprocManager {
   bipe::bipartition::Method *m_isRunningBackbone = NULL;
 
  public:
-  PreprocEquiv(po::variables_map &vm, std::string &method, int nbIteration,
-               std::ostream &out);
+  PreprocEquiv(std::string &method, int nbIteration, std::ostream &out);
   ~PreprocEquiv();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 

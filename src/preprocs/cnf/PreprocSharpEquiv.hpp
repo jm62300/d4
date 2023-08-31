@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <vector>
 
 #include "../PreprocManager.hpp"
@@ -30,10 +29,8 @@
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PreprocSharpEquiv : public PreprocManager {
  private:
-  WrapperSolver *ws;
   std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
@@ -55,8 +52,7 @@ class PreprocSharpEquiv : public PreprocManager {
                           std::vector<bipe::Gate> &gates, unsigned timeout);
 
  public:
-  PreprocSharpEquiv(po::variables_map &vm, std::string &method, int nbIteration,
-                    std::ostream &out);
+  PreprocSharpEquiv(std::string &method, int nbIteration, std::ostream &out);
   ~PreprocSharpEquiv();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 

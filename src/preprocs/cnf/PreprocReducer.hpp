@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <vector>
 
 #include "../PreprocManager.hpp"
@@ -27,17 +26,14 @@
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PreprocReducer : public PreprocManager {
  private:
-  WrapperSolver *ws;
   std::string m_method;
   int m_nbIteration;
   bipe::reducer::Method *m_isRunning = NULL;
 
  public:
-  PreprocReducer(po::variables_map &vm, std::string &method, int nbIteration,
-                 std::ostream &out);
+  PreprocReducer(std::string &method, int nbIteration, std::ostream &out);
   ~PreprocReducer();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 

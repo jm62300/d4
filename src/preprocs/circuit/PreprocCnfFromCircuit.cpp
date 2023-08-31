@@ -83,16 +83,14 @@ ProblemManagerCnf *PreprocCnfFromCircuit::tseytin(
  * @param vm
  * @param out
  */
-PreprocCnfFromCircuit::PreprocCnfFromCircuit(po::variables_map &vm,
-                                             std::ostream &out) {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
+PreprocCnfFromCircuit::PreprocCnfFromCircuit(std::ostream &out) {
 }  // constructor
 
 /**
  * @brief Destroy the Preproc Cnf From Circuit:: Preproc Cnf From Circuit object
  *
  */
-PreprocCnfFromCircuit::~PreprocCnfFromCircuit() { delete ws; }
+PreprocCnfFromCircuit::~PreprocCnfFromCircuit() {}
 
 /**
  * @brief
@@ -104,12 +102,7 @@ PreprocCnfFromCircuit::~PreprocCnfFromCircuit() { delete ws; }
 ProblemManager *PreprocCnfFromCircuit::run(ProblemManager *pin,
                                            unsigned timeout) {
   ProblemManagerCnf *cnf = tseytin(static_cast<ProblemManagerCircuit *>(pin));
-  ws->initSolver(*cnf);
-
-  if (!ws->solve()) return cnf->getUnsatProblem();
-
   std::vector<Lit> units;
-  ws->getUnits(units);
   ProblemManager *ret = cnf->getConditionedFormula(units);
   delete cnf;
   return ret;

@@ -50,23 +50,23 @@ PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
   PreprocManager *ret = nullptr;
   if (inputType == "cnf" || inputType == "dimacs" || inputType == "tcnf") {
     if (meth == "basic")
-      ret = new PreprocBasicCnf(vm, out);
+      ret = new PreprocBasicCnf(out);
     else if (meth == "backbone")
-      ret = new PreprocBackboneCnf(vm, out);
+      ret = new PreprocBackboneCnf(out);
     else if (meth == "equiv")
-      ret = new PreprocEquiv(vm, meth,
-                             vm["preproc-reducer-iteration"].as<int>(), out);
+      ret = new PreprocEquiv(meth, vm["preproc-reducer-iteration"].as<int>(),
+                             out);
     else if (meth == "sharp-equiv")
       ret = new PreprocSharpEquiv(
-          vm, meth, vm["preproc-reducer-iteration"].as<int>(), out);
+          meth, vm["preproc-reducer-iteration"].as<int>(), out);
     else if (meth == "vivification" || meth == "occElimination" ||
              meth == "combinaison")
-      ret = new PreprocReducer(vm, meth,
-                               vm["preproc-reducer-iteration"].as<int>(), out);
+      ret = new PreprocReducer(meth, vm["preproc-reducer-iteration"].as<int>(),
+                               out);
   }
 
   if (inputType == "circuit") {
-    ret = new PreprocCnfFromCircuit(vm, out);
+    ret = new PreprocCnfFromCircuit(out);
   }
 
   if (!ret)

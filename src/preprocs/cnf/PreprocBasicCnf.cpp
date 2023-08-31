@@ -28,14 +28,12 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocBasicCnf::PreprocBasicCnf(po::variables_map &vm, std::ostream &out) {
-  ws = WrapperSolver::makeWrapperSolverPreproc(vm, out);
-}  // constructor
+PreprocBasicCnf::PreprocBasicCnf(std::ostream &out) {}  // constructor
 
 /**
    Destructor.
  */
-PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
+PreprocBasicCnf::~PreprocBasicCnf() {}  // destructor
 
 /**
  * @brief The preprocessing itself.
@@ -44,15 +42,7 @@ PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
  * the problem.
  */
 ProblemManager *PreprocBasicCnf::run(ProblemManager *pin, unsigned timeout) {
-  ws->initSolver(*pin);
-
-  std::vector<Lit> units2;
-  return pin->getConditionedFormula(units2);
-
-  if (!ws->solve()) return pin->getUnsatProblem();
-
   std::vector<Lit> units;
-  ws->getUnits(units);
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

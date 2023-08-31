@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <vector>
 
 #include "../PreprocManager.hpp"
@@ -27,14 +26,12 @@
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PreprocBackboneCnf : public PreprocManager {
  private:
-  WrapperSolver *ws;
   bipe::bipartition::Method *m_isRunning = NULL;
 
  public:
-  PreprocBackboneCnf(po::variables_map &vm, std::ostream &out);
+  PreprocBackboneCnf(std::ostream &out);
   ~PreprocBackboneCnf();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 };
