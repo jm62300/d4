@@ -36,7 +36,7 @@ class Operation {
   /**
      Operation factory.
 
-     @param[in] vm, the option list.
+     @param[in] meth is the kind of operation we want to perform.
      @param[in] problem, the problem description.
      @param[in] specs, the problem specification.
      @param[in] solver, the SAT solver used for the compiler.

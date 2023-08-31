@@ -18,25 +18,29 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "ActivityManager.hpp"
+#include "OptionSolver.hpp"
 #include "PolarityManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class WrapperSolver : public ActivityManager, public PolarityManager {
  private:
  protected:
   std::vector<char> m_isInAssumption;
 
  public:
-  static WrapperSolver *makeWrapperSolver(po::variables_map &vm,
+  /**
+   * @brief Wrapper to get a solver able to solve the input problem for the
+   * compilation/counting problems.
+   *
+   * @param name is the solver name.
+   * @param out is the stream where is printed out the logs.
+   * @return a solver.
+   */
+  static WrapperSolver *makeWrapperSolver(const OptionSolver &name,
                                           std::ostream &out);
-  static WrapperSolver *makeWrapperSolverPreproc(po::variables_map &vm,
-                                                 std::ostream &out);
 
   virtual ~WrapperSolver() {}
   virtual void initSolver(ProblemManager &p) = 0;

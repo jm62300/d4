@@ -1,4 +1,3 @@
-
 /*
  * d4
  * Copyright (C) 2020  Univ. Artois & CNRS

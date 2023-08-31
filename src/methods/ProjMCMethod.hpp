@@ -29,6 +29,7 @@
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
+#include "src/solvers/OptionSolver.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
@@ -218,7 +219,10 @@ class ProjMCMethod : public MethodManager {
    */
   void initSatSolver(po::variables_map &vm, ProblemManager *problem,
                      std::vector<std::vector<Lit>> &clauses, unsigned nbVar) {
-    m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
+    OptionSolver optionSolver;
+    optionSolver.solverName =
+        SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+    m_solver = WrapperSolver::makeWrapperSolver(optionSolver, m_out);
     assert(m_solver);
 
     // prepare the weight vectors and init the problem.

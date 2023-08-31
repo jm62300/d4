@@ -46,6 +46,7 @@
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/solvers/OptionSolver.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
@@ -177,7 +178,10 @@ class ExistRandomExist : public MethodManager {
     srand(0);
 
     // we create the SAT solver.
-    m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
+    OptionSolver optionSolver;
+    optionSolver.solverName =
+        SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+    m_solver = WrapperSolver::makeWrapperSolver(optionSolver, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);

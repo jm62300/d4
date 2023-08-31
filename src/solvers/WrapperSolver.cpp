@@ -25,48 +25,17 @@
 
 namespace d4 {
 /**
-   Wrapper to get a solver able to solve the input problem for the
-   compilation/counting problems.
-
-   @param[in] vm, the options.
+ * @brief WrapperSolver::makeWrapperSolver implementation.
  */
-WrapperSolver *WrapperSolver::makeWrapperSolver(po::variables_map &vm,
+WrapperSolver *WrapperSolver::makeWrapperSolver(const OptionSolver &options,
                                                 std::ostream &out) {
-  std::string s = vm["solver"].as<std::string>();
-  std::string inType = vm["input-type"].as<std::string>();
+  out << "c [WRAPPER SOLVER]" << options << "\n";
 
-  out << "c [CONSTRUCTOR] Solver: " << s << " " << inType << "\n";
-
-  if (inType == "cnf" || inType == "dimacs" || inType == "tcnf" ||
-      inType == "circuit") {
-    if (s == "minisat") return new WrapperMinisat();
-    if (s == "glucose") return new WrapperGlucose();
-  }
+  if (options.solverName == MINISAT_CNF) return new WrapperMinisat();
+  if (options.solverName == GLUCOSE_CNF) return new WrapperGlucose();
 
   throw(FactoryException("Cannot create a WrapperSolver", __FILE__, __LINE__));
 }  // makeWrapperSolver
-
-/**
-   Wrapper to get a solver able to solve the input problem for the preprocessing
-   step.
-
-   @param[in] vm, the options.
- */
-WrapperSolver *WrapperSolver::makeWrapperSolverPreproc(po::variables_map &vm,
-                                                       std::ostream &out) {
-  std::string s = vm["preproc-solver"].as<std::string>();
-  std::string inType = vm["input-type"].as<std::string>();
-
-  out << "c [CONSTRUCTOR] Preproc solver: " << s << " " << inType << "\n";
-
-  if (inType == "cnf" || inType == "dimacs" || inType == "tcnf" ||
-      inType == "circuit") {
-    if (s == "minisat") return new WrapperMinisat();
-    if (s == "glucose") return new WrapperGlucose();
-  }
-
-  throw(FactoryException("Cannot create a WrapperSolver", __FILE__, __LINE__));
-}  // makeWrapperSolverPreproc
 
 /**
    Prepare the solver by running it a given number of iteration for some queries
