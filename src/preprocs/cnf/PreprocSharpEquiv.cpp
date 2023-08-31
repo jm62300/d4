@@ -31,9 +31,7 @@ namespace d4 {
  *
  * @param[in] vm, the options used (solver).
  */
-PreprocSharpEquiv::PreprocSharpEquiv(std::string &method, int nbIteration,
-                                     std::ostream &out) {
-  m_method = method;
+PreprocSharpEquiv::PreprocSharpEquiv(int nbIteration, std::ostream &out) {
   m_nbIteration = nbIteration;
 }  // constructor
 

@@ -31,7 +31,6 @@
 namespace d4 {
 class PreprocSharpEquiv : public PreprocManager {
  private:
-  std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
 
@@ -52,7 +51,7 @@ class PreprocSharpEquiv : public PreprocManager {
                           std::vector<bipe::Gate> &gates, unsigned timeout);
 
  public:
-  PreprocSharpEquiv(std::string &method, int nbIteration, std::ostream &out);
+  PreprocSharpEquiv(int nbIteration, std::ostream &out);
   ~PreprocSharpEquiv();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 

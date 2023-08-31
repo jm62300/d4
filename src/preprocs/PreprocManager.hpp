@@ -17,20 +17,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <boost/program_options.hpp>
+
 #include <vector>
 
+#include "OptionPreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
-
 class PreprocManager {
  public:
   static void *s_isRunning;
   virtual ~PreprocManager() {}
-  static PreprocManager *makePreprocManager(po::variables_map &vm,
+
+  static PreprocManager *makePreprocManager(const OptionPreprocManager &options,
                                             std::ostream &out);
 
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) = 0;

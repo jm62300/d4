@@ -36,44 +36,38 @@ void *PreprocManager::s_isRunning = nullptr;
 /**
  * @brief Preproc factory.
  *
- * @param vm gives the options.
+ * @param options gives the options.
  * @param out is the stream where are printed out the logs.
  * @return a preproc.
  */
-PreprocManager *PreprocManager::makePreprocManager(po::variables_map &vm,
-                                                   std::ostream &out) {
-  std::string meth = vm["preproc"].as<std::string>();
-  std::string inputType = vm["input-type"].as<std::string>();
+PreprocManager *PreprocManager::makePreprocManager(
+    const OptionPreprocManager &options, std::ostream &out) {
+  out << "c [PREPROC MANAGER]" << options << "\n";
 
-  out << "c [PREPROC] Method: " << meth << " " << inputType << "\n";
-
-  PreprocManager *ret = nullptr;
-  if (inputType == "cnf" || inputType == "dimacs" || inputType == "tcnf") {
-    if (meth == "basic")
-      ret = new PreprocBasicCnf(out);
-    else if (meth == "backbone")
-      ret = new PreprocBackboneCnf(out);
-    else if (meth == "equiv")
-      ret = new PreprocEquiv(meth, vm["preproc-reducer-iteration"].as<int>(),
-                             out);
-    else if (meth == "sharp-equiv")
-      ret = new PreprocSharpEquiv(
-          meth, vm["preproc-reducer-iteration"].as<int>(), out);
-    else if (meth == "vivification" || meth == "occElimination" ||
-             meth == "combinaison")
-      ret = new PreprocReducer(meth, vm["preproc-reducer-iteration"].as<int>(),
-                               out);
+  if (options.inputType == DIMACS_CNF || options.inputType == TCNF) {
+    switch (options.preprocMethod) {
+      case BASIC:
+        return new PreprocBasicCnf(out);
+      case BACKBONE:
+        return new PreprocBackboneCnf(out);
+      case EQUIV:
+        return new PreprocEquiv(options.nbIteration, out);
+      case SHARP_EQUIV:
+        return new PreprocSharpEquiv(options.nbIteration, out);
+      case VIVI:
+        return new PreprocReducer("vivification", options.nbIteration, out);
+      case OCC_ELIM:
+        return new PreprocReducer("occElimination", options.nbIteration, out);
+      case COMB:
+        return new PreprocReducer("combinaison", options.nbIteration, out);
+    }
   }
 
-  if (inputType == "circuit") {
-    ret = new PreprocCnfFromCircuit(out);
+  if (options.inputType == CIRCUIT) {
+    return new PreprocCnfFromCircuit(out);
   }
 
-  if (!ret)
-    throw(
-        FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
-
-  return ret;
+  throw(FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
 }  // makePreprocManager
 
 }  // namespace d4

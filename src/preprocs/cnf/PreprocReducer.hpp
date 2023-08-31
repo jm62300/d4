@@ -33,7 +33,7 @@ class PreprocReducer : public PreprocManager {
   bipe::reducer::Method *m_isRunning = NULL;
 
  public:
-  PreprocReducer(std::string &method, int nbIteration, std::ostream &out);
+  PreprocReducer(const std::string &method, int nbIteration, std::ostream &out);
   ~PreprocReducer();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 

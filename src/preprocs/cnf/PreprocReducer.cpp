@@ -30,7 +30,7 @@ namespace d4 {
 
    @param[in] vm, the options used (solver).
  */
-PreprocReducer::PreprocReducer(std::string &method, int nbIteration,
+PreprocReducer::PreprocReducer(const std::string &method, int nbIteration,
                                std::ostream &out) {
   m_method = method;
   m_nbIteration = nbIteration;

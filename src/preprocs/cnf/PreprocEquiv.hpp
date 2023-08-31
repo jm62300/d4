@@ -29,14 +29,13 @@
 namespace d4 {
 class PreprocEquiv : public PreprocManager {
  private:
-  std::string m_method;
   int m_nbIteration;
   bool m_isInterrupted = false;
   bipe::reducer::Method *m_isRunningReducer = NULL;
   bipe::bipartition::Method *m_isRunningBackbone = NULL;
 
  public:
-  PreprocEquiv(std::string &method, int nbIteration, std::ostream &out);
+  PreprocEquiv(int nbIteration, std::ostream &out);
   ~PreprocEquiv();
   virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 

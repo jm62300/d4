@@ -189,7 +189,15 @@ void MethodManager::displayInfoVariables(ProblemManager *problem,
 ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
                                           ProblemManager *initProblem,
                                           std::ostream &out) {
-  PreprocManager *preproc = PreprocManager::makePreprocManager(vm, out);
+  OptionPreprocManager optionPreproc;
+  optionPreproc.inputType =
+      InputTypeManager::getInputType(vm["input-type"].as<std::string>());
+  optionPreproc.preprocMethod =
+      PreprocMethodManager::getPreprocMethod(vm["preproc"].as<std::string>());
+  optionPreproc.nbIteration = vm["preproc-reducer-iteration"].as<int>();
+
+  PreprocManager *preproc =
+      PreprocManager::makePreprocManager(optionPreproc, out);
   assert(preproc);
   ProblemManager *problem =
       preproc->run(initProblem, vm["preproc-timeout"].as<int>());
