@@ -84,7 +84,15 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   boost::multiprecision::mpf_float::default_precision(precision);
 
   if (meth != "erosion") {
-    ProblemManager *runProblem = runPreproc(vm, problem, out);
+    OptionPreprocManager optionPreproc;
+    optionPreproc.inputType =
+        InputTypeManager::getInputType(vm["input-type"].as<std::string>());
+    optionPreproc.preprocMethod =
+        PreprocMethodManager::getPreprocMethod(vm["preproc"].as<std::string>());
+    optionPreproc.nbIteration = vm["preproc-reducer-iteration"].as<int>();
+    optionPreproc.timeout = vm["preproc-timeout"].as<int>();
+
+    ProblemManager *runProblem = runPreproc(optionPreproc, problem, out);
 
     displayInfoVariables(runProblem, out);
     for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
@@ -180,27 +188,19 @@ void MethodManager::displayInfoVariables(ProblemManager *problem,
 /**
  * @brief Run the preproc method before constructing the method.
  *
- * @param[in] vm is the option list.
+ * @param[in] optionPreproc is the option list.
  * @param[in] initProblem is the input problem we want to preproc.
  * @param[in] out is the stream where will be printed out the log.
  * @param[out] lastBreath information collected when the preproc has done its
  * job.
  */
-ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
-                                          ProblemManager *initProblem,
-                                          std::ostream &out) {
-  OptionPreprocManager optionPreproc;
-  optionPreproc.inputType =
-      InputTypeManager::getInputType(vm["input-type"].as<std::string>());
-  optionPreproc.preprocMethod =
-      PreprocMethodManager::getPreprocMethod(vm["preproc"].as<std::string>());
-  optionPreproc.nbIteration = vm["preproc-reducer-iteration"].as<int>();
-
+ProblemManager *MethodManager::runPreproc(
+    const OptionPreprocManager &optionPreproc, ProblemManager *initProblem,
+    std::ostream &out) {
   PreprocManager *preproc =
       PreprocManager::makePreprocManager(optionPreproc, out);
   assert(preproc);
-  ProblemManager *problem =
-      preproc->run(initProblem, vm["preproc-timeout"].as<int>());
+  ProblemManager *problem = preproc->run(initProblem, optionPreproc.timeout);
   out << "c [MAIN PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
          "preprocessed formula\033[0m\n";
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");

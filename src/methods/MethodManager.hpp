@@ -42,7 +42,7 @@ class MethodManager {
 
   static void displayInfoVariables(ProblemManager *problem, std::ostream &out);
 
-  static ProblemManager *runPreproc(po::variables_map &vm,
+  static ProblemManager *runPreproc(const OptionPreprocManager &optionPreproc,
                                     ProblemManager *initProblem,
                                     std::ostream &out);
 

@@ -88,6 +88,7 @@ class OptionPreprocManager {
   InputType inputType;
   PreprocMethod preprocMethod;
   unsigned nbIteration = 1;
+  int timeout = 0;
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionPreprocManager& dt) {
@@ -95,6 +96,7 @@ class OptionPreprocManager {
         << " preproc("
         << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ") "
         << " input type(" << InputTypeManager::getInputType(dt.inputType)
+        << ") #iteration(" << dt.nbIteration << ") timeout(" << dt.timeout
         << ")";
 
     return out;
