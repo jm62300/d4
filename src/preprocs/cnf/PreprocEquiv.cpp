@@ -48,24 +48,7 @@ PreprocEquiv::~PreprocEquiv() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocEquiv::run(ProblemManager *pin,
-                                  LastBreathPreproc &lastBreath,
-                                  unsigned timeout) {
-  std::cout << "c [EQUIV PREPROC] Start\n";
-  ws->initSolver(*pin);
-  lastBreath.panic = 0;
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
-
-  if (!ws->solve()) return pin->getUnsatProblem();
-  lastBreath.panic = ws->getNbConflict() > 100000;
-
-  // get the activity given by the solver.
-  for (unsigned i = 1; i <= pin->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getCountConflict(i);
-
-  std::vector<Lit> units;
-  ws->getUnits(units);
-
+ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
   // get the cnf.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
 
@@ -82,8 +65,6 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
   std::vector<double> tmp(pin->getNbVar() + 1, 1.0);
   bipe::Problem pb(pin->getNbVar(), tmp, selected, protect);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
-  for (auto l : units)
-    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
   for (auto &cl : pcnf.getClauses()) {
     clauses.push_back({});
     for (auto l : cl)
@@ -144,7 +125,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
     return ret;
   } else {
     // the list of unit literals.
-    units.clear();
+    std::vector<Lit> units;
     for (auto g : gates)
       units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
 

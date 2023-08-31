@@ -44,30 +44,9 @@ PreprocBackboneCnf::PreprocBackboneCnf(po::variables_map &vm,
 PreprocBackboneCnf::~PreprocBackboneCnf() { delete ws; }  // destructor
 
 /**
- * @brief The preprocessing itself.
- * @param[out] p, the problem we want to preprocess.
- * @param[out] lastBreath gives information about the way the    preproc sees
- * the problem.
+ * @brief PreprocBackboneCnf::run implementation.
  */
-ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
-                                        LastBreathPreproc &lastBreath,
-                                        unsigned timeout) {
-  // init the solver.
-  ws->initSolver(*pin);
-  ws->setNeedModel(true);
-
-  if (!ws->solve()) return pin->getUnsatProblem();
-  lastBreath.panic = ws->getNbConflict() > 100000;
-
-  // get the activity given by the solver.
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
-  for (unsigned i = 1; i <= pin->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getCountConflict(i);
-
-  // get the unit.
-  std::vector<Lit> units;
-  ws->getUnits(units);
-
+ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin, unsigned timeout) {
   // create the problem regarding the bipe library.
   std::vector<Var> protect, selected;
   if (pin->getSelectedVar().size())
@@ -83,8 +62,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
 
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
-  for (auto l : units)
-    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
+
   for (auto &cl : pcnf.getClauses()) {
     clauses.push_back({});
     for (auto l : cl)
@@ -120,14 +98,11 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
   }
 
   // the list of unit literals.
-  units.clear();
+  std::vector<Lit> units;
   for (auto g : gates)
     units.push_back(Lit::makeLit(g.output.var(), g.output.sign()));
 
   std::cout << "c [PREPOC BACKBONE] Backone size: " << units.size() << "\n";
-  std::cout << "c [PREPOC BACKBONE] Panic in the preprocessing: "
-            << lastBreath.panic << "\n";
-
   return pin->getConditionedFormula(units);
 }  // run
 }  // namespace d4

@@ -47,18 +47,15 @@ class Counter {
   */
   static Counter<T> *makeCounter(po::variables_map &vm, ProblemManager *problem,
                                  std::string meth, bool isFloat, int precision,
-                                 std::ostream &out,
-                                 LastBreathPreproc &lastBreath) {
+                                 std::ostream &out) {
     out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";
     boost::multiprecision::mpf_float::default_precision(
         precision);  // we set the precision
 
     if (meth == "counting")
-      return new DpllStyleMethod<T, T>(vm, meth, isFloat, problem, out,
-                                       lastBreath);
+      return new DpllStyleMethod<T, T>(vm, meth, isFloat, problem, out);
     if (meth == "ddnnf-compiler")
-      return new DpllStyleMethod<T, Node<T> *>(vm, meth, isFloat, problem, out,
-                                               lastBreath);
+      return new DpllStyleMethod<T, Node<T> *>(vm, meth, isFloat, problem, out);
 
     throw(BadBehaviourException(
         "Cannot create a counter with the given options.", __FILE__, __LINE__));

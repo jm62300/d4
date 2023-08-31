@@ -84,12 +84,9 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   boost::multiprecision::mpf_float::default_precision(precision);
 
   if (meth != "erosion") {
-    LastBreathPreproc lastBreath;
-    ProblemManager *runProblem = runPreproc(vm, problem, out, lastBreath);
+    ProblemManager *runProblem = runPreproc(vm, problem, out);
 
     displayInfoVariables(runProblem, out);
-    out << "c [METHOD MANAGER] Panic mode: " << lastBreath.panic << "\n";
-
     for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
       Lit l = Lit::makeLitTrue(i);
       if (problem->getWeightLit(l) != 1 || problem->getWeightLit(~l) != 1) {
@@ -100,51 +97,45 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
     if (meth == "counting") {
       if (!isFloat)
-        // return new DpllStyleMethod<int, int>(vm, meth, isFloat, runProblem,
-        // out,                                 lastBreath);
         return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-            vm, meth, isFloat, runProblem, out, lastBreath);
+            vm, meth, isFloat, runProblem, out);
       else
         return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-            vm, meth, isFloat, runProblem, out, lastBreath);
+            vm, meth, isFloat, runProblem, out);
     }
 
     if (meth == "ddnnf-compiler") {
       if (!isFloat)
         return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-            vm, meth, isFloat, runProblem, out, lastBreath);
+            vm, meth, isFloat, runProblem, out);
       else
         return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-            vm, meth, isFloat, runProblem, out, lastBreath);
+            vm, meth, isFloat, runProblem, out);
     }
 
     if (meth == "projMC") {
       if (!isFloat)
-        return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem,
-                                              lastBreath);
-      return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem,
-                                              lastBreath);
+        return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem);
+      return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem);
     }
 
     if (meth == "max#sat") {
       if (!isFloat)
-        return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
-                                             lastBreath);
-      return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
-                                             lastBreath);
+        return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem,
+                                             out);
+      return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem,
+                                             out);
     }
 
-    if (meth == "ere") {
-      return new ExistRandomExist<mpz::mpf_float>(vm, meth, runProblem, out,
-                                                  lastBreath);
-    }
+    if (meth == "ere")
+      return new ExistRandomExist<mpz::mpf_float>(vm, meth, runProblem, out);
 
     if (meth == "min#sat") {
       if (!isFloat)
-        return new MinSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem, out,
-                                             lastBreath);
-      return new MinSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem, out,
-                                             lastBreath);
+        return new MinSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem,
+                                             out);
+      return new MinSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem,
+                                             out);
     }
   } else {
     return new Erosion<mpz::mpz_int>(vm, isFloat,
@@ -197,12 +188,11 @@ void MethodManager::displayInfoVariables(ProblemManager *problem,
  */
 ProblemManager *MethodManager::runPreproc(po::variables_map &vm,
                                           ProblemManager *initProblem,
-                                          std::ostream &out,
-                                          LastBreathPreproc &lastBreath) {
+                                          std::ostream &out) {
   PreprocManager *preproc = PreprocManager::makePreprocManager(vm, out);
   assert(preproc);
   ProblemManager *problem =
-      preproc->run(initProblem, lastBreath, vm["preproc-timeout"].as<int>());
+      preproc->run(initProblem, vm["preproc-timeout"].as<int>());
   out << "c [MAIN PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
          "preprocessed formula\033[0m\n";
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");

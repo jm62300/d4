@@ -39,9 +39,7 @@ class PreprocReducer : public PreprocManager {
   PreprocReducer(po::variables_map &vm, std::string &method, int nbIteration,
                  std::ostream &out);
   ~PreprocReducer();
-  virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath,
-                              unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 
   /**
    * @brief Stop.

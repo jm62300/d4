@@ -130,26 +130,10 @@ PreprocSharpEquiv::~PreprocSharpEquiv() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
-                                       LastBreathPreproc &lastBreath,
-                                       unsigned timeout) {
+ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin, unsigned timeout) {
   std::cout << "c [PREPROC #EQUIV] Start\n";
-  ws->initSolver(*pin);
-  lastBreath.panic = 0;
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
-
-  if (!ws->solve()) return pin->getUnsatProblem();
-  lastBreath.panic = ws->getNbConflict() > 100000;
-
-  // get the activity given by the solver.
-  for (unsigned i = 1; i <= pin->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getCountConflict(i);
-
-  std::vector<Lit> units;
-  ws->getUnits(units);
 
   std::vector<bool> isUnit(pin->getNbVar() + 1, false);
-  for (auto &l : units) isUnit[l.var()] = true;
 
   // get the cnf.
   // create the problem regarding the bipe library.
@@ -169,8 +153,6 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
 
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> &clauses = pb.getClauses();
-  for (auto l : units)
-    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
   for (auto &cl : pcnf.getClauses()) {
     clauses.push_back({});
     for (auto l : cl)
@@ -182,6 +164,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   // call the preprocessor to compute the bipartition.
   std::vector<bipe::Var> input, output;
   std::vector<bipe::Gate> gates;
+  std::vector<Lit> units;
   computeBipartition(pcnf, units, input, output, gates, timeout);
 
   // create the problem from the reducer side.

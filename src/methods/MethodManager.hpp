@@ -44,8 +44,7 @@ class MethodManager {
 
   static ProblemManager *runPreproc(po::variables_map &vm,
                                     ProblemManager *initProblem,
-                                    std::ostream &out,
-                                    LastBreathPreproc &lastBreath);
+                                    std::ostream &out);
 
   virtual void run(po::variables_map &vm) = 0;
   virtual void interrupt() {}

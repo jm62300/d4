@@ -38,7 +38,6 @@ class PreprocCnfFromCircuit : public PreprocManager {
  public:
   PreprocCnfFromCircuit(po::variables_map &vm, std::ostream &out);
   ~PreprocCnfFromCircuit();
-  ProblemManager *run(ProblemManager *pin, LastBreathPreproc &lastBreath,
-                      unsigned timeout) override;
+  ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 };
 }  // namespace d4

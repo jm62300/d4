@@ -25,29 +25,6 @@
 
 namespace d4 {
 namespace po = boost::program_options;
-struct LastBreathPreproc {
-  std::vector<double> countConflict;
-  bool panic;
-
-  /**
-   * @brief Construct a new Last Breath Preproc object
-   */
-  LastBreathPreproc() { panic = false; }  // constructor
-
-  /**
-   * @brief Construct a new Last Breath Preproc object.
-   *
-   * @param p the mode.
-   * @param nbVar the number of variables.
-   */
-  LastBreathPreproc(bool p, unsigned nbVar) : panic(p) {
-    countConflict.resize(nbVar, 0);
-  }  // constructor.
-
-  inline void fitSizeCountConflict(unsigned size) {
-    countConflict.resize(size);
-  }  // fitSizeCountConflict
-};
 
 class PreprocManager {
  public:
@@ -56,8 +33,6 @@ class PreprocManager {
   static PreprocManager *makePreprocManager(po::variables_map &vm,
                                             std::ostream &out);
 
-  virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath,
-                              unsigned timeout) = 0;
+  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) = 0;
 };
 }  // namespace d4

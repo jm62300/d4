@@ -43,33 +43,12 @@ PreprocReducer::PreprocReducer(po::variables_map &vm, std::string &method,
 PreprocReducer::~PreprocReducer() { delete ws; }  // destructor
 
 /**
- * @brief The preprocessing itself.
- * @param[out] p, the problem we want to preprocess.
- * @param[out] lastBreath gives information about the way the    preproc sees
- * the problem.
+ * @brief PreprocReducer::run implementation.
  */
-ProblemManager *PreprocReducer::run(ProblemManager *pin,
-                                    LastBreathPreproc &lastBreath,
-                                    unsigned timeout) {
-  ws->initSolver(*pin);
-  lastBreath.panic = 0;
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
-
-  if (!ws->solve()) return pin->getUnsatProblem();
-  lastBreath.panic = ws->getNbConflict() > 100000;
-
-  // get the activity given by the solver.
-  for (unsigned i = 1; i <= pin->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getCountConflict(i);
-
-  std::vector<Lit> units;
-  ws->getUnits(units);
-
+ProblemManager *PreprocReducer::run(ProblemManager *pin, unsigned timeout) {
   // prepage the clauses.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> clauses;
-  for (auto l : units)
-    clauses.push_back({bipe::Lit::makeLit(l.var(), l.sign())});
   for (auto &cl : pcnf.getClauses()) {
     clauses.push_back({});
     for (auto l : cl)

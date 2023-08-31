@@ -36,8 +36,6 @@ class PreprocBackboneCnf : public PreprocManager {
  public:
   PreprocBackboneCnf(po::variables_map &vm, std::ostream &out);
   ~PreprocBackboneCnf();
-  virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath,
-                              unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 };
 }  // namespace d4

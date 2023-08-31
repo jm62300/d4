@@ -144,8 +144,7 @@ class ExistRandomExist : public MethodManager {
      @param[in] vm, the list of options.
    */
   ExistRandomExist(po::variables_map &vm, std::string &meth,
-                   ProblemManager *initProblem, std::ostream &out,
-                   LastBreathPreproc &lastBreath)
+                   ProblemManager *initProblem, std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
@@ -180,10 +179,7 @@ class ExistRandomExist : public MethodManager {
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(vm, m_out);
     assert(m_solver);
-    m_panicMode = lastBreath.panic;
     m_solver->initSolver(*m_problem);
-    m_solver->setCountConflict(lastBreath.countConflict, 1,
-                               m_problem->getNbVar());
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.

@@ -43,22 +43,13 @@ PreprocBasicCnf::~PreprocBasicCnf() { delete ws; }  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
-                                     LastBreathPreproc &lastBreath,
-                                     unsigned timeout) {
+ProblemManager *PreprocBasicCnf::run(ProblemManager *pin, unsigned timeout) {
   ws->initSolver(*pin);
-  lastBreath.panic = 0;
-  lastBreath.countConflict.resize(pin->getNbVar() + 1, 0);
 
   std::vector<Lit> units2;
   return pin->getConditionedFormula(units2);
 
   if (!ws->solve()) return pin->getUnsatProblem();
-  lastBreath.panic = ws->getNbConflict() > 100000;
-
-  // get the activity given by the solver.
-  for (unsigned i = 1; i <= pin->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getCountConflict(i);
 
   std::vector<Lit> units;
   ws->getUnits(units);

@@ -102,19 +102,11 @@ PreprocCnfFromCircuit::~PreprocCnfFromCircuit() { delete ws; }
  * @return ProblemManager*
  */
 ProblemManager *PreprocCnfFromCircuit::run(ProblemManager *pin,
-                                           LastBreathPreproc &lastBreath,
                                            unsigned timeout) {
   ProblemManagerCnf *cnf = tseytin(static_cast<ProblemManagerCircuit *>(pin));
   ws->initSolver(*cnf);
-  lastBreath.panic = 0;
-  lastBreath.countConflict.resize(cnf->getNbVar() + 1, 0);
 
   if (!ws->solve()) return cnf->getUnsatProblem();
-  lastBreath.panic = ws->getNbConflict() > 100000;
-
-  // get the activity given by the solver.
-  for (unsigned i = 1; i <= cnf->getNbVar(); i++)
-    lastBreath.countConflict[i] = ws->getCountConflict(i);
 
   std::vector<Lit> units;
   ws->getUnits(units);

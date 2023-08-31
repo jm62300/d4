@@ -145,7 +145,6 @@ class Erosion : public MethodManager {
         static_cast<ProblemManagerErosionCnf *>(m_problem)->getHardClauses();
 
     // require to init the solver
-    LastBreathPreproc lastBreath(0, m_problem->getNbVar() + 1);
     std::vector<Var> setOfVar;
     for (unsigned i = 1; i < m_problem->getNbVar() + 1; i++)
       setOfVar.push_back(i);
@@ -173,9 +172,9 @@ class Erosion : public MethodManager {
 
       // create the counter.
       outCounter << "c [CONSTRUCTOR] Create an external counter: counting\n";
-      Counter<T> *counter = Counter<T>::makeCounter(
-          vm, p, "counting", m_isFloat, vm["float-precision"].as<int>(),
-          outCounter, lastBreath);
+      Counter<T> *counter =
+          Counter<T>::makeCounter(vm, p, "counting", m_isFloat,
+                                  vm["float-precision"].as<int>(), outCounter);
 
       // count to test.
       std::vector<Lit> assumption;

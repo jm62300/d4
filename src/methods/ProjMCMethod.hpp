@@ -71,7 +71,6 @@ class ProjMCMethod : public MethodManager {
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
   CacheManager<T> *m_cache;
-  LastBreathPreproc m_lastBreath;
 
   long unsigned m_nbCallRec;
   long unsigned m_nbSplit;
@@ -84,11 +83,9 @@ class ProjMCMethod : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem,
-               LastBreathPreproc &lastBreath)
+  ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem)
       : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr) {
     m_nbCallRec = m_nbSplit = 0;
-    m_lastBreath = lastBreath;
 
     // init the output stream
     m_out.copyfmt(std::cout);
@@ -141,9 +138,6 @@ class ProjMCMethod : public MethodManager {
 
     // init the clock time.
     initTimer();
-
-    // update the last breath structure with the additional variables.
-    m_lastBreath.fitSizeCountConflict(idxVar);
 
     // prepare the counter.
     initCounter(vm, m_problem, isFloat, projClause, idxVar - 1);
@@ -209,7 +203,7 @@ class ProjMCMethod : public MethodManager {
           << "counting"
           << "\n";
     m_counter = Counter<T>::makeCounter(vm, p, "counting", isFloat, precision,
-                                        m_outCounter, m_lastBreath);
+                                        m_outCounter);
   }  // initCounter
 
   /**
@@ -242,8 +236,6 @@ class ProjMCMethod : public MethodManager {
     ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
     p.setClauses(clauses);
     m_solver->initSolver(p);
-    m_solver->setCountConflict(m_lastBreath.countConflict, 1,
-                               m_problem->getNbVar());
 
     // ask for the witness.
     m_solver->setNeedModel(true);

@@ -58,9 +58,7 @@ class PreprocSharpEquiv : public PreprocManager {
   PreprocSharpEquiv(po::variables_map &vm, std::string &method, int nbIteration,
                     std::ostream &out);
   ~PreprocSharpEquiv();
-  virtual ProblemManager *run(ProblemManager *pin,
-                              LastBreathPreproc &lastBreath,
-                              unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
 
   /**
    * @brief Stop.
