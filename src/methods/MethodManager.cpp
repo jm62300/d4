@@ -28,8 +28,9 @@
 #include "MaxSharpSAT.hpp"
 #include "MinSharpSAT.hpp"
 #include "OperationManager.hpp"
-#include "OptionMethodManager.hpp"
 #include "ProjMCMethod.hpp"
+#include "options/OptionDpllStyleMethod.hpp"
+#include "options/OptionMethodManager.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/problem/ProblemManager.hpp"
@@ -57,8 +58,11 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   out << "c\n";
   assert(initProblem);
 
+  Configuration config;
+  config.methodName = MethodNameManager::getMethodName(meth);
+
   MethodManager *ret =
-      makeMethodManager(vm, initProblem, meth, precision, isFloat, out);
+      makeMethodManager(vm, initProblem, config, precision, isFloat, out);
   delete initProblem;
 
   return ret;
@@ -78,13 +82,13 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
  */
 MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                                 ProblemManager *problem,
-                                                std::string meth, int precision,
-                                                bool isFloat,
+                                                const Configuration &config,
+                                                int precision, bool isFloat,
                                                 std::ostream &out) {
-  out << "c [METHOD MANAGER] Constructor: " << meth << "\n";
+  out << "c [METHOD MANAGER]\n";
   boost::multiprecision::mpf_float::default_precision(precision);
 
-  if (meth != "erosion") {
+  if (config.methodName != METH_EROSION) {
     OptionPreprocManager optionPreproc;
     optionPreproc.inputType =
         InputTypeManager::getInputType(vm["input-type"].as<std::string>());
@@ -104,50 +108,51 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       }
     }
 
-    OptionMethodManager optionMethodManager;
-    optionMethodManager.optionOperationManager.operatorType =
-        OperationTypeManager::getOperatorType(meth);
+    if (config.methodName == METH_COUNTING || config.methodName == METH_DDNNF) {
+      OptionDpllStyleMethod options;
+      options.optionOperationManager.operatorType =
+          OperationTypeManager::getOperatorType(config.methodName);
 
-    if (meth == "counting") {
-      if (!isFloat)
-        return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-            vm, optionMethodManager, runProblem, out);
-      else
-        return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-            vm, optionMethodManager, runProblem, out);
-    }
+      if (config.methodName == METH_COUNTING) {
+        if (!isFloat)
+          return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
+              vm, options, runProblem, out);
+        else
+          return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
+              vm, options, runProblem, out);
+      }
 
-    if (meth == "ddnnf-compiler") {
+      // compiler.
       if (!isFloat)
         return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-            vm, optionMethodManager, runProblem, out);
+            vm, options, runProblem, out);
       else
         return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-            vm, optionMethodManager, runProblem, out);
+            vm, options, runProblem, out);
     }
 
-    if (meth == "projMC") {
+    if (config.methodName == METH_PROJ_MC) {
       if (!isFloat)
         return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem);
       return new ProjMCMethod<mpz::mpf_float>(vm, isFloat, runProblem);
     }
 
-    if (meth == "max#sat") {
+    if (config.methodName == METH_MAX_SHARP) {
       if (!isFloat)
-        return new MaxSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem,
+        return new MaxSharpSAT<mpz::mpz_int>(vm, "max#sat", isFloat, runProblem,
                                              out);
-      return new MaxSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem,
+      return new MaxSharpSAT<mpz::mpf_float>(vm, "max#sat", isFloat, runProblem,
                                              out);
     }
 
-    if (meth == "ere")
-      return new ExistRandomExist<mpz::mpf_float>(vm, meth, runProblem, out);
+    if (config.methodName == METH_ERE)
+      return new ExistRandomExist<mpz::mpf_float>(vm, "ere", runProblem, out);
 
-    if (meth == "min#sat") {
+    if (config.methodName == METH_MIN_SHARP) {
       if (!isFloat)
-        return new MinSharpSAT<mpz::mpz_int>(vm, meth, isFloat, runProblem,
+        return new MinSharpSAT<mpz::mpz_int>(vm, "min#sat", isFloat, runProblem,
                                              out);
-      return new MinSharpSAT<mpz::mpf_float>(vm, meth, isFloat, runProblem,
+      return new MinSharpSAT<mpz::mpf_float>(vm, "min#sat", isFloat, runProblem,
                                              out);
     }
   } else {

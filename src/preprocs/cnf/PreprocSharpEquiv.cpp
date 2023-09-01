@@ -62,10 +62,10 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
       [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
 
   // Options:
-  bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "Glucose");
-  bipe::bipartition::OptionDac optionDac(false, "Glucose");
+  bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
+  bipe::bipartition::OptionDac optionDac(false, "glucose");
   bipe::bipartition::OptionBipartition optionBipartition(
-      false, true, true, "OCC_ASC", "Glucose", 0);
+      false, true, true, "OCC_ASC", "glucose", 0);
 
   bipe::bipartition::Bipartition b;
   bipe::Problem *formula = nullptr;

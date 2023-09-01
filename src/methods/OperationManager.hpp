@@ -23,10 +23,10 @@
 #include "CountingOperation.hpp"
 #include "DataBranch.hpp"
 #include "DecisionDNNFOperation.hpp"
-#include "OptionOperationManager.hpp"
 #include "nnf/Branch.hpp"
 #include "nnf/Node.hpp"
 #include "nnf/NodeManager.hpp"
+#include "options/OptionOperationManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -50,10 +50,10 @@ class Operation {
                                     WrapperSolver *solver, std::ostream &out) {
     out << "c [OPERATION MANAGER]" << options << '\n';
 
-    if (options.operatorType == COUNTING)
+    if (options.operatorType == OP_COUNTING)
       return new CountingOperation<T>(problem);
 
-    if (options.operatorType == DDNNF_COMPILER)
+    if (options.operatorType == OP_CIRC)
       return new DecisionDNNFOperation<T, Node<T> *>(problem, specs, solver);
 
     throw(FactoryException("Cannot create a Operation", __FILE__, __LINE__));

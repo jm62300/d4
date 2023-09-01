@@ -101,7 +101,7 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  MinSharpSAT(po::variables_map &vm, std::string &meth, bool isFloat,
+  MinSharpSAT(po::variables_map &vm, const std::string &meth, bool isFloat,
               ProblemManager *initProblem, std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream

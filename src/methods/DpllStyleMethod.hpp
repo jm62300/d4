@@ -26,7 +26,7 @@
 #include "Counter.hpp"
 #include "DataBranch.hpp"
 #include "MethodManager.hpp"
-#include "OptionMethodManager.hpp"
+#include "options/OptionDpllStyleMethod.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/OptionCacheManager.hpp"
@@ -97,8 +97,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] vm, the list of options.
    */
-  DpllStyleMethod(po::variables_map &vm,
-                  const OptionMethodManager &optionMethodManager,
+  DpllStyleMethod(po::variables_map &vm, const OptionDpllStyleMethod &options,
                   ProblemManager *initProblem, std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
@@ -179,8 +178,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
 
     void *op = Operation<T, U>::makeOperationManager(
-        optionMethodManager.optionOperationManager, m_problem, m_specs,
-        m_solver, m_out);
+        options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
     m_operation = static_cast<Operation<T, U> *>(op);
     m_out << "c\n";
   }  // constructor

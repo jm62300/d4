@@ -20,6 +20,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "Configuration.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
@@ -37,8 +38,9 @@ class MethodManager {
 
   static MethodManager *makeMethodManager(po::variables_map &vm,
                                           ProblemManager *problem,
-                                          std::string meth, int precision,
-                                          bool isFloat, std::ostream &out);
+                                          const Configuration &configuration,
+                                          int precision, bool isFloat,
+                                          std::ostream &out);
 
   static void displayInfoVariables(ProblemManager *problem, std::ostream &out);
 

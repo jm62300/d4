@@ -20,24 +20,32 @@
 
 #include <string>
 
+#include "../Configuration.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
-enum OperationType { COUNTING, DDNNF_COMPILER };
+enum OperationType { OP_COUNTING, OP_CIRC };
 
 class OperationTypeManager {
  public:
   static std::string getOperatorType(const OperationType& m) {
-    if (m == COUNTING) return "counting";
-    if (m == DDNNF_COMPILER) return "ddnnf-compiler";
+    if (m == OP_COUNTING) return "counting";
+    if (m == OP_CIRC) return "ddnnf-compiler";
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getOperatorType
 
   static OperationType getOperatorType(const std::string& m) {
-    if (m == "counting") return COUNTING;
-    if (m == "ddnnf-compiler") return DDNNF_COMPILER;
+    if (m == "counting") return OP_COUNTING;
+    if (m == "ddnnf-compiler") return OP_CIRC;
+
+    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+
+  static OperationType getOperatorType(const MethodName& m) {
+    if (m == METH_COUNTING) return OP_COUNTING;
+    if (m == METH_DDNNF) return OP_CIRC;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getOperatorType

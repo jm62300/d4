@@ -144,7 +144,7 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  ExistRandomExist(po::variables_map &vm, std::string &meth,
+  ExistRandomExist(po::variables_map &vm, const std::string &meth,
                    ProblemManager *initProblem, std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
