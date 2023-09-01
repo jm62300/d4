@@ -109,9 +109,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
     }
 
     if (config.methodName == METH_COUNTING || config.methodName == METH_DDNNF) {
-      OptionDpllStyleMethod options;
-      options.optionOperationManager.operatorType =
-          OperationTypeManager::getOperatorType(config.methodName);
+      OptionDpllStyleMethod options(config);
 
       if (config.methodName == METH_COUNTING) {
         if (!isFloat)

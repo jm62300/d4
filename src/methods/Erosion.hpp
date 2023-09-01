@@ -20,6 +20,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "Configuration.hpp"
 #include "MethodManager.hpp"
 #include "src/methods/Counter.hpp"
 #include "src/preprocs/PreprocManager.hpp"
@@ -172,8 +173,10 @@ class Erosion : public MethodManager {
 
       // create the counter.
       outCounter << "c [CONSTRUCTOR] Create an external counter: counting\n";
+      Configuration config;
+      config.methodName = METH_COUNTING;
       Counter<T> *counter =
-          Counter<T>::makeCounter(vm, p, "counting", m_isFloat,
+          Counter<T>::makeCounter(vm, p, config, m_isFloat,
                                   vm["float-precision"].as<int>(), outCounter);
 
       // count to test.

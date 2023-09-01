@@ -21,6 +21,7 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <vector>
 
+#include "Configuration.hpp"
 #include "DpllStyleMethod.hpp"
 #include "nnf/Node.hpp"
 #include "options/OptionDpllStyleMethod.hpp"
@@ -47,19 +48,17 @@ class Counter {
      \return a counter.
   */
   static Counter<T> *makeCounter(po::variables_map &vm, ProblemManager *problem,
-                                 std::string meth, bool isFloat, int precision,
-                                 std::ostream &out) {
-    out << "c [CONSTRUCTOR] MethodManager: " << meth << "\n";
-    boost::multiprecision::mpf_float::default_precision(
-        precision);  // we set the precision
+                                 const Configuration &config, bool isFloat,
+                                 int precision, std::ostream &out) {
+    out << "c [COUNTER MANAGER]\n";
+    // we set the precision
+    boost::multiprecision::mpf_float::default_precision(precision);
 
-    OptionDpllStyleMethod options;
-    options.optionOperationManager.operatorType =
-        OperationTypeManager::getOperatorType(meth);
+    OptionDpllStyleMethod options(config);
 
-    if (meth == "counting")
+    if (config.methodName == METH_COUNTING)
       return new DpllStyleMethod<T, T>(vm, options, problem, out);
-    if (meth == "ddnnf-compiler")
+    if (config.methodName == METH_DDNNF)
       return new DpllStyleMethod<T, Node<T> *>(vm, options, problem, out);
 
     throw(BadBehaviourException(

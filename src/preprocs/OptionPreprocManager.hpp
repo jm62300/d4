@@ -93,9 +93,10 @@ class OptionPreprocManager {
                                   const OptionPreprocManager& dt) {
     out << " Option PreprocManager:"
         << " preproc("
-        << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ") "
+        << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ')'
         << " input type(" << InputTypeManager::getInputType(dt.inputType)
-        << ") #iteration(" << dt.nbIteration << ") timeout(" << dt.timeout
+        << ')';
+    out << ") #iteration(" << dt.nbIteration << ") timeout(" << dt.timeout
         << ")";
 
     return out;

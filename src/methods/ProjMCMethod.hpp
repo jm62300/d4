@@ -24,6 +24,7 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "Configuration.hpp"
 #include "MethodManager.hpp"
 #include "src/methods/Counter.hpp"
 #include "src/preprocs/PreprocManager.hpp"
@@ -203,7 +204,10 @@ class ProjMCMethod : public MethodManager {
     m_out << "c [CONSTRUCTOR] Create an external counter: "
           << "counting"
           << "\n";
-    m_counter = Counter<T>::makeCounter(vm, p, "counting", isFloat, precision,
+
+    Configuration config;
+    config.methodName = METH_COUNTING;
+    m_counter = Counter<T>::makeCounter(vm, p, config, isFloat, precision,
                                         m_outCounter);
   }  // initCounter
 

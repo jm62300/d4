@@ -16,31 +16,17 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include <string>
-
-#include "../Configuration.hpp"
-#include "OptionOperationManager.hpp"
-#include "src/exceptions/FactoryException.hpp"
+#include "OptionDpllStyleMethod.hpp"
 
 namespace d4 {
-class OptionDpllStyleMethod {
- public:
-  OptionOperationManager optionOperationManager;
 
-  /**
-   * @brief Construct a new Option Dpll Style Method object.
-   *
-   * @param config gives the method configuration.
-   */
-  OptionDpllStyleMethod(const Configuration& config);
-
-  friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method:";
-    return out;
-  }  // <<
-};
+/**
+ * @brief OptionDpllStyleMethod::OptionDpllStyleMethod implementation.
+ */
+OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
+  optionOperationManager.operatorType =
+      OperationTypeManager::getOperatorType(config.methodName);
+}  // constructor
 
 }  // namespace d4
