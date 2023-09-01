@@ -33,6 +33,7 @@
 #include "options/OptionMethodManager.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/heuristics/OptionBranchingHeuristic.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
@@ -96,6 +97,10 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
   config.dpllConfig.spec.specUpdateType = SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
+
+  config.dpllConfig.branchingHeuristic.scoringMethodType =
+      ScoringMethodTypeManager::getScoringMethodType(
+          vm["scoring-method"].as<std::string>());
 
   MethodManager *ret =
       makeMethodManager(vm, initProblem, config, precision, isFloat, out);

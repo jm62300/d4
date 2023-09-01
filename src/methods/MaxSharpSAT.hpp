@@ -37,6 +37,7 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
+#include "src/heuristics/OptionBranchingHeuristic.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
 #include "src/heuristics/PhaseHeuristic.hpp"
 #include "src/heuristics/ScoringMethod.hpp"
@@ -168,7 +169,12 @@ class MaxSharpSAT : public MethodManager {
     assert(m_specs);
 
     // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);
+    OptionScoringMethod optionScoringMethod;
+    optionScoringMethod.scoringMethodType =
+        ScoringMethodTypeManager::getScoringMethodType(
+            vm["scoring-method"].as<std::string>());
+    m_hVar = ScoringMethod::makeScoringMethod(optionScoringMethod, *m_specs,
+                                              *m_solver, m_out);
     m_hPhase =
         PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
 

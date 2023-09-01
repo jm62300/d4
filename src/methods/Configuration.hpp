@@ -22,6 +22,7 @@
 
 #include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/heuristics/OptionBranchingHeuristic.hpp"
 #include "src/solvers/OptionSolver.hpp"
 #include "src/specs/OptionSpecManager.hpp"
 
@@ -93,6 +94,10 @@ class Configuration {
     struct ConfigurationSpec {
       SpecUpdateType specUpdateType;
     } spec;
+
+    struct ConfigurationBranchingHeuristic {
+      ScoringMethodType scoringMethodType;
+    } branchingHeuristic;
 
   } dpllConfig;
 

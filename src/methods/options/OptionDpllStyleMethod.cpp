@@ -47,6 +47,9 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
 
   optionSpecManager = {config.dpllConfig.spec.specUpdateType};
 
+  optionScoringMethod = {
+      config.dpllConfig.branchingHeuristic.scoringMethodType};
+
   freqDecay = config.dpllConfig.freqDecay;
   cacheIsActivated = config.dpllConfig.cache.isActivated;
 }  // constructor
