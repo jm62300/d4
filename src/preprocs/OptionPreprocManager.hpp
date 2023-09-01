@@ -96,9 +96,11 @@ class OptionPreprocManager {
         << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ')'
         << " input type(" << InputTypeManager::getInputType(dt.inputType)
         << ')';
-    out << ") #iteration(" << dt.nbIteration << ") timeout(" << dt.timeout
-        << ")";
 
+    if (dt.preprocMethod != BASIC) {
+      out << ") #iteration(" << dt.nbIteration << ')' << " timeout("
+          << dt.timeout << ')';
+    }
     return out;
   }  // <<
 };
