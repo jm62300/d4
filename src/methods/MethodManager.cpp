@@ -61,6 +61,39 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   Configuration config;
   config.methodName = MethodNameManager::getMethodName(meth);
 
+  config.dpllConfig.cache.cachingMethod = CachingMehodManager::getCachingMethod(
+      vm["cache-method"].as<std::string>());
+
+  config.dpllConfig.cache.cacheCleaningStrategy =
+      CacheCleaningStrategyManager::getCacheCleaningStrategy(
+          vm["cache-reduction-strategy"].as<std::string>());
+
+  config.dpllConfig.cache.modeStore = ModeStoreManager::getModeStore(
+      vm["cache-store-strategy"].as<std::string>());
+
+  config.dpllConfig.cache.clauseRepresentation =
+      ClauseRepresentationManager::getClauseRepresentation(
+          vm["cache-clause-representation"].as<std::string>());
+
+  config.dpllConfig.cache.sizeFirstPage =
+      vm["cache-size-first-page"].as<unsigned long>();
+
+  config.dpllConfig.cache.sizeAdditionalPage =
+      vm["cache-size-additional-page"].as<unsigned long>();
+
+  config.dpllConfig.cache.limitVarSym =
+      vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
+
+  config.dpllConfig.cache.limitVarIndex =
+      vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
+
+  config.dpllConfig.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
+
+  config.dpllConfig.solver.solverName =
+      SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+
+  config.dpllConfig.cache.isActivated = vm["cache-activated"].as<bool>();
+
   MethodManager *ret =
       makeMethodManager(vm, initProblem, config, precision, isFloat, out);
   delete initProblem;

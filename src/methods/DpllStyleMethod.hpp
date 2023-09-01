@@ -106,16 +106,11 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
     m_out.setstate(out.rdstate());
 
-    m_freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
-    m_out << "c [DPLL STYLE METHOD] Decay frequency: " << m_freqDecay << "\n";
+    m_out << "c [DPLL STYLE METHOD]" << options << "\n";
+    m_freqDecay = options.freqDecay;
 
-    // we create the SAT solver.
-    OptionSolver optionSolver;
-    optionSolver.solverName =
-        SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-    m_solver = WrapperSolver::makeWrapperSolver(optionSolver, m_out);
-    assert(m_solver);
-
+    // we create and init the SAT solver.
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
 
@@ -147,31 +142,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     assert(m_hVar && m_hPhase && m_hCutSet);
 
-    OptionCacheManager optionCacheManager;
-    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
-        vm["cache-method"].as<std::string>()),
-
-    optionCacheManager.optionCacheCleaningManager = {
-        CacheCleaningStrategyManager::getCacheCleaningStrategy(
-            vm["cache-reduction-strategy"].as<std::string>())};
-
-    optionCacheManager.optionBucketManager = {
-        ModeStoreManager::getModeStore(
-            vm["cache-store-strategy"].as<std::string>()),
-        ClauseRepresentationManager::getClauseRepresentation(
-            vm["cache-clause-representation"].as<std::string>()),
-        vm["cache-size-first-page"].as<unsigned long>(),
-        vm["cache-size-additional-page"].as<unsigned long>(),
-        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
-        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
-
     m_cache = CacheManager<U>::makeCacheManager(
-        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
+        options.optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
 
-    m_optCached = vm["cache-activated"].as<bool>();
+    m_optCached = options.cacheIsActivated;
     m_callPartitioner = 0;
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
     m_stampIdx = 0;

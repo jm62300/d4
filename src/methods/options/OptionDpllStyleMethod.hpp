@@ -22,12 +22,18 @@
 
 #include "../Configuration.hpp"
 #include "OptionOperationManager.hpp"
+#include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 class OptionDpllStyleMethod {
  public:
   OptionOperationManager optionOperationManager;
+  OptionCacheManager optionCacheManager;
+  OptionSolver optionSolver;
+
+  unsigned freqDecay;
+  bool cacheIsActivated;
 
   /**
    * @brief Construct a new Option Dpll Style Method object.
@@ -38,7 +44,9 @@ class OptionDpllStyleMethod {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method:";
+    out << " Option DPLL-style Method:"
+        << " Decay frequency(" << dt.freqDecay << ")";
+
     return out;
   }  // <<
 };

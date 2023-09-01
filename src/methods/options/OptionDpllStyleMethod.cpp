@@ -25,8 +25,28 @@ namespace d4 {
  * @brief OptionDpllStyleMethod::OptionDpllStyleMethod implementation.
  */
 OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
+  // Operator used.
   optionOperationManager.operatorType =
       OperationTypeManager::getOperatorType(config.methodName);
+
+  // Cache Options:
+  optionCacheManager.cachingMethod = config.dpllConfig.cache.cachingMethod;
+
+  optionCacheManager.optionCacheCleaningManager = {
+      config.dpllConfig.cache.cacheCleaningStrategy};
+
+  optionCacheManager.optionBucketManager = {
+      config.dpllConfig.cache.modeStore,
+      config.dpllConfig.cache.clauseRepresentation,
+      config.dpllConfig.cache.sizeFirstPage,
+      config.dpllConfig.cache.sizeAdditionalPage,
+      config.dpllConfig.cache.limitVarSym,
+      config.dpllConfig.cache.limitVarIndex};
+
+  optionSolver = {config.dpllConfig.solver.solverName};
+
+  freqDecay = config.dpllConfig.freqDecay;
+  cacheIsActivated = config.dpllConfig.cache.isActivated;
 }  // constructor
 
 }  // namespace d4

@@ -20,7 +20,9 @@
 
 #include <string>
 
+#include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/solvers/OptionSolver.hpp"
 
 namespace d4 {
 enum MethodName {
@@ -66,6 +68,28 @@ class MethodNameManager {
 class Configuration {
  public:
   MethodName methodName;
+
+  struct ConfigurationDpllSyleMethod {
+    unsigned freqDecay;
+
+    struct ConfigurationCache {
+      CachingMethod cachingMethod;
+      CacheCleaningStrategy cacheCleaningStrategy;
+      ModeStore modeStore;
+      ClauseRepresentation clauseRepresentation;
+
+      bool isActivated;
+      unsigned long sizeFirstPage;
+      unsigned long sizeAdditionalPage;
+      unsigned limitVarSym;
+      unsigned limitVarIndex;
+    } cache;
+
+    struct ConfigurationSolver {
+      SolverName solverName;
+    } solver;
+
+  } dpllConfig;
 
   friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {
     out << "c Configuration:\n"
