@@ -46,7 +46,6 @@ namespace mpz = boost::multiprecision;
  */
 MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                                 std::ostream &out) {
-  std::string meth = vm["method"].as<std::string>();
   int precision = vm["float-precision"].as<int>();
   bool isFloat = vm["float"].as<bool>();
 
@@ -59,7 +58,8 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   assert(initProblem);
 
   Configuration config;
-  config.methodName = MethodNameManager::getMethodName(meth);
+  config.methodName =
+      MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
   config.dpllConfig.cache.cachingMethod = CachingMehodManager::getCachingMethod(
       vm["cache-method"].as<std::string>());
@@ -93,6 +93,9 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
   config.dpllConfig.cache.isActivated = vm["cache-activated"].as<bool>();
+
+  config.dpllConfig.spec.specUpdateType = SpecUpdateManager::getSpecUpdate(
+      vm["occurrence-manager"].as<std::string>());
 
   MethodManager *ret =
       makeMethodManager(vm, initProblem, config, precision, isFloat, out);

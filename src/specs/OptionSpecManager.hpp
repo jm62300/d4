@@ -20,37 +20,36 @@
 
 #include <string>
 
-#include "../Configuration.hpp"
-#include "OptionOperationManager.hpp"
-#include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-class OptionDpllStyleMethod {
+enum SpecUpdateType { SPEC_DYNAMIC };
+
+class SpecUpdateManager {
  public:
-  OptionOperationManager optionOperationManager;
-  OptionCacheManager optionCacheManager;
-  OptionSolver optionSolver;
-  OptionSpecManager optionSpecManager;
+  static std::string getSpecUpdate(const SpecUpdateType& m) {
+    if (m == SPEC_DYNAMIC) return "dynamic";
 
-  unsigned freqDecay;
-  bool cacheIsActivated;
+    throw(FactoryException("Spec Update unknown", __FILE__, __LINE__));
+  }  // getOperatorType
 
-  /**
-   * @brief Construct a new Option Dpll Style Method object.
-   *
-   * @param config gives the method configuration.
-   */
-  OptionDpllStyleMethod(const Configuration& config);
+  static SpecUpdateType getSpecUpdate(const std::string& m) {
+    if (m == "dynamic") return SPEC_DYNAMIC;
+
+    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
+  }  // getSpectUpdate
+};
+
+class OptionSpecManager {
+ public:
+  SpecUpdateType specUpdateType;
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method:"
-        << " decay-freq(" << dt.freqDecay << ")"
-        << " cache?(" << dt.cacheIsActivated << ")";
-
+                                  const OptionSpecManager& dt) {
+    out << " Option Spec Manager:"
+        << " update mode("
+        << SpecUpdateManager::getSpecUpdate(dt.specUpdateType) << ")";
     return out;
   }  // <<
 };
-
 }  // namespace d4

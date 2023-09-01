@@ -46,6 +46,7 @@
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/OptionSolver.hpp"
 #include "src/solvers/WrapperSolver.hpp"
+#include "src/specs/OptionSpecManager.hpp"
 #include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
@@ -160,7 +161,10 @@ class MaxSharpSAT : public MethodManager {
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
+    OptionSpecManager optSpecManager;
+    optSpecManager.specUpdateType = SpecUpdateManager::getSpecUpdate(
+        vm["occurrence-manager"].as<std::string>());
+    m_specs = SpecManager::makeSpecManager(optSpecManager, *m_problem, m_out);
     assert(m_specs);
 
     // we initialize the object used to compute score and partition.

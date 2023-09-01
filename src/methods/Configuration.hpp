@@ -23,6 +23,7 @@
 #include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/solvers/OptionSolver.hpp"
+#include "src/specs/OptionSpecManager.hpp"
 
 namespace d4 {
 enum MethodName {
@@ -88,6 +89,10 @@ class Configuration {
     struct ConfigurationSolver {
       SolverName solverName;
     } solver;
+
+    struct ConfigurationSpec {
+      SpecUpdateType specUpdateType;
+    } spec;
 
   } dpllConfig;
 

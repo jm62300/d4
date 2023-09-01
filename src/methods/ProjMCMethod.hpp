@@ -31,6 +31,7 @@
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/solvers/OptionSolver.hpp"
+#include "src/specs/OptionSpecManager.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
@@ -249,7 +250,10 @@ class ProjMCMethod : public MethodManager {
     m_solver->setNeedModel(true);
 
     // prepare the spec manager.
-    m_specs = SpecManager::makeSpecManager(vm, p, m_out);
+    OptionSpecManager optSpecManager;
+    optSpecManager.specUpdateType = SpecUpdateManager::getSpecUpdate(
+        vm["occurrence-manager"].as<std::string>());
+    m_specs = SpecManager::makeSpecManager(optSpecManager, p, m_out);
   }  // initSatSolver
 
   /**

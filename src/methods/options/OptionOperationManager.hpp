@@ -54,6 +54,7 @@ class OperationTypeManager {
 class OptionOperationManager {
  public:
   OperationType operatorType;
+
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionOperationManager& dt) {
     out << " Operator option:"

@@ -115,8 +115,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = SpecManager::makeSpecManager(vm, *m_problem, m_out);
-    assert(m_specs);
+    m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
+                                           *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_hVar = ScoringMethod::makeScoringMethod(vm, *m_specs, *m_solver, m_out);

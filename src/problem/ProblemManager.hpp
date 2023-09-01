@@ -30,6 +30,8 @@ namespace d4 {
 namespace mpz = boost::multiprecision;
 namespace po = boost::program_options;
 
+enum ProblemInputType { PB_CNF, PB_CIRC, PB_NONE };
+
 class ProblemManager {
  protected:
   unsigned m_nbVar;
@@ -65,6 +67,8 @@ class ProblemManager {
   inline unsigned getNbSelectedVar() { return m_selected.size(); }
   inline bool isUnsat() { return m_isUnsat; }
   inline void isUnsat(bool b) { m_isUnsat = b; }
+
+  virtual ProblemInputType getProblemType() { return PB_NONE; }
 
   /**
      Get the weight for a variable.

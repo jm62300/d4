@@ -24,31 +24,21 @@
 namespace d4 {
 
 /**
-   Generate an occurrence manager regarding the options given as parameter.
-
-   @param[in] vm, the arguments on the command line.
-   @param[in] p, a problem manager.
-
-   \return the occurrence manager that fits the command line.
+ * @brief SpecManager::makeSpecManager implementation.
  */
-SpecManager *SpecManager::makeSpecManager(po::variables_map &vm,
+SpecManager *SpecManager::makeSpecManager(const OptionSpecManager &options,
                                           ProblemManager &p,
                                           std::ostream &out) {
-  std::string inType = vm["input-type"].as<std::string>();
-  std::string meth = vm["occurrence-manager"].as<std::string>();
+  out << "c [SPEC MANAGER]" << options << "\n";
 
-  out << "c [CONSTRUCTOR SPEC] Spec manager: " << meth << " " << inType << "\n";
-
-  if (inType == "cnf" || inType == "dimacs" || inType == "tcnf") {
-    if (meth == "dynamic") return new SpecManagerCnfDyn(p);
-    return NULL;
+  if (p.getProblemType() == PB_CNF) {
+    if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
   }
 
-  if (inType == "circuit") {
+  if (p.getProblemType() == PB_CIRC) {
     out << "c Warning: only handle the case where the circuit is translated "
            "into a CNF formula\n";
-    if (meth == "dynamic") return new SpecManagerCnfDyn(p);
-    return NULL;
+    if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
   }
 
   throw(FactoryException("Cannot create a SpecManager", __FILE__, __LINE__));

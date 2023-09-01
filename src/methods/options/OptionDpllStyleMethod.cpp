@@ -45,6 +45,8 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
 
   optionSolver = {config.dpllConfig.solver.solverName};
 
+  optionSpecManager = {config.dpllConfig.spec.specUpdateType};
+
   freqDecay = config.dpllConfig.freqDecay;
   cacheIsActivated = config.dpllConfig.cache.isActivated;
 }  // constructor

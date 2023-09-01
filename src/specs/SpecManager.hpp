@@ -17,17 +17,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <boost/program_options.hpp>
+
 #include <src/problem/ProblemManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
+#include "OptionSpecManager.hpp"
+
 namespace d4 {
-namespace po = boost::program_options;
 class SpecManager {
  public:
-  static SpecManager *makeSpecManager(po::variables_map &vm, ProblemManager &p,
-                                      std::ostream &out);
+  /**
+   * @brief Generate an occurrence manager regarding the options given as
+   * parameter.
+   *
+   * @param options gives the options.
+   * @param p is the problem under consideration.
+   * @param out is the stream where are printed out the logs.
+   * @return a spec manager.
+   */
+  static SpecManager *makeSpecManager(const OptionSpecManager &options,
+                                      ProblemManager &p, std::ostream &out);
 
   virtual ~SpecManager() {}
   virtual bool litIsAssigned(Lit l) = 0;

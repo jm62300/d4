@@ -41,5 +41,7 @@ class ProblemManagerCircuit : public ProblemManager {
 
   inline std::vector<unsigned> &getGates() { return gates; }
   inline std::vector<std::vector<unsigned>> &getWires() { return wires; }
+
+  inline ProblemInputType getProblemType() override { return PB_CIRC; }
 };
 }  // namespace d4
