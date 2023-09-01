@@ -31,20 +31,17 @@ namespace d4 {
 
    @param[in] vm, the set of options.
  */
-PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(po::variables_map &vm,
-                                                   SpecManager &s,
-                                                   PolarityManager &p,
-                                                   std::ostream &out) {
-  std::string meth = vm["phase-heuristic"].as<std::string>();
-  bool rev = vm["phase-heuristic-reversed"].as<bool>();
-
-  out << "c [CONSTRUCTOR] Phase heuristic: " << meth
-      << ((rev) ? "(reversed)" : "") << "\n";
-
-  if (meth == "false") return new PhaseHeuristicFalse(rev);
-  if (meth == "true") return new PhaseHeuristicTrue(rev);
-  if (meth == "polarity") return new PhaseHeuristicPolarity(p, rev);
-  if (meth == "occurrence") return new PhaseHeuristicOccurrence(s, rev);
+PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(
+    const OptionBranchingHeuristic &options, SpecManager &s, PolarityManager &p,
+    std::ostream &out) {
+  if (options.phaseHeuristicType == PHASE_FALSE)
+    return new PhaseHeuristicFalse(options.reversePhase);
+  if (options.phaseHeuristicType == PHASE_TRUE)
+    return new PhaseHeuristicTrue(options.reversePhase);
+  if (options.phaseHeuristicType == PHASE_POLARITY)
+    return new PhaseHeuristicPolarity(p, options.reversePhase);
+  if (options.phaseHeuristicType == PHASE_OCCURRENCE)
+    return new PhaseHeuristicOccurrence(s, options.reversePhase);
 
   throw(FactoryException("Cannot create a PhaseHeuristic", __FILE__, __LINE__));
 }  // makePhaseHeuristic

@@ -54,16 +54,51 @@ class ScoringMethodTypeManager {
   }  // getScoringMethodType
 };
 
-class OptionScoringMethod {
+enum PhaseHeuristicType {
+  PHASE_FALSE,
+  PHASE_TRUE,
+  PHASE_POLARITY,
+  PHASE_OCCURRENCE
+};
+
+class PhaseHeuristicTypeManager {
+ public:
+  static std::string getPhaseHeuristicType(const PhaseHeuristicType& m) {
+    if (m == PHASE_FALSE) return "false";
+    if (m == PHASE_TRUE) return "true";
+    if (m == PHASE_POLARITY) return "polarity";
+    if (m == PHASE_OCCURRENCE) return "occurrence";
+
+    throw(FactoryException("Phase heuristic type unknown", __FILE__, __LINE__));
+  }  // getPhaseHeuristicType
+
+  static PhaseHeuristicType getPhaseHeuristicType(const std::string& m) {
+    if (m == "false") return PHASE_FALSE;
+    if (m == "true") return PHASE_TRUE;
+    if (m == "polarity") return PHASE_POLARITY;
+    if (m == "occurrence") return PHASE_OCCURRENCE;
+
+    throw(FactoryException("Phase heuristic type unknown", __FILE__, __LINE__));
+  }  // getPhaseHeuristicType
+};
+
+class OptionBranchingHeuristic {
  public:
   ScoringMethodType scoringMethodType;
+  PhaseHeuristicType phaseHeuristicType;
+  bool reversePhase;
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionScoringMethod& dt) {
-    out << " Option Scoring Method:"
-        << " meth("
+                                  const OptionBranchingHeuristic& dt) {
+    out << " Option Branching Heuristic:"
+        << " scoring method("
         << ScoringMethodTypeManager::getScoringMethodType(dt.scoringMethodType)
-        << ")";
+        << ")"
+        << " phase heuristic("
+        << PhaseHeuristicTypeManager::getPhaseHeuristicType(
+               dt.phaseHeuristicType)
+        << ")"
+        << " reverse phase (" << dt.reversePhase << ")";
     return out;
   }  // <<
 };

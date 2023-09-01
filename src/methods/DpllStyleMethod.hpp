@@ -119,10 +119,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
                                            *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(options.optionScoringMethod,
+    m_hVar = ScoringMethod::makeScoringMethod(options.optionBranchingHeuristic,
                                               *m_specs, *m_solver, m_out);
-    m_hPhase =
-        PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
+    m_hPhase = PhaseHeuristic::makePhaseHeuristic(
+        options.optionBranchingHeuristic, *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();

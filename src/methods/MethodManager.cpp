@@ -102,6 +102,13 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       ScoringMethodTypeManager::getScoringMethodType(
           vm["scoring-method"].as<std::string>());
 
+  config.dpllConfig.branchingHeuristic.phaseHeuristicType =
+      PhaseHeuristicTypeManager::getPhaseHeuristicType(
+          vm["phase-heuristic"].as<std::string>());
+
+  config.dpllConfig.branchingHeuristic.reversePhase =
+      vm["phase-heuristic-reversed"].as<bool>();
+
   MethodManager *ret =
       makeMethodManager(vm, initProblem, config, precision, isFloat, out);
   delete initProblem;

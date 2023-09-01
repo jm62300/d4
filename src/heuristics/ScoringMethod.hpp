@@ -29,7 +29,7 @@
 namespace d4 {
 class ScoringMethod {
  public:
-  static ScoringMethod *makeScoringMethod(const OptionScoringMethod &options,
+  static ScoringMethod *makeScoringMethod(const OptionBranchingHeuristic &options,
                                           SpecManager &p, ActivityManager &am,
                                           std::ostream &out);
   virtual ~ScoringMethod() { ; }

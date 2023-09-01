@@ -36,8 +36,8 @@ namespace d4 {
    \return the scoring method
  */
 ScoringMethod *ScoringMethod::makeScoringMethod(
-    const OptionScoringMethod &options, SpecManager &p, ActivityManager &am,
-    std::ostream &out) {
+    const OptionBranchingHeuristic &options, SpecManager &p,
+    ActivityManager &am, std::ostream &out) {
   out << "c [SCORING METHOD]" << options << "\n";
 
   try {

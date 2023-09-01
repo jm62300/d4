@@ -128,14 +128,19 @@ class MinSharpSAT : public MethodManager {
     assert(m_specs);
 
     // we initialize the object used to compute score and partition.
-    OptionScoringMethod optionScoringMethod;
-    optionScoringMethod.scoringMethodType =
+    OptionBranchingHeuristic optionBranchingHeuristic;
+    optionBranchingHeuristic.scoringMethodType =
         ScoringMethodTypeManager::getScoringMethodType(
             vm["scoring-method"].as<std::string>());
-    m_hVar = ScoringMethod::makeScoringMethod(optionScoringMethod, *m_specs,
-                                              *m_solver, m_out);
-    m_hPhase =
-        PhaseHeuristic::makePhaseHeuristic(vm, *m_specs, *m_solver, m_out);
+
+    optionBranchingHeuristic.phaseHeuristicType =
+        PhaseHeuristicTypeManager::getPhaseHeuristicType(
+            vm["phase-heuristic"].as<std::string>());
+
+    m_hVar = ScoringMethod::makeScoringMethod(optionBranchingHeuristic,
+                                              *m_specs, *m_solver, m_out);
+    m_hPhase = PhaseHeuristic::makePhaseHeuristic(optionBranchingHeuristic,
+                                                  *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();

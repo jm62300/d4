@@ -97,8 +97,9 @@ class Configuration {
 
     struct ConfigurationBranchingHeuristic {
       ScoringMethodType scoringMethodType;
+      PhaseHeuristicType phaseHeuristicType;
+      bool reversePhase;
     } branchingHeuristic;
-
   } dpllConfig;
 
   friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {

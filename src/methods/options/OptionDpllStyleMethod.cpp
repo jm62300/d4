@@ -47,8 +47,10 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
 
   optionSpecManager = {config.dpllConfig.spec.specUpdateType};
 
-  optionScoringMethod = {
-      config.dpllConfig.branchingHeuristic.scoringMethodType};
+  optionBranchingHeuristic = {
+      config.dpllConfig.branchingHeuristic.scoringMethodType,
+      config.dpllConfig.branchingHeuristic.phaseHeuristicType,
+      config.dpllConfig.branchingHeuristic.reversePhase};
 
   freqDecay = config.dpllConfig.freqDecay;
   cacheIsActivated = config.dpllConfig.cache.isActivated;

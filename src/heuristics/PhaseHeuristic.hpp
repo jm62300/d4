@@ -17,22 +17,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <boost/program_options.hpp>
+
 #include <src/problem/ProblemTypes.hpp>
 #include <src/solvers/PolarityManager.hpp>
 #include <src/specs/SpecManager.hpp>
 
+#include "OptionBranchingHeuristic.hpp"
+
 namespace d4 {
-namespace po = boost::program_options;
+
 class PhaseHeuristic {
  protected:
   bool isReversed;
 
  public:
   virtual ~PhaseHeuristic() {}
-  static PhaseHeuristic *makePhaseHeuristic(po::variables_map &vm,
-                                            SpecManager &s, PolarityManager &p,
-                                            std::ostream &out);
+  static PhaseHeuristic *makePhaseHeuristic(
+      const OptionBranchingHeuristic &options, SpecManager &s,
+      PolarityManager &p, std::ostream &out);
 
   virtual bool selectPhase(Var v) = 0;
 };

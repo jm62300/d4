@@ -33,7 +33,7 @@ class OptionDpllStyleMethod {
   OptionCacheManager optionCacheManager;
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
-  OptionScoringMethod optionScoringMethod;
+  OptionBranchingHeuristic optionBranchingHeuristic;
 
   unsigned freqDecay;
   bool cacheIsActivated;
