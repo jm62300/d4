@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <vector>
 
+#include "OptionPartitioningHeuristic.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -29,7 +29,6 @@ class WrapperSolver;
 class SpecManager;
 class EquivExtractor;
 
-namespace po = boost::program_options;
 class PartitioningHeuristic {
  protected:
   unsigned m_nbVar;
@@ -42,10 +41,9 @@ class PartitioningHeuristic {
 
  public:
   virtual ~PartitioningHeuristic() {}
-  static PartitioningHeuristic *makePartitioningHeuristic(po::variables_map &vm,
-                                                          SpecManager &sm,
-                                                          WrapperSolver &ws,
-                                                          std::ostream &out);
+  static PartitioningHeuristic *makePartitioningHeuristic(
+      const OptionPartitioningHeuristic &options, SpecManager &sm,
+      WrapperSolver &ws, std::ostream &out);
 
   static PartitioningHeuristic *makePartitioningHeuristicNone(
       std::ostream &out);

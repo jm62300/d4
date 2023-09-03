@@ -42,12 +42,14 @@ class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic {
                             std::vector<std::vector<Var>> &equivVar);
 
  public:
-  PartitioningHeuristicStaticMulti(po::variables_map &vm, WrapperSolver &s,
-                                   SpecManager &om, std::ostream &out);
+  PartitioningHeuristicStaticMulti(const OptionPartitioningHeuristic &options,
+                                   WrapperSolver &s, SpecManager &om,
+                                   std::ostream &out);
 
-  PartitioningHeuristicStaticMulti(po::variables_map &vm, WrapperSolver &s,
-                                   SpecManager &om, int nbClause, int nbVar,
-                                   int sumSize, std::ostream &out);
+  PartitioningHeuristicStaticMulti(const OptionPartitioningHeuristic &options,
+                                   WrapperSolver &s, SpecManager &om,
+                                   int nbClause, int nbVar, int sumSize,
+                                   std::ostream &out);
 
   virtual ~PartitioningHeuristicStaticMulti();
 

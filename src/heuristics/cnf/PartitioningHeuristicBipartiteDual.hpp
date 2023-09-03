@@ -18,8 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "PartitioningHeuristicBipartite.hpp"
 #include "src/hyperGraph/HyperGraph.hpp"
 #include "src/hyperGraph/HyperGraphExtractorDual.hpp"
@@ -27,15 +25,16 @@
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PartitioningHeuristicBipartiteDual
     : public PartitioningHeuristicBipartite {
  public:
-  PartitioningHeuristicBipartiteDual(po::variables_map &vm, WrapperSolver &s,
-                                     SpecManager &om, std::ostream &out);
+  PartitioningHeuristicBipartiteDual(const OptionPartitioningHeuristic &options,
+                                     WrapperSolver &s, SpecManager &om,
+                                     std::ostream &out);
 
-  PartitioningHeuristicBipartiteDual(po::variables_map &vm, WrapperSolver &s,
-                                     SpecManager &om, int nbClause, int nbVar,
-                                     int sumSize, std::ostream &out);
+  PartitioningHeuristicBipartiteDual(const OptionPartitioningHeuristic &options,
+                                     WrapperSolver &s, SpecManager &om,
+                                     int nbClause, int nbVar, int sumSize,
+                                     std::ostream &out);
 };
 }  // namespace d4

@@ -31,9 +31,10 @@ namespace d4 {
    @param[in] om, a structure manager.
 */
 PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, std::ostream &out)
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticSingle(
-          vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
+          options, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
@@ -50,13 +51,14 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
    @param[in] sumSize, which give the number of literals.
  */
 PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize, std::ostream &out)
-    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize, out) {
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicStatic(options, s, om, nbClause, nbVar, sumSize,
+                                  out) {
   m_bucketNumber.resize(m_nbVar + 2, 0);
   m_hypergraphExtractor = NULL;
   m_phaseSelector =
-      PhaseSelectorManager::makePhaseSelectorManager(vm, this, out);
+      PhaseSelectorManager::makePhaseSelectorManager(options, this, out);
   m_equivClass.resize(m_nbVar + 1, 0);
   m_levelDistribution.resize(m_nbVar + 1, 0);
   m_markedVar.resize(m_nbVar + 1, 0);

@@ -109,6 +109,26 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   config.dpllConfig.branchingHeuristic.reversePhase =
       vm["phase-heuristic-reversed"].as<bool>();
 
+  config.dpllConfig.partitioningHeuristic.partitioningMethod =
+      PartitioningMethodManager::getPartitioningMethod(
+          vm["partitioning-heuristic"].as<std::string>());
+
+  config.dpllConfig.partitioningHeuristic.partitionerName =
+      PartitionerNameManager::getPartitionerName(
+          vm["partitioning-heuristic-partitioner"].as<std::string>());
+
+  config.dpllConfig.partitioningHeuristic.reduceFormula =
+      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+
+  config.dpllConfig.partitioningHeuristic.equivSimp =
+      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
+
+  config.dpllConfig.partitioningHeuristic.staticPhase =
+      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
+
+  config.dpllConfig.partitioningHeuristic.dynamicPhase =
+      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
+
   MethodManager *ret =
       makeMethodManager(vm, initProblem, config, precision, isFloat, out);
   delete initProblem;

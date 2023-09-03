@@ -32,13 +32,13 @@ class PartitioningHeuristicStaticSingleDual
                                std::vector<int> &mapping, unsigned level);
 
  public:
-  PartitioningHeuristicStaticSingleDual(po::variables_map &vm, WrapperSolver &s,
-                                        SpecManager &om, std::ostream &out);
+  PartitioningHeuristicStaticSingleDual(
+      const OptionPartitioningHeuristic &options, WrapperSolver &s,
+      SpecManager &om, std::ostream &out);
 
-  PartitioningHeuristicStaticSingleDual(po::variables_map &vm, WrapperSolver &s,
-                                        SpecManager &om, int nbClause,
-                                        int nbVar, int sumSize,
-                                        std::ostream &out);
+  PartitioningHeuristicStaticSingleDual(
+      const OptionPartitioningHeuristic &options, WrapperSolver &s,
+      SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out);
 
   ~PartitioningHeuristicStaticSingleDual();
 };

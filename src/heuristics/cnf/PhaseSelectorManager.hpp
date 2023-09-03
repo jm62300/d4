@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <ostream>
 #include <vector>
 
@@ -26,7 +25,6 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 class PartitioningHeuristicStaticSingle;
 
 class PhaseSelectorManager {
@@ -38,7 +36,7 @@ class PhaseSelectorManager {
   virtual ~PhaseSelectorManager() {}
 
   static PhaseSelectorManager *makePhaseSelectorManager(
-      po::variables_map &vm,
+      const OptionPartitioningHeuristic &options,
       PartitioningHeuristicStaticSingle *staticPartitioner, std::ostream &out);
 
   virtual bool isStillOk(std::vector<Var> &component) = 0;

@@ -198,5 +198,7 @@ class SpecManagerCnf : public SpecManager {
       out << " ]\n";
     }
   }
+
+  inline ProblemInputType getProblemInputType() override { return PB_CNF; }
 };
 }  // namespace d4

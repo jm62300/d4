@@ -138,7 +138,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     } else {
       m_out << "c [MODE] classic\n";
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
-          vm, *m_specs, *m_solver, m_out);
+          options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
     }
 
     assert(m_hVar && m_hPhase && m_hCutSet);

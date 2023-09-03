@@ -25,6 +25,7 @@
 #include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/heuristics/OptionBranchingHeuristic.hpp"
+#include "src/heuristics/OptionPartitioningHeuristic.hpp"
 
 namespace d4 {
 class OptionDpllStyleMethod {
@@ -34,6 +35,7 @@ class OptionDpllStyleMethod {
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
   OptionBranchingHeuristic optionBranchingHeuristic;
+  OptionPartitioningHeuristic optionPartitioningHeuristic;
 
   unsigned freqDecay;
   bool cacheIsActivated;

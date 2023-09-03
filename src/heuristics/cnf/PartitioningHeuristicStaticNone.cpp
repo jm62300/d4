@@ -28,9 +28,10 @@ namespace d4 {
    @param[in] om, a structure manager.
  */
 PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, std::ostream &out)
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticNone(
-          vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
+          options, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
@@ -47,11 +48,11 @@ PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
    @param[in] sumSize, which give the number of literals.
  */
 PartitioningHeuristicStaticNone::PartitioningHeuristicStaticNone(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize, std::ostream &out)
-    : PartitioningHeuristicStatic(vm, s, om, nbClause, nbVar, sumSize, out) {
-  out << "c [CONSTRUCTOR] Static partitioner: none\n";
-
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicStatic(options, s, om, nbClause, nbVar, sumSize,
+                                  out) {
+  out << "c [PARTITIONING NONE]\n";
   m_isInitialized = true;
 }  // constructor
 

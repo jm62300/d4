@@ -51,58 +51,36 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristicNone(
    \return a partioner if the options are ocrrect, NULL otherwise.
  */
 PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
-    po::variables_map &vm, SpecManager &s, WrapperSolver &ws,
-    std::ostream &out) {
-  std::string meth = vm["partitioning-heuristic"].as<std::string>();
-  std::string inType = vm["input-type"].as<std::string>();
+    const OptionPartitioningHeuristic &options, SpecManager &s,
+    WrapperSolver &ws, std::ostream &out) {
+  out << "c [PARTITIONING HEURISTIC]" << options << "\n";
 
-  if (meth == "none") return makePartitioningHeuristicNone(out);
-
-  bool reduceFormula =
-      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
-  bool equivSimp =
-      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-  int staticPhase =
-      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
-  double dynamicPhase =
-      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
-  std::string phase =
-      vm["partitioning-heuristic-bipartite-phase"].as<std::string>();
-
-  out << "c [CONSTRUCTOR] Partitioner manager: " << meth << " " << inType << " "
-      << "reduceFormula(" << reduceFormula << ") "
-      << "equivSimp(" << equivSimp << ") "
-      << "phase(" << phase << ") "
-      << "dynamicPhase(" << dynamicPhase << ") "
-      << "staticPhase(" << staticPhase << ")\n";
-
-  if (inType == "cnf" || inType == "dimacs" || inType == "tcnf" ||
-      inType == "circuit") {
-    if (inType == "circuit")
-      out << "c Warning: only handle the case where the circuit is translated "
-             "into a CNF formula\n";
-
-    if (meth == "bipartition-primal")
-      return new PartitioningHeuristicBipartitePrimal(vm, ws, s, out);
-    if (meth == "bipartition-dual")
-      return new PartitioningHeuristicBipartiteDual(vm, ws, s, out);
-    if (meth == "decomposition-static-dual") {
-      PartitioningHeuristicStaticSingleDual *ret =
-          new PartitioningHeuristicStaticSingleDual(vm, ws, s, out);
-      ret->init(out);
-      return ret;
-    }
-    if (meth == "decomposition-static-primal") {
-      PartitioningHeuristicStaticSinglePrimal *ret =
-          new PartitioningHeuristicStaticSinglePrimal(vm, ws, s, out);
-      ret->init(out);
-      return ret;
-    }
-    if (meth == "decomposition-static-multi") {
-      PartitioningHeuristicStaticMulti *ret =
-          new PartitioningHeuristicStaticMulti(vm, ws, s, out);
-      ret->init(out);
-      return ret;
+  if (s.getProblemInputType() == PB_CNF) {
+    switch (options.partitioningMethod) {
+      case PARTITIONING_DYN_PRIMAL:
+        return new PartitioningHeuristicBipartitePrimal(options, ws, s, out);
+      case PARTITIONING_DYN_DUAL:
+        return new PartitioningHeuristicBipartiteDual(options, ws, s, out);
+      case PARTITIONING_STATIC_DUAL: {
+        PartitioningHeuristicStaticSingleDual *ret =
+            new PartitioningHeuristicStaticSingleDual(options, ws, s, out);
+        ret->init(out);
+        return ret;
+      }
+      case PARTITIONING_STATIC_PRIMAL: {
+        PartitioningHeuristicStaticSinglePrimal *ret =
+            new PartitioningHeuristicStaticSinglePrimal(options, ws, s, out);
+        ret->init(out);
+        return ret;
+      }
+      case PARTITIONING_STATIC_MULTI: {
+        PartitioningHeuristicStaticMulti *ret =
+            new PartitioningHeuristicStaticMulti(options, ws, s, out);
+        ret->init(out);
+        return ret;
+      }
+      case PARTITIONING_NONE:
+        return makePartitioningHeuristicNone(out);
     }
   }
 
@@ -117,8 +95,8 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
    @param[in] solver, the SAT solver used in the equivalence manager.
    @param[in] component, the set of variables of the component we want to cut.
    @param[out] unitEquiv, the set of unit literals we find out.
-   @param[out] equiClass, the equivalence class we computed (we suppose that the
-   verctor is large enough and then we do not allocate).
+   @param[out] equiClass, the equivalence class we computed (we suppose that
+   the verctor is large enough and then we do not allocate).
 */
 void PartitioningHeuristic::computeEquivClass(
     EquivExtractor &eqManager, WrapperSolver &solver,

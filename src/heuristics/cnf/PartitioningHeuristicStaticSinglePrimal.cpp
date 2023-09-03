@@ -32,11 +32,11 @@ namespace d4 {
    @param[in] om, a structure manager.
  */
 PartitioningHeuristicStaticSinglePrimal::
-    PartitioningHeuristicStaticSinglePrimal(po::variables_map &vm,
-                                            WrapperSolver &s, SpecManager &om,
-                                            std::ostream &out)
+    PartitioningHeuristicStaticSinglePrimal(
+        const OptionPartitioningHeuristic &options, WrapperSolver &s,
+        SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticSinglePrimal(
-          vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
+          options, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
@@ -53,16 +53,16 @@ PartitioningHeuristicStaticSinglePrimal::
    @param[in] sumSize, which give the number of literals.
  */
 PartitioningHeuristicStaticSinglePrimal::
-    PartitioningHeuristicStaticSinglePrimal(po::variables_map &vm,
-                                            WrapperSolver &s, SpecManager &om,
-                                            int nbClause, int nbVar,
-                                            int sumSize, std::ostream &out)
-    : PartitioningHeuristicStaticSingle(vm, s, om, nbClause, nbVar, sumSize,
-                                        out) {
+    PartitioningHeuristicStaticSinglePrimal(
+        const OptionPartitioningHeuristic &options, WrapperSolver &s,
+        SpecManager &om, int nbClause, int nbVar, int sumSize,
+        std::ostream &out)
+    : PartitioningHeuristicStaticSingle(options, s, om, nbClause, nbVar,
+                                        sumSize, out) {
   out << "c [CONSTRUCTOR] Static partitioner: primal\n";
 
-  m_pm = PartitionerManager::makePartitioner(vm, m_nbVar, m_nbClause, sumSize,
-                                             out);
+  m_pm = PartitionerManager::makePartitioner(options.partitionerName, m_nbVar,
+                                             m_nbClause, sumSize, out);
   m_hypergraph.init(m_nbClause + sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
   m_maxNbNodes = m_nbVar + 1;

@@ -23,6 +23,8 @@
 #include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/heuristics/OptionBranchingHeuristic.hpp"
+#include "src/heuristics/OptionPartitioningHeuristic.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
 #include "src/solvers/OptionSolver.hpp"
 #include "src/specs/OptionSpecManager.hpp"
 
@@ -100,6 +102,16 @@ class Configuration {
       PhaseHeuristicType phaseHeuristicType;
       bool reversePhase;
     } branchingHeuristic;
+
+    struct ConfigurationPartitioningHeuristic {
+      PartitioningMethod partitioningMethod;
+      PartitionerName partitionerName;
+      bool reduceFormula;
+      bool equivSimp;
+      int staticPhase;
+      int limitPhase;
+      double dynamicPhase;
+    } partitioningHeuristic;
   } dpllConfig;
 
   friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {

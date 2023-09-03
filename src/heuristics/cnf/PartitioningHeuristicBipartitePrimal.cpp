@@ -26,10 +26,10 @@ namespace d4 {
    @param[in] _om, a structure manager.
 */
 PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
-    po::variables_map &vm, WrapperSolver &_s, SpecManager &_om,
-    std::ostream &out)
+    const OptionPartitioningHeuristic &options, WrapperSolver &_s,
+    SpecManager &_om, std::ostream &out)
     : PartitioningHeuristicBipartitePrimal(
-          vm, _s, _om, dynamic_cast<SpecManagerCnf &>(_om).getNbClause(),
+          options, _s, _om, dynamic_cast<SpecManagerCnf &>(_om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(_om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(_om).getSumSizeClauses(), out) {
 }  // constructor
@@ -45,19 +45,21 @@ PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
    @param[in] sumSize, which give the number of literals.
 */
 PartitioningHeuristicBipartitePrimal::PartitioningHeuristicBipartitePrimal(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize, std::ostream &out)
-    : PartitioningHeuristicBipartite(vm, om, s, nbClause, nbVar, sumSize, out) {
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicBipartite(options, om, s, nbClause, nbVar, sumSize,
+                                     out) {
   // initialize the vectors.
   m_partition.resize(m_nbVar + 1, 0);
 
   // init the hyper graph managers.
-  m_pm = PartitionerManager::makePartitioner(vm, nbVar, nbClause, sumSize, out);
+  m_pm = PartitionerManager::makePartitioner(options.partitionerName, nbVar,
+                                             nbClause, sumSize, out);
   m_hypergraph.init(m_nbClause + sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorPrimal(m_nbVar, m_nbClause);
 
   m_staticPartitioner =
       PartitioningHeuristicStatic::makePartitioningHeuristicStatic(
-          vm, s, om, nbClause, nbVar, sumSize, "primal", out);
+          options, s, om, nbClause, nbVar, sumSize, "primal", out);
 }  // constructor
 }  // namespace d4

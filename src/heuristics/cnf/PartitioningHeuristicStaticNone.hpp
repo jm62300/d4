@@ -29,12 +29,14 @@ class PartitioningHeuristicStaticNone : public PartitioningHeuristicStatic {
                             std::vector<unsigned> &bucketNumber);
 
  public:
-  PartitioningHeuristicStaticNone(po::variables_map &vm, WrapperSolver &s,
-                                  SpecManager &om, std::ostream &out);
+  PartitioningHeuristicStaticNone(const OptionPartitioningHeuristic &options,
+                                  WrapperSolver &s, SpecManager &om,
+                                  std::ostream &out);
 
-  PartitioningHeuristicStaticNone(po::variables_map &vm, WrapperSolver &s,
-                                  SpecManager &om, int nbClause, int nbVar,
-                                  int sumSize, std::ostream &out);
+  PartitioningHeuristicStaticNone(const OptionPartitioningHeuristic &options,
+                                  WrapperSolver &s, SpecManager &om,
+                                  int nbClause, int nbVar, int sumSize,
+                                  std::ostream &out);
 
   ~PartitioningHeuristicStaticNone();
 

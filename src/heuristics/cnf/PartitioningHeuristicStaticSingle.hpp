@@ -107,12 +107,14 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic {
   }
 
  public:
-  PartitioningHeuristicStaticSingle(po::variables_map &vm, WrapperSolver &s,
-                                    SpecManager &om, std::ostream &out);
+  PartitioningHeuristicStaticSingle(const OptionPartitioningHeuristic &options,
+                                    WrapperSolver &s, SpecManager &om,
+                                    std::ostream &out);
 
-  PartitioningHeuristicStaticSingle(po::variables_map &vm, WrapperSolver &s,
-                                    SpecManager &om, int nbClause, int nbVar,
-                                    int sumSize, std::ostream &out);
+  PartitioningHeuristicStaticSingle(const OptionPartitioningHeuristic &options,
+                                    WrapperSolver &s, SpecManager &om,
+                                    int nbClause, int nbVar, int sumSize,
+                                    std::ostream &out);
 
   virtual ~PartitioningHeuristicStaticSingle();
 

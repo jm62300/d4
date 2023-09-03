@@ -33,9 +33,10 @@ namespace d4 {
    @param[in] om, a structure manager.
  */
 PartitioningHeuristicStaticSingleDual::PartitioningHeuristicStaticSingleDual(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, std::ostream &out)
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, std::ostream &out)
     : PartitioningHeuristicStaticSingleDual(
-          vm, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
+          options, s, om, dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses(), out) {
 
@@ -52,14 +53,14 @@ PartitioningHeuristicStaticSingleDual::PartitioningHeuristicStaticSingleDual(
    @param[in] sumSize, which give the number of literals.
  */
 PartitioningHeuristicStaticSingleDual::PartitioningHeuristicStaticSingleDual(
-    po::variables_map &vm, WrapperSolver &s, SpecManager &om, int nbClause,
-    int nbVar, int sumSize, std::ostream &out)
-    : PartitioningHeuristicStaticSingle(vm, s, om, nbClause, nbVar, sumSize,
-                                        out) {
+    const OptionPartitioningHeuristic &options, WrapperSolver &s,
+    SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out)
+    : PartitioningHeuristicStaticSingle(options, s, om, nbClause, nbVar,
+                                        sumSize, out) {
   out << "c [CONSTRUCTOR] Static partitioner: dual\n";
 
-  m_pm = PartitionerManager::makePartitioner(vm, m_nbClause, m_nbVar, sumSize,
-                                             out);
+  m_pm = PartitionerManager::makePartitioner(options.partitionerName,
+                                             m_nbClause, m_nbVar, sumSize, out);
   m_hypergraph.init(m_nbVar + m_nbClause + sumSize + 1);
   m_hypergraphExtractor = new HyperGraphExtractorDual(m_nbVar, m_nbClause);
   m_maxNbNodes = m_nbClause + 1;

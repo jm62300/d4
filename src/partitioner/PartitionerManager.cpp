@@ -32,19 +32,16 @@ namespace d4 {
 
    \return a partioner if the options are ocrrect, NULL otherwise.
  */
-PartitionerManager *PartitionerManager::makePartitioner(po::variables_map &vm,
-                                                        unsigned maxNodes,
-                                                        unsigned maxEdges,
-                                                        unsigned maxSumEdgeSize,
-                                                        std::ostream &out) {
-  std::string meth = vm["partitioning-heuristic-partitioner"].as<std::string>();
-  ;
+PartitionerManager *PartitionerManager::makePartitioner(
+    PartitionerName partitioner, unsigned maxNodes, unsigned maxEdges,
+    unsigned maxSumEdgeSize, std::ostream &out) {
+  switch (partitioner) {
+    case PARTITIONER_PATOH:
+      return new PartitionerPatoh(maxNodes, maxEdges, maxSumEdgeSize, out);
+    case PARTITIONER_KAHYPAR:
+      return new PartitionerKahypar(maxNodes, maxEdges, maxSumEdgeSize, out);
+  }
 
-  if (meth == "patoh")
-    return new PartitionerPatoh(maxNodes, maxEdges, maxSumEdgeSize, out);
-  if (meth == "kahypar")
-    return new PartitionerKahypar(maxNodes, maxEdges, maxSumEdgeSize, out);
-
-  throw(FactoryException("Cannot create a Partitioner", __FILE__, __LINE__));
+  throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
 }  // makePartitioner
 }  // namespace d4

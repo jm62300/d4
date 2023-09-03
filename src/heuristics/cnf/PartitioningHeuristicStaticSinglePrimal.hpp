@@ -39,14 +39,13 @@ class PartitioningHeuristicStaticSinglePrimal
       std::vector<int> &mapping, unsigned level);
 
  public:
-  PartitioningHeuristicStaticSinglePrimal(po::variables_map &vm,
-                                          WrapperSolver &s, SpecManager &om,
-                                          std::ostream &out);
+  PartitioningHeuristicStaticSinglePrimal(
+      const OptionPartitioningHeuristic &options, WrapperSolver &s,
+      SpecManager &om, std::ostream &out);
 
-  PartitioningHeuristicStaticSinglePrimal(po::variables_map &vm,
-                                          WrapperSolver &s, SpecManager &om,
-                                          int nbClause, int nbVar, int sumSize,
-                                          std::ostream &out);
+  PartitioningHeuristicStaticSinglePrimal(
+      const OptionPartitioningHeuristic &options, WrapperSolver &s,
+      SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out);
 
   ~PartitioningHeuristicStaticSinglePrimal();
 };

@@ -17,20 +17,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <boost/program_options.hpp>
+
 #include <functional>
 #include <vector>
 
+#include "src/exceptions/FactoryException.hpp"
 #include "src/hyperGraph/HyperGraph.hpp"
 
 namespace d4 {
 
-namespace po = boost::program_options;
+enum PartitionerName { PARTITIONER_PATOH, PARTITIONER_KAHYPAR };
+
+class PartitionerNameManager {
+ public:
+  static std::string getPartitionerName(const PartitionerName &m) {
+    if (m == PARTITIONER_PATOH) return "patoh";
+    if (m == PARTITIONER_KAHYPAR) return "kahypar";
+
+    throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
+  }  // getPartitionerName
+
+  static PartitionerName getPartitionerName(const std::string &m) {
+    if (m == "patoh") return PARTITIONER_PATOH;
+    if (m == "kahypar") return PARTITIONER_KAHYPAR;
+
+    throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
+  }  // getPartitionerName
+};
+
 class PartitionerManager {
  public:
   enum Level { NORMAL, SPEED, QUALITY };
 
-  static PartitionerManager *makePartitioner(po::variables_map &vm,
+  static PartitionerManager *makePartitioner(PartitionerName partitioner,
                                              unsigned maxNodes,
                                              unsigned maxEdges,
                                              unsigned maxSumEdgeSize,

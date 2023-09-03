@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <cstdint>
 #include <vector>
 
@@ -31,7 +30,7 @@
 #include "src/utils/EquivExtractor.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
+
 class PartitioningHeuristicBipartite : public PartitioningHeuristic {
  private:
   unsigned m_nbStatic;
@@ -58,9 +57,10 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic {
 
   unsigned m_nbClause;
 
-  PartitioningHeuristicBipartite(po::variables_map &vm, SpecManager &om,
-                                 WrapperSolver &s, int _nbClause, int _nbVar,
-                                 int _sumSize, std::ostream &out);
+  PartitioningHeuristicBipartite(const OptionPartitioningHeuristic &options,
+                                 SpecManager &om, WrapperSolver &s,
+                                 int _nbClause, int _nbVar, int _sumSize,
+                                 std::ostream &out);
 
   virtual ~PartitioningHeuristicBipartite();
 

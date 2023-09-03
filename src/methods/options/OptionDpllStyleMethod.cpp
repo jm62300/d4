@@ -52,6 +52,14 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
       config.dpllConfig.branchingHeuristic.phaseHeuristicType,
       config.dpllConfig.branchingHeuristic.reversePhase};
 
+  optionPartitioningHeuristic = {
+      config.dpllConfig.partitioningHeuristic.partitioningMethod,
+      config.dpllConfig.partitioningHeuristic.partitionerName,
+      config.dpllConfig.partitioningHeuristic.reduceFormula,
+      config.dpllConfig.partitioningHeuristic.equivSimp,
+      config.dpllConfig.partitioningHeuristic.staticPhase,
+      config.dpllConfig.partitioningHeuristic.dynamicPhase};
+
   freqDecay = config.dpllConfig.freqDecay;
   cacheIsActivated = config.dpllConfig.cache.isActivated;
 }  // constructor
