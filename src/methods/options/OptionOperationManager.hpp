@@ -20,8 +20,8 @@
 
 #include <string>
 
-#include "../Configuration.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/methods/MethodManager.hpp"
 
 namespace d4 {
 

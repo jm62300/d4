@@ -29,6 +29,7 @@
 #include "MinSharpSAT.hpp"
 #include "OperationManager.hpp"
 #include "ProjMCMethod.hpp"
+#include "configurations/ConfigurationDpllStyleMethod.hpp"
 #include "options/OptionDpllStyleMethod.hpp"
 #include "options/OptionMethodManager.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
@@ -58,76 +59,78 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   out << "c\n";
   assert(initProblem);
 
-  Configuration config;
+  ConfigurationDpllStyleMethod config;
   config.methodName =
       MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
-  config.dpllConfig.cache.cachingMethod = CachingMehodManager::getCachingMethod(
+  config.cache.cachingMethod = CachingMehodManager::getCachingMethod(
       vm["cache-method"].as<std::string>());
 
-  config.dpllConfig.cache.cacheCleaningStrategy =
+  config.cache.cacheCleaningStrategy =
       CacheCleaningStrategyManager::getCacheCleaningStrategy(
           vm["cache-reduction-strategy"].as<std::string>());
 
-  config.dpllConfig.cache.modeStore = ModeStoreManager::getModeStore(
+  config.cache.modeStore = ModeStoreManager::getModeStore(
       vm["cache-store-strategy"].as<std::string>());
 
-  config.dpllConfig.cache.clauseRepresentation =
+  config.cache.clauseRepresentation =
       ClauseRepresentationManager::getClauseRepresentation(
           vm["cache-clause-representation"].as<std::string>());
 
-  config.dpllConfig.cache.sizeFirstPage =
-      vm["cache-size-first-page"].as<unsigned long>();
+  config.cache.sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
 
-  config.dpllConfig.cache.sizeAdditionalPage =
+  config.cache.sizeAdditionalPage =
       vm["cache-size-additional-page"].as<unsigned long>();
 
-  config.dpllConfig.cache.limitVarSym =
+  config.cache.limitVarSym =
       vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
 
-  config.dpllConfig.cache.limitVarIndex =
+  config.cache.limitVarIndex =
       vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
 
-  config.dpllConfig.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
+  config.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
 
-  config.dpllConfig.solver.solverName =
+  config.solver.solverName =
       SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
-  config.dpllConfig.cache.isActivated = vm["cache-activated"].as<bool>();
+  config.cache.isActivated = vm["cache-activated"].as<bool>();
 
-  config.dpllConfig.spec.specUpdateType = SpecUpdateManager::getSpecUpdate(
+  config.spec.specUpdateType = SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
 
-  config.dpllConfig.branchingHeuristic.scoringMethodType =
+  config.branchingHeuristic.scoringMethodType =
       ScoringMethodTypeManager::getScoringMethodType(
           vm["scoring-method"].as<std::string>());
 
-  config.dpllConfig.branchingHeuristic.phaseHeuristicType =
+  config.branchingHeuristic.phaseHeuristicType =
       PhaseHeuristicTypeManager::getPhaseHeuristicType(
           vm["phase-heuristic"].as<std::string>());
 
-  config.dpllConfig.branchingHeuristic.reversePhase =
+  config.branchingHeuristic.reversePhase =
       vm["phase-heuristic-reversed"].as<bool>();
 
-  config.dpllConfig.partitioningHeuristic.partitioningMethod =
+  config.partitioningHeuristic.partitioningMethod =
       PartitioningMethodManager::getPartitioningMethod(
           vm["partitioning-heuristic"].as<std::string>());
 
-  config.dpllConfig.partitioningHeuristic.partitionerName =
+  config.partitioningHeuristic.partitionerName =
       PartitionerNameManager::getPartitionerName(
           vm["partitioning-heuristic-partitioner"].as<std::string>());
 
-  config.dpllConfig.partitioningHeuristic.reduceFormula =
+  config.partitioningHeuristic.reduceFormula =
       vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
 
-  config.dpllConfig.partitioningHeuristic.equivSimp =
+  config.partitioningHeuristic.equivSimp =
       vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
 
-  config.dpllConfig.partitioningHeuristic.staticPhase =
+  config.partitioningHeuristic.staticPhase =
       vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
 
-  config.dpllConfig.partitioningHeuristic.dynamicPhase =
+  config.partitioningHeuristic.dynamicPhase =
       vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
+
+  config.operationType =
+      OperationTypeManager::getOperatorType(vm["method"].as<std::string>());
 
   MethodManager *ret =
       makeMethodManager(vm, initProblem, config, precision, isFloat, out);
@@ -177,24 +180,25 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
     }
 
     if (config.methodName == METH_COUNTING || config.methodName == METH_DDNNF) {
-      OptionDpllStyleMethod options(config);
+      OptionDpllStyleMethod options(
+          static_cast<const ConfigurationDpllStyleMethod &>(config));
 
       if (config.methodName == METH_COUNTING) {
         if (!isFloat)
           return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-              vm, options, runProblem, out);
+              options, runProblem, out);
         else
           return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-              vm, options, runProblem, out);
+              options, runProblem, out);
       }
 
       // compiler.
       if (!isFloat)
         return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-            vm, options, runProblem, out);
+            options, runProblem, out);
       else
         return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-            vm, options, runProblem, out);
+            options, runProblem, out);
     }
 
     if (config.methodName == METH_PROJ_MC) {

@@ -20,9 +20,9 @@
 
 #include <boost/program_options.hpp>
 
-#include "Configuration.hpp"
 #include "MethodManager.hpp"
 #include "src/methods/Counter.hpp"
+#include "src/methods/configurations/Configuration.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"

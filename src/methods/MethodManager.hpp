@@ -20,12 +20,54 @@
 
 #include <boost/program_options.hpp>
 
-#include "Configuration.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;
+
+class Configuration;
+
+enum MethodName {
+  METH_EROSION,
+  METH_COUNTING,
+  METH_DDNNF,
+  METH_ERE,
+  METH_MAX_SHARP,
+  METH_MIN_SHARP,
+  METH_PROJ_MC,
+  METH_NONE
+};
+
+class MethodNameManager {
+ public:
+  static std::string getMethodName(const MethodName &m) {
+    if (m == METH_EROSION) return "erosion";
+    if (m == METH_COUNTING) return "counting";
+    if (m == METH_DDNNF) return "ddnnf-compiler";
+    if (m == METH_MAX_SHARP) return "max#sat";
+    if (m == METH_MIN_SHARP) return "min#sat";
+    if (m == METH_ERE) return "ere";
+    if (m == METH_PROJ_MC) return "projMC";
+    if (m == METH_NONE) return "none";
+
+    throw(FactoryException("Method name unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+
+  static MethodName getMethodName(const std::string &m) {
+    if (m == "erosion") return METH_EROSION;
+    if (m == "counting") return METH_COUNTING;
+    if (m == "ddnnf-compiler") return METH_DDNNF;
+    if (m == "max#sat") return METH_MAX_SHARP;
+    if (m == "min#sat") return METH_MIN_SHARP;
+    if (m == "ere") return METH_ERE;
+    if (m == "projMC") return METH_PROJ_MC;
+    if (m == "none") return METH_NONE;
+
+    throw(FactoryException("Method name unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+};
+
 class MethodManager {
  protected:
   std::clock_t currentTime;

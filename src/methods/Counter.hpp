@@ -21,11 +21,11 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <vector>
 
-#include "Configuration.hpp"
 #include "DpllStyleMethod.hpp"
 #include "nnf/Node.hpp"
 #include "options/OptionDpllStyleMethod.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
+#include "src/methods/configurations/Configuration.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -54,12 +54,13 @@ class Counter {
     // we set the precision
     boost::multiprecision::mpf_float::default_precision(precision);
 
-    OptionDpllStyleMethod options(config);
+    OptionDpllStyleMethod options(
+        static_cast<const ConfigurationDpllStyleMethod &>(config));
 
     if (config.methodName == METH_COUNTING)
-      return new DpllStyleMethod<T, T>(vm, options, problem, out);
+      return new DpllStyleMethod<T, T>(options, problem, out);
     if (config.methodName == METH_DDNNF)
-      return new DpllStyleMethod<T, Node<T> *>(vm, options, problem, out);
+      return new DpllStyleMethod<T, Node<T> *>(options, problem, out);
 
     throw(BadBehaviourException(
         "Cannot create a counter with the given options.", __FILE__, __LINE__));

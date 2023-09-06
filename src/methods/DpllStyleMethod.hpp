@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -52,7 +51,6 @@
 #include "OperationManager.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 template <class T>
 class Counter;
 
@@ -97,7 +95,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] vm, the list of options.
    */
-  DpllStyleMethod(po::variables_map &vm, const OptionDpllStyleMethod &options,
+  DpllStyleMethod(const OptionDpllStyleMethod &options,
                   ProblemManager *initProblem, std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream

@@ -19,49 +19,47 @@
 
 #include "OptionDpllStyleMethod.hpp"
 
+#include "OptionOperationManager.hpp"
+
 namespace d4 {
 
 /**
  * @brief OptionDpllStyleMethod::OptionDpllStyleMethod implementation.
  */
-OptionDpllStyleMethod::OptionDpllStyleMethod(const Configuration& config) {
+OptionDpllStyleMethod::OptionDpllStyleMethod(
+    const ConfigurationDpllStyleMethod& config) {
   // Operator used.
-  optionOperationManager.operatorType =
-      OperationTypeManager::getOperatorType(config.methodName);
+  optionOperationManager.operatorType = config.operationType;
 
   // Cache Options:
-  optionCacheManager.cachingMethod = config.dpllConfig.cache.cachingMethod;
+  optionCacheManager.cachingMethod = config.cache.cachingMethod;
 
   optionCacheManager.optionCacheCleaningManager = {
-      config.dpllConfig.cache.cacheCleaningStrategy};
+      config.cache.cacheCleaningStrategy};
 
   optionCacheManager.optionBucketManager = {
-      config.dpllConfig.cache.modeStore,
-      config.dpllConfig.cache.clauseRepresentation,
-      config.dpllConfig.cache.sizeFirstPage,
-      config.dpllConfig.cache.sizeAdditionalPage,
-      config.dpllConfig.cache.limitVarSym,
-      config.dpllConfig.cache.limitVarIndex};
+      config.cache.modeStore,     config.cache.clauseRepresentation,
+      config.cache.sizeFirstPage, config.cache.sizeAdditionalPage,
+      config.cache.limitVarSym,   config.cache.limitVarIndex};
 
-  optionSolver = {config.dpllConfig.solver.solverName};
+  optionSolver = {config.solver.solverName};
 
-  optionSpecManager = {config.dpllConfig.spec.specUpdateType};
+  optionSpecManager = {config.spec.specUpdateType};
 
-  optionBranchingHeuristic = {
-      config.dpllConfig.branchingHeuristic.scoringMethodType,
-      config.dpllConfig.branchingHeuristic.phaseHeuristicType,
-      config.dpllConfig.branchingHeuristic.reversePhase};
+  optionBranchingHeuristic = {config.branchingHeuristic.scoringMethodType,
+                              config.branchingHeuristic.phaseHeuristicType,
+                              config.branchingHeuristic.reversePhase};
 
   optionPartitioningHeuristic = {
-      config.dpllConfig.partitioningHeuristic.partitioningMethod,
-      config.dpllConfig.partitioningHeuristic.partitionerName,
-      config.dpllConfig.partitioningHeuristic.reduceFormula,
-      config.dpllConfig.partitioningHeuristic.equivSimp,
-      config.dpllConfig.partitioningHeuristic.staticPhase,
-      config.dpllConfig.partitioningHeuristic.dynamicPhase};
+      config.partitioningHeuristic.partitioningMethod,
+      config.partitioningHeuristic.partitionerName,
+      config.partitioningHeuristic.reduceFormula,
+      config.partitioningHeuristic.equivSimp,
+      config.partitioningHeuristic.staticPhase,
+      config.partitioningHeuristic.dynamicPhase};
 
-  freqDecay = config.dpllConfig.freqDecay;
-  cacheIsActivated = config.dpllConfig.cache.isActivated;
+  freqDecay = config.freqDecay;
+  cacheIsActivated = config.cache.isActivated;
 }  // constructor
 
 }  // namespace d4

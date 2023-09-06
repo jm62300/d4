@@ -20,12 +20,11 @@
 
 #include <string>
 
-#include "../Configuration.hpp"
-#include "OptionOperationManager.hpp"
 #include "src/caching/OptionCacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/heuristics/OptionBranchingHeuristic.hpp"
 #include "src/heuristics/OptionPartitioningHeuristic.hpp"
+#include "src/methods/configurations/ConfigurationDpllStyleMethod.hpp"
 
 namespace d4 {
 class OptionDpllStyleMethod {
@@ -45,7 +44,7 @@ class OptionDpllStyleMethod {
    *
    * @param config gives the method configuration.
    */
-  OptionDpllStyleMethod(const Configuration& config);
+  OptionDpllStyleMethod(const ConfigurationDpllStyleMethod& config);
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionDpllStyleMethod& dt) {
