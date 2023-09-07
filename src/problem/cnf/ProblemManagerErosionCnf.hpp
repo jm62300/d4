@@ -39,7 +39,7 @@ class ProblemManagerErosionCnf : public ProblemManager {
                            std::vector<Var> &indVar);
   ProblemManagerErosionCnf(ProblemManager *problem);
 
-  ProblemManagerErosionCnf(std::string &nameFile);
+  ProblemManagerErosionCnf(const std::string &nameFile);
   ~ProblemManagerErosionCnf();
   void display(std::ostream &out) override;
 

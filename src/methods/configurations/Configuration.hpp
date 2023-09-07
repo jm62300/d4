@@ -27,6 +27,10 @@ namespace d4 {
 class Configuration {
  public:
   MethodName methodName;
+  int precision;
+  bool isFloat;
+  std::string inputName;
+  ProblemInputType problemInputType;
 
   friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {
     out << "c Configuration:\n"

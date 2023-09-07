@@ -28,7 +28,8 @@ namespace d4 {
 
    @param[in] nameFile, parse the instance from a file
  */
-ProblemManagerErosionCnf::ProblemManagerErosionCnf(std::string &nameFile) {
+ProblemManagerErosionCnf::ProblemManagerErosionCnf(
+    const std::string &nameFile) {
   ParserErosionDimacs parser;
   m_nbVar = parser.parse_erosion_DIMACS(nameFile, this);
 

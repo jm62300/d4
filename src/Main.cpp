@@ -24,10 +24,13 @@
 #include <iostream>
 #include <vector>
 
+#include "methods/configurations/Configuration.hpp"
+#include "methods/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 
 #ifndef NOMAIN
 
+namespace po = boost::program_options;
 d4::MethodManager *methodRun = nullptr;
 
 /**
@@ -42,10 +45,100 @@ static void signalHandler(int signum) {
 }  // signalHandler
 
 /**
+ * @brief Get the options from the command line and return the adequate
+ * configuration.
+ *
+ * @param vm are options.
+ * @return a suited configuration.
+ */
+d4::Configuration *parseConfiguration(po::variables_map &vm) {
+  std::string meth = vm["method"].as<std::string>();
+
+  d4::ConfigurationDpllStyleMethod *config =
+      new d4::ConfigurationDpllStyleMethod();
+  config->methodName =
+      d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
+
+  config->inputName = vm["input"].as<std::string>();
+  config->problemInputType = d4::ProblemInputTypeManager::getInputType(
+      vm["input-type"].as<std::string>());
+
+  config->cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
+      vm["cache-method"].as<std::string>());
+
+  config->cache.cacheCleaningStrategy =
+      d4::CacheCleaningStrategyManager::getCacheCleaningStrategy(
+          vm["cache-reduction-strategy"].as<std::string>());
+
+  config->cache.modeStore = d4::ModeStoreManager::getModeStore(
+      vm["cache-store-strategy"].as<std::string>());
+
+  config->cache.clauseRepresentation =
+      d4::ClauseRepresentationManager::getClauseRepresentation(
+          vm["cache-clause-representation"].as<std::string>());
+
+  config->cache.sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
+
+  config->cache.sizeAdditionalPage =
+      vm["cache-size-additional-page"].as<unsigned long>();
+
+  config->cache.limitVarSym =
+      vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
+
+  config->cache.limitVarIndex =
+      vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
+
+  config->freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
+
+  config->solver.solverName =
+      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+
+  config->cache.isActivated = vm["cache-activated"].as<bool>();
+
+  config->spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+      vm["occurrence-manager"].as<std::string>());
+
+  config->branchingHeuristic.scoringMethodType =
+      d4::ScoringMethodTypeManager::getScoringMethodType(
+          vm["scoring-method"].as<std::string>());
+
+  config->branchingHeuristic.phaseHeuristicType =
+      d4::PhaseHeuristicTypeManager::getPhaseHeuristicType(
+          vm["phase-heuristic"].as<std::string>());
+
+  config->branchingHeuristic.reversePhase =
+      vm["phase-heuristic-reversed"].as<bool>();
+
+  config->partitioningHeuristic.partitioningMethod =
+      d4::PartitioningMethodManager::getPartitioningMethod(
+          vm["partitioning-heuristic"].as<std::string>());
+
+  config->partitioningHeuristic.partitionerName =
+      d4::PartitionerNameManager::getPartitionerName(
+          vm["partitioning-heuristic-partitioner"].as<std::string>());
+
+  config->partitioningHeuristic.reduceFormula =
+      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+
+  config->partitioningHeuristic.equivSimp =
+      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
+
+  config->partitioningHeuristic.staticPhase =
+      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
+
+  config->partitioningHeuristic.dynamicPhase =
+      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
+
+  config->operationType =
+      d4::OperationTypeManager::getOperatorType(vm["method"].as<std::string>());
+
+  return config;
+}  // parseConfiguration
+
+/**
    The main function!
 */
 int main(int argc, char **argv) {
-  namespace po = boost::program_options;
   po::options_description desc{"Options"};
   desc.add_options()
 #include "option.dsc"
@@ -71,7 +164,8 @@ int main(int argc, char **argv) {
     exit(!vm.count("help"));
   }
 
-  methodRun = d4::MethodManager::makeMethodManager(vm, std::cout);
+  d4::Configuration *config = parseConfiguration(vm);
+  methodRun = d4::MethodManager::makeMethodManager(vm, *config, std::cout);
   methodRun->run(vm);
   delete methodRun;
   methodRun = nullptr;

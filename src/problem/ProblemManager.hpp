@@ -23,6 +23,7 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 
+#include "src/exceptions/FactoryException.hpp"
 #include "src/methods/DataBranch.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
@@ -30,7 +31,26 @@ namespace d4 {
 namespace mpz = boost::multiprecision;
 namespace po = boost::program_options;
 
-enum ProblemInputType { PB_CNF, PB_CIRC, PB_NONE };
+enum ProblemInputType { PB_CNF, PB_TCNF, PB_CIRC, PB_NONE };
+
+class ProblemInputTypeManager {
+ public:
+  static std::string getInputType(const ProblemInputType &m) {
+    if (m == PB_CNF) return "cnf";
+    if (m == PB_CIRC) return "circuit";
+    if (m == PB_TCNF) return "cnf+theory";
+
+    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+
+  static ProblemInputType getInputType(const std::string &m) {
+    if (m == "cnf") return PB_CNF;
+    if (m == "circuit") return PB_CIRC;
+    if (m == "tcnf") return PB_TCNF;
+
+    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+};
 
 class ProblemManager {
  protected:
@@ -43,7 +63,8 @@ class ProblemManager {
   bool m_isUnsat = false;
 
  public:
-  static ProblemManager *makeProblemManager(po::variables_map &vm,
+  static ProblemManager *makeProblemManager(const std::string &in,
+                                            ProblemInputType pbType,
                                             std::ostream &out);
 
   virtual ~ProblemManager() { ; }

@@ -30,7 +30,7 @@ class ProblemManagerCircuit : public ProblemManager {
  public:
   ProblemManagerCircuit();
   ~ProblemManagerCircuit();
-  ProblemManagerCircuit(std::string &nameFile);
+  ProblemManagerCircuit(const std::string &nameFile);
   ProblemManagerCircuit(ProblemManager *problem);
 
   void display(std::ostream &out) override;

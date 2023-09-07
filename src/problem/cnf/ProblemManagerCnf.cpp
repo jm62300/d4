@@ -28,7 +28,7 @@ namespace d4 {
 
    @param[in] nameFile, parse the instance from a file
  */
-ProblemManagerCnf::ProblemManagerCnf(std::string &nameFile) {
+ProblemManagerCnf::ProblemManagerCnf(const std::string &nameFile) {
   ParserDimacs parser;
   m_nbVar = parser.parse_DIMACS(nameFile, this);
 

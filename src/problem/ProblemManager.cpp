@@ -34,18 +34,13 @@ namespace d4 {
 
    \return the problem manager that fits the command line.
  */
-ProblemManager *ProblemManager::makeProblemManager(po::variables_map &vm,
+ProblemManager *ProblemManager::makeProblemManager(const std::string &in,
+                                                   ProblemInputType pbType,
                                                    std::ostream &out) {
-  std::string in = vm["input"].as<std::string>();
-  std::string inType = vm["input-type"].as<std::string>();
-  std::string meth = vm["method"].as<std::string>();
-
-  out << "c [CONSTRUCTOR] Problem: " << in << " " << inType << "\n";
-
   ProblemManager *ret = NULL;
-  if (inType == "cnf" || inType == "dimacs") ret = new ProblemManagerCnf(in);
-  if (inType == "tcnf") ret = new ProblemManagerErosionCnf(in);
-  if (inType == "circuit") ret = new ProblemManagerCircuit(in);
+  if (pbType == PB_CNF) ret = new ProblemManagerCnf(in);
+  if (pbType == PB_TCNF) ret = new ProblemManagerErosionCnf(in);
+  if (pbType == PB_CIRC) ret = new ProblemManagerCircuit(in);
 
   if (!ret)
     throw(

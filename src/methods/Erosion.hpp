@@ -56,7 +56,7 @@ class Erosion : public MethodManager {
 
     // set the options.
     m_depth = vm["erosion-option-depth"].as<int>();
-    m_isFloat = vm["float"].as<bool>();
+    m_isFloat = isFloat;
     m_out << "c [CONSTRUCTOR] Erosion: depth(" << m_depth << ") isFloat("
           << m_isFloat << ")\n";
   }  // constructor

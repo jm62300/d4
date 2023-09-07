@@ -30,7 +30,7 @@ namespace d4 {
  *
  * @param nameFile
  */
-ProblemManagerCircuit::ProblemManagerCircuit(std::string &nameFile) {
+ProblemManagerCircuit::ProblemManagerCircuit(const std::string &nameFile) {
   ParserCircuit parser;
   m_nbVar = parser.parse_Circuit(nameFile, this);
 

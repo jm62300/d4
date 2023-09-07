@@ -47,93 +47,19 @@ namespace mpz = boost::multiprecision;
    @param[in] out, the stream where are print the information.
  */
 MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
+                                                const Configuration &config,
                                                 std::ostream &out) {
-  int precision = vm["float-precision"].as<int>();
-  bool isFloat = vm["float"].as<bool>();
-
   // the initial problem.
-  ProblemManager *initProblem = ProblemManager::makeProblemManager(vm, out);
+  ProblemManager *initProblem = ProblemManager::makeProblemManager(
+      config.inputName, config.problemInputType, out);
+
   out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
          "formula\033[0m\n";
   initProblem->displayStat(out, "c [INITIAL INPUT] ");
   out << "c\n";
   assert(initProblem);
 
-  ConfigurationDpllStyleMethod config;
-  config.methodName =
-      MethodNameManager::getMethodName(vm["method"].as<std::string>());
-
-  config.cache.cachingMethod = CachingMehodManager::getCachingMethod(
-      vm["cache-method"].as<std::string>());
-
-  config.cache.cacheCleaningStrategy =
-      CacheCleaningStrategyManager::getCacheCleaningStrategy(
-          vm["cache-reduction-strategy"].as<std::string>());
-
-  config.cache.modeStore = ModeStoreManager::getModeStore(
-      vm["cache-store-strategy"].as<std::string>());
-
-  config.cache.clauseRepresentation =
-      ClauseRepresentationManager::getClauseRepresentation(
-          vm["cache-clause-representation"].as<std::string>());
-
-  config.cache.sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
-
-  config.cache.sizeAdditionalPage =
-      vm["cache-size-additional-page"].as<unsigned long>();
-
-  config.cache.limitVarSym =
-      vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
-
-  config.cache.limitVarIndex =
-      vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
-
-  config.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
-
-  config.solver.solverName =
-      SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-
-  config.cache.isActivated = vm["cache-activated"].as<bool>();
-
-  config.spec.specUpdateType = SpecUpdateManager::getSpecUpdate(
-      vm["occurrence-manager"].as<std::string>());
-
-  config.branchingHeuristic.scoringMethodType =
-      ScoringMethodTypeManager::getScoringMethodType(
-          vm["scoring-method"].as<std::string>());
-
-  config.branchingHeuristic.phaseHeuristicType =
-      PhaseHeuristicTypeManager::getPhaseHeuristicType(
-          vm["phase-heuristic"].as<std::string>());
-
-  config.branchingHeuristic.reversePhase =
-      vm["phase-heuristic-reversed"].as<bool>();
-
-  config.partitioningHeuristic.partitioningMethod =
-      PartitioningMethodManager::getPartitioningMethod(
-          vm["partitioning-heuristic"].as<std::string>());
-
-  config.partitioningHeuristic.partitionerName =
-      PartitionerNameManager::getPartitionerName(
-          vm["partitioning-heuristic-partitioner"].as<std::string>());
-
-  config.partitioningHeuristic.reduceFormula =
-      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
-
-  config.partitioningHeuristic.equivSimp =
-      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-
-  config.partitioningHeuristic.staticPhase =
-      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
-
-  config.partitioningHeuristic.dynamicPhase =
-      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
-
-  config.operationType =
-      OperationTypeManager::getOperatorType(vm["method"].as<std::string>());
-
-  MethodManager *ret =
-      makeMethodManager(vm, initProblem, config, precision, isFloat, out);
+  MethodManager *ret = makeMethodManager(vm, initProblem, config, out);
   delete initProblem;
 
   return ret;
@@ -154,10 +80,9 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                                 ProblemManager *problem,
                                                 const Configuration &config,
-                                                int precision, bool isFloat,
                                                 std::ostream &out) {
   out << "c [METHOD MANAGER]\n";
-  boost::multiprecision::mpf_float::default_precision(precision);
+  boost::multiprecision::mpf_float::default_precision(config.precision);
 
   if (config.methodName != METH_EROSION) {
     OptionPreprocManager optionPreproc;
@@ -170,6 +95,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
 
     ProblemManager *runProblem = runPreproc(optionPreproc, problem, out);
 
+    bool isFloat = config.isFloat;
     displayInfoVariables(runProblem, out);
     for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
       Lit l = Lit::makeLitTrue(i);
@@ -226,7 +152,7 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                              out);
     }
   } else {
-    return new Erosion<mpz::mpz_int>(vm, isFloat,
+    return new Erosion<mpz::mpz_int>(vm, config.isFloat,
                                      new ProblemManagerErosionCnf(problem));
   }
 

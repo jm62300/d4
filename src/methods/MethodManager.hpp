@@ -76,12 +76,12 @@ class MethodManager {
   virtual ~MethodManager() {}
 
   static MethodManager *makeMethodManager(po::variables_map &vm,
+                                          const Configuration &config,
                                           std::ostream &out);
 
   static MethodManager *makeMethodManager(po::variables_map &vm,
                                           ProblemManager *problem,
                                           const Configuration &configuration,
-                                          int precision, bool isFloat,
                                           std::ostream &out);
 
   static void displayInfoVariables(ProblemManager *problem, std::ostream &out);
