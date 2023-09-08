@@ -35,6 +35,7 @@
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/heuristics/OptionBranchingHeuristic.hpp"
+#include "src/preprocs/OptionPreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
@@ -85,15 +86,8 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
   boost::multiprecision::mpf_float::default_precision(config.precision);
 
   if (config.methodName != METH_EROSION) {
-    OptionPreprocManager optionPreproc;
-    optionPreproc.inputType =
-        InputTypeManager::getInputType(vm["input-type"].as<std::string>());
-    optionPreproc.preprocMethod =
-        PreprocMethodManager::getPreprocMethod(vm["preproc"].as<std::string>());
-    optionPreproc.nbIteration = vm["preproc-reducer-iteration"].as<int>();
-    optionPreproc.timeout = vm["preproc-timeout"].as<int>();
-
-    ProblemManager *runProblem = runPreproc(optionPreproc, problem, out);
+    ProblemManager *runProblem = runPreproc(
+        OptionPreprocManager(config.configurationPreproc), problem, out);
 
     bool isFloat = config.isFloat;
     displayInfoVariables(runProblem, out);

@@ -16,31 +16,16 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+
 #pragma once
 
-#include <string>
-
-#include "ConfigurationPreproc.hpp"
-#include "src/methods/MethodManager.hpp"
+#include "src/preprocs/PreprocManager.hpp"
 
 namespace d4 {
-
-class Configuration {
- public:
-  MethodName methodName;
-  int precision;
-  bool isFloat;
-  std::string inputName;
-  ProblemInputType problemInputType;
-
-  ConfigurationPeproc configurationPreproc;
-
-  friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {
-    out << "c Configuration:\n"
-        << "c Method used:" << MethodNameManager::getMethodName(dt.methodName)
-        << "\n";
-
-    return out;
-  }  // <<
+struct ConfigurationPeproc {
+  PreprocMethod preprocMethod = BASIC;
+  InputType inputType = DIMACS_CNF;
+  int nbIteration = 1;
+  int timeout = 0;
 };
 }  // namespace d4

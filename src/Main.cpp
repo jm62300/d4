@@ -63,6 +63,15 @@ d4::Configuration *parseConfiguration(po::variables_map &vm) {
   config->problemInputType = d4::ProblemInputTypeManager::getInputType(
       vm["input-type"].as<std::string>());
 
+  config->configurationPreproc.inputType =
+      d4::InputTypeManager::getInputType(vm["input-type"].as<std::string>());
+  config->configurationPreproc.nbIteration =
+      vm["preproc-reducer-iteration"].as<int>();
+  config->configurationPreproc.preprocMethod =
+      d4::PreprocMethodManager::getPreprocMethod(
+          vm["preproc"].as<std::string>());
+  config->configurationPreproc.timeout = vm["preproc-timeout"].as<int>();
+
   config->cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
       vm["cache-method"].as<std::string>());
 

@@ -22,6 +22,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <csignal>
 
+#include "OptionPreprocManager.hpp"
 #include "circuit/PreprocCnfFromCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
@@ -31,7 +32,8 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-void *PreprocManager::s_isRunning = nullptr;
+
+void* PreprocManager::s_isRunning = nullptr;
 
 /**
  * @brief Preproc factory.
@@ -40,8 +42,8 @@ void *PreprocManager::s_isRunning = nullptr;
  * @param out is the stream where are printed out the logs.
  * @return a preproc.
  */
-PreprocManager *PreprocManager::makePreprocManager(
-    const OptionPreprocManager &options, std::ostream &out) {
+PreprocManager* PreprocManager::makePreprocManager(
+    const OptionPreprocManager& options, std::ostream& out) {
   out << "c [PREPROC MANAGER]" << options << "\n";
 
   if (options.inputType == DIMACS_CNF || options.inputType == TCNF) {
