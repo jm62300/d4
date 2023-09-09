@@ -113,9 +113,9 @@ class BucketManagerCnf : public BucketManager<T> {
    */
   bool isKeptClause(int idx) {
     switch (m_modeStore) {
-      case NT:
+      case CACHE_NT:
         return m_specManager.getNbUnsat(idx);
-      case NB:
+      case CACHE_NB:
         return m_specManager.getClause(idx).size() > 2;
       default:
         return true;
@@ -133,7 +133,7 @@ class BucketManagerCnf : public BucketManager<T> {
                               std::vector<unsigned> &idxClauses) {
     // collect the clauses
     idxClauses.resize(0);
-    if (m_modeStore == ALL)
+    if (m_modeStore == CACHE_ALL)
       m_specManager.getCurrentClauses(idxClauses, component);
     else
       m_specManager.getCurrentClausesNotBin(idxClauses, component);

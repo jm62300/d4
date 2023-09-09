@@ -46,31 +46,6 @@ namespace mpz = boost::multiprecision;
 
    @param[in] vm, the map of option.
    @param[in] out, the stream where are print the information.
- */
-MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
-                                                const Configuration &config,
-                                                std::ostream &out) {
-  // the initial problem.
-  ProblemManager *initProblem = ProblemManager::makeProblemManager(
-      config.inputName, config.problemInputType, out);
-
-  out << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
-         "formula\033[0m\n";
-  initProblem->displayStat(out, "c [INITIAL INPUT] ");
-  out << "c\n";
-  assert(initProblem);
-
-  MethodManager *ret = makeMethodManager(vm, initProblem, config, out);
-  delete initProblem;
-
-  return ret;
-}  // makeMethodManager
-
-/**
-   Consider the option in order to generate an instance of the wanted method.
-
-   @param[in] vm, the map of option.
-   @param[in] out, the stream where are print the information.
    @param[in] meth, the method we search to construct.
    @param[in] precision, the precision for the bignum.
    @param[in] isFloat, decide if the binum are float or int.

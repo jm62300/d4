@@ -22,15 +22,15 @@
 
 namespace d4 {
 struct ConfigurationCache {
-  CachingMethod cachingMethod;
-  CacheCleaningStrategy cacheCleaningStrategy;
-  ModeStore modeStore;
-  ClauseRepresentation clauseRepresentation;
+  CachingMethod cachingMethod = CACHE_LIST;
+  CacheCleaningStrategy cacheCleaningStrategy = CACHE_EXPECTATION;
+  ModeStore modeStore = CACHE_NT;
+  ClauseRepresentation clauseRepresentation = CACHE_CLAUSE;
 
-  bool isActivated;
-  unsigned long sizeFirstPage;
-  unsigned long sizeAdditionalPage;
-  unsigned limitVarSym;
-  unsigned limitVarIndex;
+  bool isActivated = true;
+  unsigned long sizeFirstPage = 1UL << 32;
+  unsigned long sizeAdditionalPage = 1UL << 29;
+  unsigned limitVarSym = 20;
+  unsigned limitVarIndex = 2000;
 };
 }  // namespace d4

@@ -87,6 +87,7 @@ class OptionBranchingHeuristic {
   ScoringMethodType scoringMethodType;
   PhaseHeuristicType phaseHeuristicType;
   bool reversePhase;
+  unsigned freqDecay;
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionBranchingHeuristic& dt) {
@@ -98,7 +99,8 @@ class OptionBranchingHeuristic {
         << PhaseHeuristicTypeManager::getPhaseHeuristicType(
                dt.phaseHeuristicType)
         << ")"
-        << " reverse phase (" << dt.reversePhase << ")";
+        << " reverse phase (" << dt.reversePhase << ")"
+        << " freq-decay (" << dt.freqDecay << ")";
     return out;
   }  // <<
 };

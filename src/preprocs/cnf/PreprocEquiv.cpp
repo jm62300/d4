@@ -87,7 +87,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
   signal(SIGALRM, handler);
   alarm(timeout);
 
-  bool res = bb.simplifyBackbone(pb, {true, timeout, true, "Glucose"}, gates,
+  bool res = bb.simplifyBackbone(pb, {true, timeout, true, "glucose"}, gates,
                                  std::cout, setOfModels);
   s_isRunning = nullptr;
 

@@ -29,7 +29,6 @@
 namespace d4 {
 class ConfigurationDpllStyleMethod : public Configuration {
  public:
-  unsigned freqDecay;
   OperationType operationType;
 
   ConfigurationCache cache;

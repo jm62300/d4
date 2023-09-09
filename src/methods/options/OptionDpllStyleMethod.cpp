@@ -42,13 +42,16 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
       config.cache.sizeFirstPage, config.cache.sizeAdditionalPage,
       config.cache.limitVarSym,   config.cache.limitVarIndex};
 
+  optionCacheManager.isActivated = config.cache.isActivated;
+
   optionSolver = {config.solver.solverName};
 
   optionSpecManager = {config.spec.specUpdateType};
 
   optionBranchingHeuristic = {config.branchingHeuristic.scoringMethodType,
                               config.branchingHeuristic.phaseHeuristicType,
-                              config.branchingHeuristic.reversePhase};
+                              config.branchingHeuristic.reversePhase,
+                              config.branchingHeuristic.freqDecay};
 
   optionPartitioningHeuristic = {
       config.partitioningHeuristic.partitioningMethod,
@@ -57,9 +60,6 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
       config.partitioningHeuristic.equivSimp,
       config.partitioningHeuristic.staticPhase,
       config.partitioningHeuristic.dynamicPhase};
-
-  freqDecay = config.freqDecay;
-  cacheIsActivated = config.cache.isActivated;
 }  // constructor
 
 }  // namespace d4

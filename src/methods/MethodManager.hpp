@@ -76,10 +76,6 @@ class MethodManager {
   virtual ~MethodManager() {}
 
   static MethodManager *makeMethodManager(po::variables_map &vm,
-                                          const Configuration &config,
-                                          std::ostream &out);
-
-  static MethodManager *makeMethodManager(po::variables_map &vm,
                                           ProblemManager *problem,
                                           const Configuration &configuration,
                                           std::ostream &out);

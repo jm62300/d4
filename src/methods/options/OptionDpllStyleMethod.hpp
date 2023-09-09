@@ -36,9 +36,6 @@ class OptionDpllStyleMethod {
   OptionBranchingHeuristic optionBranchingHeuristic;
   OptionPartitioningHeuristic optionPartitioningHeuristic;
 
-  unsigned freqDecay;
-  bool cacheIsActivated;
-
   /**
    * @brief Construct a new Option Dpll Style Method object.
    *
@@ -48,10 +45,7 @@ class OptionDpllStyleMethod {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method:"
-        << " decay-freq(" << dt.freqDecay << ")"
-        << " cache?(" << dt.cacheIsActivated << ")";
-
+    out << " Option DPLL-style Method";
     return out;
   }  // <<
 };

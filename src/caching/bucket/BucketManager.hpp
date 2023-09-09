@@ -68,19 +68,19 @@ class BucketManager {
     out << "c [BUCKET MANAGER] " << options << "\n";
 
     SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf &>(s);
-    if (options.clauseRepresentation == CLAUSE)
+    if (options.clauseRepresentation == CACHE_CLAUSE)
       return new BucketManagerCnfCl<T>(scnf, cache, options.modeStore,
                                        options.sizeFirstPage,
                                        options.sizeAdditionalPage);
-    if (options.clauseRepresentation == SYM)
+    if (options.clauseRepresentation == CACHE_SYM)
       return new BucketManagerCnfSym<T>(scnf, cache, options.modeStore,
                                         options.sizeFirstPage,
                                         options.sizeAdditionalPage);
-    if (options.clauseRepresentation == INDEX)
+    if (options.clauseRepresentation == CACHE_INDEX)
       return new BucketManagerCnfIndex<T>(scnf, cache, options.modeStore,
                                           options.sizeFirstPage,
                                           options.sizeAdditionalPage);
-    if (options.clauseRepresentation == COMBI) {
+    if (options.clauseRepresentation == CACHE_COMBI) {
       return new BucketManagerCnfCombi<T>(
           scnf, cache, options.modeStore, options.sizeFirstPage,
           options.sizeAdditionalPage, options.limitNbVarSym,

@@ -24,20 +24,20 @@
 
 namespace d4 {
 
-enum CachingMethod { NO_COL, LIST };
+enum CachingMethod { CACHE_NO_COL, CACHE_LIST };
 
 class CachingMehodManager {
  public:
   static std::string getCachingMethod(const CachingMethod& m) {
-    if (m == NO_COL) return "no-colission";
-    if (m == LIST) return "list";
+    if (m == CACHE_NO_COL) return "no-colission";
+    if (m == CACHE_LIST) return "list";
 
     throw(FactoryException("CachingMethod unknown", __FILE__, __LINE__));
   }  // getModeStoreName
 
   static CachingMethod getCachingMethod(const std::string& m) {
-    if (m == "no-colission") return NO_COL;
-    if (m == "list") return LIST;
+    if (m == "no-colission") return CACHE_NO_COL;
+    if (m == "list") return CACHE_LIST;
 
     throw(FactoryException("CachingMethod unknown", __FILE__, __LINE__));
   }  // getModeStoreName
@@ -48,5 +48,6 @@ class OptionCacheManager {
   CachingMethod cachingMethod;
   OptionBucketManager optionBucketManager;
   OptionCacheCleaningManager optionCacheCleaningManager;
+  bool isActivated;
 };
 }  // namespace d4

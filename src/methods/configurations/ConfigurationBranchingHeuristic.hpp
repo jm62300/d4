@@ -25,5 +25,6 @@ struct ConfigurationBranchingHeuristic {
   ScoringMethodType scoringMethodType;
   PhaseHeuristicType phaseHeuristicType;
   bool reversePhase;
+  unsigned freqDecay;
 };
 }  // namespace d4

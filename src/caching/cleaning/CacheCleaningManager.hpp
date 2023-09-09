@@ -49,9 +49,9 @@ class CacheCleaningManager {
       int nbVar, std::ostream &out) {
     out << "c [CACHE CLEANING MANAGER] " << options << '\n';
 
-    if (options.cacheCleaningStrategy == EXPECTATION)
+    if (options.cacheCleaningStrategy == CACHE_EXPECTATION)
       return new CacheCleaningExpectation<T>(cache, nbVar);
-    if (options.cacheCleaningStrategy == NONE)
+    if (options.cacheCleaningStrategy == CACHE_NONE)
       return new CacheCleaningNone<T>(cache);
 
     throw(FactoryException("Cannot create a CacheCleaningManager", __FILE__,

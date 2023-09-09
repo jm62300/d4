@@ -105,7 +105,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out.setstate(out.rdstate());
 
     m_out << "c [DPLL STYLE METHOD]" << options << "\n";
-    m_freqDecay = options.freqDecay;
+    m_freqDecay = options.optionBranchingHeuristic.freqDecay;
 
     // we create and init the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
@@ -147,7 +147,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // init the clock time.
     initTimer();
 
-    m_optCached = options.cacheIsActivated;
+    m_optCached = options.optionCacheManager.isActivated;
     m_callPartitioner = 0;
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
     m_stampIdx = 0;

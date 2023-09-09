@@ -182,8 +182,8 @@ class SpecManagerCnf : public SpecManager {
 
   inline IteratorIdxClause getVecIdxClause(Lit l, ModeStore mode) {
     assert(l.intern() < m_occurrence.size());
-    if (mode == NT) return m_occurrence[l.intern()].getNotBinClauses();
-    if (mode == ALL) return m_occurrence[l.intern()].getClauses();
+    if (mode == CACHE_NT) return m_occurrence[l.intern()].getNotBinClauses();
+    if (mode == CACHE_ALL) return m_occurrence[l.intern()].getClauses();
     return m_occurrence[l.intern()].getBinClauses();
   }
 

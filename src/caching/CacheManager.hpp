@@ -112,9 +112,9 @@ class CacheManager {
   static CacheManager<T> *makeCacheManager(const OptionCacheManager &options,
                                            unsigned nbVar, SpecManager *specs,
                                            std::ostream &out) {
-    if (options.cachingMethod == NO_COL)
+    if (options.cachingMethod == CACHE_NO_COL)
       return new CacheNoCollision<T>(options, nbVar, specs, out);
-    if (options.cachingMethod == LIST)
+    if (options.cachingMethod == CACHE_LIST)
       return new CacheList<T>(options, nbVar, specs, out);
 
     throw(FactoryException("Cannot create a CacheManager", __FILE__, __LINE__));

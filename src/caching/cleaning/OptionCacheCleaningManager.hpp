@@ -22,21 +22,21 @@
 
 namespace d4 {
 
-enum CacheCleaningStrategy { EXPECTATION, NONE };
+enum CacheCleaningStrategy { CACHE_EXPECTATION, CACHE_NONE };
 
 class CacheCleaningStrategyManager {
  public:
   static std::string getCacheCleaningStrategy(const CacheCleaningStrategy& m) {
-    if (m == EXPECTATION) return "expectation";
-    if (m == NONE) return "none";
+    if (m == CACHE_EXPECTATION) return "expectation";
+    if (m == CACHE_NONE) return "none";
 
     throw(
         FactoryException("CacheCleaningStrategy unknown", __FILE__, __LINE__));
   }  // getModeStoreName
 
   static CacheCleaningStrategy getCacheCleaningStrategy(const std::string& m) {
-    if (m == "expectation") return EXPECTATION;
-    if (m == "none") return NONE;
+    if (m == "expectation") return CACHE_EXPECTATION;
+    if (m == "none") return CACHE_NONE;
     throw(
         FactoryException("CacheCleaningStrategy unknown", __FILE__, __LINE__));
   }  // getModeStoreName
