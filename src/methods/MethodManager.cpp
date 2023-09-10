@@ -29,13 +29,13 @@
 #include "MinSharpSAT.hpp"
 #include "OperationManager.hpp"
 #include "ProjMCMethod.hpp"
-#include "configurations/ConfigurationDpllStyleMethod.hpp"
-#include "options/OptionDpllStyleMethod.hpp"
-#include "options/OptionMethodManager.hpp"
+#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/heuristics/OptionBranchingHeuristic.hpp"
-#include "src/preprocs/OptionPreprocManager.hpp"
+#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/options/methods/OptionMethodManager.hpp"
+#include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {

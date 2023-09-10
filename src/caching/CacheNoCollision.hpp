@@ -22,7 +22,7 @@
 
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
-#include "OptionCacheManager.hpp"
+#include "src/options/cache/OptionCacheManager.hpp"
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {

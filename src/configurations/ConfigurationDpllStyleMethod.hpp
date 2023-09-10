@@ -18,19 +18,23 @@
  */
 #pragma once
 
-#include "src/caching/OptionCacheManager.hpp"
+#include "Configuration.hpp"
+#include "ConfigurationBranchingHeuristic.hpp"
+#include "ConfigurationCache.hpp"
+#include "ConfigurationPartitioningHeuristic.hpp"
+#include "ConfigurationSolver.hpp"
+#include "ConfigurationSpec.hpp"
+#include "src/options/methods/OptionOperationManager.hpp"
 
 namespace d4 {
-struct ConfigurationCache {
-  CachingMethod cachingMethod = CACHE_LIST;
-  CacheCleaningStrategy cacheCleaningStrategy = CACHE_EXPECTATION;
-  ModeStore modeStore = CACHE_NT;
-  ClauseRepresentation clauseRepresentation = CACHE_CLAUSE;
+class ConfigurationDpllStyleMethod : public Configuration {
+ public:
+  OperationType operationType;
 
-  bool isActivated = true;
-  unsigned long sizeFirstPage = 1UL << 32;
-  unsigned long sizeAdditionalPage = 1UL << 29;
-  unsigned limitVarSym = 20;
-  unsigned limitVarIndex = 2000;
+  ConfigurationCache cache;
+  ConfigurationSolver solver;
+  ConfigurationSpec spec;
+  ConfigurationBranchingHeuristic branchingHeuristic;
+  ConfigurationPartitioningHeuristic partitioningHeuristic;
 };
 }  // namespace d4

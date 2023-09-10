@@ -22,7 +22,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <csignal>
 
-#include "OptionPreprocManager.hpp"
 #include "circuit/PreprocCnfFromCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
@@ -30,6 +29,7 @@
 #include "cnf/PreprocReducer.hpp"
 #include "cnf/PreprocSharpEquiv.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/preprocs/OptionPreprocManager.hpp"
 
 namespace d4 {
 

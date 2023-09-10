@@ -18,11 +18,13 @@
  */
 #pragma once
 
-#include "bucket/OptionBucketManager.hpp"
-#include "cleaning/OptionCacheCleaningManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/cache/OptionBucketManager.hpp"
+#include "src/options/cache/OptionCacheCleaningManager.hpp"
 
 namespace d4 {
+
+class ConfigurationCache;
 
 enum CachingMethod { CACHE_NO_COL, CACHE_LIST };
 
@@ -49,5 +51,20 @@ class OptionCacheManager {
   OptionBucketManager optionBucketManager;
   OptionCacheCleaningManager optionCacheCleaningManager;
   bool isActivated;
+
+  /**
+   * @brief Construct a new Option Cache Manager object with the defaut
+   * configuration.
+   *
+   */
+  OptionCacheManager();
+
+  /**
+   * @brief Construct a new Option Cache Manager object with a given
+   * configuration.
+   *
+   * @param config is the configuration.
+   */
+  OptionCacheManager(const ConfigurationCache& config);
 };
 }  // namespace d4

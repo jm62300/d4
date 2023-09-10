@@ -22,9 +22,9 @@
 #include <ostream>
 #include <vector>
 
-#include "../OptionPartitioningHeuristic.hpp"
 #include "../PartitioningHeuristic.hpp"
 #include "src/hyperGraph/HyperGraphExtractor.hpp"
+#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"

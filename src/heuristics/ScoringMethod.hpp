@@ -24,14 +24,14 @@
 #include <src/specs/SpecManager.hpp>
 #include <vector>
 
-#include "OptionBranchingHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
 class ScoringMethod {
  public:
-  static ScoringMethod *makeScoringMethod(const OptionBranchingHeuristic &options,
-                                          SpecManager &p, ActivityManager &am,
-                                          std::ostream &out);
+  static ScoringMethod *makeScoringMethod(
+      const OptionBranchingHeuristic &options, SpecManager &p,
+      ActivityManager &am, std::ostream &out);
   virtual ~ScoringMethod() { ; }
   virtual double computeScore(Var v) = 0;
   virtual void postProcess(Var v) {}

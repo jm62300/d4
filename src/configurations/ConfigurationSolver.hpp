@@ -18,13 +18,10 @@
  */
 #pragma once
 
-#include "src/heuristics/OptionBranchingHeuristic.hpp"
+#include "src/options/solvers/OptionSolver.hpp"
 
 namespace d4 {
-struct ConfigurationBranchingHeuristic {
-  ScoringMethodType scoringMethodType;
-  PhaseHeuristicType phaseHeuristicType;
-  bool reversePhase;
-  unsigned freqDecay;
+struct ConfigurationSolver {
+  SolverName solverName;
 };
 }  // namespace d4

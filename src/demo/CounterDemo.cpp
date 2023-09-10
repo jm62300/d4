@@ -19,8 +19,11 @@
 
 #include "CounterDemo.hpp"
 
+#include "src/methods/MethodManager.hpp"
+
 /**
  * @brief couterDemo implementation.
  */
 void counterDemo(const po::variables_map &vm, d4::ProblemManager *problem) {
+
 }  // counterDemo

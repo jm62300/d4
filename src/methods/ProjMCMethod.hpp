@@ -25,13 +25,13 @@
 #include <unordered_map>
 
 #include "MethodManager.hpp"
+#include "src/configurations/Configuration.hpp"
 #include "src/methods/Counter.hpp"
-#include "src/methods/configurations/Configuration.hpp"
+#include "src/options/solvers/OptionSolver.hpp"
+#include "src/options/specs/OptionSpecManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
-#include "src/solvers/OptionSolver.hpp"
-#include "src/specs/OptionSpecManager.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;

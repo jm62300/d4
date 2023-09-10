@@ -20,8 +20,8 @@
 
 #include <boost/program_options.hpp>
 
-#include "src/methods/configurations/Configuration.hpp"
-#include "src/methods/configurations/ConfigurationCache.hpp"
+#include "src/configurations/Configuration.hpp"
+#include "src/configurations/ConfigurationCache.hpp"
 
 namespace po = boost::program_options;
 

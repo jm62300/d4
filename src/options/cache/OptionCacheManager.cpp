@@ -16,19 +16,31 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include "src/heuristics/OptionPartitioningHeuristic.hpp"
+#include "OptionCacheManager.hpp"
+
+#include "src/configurations/ConfigurationCache.hpp"
 
 namespace d4 {
+/**
+ * @brief OptionCacheManager::OptionCacheManager implementation.
+ *
+ */
+OptionCacheManager::OptionCacheManager()
+    : OptionCacheManager(ConfigurationCache()) {}
 
-struct ConfigurationPartitioningHeuristic {
-  PartitioningMethod partitioningMethod;
-  PartitionerName partitionerName;
-  bool reduceFormula;
-  bool equivSimp;
-  int staticPhase;
-  int limitPhase;
-  double dynamicPhase;
-};
+/**
+ * @brief OptionCacheManager::OptionCacheManager implementation.
+ */
+OptionCacheManager::OptionCacheManager(const ConfigurationCache& config) {
+  cachingMethod = config.cachingMethod;
+
+  optionCacheCleaningManager = {config.cacheCleaningStrategy};
+
+  optionBucketManager = {config.modeStore,     config.clauseRepresentation,
+                         config.sizeFirstPage, config.sizeAdditionalPage,
+                         config.limitVarSym,   config.limitVarIndex};
+
+  isActivated = config.isActivated;
+}  // constructor
 }  // namespace d4

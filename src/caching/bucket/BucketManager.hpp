@@ -26,13 +26,13 @@
 #include <vector>
 
 #include "../CachedBucket.hpp"
-#include "OptionBucketManager.hpp"
 #include "cnf/BucketManagerCnfCl.hpp"
 #include "cnf/BucketManagerCnfCombi.hpp"
 #include "cnf/BucketManagerCnfIndex.hpp"
 #include "cnf/BucketManagerCnfSym.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/SpecManager.hpp"
 

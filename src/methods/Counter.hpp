@@ -23,9 +23,9 @@
 
 #include "DpllStyleMethod.hpp"
 #include "nnf/Node.hpp"
-#include "options/OptionDpllStyleMethod.hpp"
+#include "src/configurations/Configuration.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
-#include "src/methods/configurations/Configuration.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

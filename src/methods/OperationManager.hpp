@@ -26,8 +26,8 @@
 #include "nnf/Branch.hpp"
 #include "nnf/Node.hpp"
 #include "nnf/NodeManager.hpp"
-#include "options/OptionOperationManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/methods/OptionOperationManager.hpp"
 
 namespace d4 {
 namespace po = boost::program_options;

@@ -22,7 +22,7 @@
 #include <src/solvers/PolarityManager.hpp>
 #include <src/specs/SpecManager.hpp>
 
-#include "OptionBranchingHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
 

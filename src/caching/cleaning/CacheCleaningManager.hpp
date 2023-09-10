@@ -21,8 +21,8 @@
 #include "../CacheManager.hpp"
 #include "CacheCleaningExpectation.hpp"
 #include "CacheCleaningNone.hpp"
-#include "OptionCacheCleaningManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/cache/OptionCacheCleaningManager.hpp"
 
 namespace d4 {
 template <class T>

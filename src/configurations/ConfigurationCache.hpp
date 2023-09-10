@@ -18,18 +18,19 @@
  */
 #pragma once
 
-#include <string>
+#include "src/options/cache/OptionCacheManager.hpp"
 
 namespace d4 {
+struct ConfigurationCache {
+  CachingMethod cachingMethod = CACHE_LIST;
+  CacheCleaningStrategy cacheCleaningStrategy = CACHE_EXPECTATION;
+  ModeStore modeStore = CACHE_NT;
+  ClauseRepresentation clauseRepresentation = CACHE_CLAUSE;
 
-enum InstanceType { CNF };
-
-class Option {
- public:
-  std::string input_file = "/dev/stdout";
-  std::string keyword_output_format_solution = "s";
-  std::string output_format = "classic";
-
-  InstanceType instance_type = CNF;
+  bool isActivated = true;
+  unsigned long sizeFirstPage = 1UL << 32;
+  unsigned long sizeAdditionalPage = 1UL << 29;
+  unsigned limitVarSym = 20;
+  unsigned limitVarIndex = 2000;
 };
 }  // namespace d4

@@ -18,10 +18,13 @@
  */
 #pragma once
 
-#include "src/specs/OptionSpecManager.hpp"
+#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
-struct ConfigurationSpec {
-  SpecUpdateType specUpdateType;
+struct ConfigurationBranchingHeuristic {
+  ScoringMethodType scoringMethodType;
+  PhaseHeuristicType phaseHeuristicType;
+  bool reversePhase;
+  unsigned freqDecay;
 };
 }  // namespace d4

@@ -22,7 +22,7 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
-#include "OptionSpecManager.hpp"
+#include "src/options/specs/OptionSpecManager.hpp"
 
 namespace d4 {
 class SpecManager {

@@ -18,23 +18,10 @@
  */
 #pragma once
 
-#include "Configuration.hpp"
-#include "ConfigurationBranchingHeuristic.hpp"
-#include "ConfigurationCache.hpp"
-#include "ConfigurationPartitioningHeuristic.hpp"
-#include "ConfigurationSolver.hpp"
-#include "ConfigurationSpec.hpp"
-#include "src/methods/options/OptionOperationManager.hpp"
+#include "src/options/specs/OptionSpecManager.hpp"
 
 namespace d4 {
-class ConfigurationDpllStyleMethod : public Configuration {
- public:
-  OperationType operationType;
-
-  ConfigurationCache cache;
-  ConfigurationSolver solver;
-  ConfigurationSpec spec;
-  ConfigurationBranchingHeuristic branchingHeuristic;
-  ConfigurationPartitioningHeuristic partitioningHeuristic;
+struct ConfigurationSpec {
+  SpecUpdateType specUpdateType;
 };
 }  // namespace d4

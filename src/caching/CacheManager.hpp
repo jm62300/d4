@@ -24,11 +24,11 @@
 #include "CacheList.hpp"
 #include "CacheNoCollision.hpp"
 #include "CachedBucket.hpp"
-#include "OptionCacheManager.hpp"
 #include "TmpEntry.hpp"
 #include "bucket/BucketManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/hashing/HashString.hpp"
+#include "src/options/cache/OptionCacheManager.hpp"
 #include "src/specs/SpecManager.hpp"
 
 namespace d4 {

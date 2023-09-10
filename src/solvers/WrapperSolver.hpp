@@ -19,8 +19,8 @@
 #pragma once
 
 #include "ActivityManager.hpp"
-#include "OptionSolver.hpp"
 #include "PolarityManager.hpp"
+#include "src/options/solvers/OptionSolver.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 

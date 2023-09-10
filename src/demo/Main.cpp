@@ -24,11 +24,11 @@
 #include <iostream>
 #include <vector>
 
+#include "src/configurations/Configuration.hpp"
+#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/demo/ParseOption.hpp"
 #include "src/methods/MethodManager.hpp"
-#include "src/methods/configurations/Configuration.hpp"
-#include "src/methods/configurations/ConfigurationDpllStyleMethod.hpp"
-#include "src/preprocs/OptionPreprocManager.hpp"
+#include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 
 #ifndef NOMAIN

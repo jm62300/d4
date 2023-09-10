@@ -20,39 +20,34 @@
 
 #include <string>
 
-#include "PreprocManager.hpp"
+#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/methods/configurations/ConfigurationPreproc.hpp"
+#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "src/options/cache/OptionCacheManager.hpp"
 
 namespace d4 {
-
-class OptionPreprocManager {
+class OptionDpllStyleMethod {
  public:
-  InputType inputType;
-  PreprocMethod preprocMethod;
-  unsigned nbIteration = 1;
-  int timeout = 0;
+  OptionOperationManager optionOperationManager;
+  OptionCacheManager optionCacheManager;
+  OptionSolver optionSolver;
+  OptionSpecManager optionSpecManager;
+  OptionBranchingHeuristic optionBranchingHeuristic;
+  OptionPartitioningHeuristic optionPartitioningHeuristic;
 
-  OptionPreprocManager(const ConfigurationPeproc& config) {
-    inputType = config.inputType;
-    preprocMethod = config.preprocMethod;
-    nbIteration = config.nbIteration;
-    timeout = config.timeout;
-  }
+  /**
+   * @brief Construct a new Option Dpll Style Method object.
+   *
+   * @param config gives the method configuration.
+   */
+  OptionDpllStyleMethod(const ConfigurationDpllStyleMethod& config);
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionPreprocManager& dt) {
-    out << " Option PreprocManager:"
-        << " preproc("
-        << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ')'
-        << " input type(" << InputTypeManager::getInputType(dt.inputType)
-        << ')';
-
-    if (dt.preprocMethod != BASIC) {
-      out << ") #iteration(" << dt.nbIteration << ')' << " timeout("
-          << dt.timeout << ')';
-    }
+                                  const OptionDpllStyleMethod& dt) {
+    out << " Option DPLL-style Method";
     return out;
   }  // <<
 };
+
 }  // namespace d4

@@ -32,17 +32,7 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
   optionOperationManager.operatorType = config.operationType;
 
   // Cache Options:
-  optionCacheManager.cachingMethod = config.cache.cachingMethod;
-
-  optionCacheManager.optionCacheCleaningManager = {
-      config.cache.cacheCleaningStrategy};
-
-  optionCacheManager.optionBucketManager = {
-      config.cache.modeStore,     config.cache.clauseRepresentation,
-      config.cache.sizeFirstPage, config.cache.sizeAdditionalPage,
-      config.cache.limitVarSym,   config.cache.limitVarIndex};
-
-  optionCacheManager.isActivated = config.cache.isActivated;
+  optionCacheManager = OptionCacheManager(config.cache);
 
   optionSolver = {config.solver.solverName};
 

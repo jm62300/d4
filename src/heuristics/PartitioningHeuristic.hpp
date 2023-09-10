@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include "OptionPartitioningHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

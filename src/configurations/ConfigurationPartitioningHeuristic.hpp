@@ -18,24 +18,17 @@
  */
 #pragma once
 
+#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+
 namespace d4 {
-namespace preproc {
-enum SOLVER_TYPE { MINISAT, GLUCOSE };
 
-struct PreprocType {
-  unsigned backbone : 1;
-  unsigned vivification : 1;
-  unsigned occElimination : 1;
-  unsigned gateElimination : 1;
-  unsigned equivElimination : 1;
-  unsigned bipe : 1;
+struct ConfigurationPartitioningHeuristic {
+  PartitioningMethod partitioningMethod;
+  PartitionerName partitionerName;
+  bool reduceFormula;
+  bool equivSimp;
+  int staticPhase;
+  int limitPhase;
+  double dynamicPhase;
 };
-
-class PreprocOption {
-  SOLVER_TYPE solver = MINISAT;
-  PreprocType type = {1, 1, 1, 1, 1, 1};
-  int timeout = -1;
-  int nbIteration = 10;
-};
-}  // namespace preproc
 }  // namespace d4

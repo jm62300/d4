@@ -22,7 +22,7 @@
 
 #include "../SpecManager.hpp"
 #include "DataOccurrence.hpp"
-#include "src/caching/bucket/OptionBucketManager.hpp"
+#include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
