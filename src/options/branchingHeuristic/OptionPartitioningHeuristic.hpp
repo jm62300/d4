@@ -25,6 +25,8 @@
 
 namespace d4 {
 
+class ConfigurationPartitioningHeuristic;
+
 enum PartitioningMethod {
   PARTITIONING_DYN_PRIMAL,
   PARTITIONING_DYN_DUAL,
@@ -62,13 +64,28 @@ class PartitioningMethodManager {
 
 class OptionPartitioningHeuristic {
  public:
-  PartitioningMethod partitioningMethod;
-  PartitionerName partitionerName;
+  PartitioningMethod partitioningMethod = PARTITIONING_STATIC_DUAL;
+  PartitionerName partitionerName = PARTITIONER_PATOH;
 
-  bool reduceFormula;
-  bool equivSimp;
-  int staticPhase;
-  double dynamicPhase;
+  bool reduceFormula = true;
+  bool equivSimp = true;
+  int staticPhase = 0;
+  double dynamicPhase = 0;
+
+  /**
+   * @brief Construct a new Option Partitioning Heuristic object with the
+   * default configuration.
+   *
+   */
+  OptionPartitioningHeuristic();
+
+  /**
+   * @brief Construct a new Option Partitioning Heuristic object with the given
+   * configuration.
+   *
+   * @param config is the configuration we want to use.
+   */
+  OptionPartitioningHeuristic(const ConfigurationPartitioningHeuristic& config);
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionPartitioningHeuristic& dt) {

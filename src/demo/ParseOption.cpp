@@ -69,3 +69,54 @@ d4::ConfigurationCache parseCacheConfiguration(po::variables_map &vm) {
 
   return cache;
 }  // parseCacheConfiguration
+
+/**
+ * @brief parseBranchingHeuristicConfiguration implementation.
+ */
+d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
+    po::variables_map &vm) {
+  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+
+  branchingHeuristic.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
+
+  branchingHeuristic.scoringMethodType =
+      d4::ScoringMethodTypeManager::getScoringMethodType(
+          vm["scoring-method"].as<std::string>());
+
+  branchingHeuristic.phaseHeuristicType =
+      d4::PhaseHeuristicTypeManager::getPhaseHeuristicType(
+          vm["phase-heuristic"].as<std::string>());
+
+  branchingHeuristic.reversePhase = vm["phase-heuristic-reversed"].as<bool>();
+
+  return branchingHeuristic;
+}  // parseBranchingHeuristicConfiguration
+
+/**
+ * @brief parsePartitioningHeuristicConfiguration implementation.
+ */
+d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
+    po::variables_map &vm) {
+  d4::ConfigurationPartitioningHeuristic partitioningHeuristic;
+  partitioningHeuristic.partitioningMethod =
+      d4::PartitioningMethodManager::getPartitioningMethod(
+          vm["partitioning-heuristic"].as<std::string>());
+
+  partitioningHeuristic.partitionerName =
+      d4::PartitionerNameManager::getPartitionerName(
+          vm["partitioning-heuristic-partitioner"].as<std::string>());
+
+  partitioningHeuristic.reduceFormula =
+      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+
+  partitioningHeuristic.equivSimp =
+      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
+
+  partitioningHeuristic.staticPhase =
+      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
+
+  partitioningHeuristic.dynamicPhase =
+      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
+
+  return partitioningHeuristic;
+}  // parsePartitioningHeuristicConfiguration

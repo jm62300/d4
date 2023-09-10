@@ -21,7 +21,9 @@
 #include <boost/program_options.hpp>
 
 #include "src/configurations/Configuration.hpp"
+#include "src/configurations/ConfigurationBranchingHeuristic.hpp"
 #include "src/configurations/ConfigurationCache.hpp"
+#include "src/configurations/ConfigurationPartitioningHeuristic.hpp"
 
 namespace po = boost::program_options;
 
@@ -42,3 +44,21 @@ d4::ConfigurationPeproc parsePreprocConfiguration(po::variables_map &vm);
  * @return the preproc configuration.
  */
 d4::ConfigurationCache parseCacheConfiguration(po::variables_map &vm);
+
+/**
+ * @brief Parse the configuration for the branching heuristic.
+ *
+ * @param vm are the options.
+ * @return the branching heuristic configuration.
+ */
+d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
+    po::variables_map &vm);
+
+/**
+ * @brief Parse the configuration for the paritioning heuristic.
+ *
+ * @param vm are the options.
+ * @return the partitioning heuristic configuration.
+ */
+d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
+    po::variables_map &vm);

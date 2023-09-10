@@ -23,6 +23,8 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
+class ConfigurationBranchingHeuristic;
+
 enum ScoringMethodType {
   SCORE_MOM,
   SCORE_DLCS,
@@ -88,6 +90,21 @@ class OptionBranchingHeuristic {
   PhaseHeuristicType phaseHeuristicType;
   bool reversePhase;
   unsigned freqDecay;
+
+  /**
+   * @brief Construct a new Option Branching Heuristic object with the default
+   * configuration.
+   *
+   */
+  OptionBranchingHeuristic();
+
+  /**
+   * @brief Construct a new Option Branching Heuristic object with a given
+   * configuration.
+   *
+   * @param config
+   */
+  OptionBranchingHeuristic(const ConfigurationBranchingHeuristic& config);
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionBranchingHeuristic& dt) {

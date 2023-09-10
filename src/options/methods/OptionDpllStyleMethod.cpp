@@ -28,28 +28,24 @@ namespace d4 {
  */
 OptionDpllStyleMethod::OptionDpllStyleMethod(
     const ConfigurationDpllStyleMethod& config) {
-  // Operator used.
+  // Operator used:
   optionOperationManager.operatorType = config.operationType;
 
   // Cache Options:
   optionCacheManager = OptionCacheManager(config.cache);
 
+  // Branching heuristic:
+  optionBranchingHeuristic =
+      OptionBranchingHeuristic(config.branchingHeuristic);
+
+  // Partitioning heuristic:
+  optionPartitioningHeuristic =
+      OptionPartitioningHeuristic(config.partitioningHeuristic);
+
   optionSolver = {config.solver.solverName};
 
   optionSpecManager = {config.spec.specUpdateType};
 
-  optionBranchingHeuristic = {config.branchingHeuristic.scoringMethodType,
-                              config.branchingHeuristic.phaseHeuristicType,
-                              config.branchingHeuristic.reversePhase,
-                              config.branchingHeuristic.freqDecay};
-
-  optionPartitioningHeuristic = {
-      config.partitioningHeuristic.partitioningMethod,
-      config.partitioningHeuristic.partitionerName,
-      config.partitioningHeuristic.reduceFormula,
-      config.partitioningHeuristic.equivSimp,
-      config.partitioningHeuristic.staticPhase,
-      config.partitioningHeuristic.dynamicPhase};
 }  // constructor
 
 }  // namespace d4

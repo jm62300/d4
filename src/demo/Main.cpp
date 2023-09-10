@@ -68,46 +68,14 @@ d4::Configuration *parseConfiguration(po::variables_map &vm) {
 
   config->configurationPreproc = parsePreprocConfiguration(vm);
   config->cache = parseCacheConfiguration(vm);
+  config->branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
+  config->partitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
 
   config->solver.solverName =
       d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
   config->spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
-
-  config->branchingHeuristic.freqDecay =
-      vm["scoring-method-freq-decay"].as<unsigned>();
-
-  config->branchingHeuristic.scoringMethodType =
-      d4::ScoringMethodTypeManager::getScoringMethodType(
-          vm["scoring-method"].as<std::string>());
-
-  config->branchingHeuristic.phaseHeuristicType =
-      d4::PhaseHeuristicTypeManager::getPhaseHeuristicType(
-          vm["phase-heuristic"].as<std::string>());
-
-  config->branchingHeuristic.reversePhase =
-      vm["phase-heuristic-reversed"].as<bool>();
-
-  config->partitioningHeuristic.partitioningMethod =
-      d4::PartitioningMethodManager::getPartitioningMethod(
-          vm["partitioning-heuristic"].as<std::string>());
-
-  config->partitioningHeuristic.partitionerName =
-      d4::PartitionerNameManager::getPartitionerName(
-          vm["partitioning-heuristic-partitioner"].as<std::string>());
-
-  config->partitioningHeuristic.reduceFormula =
-      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
-
-  config->partitioningHeuristic.equivSimp =
-      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
-
-  config->partitioningHeuristic.staticPhase =
-      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
-
-  config->partitioningHeuristic.dynamicPhase =
-      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
 
   config->operationType =
       d4::OperationTypeManager::getOperatorType(vm["method"].as<std::string>());

@@ -16,15 +16,31 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
+#include "src/configurations/ConfigurationBranchingHeuristic.hpp"
 
 namespace d4 {
-struct ConfigurationBranchingHeuristic {
-  ScoringMethodType scoringMethodType = SCORE_VSADS;
-  PhaseHeuristicType phaseHeuristicType = PHASE_POLARITY;
-  bool reversePhase = false;
-  unsigned freqDecay = 128;
-};
+
+/**
+ * @brief Construct a new Option Branching Heuristic object with the default
+ * configuration.
+ *
+ */
+OptionBranchingHeuristic::OptionBranchingHeuristic()
+    : OptionBranchingHeuristic(ConfigurationBranchingHeuristic()) {
+}  // constructor
+
+/**
+ * @brief Construct a new Option Branching Heuristic object with a given
+ * configuration.
+ *
+ * @param config
+ */
+OptionBranchingHeuristic::OptionBranchingHeuristic(
+    const ConfigurationBranchingHeuristic& config) {
+  scoringMethodType = config.scoringMethodType;
+  phaseHeuristicType = config.phaseHeuristicType;
+  reversePhase = config.reversePhase;
+  freqDecay = config.freqDecay;
+}  // constructor
 }  // namespace d4
