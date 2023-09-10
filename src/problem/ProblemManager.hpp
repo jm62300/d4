@@ -89,6 +89,15 @@ class ProblemManager {
   inline bool isUnsat() { return m_isUnsat; }
   inline void isUnsat(bool b) { m_isUnsat = b; }
 
+  inline bool isFloat() {
+    for (unsigned i = 0; i < getNbVar(); i++) {
+      Lit l = Lit::makeLitTrue(i);
+      if (getWeightLit(l) != 1 || getWeightLit(~l) != 1) return true;
+    }
+
+    return false;
+  }  // isFloat
+
   virtual ProblemInputType getProblemType() { return PB_NONE; }
 
   /**

@@ -24,6 +24,7 @@
 #include <iostream>
 #include <vector>
 
+#include "CounterDemo.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/demo/ParseOption.hpp"
@@ -33,8 +34,9 @@
 
 #ifndef NOMAIN
 
+using namespace d4;
 namespace po = boost::program_options;
-d4::MethodManager *methodRun = nullptr;
+MethodManager *methodRun = nullptr;
 
 /**
  * @brief Catch the signal that ask for stopping the method which is running.
@@ -54,11 +56,8 @@ static void signalHandler(int signum) {
  * @param vm are options.
  * @return a suited configuration.
  */
-d4::Configuration *parseConfiguration(po::variables_map &vm) {
-  std::string meth = vm["method"].as<std::string>();
-
-  d4::ConfigurationDpllStyleMethod *config =
-      new d4::ConfigurationDpllStyleMethod();
+Configuration *parseConfiguration(po::variables_map &vm) {
+  ConfigurationDpllStyleMethod *config = new ConfigurationDpllStyleMethod();
   config->methodName =
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
@@ -125,7 +124,7 @@ int main(int argc, char **argv) {
   std::cout << "c\n";
 
   // preproc.
-  d4::ProblemManager *problem = d4::MethodManager::runPreproc(
+  ProblemManager *problem = d4::MethodManager::runPreproc(
       parsePreprocConfiguration(vm), initProblem, std::cout);
   delete initProblem;
 
@@ -133,14 +132,7 @@ int main(int argc, char **argv) {
   d4::MethodName methodName =
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
-  d4::Configuration *config = parseConfiguration(vm);
-  methodRun =
-      d4::MethodManager::makeMethodManager(vm, problem, *config, std::cout);
-
-  methodRun->run(vm);
-  delete methodRun;
-  methodRun = nullptr;
-
+  if (methodName == METH_COUNTING) counterDemo(vm, problem);
   return EXIT_SUCCESS;
 }  // main
 #endif

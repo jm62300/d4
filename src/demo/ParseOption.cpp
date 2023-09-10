@@ -22,7 +22,7 @@
 /**
  * @brief parsePreprocConfiguration implementation.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(po::variables_map &vm) {
+d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
   d4::ConfigurationPeproc config;
   config.inputType =
       d4::InputTypeManager::getInputType(vm["input-type"].as<std::string>());
@@ -37,7 +37,7 @@ d4::ConfigurationPeproc parsePreprocConfiguration(po::variables_map &vm) {
 /**
  * @brief parseCacheConfiguration implementation.
  */
-d4::ConfigurationCache parseCacheConfiguration(po::variables_map &vm) {
+d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
   d4::ConfigurationCache cache;
 
   cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
@@ -74,7 +74,7 @@ d4::ConfigurationCache parseCacheConfiguration(po::variables_map &vm) {
  * @brief parseBranchingHeuristicConfiguration implementation.
  */
 d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
-    po::variables_map &vm) {
+    const po::variables_map &vm) {
   d4::ConfigurationBranchingHeuristic branchingHeuristic;
 
   branchingHeuristic.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
@@ -96,7 +96,7 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  * @brief parsePartitioningHeuristicConfiguration implementation.
  */
 d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
-    po::variables_map &vm) {
+    const po::variables_map &vm) {
   d4::ConfigurationPartitioningHeuristic partitioningHeuristic;
   partitioningHeuristic.partitioningMethod =
       d4::PartitioningMethodManager::getPartitioningMethod(

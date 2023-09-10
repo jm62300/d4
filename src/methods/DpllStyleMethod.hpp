@@ -546,13 +546,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] vm, the set of options.
    */
-  void run(po::variables_map &vm) {
+  U run() {
     std::vector<Var> setOfVar;
     for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
 
     U result = compute(setOfVar, m_out);
     printFinalStats(m_out);
-    m_operation->manageResult(result, vm, m_out);
+    return result;
   }  // run
 };
 }  // namespace d4
