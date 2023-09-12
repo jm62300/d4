@@ -18,17 +18,16 @@
  */
 #pragma once
 
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include <boost/program_options.hpp>
 
-namespace d4 {
+#include "src/problem/ProblemManager.hpp"
 
-struct ConfigurationPartitioningHeuristic {
-  PartitioningMethod partitioningMethod = PARTITIONING_STATIC_DUAL;
-  PartitionerName partitionerName = PARTITIONER_PATOH;
-  bool reduceFormula = true;
-  bool equivSimp = true;
-  int staticPhase = 0;
-  int limitPhase = 0;
-  double dynamicPhase = 0;
-};
-}  // namespace d4
+namespace po = boost::program_options;
+
+/**
+ * @brief Run a counter.
+ *
+ * @param vm are the options.
+ * @param problem is the problem we deal with.
+ */
+void erosionDemo(const po::variables_map &vm, d4::ProblemManager *problem);

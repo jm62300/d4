@@ -25,10 +25,11 @@
 #include <vector>
 
 #include "CounterDemo.hpp"
+#include "ErosionDemo.hpp"
+#include "ParseOption.hpp"
 #include "dDnnfCompilerDemo.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
-#include "src/demo/ParseOption.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
@@ -125,17 +126,21 @@ int main(int argc, char **argv) {
   std::cout << "c\n";
 
   // preproc.
-  ProblemManager *problem = d4::MethodManager::runPreproc(
-      parsePreprocConfiguration(vm), initProblem, std::cout);
-  delete initProblem;
 
   // run the method asked.
   d4::MethodName methodName =
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
-  if (methodName == METH_COUNTING) counterDemo(vm, problem);
-  if (methodName == METH_DDNNF) dDnnfCompilerDemo(vm, problem);
+  if (methodName == METH_COUNTING || methodName == METH_DDNNF) {
+    ProblemManager *problem = d4::MethodManager::runPreproc(
+        parsePreprocConfiguration(vm), initProblem, std::cout);
 
+    if (methodName == METH_COUNTING) counterDemo(vm, problem);
+    if (methodName == METH_DDNNF) dDnnfCompilerDemo(vm, problem);
+  } else {
+    if (methodName == METH_EROSION) erosionDemo(vm, initProblem);
+  }
+  delete initProblem;
   return EXIT_SUCCESS;
 }  // main
 #endif

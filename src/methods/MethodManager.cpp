@@ -74,28 +74,6 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       }
     }
 
-    if (config.methodName == METH_COUNTING || config.methodName == METH_DDNNF) {
-      OptionDpllStyleMethod options(
-          static_cast<const ConfigurationDpllStyleMethod &>(config));
-
-      if (config.methodName == METH_COUNTING) {
-        if (!isFloat)
-          return new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(
-              options, runProblem, out);
-        else
-          return new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(
-              options, runProblem, out);
-      }
-
-      // compiler.
-      if (!isFloat)
-        return new DpllStyleMethod<mpz::mpz_int, Node<mpz::mpz_int> *>(
-            options, runProblem, out);
-      else
-        return new DpllStyleMethod<mpz::mpf_float, Node<mpz::mpf_float> *>(
-            options, runProblem, out);
-    }
-
     if (config.methodName == METH_PROJ_MC) {
       if (!isFloat)
         return new ProjMCMethod<mpz::mpz_int>(vm, isFloat, runProblem);
@@ -121,8 +99,9 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                              out);
     }
   } else {
-    return new Erosion<mpz::mpz_int>(vm, config.isFloat,
-                                     new ProblemManagerErosionCnf(problem));
+    // return new Erosion<mpz::mpz_int>(vm, config.isFloat,
+    //                                     new
+    //                                     ProblemManagerErosionCnf(problem));
   }
 
   throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));

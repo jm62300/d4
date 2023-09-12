@@ -18,8 +18,6 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "MethodManager.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/Counter.hpp"
@@ -29,38 +27,9 @@
 #include "src/problem/cnf/ProblemManagerErosionCnf.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 
 template <class T>
 class Erosion : public MethodManager {
- private:
-  ProblemManager *m_problem;
-  std::ostream m_out;
-  int m_depth;
-  bool m_isFloat;
-
- public:
-  /**
-   * @brief Create an Erosion object.
-   *
-   * @param vm give the options.
-   * @param isFloat specifies if the problem is weighted.
-   * @param initProblem the problem we are considering.
-   */
-  Erosion(po::variables_map &vm, bool isFloat, ProblemManager *initProblem)
-      : m_problem(initProblem), m_out(nullptr) {
-    // init the output stream
-    m_out.copyfmt(std::cout);
-    m_out.clear(std::cout.rdstate());
-    m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
-
-    // set the options.
-    m_depth = vm["erosion-option-depth"].as<int>();
-    m_isFloat = isFloat;
-    m_out << "c [CONSTRUCTOR] Erosion: depth(" << m_depth << ") isFloat("
-          << m_isFloat << ")\n";
-  }  // constructor
-
  private:
   /**
    * @brief Apply the erosion process on the clauses.
@@ -126,28 +95,28 @@ class Erosion : public MethodManager {
     return true;
   }  // erode
 
+ public:
   /**
    * @brief Run the method.
    *
    * @param vm is the options.
    */
-  void run(po::variables_map &vm) {
+  void run(ProblemManagerErosionCnf *problem, int depth,
+           ConfigurationDpllStyleMethod configCounter, std::ostream &out) {
     // preprare the stream.
     std::ostream outCounter(nullptr);
     outCounter.setstate(std::ios_base::badbit);
 
     bool isUnsat = false;
-    int nbErosion = m_depth < 0 ? m_problem->getNbVar() : m_depth;
+    int nbErosion = depth < 0 ? problem->getNbVar() : depth;
 
     // the CNF formula.
-    std::vector<std::vector<Lit>> softClauses =
-        static_cast<ProblemManagerErosionCnf *>(m_problem)->getSoftClauses();
-    std::vector<std::vector<Lit>> hardClauses =
-        static_cast<ProblemManagerErosionCnf *>(m_problem)->getHardClauses();
+    std::vector<std::vector<Lit>> softClauses = problem->getSoftClauses();
+    std::vector<std::vector<Lit>> hardClauses = problem->getHardClauses();
 
     // require to init the solver
     std::vector<Var> setOfVar;
-    for (unsigned i = 1; i < m_problem->getNbVar() + 1; i++)
+    for (unsigned i = 1; i < problem->getNbVar() + 1; i++)
       setOfVar.push_back(i);
 
     // iterate until the number of erosion realized is less than a given value
@@ -155,15 +124,15 @@ class Erosion : public MethodManager {
     T lastCount = T(0);
     for (int cptErosion = 0; cptErosion <= nbErosion; cptErosion++) {
       if (isUnsat) {
-        m_out << "c Erosion finished because empty clause.\n";
-        m_out << "s " << cptErosion << " " << 0 << " \n";
+        out << "c Erosion finished because empty clause.\n";
+        out << "s " << cptErosion << " " << 0 << " \n";
         break;
       }
 
       // prepare the counter.
       ProblemManagerCnf *p = new ProblemManagerCnf(
-          m_problem->getNbVar(), m_problem->getWeightLit(),
-          m_problem->getWeightVar(), m_problem->getSelectedVar());
+          problem->getNbVar(), problem->getWeightLit(), problem->getWeightVar(),
+          problem->getSelectedVar());
       std::vector<std::vector<Lit>> tmpClauses = softClauses;
 
       // add the theory clauses.
@@ -173,16 +142,14 @@ class Erosion : public MethodManager {
 
       // create the counter.
       outCounter << "c [CONSTRUCTOR] Create an external counter: counting\n";
-      Configuration config;
-      config.methodName = METH_COUNTING;
-      Counter<T> *counter =
-          Counter<T>::makeCounter(vm, p, config, m_isFloat,
-                                  vm["float-precision"].as<int>(), outCounter);
+
+      DpllStyleMethod<T, T> *counter = new DpllStyleMethod<T, T>(
+          OptionDpllStyleMethod(configCounter), p, std::cout);
 
       // count to test.
       std::vector<Lit> assumption;
       T count = counter->count(setOfVar, assumption, outCounter);
-      m_out << "s " << cptErosion << " " << count << "\n";
+      out << "s " << cptErosion << " " << count << "\n";
       delete counter;
 
       if (cptErosion) assert(count <= lastCount);
@@ -191,7 +158,7 @@ class Erosion : public MethodManager {
       if (count == 0) break;
 
       // erosion step.
-      isUnsat = !erode(softClauses, m_problem->getNbVar());
+      isUnsat = !erode(softClauses, problem->getNbVar());
     }
   }
 

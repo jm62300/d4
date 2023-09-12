@@ -22,6 +22,6 @@
 
 namespace d4 {
 struct ConfigurationSpec {
-  SpecUpdateType specUpdateType;
+  SpecUpdateType specUpdateType = SPEC_DYNAMIC;
 };
 }  // namespace d4

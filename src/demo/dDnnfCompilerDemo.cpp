@@ -121,10 +121,6 @@ void dDnnfCompilerDemo(const po::variables_map &vm, ProblemManager *problem) {
   // init the options.
   OptionDpllStyleMethod options(config);
 
-  // construct and call the counter regarding if it is MC or WMC.
-  std::string format = vm["keyword-output-format-solution"].as<std::string>();
-  std::string outFormat = vm["output-format"].as<std::string>();
-
   if (!isFloat)
     compile<mpz::mpz_int>(options, problem, vm);
   else

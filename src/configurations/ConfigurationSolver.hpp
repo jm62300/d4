@@ -22,6 +22,6 @@
 
 namespace d4 {
 struct ConfigurationSolver {
-  SolverName solverName;
+  SolverName solverName = GLUCOSE_CNF;
 };
 }  // namespace d4
