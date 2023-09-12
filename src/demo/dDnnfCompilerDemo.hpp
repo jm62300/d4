@@ -18,43 +18,17 @@
  */
 #pragma once
 
-#include <iostream>
-#include <vector>
+#include <boost/program_options.hpp>
 
-#include "src/exceptions/NodeException.hpp"
 #include "src/problem/ProblemManager.hpp"
 
-namespace d4 {
-template <class T, typename U>
-class DecomposableAndNode;
-template <class T, typename U>
-class BinaryDeterministicOrNode;
-template <class T, typename U>
-class UnaryNode;
-template <class T>
-class TrueNode;
-template <class T>
-class FalseNode;
+namespace po = boost::program_options;
 
-enum TypeNode {
-  TypeIteNode,
-  TypeUnaryNode,
-  TypeDecAndNode,
-  TypeTrueNode,
-  TypeFalseNode,
-  TypeNodeCount
-};
-
-enum ValueVar { isTrue, isFalse, isNotAssigned };
-
-template <class T>
-class Node {
- public:
-  struct {
-    unsigned typeNode : 4;
-    unsigned stamp : 28;
-  } header;
-
-  Node() { header = {0, 0}; }
-};
-}  // namespace d4
+/**
+ * @brief Run a counter.
+ *
+ * @param vm are the options.
+ * @param problem is the problem we deal with.
+ */
+void dDnnfCompilerDemo(const po::variables_map &vm,
+                       d4::ProblemManager *problem);

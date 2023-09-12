@@ -17,6 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
+
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/detail/default_ops.hpp>
 #include <boost/multiprecision/gmp.hpp>
@@ -122,51 +123,10 @@ class CountingOperation : public Operation<T, T> {
   }  // manageBranch
 
   /**
-     Manage the final result compute.
+   Count the number of model, for this case that means doing noting.
 
-     @param[in] result, the result we are considering.
-     @param[in] vm, a set of options that describes what we want to do on the
-     given result.
-     @param[in] out, the output stream.
-   */
-  void manageResult(T &result, po::variables_map &vm, std::ostream &out) {
-    std::string format = vm["keyword-output-format-solution"].as<std::string>();
-    std::string outFormat = vm["output-format"].as<std::string>();
-
-    if (outFormat == "competition") {
-      boost::multiprecision::mpf_float::default_precision(128);
-      out.precision(std::numeric_limits<
-                    boost::multiprecision::cpp_dec_float_50>::digits10);
-
-      if (result == 0) {
-        out << "s UNSATISFIABLE\n";
-        out << "c " << format << "\n";
-        out << "c s log10-estimate -inf\n";
-        out << "c s exact quadruple int 0\n";
-      } else {
-        out << "s SATISFIABLE\n";
-        out << "c " << format << "\n";
-        out << "c s log10-estimate "
-            << boost::multiprecision::log10(
-                   boost::multiprecision::cpp_dec_float_100(result))
-            << "\n";
-        if (vm["float"].as<bool>())
-          out << "c s exact quadruple int " << result << "\n";
-        else
-          out << "c s exact arb int " << result << "\n";
-      }
-    } else {
-      assert(outFormat == "classic");
-      out << format << " ";
-      out << std::fixed << std::setprecision(50) << result << "\n";
-    }
-  }  // manageResult
-
-  /**
-     Count the number of model, for this case that means doing noting.
-
-     \return the number of models.
-   */
+   \return the number of models.
+ */
   T count(T &result) { return result; }  // count
 
   /**

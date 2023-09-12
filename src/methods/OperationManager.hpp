@@ -18,7 +18,6 @@
  */
 #pragma once
 #include <boost/multiprecision/gmp.hpp>
-#include <boost/program_options.hpp>
 
 #include "CountingOperation.hpp"
 #include "DataBranch.hpp"
@@ -30,7 +29,6 @@
 #include "src/options/methods/OptionOperationManager.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 template <class T, class U>
 class Operation {
  public:
@@ -63,8 +61,6 @@ class Operation {
 
   virtual U createTop() = 0;
   virtual U createBottom() = 0;
-  virtual void manageResult(U &result, po::variables_map &vm,
-                            std::ostream &out) = 0;
   virtual U manageBottom() = 0;
   virtual U manageTop(std::vector<Var> &component) = 0;
   virtual U manageBranch(DataBranch<U> &e) = 0;

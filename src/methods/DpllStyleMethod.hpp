@@ -554,5 +554,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     printFinalStats(m_out);
     return result;
   }  // run
+
+  /**
+   * @brief Get the Operation object
+   *
+   * @return the operation object.
+   */
+  inline Operation<T, U> *getOperation() { return m_operation; }
 };
 }  // namespace d4

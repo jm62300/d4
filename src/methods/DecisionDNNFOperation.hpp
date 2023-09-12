@@ -58,6 +58,13 @@ class DecisionDNNFOperation : public Operation<T, U> {
   ~DecisionDNNFOperation() { delete m_nodeManager; }  // destructor
 
   /**
+   * @brief Get the Node Manager object/
+   *
+   * @return the node manager.
+   */
+  inline NodeManager<T> *getNodeManager() { return m_nodeManager; }
+
+  /**
      Create top node and returns it.
 
      \return a top node.
@@ -129,64 +136,7 @@ class DecisionDNNFOperation : public Operation<T, U> {
     return m_nodeManager->makeUnaryNode(e);
   }  // manageBranch
 
-  /**
-     Manage the final result compute.
-
-     @param[in] result, the result we are considering.
-     @param[in] vm, a set of options that describes what we want to do on the
-     given result.
-     @param[in] out, the output stream.
-  */
-  void manageResult(U &result, po::variables_map &vm, std::ostream &out) {
-    if (vm.count("dump-ddnnf")) {
-      std::ofstream outFile;
-      std::string fileName = vm["dump-ddnnf"].as<std::string>();
-      outFile.open(fileName);
-      m_nodeManager->printNNF(result, outFile);
-      outFile.close();
-    } else if (vm.count("query")) {
-      std::vector<Lit> query;
-      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1,
-                                       ValueVar::isNotAssigned);
-
-      std::string fileName = vm["query"].as<std::string>();
-      QueryManager queryManager(fileName);
-      TypeQuery typeQuery = TypeQuery::QueryEnd;
-
-      do {
-        typeQuery = queryManager.next(query);
-        for (auto &l : query) {
-          if ((unsigned)l.var() >= fixedValue.size()) continue;
-          fixedValue[l.var()] =
-              (l.sign()) ? ValueVar::isFalse : ValueVar::isTrue;
-        }
-
-        if (typeQuery == TypeQuery::QueryCounting) {
-          out << "s " << std::fixed
-              << m_nodeManager->computeNbModels(result, fixedValue, *m_problem)
-              << "\n";
-        } else if (typeQuery == TypeQuery::QueryDecision) {
-          bool res = m_nodeManager->isSAT(result, fixedValue);
-          out << "s " << ((res) ? "SAT" : "UNS") << "\n";
-        }
-
-        for (auto &l : query) {
-          if ((unsigned)l.var() >= fixedValue.size()) continue;
-          fixedValue[l.var()] = ValueVar::isNotAssigned;
-        }
-      } while (typeQuery != TypeQuery::QueryEnd);
-    } else {
-      std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1,
-                                       ValueVar::isNotAssigned);
-      out << "s " << std::fixed
-          << m_nodeManager->computeNbModels(result, fixedValue, *m_problem)
-          << "\n";
-    }
-
-    m_nodeManager->deallocate(result);
-  }  // manageResult
-
-  /**
+    /**
      Compute the number of model on the dDNNF.
 
      @param[in] root, the root of the dDNNF.

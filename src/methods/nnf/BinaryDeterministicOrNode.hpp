@@ -35,7 +35,8 @@ class BinaryDeterministicOrNode : public Node<T> {
   Branch<T, U> l, r;
   // data[0 .. l.nbLit - 1] gives the unit literals for the left branch.
   // data[l.nbLit .. l.nbLit + l.nbFree - 1] gives the free variables for the
-  // left branch. data[l.nbLit + l.nbFree .. l.nbLit + l.nbFree + r.nbLit - 1]
+  // left branch.
+  // data[l.nbLit + l.nbFree .. l.nbLit + l.nbFree + r.nbLit - 1]
   // gives the unit literals for the rightt branch.
   // data[l.nbLit + l.nbFree + r.nbLit .. l.nbLit + l.nbFree + r.nbLit +
   // r.nbFree - 1] gives the free variables for the right branch.

@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "CounterDemo.hpp"
+#include "dDnnfCompilerDemo.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/demo/ParseOption.hpp"
@@ -133,6 +134,8 @@ int main(int argc, char **argv) {
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
   if (methodName == METH_COUNTING) counterDemo(vm, problem);
+  if (methodName == METH_DDNNF) dDnnfCompilerDemo(vm, problem);
+
   return EXIT_SUCCESS;
 }  // main
 #endif
