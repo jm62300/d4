@@ -64,7 +64,9 @@ int ParserErosionDimacs::parse_erosion_DIMACS_main(
       nbVars = in.nextInt();
       nbClauses = in.nextInt();
       weightLit.resize(((nbVars + 1) << 1), 1);
-    } else if (in.currentChar() == 't') {
+    } else if (in.currentChar() == 'c')
+      in.skipLine();
+    else if (in.currentChar() == 't') {
       in.consumeChar();
       theoryClause = true;
     } else {
