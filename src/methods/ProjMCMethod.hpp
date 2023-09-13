@@ -24,12 +24,11 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "DpllStyleMethod.hpp"
 #include "MethodManager.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/Counter.hpp"
-#include "src/options/solvers/OptionSolver.hpp"
-#include "src/options/specs/OptionSpecManager.hpp"
-#include "src/preprocs/PreprocManager.hpp"
+#include "src/options/methods/OptionProjMcMethod.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
@@ -86,8 +85,9 @@ class ProjMCMethod : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  ProjMCMethod(po::variables_map &vm, bool isFloat, ProblemManager *initProblem)
-      : m_problem(initProblem), m_out(nullptr), m_outCounter(nullptr) {
+  ProjMCMethod(const OptionProjMcMethod &options, ProblemManager *problem,
+               std::ostream &out)
+      : m_problem(problem), m_out(nullptr), m_outCounter(nullptr) {
     m_nbCallRec = m_nbSplit = 0;
 
     // init the output stream
@@ -100,9 +100,8 @@ class ProjMCMethod : public MethodManager {
     m_isSelector.resize(m_problem->getNbVar() + 1, false);
     for (auto v : m_problem->getSelectedVar()) m_isProjectedVar[v] = true;
 
-    m_refinement = vm["projMC-refinement"].as<bool>();
-    m_out << "c [CONSTRUCTOR] ProjMCMethod: refinement(" << m_refinement
-          << ")\n";
+    m_refinement = options.refinement;
+    m_out << "c [PROJ MC]" << options << "\n";
 
     std::vector<std::vector<Lit>> projClause, nprojClause, mix;
     partitionFormula(m_problem, m_isProjectedVar, projClause, nprojClause, mix);
@@ -115,35 +114,22 @@ class ProjMCMethod : public MethodManager {
     // prepare the SAT solver.
     std::vector<std::vector<Lit>> satSolverClauses = projClause;
     for (auto &cl : nprojClause) satSolverClauses.push_back(cl);
-    initSatSolver(vm, m_problem, satSolverClauses, idxVar - 1);
+    initSatSolver(options.optionSolver, m_problem, satSolverClauses,
+                  idxVar - 1);
+
+    // prepare the spec manager.
+    m_specs =
+        SpecManager::makeSpecManager(options.optionSpecs, *problem, m_out);
 
     // prepare the cache.
-    OptionCacheManager optionCacheManager;
-    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
-        vm["cache-method"].as<std::string>()),
-
-    optionCacheManager.optionCacheCleaningManager = {
-        CacheCleaningStrategyManager::getCacheCleaningStrategy(
-            vm["cache-reduction-strategy"].as<std::string>())};
-
-    optionCacheManager.optionBucketManager = {
-        ModeStoreManager::getModeStore(
-            vm["cache-store-strategy"].as<std::string>()),
-        ClauseRepresentationManager::getClauseRepresentation(
-            vm["cache-clause-representation"].as<std::string>()),
-        vm["cache-size-first-page"].as<unsigned long>(),
-        vm["cache-size-additional-page"].as<unsigned long>(),
-        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
-        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
-
-    m_cache = CacheManager<T>::makeCacheManager(optionCacheManager, idxVar - 1,
+    m_cache = CacheManager<T>::makeCacheManager(options.optionCache, idxVar - 1,
                                                 m_specs, m_out);
 
     // init the clock time.
     initTimer();
 
     // prepare the counter.
-    initCounter(vm, m_problem, isFloat, projClause, idxVar - 1);
+    initCounter(options.optionCounter, m_problem, projClause, idxVar - 1);
     m_marked.resize(idxVar + 1, -1);
     m_flag.resize((idxVar + 1) << 1, false);
   }  // constructor
@@ -170,9 +156,9 @@ class ProjMCMethod : public MethodManager {
      @param[in] clauses, the set of clauses.
      @param[in] nbVar, the number of variables of the formula.
    */
-  void initCounter(po::variables_map &vm, ProblemManager *problem, bool isFloat,
+  void initCounter(const OptionDpllStyleMethod &options,
+                   ProblemManager *problem,
                    std::vector<std::vector<Lit>> &clauses, unsigned nbVar) {
-    int precision = vm["float-precision"].as<int>();
 #if DEBUG
     m_outCounter.copyfmt(m_out);
     m_outCounter.clear(m_out.rdstate());
@@ -202,14 +188,8 @@ class ProjMCMethod : public MethodManager {
     p->setClauses(clauses);
 
     // create the counter.
-    m_out << "c [CONSTRUCTOR] Create an external counter: "
-          << "counting"
-          << "\n";
-
-    Configuration config;
-    config.methodName = METH_COUNTING;
-    m_counter = Counter<T>::makeCounter(vm, p, config, isFloat, precision,
-                                        m_outCounter);
+    m_out << "c [PROJ MC] Create an external counter\n";
+    m_counter = new DpllStyleMethod<T, T>(options, problem, m_outCounter);
   }  // initCounter
 
   /**
@@ -222,12 +202,9 @@ class ProjMCMethod : public MethodManager {
      @param[in] clauses, the set of clauses.
      @param[in] nbVar, the number of variables of the formula.
    */
-  void initSatSolver(po::variables_map &vm, ProblemManager *problem,
+  void initSatSolver(const OptionSolver &options, ProblemManager *problem,
                      std::vector<std::vector<Lit>> &clauses, unsigned nbVar) {
-    OptionSolver optionSolver;
-    optionSolver.solverName =
-        SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-    m_solver = WrapperSolver::makeWrapperSolver(optionSolver, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options, m_out);
     assert(m_solver);
 
     // prepare the weight vectors and init the problem.
@@ -248,12 +225,6 @@ class ProjMCMethod : public MethodManager {
 
     // ask for the witness.
     m_solver->setNeedModel(true);
-
-    // prepare the spec manager.
-    OptionSpecManager optSpecManager;
-    optSpecManager.specUpdateType = SpecUpdateManager::getSpecUpdate(
-        vm["occurrence-manager"].as<std::string>());
-    m_specs = SpecManager::makeSpecManager(optSpecManager, p, m_out);
   }  // initSatSolver
 
   /**
@@ -695,10 +666,10 @@ class ProjMCMethod : public MethodManager {
 
      @param[in] vm, the set of options.
    */
-  void run(po::variables_map &vm) {
+  T run() {
     T res = compute(m_out);
     printFinalStats(m_out);
-    std::cout << "s " << res << "\n";
+    return res;
   }  // run
 };
 }  // namespace d4

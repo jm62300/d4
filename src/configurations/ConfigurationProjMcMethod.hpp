@@ -18,16 +18,19 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
+#include "Configuration.hpp"
+#include "ConfigurationCache.hpp"
+#include "ConfigurationDpllStyleMethod.hpp"
+#include "ConfigurationSolver.hpp"
+#include "src/options/methods/OptionOperationManager.hpp"
 
-#include "src/problem/ProblemManager.hpp"
-
-namespace po = boost::program_options;
-
-/**
- * @brief Run a counter.
- *
- * @param vm are the options.
- * @param problem is the problem we deal with.
- */
-void projMcDemo(const po::variables_map &vm, d4::ProblemManager *problem);
+namespace d4 {
+class ConfigurationProjMcMethod : public Configuration {
+ public:
+  bool refinement = true;
+  ConfigurationCache cache;
+  ConfigurationSolver solver;
+  ConfigurationSpec specs;
+  ConfigurationDpllStyleMethod counter;
+};
+}  // namespace d4

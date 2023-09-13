@@ -16,18 +16,21 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include <boost/program_options.hpp>
+#include "OptionProjMcMethod.hpp"
 
-#include "src/problem/ProblemManager.hpp"
-
-namespace po = boost::program_options;
+namespace d4 {
 
 /**
- * @brief Run a counter.
- *
- * @param vm are the options.
- * @param problem is the problem we deal with.
+ * @brief OptionProjMcMethod::OptionProjMcMethod implementation.
  */
-void projMcDemo(const po::variables_map &vm, d4::ProblemManager *problem);
+OptionProjMcMethod::OptionProjMcMethod(
+    const ConfigurationProjMcMethod& config) {
+  refinement = config.refinement;
+  optionCache = OptionCacheManager(config.cache);
+  optionSolver = {config.solver.solverName};
+  optionCounter = OptionDpllStyleMethod(config.counter);
+  optionSpecs = {config.specs.specUpdateType};
+}  // constructor.
+
+}  // namespace d4

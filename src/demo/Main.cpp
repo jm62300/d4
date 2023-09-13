@@ -27,6 +27,7 @@
 #include "CounterDemo.hpp"
 #include "ErosionDemo.hpp"
 #include "ParseOption.hpp"
+#include "ProjMcDemo.hpp"
 #include "dDnnfCompilerDemo.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
@@ -131,12 +132,14 @@ int main(int argc, char **argv) {
   d4::MethodName methodName =
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
-  if (methodName == METH_COUNTING || methodName == METH_DDNNF) {
+  if (methodName == METH_COUNTING || methodName == METH_DDNNF ||
+      methodName == METH_PROJ_MC) {
     ProblemManager *problem = d4::MethodManager::runPreproc(
         parsePreprocConfiguration(vm), initProblem, std::cout);
 
     if (methodName == METH_COUNTING) counterDemo(vm, problem);
     if (methodName == METH_DDNNF) dDnnfCompilerDemo(vm, problem);
+    if (methodName == METH_PROJ_MC) projMcDemo(vm, problem);
   } else {
     if (methodName == METH_EROSION) erosionDemo(vm, initProblem);
   }

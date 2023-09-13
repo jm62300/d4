@@ -66,5 +66,15 @@ class OptionCacheManager {
    * @param config is the configuration.
    */
   OptionCacheManager(const ConfigurationCache& config);
+
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const OptionCacheManager& dt) {
+    out << " Option Cache:"
+        << " is activated?(" << dt.isActivated << ")"
+        << " caching method(" << dt.cachingMethod << ")"
+        << " caching cleaning(" << dt.optionCacheCleaningManager << ")"
+        << " bucket manager(" << dt.optionBucketManager << ")";
+    return out;
+  }  // <<
 };
 }  // namespace d4

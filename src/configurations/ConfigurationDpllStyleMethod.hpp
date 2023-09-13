@@ -29,7 +29,7 @@
 namespace d4 {
 class ConfigurationDpllStyleMethod : public Configuration {
  public:
-  OperationType operationType;
+  OperationType operationType = OP_COUNTING;
 
   ConfigurationCache cache;
   ConfigurationSolver solver;

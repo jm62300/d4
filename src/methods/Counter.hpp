@@ -48,8 +48,8 @@ class Counter {
      \return a counter.
   */
   static Counter<T> *makeCounter(po::variables_map &vm, ProblemManager *problem,
-                                 const Configuration &config, bool isFloat,
-                                 int precision, std::ostream &out) {
+                                 const Configuration &config, int precision,
+                                 std::ostream &out) {
     out << "c [COUNTER MANAGER]\n";
     // we set the precision
     boost::multiprecision::mpf_float::default_precision(precision);

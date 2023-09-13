@@ -16,45 +16,43 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+
 #pragma once
 
 #include <iostream>
 #include <string>
 
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
-#include "src/exceptions/FactoryException.hpp"
-#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "src/configurations/ConfigurationProjMcMethod.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/options/solvers/OptionSolver.hpp"
 
 namespace d4 {
-class OptionDpllStyleMethod {
+class OptionProjMcMethod {
  public:
-  OptionOperationManager optionOperationManager;
-  OptionCacheManager optionCacheManager;
+  bool refinement;
+  OptionCacheManager optionCache;
   OptionSolver optionSolver;
-  OptionSpecManager optionSpecManager;
-  OptionBranchingHeuristic optionBranchingHeuristic;
-  OptionPartitioningHeuristic optionPartitioningHeuristic;
+  OptionSpecManager optionSpecs;
+  OptionDpllStyleMethod optionCounter;
 
   /**
-   * @brief Construct a new object with the default parameter.
-   */
-  OptionDpllStyleMethod()
-      : OptionDpllStyleMethod(ConfigurationDpllStyleMethod()) {}
-
-  /**
-   * @brief Construct a new Option Dpll Style Method object.
+   * @brief Construct a new Option Proj Mc Method object regarding a given
+   * configuration.
    *
-   * @param config gives the method configuration.
+   * @param config is the configuration we use for setting the option.
    */
-  OptionDpllStyleMethod(const ConfigurationDpllStyleMethod& config);
+  OptionProjMcMethod(const ConfigurationProjMcMethod& config);
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method";
+                                  const OptionProjMcMethod& dt) {
+    out << " Option ProjMC Method:"
+        << " refinement(" << dt.refinement << ")"
+        << " cache(" << dt.optionCache << ")"
+        << " solver(" << dt.optionSolver << ")"
+        << " spec(" << dt.optionSpecs << ")"
+        << " counter(" << dt.optionCounter << ")";
     return out;
   }  // <<
 };
-
 }  // namespace d4

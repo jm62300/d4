@@ -34,7 +34,7 @@ extern d4::MethodManager *methodRun;
 using namespace d4;
 
 template <typename T>
-void countModels(OptionDpllStyleMethod options, ProblemManager *problem,
+void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
                  const std::string &format, const std::string &outFormat,
                  bool isFloat) {
   std::cout << "c [FORMAT] Input/Output format:"
@@ -94,7 +94,6 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
   config.problemInputType = d4::ProblemInputTypeManager::getInputType(
       vm["input-type"].as<std::string>());
 
-  config.configurationPreproc = parsePreprocConfiguration(vm);
   config.cache = parseCacheConfiguration(vm);
   config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
   config.partitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
