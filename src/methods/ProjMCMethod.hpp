@@ -33,7 +33,6 @@
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 
 template <class T>
 class ProjMCMethod : public MethodManager {
@@ -186,6 +185,7 @@ class ProjMCMethod : public MethodManager {
     ProblemManagerCnf *p =
         new ProblemManagerCnf(nbVar, weightLit, weightVar, emptySelectedVar);
     p->setClauses(clauses);
+    m_problem = p;
 
     // create the counter.
     m_out << "c [PROJ MC] Create an external counter\n";
