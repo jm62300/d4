@@ -85,8 +85,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   CacheManager<U> *m_cache;
 
   std::ostream m_out;
-  bool m_panicMode;
-
   Operation<T, U> *m_operation;
 
  public:
@@ -502,8 +500,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   */
   U compute(std::vector<Var> &setOfVar, std::ostream &out,
             bool warmStart = true) {
-    if (m_problem->isUnsat() || (warmStart && !m_panicMode &&
-                                 !m_solver->warmStart(29, 11, setOfVar, m_out)))
+    if (m_problem->isUnsat() ||
+        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
     DataBranch<U> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
