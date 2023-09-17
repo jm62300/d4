@@ -82,9 +82,6 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
                                              out);
     }
 
-    if (config.methodName == METH_ERE)
-      return new ExistRandomExist<mpz::mpf_float>(vm, "ere", runProblem, out);
-
     if (config.methodName == METH_MIN_SHARP) {
       if (!isFloat)
         return new MinSharpSAT<mpz::mpz_int>(vm, "min#sat", isFloat, runProblem,

@@ -22,14 +22,15 @@
 /**
  * @brief parsePreprocConfiguration implementation.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
+d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm,
+                                                  const std::string &prefix) {
   d4::ConfigurationPeproc config;
-  config.inputType =
-      d4::InputTypeManager::getInputType(vm["input-type"].as<std::string>());
-  config.nbIteration = vm["preproc-reducer-iteration"].as<int>();
+  config.inputType = d4::InputTypeManager::getInputType(
+      vm[prefix + "input-type"].as<std::string>());
+  config.nbIteration = vm[prefix + "preproc-reducer-iteration"].as<int>();
   config.preprocMethod = d4::PreprocMethodManager::getPreprocMethod(
-      vm["preproc"].as<std::string>());
-  config.timeout = vm["preproc-timeout"].as<int>();
+      vm[prefix + "preproc"].as<std::string>());
+  config.timeout = vm[prefix + "preproc-timeout"].as<int>();
 
   return config;
 }  // parsePreprocConfiguration
@@ -37,35 +38,39 @@ d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
 /**
  * @brief parseCacheConfiguration implementation.
  */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
+d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
+                                               const std::string &prefix) {
   d4::ConfigurationCache cache;
 
   cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
-      vm["cache-method"].as<std::string>());
+      vm[prefix + "cache-method"].as<std::string>());
 
   cache.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy(
-          vm["cache-reduction-strategy"].as<std::string>());
+          vm[prefix + "cache-reduction-strategy"].as<std::string>());
 
   cache.modeStore = d4::ModeStoreManager::getModeStore(
-      vm["cache-store-strategy"].as<std::string>());
+      vm[prefix + "cache-store-strategy"].as<std::string>());
 
   cache.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation(
-          vm["cache-clause-representation"].as<std::string>());
+          vm[prefix + "cache-clause-representation"].as<std::string>());
 
-  cache.sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
+  cache.sizeFirstPage =
+      vm[prefix + "cache-size-first-page"].as<unsigned long>();
 
   cache.sizeAdditionalPage =
-      vm["cache-size-additional-page"].as<unsigned long>();
+      vm[prefix + "cache-size-additional-page"].as<unsigned long>();
 
   cache.limitVarSym =
-      vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
+      vm[prefix + "cache-clause-representation-combi-limitVar-sym"]
+          .as<unsigned>();
 
-  cache.isActivated = vm["cache-activated"].as<bool>();
+  cache.isActivated = vm[prefix + "cache-activated"].as<bool>();
 
   cache.limitVarIndex =
-      vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
+      vm[prefix + "cache-clause-representation-combi-limitVar-index"]
+          .as<unsigned>();
 
   return cache;
 }  // parseCacheConfiguration
@@ -74,20 +79,22 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
  * @brief parseBranchingHeuristicConfiguration implementation.
  */
 d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
-    const po::variables_map &vm) {
+    const po::variables_map &vm, const std::string &prefix) {
   d4::ConfigurationBranchingHeuristic branchingHeuristic;
 
-  branchingHeuristic.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
+  branchingHeuristic.freqDecay =
+      vm[prefix + "scoring-method-freq-decay"].as<unsigned>();
 
   branchingHeuristic.scoringMethodType =
       d4::ScoringMethodTypeManager::getScoringMethodType(
-          vm["scoring-method"].as<std::string>());
+          vm[prefix + "scoring-method"].as<std::string>());
 
   branchingHeuristic.phaseHeuristicType =
       d4::PhaseHeuristicTypeManager::getPhaseHeuristicType(
-          vm["phase-heuristic"].as<std::string>());
+          vm[prefix + "phase-heuristic"].as<std::string>());
 
-  branchingHeuristic.reversePhase = vm["phase-heuristic-reversed"].as<bool>();
+  branchingHeuristic.reversePhase =
+      vm[prefix + "phase-heuristic-reversed"].as<bool>();
 
   return branchingHeuristic;
 }  // parseBranchingHeuristicConfiguration
@@ -96,27 +103,29 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  * @brief parsePartitioningHeuristicConfiguration implementation.
  */
 d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
-    const po::variables_map &vm) {
+    const po::variables_map &vm, const std::string &prefix) {
   d4::ConfigurationPartitioningHeuristic partitioningHeuristic;
   partitioningHeuristic.partitioningMethod =
       d4::PartitioningMethodManager::getPartitioningMethod(
-          vm["partitioning-heuristic"].as<std::string>());
+          vm[prefix + "partitioning-heuristic"].as<std::string>());
 
   partitioningHeuristic.partitionerName =
       d4::PartitionerNameManager::getPartitionerName(
-          vm["partitioning-heuristic-partitioner"].as<std::string>());
+          vm[prefix + "partitioning-heuristic-partitioner"].as<std::string>());
 
   partitioningHeuristic.reduceFormula =
-      vm["partitioning-heuristic-simplification-hyperedge"].as<bool>();
+      vm[prefix + "partitioning-heuristic-simplification-hyperedge"].as<bool>();
 
   partitioningHeuristic.equivSimp =
-      vm["partitioning-heuristic-simplification-equivalence"].as<bool>();
+      vm[prefix + "partitioning-heuristic-simplification-equivalence"]
+          .as<bool>();
 
   partitioningHeuristic.staticPhase =
-      vm["partitioning-heuristic-bipartite-phase-static"].as<int>();
+      vm[prefix + "partitioning-heuristic-bipartite-phase-static"].as<int>();
 
   partitioningHeuristic.dynamicPhase =
-      vm["partitioning-heuristic-bipartite-phase-dynamic"].as<double>();
+      vm[prefix + "partitioning-heuristic-bipartite-phase-dynamic"]
+          .as<double>();
 
   return partitioningHeuristic;
 }  // parsePartitioningHeuristicConfiguration

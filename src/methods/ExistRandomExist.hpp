@@ -43,9 +43,7 @@
 #include "src/heuristics/PhaseHeuristicPolarity.hpp"
 #include "src/heuristics/ScoringMethod.hpp"
 #include "src/methods/nnf/Node.hpp"
-#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
-#include "src/options/solvers/OptionSolver.hpp"
-#include "src/options/specs/OptionSpecManager.hpp"
+#include "src/options/methods/OptionEREMethod.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -56,7 +54,6 @@
 #define TEST 0
 
 namespace d4 {
-namespace po = boost::program_options;
 template <class T>
 class Counter;
 
@@ -86,15 +83,16 @@ class ExistRandomExist : public MethodManager {
 
   unsigned m_nbCallCall;
   unsigned m_nbCallProj;
-  unsigned m_nbSplitMax = 0;
-  unsigned m_nbSplitInd = 0;
+  unsigned m_nbSplitExist = 0;
+  unsigned m_nbSplitRandom = 0;
   unsigned m_nbDecisionNode;
-  unsigned m_optCached;
+  unsigned m_optCachedExist;
+  unsigned m_optCachedRandom;
   unsigned m_stampIdx;
-  unsigned m_nbCutUpperBoundMaxPart = 0;
-  unsigned m_nbCutUpperBoundIndPart = 0;
-  unsigned m_nbPureMax = 0;
-  unsigned m_nbPureInd = 0;
+  unsigned m_nbCutUpperBoundExist = 0;
+  unsigned m_nbCutUpperBoundRandom = 0;
+  unsigned m_nbPureExist = 0;
+  unsigned m_nbPureRandom = 0;
 
   bool m_hasBeenStop = false;
   bool m_isUnderAnd = false;
@@ -107,7 +105,7 @@ class ExistRandomExist : public MethodManager {
 
   std::vector<bool> m_isDecisionVariable;
   std::vector<bool> m_isProjectedVariable;
-  std::vector<bool> m_isMaxDecisionVariable;
+  std::vector<bool> m_isExistDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
   unsigned m_countUpdateMaxCount = 0;
 
@@ -119,12 +117,13 @@ class ExistRandomExist : public MethodManager {
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
   SpecManager *m_specs;
-  ScoringMethod *m_hVar;
-  PhaseHeuristic *m_hPhase;
-  PhaseHeuristic *m_hPhaseInd;
+  ScoringMethod *m_hVarExist;
+  ScoringMethod *m_hVarRandom;
+  PhaseHeuristic *m_hPhaseExist;
+  PhaseHeuristic *m_hPhaseRandom;
 
-  CacheManager<T> *m_cacheInd;
-  CacheManager<MaxSharpSatResult> *m_cacheMax;
+  CacheManager<T> *m_cacheRandom;
+  CacheManager<MaxSharpSatResult> *m_cacheExist;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -133,9 +132,9 @@ class ExistRandomExist : public MethodManager {
   bool m_stopProcess = false;
   bool m_andDig = false;
   bool m_cutUpperMax = false;
-  bool m_componentOnProjected = false;
-  std::string m_heuristicMax = "none";
-  unsigned m_heuristicMaxRdm = 0;
+  bool m_componentOnRandom = false;
+  bool m_heuristicPhaseBestExist = false;
+  unsigned m_randomPhaseExist = 0;
 
   MaxSharpSatResult m_scale = {T(1), NULL};
   MaxSharpSatResult m_maxCount = {T(0), NULL};
@@ -146,79 +145,61 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  ExistRandomExist(po::variables_map &vm, const std::string &meth,
-                   ProblemManager *initProblem, std::ostream &out)
+  ExistRandomExist(const OptionEREMethod &options, ProblemManager *initProblem,
+                   std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
-    m_cutUpperMax = vm["ere-cut-upperBound"].as<bool>();
-    m_componentOnProjected = vm["ere-component-on-projected"].as<bool>();
-    m_heuristicMax = vm["maxsharpsat-heuristic-phase"].as<std::string>();
-    m_greedyInitActivated = vm["maxsharpsat-option-greedy-init"].as<bool>();
-    m_optCached = vm["cache-activated"].as<bool>();
-    m_heuristicMaxRdm = vm["maxsharpsat-heuristic-phase-random"].as<unsigned>();
-    m_threshold = vm["maxsharpsat-threshold"].as<double>();
-    m_andDig = vm["maxsharpsat-option-and-dig"].as<bool>();
 
-    m_out << "c [CONSTRUCTOR ERE] Heuristic on MAX variables: "
-          << m_heuristicMax << "\n"
-          << "c [CONSTRUCTOR ERE] Use random on MAX variables: "
-          << m_heuristicMaxRdm << "\n"
-          << "c [CONSTRUCTOR ERE] Threshold: " << m_threshold << "\n"
-          << "c [CONSTRUCTOR ERE] Dig for a partial solution under an AND: "
-          << m_andDig << "\n"
-          << "c [CONSTRUCTOR ERE] Cut on MAX tree when low UB: "
-          << m_cutUpperMax << "\n"
-          << "c [CONSTRUCTOR ERE] Compute the connected component regarding "
-             "the projected variables: "
-          << m_cutUpperMax << "\n"
-          << "c [CONSTRUCTOR ERE] Greedy init activated: "
-          << m_greedyInitActivated << "\n";
+    m_cutUpperMax = options.cutExist;
+    m_componentOnRandom = options.computeComponentOnRandom;
+    m_heuristicPhaseBestExist = options.phaseHeuristicBestExist;
+    m_randomPhaseExist = options.randomPhaseHeuristicExist;
 
+    m_greedyInitActivated = options.greedyInitActivated;
+
+    m_optCachedExist = options.optionCacheManagerExist.isActivated;
+    m_optCachedRandom = options.optionCacheManagerRandom.isActivated;
+
+    m_threshold = options.threshold;
+    m_andDig = options.digOnAnd;
+
+    m_out << "c [ERE] " << options << "\n";
     srand(0);
 
     // we create the SAT solver.
-    OptionSolver optionSolver;
-    optionSolver.solverName =
-        SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-    m_solver = WrapperSolver::makeWrapperSolver(optionSolver, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    OptionSpecManager optSpecManager;
-    optSpecManager.specUpdateType = SpecUpdateManager::getSpecUpdate(
-        vm["occurrence-manager"].as<std::string>());
-    m_specs = SpecManager::makeSpecManager(optSpecManager, *m_problem, m_out);
+    m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
+                                           *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
-    OptionBranchingHeuristic optionBranchingHeuristic;
-    optionBranchingHeuristic.scoringMethodType =
-        ScoringMethodTypeManager::getScoringMethodType(
-            vm["scoring-method"].as<std::string>());
+    m_hVarExist = ScoringMethod::makeScoringMethod(
+        options.optionBranchingHeuristicExist, *m_specs, *m_solver, m_out);
+    m_hVarRandom = ScoringMethod::makeScoringMethod(
+        options.optionBranchingHeuristicRandom, *m_specs, *m_solver, m_out);
 
-    optionBranchingHeuristic.phaseHeuristicType =
-        PhaseHeuristicTypeManager::getPhaseHeuristicType(
-            vm["phase-heuristic"].as<std::string>());
-
-    m_hVar = ScoringMethod::makeScoringMethod(optionBranchingHeuristic,
-                                              *m_specs, *m_solver, m_out);
-    m_hPhase = PhaseHeuristic::makePhaseHeuristic(optionBranchingHeuristic,
-                                                  *m_specs, *m_solver, m_out);
-    m_hPhaseInd = new PhaseHeuristicPolarity(*m_solver, true);
+    m_hPhaseExist = PhaseHeuristic::makePhaseHeuristic(
+        options.optionBranchingHeuristicExist, *m_specs, *m_solver, m_out);
+    m_hPhaseRandom = PhaseHeuristic::makePhaseHeuristic(
+        options.optionBranchingHeuristicRandom, *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
     m_isDecisionVariable.clear();
-    m_isMaxDecisionVariable.clear();
+    m_isExistDecisionVariable.clear();
     m_isProjectedVariable.clear();
 
-    m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
-    m_isDecisionVariable.resize(m_problem->getNbVar() + 1, false);
-    m_isProjectedVariable.resize(m_problem->getNbVar() + 1, false);
+    unsigned nbVar = m_problem->getNbVar();
+    m_redirectionPos.resize(nbVar + 1, 0);
+    m_isDecisionVariable.resize(nbVar + 1, false);
+    m_isProjectedVariable.resize(nbVar + 1, false);
     for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
       Var v = m_problem->getIndVar()[i];
       m_isDecisionVariable[v] = true;
@@ -226,43 +207,22 @@ class ExistRandomExist : public MethodManager {
       m_isProjectedVariable[v] = true;
     }
 
-    m_isMaxDecisionVariable.resize(m_problem->getNbVar() + 1, false);
+    m_isExistDecisionVariable.resize(nbVar + 1, false);
     for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
       Var v = m_problem->getMaxVar()[i];
-      m_isMaxDecisionVariable[v] = true;
+      m_isExistDecisionVariable[v] = true;
       m_redirectionPos[v] = i;
     }
 
-    // no partitioning heuristic for the moment.
-    assert(m_hVar && m_hPhase);
-
-    OptionCacheManager optionCacheManager;
-    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
-        vm["cache-method"].as<std::string>()),
-
-    optionCacheManager.optionCacheCleaningManager = {
-        CacheCleaningStrategyManager::getCacheCleaningStrategy(
-            vm["cache-reduction-strategy"].as<std::string>())};
-
-    optionCacheManager.optionBucketManager = {
-        ModeStoreManager::getModeStore(
-            vm["cache-store-strategy"].as<std::string>()),
-        ClauseRepresentationManager::getClauseRepresentation(
-            vm["cache-clause-representation"].as<std::string>()),
-        vm["cache-size-first-page"].as<unsigned long>(),
-        vm["cache-size-additional-page"].as<unsigned long>(),
-        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
-        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
-
-    m_cacheInd = CacheManager<T>::makeCacheManager(
-        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
-    m_cacheMax = CacheManager<MaxSharpSatResult>::makeCacheManager(
-        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
+    m_cacheRandom = CacheManager<T>::makeCacheManager(
+        options.optionCacheManagerExist, nbVar, m_specs, m_out);
+    m_cacheExist = CacheManager<MaxSharpSatResult>::makeCacheManager(
+        options.optionCacheManagerRandom, nbVar, m_specs, m_out);
 
     // init the clock time.
     initTimer();
 
-    m_nbCallProj = m_nbDecisionNode = m_nbSplitMax = m_nbSplitInd =
+    m_nbCallProj = m_nbDecisionNode = m_nbSplitExist = m_nbSplitRandom =
         m_nbCallCall = 0;
 
     m_stampIdx = 0;
@@ -287,10 +247,12 @@ class ExistRandomExist : public MethodManager {
     delete m_problem;
     delete m_solver;
     delete m_specs;
-    delete m_hVar;
-    delete m_hPhase;
-    delete m_cacheInd;
-    delete m_cacheMax;
+    delete m_hVarExist;
+    delete m_hVarRandom;
+    delete m_hPhaseExist;
+    delete m_hPhaseRandom;
+    delete m_cacheExist;
+    delete m_cacheRandom;
 
     for (auto page : m_memoryPages) delete[] page;
   }  // destructor
@@ -330,20 +292,20 @@ class ExistRandomExist : public MethodManager {
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj << std::fixed
         << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << m_cacheMax->getNbPositiveHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheMax->getNbNegativeHit()
+        << m_cacheExist->getNbPositiveHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheExist->getNbNegativeHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << m_cacheInd->getNbPositiveHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->getNbNegativeHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitMax << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitInd << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCutUpperBoundMaxPart << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCutUpperBoundIndPart << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbPureMax << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbPureInd << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
+        << m_cacheRandom->getNbPositiveHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheRandom->getNbNegativeHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitExist << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitRandom << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCutUpperBoundExist << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCutUpperBoundRandom << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbPureExist << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbPureRandom << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheRandom->usedMemory()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
         << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC)
         << m_maxCount.count << "|\n";
   }  // showInter
@@ -410,19 +372,19 @@ class ExistRandomExist : public MethodManager {
         << "c \033[1m\033[31mStatistics \033[0m\n"
         << "c \033[33mCompilation Information\033[0m\n"
         << "c Number of recursive call: " << m_nbCallCall << "\n"
-        << "c Number of split formula (max): " << m_nbSplitMax << "\n"
-        << "c Number of split formula (ind): " << m_nbSplitInd << "\n"
-        << "c Number of units because pure (max): " << m_nbPureMax << "\n"
-        << "c Number of units because pure (ind): " << m_nbPureInd << "\n"
+        << "c Number of split formula (max): " << m_nbSplitExist << "\n"
+        << "c Number of split formula (ind): " << m_nbSplitRandom << "\n"
+        << "c Number of units because pure (max): " << m_nbPureExist << "\n"
+        << "c Number of units because pure (ind): " << m_nbPureRandom << "\n"
         << "c Number of cut because upper bound (max): "
-        << m_nbCutUpperBoundMaxPart << "\n"
+        << m_nbCutUpperBoundExist << "\n"
         << "c Number of cut because upper bound (ind): "
-        << m_nbCutUpperBoundIndPart << "\n"
+        << m_nbCutUpperBoundRandom << "\n"
         << "c Number of decision: " << m_nbDecisionNode << "\n"
         << "c\n";
-    m_cacheInd->printCacheInformation(out);
+    m_cacheRandom->printCacheInformation(out);
     out << "c\n";
-    m_cacheMax->printCacheInformation(out);
+    m_cacheExist->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   }  // printFinalStat
@@ -498,7 +460,7 @@ class ExistRandomExist : public MethodManager {
   void orOnMaxVar(std::vector<Var> &vars, u_int8_t *resValuation,
                   u_int8_t *orValuation) {
     for (auto v : vars) {
-      if (m_isMaxDecisionVariable[v])
+      if (m_isExistDecisionVariable[v])
         resValuation[m_redirectionPos[v]] |= orValuation[m_redirectionPos[v]];
     }
   }  // disjunctionOnMaxVariable
@@ -519,7 +481,7 @@ class ExistRandomExist : public MethodManager {
         m_maxCount.valuation[i] = m_scale.valuation[i];
 
       for (auto v : vars)
-        if (m_isMaxDecisionVariable[v])
+        if (m_isExistDecisionVariable[v])
           m_maxCount.valuation[m_redirectionPos[v]] =
               result.valuation[m_redirectionPos[v]];
 
@@ -548,7 +510,7 @@ class ExistRandomExist : public MethodManager {
   int computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
                                 std::vector<Var> &setOfVar,
                                 std::vector<Var> &freeVar) {
-    if (m_componentOnProjected)
+    if (m_componentOnRandom)
       return m_specs->computeConnectedComponentTargeted(
           varCo, setOfVar, m_isProjectedVariable, freeVar);
 
@@ -563,13 +525,13 @@ class ExistRandomExist : public MethodManager {
    * @return 1 if we want to assign to false, 0 otherwise/
    */
   inline bool selectPhase(Var v) {
-    assert(m_isMaxDecisionVariable[v]);
+    assert(m_isExistDecisionVariable[v]);
     int rdm = rand() % 100;
-    if (rdm <= m_heuristicMaxRdm) return rdm & 1;
+    if (rdm <= m_randomPhaseExist) return rdm & 1;
 
-    if (m_scale.count > 0 && m_heuristicMax == "best")
+    if (m_scale.count > 0 && m_heuristicPhaseBestExist)
       return m_scale.valuation[m_redirectionPos[v]];
-    return m_hPhase->selectPhase(v);
+    return m_hPhaseExist->selectPhase(v);
   }  // selectPhase
 
   /**
@@ -628,7 +590,7 @@ class ExistRandomExist : public MethodManager {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-    assignPureLiteral(setOfVar, unitsLit, m_nbPureMax);
+    assignPureLiteral(setOfVar, unitsLit, m_nbPureExist);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -643,7 +605,7 @@ class ExistRandomExist : public MethodManager {
     T saveCount = m_scale.count, fixInd = T(1), mustMultiply = T(1);
 
     for (auto &v : freeVariable)
-      if (m_isMaxDecisionVariable[v]) {
+      if (m_isExistDecisionVariable[v]) {
         Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
         m_scale.valuation[m_redirectionPos[v]] = 1 - l.sign();
         result.valuation[m_redirectionPos[v]] = 1 - l.sign();
@@ -652,7 +614,7 @@ class ExistRandomExist : public MethodManager {
 
     // consider the unit literals that belong to max
     for (auto &l : unitsLit)
-      if (m_isMaxDecisionVariable[l.var()]) {
+      if (m_isExistDecisionVariable[l.var()]) {
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
       } else if (m_isDecisionVariable[l.var()]) {
@@ -663,7 +625,7 @@ class ExistRandomExist : public MethodManager {
 
     if (m_cutUpperMax && ifTaut * fixInd <= m_maxCount.count) {
       result.count = T(0);
-      m_nbCutUpperBoundMaxPart++;
+      m_nbCutUpperBoundExist++;
       m_specs->postUpdate(unitsLit);
       return;
     }
@@ -691,10 +653,10 @@ class ExistRandomExist : public MethodManager {
 
     // consider each connected component.
     if (nbComponent) {
-      m_nbSplitMax += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplitExist += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
+        TmpEntry<MaxSharpSatResult> cb = m_cacheExist->searchInCache(connected);
 
         // should divide if we are under an AND and if we manage the option.
         if (m_andDig && cp > 0)
@@ -706,12 +668,12 @@ class ExistRandomExist : public MethodManager {
             orOnMaxVar(connected, result.valuation, cb.getValue().valuation);
         } else {
           MaxSharpSatResult tmpResult;
-          searchMaxSharpSatDecision(connected, out, tmpResult, ifTaut * fixInd);
+          searchExistDecision(connected, out, tmpResult, ifTaut * fixInd);
 
           if (!m_hasBeenStop)
-            m_cacheMax->addInCache(cb, tmpResult);
+            m_cacheExist->addInCache(cb, tmpResult);
           else
-            m_cacheMax->releaseMemory(cb.getCachedBucket());
+            m_cacheExist->releaseMemory(cb.getCachedBucket());
 
           mustMultiply = tmpResult.count;
           if (tmpResult.valuation)
@@ -725,7 +687,7 @@ class ExistRandomExist : public MethodManager {
           m_scale.count = m_scale.count * mustMultiply;
 
           for (auto &v : connected)
-            if (m_isMaxDecisionVariable[v])
+            if (m_isExistDecisionVariable[v])
               m_scale.valuation[m_redirectionPos[v]] =
                   result.valuation[m_redirectionPos[v]];
         }
@@ -752,13 +714,13 @@ class ExistRandomExist : public MethodManager {
    * @param[in] out, the stream we use to print out logs.
    * @param[out] result, the best solution found.
    */
-  void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
-                                 MaxSharpSatResult &result, T ifTaut) {
+  void searchExistDecision(std::vector<Var> &connected, std::ostream &out,
+                           MaxSharpSatResult &result, T ifTaut) {
     if (m_stopProcess) return;
 
     // search the next variable to branch on
-    Var v =
-        m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVariable);
+    Var v = m_hVarExist->selectVariable(connected, *m_specs,
+                                        m_isExistDecisionVariable);
 
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
@@ -819,7 +781,7 @@ class ExistRandomExist : public MethodManager {
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
-  }  // searchMaxSharpSatDecision
+  }  // searchExistDecision
 
   /**
    * @brief Count the number of projected models.
@@ -840,7 +802,7 @@ class ExistRandomExist : public MethodManager {
 #endif
     if (targetMin >= T(1)) {
       m_hasBeenStop = true;
-      m_nbCutUpperBoundIndPart++;
+      m_nbCutUpperBoundRandom++;
     }
 
     showRun(out);
@@ -869,7 +831,7 @@ class ExistRandomExist : public MethodManager {
 #if TEST
     std::cout << "fixInd = " << fixInd << " -> " << targetMin << "\n";
 #endif
-    assignPureLiteral(setOfVar, unitsLit, m_nbPureInd);
+    assignPureLiteral(setOfVar, unitsLit, m_nbPureRandom);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -880,28 +842,28 @@ class ExistRandomExist : public MethodManager {
     // consider each connected component.
     T result = T(1);
     if (nbComponent) {
-      m_nbSplitInd += (nbComponent > 1) ? nbComponent : 0;
+      m_nbSplitRandom += (nbComponent > 1) ? nbComponent : 0;
 
       for (int cp = 0; !m_hasBeenStop && cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
+        TmpEntry<T> cb = m_cacheRandom->searchInCache(connected);
 
         if (cb.defined) {
           std::cout << "Hit positive\n";
           result = result * cb.getValue();
         } else {
-          T curr = countIndDecisionNode(connected, out,
-                                        (targetMin / result) / fixInd);
+          T curr = countRandomDecisionNode(connected, out,
+                                           (targetMin / result) / fixInd);
           if (!m_hasBeenStop)
-            m_cacheInd->addInCache(cb, curr);
+            m_cacheRandom->addInCache(cb, curr);
           else
-            m_cacheInd->releaseMemory(cb.getCachedBucket());
+            m_cacheRandom->releaseMemory(cb.getCachedBucket());
           result = result * curr;
         }
 
         if (!m_hasBeenStop && result < targetMin) {
           m_hasBeenStop = true;
-          m_nbCutUpperBoundIndPart++;
+          m_nbCutUpperBoundRandom++;
         }
       }
     }  // else we have a tautology
@@ -925,11 +887,11 @@ class ExistRandomExist : public MethodManager {
    * @param out, the stream we use to print out logs.
    * \return the number of computed models.
    */
-  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out,
-                         T targetMin) {
+  T countRandomDecisionNode(std::vector<Var> &connected, std::ostream &out,
+                            T targetMin) {
     if (targetMin >= T(1)) {
       m_hasBeenStop = true;
-      m_nbCutUpperBoundIndPart++;
+      m_nbCutUpperBoundRandom++;
       return T(0);
     }
     if (m_stopProcess) return T(0);
@@ -940,7 +902,8 @@ class ExistRandomExist : public MethodManager {
     if (currentCall == 10310) exit(0);
 
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVariable);
+    Var v =
+        m_hVarRandom->selectVariable(connected, *m_specs, m_isDecisionVariable);
     if (v == var_Undef) {
 #if TEST
       std::cout << currentCall << " Taut\n";
@@ -949,7 +912,7 @@ class ExistRandomExist : public MethodManager {
     }
 
     // select a variable for decision.
-    Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
+    Lit l = Lit::makeLit(v, m_hPhaseRandom->selectPhase(v));
     m_nbDecisionNode++;
 
     std::cout << currentCall << " Target Min = " << targetMin << "\n";
@@ -1020,7 +983,7 @@ class ExistRandomExist : public MethodManager {
     std::vector<Var> vars = setOfVar;
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++) {
-      if (m_isMaxDecisionVariable[vars[i]])
+      if (m_isExistDecisionVariable[vars[i]])
         unitsAssums.push_back(
             Lit::makeLit(vars[i], m_solver->getModelVar(vars[i]) == l_False));
       else
@@ -1163,10 +1126,8 @@ class ExistRandomExist : public MethodManager {
    * m_problem->getMaxVar() that maximize the number of the remaining
    * variables where the variables not belonging to m_problem->getIndVar()
    * are existantially quantified.
-   *
-   * @param[in] vm, the set of options.
    */
-  void run(po::variables_map &vm) {
+  void run() {
     std::vector<Var> setOfVar;
     for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
 

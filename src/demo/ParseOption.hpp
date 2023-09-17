@@ -19,6 +19,7 @@
 #pragma once
 
 #include <boost/program_options.hpp>
+#include <cstring>
 
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationBranchingHeuristic.hpp"
@@ -31,34 +32,42 @@ namespace po = boost::program_options;
  * @brief Parse the configuration for the preprocessing.
  *
  * @param vm are the options.
+ * @param prefix is a string put in front in order to select the method.
  *
  * @return the preproc configuration.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm);
+d4::ConfigurationPeproc parsePreprocConfiguration(
+    const po::variables_map &vm, const std::string &prefix = "");
 
 /**
  * @brief Parse the configuration for the preprocessing.
  *
  * @param vm are the options.
+ * @param prefix is a string put in front in order to select the method.
  *
  * @return the preproc configuration.
  */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm);
+d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
+                                               const std::string &prefix = "");
 
 /**
  * @brief Parse the configuration for the branching heuristic.
  *
  * @param vm are the options.
+ * @param prefix is a string put in front in order to select the method.
+ *
  * @return the branching heuristic configuration.
  */
 d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
-    const po::variables_map &vm);
+    const po::variables_map &vm, const std::string &prefix = "");
 
 /**
  * @brief Parse the configuration for the paritioning heuristic.
  *
  * @param vm are the options.
+ * @param prefix is a string put in front in order to select the method.
+ *
  * @return the partitioning heuristic configuration.
  */
 d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
-    const po::variables_map &vm);
+    const po::variables_map &vm, const std::string &prefix = "");
