@@ -36,6 +36,7 @@ enum MethodName {
   METH_MAX_SHARP,
   METH_MIN_SHARP,
   METH_PROJ_MC,
+  METH_COUNTING_GLOBAL_CACHE,
   METH_NONE
 };
 
@@ -49,6 +50,7 @@ class MethodNameManager {
     if (m == METH_MIN_SHARP) return "min#sat";
     if (m == METH_ERE) return "ere";
     if (m == METH_PROJ_MC) return "projMC";
+    if (m == METH_COUNTING_GLOBAL_CACHE) return "counting-global-cache";
     if (m == METH_NONE) return "none";
 
     throw(FactoryException("Method name unknown", __FILE__, __LINE__));
@@ -62,6 +64,7 @@ class MethodNameManager {
     if (m == "min#sat") return METH_MIN_SHARP;
     if (m == "ere") return METH_ERE;
     if (m == "projMC") return METH_PROJ_MC;
+    if (m == "counting-global-cache") return METH_COUNTING_GLOBAL_CACHE;
     if (m == "none") return METH_NONE;
 
     throw(FactoryException("Method name unknown", __FILE__, __LINE__));

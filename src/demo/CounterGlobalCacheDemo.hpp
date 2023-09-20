@@ -25,9 +25,10 @@
 namespace po = boost::program_options;
 
 /**
- * @brief Run a Exist Random Exist solver.
+ * @brief Run a counter.
  *
  * @param vm are the options.
  * @param problem is the problem we deal with.
  */
-void EREDemo(const po::variables_map &vm, d4::ProblemManager *problem);
+void counterGlobalCacheDemo(const po::variables_map &vm,
+                            d4::ProblemManager *problem);

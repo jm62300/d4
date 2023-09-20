@@ -37,14 +37,15 @@ class OperationTypeManager {
   }  // getOperatorType
 
   static OperationType getOperatorType(const std::string& m) {
-    if (m == "counting") return OP_COUNTING;
+    if (m == "counting" || m == "counting-global-cache") return OP_COUNTING;
     if (m == "ddnnf-compiler") return OP_CIRC;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getOperatorType
 
   static OperationType getOperatorType(const MethodName& m) {
-    if (m == METH_COUNTING) return OP_COUNTING;
+    if (m == METH_COUNTING || m == METH_COUNTING_GLOBAL_CACHE)
+      return OP_COUNTING;
     if (m == METH_DDNNF) return OP_CIRC;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));

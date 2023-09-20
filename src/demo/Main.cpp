@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "CounterDemo.hpp"
+#include "CounterGlobalCacheDemo.hpp"
 #include "ErosionDemo.hpp"
 #include "ParseOption.hpp"
 #include "ProjMcDemo.hpp"
@@ -126,20 +127,21 @@ int main(int argc, char **argv) {
   initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
   std::cout << "c\n";
 
-  // preproc.
-
   // run the method asked.
   d4::MethodName methodName =
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
   if (methodName == METH_COUNTING || methodName == METH_DDNNF ||
-      methodName == METH_PROJ_MC) {
+      methodName == METH_PROJ_MC || methodName == METH_COUNTING_GLOBAL_CACHE) {
+    // preproc.
     ProblemManager *problem = d4::MethodManager::runPreproc(
         parsePreprocConfiguration(vm), initProblem, std::cout);
 
     if (methodName == METH_COUNTING) counterDemo(vm, problem);
     if (methodName == METH_DDNNF) dDnnfCompilerDemo(vm, problem);
     if (methodName == METH_PROJ_MC) projMcDemo(vm, problem);
+    if (methodName == METH_COUNTING_GLOBAL_CACHE)
+      counterGlobalCacheDemo(vm, problem);
   } else {
     if (methodName == METH_EROSION) erosionDemo(vm, initProblem);
   }
