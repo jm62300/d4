@@ -18,16 +18,14 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "src/problem/ProblemManager.hpp"
 
 namespace po = boost::program_options;
 
 /**
- * @brief Run a Exist Random Exist solver.
+ * @brief Run a Max#SAT solver.
  *
  * @param vm are the options.
  * @param problem is the problem we deal with.
  */
-void ereDemo(const po::variables_map &vm, d4::ProblemManager *problem);
+void maxSharpSatDemo(const po::variables_map &vm, d4::ProblemManager *problem);

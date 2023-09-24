@@ -26,7 +26,9 @@
 
 #include "CounterDemo.hpp"
 #include "CounterGlobalCacheDemo.hpp"
+#include "EREDemo.hpp"
 #include "ErosionDemo.hpp"
+#include "MaxSharpSatDemo.hpp"
 #include "ParseOption.hpp"
 #include "ProjMcDemo.hpp"
 #include "dDnnfCompilerDemo.hpp"
@@ -131,8 +133,7 @@ int main(int argc, char **argv) {
   d4::MethodName methodName =
       d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
-  if (methodName == METH_COUNTING || methodName == METH_DDNNF ||
-      methodName == METH_PROJ_MC || methodName == METH_COUNTING_GLOBAL_CACHE) {
+  if (methodName != METH_EROSION) {
     // preproc.
     ProblemManager *problem = d4::MethodManager::runPreproc(
         parsePreprocConfiguration(vm), initProblem, std::cout);
@@ -140,6 +141,8 @@ int main(int argc, char **argv) {
     if (methodName == METH_COUNTING) counterDemo(vm, problem);
     if (methodName == METH_DDNNF) dDnnfCompilerDemo(vm, problem);
     if (methodName == METH_PROJ_MC) projMcDemo(vm, problem);
+    if (methodName == METH_ERE) ereDemo(vm, problem);
+    if (methodName == METH_MAX_SHARP) maxSharpSatDemo(vm, problem);
     if (methodName == METH_COUNTING_GLOBAL_CACHE)
       counterGlobalCacheDemo(vm, problem);
   } else {

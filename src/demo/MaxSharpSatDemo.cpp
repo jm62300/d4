@@ -17,60 +17,53 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "EREDemo.hpp"
-
-#include <cstring>
+#include "MaxSharpSatDemo.hpp"
 
 #include "ParseOption.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationBranchingHeuristic.hpp"
 #include "src/configurations/ConfigurationCache.hpp"
-#include "src/configurations/ConfigurationEREMethod.hpp"
+#include "src/configurations/ConfigurationMaxSharpSatMethod.hpp"
 #include "src/configurations/ConfigurationPartitioningHeuristic.hpp"
-#include "src/methods/ExistRandomExist.hpp"
-#include "src/options/methods/OptionEREMethod.hpp"
+#include "src/methods/MaxSharpSAT.hpp"
+#include "src/options/methods/OptionMaxSharpSatMethod.hpp"
 
 using namespace d4;
 
 extern MethodManager *methodRun;
 
-/**
- * @brief ereDemo implementation.
- */
-void ereDemo(const po::variables_map &vm, d4::ProblemManager *problem) {
-  ConfigurationEREMethod config;
+void maxSharpSatDemo(const po::variables_map &vm, d4::ProblemManager *problem) {
+  ConfigurationMaxSharpSatMathod config;
 
   // global options:
-  config.greedyInitActivated = vm["ere-greedy-init"].as<bool>();
-  config.digOnAnd = vm["ere-and-dig"].as<bool>();
-  config.threshold = vm["ere-threshold"].as<double>();
+  config.greedyInitActivated = vm["max#sat-greedy-init"].as<bool>();
+  config.digOnAnd = vm["max#sat-and-dig"].as<bool>();
+  config.threshold = vm["max#sat-threshold"].as<double>();
   config.solver.solverName =
       d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
   config.specManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
 
   // options on exist variables.
-  config.cutExist = vm["ere-exist-cut-upperBound"].as<bool>();
-  config.phaseHeuristicBestExist =
-      vm["ere-exist-heuristic-phase-best"].as<bool>();
-  config.randomPhaseHeuristicExist =
-      vm["ere-exist-heuristic-phase-random"].as<unsigned>();
+  config.phaseHeuristicMax =
+      vm["max#sat-exist-heuristic-phase"].as<std::string>();
+  config.randomPhaseHeuristicMax =
+      vm["max#sat-exist-heuristic-phase-random"].as<unsigned>();
 
-  config.cacheManagerRandom = parseCacheConfiguration(vm, "ere-exist-");
-  config.branchingHeuristicRandom =
-      parseBranchingHeuristicConfiguration(vm, "ere-exist-");
+  config.cacheManagerMax = parseCacheConfiguration(vm, "max#sat-max-");
+  config.branchingHeuristicMax =
+      parseBranchingHeuristicConfiguration(vm, "max#sat-max-");
 
   // options on random variables.
-  config.cacheManagerExist = parseCacheConfiguration(vm, "ere-random-");
-  config.branchingHeuristicExist =
-      parseBranchingHeuristicConfiguration(vm, "ere-random-");
-  config.computeComponentOnRandom = vm["ere-component-on-random"].as<bool>();
+  config.cacheManagerInd = parseCacheConfiguration(vm, "max#sat-ind-");
+  config.branchingHeuristicInd =
+      parseBranchingHeuristicConfiguration(vm, "max#sat-ind-");
 
-  auto meth = new ExistRandomExist<mpz::mpf_float>(OptionEREMethod(config),
-                                                   problem, std::cout);
+  auto meth = new MaxSharpSAT<mpz::mpf_float>(OptionMaxSharpSatMethod(config),
+                                              problem, std::cout);
 
   methodRun = meth;
   meth->run();
   methodRun = nullptr;
   delete meth;
-}  // ereDemo
+}  // maxSharpSatDemo

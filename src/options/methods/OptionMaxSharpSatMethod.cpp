@@ -17,16 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "OptionEREMethod.hpp"
+#include "OptionMaxSharpSatMethod.hpp"
 
 namespace d4 {
 
 /**
- * @brief OptionEREMethod::OptionEREMethod implementation.
- *
- * @param config
+ * @brief OptionMaxSharpSat::OptionMaxSharpSat implementation.
  */
-OptionEREMethod::OptionEREMethod(const ConfigurationEREMethod& config) {
+OptionMaxSharpSatMethod::OptionMaxSharpSatMethod(
+    const ConfigurationMaxSharpSatMathod& config) {
   // general options.
   greedyInitActivated = config.greedyInitActivated;
   digOnAnd = config.digOnAnd;
@@ -34,19 +33,17 @@ OptionEREMethod::OptionEREMethod(const ConfigurationEREMethod& config) {
   optionSolver = {config.solver.solverName};
   optionSpecManager = {config.specManager.specUpdateType};
 
-  // options about the exist level.
-  cutExist = config.cutExist;
-  phaseHeuristicBestExist = config.phaseHeuristicBestExist;
-  randomPhaseHeuristicExist = config.randomPhaseHeuristicExist;
-  optionBranchingHeuristicExist =
-      OptionBranchingHeuristic(config.branchingHeuristicExist);
-  optionCacheManagerExist = OptionCacheManager(config.cacheManagerExist);
+  // options about the max level.
+  randomPhaseHeuristicMax = config.randomPhaseHeuristicMax;
+  phaseHeuristicMax = config.phaseHeuristicMax;
+  optionBranchingHeuristicMax =
+      OptionBranchingHeuristic(config.branchingHeuristicMax);
+  optionCacheManagerMax = OptionCacheManager(config.cacheManagerMax);
 
-  // options about the random level.
-  computeComponentOnRandom = config.computeComponentOnRandom;
-  optionBranchingHeuristicRandom =
-      OptionBranchingHeuristic(config.branchingHeuristicRandom);
-  optionCacheManagerRandom = OptionCacheManager(config.cacheManagerRandom);
-}  // constructor
+  // options about the ind level.
+  optionBranchingHeuristicInd =
+      OptionBranchingHeuristic(config.branchingHeuristicInd);
+  optionCacheManagerInd = OptionCacheManager(config.cacheManagerInd);
+}
 
 }  // namespace d4

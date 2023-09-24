@@ -74,14 +74,6 @@ MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
       }
     }
 
-    if (config.methodName == METH_MAX_SHARP) {
-      if (!isFloat)
-        return new MaxSharpSAT<mpz::mpz_int>(vm, "max#sat", isFloat, runProblem,
-                                             out);
-      return new MaxSharpSAT<mpz::mpf_float>(vm, "max#sat", isFloat, runProblem,
-                                             out);
-    }
-
     if (config.methodName == METH_MIN_SHARP) {
       if (!isFloat)
         return new MinSharpSAT<mpz::mpz_int>(vm, "min#sat", isFloat, runProblem,

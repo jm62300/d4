@@ -16,17 +16,16 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-
 #pragma once
 
-#include "src/configurations/ConfigurationEREMethod.hpp"
+#include "src/configurations/ConfigurationMaxSharpSatMethod.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
 #include "src/options/specs/OptionSpecManager.hpp"
 
 namespace d4 {
-class OptionEREMethod {
+class OptionMaxSharpSatMethod {
  public:
   bool greedyInitActivated;
   bool digOnAnd;
@@ -34,31 +33,31 @@ class OptionEREMethod {
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
 
-  bool cutExist;
-  bool phaseHeuristicBestExist;
-  unsigned randomPhaseHeuristicExist;
-  OptionBranchingHeuristic optionBranchingHeuristicExist;
-  OptionCacheManager optionCacheManagerExist;
+  std::string phaseHeuristicMax;
+  unsigned randomPhaseHeuristicMax;
+  OptionBranchingHeuristic optionBranchingHeuristicMax;
+  OptionCacheManager optionCacheManagerMax;
 
-  bool computeComponentOnRandom;
-  OptionBranchingHeuristic optionBranchingHeuristicRandom;
-  OptionCacheManager optionCacheManagerRandom;
+  OptionBranchingHeuristic optionBranchingHeuristicInd;
+  OptionCacheManager optionCacheManagerInd;
 
   /**
    * @brief Construct a new object with the default parameters.
+   *
    */
-  OptionEREMethod() : OptionEREMethod(ConfigurationEREMethod()) {}
+  OptionMaxSharpSatMethod()
+      : OptionMaxSharpSatMethod(ConfigurationMaxSharpSatMathod()) {}
 
   /**
-   * @brief Construct an OptionEREMethd from a configuration.
+   * @brief Construct a OptionMaxSharpSatMethod object from a configuration.
    *
-   * @param config gives the method configuration.
+   * @param config is the configuration we want to use.
    */
-  OptionEREMethod(const ConfigurationEREMethod& config);
+  OptionMaxSharpSatMethod(const ConfigurationMaxSharpSatMathod& config);
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionEREMethod& dt) {
-    out << " Option ERE Method:";
+                                  const OptionMaxSharpSatMethod& dt) {
+    out << " Option MaxSharpSAT Method:";
     return out;
   }  // <<
 };
