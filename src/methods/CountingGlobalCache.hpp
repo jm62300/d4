@@ -166,6 +166,19 @@ class GlobalCacheManager {
     std::cout << "get the answer from the server ...\n";
     return 1;
   }  // askCount
+
+  /**
+   * @brief Ask to the server if a subproblem has been found as being in the
+   * global cache.
+   *
+   * @param[out] info is fill with the information requiered to spot the query.
+   *
+   * @return true if a positive hit occurs, false otherwise.
+   */
+  bool check(QueryInfo &info) {
+    std::cout << "check\n";
+    return false;
+  }  // check
 };
 
 class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
@@ -456,6 +469,9 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
   */
   mpz::mpz_int compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
                         std::vector<Var> &freeVariable, std::ostream &out) {
+    // check if a positive hit occurs when considering the global cache.
+    if (m_globalCacheManager.check(m_currentQuery)) return -1;
+
     showRun(out);
     m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return 0;
