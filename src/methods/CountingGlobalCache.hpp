@@ -54,6 +54,120 @@ namespace d4 {
 template <class T>
 class Counter;
 
+struct GlobalCacheInfo {
+  std::string name;
+};
+
+struct QueryInfo {
+  unsigned id;
+};
+
+class GlobalCacheManager {
+  GlobalCacheInfo m_info;
+  unsigned m_id = 0;
+
+ public:
+  GlobalCacheManager() {}
+
+  /**
+   * @brief Create the object that will be used in order to manage the
+   * communication with the global cache server.
+   *
+   * @param info
+   */
+  GlobalCacheManager(const GlobalCacheInfo &info, ProblemManager *problem)
+      : m_info(info) {
+    std::cout << "Init the communication with the global cache server: "
+              << info.name << "\n";
+
+    ProblemManagerCnf *cnf = static_cast<ProblemManagerCnf *>(problem);
+
+    std::cout << "p cnf " << cnf->getNbVar() << " " << cnf->getClauses().size()
+              << " ";
+
+    for (auto &cl : cnf->getClauses()) {
+      for (auto &l : cl) std::cout << l.human() << " ";
+      std::cout << "0 ";
+    }
+    std::cout << "\n";
+  }
+
+  /**
+   * @brief Stop the communication with the global cache server.
+   *
+   */
+  ~GlobalCacheManager() {
+    std::cout << "Stop the communication with the global cache server: "
+              << m_info.name << "\n";
+  }
+
+  /**
+   * @brief Communicate the unit literals to the server.
+   *
+   * @param unit is the set of units.
+   * @return true if everything is okay, false otherwise.
+   */
+  bool pushUnit(const std::vector<Lit> &unit) {
+    std::cout << "push ";
+    for (auto &l : unit) std::cout << l.human() << " ";
+    std::cout << "0";
+    std::cout << "\n";
+    return true;
+  }
+
+  /**
+   * @brief Communicate with the server to pop some unit literals.
+   *
+   * @param unit is the set of units.
+   * @return true if everything is okay, false otherwise.
+   */
+  bool popUnit(const std::vector<Lit> &unit) {
+    std::cout << "pop ";
+    for (auto &l : unit) std::cout << l.human() << " ";
+    std::cout << "0";
+    std::cout << "\n";
+    return true;
+  }
+
+  /**
+   * @brief Ask for stopping the search for a given query.
+   *
+   * @param query gives the query information.
+   */
+  void stopQuery(const QueryInfo &query) {
+    std::cout << "stop " << query.id;
+    std::cout << "\n";
+  }  // stopQuery
+
+  /**
+   * @brief Query the server about the current formula idenfied by a given
+   * component.
+   *
+   * @param component is the set of variables we are interested in (it's enough
+   * to send one variable normally ...).
+   *
+   * @return some information about the query.
+   */
+  QueryInfo query(const std::vector<Var> &component) {
+    std::cout << "query ";
+    for (auto &v : component) std::cout << v << " ";
+    std::cout << "0\n";
+    return {++m_id};
+  }  // query
+
+  /**
+   * @brief Wait for the answer to a query (this query should be answered
+   * possitively).
+   *
+   * @param query gives the query information.
+   */
+  mpz::mpz_int askCount(const QueryInfo &query) {
+    std::cout << "ask " << query.id << "\n";
+    std::cout << "get the answer from the server ...\n";
+    return 1;
+  }  // askCount
+};
+
 class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
  private:
   bool optDomConst;
@@ -84,6 +198,9 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
   CacheManager<mpz::mpz_int> *m_cache;
 
   std::ostream m_out;
+
+  GlobalCacheManager m_globalCacheManager;
+  QueryInfo m_currentQuery;
 
  public:
   /**
@@ -150,6 +267,9 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
 
     m_out << "c\n";
+
+    GlobalCacheInfo info = {"@"};
+    m_globalCacheManager = GlobalCacheManager(info, m_problem);
   }  // constructor
 
   /**
@@ -342,6 +462,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
+    m_globalCacheManager.pushUnit(unitsLit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -353,7 +474,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
     if (nbComponent) {
       mpz::mpz_int count = 1;
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      for (int cp = 0; cp < nbComponent; cp++) {
+      for (int cp = 0; cp < nbComponent && count != -1; cp++) {
         std::vector<Var> &connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
@@ -363,17 +484,38 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
         if (cacheActivated && cb.defined)
           count *= cb.getValue();
         else {
+          // query the server.
+          QueryInfo query = m_globalCacheManager.query(connected);
+
           // recursive call
           mpz::mpz_int res = computeDecisionNode(connected, out);
-          count *= res;
-          if (cacheActivated) m_cache->addInCache(cb, res);
+
+          // check if the server found out an entry.
+          if (res == -1) {
+            if (query.id == m_currentQuery.id) {
+              res = m_globalCacheManager.askCount(query);
+            } else {
+              // we will abort the current search until we reach the good query.
+              count = -1;
+            }
+          }
+
+          if (count != -1) {
+            count *= res;
+            if (cacheActivated) m_cache->addInCache(cb, res);
+          }
+
+          // ask the server to stop searching for the given query.
+          m_globalCacheManager.stopQuery(query);
         }
       }
 
+      m_globalCacheManager.popUnit(unitsLit);
       m_specs->postUpdate(unitsLit);
       return count;
     }  // else we have a tautology
 
+    m_globalCacheManager.popUnit(unitsLit);
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
 
@@ -511,7 +653,9 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
       if (m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
 
     m_specs->preUpdate(shadowUnits);
+    m_globalCacheManager.pushUnit(shadowUnits);
     mpz::mpz_int result = compute(setOfVar, out, false);
+    m_globalCacheManager.popUnit(shadowUnits);
     m_specs->postUpdate(shadowUnits);
 
     return result;
