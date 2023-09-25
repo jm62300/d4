@@ -107,7 +107,7 @@ class GlobalCacheManager {
    * @param unit is the set of units.
    * @return true if everything is okay, false otherwise.
    */
-  bool pushUnit(const std::vector<Lit> &unit) {
+  bool pushUnits(const std::vector<Lit> &unit) {
     std::cout << "push ";
     for (auto &l : unit) std::cout << l.human() << " ";
     std::cout << "0";
@@ -121,7 +121,7 @@ class GlobalCacheManager {
    * @param unit is the set of units.
    * @return true if everything is okay, false otherwise.
    */
-  bool popUnit(const std::vector<Lit> &unit) {
+  bool popUnits(const std::vector<Lit> &unit) {
     std::cout << "pop ";
     for (auto &l : unit) std::cout << l.human() << " ";
     std::cout << "0";
@@ -478,7 +478,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-    m_globalCacheManager.pushUnit(unitsLit);
+    m_globalCacheManager.pushUnits(unitsLit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -526,12 +526,12 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
         }
       }
 
-      m_globalCacheManager.popUnit(unitsLit);
+      m_globalCacheManager.popUnits(unitsLit);
       m_specs->postUpdate(unitsLit);
       return count;
     }  // else we have a tautology
 
-    m_globalCacheManager.popUnit(unitsLit);
+    m_globalCacheManager.popUnits(unitsLit);
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
 
@@ -669,9 +669,9 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
       if (m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
 
     m_specs->preUpdate(shadowUnits);
-    m_globalCacheManager.pushUnit(shadowUnits);
+    m_globalCacheManager.pushUnits(shadowUnits);
     mpz::mpz_int result = compute(setOfVar, out, false);
-    m_globalCacheManager.popUnit(shadowUnits);
+    m_globalCacheManager.popUnits(shadowUnits);
     m_specs->postUpdate(shadowUnits);
 
     return result;

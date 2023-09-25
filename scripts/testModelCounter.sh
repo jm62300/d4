@@ -14,8 +14,10 @@ TESTED_METHOD="../build/d4_debug -m counting-global-cache -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
 
 
+
 $TESTED_METHOD $1 2>/dev/null  | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 $MODEL_COUNTER $1 2>/dev/null  | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
+
 
 diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null
 exit $?
