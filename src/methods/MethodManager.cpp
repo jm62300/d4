@@ -42,55 +42,6 @@ namespace d4 {
 namespace mpz = boost::multiprecision;
 
 /**
-   Consider the option in order to generate an instance of the wanted method.
-
-   @param[in] vm, the map of option.
-   @param[in] out, the stream where are print the information.
-   @param[in] meth, the method we search to construct.
-   @param[in] precision, the precision for the bignum.
-   @param[in] isFloat, decide if the binum are float or int.
-   @param[in] out, the stream where are printed the information.
-
-   \return a method manager.
- */
-MethodManager *MethodManager::makeMethodManager(po::variables_map &vm,
-                                                ProblemManager *problem,
-                                                const Configuration &config,
-                                                std::ostream &out) {
-  out << "c [METHOD MANAGER]\n";
-  boost::multiprecision::mpf_float::default_precision(config.precision);
-
-  if (config.methodName != METH_EROSION) {
-    ProblemManager *runProblem = runPreproc(
-        OptionPreprocManager(config.configurationPreproc), problem, out);
-
-    bool isFloat = config.isFloat;
-    displayInfoVariables(runProblem, out);
-    for (unsigned i = 0; !isFloat && i < problem->getNbVar(); i++) {
-      Lit l = Lit::makeLitTrue(i);
-      if (problem->getWeightLit(l) != 1 || problem->getWeightLit(~l) != 1) {
-        isFloat = 1;
-        out << "c [METHOD MANAGER] Change to float mode!\n";
-      }
-    }
-
-    if (config.methodName == METH_MIN_SHARP) {
-      if (!isFloat)
-        return new MinSharpSAT<mpz::mpz_int>(vm, "min#sat", isFloat, runProblem,
-                                             out);
-      return new MinSharpSAT<mpz::mpf_float>(vm, "min#sat", isFloat, runProblem,
-                                             out);
-    }
-  } else {
-    // return new Erosion<mpz::mpz_int>(vm, config.isFloat,
-    //                                     new
-    //                                     ProblemManagerErosionCnf(problem));
-  }
-
-  throw(FactoryException("Cannot create a MethodManager", __FILE__, __LINE__));
-}  // makeMethodManager
-
-/**
  * @brief Display the projected variables in order.
  * @param[in] selected The list of projected variables.
  * @param[in] out The stream where is printed out the information.

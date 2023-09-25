@@ -21,7 +21,6 @@
 
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/multiprecision/gmp.hpp>
-#include <boost/program_options.hpp>
 
 #include "src/exceptions/FactoryException.hpp"
 #include "src/methods/DataBranch.hpp"
@@ -29,7 +28,6 @@
 
 namespace d4 {
 namespace mpz = boost::multiprecision;
-namespace po = boost::program_options;
 
 enum ProblemInputType { PB_CNF, PB_TCNF, PB_CIRC, PB_NONE };
 

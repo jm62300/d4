@@ -18,14 +18,10 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
-
 class Configuration;
 
 enum MethodName {
@@ -77,11 +73,6 @@ class MethodManager {
 
  public:
   virtual ~MethodManager() {}
-
-  static MethodManager *makeMethodManager(po::variables_map &vm,
-                                          ProblemManager *problem,
-                                          const Configuration &configuration,
-                                          std::ostream &out);
 
   static void displayInfoVariables(ProblemManager *problem, std::ostream &out);
 

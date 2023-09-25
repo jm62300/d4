@@ -18,8 +18,8 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <functional>
+#include <memory>
 #include <vector>
 
 #include "3rdParty/kahypar/include/libkahypar.h"

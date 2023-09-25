@@ -29,6 +29,7 @@
 #include "EREDemo.hpp"
 #include "ErosionDemo.hpp"
 #include "MaxSharpSatDemo.hpp"
+#include "MinSharpSatDemo.hpp"
 #include "ParseOption.hpp"
 #include "ProjMcDemo.hpp"
 #include "dDnnfCompilerDemo.hpp"
@@ -143,6 +144,7 @@ int main(int argc, char **argv) {
     if (methodName == METH_PROJ_MC) projMcDemo(vm, problem);
     if (methodName == METH_ERE) ereDemo(vm, problem);
     if (methodName == METH_MAX_SHARP) maxSharpSatDemo(vm, problem);
+    if (methodName == METH_MIN_SHARP) minSharpSatDemo(vm, problem);
     if (methodName == METH_COUNTING_GLOBAL_CACHE)
       counterGlobalCacheDemo(vm, problem);
   } else {

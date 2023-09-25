@@ -21,7 +21,6 @@
 #include <bits/stdint-uintn.h>
 #include <sys/types.h>
 
-#include <boost/program_options.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>

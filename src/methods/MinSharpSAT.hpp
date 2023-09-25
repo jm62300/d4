@@ -21,7 +21,6 @@
 #include <bits/stdint-uintn.h>
 #include <sys/types.h>
 
-#include <boost/program_options.hpp>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -37,9 +36,7 @@
 #include "src/heuristics/PhaseHeuristicPolarity.hpp"
 #include "src/heuristics/ScoringMethod.hpp"
 #include "src/methods/nnf/Node.hpp"
-#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
-#include "src/options/solvers/OptionSolver.hpp"
-#include "src/options/specs/OptionSpecManager.hpp"
+#include "src/options/methods/OptionMinSharpSatMethod.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -48,7 +45,6 @@
 #include "src/utils/MemoryStat.hpp"
 
 namespace d4 {
-namespace po = boost::program_options;
 template <class T>
 class Counter;
 
@@ -70,7 +66,8 @@ class MinSharpSAT : public MethodManager {
   unsigned m_nbCallCall;
   unsigned m_nbSplit;
   unsigned m_nbDecisionNode;
-  unsigned m_optCached;
+  unsigned m_optCachedMin;
+  unsigned m_optCachedInd;
   unsigned m_stampIdx;
   bool m_isProjectedMode;
 
@@ -90,8 +87,10 @@ class MinSharpSAT : public MethodManager {
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
   SpecManager *m_specs;
-  ScoringMethod *m_hVar;
-  PhaseHeuristic *m_hPhase;
+  ScoringMethod *m_hVarMin;
+  PhaseHeuristic *m_hPhaseMin;
+  ScoringMethod *m_hVarInd;
+  PhaseHeuristic *m_hPhaseInd;
 
   CacheManager<T> *m_cacheInd;
   CacheManager<MinSharpSatResult> *m_cacheMax;
@@ -103,9 +102,9 @@ class MinSharpSAT : public MethodManager {
   /**
      Constructor.
 
-     @param[in] vm, the list of options.
+     @param[in] options, the list of options.
    */
-  MinSharpSAT(po::variables_map &vm, const std::string &meth, bool isFloat,
+  MinSharpSAT(const OptionMinSharpSatMethod &options,
               ProblemManager *initProblem, std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
@@ -114,35 +113,26 @@ class MinSharpSAT : public MethodManager {
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     // we create the SAT solver.
-    OptionSolver optionSolver;
-    optionSolver.solverName =
-        SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-    m_solver = WrapperSolver::makeWrapperSolver(optionSolver, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    OptionSpecManager optSpecManager;
-    optSpecManager.specUpdateType = SpecUpdateManager::getSpecUpdate(
-        vm["occurrence-manager"].as<std::string>());
-    m_specs = SpecManager::makeSpecManager(optSpecManager, *m_problem, m_out);
+    m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
+                                           *m_problem, m_out);
     assert(m_specs);
 
     // we initialize the object used to compute score and partition.
-    OptionBranchingHeuristic optionBranchingHeuristic;
-    optionBranchingHeuristic.scoringMethodType =
-        ScoringMethodTypeManager::getScoringMethodType(
-            vm["scoring-method"].as<std::string>());
+    m_hVarMin = ScoringMethod::makeScoringMethod(
+        options.optionBranchingHeuristicMin, *m_specs, *m_solver, m_out);
+    m_hPhaseMin = PhaseHeuristic::makePhaseHeuristic(
+        options.optionBranchingHeuristicMin, *m_specs, *m_solver, m_out);
 
-    optionBranchingHeuristic.phaseHeuristicType =
-        PhaseHeuristicTypeManager::getPhaseHeuristicType(
-            vm["phase-heuristic"].as<std::string>());
-
-    m_hVar = ScoringMethod::makeScoringMethod(optionBranchingHeuristic,
-                                              *m_specs, *m_solver, m_out);
-    m_hPhase = PhaseHeuristic::makePhaseHeuristic(optionBranchingHeuristic,
-                                                  *m_specs, *m_solver, m_out);
+    m_hVarInd = ScoringMethod::makeScoringMethod(
+        options.optionBranchingHeuristicMin, *m_specs, *m_solver, m_out);
+    m_hPhaseInd = PhaseHeuristic::makePhaseHeuristic(
+        options.optionBranchingHeuristicMin, *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
@@ -165,34 +155,16 @@ class MinSharpSAT : public MethodManager {
     }
 
     // no partitioning heuristic for the moment.
-    assert(m_hVar && m_hPhase);
-    OptionCacheManager optionCacheManager;
-    optionCacheManager.cachingMethod = CachingMehodManager::getCachingMethod(
-        vm["cache-method"].as<std::string>()),
-
-    optionCacheManager.optionCacheCleaningManager = {
-        CacheCleaningStrategyManager::getCacheCleaningStrategy(
-            vm["cache-reduction-strategy"].as<std::string>())};
-
-    optionCacheManager.optionBucketManager = {
-        ModeStoreManager::getModeStore(
-            vm["cache-store-strategy"].as<std::string>()),
-        ClauseRepresentationManager::getClauseRepresentation(
-            vm["cache-clause-representation"].as<std::string>()),
-        vm["cache-size-first-page"].as<unsigned long>(),
-        vm["cache-size-additional-page"].as<unsigned long>(),
-        vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>(),
-        vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>()};
-
     m_cacheInd = CacheManager<T>::makeCacheManager(
-        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
+        options.optionCacheManagerInd, m_problem->getNbVar(), m_specs, m_out);
     m_cacheMax = CacheManager<MinSharpSatResult>::makeCacheManager(
-        optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
+        options.optionCacheManagerMin, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
 
-    m_optCached = vm["cache-activated"].as<bool>();
+    m_optCachedMin = options.optionCacheManagerMin.isActivated;
+    m_optCachedInd = options.optionCacheManagerInd.isActivated;
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
 
     m_stampIdx = 0;
@@ -212,8 +184,10 @@ class MinSharpSAT : public MethodManager {
     delete m_problem;
     delete m_solver;
     delete m_specs;
-    delete m_hVar;
-    delete m_hPhase;
+    delete m_hVarMin;
+    delete m_hPhaseMin;
+    delete m_hVarInd;
+    delete m_hPhaseInd;
     delete m_cacheInd;
     delete m_cacheMax;
 
@@ -461,7 +435,7 @@ class MinSharpSAT : public MethodManager {
   void searchMinSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
                                  MinSharpSatResult &result) {
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isMaxDecisionVar);
+    Var v = m_hVarMin->selectVariable(connected, *m_specs, m_isMaxDecisionVar);
 
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
@@ -474,7 +448,7 @@ class MinSharpSAT : public MethodManager {
       return;
     }
 
-    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    Lit l = Lit::makeLit(v, m_hPhaseMin->selectPhase(v));
     m_nbDecisionNode++;
 
     // consider the two value for l
@@ -579,11 +553,11 @@ class MinSharpSAT : public MethodManager {
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_isDecisionVar);
+    Var v = m_hVarInd->selectVariable(connected, *m_specs, m_isDecisionVar);
 
     if (v == var_Undef) return T(1);
 
-    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
     m_nbDecisionNode++;
 
     // consider the two value for l
@@ -640,7 +614,7 @@ class MinSharpSAT : public MethodManager {
    *
    * @param[in] vm, the set of options.
    */
-  void run(po::variables_map &vm) {
+  void run() {
     std::vector<Var> setOfVar;
     for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
 
