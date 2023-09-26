@@ -41,13 +41,9 @@ set(wnoOption -Wno-strict-aliasing -Wno-class-memaccess -Wno-format -Wno-mislead
 
 # build.
 if(${BUILD_MODE} EQUAL 1)
-  # create an executable
+  message("Library debug")
   add_executable(d4_debug ${SRCS} ${HEADERS})
 
-  # PROFILE
-  message("Debug mode activated")
-  #set(CMAKE_CXX_COMPILER /usr/bin/g++-8 CACHE PATH "" FORCE)
-  
   set(CMAKE_BUILD_TYPE Debug)
   target_compile_options(d4_debug PUBLIC -std=c++17 -Wall -g -pg -O3 ${wnoOption} -D DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
   target_link_libraries (d4_debug -lz -g -pg -lgmpxx -lgmp -O3 ${libList})
@@ -68,7 +64,7 @@ elseif(${BUILD_MODE} EQUAL 2)
     DESTINATION bin
     RENAME ${CMAKE_PROJECT_NAME}-d4_static)
 elseif(${BUILD_MODE} EQUAL 3)
-  message("Library creation")
+  message("Library static")
   add_library(d4 ${SRCS} ${HEADERS})
 
   target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG -static)
@@ -76,7 +72,7 @@ elseif(${BUILD_MODE} EQUAL 3)
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
   install (TARGETS d4 DESTINATION lib)
-  install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME})
+  install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME}-static)
 else()  
 # create an executable
 add_executable(d4 ${SRCS} ${HEADERS})
@@ -100,15 +96,3 @@ foreach(file ${cmake_generated})
   endif()
 
 endforeach(file)
-
-
-
-#
-# Testing
-#
-
-# enable_testing()
-
-# include(cmake_includes/AddGoogleTest.cmake)
-# add_executable(HashString_test tests/HashString_test.cpp)
-# add_gtest(HashString_test)

@@ -16,58 +16,91 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include <boost/program_options.hpp>
-#include <iostream>
+#include <signal.h>
 
-#include "../../src/methods/Counter.hpp"
+#include <boost/multiprecision/gmp.hpp>
+#include <boost/program_options.hpp>
+#include <cassert>
+#include <iostream>
+#include <vector>
+
+#include "CounterDemo.hpp"
+#include "ParseOption.hpp"
+#include "src/configurations/Configuration.hpp"
+#include "src/methods/MethodManager.hpp"
+#include "src/options/preprocs/OptionPreprocManager.hpp"
+#include "src/preprocs/PreprocManager.hpp"
+
+#ifndef NOMAIN
+
+using namespace d4;
+namespace po = boost::program_options;
+MethodManager *methodRun = nullptr;
+
+/**
+ * @brief Catch the signal that ask for stopping the method which is running.
+ *
+ * @param signum is the signal.
+ */
+static void signalHandler(int signum) {
+  std::cout << "c [MAIN] Method stop\n";
+  if (methodRun != nullptr) methodRun->interrupt();
+  exit(signum);
+}  // signalHandler
 
 /**
    The main function!
 */
 int main(int argc, char **argv) {
-  // to create the vm option.
-  namespace po = boost::program_options;
   po::options_description desc{"Options"};
   desc.add_options()
 #include "option.dsc"
       ;
+
+  signal(SIGINT, signalHandler);
   po::variables_map vm;
-  char **fake = NULL;
-  po::store(parse_command_line(0, fake, desc), vm);
+  po::store(parse_command_line(argc, argv, desc), vm);
 
-  // to create the CNF instance.
-  unsigned nbVar = 3;
-  d4::ProblemManagerCnf problem;
-  problem.setNbVar(nbVar);
+  try {
+    po::notify(vm);
+  } catch (const po::error &ex) {
+    std::cerr << ex.what() << '\n';
+    exit(1);
+  }
 
-  std::vector<double> &weightLit = problem.getWeightLit();
-  std::vector<double> &weightVar = problem.getWeightVar();
+  // help or problem with the command line
+  if (vm.count("help") || !vm.count("input")) {
+    if (!vm.count("help"))
+      std::cout << "Some parameters are missing, please read the README\n";
+    std::cout << "USAGE: " << argv[0] << " -i INPUT -m METH [OPTIONS]\n";
+    std::cout << desc << '\n';
+    exit(!vm.count("help"));
+  }
 
-  weightLit.resize((nbVar + 1) << 1, 1);
-  weightVar.resize(nbVar + 1, 2);
+  // parse the initial problem.
+  d4::ProblemManager *initProblem = d4::ProblemManager::makeProblemManager(
+      vm["input"].as<std::string>(),
+      d4::ProblemInputTypeManager::getInputType(
+          vm["input-type"].as<std::string>()),
+      std::cout);
+  assert(initProblem);
+  std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
+               "formula\033[0m\n";
+  initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
+  std::cout << "c\n";
 
-  std::vector<std::vector<d4::Lit>> &clauses = problem.getClauses();
-  clauses.push_back({d4::Lit::makeLitFalse(1), d4::Lit::makeLitTrue(2)});
-  clauses.push_back({d4::Lit::makeLitTrue(1), d4::Lit::makeLitTrue(3)});
+  // run the method asked.
+  d4::MethodName methodName =
+      d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
 
-  problem.display(std::cout);
+  // preproc.
+  ProblemManager *problem = d4::MethodManager::runPreproc(
+      parsePreprocConfiguration(vm), initProblem, std::cout);
 
-  d4::LastBreathPreproc lastBreath;
-  d4::PreprocManager *preproc =
-      d4::PreprocManager::makePreprocManager(vm, std::cerr);
-  d4::ProblemManager *preprocProblem = preproc->run(problem, lastBreath);
+  // count.
+  counterDemo(vm, problem);
 
-  namespace mpz = boost::multiprecision;
-  mpz::mpf_float::default_precision(50);
-  d4::Counter<mpz::mpf_float> *method =
-      d4::Counter<mpz::mpf_float>::makeCounter(vm, preprocProblem, "counting",
-                                               true, 50, std::cerr, lastBreath);
-
-  std::vector<d4::Var> setOfVar;
-  for (unsigned i = 1; i <= nbVar; i++) setOfVar.push_back(i);
-
-  mpz::mpf_float v = method->count(setOfVar, std::cerr);
-  std::cout << "s " << v << "\n";
-  delete method;
-  return 0;
+  delete initProblem;
+  return EXIT_SUCCESS;
 }  // main
+#endif

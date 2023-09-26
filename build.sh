@@ -89,21 +89,12 @@ then
     ar -x ../../3rdParty/glucose-3.0/core/lib_glucose.a
     cd ..
 
-    mkdir -p reducer
-    cd reducer    
-    ar -x ../../3rdParty/reducer/build/libreducer.a
-    cd ..
-
     mkdir -p bipe
     cd bipe
     ar -x ../../3rdParty/bipe/build/libbipe.a
     cd ..
-
-    mkdir -p eliminator
-    cd eliminator
-    ar -x ../../3rdParty/eliminator/build/libeliminator.a
-    cd ..
-
+    
     ar -x libd4.a    
-    ar -rc libd4.a *.o kahypar/* patoh/* glucose/* reducer/* bipe/* eliminator/*
+    rm libd4.a
+    ar -rcP libd4.a *.o kahypar/* patoh/* glucose/* bipe/* 
 fi

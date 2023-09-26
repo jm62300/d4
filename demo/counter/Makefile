@@ -8,11 +8,12 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 CPPFLAGS ?= -MMD -MP
-LIBS := ../build/libd4.a ../3rdParty/kahypar/build/lib/libkahypar.a ../3rdParty/patoh/libpatoh.a ../3rdParty/glucose-3.0/core/lib_standard.a -lboost_program_options -lz -O3 -lgmpxx -lgmp -Wl,-R../build/
+LIBS := ../../build/libd4.a  -lboost_program_options -lz -O3 -lgmpxx -lgmp -Wl,-R../build/
+INCLUDES := -I../../
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	@echo Linking: "$@ ( $(foreach f,$^,$(subst $(BUILD_DIR)/$(SRC_DIRS),,$f)) )"	
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LIBS) $(INCLUDES) 
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(INCLUDES) $(LIBS)
 	
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	@echo Compiling: $<
