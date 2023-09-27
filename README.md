@@ -10,6 +10,8 @@ Description of the different methods supported by d4.
 First you need to initialize the submodule by using the following command line:
 ```console
 git submodule update --init --recursive
+git pull --recurse-submodules
+git submodule update --remote --merge
 ```
 
 In order to compile the project cmake (version>=3.1) and ninja have to

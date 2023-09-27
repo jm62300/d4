@@ -29,7 +29,6 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/kahypar/)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/bipe/)
 
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 if (NOT DEFINED BUILD_MODE)
@@ -41,30 +40,17 @@ set(wnoOption -Wno-strict-aliasing -Wno-class-memaccess -Wno-format -Wno-mislead
 
 # build.
 if(${BUILD_MODE} EQUAL 1)
-  message("Library debug")
-  add_executable(d4_debug ${SRCS} ${HEADERS})
+  message("Library debug")  
+  add_library(d4 ${SRCS} ${HEADERS})
 
-  set(CMAKE_BUILD_TYPE Debug)
-  target_compile_options(d4_debug PUBLIC -std=c++17 -Wall -g -pg -O3 ${wnoOption} -D DEBUG -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
-  target_link_libraries (d4_debug -lz -g -pg -lgmpxx -lgmp -O3 ${libList})
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -g -O2 ${wnoOption} -D DEBUG)
+  target_link_libraries (d4 -lz -O2 -lgmpxx -lgmp ${libList})
+  target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-  
-  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_debug
-    DESTINATION bin
-    RENAME ${CMAKE_PROJECT_NAME}-d4_debug)
+  install (TARGETS d4 DESTINATION lib)
+  install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME}-debug)
 elseif(${BUILD_MODE} EQUAL 2)
-  message("Static mode activated")
-
-  add_executable(d4_static ${SRCS} ${HEADERS})
-
-  target_compile_options(d4_static PUBLIC -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG -static)
-  target_link_libraries (d4_static -lz -O3 -lgmpxx -lgmp ${libList} -static)
-  
-  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4_static
-    DESTINATION bin
-    RENAME ${CMAKE_PROJECT_NAME}-d4_static)
-elseif(${BUILD_MODE} EQUAL 3)
-  message("Library static")
+  message("Library static")  
   add_library(d4 ${SRCS} ${HEADERS})
 
   target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG -static)
@@ -73,17 +59,26 @@ elseif(${BUILD_MODE} EQUAL 3)
 
   install (TARGETS d4 DESTINATION lib)
   install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME}-static)
+elseif(${BUILD_MODE} EQUAL 3)
+  message("Library debug")  
+  add_library(d4 ${SRCS} ${HEADERS})
+
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -pg -O3 ${wnoOption} -D NDEBUG)
+  target_link_libraries (d4 -lz -O3 -pg -lgmpxx -lgmp ${libList})
+  target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+  install (TARGETS d4 DESTINATION lib)
+  install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME}-profil)
 else()  
-# create an executable
-add_executable(d4 ${SRCS} ${HEADERS})
+  message("Library standard")  
+  add_library(d4 ${SRCS} ${HEADERS})
 
-message("Classical mode activated")
-target_compile_options(d4 PUBLIC -std=c++17 -Wall -O3 ${wnoOption})
-target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${libList})
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG)
+  target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${libList})
+  target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/d4
-  DESTINATION bin
-  RENAME ${CMAKE_PROJECT_NAME}-d4)
+  install (TARGETS d4 DESTINATION lib)
+  install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME}-standard)
 endif()
 
 
