@@ -21,12 +21,14 @@
 #include <bits/stdint-uintn.h>
 #include <sys/types.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <iterator>
 #include <random>
 #include <string>
 #include <vector>
@@ -993,7 +995,10 @@ class ExistRandomExist : public MethodManager {
     // explore around the current assumption.
     std::vector<Lit> negTest = unitsAssums;
     for (auto &l : negTest) l = ~l;
-    std::random_shuffle(negTest.begin(), negTest.end());
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(negTest.begin(), negTest.end(), g);
 
     bool first = true;
     while (!m_stopProcess && (first || negTest.size())) {

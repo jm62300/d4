@@ -90,8 +90,7 @@ int main(int argc, char **argv) {
   std::cout << "c\n";
 
   // run the method asked.
-  d4::MethodName methodName =
-      d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
+  d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
 
   // preproc.
   ProblemManager *problem = d4::MethodManager::runPreproc(

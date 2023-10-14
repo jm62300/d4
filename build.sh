@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 set -e
 set -u
 set -o pipefail
@@ -21,23 +23,20 @@ do
     esac
 done
 
-curRep=$PWD
-cd 3rdParty/glucose-3.0/core/
+cd $SCRIPT_DIR/3rdParty/glucose-3.0/core/
 make libst       
 mv lib_static.a lib_glucose.a
 
-cd $curRep
-cd 3rdParty/kahypar/
+cd $SCRIPT_DIR/3rdParty/kahypar/
 mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make -j
 
-cd $curRep
-cd 3rdParty/bipe/
+cd $SCRIPT_DIR/3rdParty/bipe/
 ./build.sh -s    
 
-cd $curRep
+cd $SCRIPT_DIR
 mkdir -p build
 cd build
 cmake -GNinja .. -DBUILD_MODE=$opt 

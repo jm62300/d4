@@ -103,7 +103,7 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
   for (int i = lits.size() - 1; i >= 0; i--) {
     Lit l = lits[i];
 
-    // for the no binary clauses.
+    // for the non binary clauses.
     for (unsigned i = 0; i < m_occurrence[l.intern()].nbNotBin; i++) {
       int idxCl = m_occurrence[l.intern()].notBin[i];
       m_infoClauses[idxCl].nbSat--;

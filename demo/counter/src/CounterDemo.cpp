@@ -87,8 +87,7 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
   // get the configuration.
   ConfigurationDpllStyleMethod config;
 
-  config.methodName =
-      d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
+  config.methodName = d4::MethodNameManager::getMethodName("counting");
 
   config.inputName = vm["input"].as<std::string>();
   config.problemInputType = d4::ProblemInputTypeManager::getInputType(
@@ -104,8 +103,7 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
   config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
 
-  config.operationType =
-      d4::OperationTypeManager::getOperatorType(vm["method"].as<std::string>());
+  config.operationType = d4::OperationTypeManager::getOperatorType("counting");
 
   bool isFloat = problem->isFloat();
   MethodManager::displayInfoVariables(problem, std::cout);

@@ -353,7 +353,7 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c) {
    @param[in] currentComponent, currentComponent[var] is true when var is in
    the current component, false otherwise.
 
-   \return true if the clause is satisfied, false otherwise.
+   \return false if the clause is satisfied, true otherwise.
 */
 bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(
     int idx, std::vector<bool> &m_inCurrentComponent) {
