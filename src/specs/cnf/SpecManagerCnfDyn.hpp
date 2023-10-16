@@ -41,7 +41,7 @@ struct SavedStateClause {
 class SpecManagerCnfDyn : public SpecManagerCnf {
  private:
   std::vector<int> m_reviewWatcher;
-  std::vector<bool> m_markedLit;
+  std::vector<char> m_markedLit;
   std::vector<bool> m_markedClauseIdx;
 
   std::vector<SavedStateOcc> m_savedStateOccs;

@@ -56,7 +56,7 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
   }
 
   // reserve the memory to store the occurrence lists.
-  m_occurrence.resize((m_nbVar + 1) << 1, {NULL, 0, NULL, 0});
+  m_occurrence.resize((m_nbVar + 1) << 1, {NULL, NULL, 0, 0});
   m_dataOccurrenceMemory = new int[count];
 
   // construct the occurrence list.

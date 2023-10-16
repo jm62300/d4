@@ -29,22 +29,21 @@ struct IteratorIdxClause {
 
 struct DataOccurrence {
   int *bin;
-  unsigned nbBin;
   int *notBin;
   unsigned nbNotBin;
+  unsigned nbBin;
 
   inline void removeMarkedBin(const std::vector<bool> &markedClauses) {
-    if (!nbBin) return;
-    int *end = &bin[nbBin - 1];
+    int *end = &bin[nbBin - 1], *endSize = &bin[nbBin];
     while (end >= bin) {
       if (!markedClauses[*end])
         end--;
       else {
         std::swap(*end, *bin);
         bin++;
-        nbBin--;
       }
     }
+    nbBin = endSize - bin;
   }
 
   inline void removeBin(int idx) {
