@@ -349,6 +349,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
+    // if (m_nbCallCall > 500000) exit(0);
+
     static unsigned countPure = 0, limitPure = 100000;
     std::vector<Lit> pureLit;
     for (auto &v : setOfVar) {

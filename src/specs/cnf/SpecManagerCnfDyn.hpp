@@ -25,9 +25,29 @@
 #include "SpecManagerCnf.hpp"
 
 namespace d4 {
+
+struct SavedStateOcc {
+  Lit l;
+  unsigned nbBin;
+  unsigned nbNotBin;
+};
+
+struct SavedStateClause {
+  int idx;
+  unsigned isSat : 1;
+  unsigned nbUnsat : 31;
+};
+
 class SpecManagerCnfDyn : public SpecManagerCnf {
  private:
   std::vector<int> m_reviewWatcher;
+  std::vector<bool> m_markedLit;
+  std::vector<bool> m_markedClauseIdx;
+
+  std::vector<SavedStateOcc> m_savedStateOccs;
+  std::vector<SavedStateClause> m_savedStateClauses;
+  std::vector<unsigned> m_stackPosOcc, m_stackPosClause;
+
   void initClauses(std::vector<std::vector<Lit>> &clauses);
 
  public:

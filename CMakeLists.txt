@@ -40,11 +40,11 @@ set(wnoOption -Wno-strict-aliasing -Wno-class-memaccess -Wno-format -Wno-mislead
 
 # build.
 if(${BUILD_MODE} EQUAL 1)
-  message("Library debug")  
+  message("Library debug D4")  
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -g -O2 ${wnoOption} -D DEBUG)
-  target_link_libraries (d4 -lz -O2 -lgmpxx -lgmp ${libList})
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -g -O2 ${wnoOption} -U NDEBUG)
+  target_link_libraries (d4 -lz -O2  -U NDEBUG -lgmpxx -lgmp ${libList})
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
   install (TARGETS d4 DESTINATION lib)
@@ -53,17 +53,17 @@ elseif(${BUILD_MODE} EQUAL 2)
   message("Library static")  
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG -static)
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -O3 ${wnoOption} -D NDEBUG -static)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${libList} -static)
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
   install (TARGETS d4 DESTINATION lib)
   install(FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME}-static)
 elseif(${BUILD_MODE} EQUAL 3)
-  message("Library debug")  
+  message("Library profil")  
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -pg -O3 ${wnoOption} -D NDEBUG)
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -pg -O3 ${wnoOption} -D NDEBUG)
   target_link_libraries (d4 -lz -O3 -pg -lgmpxx -lgmp ${libList})
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -73,7 +73,7 @@ else()
   message("Library standard")  
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++17 -Wall -O3 ${wnoOption} -D NDEBUG)
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -O3 ${wnoOption} -D NDEBUG)
   target_link_libraries (d4 -lz -O3 -lgmpxx -lgmp ${libList})
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

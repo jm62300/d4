@@ -28,11 +28,12 @@
 
 namespace d4 {
 struct SpecClauseInfo {
-  unsigned nbSat;
-  unsigned nbUnsat;
+  unsigned isSat : 1;
+  unsigned nbUnsat : 31;
+  unsigned xorLitBin;
   Lit watcher;
 
-  SpecClauseInfo() : nbSat(0), nbUnsat(0), watcher(lit_Undef) { ; }
+  SpecClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0), watcher(lit_Undef) {}
 };
 
 struct InfoCluster {
@@ -188,6 +189,7 @@ class SpecManagerCnf : public SpecManager {
   }
 
   inline void showOccurenceList(std::ostream &out) {
+    printf("Occurence list\n");
     for (unsigned i = 0; i < m_occurrence.size(); i++) {
       if (!m_occurrence[i].nbBin && !m_occurrence[i].nbNotBin) continue;
       out << ((i & 1) ? "-" : "") << (i >> 1) << " --> [ ";

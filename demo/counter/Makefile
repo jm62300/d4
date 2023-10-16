@@ -33,7 +33,7 @@ $(BUILD_DIR)/$(EXEC)_debug:	LDFLAGS += -g
 $(BUILD_DIR)/$(EXEC)_static:	LDFLAGS += -static
 
 
-$(BUILD_DIR)/$(EXEC) $(BUILD_DIR)/$(EXEC)_profile $(BUILD_DIR)/$(EXEC)_debug $(BUILD_DIR)/$(EXEC)_static: $(OBJS)
+$(BUILD_DIR)/$(EXEC) $(BUILD_DIR)/$(EXEC)_profile $(BUILD_DIR)/$(EXEC)_debug $(BUILD_DIR)/$(EXEC)_static: $(OBJS) ../../build/libd4.a
 	@echo Linking: "$@ ( $(foreach f,$^,$(subst $(BUILD_DIR)/$(SRC_DIRS),,$f)) )"	
 	../../build.sh $(OPT_BUILD_LIB)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(INCLUDES) $(LIBS)
@@ -44,7 +44,7 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ $(INCLUDES)
 
 
-.PHONY: clean
+.PHONY: clean 
 
 clean:
 	$(RM) -r $(BUILD_DIR)

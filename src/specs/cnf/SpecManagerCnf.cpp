@@ -90,9 +90,13 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
 
   m_infoClauses.resize(nbClause);
 
-  // get the size of the largest clause.
+  // set the info about watchers and xorLitBin.
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     m_infoClauses[i].watcher = m_clauses[i][0];
+
+    if (m_clauses[i].size() == 2)
+      m_infoClauses[i].xorLitBin =
+          m_clauses[i][0].intern() ^ m_clauses[i][1].intern();
   }
 
   m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
@@ -322,7 +326,7 @@ int SpecManagerCnf::computeConnectedComponentTargeted(
 */
 bool SpecManagerCnf::isSatisfiedClause(unsigned idx) {
   assert(idx < m_clauses.size());
-  return m_infoClauses[idx].nbSat;
+  return m_infoClauses[idx].isSat;
 }  // isSatisfiedClause
 
 /**
@@ -357,7 +361,7 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c) {
 */
 bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(
     int idx, std::vector<bool> &m_inCurrentComponent) {
-  if (m_infoClauses[idx].nbSat) return false;
+  if (m_infoClauses[idx].isSat) return false;
   assert(m_infoClauses[idx].watcher != lit_Undef);
   assert(!litIsAssigned(m_infoClauses[idx].watcher));
   return m_inCurrentComponent[m_infoClauses[idx].watcher.var()];
@@ -408,7 +412,7 @@ void SpecManagerCnf::showTrail(std::ostream &out) {
 void SpecManagerCnf::showCurrentFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_infoClauses[i].nbSat) continue;
+    if (m_infoClauses[i].isSat) continue;
     for (auto &l : m_clauses[i])
       if (!litIsAssigned(l)) out << l << " ";
     out << "0\n";
