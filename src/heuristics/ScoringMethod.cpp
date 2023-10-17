@@ -61,11 +61,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
 }  // makeScoringMethod
 
 /**
-   Select the best variable in vars and return it.
-
-   \param[in] vars, the set of variables we search in.
-
-   \return the best variable if exists, var_Undef otherwise.
+ * @brief ScoringMethod::selectLitSet implementation.
  */
 Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
                                   std::vector<bool> &isDecisionVariable) {
@@ -84,6 +80,6 @@ Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
   }
 
   return ret;
-}  // selectVariable
+}  // selectLitSet
 
 }  // namespace d4

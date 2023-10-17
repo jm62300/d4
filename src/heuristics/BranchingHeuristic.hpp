@@ -18,34 +18,37 @@
  */
 #pragma once
 
-#include <src/problem/ProblemTypes.hpp>
-#include <src/solvers/ActivityManager.hpp>
-#include <src/solvers/WrapperSolver.hpp>
-#include <src/specs/SpecManager.hpp>
-#include <vector>
-
+#include "PhaseHeuristic.hpp"
+#include "ScoringMethod.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
-class ScoringMethod {
+class BranchingHeuristic {
+ private:
+  ScoringMethod *m_hVar;
+  PhaseHeuristic *m_hPhase;
+
  public:
-  static ScoringMethod *makeScoringMethod(
-      const OptionBranchingHeuristic &options, SpecManager &p,
-      ActivityManager &am, std::ostream &out);
-  virtual ~ScoringMethod() { ; }
-  virtual double computeScore(Var v) = 0;
-  virtual void postProcess(Var v) {}
-  virtual void decayCountConflict() {}
+  /**
+   * @brief Remove the defaut constructor.
+   *
+   */
+  BranchingHeuristic() = delete;
+
+  BranchingHeuristic(const OptionBranchingHeuristic &options,
+                     SpecManager *m_specs, WrapperSolver *m_solver,
+                     std::ostream &out);
 
   /**
-   * @brief Select the best variable regarding the given heuristic.
+   * @brief Select a list of literals we want to branch on it in a deterministic
+   * way.
    *
    * @param vars is the set of variables under consideration.
-   * @param s is the spec manager needed for getting the problem.
-   * @param isDecisionVariable maps the decision variables to true.
-   * @return the selected variable.
+   * @param s can give information about the formula.
+   * @param isDecisionVariable are the variable we can decide on.
+   * @return a set of literals.
    */
-  Var selectVariable(std::vector<Var> &vars, SpecManager &s,
-                     std::vector<bool> &isDecisionVariable);
+  std::vector<Lit> selectLitSet(std::vector<Var> &vars, SpecManager &s,
+                                std::vector<bool> &isDecisionVariable);
 };
 }  // namespace d4

@@ -28,9 +28,8 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
+#include "src/heuristics/BranchingHeuristic.hpp"
 #include "src/heuristics/PartitioningHeuristic.hpp"
-#include "src/heuristics/PhaseHeuristic.hpp"
-#include "src/heuristics/ScoringMethod.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
@@ -78,8 +77,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
   SpecManager *m_specs;
-  ScoringMethod *m_hVar;
-  PhaseHeuristic *m_hPhase;
+  BranchingHeuristic *m_heuristic;
   PartitioningHeuristic *m_hCutSet;
   TmpEntry<U> NULL_CACHE_ENTRY;
   CacheManager<U> *m_cache;
@@ -115,10 +113,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
                                            *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
-    m_hVar = ScoringMethod::makeScoringMethod(options.optionBranchingHeuristic,
-                                              *m_specs, *m_solver, m_out);
-    m_hPhase = PhaseHeuristic::makePhaseHeuristic(
-        options.optionBranchingHeuristic, *m_specs, *m_solver, m_out);
+    m_heuristic = new BranchingHeuristic(options.optionBranchingHeuristic,
+                                         *m_specs, *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
