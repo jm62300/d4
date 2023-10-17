@@ -34,6 +34,8 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p) {
   m_savedStateOccs.reserve(getSumSizeClauses());
 }  // SpecManagerCnfDyn
 
+#define TEST_DEBUG 0
+
 /**
    Update the occurrence list w.r.t. a new set of assigned variables.
    It's important that the order is conserved between the moment where
@@ -42,34 +44,6 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p) {
    @param[in] lits, the new assigned variables
  */
 void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_infoClauses[i].isSat) {
-      bool oneSat = false;
-      for (auto &l : m_clauses[i])
-        if (oneSat = (m_currentValue[l.var()] == l.sign())) break;
-
-      if (!oneSat) {
-        std::cout << "1 Problem 1!\n";
-        exit(1);
-      }
-    } else {
-      unsigned cpt = 0;
-      for (auto &l : m_clauses[i]) {
-        if (m_currentValue[l.var()] == l_Undef) continue;
-        cpt++;
-        if (m_currentValue[l.var()] == l.sign()) {
-          std::cout << "1 Problem 2!\n";
-          exit(2);
-        }
-      }
-
-      if (cpt != m_infoClauses[i].nbUnsat) {
-        std::cout << "1 Problem 3!\n";
-        exit(3);
-      }
-    }
-  }
-
   m_stackPosClause.push_back(m_savedStateClauses.size());
   m_stackPosOcc.push_back(m_savedStateOccs.size());
 
@@ -93,19 +67,6 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
     }
   }
 
-  for (auto &l : lits) {
-    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
-      int idxCl = m_occurrence[(~l).intern()].notBin[i];
-      if (!m_markedClauseIdx[idxCl]) {
-        m_markedClauseIdx[idxCl] = 1;
-        m_savedStateClauses.push_back((SavedStateClause){
-            idxCl, m_infoClauses[idxCl].isSat, m_infoClauses[idxCl].nbUnsat});
-      }
-      m_infoClauses[idxCl].nbUnsat++;
-      if (m_infoClauses[idxCl].watcher == ~l) m_reviewWatcher.push_back(idxCl);
-    }
-  }
-
   for (int i = m_stackPosClause.back(); i < m_savedStateClauses.size(); i++) {
     int idxCl = m_savedStateClauses[i].idx;
     for (auto &ll : m_clauses[idxCl])
@@ -119,6 +80,19 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
 
         m_occurrence[ll.intern()].removeNotBin(idxCl);
       }
+  }
+
+  for (auto &l : lits) {
+    for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
+      int idxCl = m_occurrence[(~l).intern()].notBin[i];
+      if (!m_markedClauseIdx[idxCl]) {
+        m_markedClauseIdx[idxCl] = 1;
+        m_savedStateClauses.push_back((SavedStateClause){
+            idxCl, m_infoClauses[idxCl].isSat, m_infoClauses[idxCl].nbUnsat});
+      }
+      m_infoClauses[idxCl].nbUnsat++;
+      if (m_infoClauses[idxCl].watcher == ~l) m_reviewWatcher.push_back(idxCl);
+    }
   }
 
   // we search another non assigned literal if requiered
@@ -143,7 +117,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       // mark the clause if needed.
       if (m_markedClauseIdx[idxCl]) continue;
       m_markedClauseIdx[idxCl] = true;
-      m_savedStateClauses.emplace_back(
+      m_savedStateClauses.push_back(
           (SavedStateClause){idxCl, false, m_infoClauses[idxCl].nbUnsat});
 
       // update the status.
@@ -156,7 +130,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
         // mark the literal.
         if (!m_markedLit[otherLit.intern()]) {
           m_markedLit[otherLit.intern()] = true;
-          m_savedStateOccs.emplace_back(
+          m_savedStateOccs.push_back(
               (SavedStateOcc){otherLit, m_occurrence[otherLit.intern()].nbBin,
                               m_occurrence[otherLit.intern()].nbNotBin});
         }
@@ -178,35 +152,6 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
   // unmark the clauses.
   for (int i = m_stackPosClause.back(); i < m_savedStateClauses.size(); i++)
     m_markedClauseIdx[m_savedStateClauses[i].idx] = false;
-
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_infoClauses[i].isSat) {
-      bool oneSat = false;
-      for (auto &l : m_clauses[i])
-        if (oneSat = (m_currentValue[l.var()] == l.sign())) break;
-
-      if (!oneSat) {
-        std::cout << "2 Problem 1!\n";
-        exit(1);
-      }
-    } else {
-      unsigned cpt = 0;
-      for (auto &l : m_clauses[i]) {
-        if (m_currentValue[l.var()] == l_Undef) continue;
-        cpt++;
-        if (m_currentValue[l.var()] == l.sign()) {
-          std::cout << "2 Problem 2!\n";
-          exit(2);
-        }
-      }
-
-      if (cpt != m_infoClauses[i].nbUnsat) {
-        std::cout << "2 Problem 3!\n";
-        exit(3);
-      }
-    }
-  }
-
 }  // preUpdate
 
 /**
@@ -215,34 +160,6 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
  * @param lits are the new assigned variables.
  */
 void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_infoClauses[i].isSat) {
-      bool oneSat = false;
-      for (auto &l : m_clauses[i])
-        if (oneSat = (m_currentValue[l.var()] == l.sign())) break;
-
-      if (!oneSat) {
-        std::cout << "3 Problem 1!\n";
-        exit(1);
-      }
-    } else {
-      unsigned cpt = 0;
-      for (auto &l : m_clauses[i]) {
-        if (m_currentValue[l.var()] == l_Undef) continue;
-        cpt++;
-        if (m_currentValue[l.var()] == l.sign()) {
-          std::cout << "3 Problem 2!\n";
-          exit(2);
-        }
-      }
-
-      if (cpt != m_infoClauses[i].nbUnsat) {
-        std::cout << "3 Problem 3!\n";
-        exit(3);
-      }
-    }
-  }
-
   // manage the literal information.
   unsigned previousOcc = m_stackPosOcc.back();
   m_stackPosOcc.pop_back();
@@ -266,35 +183,6 @@ void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
   m_savedStateClauses.resize(previousClause);
 
   for (auto &l : lits) m_currentValue[l.var()] = l_Undef;
-
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_infoClauses[i].isSat) {
-      bool oneSat = false;
-      for (auto &l : m_clauses[i])
-        if (oneSat = (m_currentValue[l.var()] == l.sign())) break;
-
-      if (!oneSat) {
-        std::cout << "4 Problem 1!\n";
-        exit(1);
-      }
-    } else {
-      unsigned cpt = 0;
-      for (auto &l : m_clauses[i]) {
-        if (m_currentValue[l.var()] == l_Undef) continue;
-        cpt++;
-        if (m_currentValue[l.var()] == l.sign()) {
-          std::cout << "4 Problem 2!\n";
-          exit(2);
-        }
-      }
-
-      if (cpt != m_infoClauses[i].nbUnsat) {
-        std::cout << "4 Problem 3!\n";
-        exit(3);
-      }
-    }
-  }
-
 }  // postUpdate
 
 }  // namespace d4
