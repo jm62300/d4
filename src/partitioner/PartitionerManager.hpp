@@ -26,21 +26,17 @@
 
 namespace d4 {
 
-enum PartitionerName { PARTITIONER_PATOH, PARTITIONER_KAHYPAR };
+enum PartitionerName { PARTITIONER_PATOH };
 
 class PartitionerNameManager {
  public:
   static std::string getPartitionerName(const PartitionerName &m) {
     if (m == PARTITIONER_PATOH) return "patoh";
-    if (m == PARTITIONER_KAHYPAR) return "kahypar";
-
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
 
   static PartitionerName getPartitionerName(const std::string &m) {
     if (m == "patoh") return PARTITIONER_PATOH;
-    if (m == "kahypar") return PARTITIONER_KAHYPAR;
-
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
 };

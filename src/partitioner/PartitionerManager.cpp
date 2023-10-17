@@ -18,7 +18,6 @@
  */
 #include "PartitionerManager.hpp"
 
-#include "PartitionerKahypar.hpp"
 #include "PartitionerPatoh.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
@@ -38,8 +37,6 @@ PartitionerManager *PartitionerManager::makePartitioner(
   switch (partitioner) {
     case PARTITIONER_PATOH:
       return new PartitionerPatoh(maxNodes, maxEdges, maxSumEdgeSize, out);
-    case PARTITIONER_KAHYPAR:
-      return new PartitionerKahypar(maxNodes, maxEdges, maxSumEdgeSize, out);
   }
 
   throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));

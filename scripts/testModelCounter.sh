@@ -13,8 +13,6 @@ MODEL_COUNTER="./d4_debug -m counting -i"
 TESTED_METHOD="../demo/counter/build/counter_static -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
 
-
-
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 $MODEL_COUNTER $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
 
