@@ -87,8 +87,14 @@ class DecisionDNNFOperation : public Operation<T, U> {
      \return the product of each element of elts.
   */
   U manageDeterministOr(DataBranch<U> *elts, unsigned size) {
-    assert(size == 2);
-    return m_nodeManager->makeBinaryDeterministicOrNode(elts[0], elts[1]);
+    if (size == 1) return m_nodeManager->makeUnaryNode(elts[0]);
+
+    U ret = m_nodeManager->makeBinaryDeterministicOrNode(elts[0], elts[1]);
+    for (unsigned i = 2; i < size; i++) {
+      DataBranch<U> tmp = {ret, std::vector<Lit>(), std::vector<Var>()};
+      ret = m_nodeManager->makeBinaryDeterministicOrNode(tmp, elts[i]);
+    }
+    return ret;
   }  // manageDeterministOr
 
   /**
@@ -136,13 +142,13 @@ class DecisionDNNFOperation : public Operation<T, U> {
     return m_nodeManager->makeUnaryNode(e);
   }  // manageBranch
 
-    /**
-     Compute the number of model on the dDNNF.
+  /**
+   Compute the number of model on the dDNNF.
 
-     @param[in] root, the root of the dDNNF.
+   @param[in] root, the root of the dDNNF.
 
-     \return the number of models.
-   */
+   \return the number of models.
+ */
   T count(U &root) {
     std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1,
                                      ValueVar::isNotAssigned);

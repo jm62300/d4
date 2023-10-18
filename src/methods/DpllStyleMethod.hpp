@@ -77,7 +77,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
   SpecManager *m_specs;
+
   BranchingHeuristic *m_heuristic;
+  Lit *m_tabLits, *m_saveTabLits;
+
   PartitioningHeuristic *m_hCutSet;
   TmpEntry<U> NULL_CACHE_ENTRY;
   CacheManager<U> *m_cache;
@@ -114,6 +117,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
         options.optionBranchingHeuristic, m_specs, m_solver, m_out);
+    m_saveTabLits = m_tabLits = new Lit[1 + initProblem->getNbVar()];
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
@@ -161,6 +165,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_heuristic;
     delete m_hCutSet;
     delete m_cache;
+    delete[] m_saveTabLits;
   }  // destructor
 
  private:
@@ -450,34 +455,44 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     }
 
     // search the next variable to branch on
-    Lit l;
-    if (!m_heuristic->selectLitSet(connected, m_currentPrioritySet, &l)) {
+    unsigned nbLit =
+        m_heuristic->selectLitSet(connected, m_currentPrioritySet, m_tabLits);
+    if (!nbLit) {
       unsetCurrentPriority(cutSet);
       return m_operation->manageTop(connected);
     }
+
+    Lit *lits = m_tabLits;
+    m_tabLits = &m_tabLits[nbLit];
+
+    Lit l = *lits;
     assert(!hasPriority || m_currentPrioritySet[l.var()]);
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
-    DataBranch<U> b[2];
+    DataBranch<U> b[nbLit + 1];
 
-    assert(!m_solver->isInAssumption(l.var()));
-    m_solver->pushAssumption(l);
-    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
-    m_solver->popAssumption();
+    unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
+    for (unsigned i = 0; i <= nbLit; i++) {
+      if (i != 0) {
+        m_solver->popAssumption();
+        m_solver->pushAssumption(~lits[i - 1]);
+        if (nbLit > 1 && !m_solver->solve(connected)) break;
+      }
 
-    if (m_solver->isInAssumption(l))
-      b[1].d = m_operation->manageBottom();
-    else if (m_solver->isInAssumption(~l))
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
-    else {
-      m_solver->pushAssumption(~l);
-      b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
-      m_solver->popAssumption();
+      if (i != nbLit) m_solver->pushAssumption(lits[i]);
+
+      b[nb].d = compute_(connected, b[nb].unitLits, b[nb].freeVars, out);
+      nb++;
     }
 
+    // reinit some variables.
+    assert(m_solver->sizeAssumption() > sizeAssum);
+    m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
     unsetCurrentPriority(cutSet);
-    return m_operation->manageDeterministOr(b, 2);
+    m_tabLits = lits;
+
+    return m_operation->manageDeterministOr(b, nb);
   }  // computeDecisionNode
 
   /**
