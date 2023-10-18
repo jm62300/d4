@@ -27,6 +27,9 @@ class BranchingHeuristic {
  private:
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
+  SpecManager *m_specs;
+  unsigned m_freqDecay;
+  unsigned m_nbCall;
 
  public:
   /**
@@ -35,20 +38,35 @@ class BranchingHeuristic {
    */
   BranchingHeuristic() = delete;
 
+  /**
+   * @brief Construct a new Branching Heuristic object.
+   *
+   * @param options are the options.
+   * @param m_specs gives the real time information about the formula.
+   * @param m_solver the solver (used for VSADS/VSIDS)
+   * @param out is the stream where are printed out the information.
+   */
   BranchingHeuristic(const OptionBranchingHeuristic &options,
                      SpecManager *m_specs, WrapperSolver *m_solver,
                      std::ostream &out);
+
+  /**
+   * @brief Destroy the Branching Heuristic object
+   *
+   */
+  ~BranchingHeuristic();
 
   /**
    * @brief Select a list of literals we want to branch on it in a deterministic
    * way.
    *
    * @param vars is the set of variables under consideration.
-   * @param s can give information about the formula.
    * @param isDecisionVariable are the variable we can decide on.
+   * @param[out] lits is the place where are stored the literals we are
+   * considering (memory is not allocated, we suppose the caller did it).
    * @return a set of literals.
    */
-  std::vector<Lit> selectLitSet(std::vector<Var> &vars, SpecManager &s,
-                                std::vector<bool> &isDecisionVariable);
+  unsigned selectLitSet(std::vector<Var> &vars,
+                        std::vector<bool> &isDecisionVariable, Lit *lits);
 };
 }  // namespace d4

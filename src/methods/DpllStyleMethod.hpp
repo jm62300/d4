@@ -101,7 +101,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out.setstate(out.rdstate());
 
     m_out << "c [DPLL STYLE METHOD]" << options << "\n";
-    m_freqDecay = options.optionBranchingHeuristic.freqDecay;
 
     // we create and init the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
@@ -114,7 +113,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     // we initialize the object used to compute score and partition.
     m_heuristic = new BranchingHeuristic(options.optionBranchingHeuristic,
-                                         *m_specs, *m_solver, m_out);
+                                         m_specs, m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
@@ -132,8 +131,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
           options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
     }
-
-    assert(m_hVar && m_hPhase && m_hCutSet);
 
     m_cache = CacheManager<U>::makeCacheManager(
         options.optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
@@ -161,8 +158,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_problem;
     delete m_solver;
     delete m_specs;
-    delete m_hVar;
-    delete m_hPhase;
+    delete m_heuristic;
     delete m_hCutSet;
     delete m_cache;
   }  // destructor
@@ -454,17 +450,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     }
 
     // search the next variable to branch on
-    Var v = m_hVar->selectVariable(connected, *m_specs, m_currentPrioritySet);
-    if (v == var_Undef) {
+    Lit l;
+    if (!m_heuristic->selectLitSet(connected, m_currentPrioritySet, &l)) {
       unsetCurrentPriority(cutSet);
       return m_operation->manageTop(connected);
     }
-    assert(!hasPriority || m_currentPrioritySet[v]);
-
-    Lit l = Lit::makeLit(v, m_hPhase->selectPhase(v));
+    assert(!hasPriority || m_currentPrioritySet[l.var()]);
     m_nbDecisionNode++;
-
-    if (!(m_nbDecisionNode % m_freqDecay)) m_hVar->decayCountConflict();
 
     // compile the formula where l is assigned to true
     DataBranch<U> b[2];
