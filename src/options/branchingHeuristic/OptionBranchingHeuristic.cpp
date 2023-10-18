@@ -34,13 +34,15 @@ OptionBranchingHeuristic::OptionBranchingHeuristic()
  * @brief Construct a new Option Branching Heuristic object with a given
  * configuration.
  *
- * @param config
+ * @param config is the configuration used to fill the option structure.
  */
 OptionBranchingHeuristic::OptionBranchingHeuristic(
     const ConfigurationBranchingHeuristic& config) {
   scoringMethodType = config.scoringMethodType;
   phaseHeuristicType = config.phaseHeuristicType;
+  branchingHeuristicType = config.branchingHeuristicType;
   reversePhase = config.reversePhase;
   freqDecay = config.freqDecay;
+  limitSizeClause = config.limitSizeClause;
 }  // constructor
 }  // namespace d4

@@ -18,8 +18,8 @@
  */
 #pragma once
 
-#include "PhaseHeuristic.hpp"
-#include "ScoringMethod.hpp"
+#include "phaseSelection/PhaseHeuristic.hpp"
+#include "scoringVariable/ScoringMethod.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
@@ -51,10 +51,22 @@ class BranchingHeuristic {
                      std::ostream &out);
 
   /**
-   * @brief Destroy the Branching Heuristic object
-   *
+   * @brief Destroy the Branching Heuristic object.
    */
   ~BranchingHeuristic();
+
+  /**
+   * @brief Factory called for constructing a branching heuristic.
+   *
+   * @param options gives the options.
+   * @param m_specs gives the real time information about the formula.
+   * @param m_solver the solver (used for VSADS/VSIDS)
+   * @param out is the stream where are printed out the information.
+   * @return a branchinh heuristic that fits the options.
+   */
+  static BranchingHeuristic *makeBranchingHeuristic(
+      const OptionBranchingHeuristic &options, SpecManager *m_specs,
+      WrapperSolver *m_solver, std::ostream &out);
 
   /**
    * @brief Select a list of literals we want to branch on it in a deterministic

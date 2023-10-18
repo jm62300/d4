@@ -84,12 +84,36 @@ class PhaseHeuristicTypeManager {
   }  // getPhaseHeuristicType
 };
 
+enum BranchingHeuristicType { BRANCHING_CLASSIC, BRANCHING_LARGE_CLAUSE };
+
+class BranchingHeuristicTypeManager {
+ public:
+  static std::string getBranchingHeuristicType(
+      const BranchingHeuristicType& m) {
+    if (m == BRANCHING_CLASSIC) return "classic";
+    if (m == BRANCHING_LARGE_CLAUSE) return "large-clause";
+    throw(FactoryException("Branching heuristic type unknown", __FILE__,
+                           __LINE__));
+  }  // getBranchingHeuristicType
+
+  static BranchingHeuristicType getBranchingHeuristicType(
+      const std::string& m) {
+    if (m == "classic") return BRANCHING_CLASSIC;
+    if (m == "large-clause") return BRANCHING_LARGE_CLAUSE;
+    throw(FactoryException("Branching heuristic type unknown", __FILE__,
+                           __LINE__));
+  }  // getBranchingHeuristicType
+};
+
 class OptionBranchingHeuristic {
  public:
   ScoringMethodType scoringMethodType;
   PhaseHeuristicType phaseHeuristicType;
+  BranchingHeuristicType branchingHeuristicType;
+
   bool reversePhase;
   unsigned freqDecay;
+  unsigned limitSizeClause;
 
   /**
    * @brief Construct a new Option Branching Heuristic object with the default
@@ -117,7 +141,16 @@ class OptionBranchingHeuristic {
                dt.phaseHeuristicType)
         << ")"
         << " reverse phase (" << dt.reversePhase << ")"
-        << " freq-decay (" << dt.freqDecay << ")";
+        << " freq-decay (" << dt.freqDecay << ")"
+        << " branching heuristic ("
+        << BranchingHeuristicTypeManager::getBranchingHeuristicType(
+               dt.branchingHeuristicType);
+
+    if (dt.branchingHeuristicType == BRANCHING_LARGE_CLAUSE) {
+      out << ", " << dt.limitSizeClause;
+    }
+
+    out << ")";
     return out;
   }  // <<
 };

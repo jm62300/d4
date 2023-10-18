@@ -19,6 +19,8 @@
 
 #include "BranchingHeuristic.hpp"
 
+#include "src/exceptions/FactoryException.hpp"
+
 namespace d4 {
 
 /**
@@ -43,6 +45,16 @@ BranchingHeuristic::~BranchingHeuristic() {
   delete m_hVar;
   delete m_hPhase;
 }  // destructor
+
+/**
+ * @brief BranchingHeuristic::makeBranchingHeuristic implementation.
+ */
+static BranchingHeuristic *makeBranchingHeuristic(
+    const OptionBranchingHeuristic &options, SpecManager *m_specs,
+    WrapperSolver *m_solver, std::ostream &out) {
+  throw(FactoryException("Cannot create a BranchingHeuristic", __FILE__,
+                         __LINE__));
+}  // makeBranchingHeuristic
 
 /**
  * @brief BranchingHeuristic::selectLitSet implementation.

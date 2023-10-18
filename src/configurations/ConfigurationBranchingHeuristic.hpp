@@ -24,7 +24,9 @@ namespace d4 {
 struct ConfigurationBranchingHeuristic {
   ScoringMethodType scoringMethodType = SCORE_VSADS;
   PhaseHeuristicType phaseHeuristicType = PHASE_POLARITY;
+  BranchingHeuristicType branchingHeuristicType = BRANCHING_CLASSIC;
   bool reversePhase = false;
   unsigned freqDecay = 128;
+  unsigned limitSizeClause = 10;
 };
 }  // namespace d4

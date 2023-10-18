@@ -89,12 +89,19 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
       d4::ScoringMethodTypeManager::getScoringMethodType(
           vm[prefix + "scoring-method"].as<std::string>());
 
+  branchingHeuristic.branchingHeuristicType =
+      d4::BranchingHeuristicTypeManager::getBranchingHeuristicType(
+          vm[prefix + "branching-heuristic"].as<std::string>());
+
   branchingHeuristic.phaseHeuristicType =
       d4::PhaseHeuristicTypeManager::getPhaseHeuristicType(
           vm[prefix + "phase-heuristic"].as<std::string>());
 
   branchingHeuristic.reversePhase =
       vm[prefix + "phase-heuristic-reversed"].as<bool>();
+
+  branchingHeuristic.limitSizeClause =
+      vm[prefix + "branching-heuristic-limit-clause"].as<unsigned>();
 
   return branchingHeuristic;
 }  // parseBranchingHeuristicConfiguration
