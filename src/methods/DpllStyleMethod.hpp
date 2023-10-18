@@ -112,8 +112,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
                                            *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
-    m_heuristic = new BranchingHeuristic(options.optionBranchingHeuristic,
-                                         m_specs, m_solver, m_out);
+    m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
+        options.optionBranchingHeuristic, m_specs, m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();

@@ -19,6 +19,8 @@
 
 #include "BranchingHeuristic.hpp"
 
+#include "BranchingHeuristicClassic.hpp"
+#include "BranchingHeuristicLargeArity.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -30,6 +32,8 @@ BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
                                        SpecManager *specs,
                                        WrapperSolver *solver,
                                        std::ostream &out) {
+  out << "c [BRANCHING HEURISTIC]" << options << "\n";
+
   m_hVar = ScoringMethod::makeScoringMethod(options, *specs, *solver, out);
   m_hPhase = PhaseHeuristic::makePhaseHeuristic(options, *specs, *solver, out);
   m_freqDecay = options.freqDecay;
@@ -49,29 +53,16 @@ BranchingHeuristic::~BranchingHeuristic() {
 /**
  * @brief BranchingHeuristic::makeBranchingHeuristic implementation.
  */
-static BranchingHeuristic *makeBranchingHeuristic(
+BranchingHeuristic *BranchingHeuristic::makeBranchingHeuristic(
     const OptionBranchingHeuristic &options, SpecManager *m_specs,
     WrapperSolver *m_solver, std::ostream &out) {
+  if (options.branchingHeuristicType == BRANCHING_CLASSIC)
+    return new BranchingHeuristicClassic(options, m_specs, m_solver, out);
+  if (options.branchingHeuristicType == BRANCHING_LARGE_ARITY)
+    return new BranchingHeuristicLargeArity(options, m_specs, m_solver, out);
+
   throw(FactoryException("Cannot create a BranchingHeuristic", __FILE__,
                          __LINE__));
 }  // makeBranchingHeuristic
-
-/**
- * @brief BranchingHeuristic::selectLitSet implementation.
- */
-unsigned BranchingHeuristic::selectLitSet(std::vector<Var> &vars,
-                                          std::vector<bool> &isDecisionVariable,
-                                          Lit *lits) {
-  m_nbCall++;
-
-  // decay the variable weights.
-  if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
-
-  Var v = m_hVar->selectVariable(vars, *m_specs, isDecisionVariable);
-  if (v == var_Undef) return 0;
-
-  *lits = Lit::makeLit(v, m_hPhase->selectPhase(v));
-  return 1;
-}  // selectLitSet
 
 }  // namespace d4

@@ -84,14 +84,14 @@ class PhaseHeuristicTypeManager {
   }  // getPhaseHeuristicType
 };
 
-enum BranchingHeuristicType { BRANCHING_CLASSIC, BRANCHING_LARGE_CLAUSE };
+enum BranchingHeuristicType { BRANCHING_CLASSIC, BRANCHING_LARGE_ARITY };
 
 class BranchingHeuristicTypeManager {
  public:
   static std::string getBranchingHeuristicType(
       const BranchingHeuristicType& m) {
     if (m == BRANCHING_CLASSIC) return "classic";
-    if (m == BRANCHING_LARGE_CLAUSE) return "large-clause";
+    if (m == BRANCHING_LARGE_ARITY) return "large-arity";
     throw(FactoryException("Branching heuristic type unknown", __FILE__,
                            __LINE__));
   }  // getBranchingHeuristicType
@@ -99,7 +99,7 @@ class BranchingHeuristicTypeManager {
   static BranchingHeuristicType getBranchingHeuristicType(
       const std::string& m) {
     if (m == "classic") return BRANCHING_CLASSIC;
-    if (m == "large-clause") return BRANCHING_LARGE_CLAUSE;
+    if (m == "large-arity") return BRANCHING_LARGE_ARITY;
     throw(FactoryException("Branching heuristic type unknown", __FILE__,
                            __LINE__));
   }  // getBranchingHeuristicType
@@ -146,7 +146,7 @@ class OptionBranchingHeuristic {
         << BranchingHeuristicTypeManager::getBranchingHeuristicType(
                dt.branchingHeuristicType);
 
-    if (dt.branchingHeuristicType == BRANCHING_LARGE_CLAUSE) {
+    if (dt.branchingHeuristicType == BRANCHING_LARGE_ARITY) {
       out << ", " << dt.limitSizeClause;
     }
 

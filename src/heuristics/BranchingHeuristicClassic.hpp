@@ -18,25 +18,16 @@
  */
 #pragma once
 
-#include "phaseSelection/PhaseHeuristic.hpp"
-#include "scoringVariable/ScoringMethod.hpp"
-#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
+#include "BranchingHeuristic.hpp"
 
 namespace d4 {
-class BranchingHeuristic {
- protected:
-  ScoringMethod *m_hVar;
-  PhaseHeuristic *m_hPhase;
-  SpecManager *m_specs;
-  unsigned m_freqDecay;
-  unsigned m_nbCall;
-
+class BranchingHeuristicClassic : public BranchingHeuristic {
  public:
   /**
    * @brief Remove the defaut constructor.
    *
    */
-  BranchingHeuristic() = delete;
+  BranchingHeuristicClassic() = delete;
 
   /**
    * @brief Construct a new Branching Heuristic object.
@@ -46,31 +37,14 @@ class BranchingHeuristic {
    * @param m_solver the solver (used for VSADS/VSIDS)
    * @param out is the stream where are printed out the information.
    */
-  BranchingHeuristic(const OptionBranchingHeuristic &options,
-                     SpecManager *m_specs, WrapperSolver *m_solver,
-                     std::ostream &out);
+  BranchingHeuristicClassic(const OptionBranchingHeuristic &options,
+                            SpecManager *m_specs, WrapperSolver *m_solver,
+                            std::ostream &out)
+      : BranchingHeuristic(options, m_specs, m_solver, out) {}
 
   /**
-   * @brief Destroy the Branching Heuristic object.
-   */
-  virtual ~BranchingHeuristic();
-
-  /**
-   * @brief Factory called for constructing a branching heuristic.
-   *
-   * @param options gives the options.
-   * @param m_specs gives the real time information about the formula.
-   * @param m_solver the solver (used for VSADS/VSIDS)
-   * @param out is the stream where are printed out the information.
-   * @return a branchinh heuristic that fits the options.
-   */
-  static BranchingHeuristic *makeBranchingHeuristic(
-      const OptionBranchingHeuristic &options, SpecManager *m_specs,
-      WrapperSolver *m_solver, std::ostream &out);
-
-  /**
-   * @brief Select a list of literals we want to branch on it in a deterministic
-   * way.
+   * @brief Return one literal given the scoring heuristic and the phase
+   * heuristic.
    *
    * @param vars is the set of variables under consideration.
    * @param isDecisionVariable are the variable we can decide on.
@@ -78,8 +52,8 @@ class BranchingHeuristic {
    * considering (memory is not allocated, we suppose the caller did it).
    * @return a set of literals.
    */
-  virtual unsigned selectLitSet(std::vector<Var> &vars,
-                                std::vector<bool> &isDecisionVariable,
-                                Lit *lits) = 0;
+  unsigned selectLitSet(std::vector<Var> &vars,
+                        std::vector<bool> &isDecisionVariable,
+                        Lit *lits) override;
 };
 }  // namespace d4

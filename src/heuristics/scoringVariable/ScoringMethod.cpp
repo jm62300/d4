@@ -38,8 +38,6 @@ namespace d4 {
 ScoringMethod *ScoringMethod::makeScoringMethod(
     const OptionBranchingHeuristic &options, SpecManager &p,
     ActivityManager &am, std::ostream &out) {
-  out << "c [SCORING METHOD]" << options << "\n";
-
   try {
     SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf &>(p);
 
