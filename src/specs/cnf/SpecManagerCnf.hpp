@@ -145,6 +145,8 @@ class SpecManagerCnf : public SpecManager {
     return m_clauses[idx].size() - m_infoClauses[idx].nbUnsat;
   }
 
+  inline std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
+
   inline std::vector<Lit> &getClause(int idx) {
     assert((unsigned)idx < m_clauses.size());
     return m_clauses[idx];

@@ -464,9 +464,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     Lit *lits = m_tabLits;
     m_tabLits = &m_tabLits[nbLit];
-
-    Lit l = *lits;
-    assert(!hasPriority || m_currentPrioritySet[l.var()]);
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true

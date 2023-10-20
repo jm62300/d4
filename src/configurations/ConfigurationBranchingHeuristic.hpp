@@ -27,6 +27,6 @@ struct ConfigurationBranchingHeuristic {
   BranchingHeuristicType branchingHeuristicType = BRANCHING_CLASSIC;
   bool reversePhase = false;
   unsigned freqDecay = 128;
-  unsigned limitSizeClause = 10;
+  unsigned limitSizeClause = 30;
 };
 }  // namespace d4

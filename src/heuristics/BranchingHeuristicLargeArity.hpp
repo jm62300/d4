@@ -24,6 +24,8 @@ namespace d4 {
 class BranchingHeuristicLargeArity : public BranchingHeuristic {
  private:
   unsigned m_limitClause;
+  std::vector<int> m_indexOfLargeClause;
+  std::vector<bool> m_markedVar;
 
  public:
   /**
@@ -41,18 +43,15 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
    * @param out is the stream where are printed out the information.
    */
   BranchingHeuristicLargeArity(const OptionBranchingHeuristic &options,
-                               SpecManager *m_specs, WrapperSolver *m_solver,
-                               std::ostream &out)
-      : BranchingHeuristic(options, m_specs, m_solver, out) {
-    m_limitClause = options.limitSizeClause;
-  }  // constructor
+                               SpecManager *specs, WrapperSolver *solver,
+                               std::ostream &out);
 
   /**
    * @brief If a large constraint exists (that is constraint with more than
-   * m_limitClause literals) we branch on priority on the set of variables of
-   * this constraint. Otherwise, the classical heuristic is used (that is we
-   * select the variable and the phase according to the m_hVar and m_hPhase
-   * objects).
+   * m_limitClause literals) we branch on priority on the set of variables
+   * of this constraint. Otherwise, the classical heuristic is used (that is
+   * we select the variable and the phase according to the m_hVar and
+   * m_hPhase objects).
    *
    * @param vars is the set of variables under consideration.
    * @param isDecisionVariable are the variable we can decide on.

@@ -19,22 +19,78 @@
 
 #include "BranchingHeuristicLargeArity.hpp"
 
+#include <algorithm>
+
+#include "src/specs/cnf/SpecManagerCnf.hpp"
+
 namespace d4 {
+
+/**
+ * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
+ */
+BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
+    const OptionBranchingHeuristic &options, SpecManager *specs,
+    WrapperSolver *solver, std::ostream &out)
+    : BranchingHeuristic(options, specs, solver, out) {
+  m_limitClause = options.limitSizeClause;
+
+  std::vector<std::vector<Lit>> &clauses =
+      static_cast<SpecManagerCnf *>(specs)->getClauses();
+  for (unsigned i = 0; i < clauses.size(); i++) {
+    if (clauses[i].size() >= m_limitClause) m_indexOfLargeClause.push_back(i);
+  }
+
+  m_markedVar.resize(specs->getNbVariable() + 1, false);
+  out << "c [BRANCHING HEURISTIC] The number of large clauses is: "
+      << m_indexOfLargeClause.size() << '\n';
+}  // constructor
+
 /**
  * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
  */
 unsigned BranchingHeuristicLargeArity::selectLitSet(
     std::vector<Var> &vars, std::vector<bool> &isDecisionVariable, Lit *lits) {
+  int ret = 0;
   m_nbCall++;
+  for (auto &v : vars) m_markedVar[v] = true;
+
+  // check if we still have a large enough clause.
+  SpecManagerCnf *specs = static_cast<SpecManagerCnf *>(m_specs);
+  unsigned larger = 0, lIdx = 0;
+  for (auto &idx : m_indexOfLargeClause) {
+    if (specs->getSize(idx) >= m_limitClause &&
+        specs->isNotSatisfiedClauseAndInComponent(idx, m_markedVar)) {
+      if (specs->getClause(idx).size() > larger) {
+        larger = specs->getClause(idx).size();
+        lIdx = idx;
+      }
+    }
+  }
+
+  if (larger) {
+    // get the lits.
+    for (auto &l : specs->getClause(lIdx))
+      if (m_markedVar[l.var()]) lits[ret++] = l;
+
+    // sort the lits.
+    std::sort(lits, &lits[ret], [&](Lit a, Lit b) {
+      return m_hVar->computeScore(a.var()) > m_hVar->computeScore(b.var());
+    });
+  } else {
+    Var v = m_hVar->selectVariable(vars, *m_specs, isDecisionVariable);
+    if (v != var_Undef) {
+      *lits = Lit::makeLit(v, m_hPhase->selectPhase(v));
+      ret = 1;
+    }
+  }
+
+  // reinit the marker.
+  for (auto &v : vars) m_markedVar[v] = false;
 
   // decay the variable weights.
   if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
 
-  Var v = m_hVar->selectVariable(vars, *m_specs, isDecisionVariable);
-  if (v == var_Undef) return 0;
-
-  *lits = Lit::makeLit(v, m_hPhase->selectPhase(v));
-  return 1;
+  return ret;
 }  // selectLitSet
 
 }  // namespace d4

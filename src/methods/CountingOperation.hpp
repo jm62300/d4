@@ -57,11 +57,11 @@ class CountingOperation : public Operation<T, T> {
      \return the product of each element of elts.
   */
   T manageDeterministOr(DataBranch<T> *elts, unsigned size) {
-    assert(size == 2);
-    return elts[0].d * m_problem->computeWeightUnitFree<T>(elts[0].unitLits,
-                                                           elts[0].freeVars) +
-           elts[1].d * m_problem->computeWeightUnitFree<T>(elts[1].unitLits,
-                                                           elts[1].freeVars);
+    T ret = T(0);
+    for (unsigned i = 0; i < size; i++)
+      ret += elts[i].d * m_problem->computeWeightUnitFree<T>(elts[0].unitLits,
+                                                             elts[0].freeVars);
+    return ret;
   }  // manageDeterministOr
 
   /**
