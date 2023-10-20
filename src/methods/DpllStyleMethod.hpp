@@ -114,6 +114,23 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
                                            *m_problem, m_out);
 
+    // select the partitioner regarding if it projected model counting or not.
+    if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
+      m_out << "c [MODE] projected\n";
+      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
+      if (options.optionBranchingHeuristic.branchingHeuristicType ==
+          BRANCHING_LARGE_ARITY) {
+        m_out << "c [BRANCHING HEURISTIC] Cannot use the heuristic that branch "
+                 "on clauses\n";
+        options.optionBranchingHeuristic.branchingHeuristicType ==
+            BRANCHING_CLASSIC;
+      }
+    } else {
+      m_out << "c [MODE] classic\n";
+      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
+          options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
+    }
+
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
         options.optionBranchingHeuristic, m_specs, m_solver, m_out);
@@ -125,16 +142,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
                                 !m_problem->getNbSelectedVar());
     for (auto v : m_problem->getSelectedVar()) m_isDecisionVariable[v] = true;
     m_currentPrioritySet.resize(m_problem->getNbVar() + 1, false);
-
-    // select the partitioner regarding if it projected model counting or not.
-    if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
-      m_out << "c [MODE] projected\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
-    } else {
-      m_out << "c [MODE] classic\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
-          options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
-    }
 
     m_cache = CacheManager<U>::makeCacheManager(
         options.optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
