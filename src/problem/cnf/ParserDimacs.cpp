@@ -106,7 +106,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
       for (auto v : vars) problemManager->getIndVar().push_back(v);
       in.skipLine();
-    } else if (in.currentChar() == 'e') {
+    } else if (in.currentChar() == 'z') {
       std::cout << "c [PARSER] Read EOF in the file\n";
       break;
     } else if (in.currentChar() == 'v') {

@@ -17,11 +17,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "CounterDemo.hpp"
+#include "ServerCounter.hpp"
 
 #include <signal.h>
 
 #include <cassert>
+#include <ext/stdio_filebuf.h>
+#include <ostream>
+#include <sstream>
 
 #include "ParseOption.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
@@ -35,46 +38,19 @@ using namespace d4;
 
 template <typename T>
 void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
-                 const std::string &format, const std::string &outFormat,
-                 bool isFloat) {
-  std::cout << "c [FORMAT] Input/Output format:"
-            << " output-symbol(" << format << ")"
-            << " output-format(" << outFormat << ")"
-            << " is-float(" << isFloat << ")\n";
-
+                 int fd) {
   DpllStyleMethod<T, T> *counter =
       new DpllStyleMethod<T, T>(options, problem, std::cout);
-
   methodRun = counter;
   T result = counter->run();
 
-  if (outFormat == "competition") {
-    boost::multiprecision::mpf_float::default_precision(128);
-    std::cout.precision(
-        std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+  std::stringstream out;
+  out << "s " << std::fixed << std::setprecision(50) << result;
 
-    if (result == 0) {
-      std::cout << "s UNSATISFIABLE\n";
-      std::cout << "c " << format << "\n";
-      std::cout << "c s log10-estimate -inf\n";
-      std::cout << "c s exact quadruple int 0\n";
-    } else {
-      std::cout << "s SATISFIABLE\n";
-      std::cout << "c " << format << "\n";
-      std::cout << "c s log10-estimate "
-                << boost::multiprecision::log10(
-                       boost::multiprecision::cpp_dec_float_100(result))
-                << "\n";
-      if (isFloat)
-        std::cout << "c s exact quadruple int " << result << "\n";
-      else
-        std::cout << "c s exact arb int " << result << "\n";
-    }
-  } else {
-    assert(outFormat == "classic");
-    std::cout << format << " ";
-    std::cout << std::fixed << std::setprecision(50) << result << "\n";
-  }
+  std::cout << ">>>>" << out.str() << " <<<< \n";
+
+  std::cout << out.str().c_str() << "  " << out.str().size() << "\n";
+  write(fd, out.str().c_str(), out.str().size());
 
   methodRun = nullptr;
   delete counter;
@@ -83,7 +59,8 @@ void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
 /**
  * @brief couterDemo implementation.
  */
-void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
+void serverCounter(const po::variables_map &vm, ProblemManager *problem,
+                   int fd) {
   // get the configuration.
   ConfigurationDpllStyleMethod config;
 
@@ -110,13 +87,8 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
   // init the options.
   OptionDpllStyleMethod options(config);
 
-  // construct and call the counter regarding if it is MC or WMC.
-  std::string format = vm["keyword-output-format-solution"].as<std::string>();
-  std::string outFormat = vm["output-format"].as<std::string>();
-
   if (!isFloat)
-    countModels<mpz::mpz_int>(options, problem, format, outFormat, false);
+    countModels<mpz::mpz_int>(options, problem, fd);
   else
-    countModels<mpz::mpf_float>(options, problem, format, outFormat, true);
-
+    countModels<mpz::mpf_float>(options, problem, fd);
 }  // counterDemo

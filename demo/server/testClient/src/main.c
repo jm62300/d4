@@ -58,12 +58,11 @@ int main(int argc, char **argv) {
   int fdsocket = initSocket(port);
 
   // send a CNF formula.
-  char cnf[] = "p cnf 3 1\n1 2 0\ne";
+  char cnf[] = "p cnf 3 1\n1 2 0\nz";
   if (send(fdsocket, cnf, strlen(cnf), 0) < 0) {
     perror("sendto()");
     exit(errno);
   }
-  printf("message envoyé\n");
 
   // wait for the result.
   int n;
@@ -73,7 +72,7 @@ int main(int argc, char **argv) {
     exit(errno);
   }
   buffer[n] = '\n';
-  printf("s %s\n", buffer);
+  printf("%s << %d\n", buffer, n);
 
   return EXIT_FAILURE;
 }

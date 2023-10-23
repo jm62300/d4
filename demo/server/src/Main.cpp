@@ -34,8 +34,8 @@
 #include <iostream>
 #include <vector>
 
-#include "CounterDemo.hpp"
 #include "ParseOption.hpp"
+#include "ServerCounter.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/preprocs/OptionPreprocManager.hpp"
@@ -158,7 +158,12 @@ int main(int argc, char **argv) {
       parsePreprocConfiguration(vm), initProblem, std::cout);
 
   // count.
-  counterDemo(vm, problem);
+  serverCounter(vm, problem, csocket);
+
+  sleep(5);
+
+  close(csocket);
+  close(fd);
 
   delete initProblem;
   return EXIT_SUCCESS;
