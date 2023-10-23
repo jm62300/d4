@@ -48,9 +48,9 @@ BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
 /**
  * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
  */
-unsigned BranchingHeuristicLargeArity::selectLitSet(
-    std::vector<Var> &vars, std::vector<bool> &isDecisionVariable, Lit *lits) {
-  int ret = 0;
+void BranchingHeuristicLargeArity::selectLitSet(
+    std::vector<Var> &vars, std::vector<bool> &isDecisionVariable,
+    ListLit &lits) {
   m_nbCall++;
   for (auto &v : vars) m_markedVar[v] = true;
 
@@ -69,18 +69,28 @@ unsigned BranchingHeuristicLargeArity::selectLitSet(
 
   if (larger) {
     // get the lits.
-    for (auto &l : specs->getClause(lIdx))
-      if (m_markedVar[l.var()]) lits[ret++] = l;
+    Lit tmp[larger];
+    unsigned size = 0;
+    for (auto &l : specs->getClause(lIdx)) {
+      assert(l.var() < m_markedVar.size());
+      if (m_markedVar[l.var()]) tmp[size++] = l;
+    }
 
     // sort the lits.
-    std::sort(lits, &lits[ret], [&](Lit a, Lit b) {
+    std::sort(tmp, &tmp[size], [&](Lit a, Lit b) {
       return m_hVar->computeScore(a.var()) > m_hVar->computeScore(b.var());
     });
+
+    // fill the given structure.
+    lits.setListLit(tmp, size);
   } else {
     Var v = m_hVar->selectVariable(vars, *m_specs, isDecisionVariable);
     if (v != var_Undef) {
-      *lits = Lit::makeLit(v, m_hPhase->selectPhase(v));
-      ret = 1;
+      Lit tmp[1] = {Lit::makeLit(v, m_hPhase->selectPhase(v))};
+      lits.setListLit(tmp, 1);
+    } else {
+      lits.setSize(0);
+      lits.setArray(NULL);
     }
   }
 
@@ -89,8 +99,6 @@ unsigned BranchingHeuristicLargeArity::selectLitSet(
 
   // decay the variable weights.
   if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
-
-  return ret;
 }  // selectLitSet
 
 }  // namespace d4

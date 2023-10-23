@@ -56,11 +56,10 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
    * @param vars is the set of variables under consideration.
    * @param isDecisionVariable are the variable we can decide on.
    * @param[out] lits is the place where are stored the literals we are
-   * considering (memory is not allocated, we suppose the caller did it).
-   * @return a set of literals.
+   * considering.
    */
-  unsigned selectLitSet(std::vector<Var> &vars,
-                        std::vector<bool> &isDecisionVariable,
-                        Lit *lits) override;
+  void selectLitSet(std::vector<Var> &vars,
+                    std::vector<bool> &isDecisionVariable,
+                    ListLit &lits) override;
 };
 }  // namespace d4

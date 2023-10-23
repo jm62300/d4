@@ -23,6 +23,35 @@
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
+const unsigned SIZE_PAGE_LIST_LIT = 1 << 10;
+
+class ListLit {
+ private:
+  static unsigned s_posPage;
+  static Lit *s_currentPage;
+  static std::vector<Lit *> s_pages;
+  static std::vector<std::vector<Lit *>> s_availaible;
+
+ private:
+  int m_size;
+  Lit *m_array;
+
+ public:
+  ListLit();
+  ListLit(const Lit *tab, int size);
+  ~ListLit();
+
+  void setListLit(const Lit *tab, int size);
+
+  inline unsigned size() { return m_size; }
+  inline void setSize(int size) { m_size = size; };
+  inline void setArray(Lit *array) { m_array = array; }
+  inline Lit &operator[](int index) {
+    assert(index < m_size);
+    return m_array[index];
+  }
+};
+
 class BranchingHeuristic {
  protected:
   ScoringMethod *m_hVar;
@@ -75,11 +104,10 @@ class BranchingHeuristic {
    * @param vars is the set of variables under consideration.
    * @param isDecisionVariable are the variable we can decide on.
    * @param[out] lits is the place where are stored the literals we are
-   * considering (memory is not allocated, we suppose the caller did it).
-   * @return a set of literals.
+   * considering.
    */
-  virtual unsigned selectLitSet(std::vector<Var> &vars,
-                                std::vector<bool> &isDecisionVariable,
-                                Lit *lits) = 0;
+  virtual void selectLitSet(std::vector<Var> &vars,
+                            std::vector<bool> &isDecisionVariable,
+                            ListLit &lits) = 0;
 };
 }  // namespace d4

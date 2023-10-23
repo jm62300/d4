@@ -79,8 +79,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   SpecManager *m_specs;
 
   BranchingHeuristic *m_heuristic;
-  Lit *m_tabLits, *m_saveTabLits;
-
   PartitioningHeuristic *m_hCutSet;
   TmpEntry<U> NULL_CACHE_ENTRY;
   CacheManager<U> *m_cache;
@@ -134,7 +132,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
         options.optionBranchingHeuristic, m_specs, m_solver, m_out);
-    m_saveTabLits = m_tabLits = new Lit[1 + initProblem->getNbVar()];
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
@@ -172,7 +169,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_heuristic;
     delete m_hCutSet;
     delete m_cache;
-    delete[] m_saveTabLits;
   }  // destructor
 
  private:
@@ -462,29 +458,27 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     }
 
     // search the next variable to branch on
-    unsigned nbLit =
-        m_heuristic->selectLitSet(connected, m_currentPrioritySet, m_tabLits);
-    if (!nbLit) {
+
+    ListLit lits;
+    m_heuristic->selectLitSet(connected, m_currentPrioritySet, lits);
+    if (!lits.size()) {
       unsetCurrentPriority(cutSet);
       return m_operation->manageTop(connected);
     }
-
-    Lit *lits = m_tabLits;
-    m_tabLits = &m_tabLits[nbLit];
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
-    DataBranch<U> b[nbLit + 1];
+    DataBranch<U> b[lits.size() + 1];
 
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
-    for (unsigned i = 0; i <= nbLit; i++) {
+    for (unsigned i = 0; i <= lits.size(); i++) {
       if (i != 0) {
         m_solver->popAssumption();
         m_solver->pushAssumption(~lits[i - 1]);
-        if (nbLit > 1 && !m_solver->solve(connected)) break;
+        if (lits.size() > 1 && !m_solver->solve(connected)) break;
       }
 
-      if (i != nbLit) m_solver->pushAssumption(lits[i]);
+      if (i != lits.size()) m_solver->pushAssumption(lits[i]);
 
       b[nb].d = compute_(connected, b[nb].unitLits, b[nb].freeVars, out);
       nb++;
@@ -494,8 +488,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
     unsetCurrentPriority(cutSet);
-    m_tabLits = lits;
-
     return m_operation->manageDeterministOr(b, nb);
   }  // computeDecisionNode
 

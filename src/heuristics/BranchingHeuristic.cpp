@@ -26,6 +26,69 @@
 namespace d4 {
 
 /**
+ * @brief Static initialization.
+ *
+ */
+unsigned ListLit::s_posPage = 0;
+Lit *ListLit::s_currentPage = NULL;
+std::vector<Lit *> ListLit::s_pages;
+std::vector<std::vector<Lit *>> ListLit::s_availaible;
+
+/**
+ * @brief ListLit::ListLit implementation.
+ */
+ListLit::ListLit() {
+  m_size = 0;
+  m_array = NULL;
+}  // constructor
+
+/**
+ * @brief ListLit::ListLit implementation.
+ */
+ListLit::ListLit(const Lit *tab, int size) {
+  setListLit(tab, size);
+}  // constructor
+
+/**
+ * @brief ListLit::ListLit implementation.
+ */
+ListLit::~ListLit() {
+  while (s_availaible.size() <= m_size)
+    s_availaible.push_back(std::vector<Lit *>());
+  s_availaible[m_size].push_back(m_array);
+}  // constructor
+
+/**
+ * @brief ListLit::setListLit implementation.
+ */
+void ListLit::setListLit(const Lit *tab, int size) {
+  assert(size < SIZE_PAGE_LIST_LIT);
+  if (size < s_availaible.size() && s_availaible[size].size()) {
+    m_array = s_availaible[size].back();
+    s_availaible[size].pop_back();
+    m_size = size;
+  } else {
+    if (!s_currentPage || s_posPage + size > SIZE_PAGE_LIST_LIT) {
+      if (s_currentPage) {
+        while (s_availaible.size() <= size)
+          s_availaible.push_back(std::vector<Lit *>());
+        s_availaible[size].push_back(&s_currentPage[s_posPage]);
+      }
+
+      s_currentPage = new Lit[SIZE_PAGE_LIST_LIT];
+      s_pages.push_back(s_currentPage);
+      s_posPage = 0;
+    }
+
+    m_array = &s_currentPage[s_posPage];
+    s_posPage += size;
+    m_size = size;
+  }
+
+  for (unsigned i = 0; i < size; i++) m_array[i] = tab[i];
+}  // setListLit
+
+/**
  * @brief BranchingHeuristic::BranchingHeuristic implementation.
  */
 BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
