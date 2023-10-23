@@ -59,8 +59,8 @@ class CountingOperation : public Operation<T, T> {
   T manageDeterministOr(DataBranch<T> *elts, unsigned size) {
     T ret = T(0);
     for (unsigned i = 0; i < size; i++)
-      ret += elts[i].d * m_problem->computeWeightUnitFree<T>(elts[0].unitLits,
-                                                             elts[0].freeVars);
+      ret += elts[i].d * m_problem->computeWeightUnitFree<T>(elts[i].unitLits,
+                                                             elts[i].freeVars);
     return ret;
   }  // manageDeterministOr
 
