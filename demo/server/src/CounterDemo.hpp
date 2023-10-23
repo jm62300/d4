@@ -18,27 +18,16 @@
  */
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <boost/program_options.hpp>
 
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <vector>
+#include "src/problem/ProblemManager.hpp"
 
-#include "../ProblemTypes.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
-#include "src/utils/BufferRead.hpp"
+namespace po = boost::program_options;
 
-namespace d4 {
-class ParserDimacs {
- private:
-  int parse_DIMACS_main(BufferRead &in, ProblemManagerCnf *problemManager);
-
- public:
-  int parse_DIMACS(const std::string &input_stream,
-                   ProblemManagerCnf *problemManager);
-  int parse_DIMACS(const int fd, ProblemManagerCnf *problemManager);
-};
-}  // namespace d4
+/**
+ * @brief Run a counter.
+ *
+ * @param vm are the options.
+ * @param problem is the problem we deal with.
+ */
+void counterDemo(const po::variables_map &vm, d4::ProblemManager *problem);

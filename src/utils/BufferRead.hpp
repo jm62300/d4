@@ -18,6 +18,8 @@
  */
 #pragma once
 
+#include <fcntl.h>
+
 #include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
@@ -30,25 +32,40 @@ class BufferRead {
   int pos;
   int size;
   char buffer[BUFFER_SIZE];
-  FILE *f;
+  int m_fd;
 
  public:
-  BufferRead(std::string &name) {
+  BufferRead(const std::string &name) {
     pos = 0;
     size = 0;
 
-    f = fopen(name.c_str(), "r");
-    if (!f)
+    m_fd = open(name.c_str(), O_RDONLY);
+    if (!m_fd)
       std::cerr << "ERROR! Could not open file: " << name << "\n", exit(1);
 
     // fill the buffer
-    size = fread(buffer, sizeof(char), BUFFER_SIZE, f);
-    if (!size && ferror(f))
-      std::cerr << "Cannot read the file: " << name << "\n", exit(1);
+    size = read(m_fd, buffer, BUFFER_SIZE);
+    if (size < 0) {
+      perror("read()");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  BufferRead(const int fd) {
+    pos = 0;
+    size = 0;
+    m_fd = fd;
+
+    // fill the buffer
+    size = read(m_fd, buffer, BUFFER_SIZE);
+    if (size < 0) {
+      perror("read()");
+      exit(EXIT_FAILURE);
+    }
   }
 
   ~BufferRead() {
-    if (f) fclose(f);
+    if (m_fd) close(m_fd);
   }
 
   inline char currentChar() { return buffer[pos]; }
@@ -62,13 +79,15 @@ class BufferRead {
     pos++;
     if (pos >= size) {
       pos = 0;
-      size = fread(buffer, sizeof(char), BUFFER_SIZE, f);
-      if (!size && ferror(f))
-        std::cerr << "Cannot read the reamaining\n", exit(1);
+      size = read(m_fd, buffer, BUFFER_SIZE);
+      if (size < 0) {
+        perror("read()");
+        exit(EXIT_FAILURE);
+      }
     }
   }
 
-  inline bool eof() { return !size && feof(f); }
+  inline bool eof() { return !size; }
   inline void skipSpace() {
     while (!eof() && (currentChar() == ' ' || currentChar() == '\t' ||
                       currentChar() == '\n' || currentChar() == '\r'))

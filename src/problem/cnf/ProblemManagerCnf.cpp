@@ -39,6 +39,20 @@ ProblemManagerCnf::ProblemManagerCnf(const std::string &nameFile) {
 
 /**
    Constructor.
+
+   @param[in] fd, parse the instance from the file descriptor.
+ */
+ProblemManagerCnf::ProblemManagerCnf(const int fd) {
+  ParserDimacs parser;
+  m_nbVar = parser.parse_DIMACS(fd, this);
+
+  m_weightVar.resize(m_nbVar + 1, 0);
+  for (unsigned i = 0; i <= m_nbVar; i++)
+    m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
+}  // constructor
+
+/**
+   Constructor.
    Construct an empty formula.
  */
 ProblemManagerCnf::ProblemManagerCnf() { m_nbVar = 0; }  // constructor

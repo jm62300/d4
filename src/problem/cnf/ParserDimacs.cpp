@@ -106,6 +106,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
 
       for (auto v : vars) problemManager->getIndVar().push_back(v);
       in.skipLine();
+    } else if (in.currentChar() == 'e') {
+      std::cout << "c [PARSER] Read EOF in the file\n";
+      break;
     } else if (in.currentChar() == 'v') {
       in.consumeChar();
       assert(in.currentChar() == 'p');
@@ -124,7 +127,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
         in.consumeChar();
         weightedProblem = (in.currentChar() == 'w');
         in.skipLine();
-        std::cout << "c [PASER] " << (weightedProblem ? "Weighted " : " ")
+        std::cout << "c [PARSER] " << (weightedProblem ? "Weighted " : " ")
                   << "Model Counting problem\n";
       } else if (in.currentChar() != 'p') {
         if (in.canConsume("max")) {
@@ -185,9 +188,16 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
   return nbVars;
 }
 
-int ParserDimacs::parse_DIMACS(std::string input_stream,
+int ParserDimacs::parse_DIMACS(const std::string &input_stream,
                                ProblemManagerCnf *problemManager) {
   BufferRead in(input_stream);
   return parse_DIMACS_main(in, problemManager);
 }  // parse_DIMACS
+
+int ParserDimacs::parse_DIMACS(const int fd,
+                               ProblemManagerCnf *problemManager) {
+  BufferRead in(fd);
+  return parse_DIMACS_main(in, problemManager);
+}  // parse_DIMACS
+
 }  // namespace d4

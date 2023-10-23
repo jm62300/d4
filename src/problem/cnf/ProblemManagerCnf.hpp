@@ -42,6 +42,8 @@ class ProblemManagerCnf : public ProblemManager {
   ProblemManagerCnf(ProblemManager *problem);
 
   ProblemManagerCnf(const std::string &nameFile);
+  ProblemManagerCnf(const int fd);
+
   ~ProblemManagerCnf();
   void display(std::ostream &out) override;
   std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
