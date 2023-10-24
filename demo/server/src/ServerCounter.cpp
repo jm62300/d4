@@ -20,6 +20,7 @@
 #include "ServerCounter.hpp"
 
 #include <signal.h>
+#include <sys/socket.h>
 
 #include <cassert>
 #include <ext/stdio_filebuf.h>
@@ -45,12 +46,11 @@ void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
   T result = counter->run();
 
   std::stringstream out;
-  out << "s " << std::fixed << std::setprecision(50) << result;
-
-  std::cout << ">>>>" << out.str() << " <<<< \n";
-
-  std::cout << out.str().c_str() << "  " << out.str().size() << "\n";
-  write(fd, out.str().c_str(), out.str().size());
+  out << std::fixed << std::setprecision(50) << result;
+  if (send(fd, out.str().c_str(), out.str().size(), 0) < 0) {
+    perror("send()");
+    exit(EXIT_FAILURE);
+  }
 
   methodRun = nullptr;
   delete counter;

@@ -39,6 +39,7 @@ class ParserDimacs {
  public:
   int parse_DIMACS(const std::string &input_stream,
                    ProblemManagerCnf *problemManager);
-  int parse_DIMACS(const int fd, ProblemManagerCnf *problemManager);
+  int parse_DIMACS(const int fd, ProblemManagerCnf *problemManager,
+                   bool keepOpen = false);
 };
 }  // namespace d4

@@ -33,11 +33,13 @@ class BufferRead {
   int size;
   char buffer[BUFFER_SIZE];
   int m_fd;
+  int m_keepOpen;
 
  public:
-  BufferRead(const std::string &name) {
+  BufferRead(const std::string &name, bool keepOpen = false) {
     pos = 0;
     size = 0;
+    m_keepOpen = keepOpen;
 
     m_fd = open(name.c_str(), O_RDONLY);
     if (!m_fd)
@@ -51,10 +53,11 @@ class BufferRead {
     }
   }
 
-  BufferRead(const int fd) {
+  BufferRead(const int fd, bool keepOpen = false) {
     pos = 0;
     size = 0;
     m_fd = fd;
+    m_keepOpen = keepOpen;
 
     // fill the buffer
     size = read(m_fd, buffer, BUFFER_SIZE);
@@ -65,7 +68,7 @@ class BufferRead {
   }
 
   ~BufferRead() {
-    if (m_fd) close(m_fd);
+    if (m_fd && !m_keepOpen) close(m_fd);
   }
 
   inline char currentChar() { return buffer[pos]; }

@@ -46,6 +46,9 @@ using namespace d4;
 namespace po = boost::program_options;
 MethodManager *methodRun = nullptr;
 
+const unsigned STOP = 0;
+const unsigned COUNT = 1;
+
 /**
  * @brief Catch the signal that ask for stopping the method which is running.
  *
@@ -142,29 +145,48 @@ int main(int argc, char **argv) {
             << inet_ntoa(addrClient.sin_addr) << ":"
             << ntohs(addrClient.sin_port) << '\n';
 
-  // parse the initial problem.
-  d4::ProblemManager *initProblem = new ProblemManagerCnf(csocket);
-  assert(initProblem);
-  std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
-               "formula\033[0m\n";
-  initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
-  std::cout << "c\n";
+  while (true) {
+    // get the query.
+    int n, code;
 
-  // run the method asked.
-  d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
+    if ((n = recv(csocket, &code, sizeof(code), 0)) < 0) {
+      perror("recv()");
+      exit(EXIT_FAILURE);
+    }
 
-  // preproc.
-  ProblemManager *problem = d4::MethodManager::runPreproc(
-      parsePreprocConfiguration(vm), initProblem, std::cout);
+    if (code == STOP) break;
+    if (code != COUNT) {
+      fprintf(stderr,
+              "The query is incorrect, we receive %d and %d is waited\n", code,
+              COUNT);
+      exit(EXIT_FAILURE);
+    }
 
-  // count.
-  serverCounter(vm, problem, csocket);
+    // parse the initial problem.
+    d4::ProblemManager *initProblem = new ProblemManagerCnf(csocket, true);
+    assert(initProblem);
+    std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
+                 "formula\033[0m\n";
+    initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
+    std::cout << "c\n";
 
-  sleep(5);
+    // run the method asked.
+    d4::MethodName methodName =
+        d4::MethodNameManager::getMethodName("counting");
 
+    // preproc.
+    ProblemManager *problem = d4::MethodManager::runPreproc(
+        parsePreprocConfiguration(vm), initProblem, std::cout);
+
+    // count.
+    serverCounter(vm, problem, csocket);
+
+    delete initProblem;
+  }
+
+  std::cout << "[SERVER] Close the connection\n";
   close(csocket);
   close(fd);
 
-  delete initProblem;
   return EXIT_SUCCESS;
 }  // main

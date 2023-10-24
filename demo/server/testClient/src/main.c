@@ -57,22 +57,41 @@ int main(int argc, char **argv) {
   // initialize the connection with the server.
   int fdsocket = initSocket(port);
 
-  // send a CNF formula.
-  char cnf[] = "p cnf 3 1\n1 2 0\nz";
-  if (send(fdsocket, cnf, strlen(cnf), 0) < 0) {
-    perror("sendto()");
-    exit(errno);
+  int nbFormula = 2;
+  char *formula[] = {"p cnf 3 1\n1 2 0\nz", "p cnf 3 2\n1 2 0 -1 2 0 z"};
+
+  int code;
+  for (unsigned i = 0; i < nbFormula; i++) {
+    // ask to count
+    code = 1;
+    if (send(fdsocket, &code, sizeof(code), 0) < 0) {
+      perror("send");
+      exit(EXIT_FAILURE);
+    }
+
+    // send a CNF formula
+    char *cnf = formula[i];
+    if (send(fdsocket, cnf, strlen(cnf), 0) < 0) {
+      perror("sendto()");
+      exit(errno);
+    }
+
+    // wait for the result.
+    int n;
+    char buffer[1024];
+    if ((n = recv(fdsocket, buffer, sizeof(buffer) - 1, 0)) < 0) {
+      perror("recvfrom()");
+      exit(errno);
+    }
+    buffer[n] = '\0';
+    printf("s %s\n", buffer, n);
   }
 
-  // wait for the result.
-  int n;
-  char buffer[1024];
-  if ((n = recv(fdsocket, buffer, sizeof(buffer) - 1, 0)) < 0) {
-    perror("recvfrom()");
-    exit(errno);
+  code = 0;
+  if (send(fdsocket, &code, sizeof(code), 0) < 0) {
+    perror("send");
+    exit(EXIT_FAILURE);
   }
-  buffer[n] = '\n';
-  printf("%s << %d\n", buffer, n);
 
   return EXIT_FAILURE;
 }

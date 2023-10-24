@@ -42,7 +42,7 @@ class ProblemManagerCnf : public ProblemManager {
   ProblemManagerCnf(ProblemManager *problem);
 
   ProblemManagerCnf(const std::string &nameFile);
-  ProblemManagerCnf(const int fd);
+  ProblemManagerCnf(const int fd, bool keepOpen = false);
 
   ~ProblemManagerCnf();
   void display(std::ostream &out) override;

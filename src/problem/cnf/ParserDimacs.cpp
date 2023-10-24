@@ -194,9 +194,9 @@ int ParserDimacs::parse_DIMACS(const std::string &input_stream,
   return parse_DIMACS_main(in, problemManager);
 }  // parse_DIMACS
 
-int ParserDimacs::parse_DIMACS(const int fd,
-                               ProblemManagerCnf *problemManager) {
-  BufferRead in(fd);
+int ParserDimacs::parse_DIMACS(const int fd, ProblemManagerCnf *problemManager,
+                               bool keepOpen) {
+  BufferRead in(fd, keepOpen);
   return parse_DIMACS_main(in, problemManager);
 }  // parse_DIMACS
 

@@ -42,9 +42,9 @@ ProblemManagerCnf::ProblemManagerCnf(const std::string &nameFile) {
 
    @param[in] fd, parse the instance from the file descriptor.
  */
-ProblemManagerCnf::ProblemManagerCnf(const int fd) {
+ProblemManagerCnf::ProblemManagerCnf(const int fd, bool keepOpen) {
   ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(fd, this);
+  m_nbVar = parser.parse_DIMACS(fd, this, keepOpen);
 
   m_weightVar.resize(m_nbVar + 1, 0);
   for (unsigned i = 0; i <= m_nbVar; i++)
