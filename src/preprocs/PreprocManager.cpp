@@ -46,7 +46,14 @@ PreprocManager* PreprocManager::makePreprocManager(
     const OptionPreprocManager& options, std::ostream& out) {
   out << "c [PREPROC MANAGER]" << options << "\n";
 
-  if (options.inputType == DIMACS_CNF || options.inputType == TCNF) {
+  if (options.inputType == QCNF && options.preprocMethod == SHARP_EQUIV) {
+    out << "c [PREPROC MANAGER] The sharp-equiv preprocessor is not compatible "
+           "with a QBF formula\n";
+    return new PreprocBasicCnf(out);
+  }
+
+  if (options.inputType == DIMACS_CNF || options.inputType == TCNF ||
+      options.inputType == QCNF) {
     switch (options.preprocMethod) {
       case BASIC:
         return new PreprocBasicCnf(out);

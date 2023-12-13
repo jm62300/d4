@@ -29,7 +29,7 @@
 namespace d4 {
 namespace mpz = boost::multiprecision;
 
-enum ProblemInputType { PB_CNF, PB_TCNF, PB_CIRC, PB_NONE };
+enum ProblemInputType { PB_CNF, PB_TCNF, PB_CIRC, PB_QBF, PB_NONE };
 
 class ProblemInputTypeManager {
  public:
@@ -37,6 +37,7 @@ class ProblemInputTypeManager {
     if (m == PB_CNF) return "cnf";
     if (m == PB_CIRC) return "circuit";
     if (m == PB_TCNF) return "cnf+theory";
+    if (m == PB_QBF) return "qbf";
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getOperatorType
@@ -45,6 +46,7 @@ class ProblemInputTypeManager {
     if (m == "cnf") return PB_CNF;
     if (m == "circuit") return PB_CIRC;
     if (m == "tcnf") return PB_TCNF;
+    if (m == "qbf") return PB_QBF;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getOperatorType

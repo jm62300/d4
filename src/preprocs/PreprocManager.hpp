@@ -27,7 +27,7 @@ namespace d4 {
 
 class OptionPreprocManager;
 
-enum InputType { DIMACS_CNF, TCNF, CIRCUIT };
+enum InputType { DIMACS_CNF, TCNF, CIRCUIT, QCNF };
 enum PreprocMethod {
   BASIC,
   BACKBONE,
@@ -41,9 +41,16 @@ enum PreprocMethod {
 class InputTypeManager {
  public:
   static std::string getInputType(const InputType &m) {
-    if (m == DIMACS_CNF) return "dimacs cnf";
-    if (m == TCNF) return "dimacs CNF extended with theory";
-    if (m == CIRCUIT) return "circuit";
+    switch (m) {
+      case DIMACS_CNF:
+        return "dimacs cnf";
+      case TCNF:
+        return "dimacs CNF extended with theory";
+      case CIRCUIT:
+        return "circuit";
+      case QCNF:
+        return "qcnf";
+    }
 
     throw(FactoryException("Input type unknown", __FILE__, __LINE__));
   }  // getInputType
@@ -53,6 +60,7 @@ class InputTypeManager {
     if (m == "dimacs") return DIMACS_CNF;
     if (m == "tcnf") return TCNF;
     if (m == "circuit") return CIRCUIT;
+    if (m == "qcnf") return QCNF;
 
     throw(FactoryException("Input type unknown", __FILE__, __LINE__));
   }  // getInputType

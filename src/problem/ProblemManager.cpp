@@ -23,6 +23,7 @@
 #include "circuit/ProblemManagerCircuit.hpp"
 #include "cnf/ProblemManagerCnf.hpp"
 #include "cnf/ProblemManagerErosionCnf.hpp"
+#include "qbf/ProblemManagerQbf.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -41,6 +42,7 @@ ProblemManager *ProblemManager::makeProblemManager(const std::string &in,
   if (pbType == PB_CNF) ret = new ProblemManagerCnf(in);
   if (pbType == PB_TCNF) ret = new ProblemManagerErosionCnf(in);
   if (pbType == PB_CIRC) ret = new ProblemManagerCircuit(in);
+  if (pbType == PB_QBF) ret = new ProblemManagerQbf(in);
 
   if (!ret)
     throw(

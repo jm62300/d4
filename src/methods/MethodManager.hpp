@@ -33,21 +33,35 @@ enum MethodName {
   METH_MIN_SHARP,
   METH_PROJ_MC,
   METH_COUNTING_GLOBAL_CACHE,
+  METH_QBF_COUNTER,
   METH_NONE
 };
 
 class MethodNameManager {
  public:
   static std::string getMethodName(const MethodName &m) {
-    if (m == METH_EROSION) return "erosion";
-    if (m == METH_COUNTING) return "counting";
-    if (m == METH_DDNNF) return "ddnnf-compiler";
-    if (m == METH_MAX_SHARP) return "max#sat";
-    if (m == METH_MIN_SHARP) return "min#sat";
-    if (m == METH_ERE) return "ere";
-    if (m == METH_PROJ_MC) return "projMC";
-    if (m == METH_COUNTING_GLOBAL_CACHE) return "counting-global-cache";
-    if (m == METH_NONE) return "none";
+    switch (m) {
+      case METH_EROSION:
+        return "erosion";
+      case METH_COUNTING:
+        return "counting";
+      case METH_DDNNF:
+        return "ddnnf-compiler";
+      case METH_MAX_SHARP:
+        return "max#sat";
+      case METH_MIN_SHARP:
+        return "min#sat";
+      case METH_ERE:
+        return "ere";
+      case METH_PROJ_MC:
+        return "projMC";
+      case METH_COUNTING_GLOBAL_CACHE:
+        return "counting-global-cache";
+      case METH_QBF_COUNTER:
+        return "qbf-counter";
+      case METH_NONE:
+        return "none";
+    }
 
     throw(FactoryException("Method name unknown", __FILE__, __LINE__));
   }  // getOperatorType
@@ -61,6 +75,7 @@ class MethodNameManager {
     if (m == "ere") return METH_ERE;
     if (m == "projMC") return METH_PROJ_MC;
     if (m == "counting-global-cache") return METH_COUNTING_GLOBAL_CACHE;
+    if (m == "qbf-counter") return METH_QBF_COUNTER;
     if (m == "none") return METH_NONE;
 
     throw(FactoryException("Method name unknown", __FILE__, __LINE__));

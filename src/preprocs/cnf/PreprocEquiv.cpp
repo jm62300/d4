@@ -69,7 +69,6 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
   }
 
   // call the preprocessor to compute the backbone.
-  // call the preprocessor to compute the backbone.
   bipe::bipartition::Method bb;
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bool>> setOfModels;
