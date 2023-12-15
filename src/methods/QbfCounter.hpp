@@ -81,6 +81,7 @@ class QbfCounter : public MethodManager {
   CacheManager<mpz::mpz_int> *m_cache;
 
   std::ostream m_out;
+  std::vector<bool> m_isUniversalVar;
 
  public:
   /**
@@ -126,6 +127,13 @@ class QbfCounter : public MethodManager {
 
     m_currentPrioritySet.resize(m_specs->getNbVariable() + 1, true);
     m_isDecisionVariable.resize(m_specs->getNbVariable() + 1, true);
+
+    std::vector<Block> &qblocks = initProblem->getQBlocks();
+    m_isUniversalVar.resize(m_specs->getNbVariable() + 1, false);
+    for (auto &b : qblocks)
+      if (b.isUniversal)
+        for (auto &v : b.variables) m_isUniversalVar[v] = true;
+
     m_out << "c\n";
   }  // constructor
 
