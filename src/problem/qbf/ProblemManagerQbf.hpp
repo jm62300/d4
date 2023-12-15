@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include "../CnfMatrix.hpp"
 #include "../ProblemManager.hpp"
 #include "../ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
@@ -29,9 +30,8 @@ struct Block {
   std::vector<Var> variables;
 };
 
-class ProblemManagerQbf : public ProblemManager {
+class ProblemManagerQbf : public ProblemManager, public CnfMatrix {
  private:
-  std::vector<std::vector<Lit>> m_clauses;
   std::vector<Block> m_qblocks;
 
  public:
@@ -45,11 +45,6 @@ class ProblemManagerQbf : public ProblemManager {
 
   inline void setBlocks(std::vector<Block> qblocks) { m_qblocks = qblocks; }
   inline std::vector<Block> &getQBlocks() { return m_qblocks; }
-
-  std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
-  void setClauses(std::vector<std::vector<Lit>> &clauses) {
-    m_clauses = clauses;
-  }
 
   void displayStat(std::ostream &out, std::string startLine) override;
   ProblemManager *getUnsatProblem() override;

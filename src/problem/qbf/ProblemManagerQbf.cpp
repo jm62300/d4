@@ -31,6 +31,9 @@ namespace d4 {
 ProblemManagerQbf::ProblemManagerQbf(const std::string &nameFile) {
   ParserQDimacs parser;
   m_nbVar = parser.parse_QDIMACS(nameFile, this);
+
+  m_weightLit.resize((m_nbVar + 1) << 1, 1);
+  m_weightVar.resize(m_nbVar + 1, 2);
 }  // constructor
 
 /**

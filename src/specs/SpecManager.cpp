@@ -31,7 +31,7 @@ SpecManager *SpecManager::makeSpecManager(const OptionSpecManager &options,
                                           std::ostream &out) {
   out << "c [SPEC MANAGER]" << options << "\n";
 
-  if (p.getProblemType() == PB_CNF) {
+  if (p.getProblemType() == PB_CNF || p.getProblemType() == PB_QBF) {
     if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
   }
 

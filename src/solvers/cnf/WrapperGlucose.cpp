@@ -28,8 +28,9 @@
 #include "3rdParty/glucose-3.0/core/Solver.h"
 #include "3rdParty/glucose-3.0/core/SolverTypes.h"
 #include "3rdParty/glucose-3.0/mtl/Vec.h"
+#include "src/problem/CnfMatrix.hpp"
+#include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 /**
@@ -40,15 +41,11 @@ namespace d4 {
  */
 void WrapperGlucose::initSolver(ProblemManager &p) {
   try {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(p);
-
-    // force glucose to be in incremental mode in order to restart just after
-    // the assumptions.
-    // s.setIncrementalMode();
+    CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
 
     // say to the solver we have pcnf.getNbVar() variables.
-    while ((unsigned)s.nVars() <= pcnf.getNbVar()) s.newVar();
-    m_model.resize(pcnf.getNbVar() + 1, l_Undef);
+    while ((unsigned)s.nVars() <= p.getNbVar()) s.newVar();
+    m_model.resize(p.getNbVar() + 1, l_Undef);
 
     // load the clauses
     std::vector<std::vector<Lit>> &clauses = pcnf.getClauses();
@@ -58,8 +55,9 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
       s.addClause(lits);
     }
   } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
+    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "c A CNF formula was expeted\n";
+    assert(0);
   }
 
   m_activeModel = false;

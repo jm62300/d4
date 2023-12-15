@@ -19,13 +19,15 @@
 
 #include "WrapperMinisat.hpp"
 
+#include <cassert>
 #include <iostream>
 #include <typeinfo>
 
 #include "minisat/Solver.hpp"
 #include "minisat/SolverTypes.hpp"
 #include "minisat/mtl/Vec.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
+#include "src/problem/CnfMatrix.hpp"
+#include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
 using minisat::toInt;
@@ -38,11 +40,11 @@ using minisat::toInt;
  */
 void WrapperMinisat::initSolver(ProblemManager &p) {
   try {
-    ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(p);
+    CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
 
     // say to the solver we have pcnf.getNbVar() variables.
-    while ((unsigned)s.nVars() <= pcnf.getNbVar()) s.newVar();
-    m_model.resize(pcnf.getNbVar() + 1, l_Undef);
+    while ((unsigned)s.nVars() <= p.getNbVar()) s.newVar();
+    m_model.resize(p.getNbVar() + 1, l_Undef);
 
     // load the clauses
     std::vector<std::vector<Lit>> &clauses = pcnf.getClauses();
@@ -52,8 +54,9 @@ void WrapperMinisat::initSolver(ProblemManager &p) {
       s.addClause(lits);
     }
   } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
+    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "c A CNF formula was expeted\n";
+    assert(0);
   }
 
   m_activeModel = false;

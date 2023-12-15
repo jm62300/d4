@@ -31,11 +31,12 @@
 #include "src/heuristics/BranchingHeuristic.hpp"
 #include "src/heuristics/partitioning/PartitioningHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
-#include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/options/methods/OptionQbfCounter.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/problem/qbf/ProblemManagerQbf.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
@@ -53,15 +54,13 @@ namespace d4 {
 template <class T>
 class Counter;
 
-template <class T, class U>
-class QbfCounter : public MethodManager, public Counter<T> {
+class QbfCounter : public MethodManager {
  private:
   bool optDomConst;
   bool optReversePolarity;
 
   unsigned m_nbCallCall;
   unsigned m_nbSplit;
-  unsigned m_callPartitioner;
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
@@ -71,20 +70,17 @@ class QbfCounter : public MethodManager, public Counter<T> {
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
-
   std::vector<bool> m_currentPrioritySet;
 
-  ProblemManager *m_problem;
+  ProblemManagerQbf *m_problem;
   WrapperSolver *m_solver;
   SpecManager *m_specs;
 
   BranchingHeuristic *m_heuristic;
-  PartitioningHeuristic *m_hCutSet;
-  TmpEntry<U> NULL_CACHE_ENTRY;
-  CacheManager<U> *m_cache;
+  TmpEntry<mpz::mpz_int> NULL_CACHE_ENTRY;
+  CacheManager<mpz::mpz_int> *m_cache;
 
   std::ostream m_out;
-  Operation<T, U> *m_operation;
 
  public:
   /**
@@ -92,7 +88,7 @@ class QbfCounter : public MethodManager, public Counter<T> {
 
      @param[in] vm, the list of options.
    */
-  QbfCounter(const OptionDpllStyleMethod &options, ProblemManager *initProblem,
+  QbfCounter(const OptionQbfCounter &options, ProblemManagerQbf *initProblem,
              std::ostream &out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
@@ -112,49 +108,24 @@ class QbfCounter : public MethodManager, public Counter<T> {
     m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
                                            *m_problem, m_out);
 
-    // select the partitioner regarding if it projected model counting or not.
-    if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
-      m_out << "c [MODE] projected\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
-      if (options.optionBranchingHeuristic.branchingHeuristicType ==
-          BRANCHING_LARGE_ARITY) {
-        m_out << "c [BRANCHING HEURISTIC] Cannot use the heuristic that branch "
-                 "on clauses\n";
-        options.optionBranchingHeuristic.branchingHeuristicType ==
-            BRANCHING_CLASSIC;
-      }
-    } else {
-      m_out << "c [MODE] classic\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
-          options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
-    }
-
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
         options.optionBranchingHeuristic, m_specs, m_solver, m_out);
 
-    // specify which variables are decisions, and which are not.
-    m_isDecisionVariable.clear();
-    m_isDecisionVariable.resize(m_problem->getNbVar() + 1,
-                                !m_problem->getNbSelectedVar());
-    for (auto v : m_problem->getSelectedVar()) m_isDecisionVariable[v] = true;
-    m_currentPrioritySet.resize(m_problem->getNbVar() + 1, false);
-
-    m_cache = CacheManager<U>::makeCacheManager(
+    // init the cache manager.
+    m_cache = CacheManager<mpz::mpz_int>::makeCacheManager(
         options.optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
 
     m_optCached = options.optionCacheManager.isActivated;
-    m_callPartitioner = 0;
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
 
-    void *op = Operation<T, U>::makeOperationManager(
-        options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
-    m_operation = static_cast<Operation<T, U> *>(op);
+    m_currentPrioritySet.resize(m_specs->getNbVariable() + 1, true);
+    m_isDecisionVariable.resize(m_specs->getNbVariable() + 1, true);
     m_out << "c\n";
   }  // constructor
 
@@ -162,59 +133,21 @@ class QbfCounter : public MethodManager, public Counter<T> {
      Destructor.
    */
   ~QbfCounter() {
-    delete m_operation;
     delete m_problem;
     delete m_solver;
     delete m_specs;
     delete m_heuristic;
-    delete m_hCutSet;
     delete m_cache;
   }  // destructor
 
  private:
   /**
-     Expel from a set of variables the ones they are marked as being decidable.
+    Compute the current priority set.
 
-     @param[out] vars, the set of variables we search to filter.
-
-     @param[in] isDecisionvariable, a boolean vector that marks as true decision
-     variables.
-   */
-  void expelNoDecisionVar(std::vector<Var> &vars,
-                          std::vector<bool> &isDecisionVariable) {
-    if (!m_isProjectedMode) return;
-
-    unsigned j = 0;
-    for (unsigned i = 0; i < vars.size(); i++)
-      if (isDecisionVariable[vars[i]]) vars[j++] = vars[i];
-    vars.resize(j);
-  }  // expelNoDecisionVar
-
-  /**
-     Expel from a set of variables the ones they are marked as being decidable.
-
-     @param[out] lits, the set of literals we search to filter.
-
-     @param[in] isDecisionvariable, a boolean vector that marks as true decision
-     variables.
-   */
-  void expelNoDecisionLit(std::vector<Lit> &lits,
-                          std::vector<bool> &isDecisionVariable) {
-    if (!m_isProjectedMode) return;
-
-    unsigned j = 0;
-    for (unsigned i = 0; i < lits.size(); i++)
-      if (isDecisionVariable[lits[i].var()]) lits[j++] = lits[i];
-    lits.resize(j);
-  }  // expelNoDecisionLit
-
-  /**
-     Compute the current priority set.
-
-     @param[in] connected, the current component.
-     @param[in] priorityVar, the current priority variables.
-     @param[out] currPriority, the intersection of the two previous sets.
-  */
+    @param[in] connected, the current component.
+    @param[in] priorityVar, the current priority variables.
+    @param[out] currPriority, the intersection of the two previous sets.
+ */
   inline void computePrioritySubSet(std::vector<Var> &connected,
                                     std::vector<Var> &priorityVar,
                                     std::vector<Var> &currPriority) {
@@ -240,8 +173,7 @@ class QbfCounter : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_callPartitioner << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|\n";
   }  // showInter
 
   /**
@@ -270,7 +202,6 @@ class QbfCounter : public MethodManager, public Counter<T> {
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter"
         << "|\n";
     separator(out);
   }  // showHeader
@@ -298,13 +229,8 @@ class QbfCounter : public MethodManager, public Counter<T> {
     out << "c Number of recursive call: " << m_nbCallCall << "\n";
     out << "c Number of split formula: " << m_nbSplit << "\n";
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
-    out << "c Number of paritioner calls: " << m_callPartitioner << "\n";
     out << "c\n";
     m_cache->printCacheInformation(out);
-    if (m_hCutSet) {
-      out << "c\n";
-      m_hCutSet->displayStat(out);
-    }
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   }  // printFinalStat
@@ -330,33 +256,6 @@ class QbfCounter : public MethodManager, public Counter<T> {
   }  // cacheIsActivated
 
   /**
-   * @brief Assign the pure literal that are not projeted.
-   *
-   * @param[in] setOfVar is the set of variables we are looking for.
-   * @param[out] unitsLit is the place where are added the pure literal we have
-   * computed (can also contains previously computed unit, then please keep
-   * them).
-   */
-  void managePureLiterals(const std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit) {
-    std::vector<Lit> pureLit;
-    for (auto &v : setOfVar) {
-      if (m_isDecisionVariable[v]) continue;
-      if (m_specs->varIsAssigned(v)) continue;
-
-      Lit l = Lit::makeLitTrue(v);
-      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
-        pureLit.push_back(~l);
-      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
-        pureLit.push_back(l);
-    }
-    if (pureLit.size()) {
-      for (auto &l : pureLit) unitsLit.push_back(l);
-      m_specs->preUpdate(pureLit);
-    }
-  }  // managePureLiterals
-
-  /**
    * Call the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -367,31 +266,30 @@ class QbfCounter : public MethodManager, public Counter<T> {
    * \return an element of type U that sums up the given CNF sub-formula
    * using a DPLL style algorithm with an operation manager.
    */
-  U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-             std::vector<Var> &freeVariable, std::ostream &out) {
+  mpz::mpz_int compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
+                        std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
-    if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
+    if (!m_solver->solve(setOfVar)) return 0;
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-    managePureLiterals(setOfVar, unitsLit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
-    expelNoDecisionVar(freeVariable, m_isDecisionVariable);
 
     // consider each connected component.
     if (nbComponent) {
-      U tab[nbComponent];
+      mpz::mpz_int tab[nbComponent];
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
-        TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
+        TmpEntry<mpz::mpz_int> cb = cacheActivated
+                                        ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
         if (cacheActivated && cb.defined)
           tab[cp] = cb.getValue();
@@ -404,13 +302,14 @@ class QbfCounter : public MethodManager, public Counter<T> {
       }
 
       m_specs->postUpdate(unitsLit);
-      return m_operation->manageDecomposableAnd(tab, nbComponent);
+
+      mpz::mpz_int result = 1;
+      for (unsigned i = 0; i < nbComponent; i++) result *= tab[i];
+      return result;
     }  // else we have a tautology
 
     m_specs->postUpdate(unitsLit);
-    expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-
-    return m_operation->createTop();
+    return 1;
   }  // compute_
 
   /**
@@ -441,54 +340,31 @@ class QbfCounter : public MethodManager, public Counter<T> {
 
      \return the compiled formula.
   */
-  U computeDecisionNode(std::vector<Var> &connected, std::ostream &out) {
-    std::vector<Var> cutSet;
-    bool hasPriority = false, hasVariable = false;
-
-    for (auto v : connected) {
-      if (m_specs->varIsAssigned(v) || !m_isDecisionVariable[v]) continue;
-      hasVariable = true;
-      if ((hasPriority = m_currentPrioritySet[v])) break;
-    }
-
-    if (hasVariable && !hasPriority && m_hCutSet->isReady(connected)) {
-      m_hCutSet->computeCutSet(connected, cutSet);
-      m_callPartitioner++;
-      setCurrentPriority(cutSet);
-    }
-
-    // search the next variable to branch on
-
+  mpz::mpz_int computeDecisionNode(std::vector<Var> &connected,
+                                   std::ostream &out) {
     ListLit lits;
     m_heuristic->selectLitSet(connected, m_currentPrioritySet, lits);
-    if (!lits.size()) {
-      unsetCurrentPriority(cutSet);
-      return m_operation->manageTop(connected);
-    }
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
-    DataBranch<U> b[lits.size() + 1];
+    DataBranch<mpz::mpz_int> b[2];
 
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
-    for (unsigned i = 0; i <= lits.size(); i++) {
-      if (i != 0) {
-        m_solver->popAssumption();
-        m_solver->pushAssumption(~lits[i - 1]);
-        if (lits.size() > 1 && !m_solver->solve(connected)) break;
-      }
 
-      if (i != lits.size()) m_solver->pushAssumption(lits[i]);
+    mpz::mpz_int result = 0;
+    m_solver->pushAssumption(lits[0]);
+    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
+    result += b[0].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[0]);
 
-      b[nb].d = compute_(connected, b[nb].unitLits, b[nb].freeVars, out);
-      nb++;
-    }
+    m_solver->popAssumption();
+    m_solver->pushAssumption(~lits[0]);
+    b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
 
-    // reinit some variables.
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
-    unsetCurrentPriority(cutSet);
-    return m_operation->manageDeterministOr(b, nb);
+    result += b[1].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[1]);
+
+    return result;
   }  // computeDecisionNode
 
   /**
@@ -502,14 +378,15 @@ class QbfCounter : public MethodManager, public Counter<T> {
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute(std::vector<Var> &setOfVar, std::ostream &out,
-            bool warmStart = true) {
+  mpz::mpz_int compute(std::vector<Var> &setOfVar, std::ostream &out,
+                       bool warmStart = true) {
     if (m_problem->isUnsat() ||
-        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
-      return m_operation->manageBottom();
-    DataBranch<U> b;
+        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out))) {
+      return 0;
+    }
+    DataBranch<mpz::mpz_int> b;
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
-    return m_operation->manageBranch(b);
+    return b.d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b);
   }  // compute
 
  public:
@@ -525,8 +402,8 @@ class QbfCounter : public MethodManager, public Counter<T> {
      \return the number of models when the formula is simplified by the given
      assumption.
    */
-  T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
-          std::ostream &out) {
+  mpz::mpz_int count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
+                     std::ostream &out) {
     initAssumption(assumption);
 
     // get the unit not in setOfVar.
@@ -537,10 +414,11 @@ class QbfCounter : public MethodManager, public Counter<T> {
       if (m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
 
     m_specs->preUpdate(shadowUnits);
-    U result = compute(setOfVar, out, false);
+    mpz::mpz_int result = compute(setOfVar, out, false);
     m_specs->postUpdate(shadowUnits);
 
-    return m_operation->count(result);
+    assert(0);
+    return 1;
   }  // count
 
   /**
@@ -548,20 +426,13 @@ class QbfCounter : public MethodManager, public Counter<T> {
 
      @param[in] vm, the set of options.
    */
-  U run() {
+  mpz::mpz_int run() {
     std::vector<Var> setOfVar;
     for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
 
-    U result = compute(setOfVar, m_out);
+    mpz::mpz_int result = compute(setOfVar, m_out);
     printFinalStats(m_out);
     return result;
   }  // run
-
-  /**
-   * @brief Get the Operation object
-   *
-   * @return the operation object.
-   */
-  inline Operation<T, U> *getOperation() { return m_operation; }
 };
 }  // namespace d4

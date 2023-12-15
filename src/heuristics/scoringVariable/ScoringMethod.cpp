@@ -51,8 +51,9 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
     if (options.scoringMethodType == SCORE_JWTS)
       return new ScoringMethodJwts(ps);
   } catch (std::bad_cast &bc) {
-    std::cerr << "bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "A CNF formula was expeted\n";
+    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "c A CNF formula was expeted\n";
+    assert(0);
   }
 
   throw(FactoryException("Cannot create a ScoringMethod", __FILE__, __LINE__));

@@ -96,7 +96,6 @@ int main(int argc, char **argv) {
   // count.
   qbfCounterDemo(vm, static_cast<ProblemManagerQbf *>(initProblem));
 
-  delete initProblem;
   return EXIT_SUCCESS;
 }  // main
 #endif

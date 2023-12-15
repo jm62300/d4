@@ -18,15 +18,13 @@
  */
 #pragma once
 
+#include "../CnfMatrix.hpp"
 #include "../ProblemManager.hpp"
 #include "../ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-class ProblemManagerCnf : public ProblemManager {
- private:
-  std::vector<std::vector<Lit>> m_clauses;
-
+class ProblemManagerCnf : public ProblemManager, public CnfMatrix {
  public:
   ProblemManagerCnf();
 
@@ -46,10 +44,6 @@ class ProblemManagerCnf : public ProblemManager {
 
   ~ProblemManagerCnf();
   void display(std::ostream &out) override;
-  std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
-  void setClauses(std::vector<std::vector<Lit>> &clauses) {
-    m_clauses = clauses;
-  }
   void displayStat(std::ostream &out, std::string startLine) override;
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
