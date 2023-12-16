@@ -18,6 +18,8 @@
  */
 #pragma once
 
+#include <gmpxx.h>
+
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -150,28 +152,10 @@ class QbfCounter : public MethodManager {
 
  private:
   /**
-    Compute the current priority set.
-
-    @param[in] connected, the current component.
-    @param[in] priorityVar, the current priority variables.
-    @param[out] currPriority, the intersection of the two previous sets.
- */
-  inline void computePrioritySubSet(std::vector<Var> &connected,
-                                    std::vector<Var> &priorityVar,
-                                    std::vector<Var> &currPriority) {
-    currPriority.resize(0);
-    m_stampIdx++;
-    for (auto &v : connected) m_stampVar[v] = m_stampIdx;
-    for (auto &v : priorityVar)
-      if (m_stampVar[v] == m_stampIdx && !m_specs->varIsAssigned(v))
-        currPriority.push_back(v);
-  }  // computePrioritySet
-
-  /**
-     Print out information about the solving process.
-
-     @param[in] out, the stream we use to print out information.
-  */
+   * Print out information about the solving process.
+   *
+   * @param[in] out, the stream we use to print out information.
+   */
   inline void showInter(std::ostream &out) {
     out << "c " << std::fixed << std::setprecision(2) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
@@ -281,6 +265,12 @@ class QbfCounter : public MethodManager {
     if (!m_solver->solve(setOfVar)) return 0;
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
+
+    // the universal part cannot propagate unit literal.
+    for (auto &l : unitsLit)
+      if (!m_solver->isInAssumption(l.var()) && m_isUniversalVar[l.var()])
+        return 0;
+
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -288,31 +278,42 @@ class QbfCounter : public MethodManager {
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
 
+    unsigned countUniv = 0;
+    for (auto &v : setOfVar)
+      if (m_isUniversalVar[v] && !m_solver->varIsAssigned(v)) countUniv++;
+    for (auto &v : freeVariable)
+      if (m_isUniversalVar[v] && !m_solver->varIsAssigned(v)) countUniv--;
+
     // consider each connected component.
     if (nbComponent) {
-      mpz::mpz_int tab[nbComponent];
+      mpz::mpz_int result = 1, tmpCount;
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      for (int cp = 0; cp < nbComponent; cp++) {
+      for (int cp = 0; cp < nbComponent && result != 0; cp++) {
         std::vector<Var> &connected = varConnected[cp];
+
+        unsigned countLocalUniv = 0;
+        for (auto &v : connected)
+          if (m_isUniversalVar[v]) countLocalUniv++;
 
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<mpz::mpz_int> cb = cacheActivated
                                         ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
         if (cacheActivated && cb.defined)
-          tab[cp] = cb.getValue();
+          tmpCount = cb.getValue();
         else {
           // recursive call
-          tab[cp] = computeDecisionNode(connected, out);
-
-          if (cacheActivated) m_cache->addInCache(cb, tab[cp]);
+          tmpCount = computeDecisionNode(connected, out);
+          if (cacheActivated) m_cache->addInCache(cb, tmpCount);
         }
+
+        // rescale regarding the other component.
+        for (unsigned i = 0; i < countUniv - countLocalUniv; i++)
+          tmpCount *= tmpCount;
+        result *= tmpCount;
       }
 
       m_specs->postUpdate(unitsLit);
-
-      mpz::mpz_int result = 1;
-      for (unsigned i = 0; i < nbComponent; i++) result *= tab[i];
       return result;
     }  // else we have a tautology
 
@@ -350,11 +351,23 @@ class QbfCounter : public MethodManager {
   */
   mpz::mpz_int computeDecisionNode(std::vector<Var> &connected,
                                    std::ostream &out) {
+    std::vector<Var> univVar;
+    for (auto &v : connected)
+      if (m_isUniversalVar[v]) univVar.push_back(v);
+
     ListLit lits;
-    m_heuristic->selectLitSet(connected, m_currentPrioritySet, lits);
+    if (univVar.size())
+      m_heuristic->selectLitSet(univVar, m_currentPrioritySet, lits);
+    else
+      m_heuristic->selectLitSet(connected, m_currentPrioritySet, lits);
+
     m_nbDecisionNode++;
 
-    // compile the formula where l is assigned to true
+    static int cpt = 0;
+    int currentCpt = cpt++;
+
+    // count on the formula when lits[0] is assigned true and false.
+    assert(lits.size() == 1);
     DataBranch<mpz::mpz_int> b[2];
 
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
@@ -362,15 +375,41 @@ class QbfCounter : public MethodManager {
     mpz::mpz_int result = 0;
     m_solver->pushAssumption(lits[0]);
     b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
-    result += b[0].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[0]);
-
     m_solver->popAssumption();
+    if (univVar.size() && b[0].d == 0) return 0;
+
     m_solver->pushAssumption(~lits[0]);
     b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
 
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
-    result += b[1].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[1]);
+
+    if (univVar.size()) {
+      mpz::mpz_int freeScale = 2;
+      for (unsigned i = 0; i < univVar.size() - 1; i++) freeScale *= 2;
+
+      mpz::mpz_int c0 = b[0].d, c1 = b[1].d;
+      unsigned countUnivFree0 = 0, countUnivFree1 = 0;
+      for (auto &v : b[0].freeVars)
+        if (m_isUniversalVar[v])
+          countUnivFree0++;
+        else
+          c0 *= freeScale;
+
+      for (auto &v : b[1].freeVars)
+        if (m_isUniversalVar[v])
+          countUnivFree1++;
+        else
+          c1 *= freeScale;
+
+      for (unsigned i = 0; i < countUnivFree0; i++) c0 *= c0;
+      for (unsigned i = 0; i < countUnivFree1; i++) c1 *= c1;
+
+      result = c0 * c1;
+    } else {
+      result += b[0].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[0]);
+      result += b[1].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[1]);
+    }
 
     return result;
   }  // computeDecisionNode
