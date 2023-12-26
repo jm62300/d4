@@ -357,40 +357,41 @@ class QbfCounter : public MethodManager {
   */
   mpz::mpz_int computeDecisionNode(std::vector<Var> &connected,
                                    std::ostream &out) {
-    std::vector<Var> univVar;
+    unsigned level = m_varBlockLevel[connected[0]];
+    std::vector<Var> candidateVar = {connected[0]};
     for (auto &v : connected)
-      if (m_isUniversalVar[v]) univVar.push_back(v);
+      if (m_varBlockLevel[v] == level)
+        candidateVar.push_back(v);
+      else if (m_varBlockLevel[v] < level) {
+        candidateVar.resize(0);
+        level = m_varBlockLevel[v];
+        candidateVar.push_back(v);
+      }
+    assert(candidateVar.size());
 
     ListLit lits;
-    if (univVar.size())
-      m_heuristic->selectLitSet(univVar, m_currentPrioritySet, lits);
-    else
-      m_heuristic->selectLitSet(connected, m_currentPrioritySet, lits);
+    m_heuristic->selectLitSet(candidateVar, m_currentPrioritySet, lits);
+    assert(lits.size() == 0);
 
     m_nbDecisionNode++;
-
-    static int cpt = 0;
-    int currentCpt = cpt++;
 
     // count on the formula when lits[0] is assigned true and false.
     assert(lits.size() == 1);
     DataBranch<mpz::mpz_int> b[2];
 
-    unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
+    unsigned nb = 0;
 
     mpz::mpz_int result = 0;
     m_solver->pushAssumption(lits[0]);
     b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
     m_solver->popAssumption();
-    if (univVar.size() && b[0].d == 0) return 0;
+    if (m_isUniversalVar[lits[0].var()] && b[0].d == 0) return 0;
 
     m_solver->pushAssumption(~lits[0]);
     b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
-
-    assert(m_solver->sizeAssumption() > sizeAssum);
-    m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
-
-    if (univVar.size()) {
+    m_solver->popAssumption();
+#if 0
+    if (m_isUniversalVar[v]) {
       mpz::mpz_int freeScale = 2;
       for (unsigned i = 0; i < univVar.size() - 1; i++) freeScale *= 2;
 
@@ -416,7 +417,7 @@ class QbfCounter : public MethodManager {
       result += b[0].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[0]);
       result += b[1].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[1]);
     }
-
+#endif
     return result;
   }  // computeDecisionNode
 
