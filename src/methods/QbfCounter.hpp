@@ -43,7 +43,7 @@
 #include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
-#define NB_SEP_MC 104
+#define NB_SEP_QBF_MC 92
 #define MASK_SHOWRUN_MC ((2 << 13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 1048575
@@ -73,6 +73,7 @@ class QbfCounter : public MethodManager {
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
   std::vector<bool> m_currentPrioritySet;
+  std::vector<unsigned> m_varBlockLevel;
 
   ProblemManagerQbf *m_problem;
   WrapperSolver *m_solver;
@@ -131,10 +132,15 @@ class QbfCounter : public MethodManager {
     m_isDecisionVariable.resize(m_specs->getNbVariable() + 1, true);
 
     std::vector<Block> &qblocks = initProblem->getQBlocks();
+    m_out << "c [QBF COUNTER] Number of blocks: " << qblocks.size() << '\n';
     m_isUniversalVar.resize(m_specs->getNbVariable() + 1, false);
-    for (auto &b : qblocks)
-      if (b.isUniversal)
-        for (auto &v : b.variables) m_isUniversalVar[v] = true;
+    m_varBlockLevel.resize(m_specs->getNbVariable() + 1, 0);
+    for (unsigned i = 0; i < qblocks.size(); i++) {
+      for (auto &v : qblocks[i].variables) {
+        m_isUniversalVar[v] = qblocks[i].isUniversal;
+        m_varBlockLevel[v] = i;
+      }
+    }
 
     m_out << "c\n";
   }  // constructor
@@ -175,7 +181,7 @@ class QbfCounter : public MethodManager {
    */
   inline void separator(std::ostream &out) {
     out << "c ";
-    for (int i = 0; i < NB_SEP_MC; i++) out << "-";
+    for (int i = 0; i < NB_SEP_QBF_MC; i++) out << "-";
     out << "\n";
   }  // separator
 
