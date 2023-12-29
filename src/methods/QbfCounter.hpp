@@ -73,7 +73,6 @@ class QbfCounter : public MethodManager {
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
   std::vector<bool> m_currentPrioritySet;
-  std::vector<unsigned> m_varBlockLevel;
 
   ProblemManagerQbf *m_problem;
   WrapperSolver *m_solver;
@@ -84,7 +83,13 @@ class QbfCounter : public MethodManager {
   CacheManager<mpz::mpz_int> *m_cache;
 
   std::ostream m_out;
+
+  int m_levelQuantification, m_nbBlock;
+  std::vector<std::vector<Var>> m_freeByLevel;
   std::vector<bool> m_isUniversalVar;
+  std::vector<unsigned> m_varBlockLevel;
+  std::vector<unsigned> m_unassignedUnivVarBlock;
+  std::vector<Block> m_qblocks;
 
  public:
   /**
@@ -131,16 +136,26 @@ class QbfCounter : public MethodManager {
     m_currentPrioritySet.resize(m_specs->getNbVariable() + 1, true);
     m_isDecisionVariable.resize(m_specs->getNbVariable() + 1, true);
 
-    std::vector<Block> &qblocks = initProblem->getQBlocks();
-    m_out << "c [QBF COUNTER] Number of blocks: " << qblocks.size() << '\n';
+    m_qblocks = initProblem->getQBlocks();
+    m_freeByLevel.resize(m_qblocks.size());
+    m_nbBlock = m_qblocks.size();
+    m_out << "c [QBF COUNTER] Number of blocks: " << m_nbBlock << '\n';
     m_isUniversalVar.resize(m_specs->getNbVariable() + 1, false);
     m_varBlockLevel.resize(m_specs->getNbVariable() + 1, 0);
-    for (unsigned i = 0; i < qblocks.size(); i++) {
-      for (auto &v : qblocks[i].variables) {
-        m_isUniversalVar[v] = qblocks[i].isUniversal;
+    m_unassignedUnivVarBlock.resize(m_qblocks.size(), 0);
+
+    for (unsigned i = 0; i < m_qblocks.size(); i++) {
+      for (auto &v : m_qblocks[i].variables) {
+        m_isUniversalVar[v] = m_qblocks[i].isUniversal;
         m_varBlockLevel[v] = i;
       }
+
+      if (m_qblocks[i].isUniversal)
+        m_unassignedUnivVarBlock[i] = m_qblocks[i].variables.size();
     }
+
+    for (unsigned i = 1; i < m_specs->getNbVariable() + 1; i++)
+      std::cout << i << " " << m_varBlockLevel[i] << "\n";
 
     m_out << "c\n";
   }  // constructor
@@ -254,52 +269,132 @@ class QbfCounter : public MethodManager {
   }  // cacheIsActivated
 
   /**
+   * @brief Get the variables at the lowest possible level.
+   *
+   * @param[in] vars is the set of variables under consideration.
+   * @param[out] candidate is the set of variables with the smaller index in the
+   * quantification block.
+   */
+  void getLowestLevelVariables(std::vector<Var> &vars,
+                               std::vector<Var> &candidate) {
+    assert(vars.size());
+    unsigned level = m_varBlockLevel[vars[0]];
+    candidate = {vars[0]};
+    for (auto &v : vars)
+      if (m_varBlockLevel[v] == level)
+        candidate.push_back(v);
+      else if (m_varBlockLevel[v] < level) {
+        candidate.resize(0);
+        level = m_varBlockLevel[v];
+        candidate.push_back(v);
+      }
+    assert(candidate.size());
+  }  // getLowestLevelVariables
+
+  /**
+   * @brief Get the level of the variable with the lowest quantification block.
+   *
+   * @param[in] vars is the set of variables under consideration.
+   * @return the lowest level.
+   */
+  int getLowestLevel(std::vector<Var> &vars) {
+    assert(vars.size());
+    int level = m_varBlockLevel[vars[0]];
+
+    for (auto &v : vars)
+      if (level > m_varBlockLevel[v]) level = m_varBlockLevel[v];
+    return level;
+  }  // getLowestLevel
+
+  /**
    * Call the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
-   * @param[in] unitsLit, the set of unit literal detected at this level
-   * @param[in] freeVariable, the variables which become free
    * @param[in] out, the stream we use to print out information.
    *
    * \return an element of type U that sums up the given CNF sub-formula
    * using a DPLL style algorithm with an operation manager.
    */
-  mpz::mpz_int compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-                        std::vector<Var> &freeVariable, std::ostream &out) {
+  mpz::mpz_int compute_(std::vector<Var> &setOfVar, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return 0;
 
+    std::vector<Lit> unitsLit;
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
 
-    // the universal part cannot propagate unit literal.
+    // the universal part cannot propagate unit literals (UNSAT).
     for (auto &l : unitsLit)
       if (!m_solver->isInAssumption(l.var()) && m_isUniversalVar[l.var()])
         return 0;
 
     m_specs->preUpdate(unitsLit);
 
+    // look if we have to update the quantification block level.
+    int level = getLowestLevel(setOfVar);
+    int saveLevel = m_levelQuantification, nbFreeUniv = 0;
+
+    std::cout << "set of var: ";
+    for (auto &v : setOfVar) std::cout << v << " ";
+    std::cout << '\n';
+
+    if (level > m_levelQuantification) {
+      std::cout << "start at level " << level << "\n";
+
+      // for the previous universal block.
+      for (unsigned i = m_levelQuantification >= 0 ? m_levelQuantification : 0;
+           i < level; i++)
+        nbFreeUniv += m_unassignedUnivVarBlock[i];
+
+      // save that we start a new level.
+      m_levelQuantification = level;
+    }
+
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
+    std::vector<Var> freeVariable;
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
 
-    unsigned countUniv = 0;
-    for (auto &v : setOfVar)
-      if (m_isUniversalVar[v] && !m_solver->varIsAssigned(v)) countUniv++;
-    for (auto &v : freeVariable)
-      if (m_isUniversalVar[v] && !m_solver->varIsAssigned(v)) countUniv--;
+    std::cout << "nb component = " << nbComponent << "\n";
+    std::cout << "free variables: ";
+    for (auto &v : freeVariable) std::cout << v << " ";
+    std::cout << "\n";
+
+    // catch the free variables.
+    unsigned count[m_nbBlock] = {0};
+    for (auto &v : freeVariable) {
+      if (m_varBlockLevel[v] == level && m_isUniversalVar[v]) nbFreeUniv++;
+      if (!m_isUniversalVar[v]) count[m_varBlockLevel[v]]++;
+    }
+
+    std::cout << "~~~~> " << level << "/" << m_nbBlock << "\n";
+
+    // compute the scaling factor on the free existential variables.
+    mpz::mpz_int scaleExist = 1;
+    unsigned sumUniv = 0;
+    for (unsigned i = level + 1; i < m_nbBlock; i++) {
+      if (m_qblocks[i].isUniversal)
+        sumUniv += m_qblocks[i].variables.size();
+      else {
+        std::cout << "count[" << i << "] = " << count[i] << "\n";
+        if (!count[i]) continue;
+
+        mpz::mpz_int nbLocalModel = 1;
+        for (unsigned j = 0; j < count[i]; j++) nbLocalModel *= 2;
+        for (unsigned j = 0; j < sumUniv; j++) nbLocalModel *= nbLocalModel;
+
+        scaleExist *= nbLocalModel;
+      }
+    }
 
     // consider each connected component.
+    mpz::mpz_int result = 1;
     if (nbComponent) {
-      mpz::mpz_int result = 1, tmpCount;
+      mpz::mpz_int tmpCount;
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent && result != 0; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-
-        unsigned countLocalUniv = 0;
-        for (auto &v : connected)
-          if (m_isUniversalVar[v]) countLocalUniv++;
 
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<mpz::mpz_int> cb = cacheActivated
@@ -313,112 +408,74 @@ class QbfCounter : public MethodManager {
           if (cacheActivated) m_cache->addInCache(cb, tmpCount);
         }
 
-        // rescale regarding the other component.
-        for (unsigned i = 0; i < countUniv - countLocalUniv; i++)
-          tmpCount *= tmpCount;
+        // adjust the count with the universal that move to other component.
+        if (m_qblocks[m_levelQuantification].isUniversal) {
+          for (unsigned i = 0; i < nbComponent; i++)
+            if (i != cp) {
+              for (auto &v : varConnected[i])
+                if (m_varBlockLevel[v] == m_levelQuantification)
+                  tmpCount *= tmpCount;
+            }
+        }
+
         result *= tmpCount;
       }
-
-      m_specs->postUpdate(unitsLit);
-      return result;
     }  // else we have a tautology
 
+    // backtrack.
+    m_levelQuantification = saveLevel;
     m_specs->postUpdate(unitsLit);
-    return 1;
+
+    // update the count regarding the free variables.
+    result *= scaleExist;
+    for (unsigned i = 0; i < nbFreeUniv; i++) result *= result;
+    return result;
   }  // compute_
 
   /**
-   * @brief Set the Current Priority.
+   * This function select a variable and compile a decision node.
    *
-   * @param cutSet is the set of variables that become decision variables.
-   */
-  inline void setCurrentPriority(std::vector<Var> &cutSet) {
-    for (auto &v : cutSet)
-      if (m_isDecisionVariable[v]) m_currentPrioritySet[v] = true;
-  }  // setCurrentPriority
-
-  /**
-   * @brief Unset the Current Priority.
+   * @param[in] connected, the set of variable present in the current problem.
+   * @param[in] out, the stream whare are printed out the logs.
    *
-   * @param cutSet is the set of variables that become decision variables.
+   * \return the compiled formula.
    */
-  inline void unsetCurrentPriority(std::vector<Var> &cutSet) {
-    for (auto &v : cutSet)
-      if (m_isDecisionVariable[v]) m_currentPrioritySet[v] = false;
-  }  // setCurrentPriority
-
-  /**
-     This function select a variable and compile a decision node.
-
-     @param[in] connected, the set of variable present in the current problem.
-     @param[in] out, the stream whare are printed out the logs.
-
-     \return the compiled formula.
-  */
   mpz::mpz_int computeDecisionNode(std::vector<Var> &connected,
                                    std::ostream &out) {
-    unsigned level = m_varBlockLevel[connected[0]];
-    std::vector<Var> candidateVar = {connected[0]};
-    for (auto &v : connected)
-      if (m_varBlockLevel[v] == level)
-        candidateVar.push_back(v);
-      else if (m_varBlockLevel[v] < level) {
-        candidateVar.resize(0);
-        level = m_varBlockLevel[v];
-        candidateVar.push_back(v);
-      }
-    assert(candidateVar.size());
+    std::vector<Var> candidateVar;
+    getLowestLevelVariables(connected, candidateVar);
 
     ListLit lits;
     m_heuristic->selectLitSet(candidateVar, m_currentPrioritySet, lits);
-    assert(lits.size() == 0);
+    assert(lits.size() == 1);
 
+    Lit x = lits[0];
     m_nbDecisionNode++;
 
-    // count on the formula when lits[0] is assigned true and false.
-    assert(lits.size() == 1);
-    DataBranch<mpz::mpz_int> b[2];
+    int saveDec = m_nbDecisionNode;
+    std::cout << saveDec << " branch on " << x.human() << "\n";
 
-    unsigned nb = 0;
+    // save the fact that an universal variable has been assigned
+    if (m_isUniversalVar[x.var()]) m_unassignedUnivVarBlock[x.var()]--;
 
-    mpz::mpz_int result = 0;
-    m_solver->pushAssumption(lits[0]);
-    b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
+    // count on the formula when x is assigned true and false.
+    m_solver->pushAssumption(x);
+    mpz::mpz_int pos = compute_(connected, out), neg = 0;
     m_solver->popAssumption();
-    if (m_isUniversalVar[lits[0].var()] && b[0].d == 0) return 0;
-
-    m_solver->pushAssumption(~lits[0]);
-    b[1].d = compute_(connected, b[1].unitLits, b[1].freeVars, out);
-    m_solver->popAssumption();
-#if 0
-    if (m_isUniversalVar[v]) {
-      mpz::mpz_int freeScale = 2;
-      for (unsigned i = 0; i < univVar.size() - 1; i++) freeScale *= 2;
-
-      mpz::mpz_int c0 = b[0].d, c1 = b[1].d;
-      unsigned countUnivFree0 = 0, countUnivFree1 = 0;
-      for (auto &v : b[0].freeVars)
-        if (m_isUniversalVar[v])
-          countUnivFree0++;
-        else
-          c0 *= freeScale;
-
-      for (auto &v : b[1].freeVars)
-        if (m_isUniversalVar[v])
-          countUnivFree1++;
-        else
-          c1 *= freeScale;
-
-      for (unsigned i = 0; i < countUnivFree0; i++) c0 *= c0;
-      for (unsigned i = 0; i < countUnivFree1; i++) c1 *= c1;
-
-      result = c0 * c1;
-    } else {
-      result += b[0].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[0]);
-      result += b[1].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b[1]);
+    if (!m_isUniversalVar[x.var()] || pos != 0) {
+      m_solver->pushAssumption(~x);
+      neg = compute_(connected, out);
+      m_solver->popAssumption();
     }
-#endif
-    return result;
+
+    std::cout << saveDec << "---> " << pos << " " << neg << "\n";
+
+    // unsave the fact that an universal variable has been assigned
+    if (m_isUniversalVar[x.var()]) m_unassignedUnivVarBlock[x.var()]--;
+
+    // return the correct count regarding if we consider univ or exist.
+    if (m_isUniversalVar[x.var()]) return pos * neg;
+    return pos + neg;
   }  // computeDecisionNode
 
   /**
@@ -438,48 +495,17 @@ class QbfCounter : public MethodManager {
         (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out))) {
       return 0;
     }
-    DataBranch<mpz::mpz_int> b;
-    b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
-    return b.d * m_problem->computeWeightUnitFree<mpz::mpz_int>(b);
+
+    m_levelQuantification = -1;
+    return compute_(setOfVar, out);
   }  // compute
 
  public:
   /**
-     Given an assumption, we compute the number of models.  That is different
-     from the query strategy, where we first compute and then condition the
-     computed structure.
+    Run the DPLL style algorithm with the operation manager.
 
-     @param[in] setOfVar, the set of variables of the considered problem.
-     @param[in] assumption, the set of literals we want to assign.
-     @param[in] out, the stream where are print out the log.
-
-     \return the number of models when the formula is simplified by the given
-     assumption.
-   */
-  mpz::mpz_int count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
-                     std::ostream &out) {
-    initAssumption(assumption);
-
-    // get the unit not in setOfVar.
-    std::vector<Lit> shadowUnits;
-    m_stampIdx++;
-    for (auto &v : setOfVar) m_stampVar[v] = m_stampIdx;
-    for (auto &l : assumption)
-      if (m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
-
-    m_specs->preUpdate(shadowUnits);
-    mpz::mpz_int result = compute(setOfVar, out, false);
-    m_specs->postUpdate(shadowUnits);
-
-    assert(0);
-    return 1;
-  }  // count
-
-  /**
-     Run the DPLL style algorithm with the operation manager.
-
-     @param[in] vm, the set of options.
-   */
+    @param[in] vm, the set of options.
+  */
   mpz::mpz_int run() {
     std::vector<Var> setOfVar;
     for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
