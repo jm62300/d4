@@ -154,9 +154,6 @@ class QbfCounter : public MethodManager {
         m_unassignedUnivVarBlock[i] = m_qblocks[i].variables.size();
     }
 
-    for (unsigned i = 1; i < m_specs->getNbVariable() + 1; i++)
-      std::cout << i << " " << m_varBlockLevel[i] << "\n";
-
     m_out << "c\n";
   }  // constructor
 
@@ -298,11 +295,10 @@ class QbfCounter : public MethodManager {
    * @return the lowest level.
    */
   int getLowestLevel(std::vector<Var> &vars) {
-    assert(vars.size());
-    int level = m_varBlockLevel[vars[0]];
-
+    int level = -1;
     for (auto &v : vars)
-      if (level > m_varBlockLevel[v]) level = m_varBlockLevel[v];
+      if (!m_specs->varIsAssigned(v) && level > m_varBlockLevel[v])
+        level = m_varBlockLevel[v];
     return level;
   }  // getLowestLevel
 
@@ -332,19 +328,24 @@ class QbfCounter : public MethodManager {
 
     // look if we have to update the quantification block level.
     int level = getLowestLevel(setOfVar);
+    if (level == -1) {
+      m_specs->postUpdate(unitsLit);
+      return 1;  // all the variables are assigned
+    }
     int saveLevel = m_levelQuantification, nbFreeUniv = 0;
 
-    std::cout << "set of var: ";
-    for (auto &v : setOfVar) std::cout << v << " ";
-    std::cout << '\n';
-
+    assert(level >= m_levelQuantification);
     if (level > m_levelQuantification) {
-      std::cout << "start at level " << level << "\n";
-
       // for the previous universal block.
-      for (unsigned i = m_levelQuantification >= 0 ? m_levelQuantification : 0;
-           i < level; i++)
+      for (unsigned i = m_levelQuantification + 1; i < level; i++)
         nbFreeUniv += m_unassignedUnivVarBlock[i];
+
+      // get the free univ variables from the current level
+      if (m_qblocks[level].isUniversal) {
+        nbFreeUniv += m_unassignedUnivVarBlock[level];
+        for (auto &v : setOfVar)
+          if (m_varBlockLevel[v] == level) nbFreeUniv--;
+      }
 
       // save that we start a new level.
       m_levelQuantification = level;
@@ -356,28 +357,25 @@ class QbfCounter : public MethodManager {
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
 
-    std::cout << "nb component = " << nbComponent << "\n";
-    std::cout << "free variables: ";
-    for (auto &v : freeVariable) std::cout << v << " ";
-    std::cout << "\n";
-
     // catch the free variables.
+    mpz::mpz_int scaleExist = 1;
     unsigned count[m_nbBlock] = {0};
     for (auto &v : freeVariable) {
-      if (m_varBlockLevel[v] == level && m_isUniversalVar[v]) nbFreeUniv++;
-      if (!m_isUniversalVar[v]) count[m_varBlockLevel[v]]++;
+      if (m_varBlockLevel[v] == level) {
+        if (m_isUniversalVar[v])
+          nbFreeUniv++;
+        else
+          scaleExist *= 2;
+      } else if (!m_isUniversalVar[v])
+        count[m_varBlockLevel[v]]++;
     }
 
-    std::cout << "~~~~> " << level << "/" << m_nbBlock << "\n";
-
     // compute the scaling factor on the free existential variables.
-    mpz::mpz_int scaleExist = 1;
     unsigned sumUniv = 0;
-    for (unsigned i = level + 1; i < m_nbBlock; i++) {
+    for (unsigned i = level; i < m_nbBlock; i++) {
       if (m_qblocks[i].isUniversal)
-        sumUniv += m_qblocks[i].variables.size();
+        sumUniv += m_unassignedUnivVarBlock[i];
       else {
-        std::cout << "count[" << i << "] = " << count[i] << "\n";
         if (!count[i]) continue;
 
         mpz::mpz_int nbLocalModel = 1;
@@ -427,9 +425,9 @@ class QbfCounter : public MethodManager {
     m_specs->postUpdate(unitsLit);
 
     // update the count regarding the free variables.
-    result *= scaleExist;
     for (unsigned i = 0; i < nbFreeUniv; i++) result *= result;
-    return result;
+
+    return result * scaleExist;
   }  // compute_
 
   /**
@@ -452,15 +450,14 @@ class QbfCounter : public MethodManager {
     Lit x = lits[0];
     m_nbDecisionNode++;
 
-    int saveDec = m_nbDecisionNode;
-    std::cout << saveDec << " branch on " << x.human() << "\n";
-
     // save the fact that an universal variable has been assigned
-    if (m_isUniversalVar[x.var()]) m_unassignedUnivVarBlock[x.var()]--;
+    if (m_isUniversalVar[x.var()])
+      m_unassignedUnivVarBlock[m_varBlockLevel[x.var()]]--;
 
     // count on the formula when x is assigned true and false.
     m_solver->pushAssumption(x);
     mpz::mpz_int pos = compute_(connected, out), neg = 0;
+
     m_solver->popAssumption();
     if (!m_isUniversalVar[x.var()] || pos != 0) {
       m_solver->pushAssumption(~x);
@@ -468,10 +465,9 @@ class QbfCounter : public MethodManager {
       m_solver->popAssumption();
     }
 
-    std::cout << saveDec << "---> " << pos << " " << neg << "\n";
-
     // unsave the fact that an universal variable has been assigned
-    if (m_isUniversalVar[x.var()]) m_unassignedUnivVarBlock[x.var()]--;
+    if (m_isUniversalVar[x.var()])
+      m_unassignedUnivVarBlock[m_varBlockLevel[x.var()]]++;
 
     // return the correct count regarding if we consider univ or exist.
     if (m_isUniversalVar[x.var()]) return pos * neg;
