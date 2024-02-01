@@ -31,9 +31,8 @@ struct SpecClauseInfo {
   unsigned isSat : 1;
   unsigned nbUnsat : 31;
   unsigned xorLitBin;
-  Lit watcher;
 
-  SpecClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0), watcher(lit_Undef) {}
+  SpecClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0) {}
 };
 
 struct InfoCluster {

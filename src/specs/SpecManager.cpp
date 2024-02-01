@@ -19,6 +19,7 @@
 #include "SpecManager.hpp"
 
 #include "cnf/SpecManagerCnfDyn.hpp"
+#include "cnf/SpecManagerCnfDynBlockedCl.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -33,12 +34,15 @@ SpecManager *SpecManager::makeSpecManager(const OptionSpecManager &options,
 
   if (p.getProblemType() == PB_CNF || p.getProblemType() == PB_QBF) {
     if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
+    if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_CL)
+      return new SpecManagerCnfDynBlockedCl(p);
   }
 
   if (p.getProblemType() == PB_CIRC) {
     out << "c Warning: only handle the case where the circuit is translated "
            "into a CNF formula\n";
-    if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
+    if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_CL)
+      return new SpecManagerCnfDynBlockedCl(p);
   }
 
   throw(FactoryException("Cannot create a SpecManager", __FILE__, __LINE__));

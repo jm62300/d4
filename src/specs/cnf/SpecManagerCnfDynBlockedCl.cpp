@@ -17,24 +17,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "SpecManagerCnfDyn.hpp"
+#include "SpecManagerCnfDynBlockedCl.hpp"
 
 #include "SpecManagerCnf.hpp"
 
 namespace d4 {
 
 /**
- * @brief SpecManagerCnfDyn::SpecManagerCnfDyn implementation.
+ * @brief SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl implementation.
  */
-SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p) {
+SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
+    : SpecManagerCnf(p) {
+  std::cout << "c [SPEC MANAGER] DYN with blockec clause elimination\n";
   m_markedLit.resize((1 + p.getNbVar()) << 1, false);
   m_markedClauseIdx.resize(m_clauses.size() + 1, false);
 
   m_savedStateClauses.reserve(getSumSizeClauses());
   m_savedStateOccs.reserve(getSumSizeClauses());
-}  // SpecManagerCnfDyn
 
-#define TEST_DEBUG 0
+  m_markedPureLiteral.resize(1 + p.getNbVar(), false);
+  m_pureDetected.reserve(1 + p.getNbVar());
+
+  m_isDecisionVariable.resize(p.getNbVar() + 1, !p.getNbSelectedVar());
+  for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
+}  // SpecManagerCnfDynBlockedCl
 
 /**
    Update the occurrence list w.r.t. a new set of assigned variables.
@@ -43,7 +49,7 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p) {
 
    @param[in] lits, the new assigned variables
  */
-void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
+void SpecManagerCnfDynBlockedCl::preUpdate(std::vector<Lit> &lits) {
   m_stackPosClause.push_back(m_savedStateClauses.size());
   m_stackPosOcc.push_back(m_savedStateOccs.size());
 
@@ -121,9 +127,6 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
           (SavedStateClause){idxCl, false, m_infoClauses[idxCl].nbUnsat});
 
       // update the status.
-      if (m_infoClauses[idxCl].isSat) {
-        std::cout << "it is about " << l << '\n';
-      }
       assert(!m_infoClauses[idxCl].isSat);
       m_infoClauses[idxCl].isSat = 1;
 
@@ -141,7 +144,13 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
       }
     }
 
-    // for the unsat lit we suppose that BCP was applied.
+    // for the unsat lit in binary clauses,  we suppose that BCP has been
+    // applied.
+  }
+
+  // check for pure literals.
+  for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
+    unsigned lIntern = m_savedStateOccs[i].l.intern();
   }
 
   // apply the modification on the identified literals.
@@ -162,7 +171,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
  *
  * @param lits are the new assigned variables.
  */
-void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
+void SpecManagerCnfDynBlockedCl::postUpdate(std::vector<Lit> &lits) {
   // manage the literal information.
   unsigned previousOcc = m_stackPosOcc.back();
   m_stackPosOcc.pop_back();

@@ -330,33 +330,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   }  // cacheIsActivated
 
   /**
-   * @brief Assign the pure literal that are not projeted.
-   *
-   * @param[in] setOfVar is the set of variables we are looking for.
-   * @param[out] unitsLit is the place where are added the pure literal we have
-   * computed (can also contains previously computed unit, then please keep
-   * them).
-   */
-  void managePureLiterals(const std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit) {
-    std::vector<Lit> pureLit;
-    for (auto &v : setOfVar) {
-      if (m_isDecisionVariable[v]) continue;
-      if (m_specs->varIsAssigned(v)) continue;
-
-      Lit l = Lit::makeLitTrue(v);
-      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
-        pureLit.push_back(~l);
-      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
-        pureLit.push_back(l);
-    }
-    if (pureLit.size()) {
-      for (auto &l : pureLit) unitsLit.push_back(l);
-      m_specs->preUpdate(pureLit);
-    }
-  }  // managePureLiterals
-
-  /**
    * Call the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -375,7 +348,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-    managePureLiterals(setOfVar, unitsLit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;

@@ -26,7 +26,7 @@
 
 namespace d4 {
 
-class SpecManagerCnfDyn : public SpecManagerCnf {
+class SpecManagerCnfDynBlockedCl : public SpecManagerCnf {
   struct SavedStateOcc {
     Lit l;
     unsigned nbBin;
@@ -48,10 +48,14 @@ class SpecManagerCnfDyn : public SpecManagerCnf {
   std::vector<SavedStateClause> m_savedStateClauses;
   std::vector<unsigned> m_stackPosOcc, m_stackPosClause;
 
+  std::vector<bool> m_isDecisionVariable;
+  std::vector<bool> m_markedPureLiteral;
+  std::vector<Lit> m_pureDetected;
+
   void initClauses(std::vector<std::vector<Lit>> &clauses);
 
  public:
-  SpecManagerCnfDyn(ProblemManager &p);
+  SpecManagerCnfDynBlockedCl(ProblemManager &p);
 
   void preUpdate(std::vector<Lit> &lits);
   void postUpdate(std::vector<Lit> &lits);
