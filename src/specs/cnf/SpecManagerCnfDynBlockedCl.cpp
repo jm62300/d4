@@ -28,7 +28,7 @@ namespace d4 {
  */
 SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
     : SpecManagerCnf(p) {
-  std::cout << "c [SPEC MANAGER] DYN with blockec clause elimination\n";
+  std::cout << "c [SPEC MANAGER] DYN with blocked clause elimination\n";
   m_markedLit.resize((1 + p.getNbVar()) << 1, false);
   m_markedClauseIdx.resize(m_clauses.size() + 1, false);
 
@@ -149,8 +149,20 @@ void SpecManagerCnfDynBlockedCl::preUpdate(std::vector<Lit> &lits) {
   }
 
   // check for pure literals.
+  m_pureDetected.resize(0);
   for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
-    unsigned lIntern = m_savedStateOccs[i].l.intern();
+    Lit &l = m_savedStateOccs[i].l;
+
+    if (m_occurrence[l.intern()].size() == 0 &&
+        m_occurrence[(~l).intern()].size() != 0)
+      m_pureDetected.push_back(l);
+  }
+
+  while (m_pureDetected.size()) {
+    Lit &l = m_pureDetected.back();
+    m_pureDetected.pop_back();
+
+    // remove the clause where the literal occurs.
   }
 
   // apply the modification on the identified literals.

@@ -6,7 +6,7 @@
 ("preproc,p",boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use (basic, backbone, vivification, occElimination, combinaison, sharp-equiv, equiv).")
 ("preproc-reducer-iteration",boost::program_options::value<int>()->default_value(10), "The number of iterations for the preproc that call reducer (-1 means we want to apply until we reach a fix point).")
 ("preproc-timeout",boost::program_options::value<int>()->default_value(0), "The time in second given to the preproc (0 means no timeout).")
-("occurrence-manager",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used. [add a description]")
+("occurrence-manager",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used (dynamic or dynamicBlockedCl). ")
 ("branching-heuristic", boost::program_options::value<std::string>()->default_value("classic"),"The branching heuristic used (classic or large-clause if d4 selects first literals in large clauses.)")
 ("branching-heuristic-limit-clause",boost::program_options::value<unsigned>()->default_value(30),"The size limit for the branching heuristic based on large clauses.")
 ("scoring-method,sm",boost::program_options::value<std::string>()->default_value("vsads"),"The scoring method used for selecting the next variable. [mom, dlcs, vsids, vsads, jwts]")
