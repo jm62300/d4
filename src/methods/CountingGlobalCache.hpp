@@ -171,7 +171,8 @@ class GlobalCacheManager {
    * @brief Ask to the server if a subproblem has been found as being in the
    * global cache.
    *
-   * @param[out] info is fill with the information requiered to spot the query.
+   * @param[out] info is filled with the information requiered to spot the
+   * query.
    *
    * @return true if a positive hit occurs, false otherwise.
    */
@@ -519,6 +520,8 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
           if (count != -1) {
             count *= res;
             if (cacheActivated) m_cache->addInCache(cb, res);
+          } else {
+            m_cache->releaseMemory(cb);
           }
 
           // ask the server to stop searching for the given query.
@@ -603,6 +606,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
     m_solver->pushAssumption(l);
     b[0].d = compute_(connected, b[0].unitLits, b[0].freeVars, out);
     m_solver->popAssumption();
+    if (b[0].d == -1) goto unsetPriority;
 
     if (m_solver->isInAssumption(l))
       b[1].d = 0;
@@ -614,7 +618,9 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
       m_solver->popAssumption();
     }
 
+  unsetPriority:
     unsetCurrentPriority(cutSet);
+    if (b[0].d == -1 || b[1].d == -1) return -1;
 
     return b[0].d * m_problem->computeWeightUnitFree<mpz::mpz_int>(
                         b[0].unitLits, b[0].freeVars) +
