@@ -42,10 +42,11 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
   optionPartitioningHeuristic =
       OptionPartitioningHeuristic(config.partitioningHeuristic);
 
+  // Set the solver.
   optionSolver = {config.solver.solverName};
 
+  // Set the spec manager.
   optionSpecManager = {config.spec.specUpdateType};
-
 }  // constructor
 
 }  // namespace d4

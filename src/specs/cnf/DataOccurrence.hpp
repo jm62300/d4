@@ -58,6 +58,8 @@ struct DataOccurrence {
     assert(0);  // we have to remove one element.
   }
 
+  inline unsigned size() { return nbNotBin + nbBin; }
+
   inline void removeNotBin(int idx) {
     for (unsigned i = 0; i < nbNotBin; i++) {
       if (notBin[i] == idx) {
