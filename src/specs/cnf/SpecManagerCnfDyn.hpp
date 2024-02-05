@@ -53,8 +53,8 @@ class SpecManagerCnfDyn : public SpecManagerCnf {
  public:
   SpecManagerCnfDyn(ProblemManager &p);
 
-  void preUpdate(std::vector<Lit> &lits);
-  void postUpdate(std::vector<Lit> &lits);
+  void preUpdate(const std::vector<Lit> &lits) override;
+  void postUpdate(const std::vector<Lit> &lits) override;
 
   // we cannot use this function here
   inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {

@@ -33,6 +33,13 @@ struct DataOccurrence {
   unsigned nbNotBin;
   unsigned nbBin;
 
+  inline void cleanBin() {
+    bin += nbBin;
+    nbBin = 0;
+  }
+
+  inline void cleanNotBin() { nbNotBin = 0; }
+
   inline void removeMarkedBin(const std::vector<bool> &markedClauses) {
     int *end = &bin[nbBin - 1], *endSize = &bin[nbBin];
     while (end >= bin) {
@@ -70,6 +77,16 @@ struct DataOccurrence {
     }
     assert(0);  // we have to remove one element.
   }
+
+  inline void removeNotBinMarked(const std::vector<bool> &markedClauses) {
+    for (unsigned i = 0; i < nbNotBin;) {
+      if (markedClauses[notBin[i]]) {
+        std::swap(notBin[i], notBin[nbNotBin - 1]);
+        --nbNotBin;
+      } else
+        i++;
+    }
+  }  // removeNotBinMarked
 
   inline void addBin(int idx) {
     --bin;

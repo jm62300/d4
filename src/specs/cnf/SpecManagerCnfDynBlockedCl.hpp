@@ -41,24 +41,65 @@ class SpecManagerCnfDynBlockedCl : public SpecManagerCnf {
 
  private:
   std::vector<int> m_reviewWatcher;
+  unsigned m_currentMarkedLitIndex;
   std::vector<char> m_markedLit;
   std::vector<bool> m_markedClauseIdx;
 
   std::vector<SavedStateOcc> m_savedStateOccs;
   std::vector<SavedStateClause> m_savedStateClauses;
-  std::vector<unsigned> m_stackPosOcc, m_stackPosClause;
+  std::vector<Lit> m_savedPureLits;
+  std::vector<unsigned> m_stackPosOcc, m_stackPosClause, m_stackPosPure;
 
   std::vector<bool> m_isDecisionVariable;
   std::vector<bool> m_markedPureLiteral;
   std::vector<Lit> m_pureDetected;
 
-  void initClauses(std::vector<std::vector<Lit>> &clauses);
+  /**
+   * @brief Suppose that the literal in lits are true (even if it is not really
+   * the case, see the pure literals) and remove the non  binary clauses where
+   * this literal occurs.
+   *
+   * @warning there are a lot of side effects ... take care.
+   *
+   * @param lits is the set of literals we want to 'assign'.
+   */
+  void propagateTrueInNotBin(const std::vector<Lit> &lits);
+
+  /**
+   * @brief Suppose that the literal in lits are true (even if it is not really
+   * the case, see the pure literals) and remove the binary clauses where
+   * this literal occurs.
+   *
+   * @warning there are a lot of side effects ... take care.
+   *
+   * @param lits is the set of literals we want to 'assign'.
+   */
+  void propagateTrueInBin(const std::vector<Lit> &lits);
+
+  /**
+   * @brief Suppose that the literal in lits are false (even if it is not really
+   * the case, see the pure literals) and remove the literal from the non binary
+   * clauses where this literal occurs.
+   *
+   * @warning there are a lot of side effects ... take care.
+   *
+   * @param lits is the set of literals we want to 'assign'.
+   */
+  void propagateFalseInNotBin(const std::vector<Lit> &lits);
 
  public:
   SpecManagerCnfDynBlockedCl(ProblemManager &p);
 
-  void preUpdate(std::vector<Lit> &lits);
-  void postUpdate(std::vector<Lit> &lits);
+  /**
+   * @brief Update the occurrence list w.r.t. a new set of assigned variables.
+   * It's important that the order is conserved between the moment where    we
+   * assign and the moment we unassign.
+   *
+   * @param[in] lits is the set of literals they are assigned to true.
+   */
+  void preUpdate(const std::vector<Lit> &lits) override;
+
+  void postUpdate(const std::vector<Lit> &lits) override;
 
   // we cannot use this function here
   inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {

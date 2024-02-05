@@ -43,7 +43,7 @@ SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p) {
 
    @param[in] lits, the new assigned variables
  */
-void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
+void SpecManagerCnfDyn::preUpdate(const std::vector<Lit> &lits) {
   m_stackPosClause.push_back(m_savedStateClauses.size());
   m_stackPosOcc.push_back(m_savedStateOccs.size());
 
@@ -162,7 +162,7 @@ void SpecManagerCnfDyn::preUpdate(std::vector<Lit> &lits) {
  *
  * @param lits are the new assigned variables.
  */
-void SpecManagerCnfDyn::postUpdate(std::vector<Lit> &lits) {
+void SpecManagerCnfDyn::postUpdate(const std::vector<Lit> &lits) {
   // manage the literal information.
   unsigned previousOcc = m_stackPosOcc.back();
   m_stackPosOcc.pop_back();
