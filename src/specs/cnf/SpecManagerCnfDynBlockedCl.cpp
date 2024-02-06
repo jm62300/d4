@@ -81,6 +81,26 @@ void SpecManagerCnfDynBlockedCl::getPureLiterals(std::vector<Lit> &pureLits) {
 }  // getPureLiterals
 
 /**
+ * @brief SpecManagerCnfDynBlockedCl::getBlockedClauses implementation.
+ */
+void SpecManagerCnfDynBlockedCl::getBlockedClauses(
+    std::vector<unsigned> &idxClauses) {
+  for (unsigned i = 0; i < m_clauses.size(); i++) {
+    if (m_infoClauses[i].isSat) continue;
+
+    for (auto &l : m_clauses[i]) {
+      if (m_isDecisionVariable[l.var()]) continue;
+
+      // check if all resolution are tautologic.
+      for (IteratorIdxClause ite = m_occurrence[l.intern()].getClauses();
+           ite.end != ite.start; ite.start++) {
+      }
+    }
+  }
+
+}  // getBlockedClauses
+
+/**
  * @brief SpecManagerCnfDynBlockedCl::removeSatisfiedClauses implementation.
  */
 void SpecManagerCnfDynBlockedCl::removeSatisfiedClauses(
@@ -257,7 +277,8 @@ void SpecManagerCnfDynBlockedCl::preUpdate(const std::vector<Lit> &lits) {
 
   // binary clauses.
   propagateTrueInBin(lits);
-  // for the unsat lit in binary clauses,  we suppose that BCP has been applied.
+  // for the unsat lit in binary clauses,  we suppose that BCP has been
+  // applied.
 
   // search for pure literals.
   searchPureLitOnTheStack();

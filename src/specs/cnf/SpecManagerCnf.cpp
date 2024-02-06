@@ -138,7 +138,6 @@ int SpecManagerCnf::computeConnectedComponent(
 
     for (unsigned i = 0; i < 2; i++) {  // both literals.
       IteratorIdxClause listIndex = getVecIdxClause(l);
-
       for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         int idx = *ptr;
         if (!m_markView[idx]) {

@@ -26,22 +26,25 @@
 
 namespace d4 {
 
+struct SavedStateOcc {
+  Lit l;
+  unsigned nbBin;
+  unsigned nbNotBin;
+};
+
+struct SavedStateClause {
+  int idx;
+  unsigned isSat : 1;
+  unsigned nbUnsat : 31;
+};
+
 class SpecManagerCnfDyn : public SpecManagerCnf {
-  struct SavedStateOcc {
-    Lit l;
-    unsigned nbBin;
-    unsigned nbNotBin;
-  };
+ protected:
+  unsigned m_currentMarkedLitIndex;
 
-  struct SavedStateClause {
-    int idx;
-    unsigned isSat : 1;
-    unsigned nbUnsat : 31;
-  };
-
- private:
   std::vector<int> m_reviewWatcher;
   std::vector<char> m_markedLit;
+  std::vector<unsigned> m_indexSatClauses;
   std::vector<bool> m_markedClauseIdx;
 
   std::vector<SavedStateOcc> m_savedStateOccs;
@@ -50,10 +53,58 @@ class SpecManagerCnfDyn : public SpecManagerCnf {
 
   void initClauses(std::vector<std::vector<Lit>> &clauses);
 
+  /**
+   * @brief Remove from the formula the given set of satisfied clauses.
+   *
+   * @param idxClauses is the list of indexes.
+   */
+  virtual void removeSatisfiedClauses(const std::vector<unsigned> &idxClauses);
+
+  /**
+   * @brief Suppose that the literal in lits are true (even if it is not really
+   * the case, see the pure literals) and remove the non  binary clauses where
+   * this literal occurs.
+   *
+   * @warning there are a lot of side effects ... take care.
+   *
+   * @param lits is the set of literals we want to 'assign'.
+   */
+  void propagateTrue(const std::vector<Lit> &lits);
+
+  /**
+   * @brief Suppose that the literal in lits are false (even if it is not really
+   * the case, see the pure literals) and remove the literal from the non binary
+   * clauses where this literal occurs.
+   *
+   * @warning there are a lot of side effects ... take care.
+   *
+   * @param lits is the set of literals we want to 'assign'.
+   */
+  void propagateFalseInNotBin(const std::vector<Lit> &lits);
+
+  /**
+   * @brief Call an inprocessing method for simplifying the formula.
+   */
+  virtual void inprocessing() {}
+
  public:
   SpecManagerCnfDyn(ProblemManager &p);
 
+  /**
+   * @brief Update the occurrence list w.r.t. a new set of assigned variables.
+   * It's important that the order is conserved between the moment where    we
+   * assign and the moment we unassign.
+   *
+   * @param[in] lits is the set of literals they are assigned to true.
+   */
   void preUpdate(const std::vector<Lit> &lits) override;
+
+  /**
+   * @brief We want to come to the situation before the mirror preUpdate.
+   *
+   * @param lits is the set of unit literals assigned to true in the mirror
+   * preUpdate.
+   */
   void postUpdate(const std::vector<Lit> &lits) override;
 
   // we cannot use this function here

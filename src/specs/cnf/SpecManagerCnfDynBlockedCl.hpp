@@ -120,6 +120,14 @@ class SpecManagerCnfDynBlockedCl : public SpecManagerCnf {
    */
   bool searchPureLitOnTheStack();
 
+  /**
+   * @brief Check all the clauses and put in idxClauses the one they are blocked
+   * by a non decision literal.
+   *
+   * @param idxClauses
+   */
+  void getBlockedClauses(std::vector<unsigned> &idxClauses);
+
  public:
   SpecManagerCnfDynBlockedCl(ProblemManager &p);
 

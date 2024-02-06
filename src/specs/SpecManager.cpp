@@ -20,6 +20,7 @@
 
 #include "cnf/SpecManagerCnfDyn.hpp"
 #include "cnf/SpecManagerCnfDynBlockedCl.hpp"
+#include "cnf/SpecManagerCnfDynPure.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -32,17 +33,16 @@ SpecManager *SpecManager::makeSpecManager(const OptionSpecManager &options,
                                           std::ostream &out) {
   out << "c [SPEC MANAGER]" << options << "\n";
 
-  if (p.getProblemType() == PB_CNF || p.getProblemType() == PB_QBF) {
+  if (p.getProblemType() == PB_CNF || p.getProblemType() == PB_QBF ||
+      p.getProblemType() == PB_CIRC) {
+    if (p.getProblemType() == PB_CIRC)
+      out << "c Warning: only handle the case where the circuit is translated "
+             "into a CNF formula\n";
     if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
-    if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_CL)
+    if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_SIMP)
       return new SpecManagerCnfDynBlockedCl(p);
-  }
-
-  if (p.getProblemType() == PB_CIRC) {
-    out << "c Warning: only handle the case where the circuit is translated "
-           "into a CNF formula\n";
-    if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_CL)
-      return new SpecManagerCnfDynBlockedCl(p);
+    if (options.specUpdateType == SPEC_DYNAMIC_PURE_SIMP)
+      return new SpecManagerCnfDynPure(p);
   }
 
   throw(FactoryException("Cannot create a SpecManager", __FILE__, __LINE__));

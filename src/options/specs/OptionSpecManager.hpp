@@ -23,20 +23,26 @@
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
-enum SpecUpdateType { SPEC_DYNAMIC, SPEC_DYNAMIC_BLOCKED_CL };
+enum SpecUpdateType {
+  SPEC_DYNAMIC,
+  SPEC_DYNAMIC_BLOCKED_SIMP,
+  SPEC_DYNAMIC_PURE_SIMP
+};
 
 class SpecUpdateManager {
  public:
   static std::string getSpecUpdate(const SpecUpdateType& m) {
     if (m == SPEC_DYNAMIC) return "dynamic";
-    if (m == SPEC_DYNAMIC_BLOCKED_CL) return "dynamicBlockedCl";
+    if (m == SPEC_DYNAMIC_BLOCKED_SIMP) return "dynamicBlockedSimp";
+    if (m == SPEC_DYNAMIC_PURE_SIMP) return "dynamicPureSimp";
 
     throw(FactoryException("Spec Update unknown", __FILE__, __LINE__));
   }  // getOperatorType
 
   static SpecUpdateType getSpecUpdate(const std::string& m) {
     if (m == "dynamic") return SPEC_DYNAMIC;
-    if (m == "dynamicBlockedCl") return SPEC_DYNAMIC_BLOCKED_CL;
+    if (m == "dynamicBlockedSimp") return SPEC_DYNAMIC_BLOCKED_SIMP;
+    if (m == "dynamicPureSimp") return SPEC_DYNAMIC_PURE_SIMP;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getSpectUpdate

@@ -35,14 +35,21 @@ struct DataOccurrence {
   unsigned nbNotBin;
   unsigned nbBin;
 
+  inline void cleanNotBin() { nbNotBin = 0; }
+
   inline void cleanBin() {
     bin += nbBin;
     nbBin = 0;
   }
 
-  inline void cleanNotBin() { nbNotBin = 0; }
+  inline void clean() {
+    cleanNotBin();
+    cleanBin();
+    assert(bin == notBin);
+  }
 
   inline void removeMarkedBin(const std::vector<SpecClauseInfo> &infoClauses) {
+    if (!nbBin) return;
     int *end = &bin[nbBin - 1], *endSize = &bin[nbBin];
     while (end >= bin) {
       if (!infoClauses[*end].isSat)
