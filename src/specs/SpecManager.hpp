@@ -61,5 +61,6 @@ class SpecManager {
   virtual int getNbVariable() = 0;
 
   virtual ProblemInputType getProblemInputType() = 0;
+  virtual void printSpecInformation(std::ostream &out) {}
 };
 }  // namespace d4

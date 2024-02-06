@@ -32,6 +32,8 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
   m_currentMarkedLitIndex = 0;
   m_markedLit.resize((1 + p.getNbVar()) << 1, 0);
   m_markedClauseIdx.resize(m_clauses.size() + 1, false);
+  m_indexSatClauses.reserve(m_clauses.size());
+  m_nbPureSimplification = 0;
 
   m_savedStateClauses.reserve(getSumSizeClauses());
   m_savedStateOccs.reserve(getSumSizeClauses());
@@ -41,31 +43,50 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
 
   m_isDecisionVariable.resize(p.getNbVar() + 1, !p.getNbSelectedVar());
   for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
+
+  affectInitPureLit();
 }  // SpecManagerCnfDynBlockedCl
 
 /**
- * @brief SpecManagerCnfDynBlockedCl::propagateTrueInNotBin implementation.
+ * @brief SpecManagerCnfDynBlockedCl::affectInitPureLit implementation.
  */
-void SpecManagerCnfDynBlockedCl::propagateTrueInNotBin(
-    const std::vector<Lit> &lits) {
-  m_currentMarkedLitIndex++;
-  unsigned posSavedClauses = m_savedStateClauses.size();
+void SpecManagerCnfDynBlockedCl::affectInitPureLit() {
+  getPureLiterals(m_pureDetected);
+  m_stackPosClause.push_back(m_savedStateClauses.size());
+  m_stackPosOcc.push_back(m_savedStateOccs.size());
+  m_stackPosPure.push_back(m_savedPureLits.size());
+  m_currentMarkedLitIndex = 0;
+  propagateTrueInNotBin(m_pureDetected);
+  propagateTrueInBin(m_pureDetected);
 
-  for (auto &l : lits) {
-    for (IteratorIdxClause ite = m_occurrence[l.intern()].getNotBinClauses();
-         ite.end != ite.start; ite.start++) {
-      if (m_markedClauseIdx[*(ite.start)]) continue;
+  m_nbPureSimplification += m_pureDetected.size();
+}  // affectInitPureLit
 
-      assert(!m_infoClauses[*(ite.start)].isSat);
-      m_infoClauses[*(ite.start)].isSat = 1;
-      m_markedClauseIdx[*(ite.start)] = true;
-      m_savedStateClauses.push_back((SavedStateClause){
-          *(ite.start), false, m_infoClauses[*(ite.start)].nbUnsat});
+/**
+ * @brief SpecManagerCnfDynBlockedCl::getPureLiterals implementation.
+ */
+void SpecManagerCnfDynBlockedCl::getPureLiterals(std::vector<Lit> &pureLits) {
+  for (unsigned i = 1; i < m_isDecisionVariable.size(); i++)
+    if (m_isDecisionVariable[i] || m_currentValue[i] != l_Undef)
+      continue;
+    else {
+      Lit l = Lit::makeLit(i, false);
+      if (m_occurrence[l.intern()].size() &&
+          !m_occurrence[(~l).intern()].size())
+        pureLits.push_back(l);
+      if (!m_occurrence[l.intern()].size() &&
+          m_occurrence[(~l).intern()].size())
+        pureLits.push_back(~l);
     }
-  }
+}  // getPureLiterals
 
-  for (int i = posSavedClauses; i < m_savedStateClauses.size(); i++) {
-    int idxCl = m_savedStateClauses[i].idx;
+/**
+ * @brief SpecManagerCnfDynBlockedCl::removeSatisfiedClauses implementation.
+ */
+void SpecManagerCnfDynBlockedCl::removeSatisfiedClauses(
+    const std::vector<unsigned> &idxClauses) {
+  m_currentMarkedLitIndex++;
+  for (auto idxCl : idxClauses) {
     for (auto &ll : m_clauses[idxCl])
       if (m_currentValue[ll.var()] == l_Undef) {
         if (m_markedLit[ll.intern()] != m_currentMarkedLitIndex) {
@@ -75,10 +96,34 @@ void SpecManagerCnfDynBlockedCl::propagateTrueInNotBin(
                                 m_occurrence[ll.intern()].nbNotBin});
 
           m_markedLit[ll.intern()] = m_currentMarkedLitIndex;
-          m_occurrence[ll.intern()].removeNotBinMarked(m_markedClauseIdx);
+          m_occurrence[ll.intern()].removeNotBinMarked(m_infoClauses);
         }
       }
   }
+}  // removeSatisfiedClauses
+
+/**
+ * @brief SpecManagerCnfDynBlockedCl::propagateTrueInNotBin implementation.
+ */
+void SpecManagerCnfDynBlockedCl::propagateTrueInNotBin(
+    const std::vector<Lit> &lits) {
+  m_indexSatClauses.resize(0);
+
+  for (auto &l : lits) {
+    for (IteratorIdxClause ite = m_occurrence[l.intern()].getNotBinClauses();
+         ite.end != ite.start; ite.start++) {
+      if (m_infoClauses[*(ite.start)].isSat) continue;
+      m_infoClauses[*(ite.start)].isSat = 1;
+      m_indexSatClauses.push_back(*(ite.start));
+
+      if (m_markedClauseIdx[*(ite.start)]) continue;
+      m_markedClauseIdx[*(ite.start)] = true;
+      m_savedStateClauses.push_back((SavedStateClause){
+          *(ite.start), false, m_infoClauses[*(ite.start)].nbUnsat});
+    }
+  }
+
+  removeSatisfiedClauses(m_indexSatClauses);
 }  // propagateTrueInNotBin
 
 /**
@@ -122,8 +167,7 @@ void SpecManagerCnfDynBlockedCl::propagateTrueInBin(
   for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
     unsigned lIntern = m_savedStateOccs[i].l.intern();
     if (m_markedLit[lIntern] == m_currentMarkedLitIndex) {
-      std::cout << "rm bin " << m_savedStateOccs[i].l << '\n';
-      m_occurrence[lIntern].removeMarkedBin(m_markedClauseIdx);
+      m_occurrence[lIntern].removeMarkedBin(m_infoClauses);
     }
   }
 }  // propagateTrueInBin
@@ -161,6 +205,38 @@ void SpecManagerCnfDynBlockedCl::propagateFalseInNotBin(
 }  // propagateFalseInNotBin
 
 /**
+ * @brief SpecManagerCnfDynBlockedCl::searchPureLitOnTheStack implementation.
+ */
+bool SpecManagerCnfDynBlockedCl::searchPureLitOnTheStack() {
+  // consider the pure literals.
+  bool ret = false;
+  do {
+    m_pureDetected.resize(0);
+    for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
+      Lit &l = m_savedStateOccs[i].l;
+      if (m_isDecisionVariable[l.var()] || m_currentValue[l.var()] != l_Undef)
+        continue;
+
+      if (m_occurrence[l.intern()].size() == 0 &&
+          m_occurrence[(~l).intern()].size() != 0) {
+        m_pureDetected.push_back(~l);
+
+        assert(m_currentValue[l.var()] == l_Undef);
+        m_savedPureLits.push_back(~l);
+        m_currentValue[l.var()] = (~l).sign();
+      }
+    }
+    propagateTrueInNotBin(m_pureDetected);
+    propagateTrueInBin(m_pureDetected);
+    m_nbPureSimplification += m_pureDetected.size();
+
+    if (m_pureDetected.size()) ret = true;
+  } while (m_pureDetected.size());
+
+  return ret;
+}  // searchPureLitOnTheStack
+
+/**
  * @brief SpecManagerCnfDynBlockedCl::preUpdate implementation.
  */
 void SpecManagerCnfDynBlockedCl::preUpdate(const std::vector<Lit> &lits) {
@@ -183,55 +259,8 @@ void SpecManagerCnfDynBlockedCl::preUpdate(const std::vector<Lit> &lits) {
   propagateTrueInBin(lits);
   // for the unsat lit in binary clauses,  we suppose that BCP has been applied.
 
-  for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
-    Lit &l = m_savedStateOccs[i].l;
-    for (unsigned j = m_stackPosOcc.back(); i && j < i; j++)
-      assert(m_savedStateOccs[j].l != l);
-  }
-
-#if 1
-  std::cout << "units: ";
-  for (auto &l : lits) std::cout << l << ' ';
-  std::cout << '\n';
-
-  // consider the pure literals.
-  do {
-    // check for pure literals.
-    m_pureDetected.resize(0);
-    assert(m_pureDetected.size() == 0);
-
-    std::cout << "stack: ";
-
-    for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
-      Lit &l = m_savedStateOccs[i].l;
-      std::cout << l << " ";
-
-      if (m_isDecisionVariable[l.var()] || m_currentValue[l.var()] != l_Undef)
-        continue;
-
-      if (m_occurrence[l.intern()].size() == 0 &&
-          m_occurrence[(~l).intern()].size() != 0) {
-        m_pureDetected.push_back(~l);
-
-        assert(m_currentValue[l.var()] == l_Undef);
-        m_savedPureLits.push_back(~l);
-        m_currentValue[l.var()] = (~l).sign();
-      }
-    }
-    std::cout << '\n';
-
-    propagateTrueInNotBin(m_pureDetected);
-    propagateTrueInBin(m_pureDetected);
-
-    std::cout << "list of pure literals: ";
-    for (auto &l : m_pureDetected) {
-      std::cout << l << " ";
-    }
-    std::cout << '\n';
-  } while (m_pureDetected.size());
-#endif
-
-  std::cout << "-------------------------------------------\n";
+  // search for pure literals.
+  searchPureLitOnTheStack();
 
   // unmark the literals.
   for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++)

@@ -22,19 +22,12 @@
 
 #include "../SpecManager.hpp"
 #include "DataOccurrence.hpp"
+#include "SpecClauseInfo.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
-struct SpecClauseInfo {
-  unsigned isSat : 1;
-  unsigned nbUnsat : 31;
-  unsigned xorLitBin;
-
-  SpecClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0) {}
-};
-
 struct InfoCluster {
   Var parent;
   unsigned size;

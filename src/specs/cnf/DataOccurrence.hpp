@@ -21,6 +21,8 @@
 
 #include <cassert>
 
+#include "SpecClauseInfo.hpp"
+
 namespace d4 {
 struct IteratorIdxClause {
   int *start, *end;
@@ -40,10 +42,10 @@ struct DataOccurrence {
 
   inline void cleanNotBin() { nbNotBin = 0; }
 
-  inline void removeMarkedBin(const std::vector<bool> &markedClauses) {
+  inline void removeMarkedBin(const std::vector<SpecClauseInfo> &infoClauses) {
     int *end = &bin[nbBin - 1], *endSize = &bin[nbBin];
     while (end >= bin) {
-      if (!markedClauses[*end])
+      if (!infoClauses[*end].isSat)
         end--;
       else {
         std::swap(*end, *bin);
@@ -78,9 +80,10 @@ struct DataOccurrence {
     assert(0);  // we have to remove one element.
   }
 
-  inline void removeNotBinMarked(const std::vector<bool> &markedClauses) {
+  inline void removeNotBinMarked(
+      const std::vector<SpecClauseInfo> &infoClauses) {
     for (unsigned i = 0; i < nbNotBin;) {
-      if (markedClauses[notBin[i]]) {
+      if (infoClauses[notBin[i]].isSat) {
         std::swap(notBin[i], notBin[nbNotBin - 1]);
         --nbNotBin;
       } else

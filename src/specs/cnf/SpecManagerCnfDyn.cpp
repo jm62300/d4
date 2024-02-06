@@ -121,9 +121,6 @@ void SpecManagerCnfDyn::preUpdate(const std::vector<Lit> &lits) {
           (SavedStateClause){idxCl, false, m_infoClauses[idxCl].nbUnsat});
 
       // update the status.
-      if (m_infoClauses[idxCl].isSat) {
-        std::cout << "it is about " << l << '\n';
-      }
       assert(!m_infoClauses[idxCl].isSat);
       m_infoClauses[idxCl].isSat = 1;
 
@@ -148,7 +145,7 @@ void SpecManagerCnfDyn::preUpdate(const std::vector<Lit> &lits) {
   for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
     unsigned lIntern = m_savedStateOccs[i].l.intern();
     if (m_markedLit[lIntern] & 2)
-      m_occurrence[lIntern].removeMarkedBin(m_markedClauseIdx);
+      m_occurrence[lIntern].removeMarkedBin(m_infoClauses);
     m_markedLit[lIntern] = 0;
   }
 

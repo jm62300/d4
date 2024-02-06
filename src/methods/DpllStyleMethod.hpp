@@ -300,6 +300,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
     out << "c Number of paritioner calls: " << m_callPartitioner << "\n";
     out << "c\n";
+    m_specs->printSpecInformation(out);
     m_cache->printCacheInformation(out);
     if (m_hCutSet) {
       out << "c\n";
@@ -346,6 +347,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
+#if 0
+    std::cout << "compute_ :\n";
+    std::cout << "trail: ";
+    m_solver->showTrail();
+#endif
+
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
@@ -354,6 +361,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
+
+#if 0
+    std::cout << "nb component = " << nbComponent << "\n";
+    std::cout << "free variables: ";
+    for (auto &v : freeVariable) std::cout << v << " ";
+    std::cout << '\n';
+#endif
 
     // consider each connected component.
     if (nbComponent) {
@@ -456,6 +470,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       nb++;
     }
 
+#if 0
+    std::cout << "trail: ";
+    m_solver->showTrail();
+    std::cout << lits[0] << " -> res: ";
+    std::cout << b[0].d << ' ' << b[0].d << '\n';
+#endif
     // reinit some variables.
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
