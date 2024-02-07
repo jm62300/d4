@@ -521,7 +521,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
             count *= res;
             if (cacheActivated) m_cache->addInCache(cb, res);
           } else {
-            m_cache->releaseMemory(cb);
+            m_cache->releaseMemory(cb.e);
           }
 
           // ask the server to stop searching for the given query.
