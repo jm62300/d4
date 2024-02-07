@@ -72,7 +72,7 @@ void SpecManagerCnfDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
 void SpecManagerCnfDyn::removeSatisfiedClauses(
     const std::vector<unsigned> &idxClauses) {
   for (auto idxCl : idxClauses) {
-    for (auto &ll : m_clauses[idxCl])
+    for (auto &ll : m_clauses[idxCl]) {
       if (m_markedLit[ll.intern()] != m_currentMarkedLitIndex) {
         if (!m_markedLit[ll.intern()])
           m_savedStateOccs.push_back(
@@ -83,6 +83,7 @@ void SpecManagerCnfDyn::removeSatisfiedClauses(
         m_occurrence[ll.intern()].removeNotBinMarked(m_infoClauses);
         m_occurrence[ll.intern()].removeMarkedBin(m_infoClauses);
       }
+    }
   }
 }  // removeSatisfiedClauses
 

@@ -22,134 +22,37 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
-#include "SpecManagerCnf.hpp"
+#include "SpecManagerCnfDyn.hpp"
 
 namespace d4 {
 
-class SpecManagerCnfDynBlockedCl : public SpecManagerCnf {
-  struct SavedStateOcc {
-    Lit l;
-    unsigned nbBin;
-    unsigned nbNotBin;
-  };
-
-  struct SavedStateClause {
-    int idx;
-    unsigned isSat : 1;
-    unsigned nbUnsat : 31;
-  };
-
+class SpecManagerCnfDynBlockedCl : public SpecManagerCnfDyn {
  private:
-  unsigned long m_nbPureSimplification;
-
-  std::vector<int> m_reviewWatcher;
-  unsigned m_currentMarkedLitIndex;
-  std::vector<char> m_markedLit;
-  std::vector<bool> m_markedClauseIdx;
-  std::vector<unsigned> m_indexSatClauses;
-
-  std::vector<SavedStateOcc> m_savedStateOccs;
-  std::vector<SavedStateClause> m_savedStateClauses;
-  std::vector<Lit> m_savedPureLits;
-  std::vector<unsigned> m_stackPosOcc, m_stackPosClause, m_stackPosPure;
-
+  unsigned long m_nbBlockedClauseRemoved;
   std::vector<bool> m_isDecisionVariable;
-  std::vector<bool> m_markedPureLiteral;
-  std::vector<Lit> m_pureDetected;
-
-  /**
-   * @brief Suppose that the literal in lits are true (even if it is not really
-   * the case, see the pure literals) and remove the non  binary clauses where
-   * this literal occurs.
-   *
-   * @warning there are a lot of side effects ... take care.
-   *
-   * @param lits is the set of literals we want to 'assign'.
-   */
-  void propagateTrueInNotBin(const std::vector<Lit> &lits);
-
-  /**
-   * @brief Suppose that the literal in lits are true (even if it is not really
-   * the case, see the pure literals) and remove the binary clauses where
-   * this literal occurs.
-   *
-   * @warning there are a lot of side effects ... take care.
-   *
-   * @param lits is the set of literals we want to 'assign'.
-   */
-  void propagateTrueInBin(const std::vector<Lit> &lits);
-
-  /**
-   * @brief Suppose that the literal in lits are false (even if it is not really
-   * the case, see the pure literals) and remove the literal from the non binary
-   * clauses where this literal occurs.
-   *
-   * @warning there are a lot of side effects ... take care.
-   *
-   * @param lits is the set of literals we want to 'assign'.
-   */
-  void propagateFalseInNotBin(const std::vector<Lit> &lits);
-
-  /**
-   * @brief Remove from the formula the given set of satisfied clauses.
-   *
-   * @param idxClauses is the list of indexes.
-   */
-  void removeSatisfiedClauses(const std::vector<unsigned> &idxClauses);
-
-  /**
-   * @brief Search for the list of pure literals that are not decision
-   * variables.
-   *
-   * @param[out] pureLits is the computed pure literals.
-   */
-  void getPureLiterals(std::vector<Lit> &pureLits);
-
-  /**
-   * @brief Compute the set of pure literals present in the formula and fix them
-   * to true.
-   *
-   */
-  void affectInitPureLit();
-
-  /**
-   * @brief This function research in the last literals pushed into the stack
-   * the one that are pure.
-   *
-   * @return true if some pure literals have been decteted, false otherwise.
-   */
-  bool searchPureLitOnTheStack();
+  std::vector<bool> m_isPresentLit;
 
   /**
    * @brief Check all the clauses and put in idxClauses the one they are blocked
-   * by a non decision literal.
+   * by a non decision literal. This method is only used for testing purpose and
+   * the way blocked clauses are computed is not relied on it.
    *
    * @param idxClauses
    */
   void getBlockedClauses(std::vector<unsigned> &idxClauses);
 
+  /**
+   * @brief Remove the blocked clauses that are supported by non selected
+   * variable.
+   */
+  void inprocessing();
+
  public:
   SpecManagerCnfDynBlockedCl(ProblemManager &p);
 
-  /**
-   * @brief Update the occurrence list w.r.t. a new set of assigned variables.
-   * It's important that the order is conserved between the moment where    we
-   * assign and the moment we unassign.
-   *
-   * @param[in] lits is the set of literals they are assigned to true.
-   */
-  void preUpdate(const std::vector<Lit> &lits) override;
-
-  void postUpdate(const std::vector<Lit> &lits) override;
-
   inline void printSpecInformation(std::ostream &out) {
-    std::cout << "c Number of pure literal simplication: "
-              << m_nbPureSimplification << "\n";
-  }
-
-  // we cannot use this function here
-  inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {
-    assert(0);
+    std::cout << "c Number of blocked clause removed: "
+              << m_nbBlockedClauseRemoved << "\n";
   }
 };
 }  // namespace d4

@@ -28,7 +28,7 @@ namespace d4 {
  */
 SpecManagerCnfDynPure::SpecManagerCnfDynPure(ProblemManager &p)
     : SpecManagerCnfDyn(p) {
-  std::cout << "c [SPEC MANAGER] DYN with blocked clause elimination\n";
+  std::cout << "c [SPEC MANAGER] DYN with pure literal elimination\n";
   m_currentMarkedLitIndex = 0;
   m_nbPureSimplification = 0;
 
