@@ -26,16 +26,36 @@
 
 namespace d4 {
 
+struct Watched {
+  Lit l;
+  unsigned idxCl;
+};
+
 class SpecManagerCnfDynBlockedCl : public SpecManagerCnfDyn {
  private:
   unsigned long m_nbBlockedClauseRemoved;
   std::vector<bool> m_isDecisionVariable;
   std::vector<bool> m_isPresentLit;
 
+  std::vector<unsigned> m_idxBlockedClauses;
+  std::vector<std::vector<Watched>> m_watchedList;
+
   /**
-   * @brief Check all the clauses and put in idxClauses the one they are blocked
-   * by a non decision literal. This method is only used for testing purpose and
-   * the way blocked clauses are computed is not relied on it.
+   * @brief Look into the set of clauses if it is possible to find out a clause
+   * that contains ~l and such that the resolution between the clause stored
+   * into isPresentLit and this clause is not tautological.
+   *
+   * @param isPresentLit is the clause we search for a non-tautological
+   * resolution.
+   * @param l is the literal use for the resolution.
+   * @return the index of the clause found, or m_clauses.size() otherwise.
+   */
+  unsigned searchTautNotResolution(std::vector<bool> &isPresentLit, Lit l);
+
+  /**
+   * @brief Check all the clauses and put in idxClauses the one they are
+   * blocked by a non decision literal. This method is only used for testing
+   * purpose and the way blocked clauses are computed is not relied on it.
    *
    * @param idxClauses
    */

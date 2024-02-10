@@ -39,6 +39,8 @@ SpecManagerCnfDynPure::SpecManagerCnfDynPure(ProblemManager &p)
   for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
 
   affectInitPureLit();
+  for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++)
+    m_markedLit[m_savedStateOccs[i].l.intern()] = 0;
 }  // SpecManagerCnfDynPure
 
 /**

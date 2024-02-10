@@ -91,7 +91,6 @@ void SpecManagerCnfDyn::removeSatisfiedClauses(
  * @brief SpecManagerCnfDyn::propagateTrue implementation.
  */
 void SpecManagerCnfDyn::propagateTrue(const std::vector<Lit> &lits) {
-  m_indexSatClauses.resize(0);
   m_currentMarkedLitIndex++;
 
   for (auto &l : lits) {
@@ -136,6 +135,7 @@ void SpecManagerCnfDyn::preUpdate(const std::vector<Lit> &lits) {
   }
 
   // manage the non binary clauses.
+  m_indexSatClauses.resize(0);  // is set in propagateTrue.
   propagateTrue(lits);
   propagateFalseInNotBin(lits);
 
