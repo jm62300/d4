@@ -34,6 +34,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "src/problem/ProblemTypes.hpp"
 
 namespace minisat {
+
 //=================================================================================================
 // Constructor/Destructor:
 Solver::Solver(std::ostream *certif)
@@ -826,7 +827,6 @@ lbool Solver::search(int nof_conflicts) {
 
     if (confl != CRef_Undef)  // CONFLICT
     {
-      // printf("conflict\n");
       conflicts++;
       conflictC++;
       if (decisionLevel() == 0) {
@@ -886,8 +886,9 @@ lbool Solver::search(int nof_conflicts) {
       if (decisionLevel() == 0 && !simplify())
         return l_False;  // Simplify the set of problem clauses:
       if (decisionLevel() >= assumptions.size() &&
-          learnts.size() - nAssigns() >= max_learnts)
+          learnts.size() - nAssigns() >= max_learnts) {
         reduceDB();
+      }
 
       Lit next = lit_Undef;
       while (decisionLevel() <
@@ -983,6 +984,9 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   conflict.clear();
   if (!ok) return l_False;
 
+  // TODO
+  cpt++;
+
   if (rebuildHeap) rebuildOrderHeap();
 
   solves++;
@@ -1010,12 +1014,8 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
 
   if (needModel && status == l_True) {
     // Extend & copy model:
-    for (int i = 0; i < problemVariable.size(); i++) {
-      // printf("%d %d\n", problemVariable[i], value(problemVariable[i]) ==
-      // l_True);
+    for (int i = 0; i < problemVariable.size(); i++)
       model[problemVariable[i]] = value(problemVariable[i]);
-    }
-    // printf("*** %d %d\n", 3, model[3] == l_True);
   }
 
   cancelUntil(assumptions.size());

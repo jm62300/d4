@@ -39,10 +39,6 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
   m_watchedList.resize(m_clauses.size());
   m_indexSatClauses.resize(0);
 
-#if 0
-  showCurrentFormula(std::cout);
-#endif
-
   // init the structure of watch.
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     std::vector<Watched> list;
@@ -74,14 +70,6 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
     else
       for (auto &w : list) m_watchedList[w.idxCl].push_back({w.l, i});
   }
-
-#if 0
-  std::cout << "init blocked: \n";
-  for (auto &idx : m_indexSatClauses) {
-    for (auto &l : m_clauses[idx]) std::cout << l << ' ';
-    std::cout << '\n';
-  }
-#endif
 
   // count the number of dectected.
   m_nbBlockedClauseRemoved += m_indexSatClauses.size();
@@ -224,6 +212,7 @@ void SpecManagerCnfDynBlockedCl::inprocessing() {
   // remove.
   m_currentMarkedLitIndex++;
   m_nbBlockedClauseRemoved += m_idxBlockedClauses.size();
+
   removeSatisfiedClauses(m_idxBlockedClauses);
 }  // inprocessing
 

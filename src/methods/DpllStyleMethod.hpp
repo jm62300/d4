@@ -347,12 +347,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
-#if 0
-    std::cout << "compute_ :\n";
-    std::cout << "trail: ";
-    m_solver->showTrail();
-#endif
-
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
@@ -361,13 +355,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
-
-#if 0
-    std::cout << "nb component = " << nbComponent << "\n";
-    std::cout << "free variables: ";
-    for (auto &v : freeVariable) std::cout << v << " ";
-    std::cout << '\n';
-#endif
 
     // consider each connected component.
     if (nbComponent) {
