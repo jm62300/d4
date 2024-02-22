@@ -984,9 +984,6 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   conflict.clear();
   if (!ok) return l_False;
 
-  // TODO
-  cpt++;
-
   if (rebuildHeap) rebuildOrderHeap();
 
   solves++;

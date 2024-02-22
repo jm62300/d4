@@ -31,7 +31,6 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
   m_nbBlockedClauseRemoved = 0;
   m_isDecisionVariable.resize(p.getNbVar() + 1, !p.getNbSelectedVar());
   for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
-
   m_isPresentLit.resize((p.getNbVar() + 1) << 1, false);
 
   // init the watch list.
@@ -39,36 +38,63 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
   m_watchedList.resize(m_clauses.size());
   m_indexSatClauses.resize(0);
 
-  // init the structure of watch.
+  // create the clause blocked index.
   for (unsigned i = 0; i < m_clauses.size(); i++) {
-    std::vector<Watched> list;
+    bool isSAT = false;
 
     // mark the literals for the current clause.
-    for (auto &l : m_clauses[i]) m_isPresentLit[l.intern()] = true;
-
-    // visit the clause and extract the watched list.
-    bool isBlocked = false;
     for (auto &l : m_clauses[i]) {
-      if (m_currentValue[l.var()] != l_Undef) continue;
-      if (m_isDecisionVariable[l.var()]) continue;
-
-      // get a clause that is not in tautology
-      unsigned idxCl = searchTautNotResolution(m_isPresentLit, l);
-      if (idxCl == m_clauses.size()) {
-        isBlocked = true;
-        break;
-      } else
-        list.push_back({l, idxCl});
+      m_isPresentLit[l.intern()] = true;
+      if (litIsAssignedToTrue(l)) isSAT = true;
     }
 
-    // unmark the literals for the current clause.
-    for (auto &l : m_clauses[i]) m_isPresentLit[l.intern()] = false;
-
-    // add or not the clause in the watch list.
-    if (isBlocked)
+    if (isSAT)
       m_indexSatClauses.push_back(i);
-    else
-      for (auto &w : list) m_watchedList[w.idxCl].push_back({w.l, i});
+    else {
+      bool isBlocked = false;
+      unsigned startIdx = m_clauseBlockedIndex.size();
+
+      for (auto &l : m_clauses[i]) {
+        if (m_currentValue[l.var()] != l_Undef) continue;
+        if (m_isDecisionVariable[l.var()]) continue;
+
+        // get the non tautological clauses.
+        std::vector<unsigned> idxList;
+        for (IteratorIdxClause ite = m_occurrence[(~l).intern()].getClauses();
+             ite.end != ite.start && !isBlocked; ite.start++) {
+          if (m_infoClauses[*(ite.start)].isSat) continue;
+
+          bool isTaut = false;
+          for (auto &m : m_clauses[*(ite.start)]) {
+            if (m != ~l && m_isPresentLit[(~m).intern()]) {
+              isTaut = true;
+              break;
+            }
+          }
+
+          if (!isTaut) idxList.push_back(*(ite.start));
+        }
+
+        if (idxList.size() > 0)
+          m_clauseBlockedIndex.push_back({l, i, idxList});
+        else
+          isBlocked = true;
+      }
+
+      if (isBlocked) {
+        m_clauseBlockedIndex.resize(startIdx);
+        m_indexSatClauses.push_back(i);
+      } else {
+        while (startIdx < m_clauseBlockedIndex.size()) {
+          assert(m_clauseBlockedIndex[startIdx].listIdxNonTaut.size() > 0);
+          m_watchedList[m_clauseBlockedIndex[startIdx].listIdxNonTaut[0]]
+              .push_back(startIdx);
+          startIdx++;
+        }
+      }
+    }
+
+    for (auto &l : m_clauses[i]) m_isPresentLit[l.intern()] = false;
   }
 
   // count the number of dectected.
@@ -83,12 +109,15 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
 
   // call the simplification to progate.
   inprocessing();
+  std::cout << "c [SPEC MANAGER] Number of clauses removed at the beginning: "
+            << m_nbBlockedClauseRemoved << '\n';
 
   // remove all the satisfied clause (because at 'level 0').
   for (auto &wlist : m_watchedList) {
     unsigned j = 0;
     for (unsigned i = 0; i < wlist.size(); i++)
-      if (!m_infoClauses[wlist[i].idxCl].isSat) wlist[j++] = wlist[i];
+      if (!m_infoClauses[m_clauseBlockedIndex[wlist[i]].idxCl].isSat)
+        wlist[j++] = wlist[i];
     wlist.resize(j);
   }
 
@@ -171,37 +200,39 @@ void SpecManagerCnfDynBlockedCl::inprocessing() {
   m_idxBlockedClauses.resize(0);
   while (m_indexSatClauses.size()) {
     unsigned idx = m_indexSatClauses.back();
+    assert(m_infoClauses[idx].isSat);
     m_indexSatClauses.pop_back();
 
     unsigned j = 0;
-    std::vector<Watched> &wlist = m_watchedList[idx];
+    std::vector<unsigned> &wlist = m_watchedList[idx];
     for (unsigned i = 0; i < wlist.size(); i++) {
-      if (m_infoClauses[wlist[i].idxCl].isSat ||
-          m_currentValue[wlist[i].l.var()] != l_Undef)
+      // the related clause.
+      BlockedInfo &bi = m_clauseBlockedIndex[wlist[i]];
+
+      if (m_infoClauses[bi.idxCl].isSat ||
+          m_currentValue[bi.l.var()] != l_Undef)
         wlist[j++] = wlist[i];
       else {
         // search for another watch.
-        for (auto &l : m_clauses[wlist[i].idxCl])
-          m_isPresentLit[l.intern()] = true;
-        unsigned next = searchTautNotResolution(m_isPresentLit, wlist[i].l);
-        for (auto &l : m_clauses[wlist[i].idxCl])
-          m_isPresentLit[l.intern()] = false;
+        unsigned k = 1;
+        for (; k < bi.listIdxNonTaut.size(); k++)
+          if (!m_infoClauses[bi.listIdxNonTaut[k]].isSat) break;
 
-        // update the watch structure according to next.
-        if (next != m_clauses.size())  // the clause is not blocked.
-          m_watchedList[next].push_back(wlist[i]);
-        else {
-          // the clause is blocked.
-          m_idxBlockedClauses.push_back(wlist[i].idxCl);
-          m_indexSatClauses.push_back(wlist[i].idxCl);
-          m_infoClauses[wlist[i].idxCl].isSat = true;
+        if (k < bi.listIdxNonTaut.size()) {
+          m_watchedList[bi.listIdxNonTaut[k]].push_back(wlist[i]);
+          std::swap(bi.listIdxNonTaut[0], bi.listIdxNonTaut[k]);
+        } else {
+          unsigned id = bi.idxCl;
+          m_idxBlockedClauses.push_back(id);
+          m_indexSatClauses.push_back(id);
+          m_infoClauses[id].isSat = true;
 
-          if (!m_markedClauseIdx[wlist[i].idxCl]) {
-            m_markedClauseIdx[wlist[i].idxCl] = true;
+          if (!m_markedClauseIdx[id]) {
+            m_markedClauseIdx[id] = true;
             m_savedStateClauses.push_back(
-                (SavedStateClause){(int)wlist[i].idxCl, false,
-                                   m_infoClauses[wlist[i].idxCl].nbUnsat});
+                (SavedStateClause){(int)id, false, m_infoClauses[id].nbUnsat});
           }
+
           wlist[j++] = wlist[i];
         }
       }
@@ -212,7 +243,6 @@ void SpecManagerCnfDynBlockedCl::inprocessing() {
   // remove.
   m_currentMarkedLitIndex++;
   m_nbBlockedClauseRemoved += m_idxBlockedClauses.size();
-
   removeSatisfiedClauses(m_idxBlockedClauses);
 }  // inprocessing
 

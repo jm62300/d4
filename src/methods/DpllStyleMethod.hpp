@@ -345,6 +345,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
+
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals

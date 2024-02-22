@@ -26,9 +26,10 @@
 
 namespace d4 {
 
-struct Watched {
+struct BlockedInfo {
   Lit l;
   unsigned idxCl;
+  std::vector<unsigned> listIdxNonTaut;
 };
 
 class SpecManagerCnfDynBlockedCl : public SpecManagerCnfDyn {
@@ -38,7 +39,9 @@ class SpecManagerCnfDynBlockedCl : public SpecManagerCnfDyn {
   std::vector<bool> m_isPresentLit;
 
   std::vector<unsigned> m_idxBlockedClauses;
-  std::vector<std::vector<Watched>> m_watchedList;
+
+  std::vector<std::vector<unsigned>> m_watchedList;
+  std::vector<BlockedInfo> m_clauseBlockedIndex;
 
   /**
    * @brief Look into the set of clauses if it is possible to find out a clause
