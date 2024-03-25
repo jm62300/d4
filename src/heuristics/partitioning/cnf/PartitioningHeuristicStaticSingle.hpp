@@ -21,11 +21,8 @@
 #include <ostream>
 
 #include "PartitioningHeuristicStatic.hpp"
-#include "PhaseSelectorManager.hpp"
 
 namespace d4 {
-class PhaseSelectorManager;
-
 struct DistribSize {
   unsigned cutSize;
   unsigned leftTreeSize;
@@ -65,7 +62,6 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic {
   // to store the hypergraph, and then avoid reallocated memory.
   HyperGraph m_hypergraph;
   HyperGraphExtractor *m_hypergraphExtractor;
-  PhaseSelectorManager *m_phaseSelector;
 
   std::vector<unsigned> m_bucketNumber;
   std::vector<bool> m_markedVar;
@@ -125,7 +121,6 @@ class PartitioningHeuristicStaticSingle : public PartitioningHeuristicStatic {
 
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 
-  bool isStillOk(std::vector<Var> &component);
   void init(std::ostream &out);
   DistribSize computeDistribSize(std::vector<Var> &component);
 

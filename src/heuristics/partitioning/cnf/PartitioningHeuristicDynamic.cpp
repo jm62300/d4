@@ -90,6 +90,8 @@ void PartitioningHeuristicDynamic::computeEquivClass(
 */
 void PartitioningHeuristicDynamic::computeCutSet(std::vector<Var> &component,
                                                  std::vector<Var> &cutSet) {
+  assert(0);
+#if 0
   if (m_staticPartitioner->isStillOk(component)) {
     m_nbStatic++;
     m_staticPartitioner->computeCutSet(component, cutSet);
@@ -135,6 +137,7 @@ void PartitioningHeuristicDynamic::computeCutSet(std::vector<Var> &component,
 
     m_om.postUpdate(unitEquiv);
   }
+#endif
 }  // computeCutset
 
 void PartitioningHeuristicDynamic::displayStat(std::ostream &out) {

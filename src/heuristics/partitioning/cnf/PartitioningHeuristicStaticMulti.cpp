@@ -133,17 +133,6 @@ void PartitioningHeuristicStaticMulti::init(std::ostream &out) {
 }  // init
 
 /**
-   Ask if the current decomposition is still correct.
-
-   @param[in] component, the set of variables.
-
-   \return true if the tree decomposition is 'correct'.
- */
-bool PartitioningHeuristicStaticMulti::isStillOk(std::vector<Var> &component) {
-  return m_partitionStaticUsed->isStillOk(component);
-}  // isStillOk
-
-/**
    Compute a cutset by computing a bipartition of the hypergraph of the clauses.
 
    @param[in] component, the set of variables.

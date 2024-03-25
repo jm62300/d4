@@ -22,11 +22,8 @@
 #include "PartitioningHeuristicStatic.hpp"
 #include "PartitioningHeuristicStaticSingleDual.hpp"
 #include "PartitioningHeuristicStaticSinglePrimal.hpp"
-#include "PhaseSelectorManager.hpp"
 
 namespace d4 {
-class PhaseSelectorManager;
-
 class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic {
  private:
   PartitioningHeuristicStaticSingle *m_partitionStaticDual;
@@ -54,8 +51,6 @@ class PartitioningHeuristicStaticMulti : public PartitioningHeuristicStatic {
   virtual ~PartitioningHeuristicStaticMulti();
 
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
-
-  bool isStillOk(std::vector<Var> &component);
 
   void init(std::ostream &out);
 };
