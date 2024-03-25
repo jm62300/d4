@@ -16,7 +16,7 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "PartitioningHeuristicBipartiteDual.hpp"
+#include "PartitioningHeuristicDynamicDual.hpp"
 
 #include <algorithm>
 #include <bitset>
@@ -29,10 +29,10 @@ namespace d4 {
    @param[in] _s, a wrapper on a solver.
    @param[in] _om, a structure manager.
 */
-PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
+PartitioningHeuristicDynamicDual::PartitioningHeuristicDynamicDual(
     const OptionPartitioningHeuristic &options, WrapperSolver &_s,
     SpecManager &_om, std::ostream &out)
-    : PartitioningHeuristicBipartiteDual(
+    : PartitioningHeuristicDynamicDual(
           options, _s, _om, dynamic_cast<SpecManagerCnf &>(_om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(_om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(_om).getSumSizeClauses(), out) {
@@ -44,11 +44,11 @@ PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
    @param[in] _s, a wrapper on a solver.
    @param[in] _om, a structure manager.
 */
-PartitioningHeuristicBipartiteDual::PartitioningHeuristicBipartiteDual(
+PartitioningHeuristicDynamicDual::PartitioningHeuristicDynamicDual(
     const OptionPartitioningHeuristic &options, WrapperSolver &s,
     SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out)
-    : PartitioningHeuristicBipartite(options, om, s, nbClause, nbVar, sumSize,
-                                     out) {
+    : PartitioningHeuristicDynamic(options, om, s, nbClause, nbVar, sumSize,
+                                   out) {
   // initialize the vector.
   m_partition.resize(m_nbClause + 1, 0);
 

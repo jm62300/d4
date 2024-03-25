@@ -21,8 +21,8 @@
 #include <bitset>
 
 #include "PartitioningHeuristicNone.hpp"
-#include "cnf/PartitioningHeuristicBipartiteDual.hpp"
-#include "cnf/PartitioningHeuristicBipartitePrimal.hpp"
+#include "cnf/PartitioningHeuristicDynamicDual.hpp"
+#include "cnf/PartitioningHeuristicDynamicPrimal.hpp"
 #include "cnf/PartitioningHeuristicStaticMulti.hpp"
 #include "cnf/PartitioningHeuristicStaticSingleDual.hpp"
 #include "cnf/PartitioningHeuristicStaticSinglePrimal.hpp"
@@ -58,9 +58,9 @@ PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
   if (s.getProblemInputType() == PB_CNF) {
     switch (options.partitioningMethod) {
       case PARTITIONING_DYN_PRIMAL:
-        return new PartitioningHeuristicBipartitePrimal(options, ws, s, out);
+        return new PartitioningHeuristicDynamicPrimal(options, ws, s, out);
       case PARTITIONING_DYN_DUAL:
-        return new PartitioningHeuristicBipartiteDual(options, ws, s, out);
+        return new PartitioningHeuristicDynamicDual(options, ws, s, out);
       case PARTITIONING_STATIC_DUAL: {
         PartitioningHeuristicStaticSingleDual *ret =
             new PartitioningHeuristicStaticSingleDual(options, ws, s, out);

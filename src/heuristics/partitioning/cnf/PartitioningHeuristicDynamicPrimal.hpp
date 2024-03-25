@@ -18,22 +18,22 @@
  */
 #pragma once
 
-#include "PartitioningHeuristicBipartite.hpp"
+#include "PartitioningHeuristicDynamic.hpp"
 #include "src/hyperGraph/HyperGraph.hpp"
 #include "src/hyperGraph/HyperGraphExtractorPrimal.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-class PartitioningHeuristicBipartitePrimal
-    : public PartitioningHeuristicBipartite {
+class PartitioningHeuristicDynamicPrimal : public PartitioningHeuristicDynamic {
  public:
-  PartitioningHeuristicBipartitePrimal(
-      const OptionPartitioningHeuristic &options, WrapperSolver &s,
-      SpecManager &om, std::ostream &out);
+  PartitioningHeuristicDynamicPrimal(const OptionPartitioningHeuristic &options,
+                                     WrapperSolver &s, SpecManager &om,
+                                     std::ostream &out);
 
-  PartitioningHeuristicBipartitePrimal(
-      const OptionPartitioningHeuristic &options, WrapperSolver &s,
-      SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out);
+  PartitioningHeuristicDynamicPrimal(const OptionPartitioningHeuristic &options,
+                                     WrapperSolver &s, SpecManager &om,
+                                     int nbClause, int nbVar, int sumSize,
+                                     std::ostream &out);
 };
 }  // namespace d4
