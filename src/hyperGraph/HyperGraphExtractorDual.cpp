@@ -32,12 +32,10 @@ namespace d4 {
 HyperGraphExtractorDual::HyperGraphExtractorDual(unsigned nbVar,
                                                  unsigned nbClause) {
   m_markedVar.resize(nbVar + 1, false);
-
   m_keepClause.resize(nbClause + 1, false);
   m_markedClauses.resize(nbClause + 1, false);
   m_sizeClause.resize(nbClause + 1, 0);
   m_countClause.resize(nbClause + 1, 0);
-
   m_mapVarEdge.resize(nbVar + 1, nullptr);
 }  // constructor.
 
