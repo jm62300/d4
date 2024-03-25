@@ -17,20 +17,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <ostream>
 
-#include "PartitioningHeuristicStaticSingle.hpp"
-#include "PhaseSelectorManager.hpp"
+#include "PartitioningHeuristicDynamic.hpp"
+#include "src/hyperGraph/HyperGraph.hpp"
+#include "src/hyperGraph/HyperGraphExtractorPrimal.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-class PhaseSelectorDynamic : public PhaseSelectorManager {
- private:
-  double m_limitRatio;
-
+class PartitioningHeuristicDynamicPrimal : public PartitioningHeuristicDynamic {
  public:
-  PhaseSelectorDynamic(PartitioningHeuristicStaticSingle *staticPartitioner,
-                       double limitRatio, std::ostream &out);
+  PartitioningHeuristicDynamicPrimal(const OptionPartitioningHeuristic &options,
+                                     WrapperSolver &s, SpecManager &om,
+                                     std::ostream &out);
 
-  bool isStillOk(std::vector<Var> &component);
+  PartitioningHeuristicDynamicPrimal(const OptionPartitioningHeuristic &options,
+                                     WrapperSolver &s, SpecManager &om,
+                                     int nbClause, int nbVar, int sumSize,
+                                     std::ostream &out);
 };
 }  // namespace d4

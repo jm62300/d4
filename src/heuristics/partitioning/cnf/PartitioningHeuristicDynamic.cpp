@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "PartitioningHeuristicBipartite.hpp"
+#include "PartitioningHeuristicDynamic.hpp"
 
 namespace d4 {
 /**
@@ -30,7 +30,7 @@ namespace d4 {
    @param[in] _nbVar, the number of variables.
    @param[in] _sumsize, the maximum size for the hyper graph.
  */
-PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
+PartitioningHeuristicDynamic::PartitioningHeuristicDynamic(
     const OptionPartitioningHeuristic &options, SpecManager &om,
     WrapperSolver &s, int nbClause, int nbVar, int sumSize, std::ostream &out)
     : m_om(dynamic_cast<SpecManagerCnf &>(om)), m_s(s) {
@@ -56,7 +56,7 @@ PartitioningHeuristicBipartite::PartitioningHeuristicBipartite(
 /**
    Destructor.
 */
-PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite() {
+PartitioningHeuristicDynamic::~PartitioningHeuristicDynamic() {
   if (m_staticPartitioner) delete m_staticPartitioner;
   if (m_hypergraphExtractor) delete m_hypergraphExtractor;
   if (m_pm) delete m_pm;
@@ -72,7 +72,7 @@ PartitioningHeuristicBipartite::~PartitioningHeuristicBipartite() {
    store the result).
    @param[out] equivVar, equivalence class found.
  */
-void PartitioningHeuristicBipartite::computeEquivClass(
+void PartitioningHeuristicDynamic::computeEquivClass(
     std::vector<Var> &component, std::vector<Lit> &unitEquiv,
     std::vector<Var> &equivClass, std::vector<std::vector<Var>> &equivVar) {
   if (m_equivSimp)
@@ -88,8 +88,10 @@ void PartitioningHeuristicBipartite::computeEquivClass(
    @param[in] component, the set of variables.
    @param[out] cutSet, the cut set we compute.
 */
-void PartitioningHeuristicBipartite::computeCutSet(std::vector<Var> &component,
-                                                   std::vector<Var> &cutSet) {
+void PartitioningHeuristicDynamic::computeCutSet(std::vector<Var> &component,
+                                                 std::vector<Var> &cutSet) {
+  assert(0);
+#if 0
   if (m_staticPartitioner->isStillOk(component)) {
     m_nbStatic++;
     m_staticPartitioner->computeCutSet(component, cutSet);
@@ -135,9 +137,10 @@ void PartitioningHeuristicBipartite::computeCutSet(std::vector<Var> &component,
 
     m_om.postUpdate(unitEquiv);
   }
+#endif
 }  // computeCutset
 
-void PartitioningHeuristicBipartite::displayStat(std::ostream &out) {
+void PartitioningHeuristicDynamic::displayStat(std::ostream &out) {
   out << "c \033[1m\033[36mPartioning Information\033[0m\n";
   out << "c Number of static decomposition used: " << m_nbStatic << "\n";
   out << "c Number of dynamic decomposition used: " << m_nbDynamic << "\n";

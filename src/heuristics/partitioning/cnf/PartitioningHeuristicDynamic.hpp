@@ -31,7 +31,7 @@
 
 namespace d4 {
 
-class PartitioningHeuristicBipartite : public PartitioningHeuristic {
+class PartitioningHeuristicDynamic : public PartitioningHeuristic {
  private:
   unsigned m_nbStatic;
   unsigned m_nbDynamic;
@@ -57,12 +57,11 @@ class PartitioningHeuristicBipartite : public PartitioningHeuristic {
 
   unsigned m_nbClause;
 
-  PartitioningHeuristicBipartite(const OptionPartitioningHeuristic &options,
-                                 SpecManager &om, WrapperSolver &s,
-                                 int _nbClause, int _nbVar, int _sumSize,
-                                 std::ostream &out);
+  PartitioningHeuristicDynamic(const OptionPartitioningHeuristic &options,
+                               SpecManager &om, WrapperSolver &s, int _nbClause,
+                               int _nbVar, int _sumSize, std::ostream &out);
 
-  virtual ~PartitioningHeuristicBipartite();
+  virtual ~PartitioningHeuristicDynamic();
 
   void computeEquivClass(std::vector<Var> &component,
                          std::vector<Lit> &unitEquiv,

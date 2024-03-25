@@ -11,10 +11,10 @@ CPPFLAGS ?= -MMD -MP
 LIBS := -Wl,-R../../build/ ../../build/libd4.a -lboost_program_options -lz -lgmpxx -lgmp 
 INCLUDES := -I../../
 
-s: $(BUILD_DIR)/$(EXEC)
+c: $(BUILD_DIR)/$(EXEC)
 p: $(BUILD_DIR)/$(EXEC)_profile
 d: $(BUILD_DIR)/$(EXEC)_debug
-rs: $(BUILD_DIR)/$(EXEC)_static
+s: $(BUILD_DIR)/$(EXEC)_static
 
 $(BUILD_DIR)/$(EXEC): CFLAGS += -O3
 $(BUILD_DIR)/$(EXEC)_profile: CFLAGS += -O2 -pg

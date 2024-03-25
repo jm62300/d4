@@ -300,6 +300,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
     out << "c Number of paritioner calls: " << m_callPartitioner << "\n";
     out << "c\n";
+    m_specs->printSpecInformation(out);
     m_cache->printCacheInformation(out);
     if (m_hCutSet) {
       out << "c\n";
@@ -330,33 +331,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   }  // cacheIsActivated
 
   /**
-   * @brief Assign the pure literal that are not projeted.
-   *
-   * @param[in] setOfVar is the set of variables we are looking for.
-   * @param[out] unitsLit is the place where are added the pure literal we have
-   * computed (can also contains previously computed unit, then please keep
-   * them).
-   */
-  void managePureLiterals(const std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit) {
-    std::vector<Lit> pureLit;
-    for (auto &v : setOfVar) {
-      if (m_isDecisionVariable[v]) continue;
-      if (m_specs->varIsAssigned(v)) continue;
-
-      Lit l = Lit::makeLitTrue(v);
-      if (!m_specs->getNbOccurrence(l) && m_specs->getNbOccurrence(~l))
-        pureLit.push_back(~l);
-      if (!m_specs->getNbOccurrence(~l) && m_specs->getNbOccurrence(l))
-        pureLit.push_back(l);
-    }
-    if (pureLit.size()) {
-      for (auto &l : pureLit) unitsLit.push_back(l);
-      m_specs->preUpdate(pureLit);
-    }
-  }  // managePureLiterals
-
-  /**
    * Call the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -371,11 +345,11 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
+
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-    managePureLiterals(setOfVar, unitsLit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -484,6 +458,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       nb++;
     }
 
+#if 0
+    std::cout << "trail: ";
+    m_solver->showTrail();
+    std::cout << lits[0] << " -> res: ";
+    std::cout << b[0].d << ' ' << b[0].d << '\n';
+#endif
     // reinit some variables.
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);

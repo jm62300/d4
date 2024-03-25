@@ -57,8 +57,6 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
                                   out) {
   m_bucketNumber.resize(m_nbVar + 2, 0);
   m_hypergraphExtractor = NULL;
-  m_phaseSelector =
-      PhaseSelectorManager::makePhaseSelectorManager(options, this, out);
   m_equivClass.resize(m_nbVar + 1, 0);
   m_levelDistribution.resize(m_nbVar + 1, 0);
   m_markedVar.resize(m_nbVar + 1, 0);
@@ -69,7 +67,6 @@ PartitioningHeuristicStaticSingle::PartitioningHeuristicStaticSingle(
  */
 PartitioningHeuristicStaticSingle::~PartitioningHeuristicStaticSingle() {
   if (m_hypergraphExtractor) delete m_hypergraphExtractor;
-  if (m_phaseSelector) delete m_phaseSelector;
 }  // destructor
 
 /**
@@ -104,17 +101,6 @@ void PartitioningHeuristicStaticSingle::init(std::ostream &out) {
   // restore the initial state.
   m_om.postUpdate(unitEquiv);
 }  // init
-
-/**
-   Ask if the current decomposition is still correct.
-
-   @param[in] component, the set of variables.
-
-   \return true if the tree decomposition is 'correct'.
- */
-bool PartitioningHeuristicStaticSingle::isStillOk(std::vector<Var> &component) {
-  return m_phaseSelector->isStillOk(component);
-}  // isStillOk
 
 /**
    Save the current hyper graph.
@@ -302,7 +288,6 @@ void PartitioningHeuristicStaticSingle::computeDecomposition(
     std::vector<Var> &component, std::vector<Var> &equivClass,
     std::vector<std::vector<Var>> &equivVar,
     std::vector<unsigned> &bucketNumber) {
-  using Level = PartitionerManager::Level;
   assert(m_equivClass.size() == equivClass.size());
   for (unsigned i = 0; i < equivClass.size(); i++)
     m_equivClass[i] = equivClass[i];
@@ -340,7 +325,8 @@ void PartitioningHeuristicStaticSingle::computeDecomposition(
     std::vector<unsigned> &current = strata.part;
     setHyperGraph(savedHyperGraph, current, m_hypergraph);
 
-    m_pm->computePartition(m_hypergraph, Level::QUALITY, partition);
+    m_pm->computePartition(m_hypergraph, PartitionerManager::Level::QUALITY,
+                           partition);
 
     // get the cut and split the current set of variables.
     distributePartition(savedHyperGraph, partition, current, considered, stack,

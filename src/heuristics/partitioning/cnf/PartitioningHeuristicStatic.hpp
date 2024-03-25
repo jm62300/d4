@@ -72,6 +72,5 @@ class PartitioningHeuristicStatic : public PartitioningHeuristic {
                              std::vector<Var> &cutSet) = 0;
 
   virtual bool isInitialized() { return true; }
-  virtual bool isStillOk(std::vector<Var> &component) = 0;
 };
 }  // namespace d4

@@ -50,8 +50,8 @@ class SpecManager {
       std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
       std::vector<bool> &isProjected, std::vector<Var> &freeVar) = 0;
 
-  virtual void preUpdate(std::vector<Lit> &lits) = 0;
-  virtual void postUpdate(std::vector<Lit> &lits) = 0;
+  virtual void preUpdate(const std::vector<Lit> &lits) = 0;
+  virtual void postUpdate(const std::vector<Lit> &lits) = 0;
   virtual void initialize(std::vector<Var> &setOfVar,
                           std::vector<Lit> &units) = 0;
   virtual void showFormula(std::ostream &out) = 0;
@@ -61,5 +61,6 @@ class SpecManager {
   virtual int getNbVariable() = 0;
 
   virtual ProblemInputType getProblemInputType() = 0;
+  virtual void printSpecInformation(std::ostream &out) {}
 };
 }  // namespace d4

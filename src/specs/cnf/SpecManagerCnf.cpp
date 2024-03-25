@@ -91,10 +91,8 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
 
   m_infoClauses.resize(nbClause);
 
-  // set the info about watchers and xorLitBin.
+  // set the info about xorLitBin.
   for (unsigned i = 0; i < m_clauses.size(); i++) {
-    m_infoClauses[i].watcher = m_clauses[i][0];
-
     if (m_clauses[i].size() == 2)
       m_infoClauses[i].xorLitBin =
           m_clauses[i][0].intern() ^ m_clauses[i][1].intern();
@@ -140,7 +138,6 @@ int SpecManagerCnf::computeConnectedComponent(
 
     for (unsigned i = 0; i < 2; i++) {  // both literals.
       IteratorIdxClause listIndex = getVecIdxClause(l);
-
       for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         int idx = *ptr;
         if (!m_markView[idx]) {
@@ -363,9 +360,8 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c) {
 bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(
     int idx, std::vector<bool> &m_inCurrentComponent) {
   if (m_infoClauses[idx].isSat) return false;
-  assert(m_infoClauses[idx].watcher != lit_Undef);
-  assert(!litIsAssigned(m_infoClauses[idx].watcher));
-  return m_inCurrentComponent[m_infoClauses[idx].watcher.var()];
+  assert(!litIsAssigned(m_clauses[idx][0]));
+  return m_inCurrentComponent[m_clauses[idx][0].var()];
 }  // isSatisfiedClause
 
 void SpecManagerCnf::getCurrentClauses(std::vector<unsigned> &idxClauses,

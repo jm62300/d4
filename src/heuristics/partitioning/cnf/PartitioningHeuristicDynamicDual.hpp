@@ -18,27 +18,22 @@
  */
 #pragma once
 
-#include <ostream>
-#include <vector>
-
-#include "PartitioningHeuristicStaticSingle.hpp"
-#include "src/problem/ProblemTypes.hpp"
+#include "PartitioningHeuristicDynamic.hpp"
+#include "src/hyperGraph/HyperGraph.hpp"
+#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-class PartitioningHeuristicStaticSingle;
-
-class PhaseSelectorManager {
- protected:
-  PartitioningHeuristicStaticSingle *m_staticPartitioner;
-  PhaseSelectorManager(PartitioningHeuristicStaticSingle *staticPartitioner);
-
+class PartitioningHeuristicDynamicDual : public PartitioningHeuristicDynamic {
  public:
-  virtual ~PhaseSelectorManager() {}
+  PartitioningHeuristicDynamicDual(const OptionPartitioningHeuristic &options,
+                                   WrapperSolver &s, SpecManager &om,
+                                   std::ostream &out);
 
-  static PhaseSelectorManager *makePhaseSelectorManager(
-      const OptionPartitioningHeuristic &options,
-      PartitioningHeuristicStaticSingle *staticPartitioner, std::ostream &out);
-
-  virtual bool isStillOk(std::vector<Var> &component) = 0;
+  PartitioningHeuristicDynamicDual(const OptionPartitioningHeuristic &options,
+                                   WrapperSolver &s, SpecManager &om,
+                                   int nbClause, int nbVar, int sumSize,
+                                   std::ostream &out);
 };
 }  // namespace d4

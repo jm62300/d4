@@ -16,28 +16,15 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "PhaseSelectorStatic.hpp"
 
-#include <ostream>
+#pragma once
 
 namespace d4 {
+struct SpecClauseInfo {
+  unsigned isSat : 1;
+  unsigned nbUnsat : 31;
+  unsigned xorLitBin;
 
-/**
-   Constructor.
-
-   @param[in] limitPhase, give the limit number of variables before switching.
-*/
-PhaseSelectorStatic::PhaseSelectorStatic(
-    PartitioningHeuristicStaticSingle *staticPartitioner, unsigned limitPhase,
-    std::ostream &out)
-    : PhaseSelectorManager(staticPartitioner) {
-  out << "c [CONSTRUCTOR] Switching between static and dynamic decompostion:"
-      << " static\n";
-  m_limitPhase = limitPhase;
-}  // constructor
-
-bool PhaseSelectorStatic::isStillOk(std::vector<Var> &component) {
-  return component.size() > m_limitPhase;
-}  // isStillok
-
-}  // namespace d4
+  SpecClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0) {}
+};
+}
