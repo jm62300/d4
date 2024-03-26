@@ -24,7 +24,7 @@
 #include "../PartitioningHeuristic.hpp"
 #include "PartitioningHeuristicStatic.hpp"
 #include "src/hyperGraph/HyperGraphExtractor.hpp"
-#include "src/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/cutter/partitioner/PartitionerManager.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 #include "src/utils/EquivExtractor.hpp"

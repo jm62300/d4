@@ -21,7 +21,6 @@
 #include "PartitioningHeuristicDynamic.hpp"
 #include "src/hyperGraph/HyperGraph.hpp"
 #include "src/hyperGraph/HyperGraphExtractorPrimal.hpp"
-#include "src/partitioner/PartitionerManager.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {

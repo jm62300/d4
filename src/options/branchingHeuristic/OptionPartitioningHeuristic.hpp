@@ -21,7 +21,7 @@
 #include <string>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/cutter/partitioner/PartitionerManager.hpp"
 
 namespace d4 {
 
