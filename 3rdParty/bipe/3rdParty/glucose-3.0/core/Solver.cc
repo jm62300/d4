@@ -1491,7 +1491,8 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   if (!ok) return l_False;
   double curTime = cpuTime();
 
-  for (int i = 0; i < polarity.size(); i++) polarity[i] = 1 - polarity[i];
+  for (int i = 0; reversePolarity && i < polarity.size(); i++)
+    polarity[i] = 1 - polarity[i];
 
   solves++;
 
