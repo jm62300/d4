@@ -21,29 +21,18 @@
 #include <string>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/hyperGraph/cutter/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/partitioner/PartitionerManager.hpp"
 
 namespace d4 {
 
 class ConfigurationPartitioningHeuristic;
 
-enum PartitioningMethod {
-  PARTITIONING_DYN_PRIMAL,
-  PARTITIONING_DYN_DUAL,
-  PARTITIONING_STATIC_PRIMAL,
-  PARTITIONING_STATIC_DUAL,
-  PARTITIONING_STATIC_MULTI,
-  PARTITIONING_NONE
-};
+enum PartitioningMethod { PARTITIONING_TREE_DECOMP, PARTITIONING_NONE };
 
 class PartitioningMethodManager {
  public:
   static std::string getPartitioningMethod(const PartitioningMethod& m) {
-    if (m == PARTITIONING_DYN_PRIMAL) return "dynamic primal";
-    if (m == PARTITIONING_DYN_DUAL) return "dynamic dual";
-    if (m == PARTITIONING_STATIC_PRIMAL) return "static primal";
-    if (m == PARTITIONING_STATIC_DUAL) return "static dual";
-    if (m == PARTITIONING_STATIC_MULTI) return "static multi";
+    if (m == PARTITIONING_TREE_DECOMP) return "tree decomposition dual";
     if (m == PARTITIONING_NONE) return "none";
 
     throw(FactoryException("Paritioning method type unknown", __FILE__,
@@ -51,11 +40,7 @@ class PartitioningMethodManager {
   }  // getPartitioningMethod
 
   static PartitioningMethod getPartitioningMethod(const std::string& m) {
-    if (m == "bipartition-primal") return PARTITIONING_DYN_PRIMAL;
-    if (m == "bipartition-dual") return PARTITIONING_DYN_DUAL;
-    if (m == "decomposition-static-primal") return PARTITIONING_STATIC_PRIMAL;
-    if (m == "decomposition-static-dual") return PARTITIONING_STATIC_DUAL;
-    if (m == "decomposition-static-multi") return PARTITIONING_STATIC_MULTI;
+    if (m == "tree-decomposition") return PARTITIONING_TREE_DECOMP;
     if (m == "none") return PARTITIONING_NONE;
 
     throw(FactoryException("Paritioning method unknown", __FILE__, __LINE__));
@@ -64,13 +49,8 @@ class PartitioningMethodManager {
 
 class OptionPartitioningHeuristic {
  public:
-  PartitioningMethod partitioningMethod = PARTITIONING_STATIC_DUAL;
+  PartitioningMethod partitioningMethod = PARTITIONING_TREE_DECOMP;
   PartitionerName partitionerName = PARTITIONER_PATOH;
-
-  bool reduceFormula = true;
-  bool equivSimp = true;
-  int staticPhase = 0;
-  double dynamicPhase = 0;
 
   /**
    * @brief Construct a new Option Partitioning Heuristic object with the
@@ -94,10 +74,6 @@ class OptionPartitioningHeuristic {
         << PartitioningMethodManager::getPartitioningMethod(
                dt.partitioningMethod)
         << ")"
-        << " reduce formula(" << dt.reduceFormula << ")"
-        << " equiv simpl(" << dt.equivSimp << ")"
-        << " static phase(" << dt.staticPhase << ")"
-        << " dynamic phase(" << dt.dynamicPhase << ")"
         << " partitioner name("
         << PartitionerNameManager::getPartitionerName(dt.partitionerName)
         << ")";

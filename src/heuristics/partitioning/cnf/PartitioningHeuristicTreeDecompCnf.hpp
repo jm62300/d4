@@ -18,21 +18,26 @@
  */
 #pragma once
 
-#include "PartitioningHeuristicDynamic.hpp"
-#include "src/hyperGraph/HyperGraph.hpp"
-#include "src/hyperGraph/HyperGraphExtractorDual.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include <ostream>
+
+#include "../PartitioningHeuristicTreeDecomp.hpp"
 
 namespace d4 {
-class PartitioningHeuristicDynamicDual : public PartitioningHeuristicDynamic {
+class PartitioningHeuristicTreeDecompCnf
+    : public PartitioningHeuristicTreeDecomp {
  public:
-  PartitioningHeuristicDynamicDual(const OptionPartitioningHeuristic &options,
-                                   WrapperSolver &s, SpecManager &om,
-                                   std::ostream &out);
+  /**
+   * @brief Constructor.
+   *
+   * @param options gives the list of options.
+   * @param om is the object which deal with the CNF formula.
+   * @param s is a SAT solver associate with the formula under consideration.
+   * @param out is the output stream.
+   */
+  PartitioningHeuristicTreeDecompCnf(const OptionPartitioningHeuristic &options,
+                                     SpecManagerCnf &om, WrapperSolver &s,
+                                     std::ostream &out);
 
-  PartitioningHeuristicDynamicDual(const OptionPartitioningHeuristic &options,
-                                   WrapperSolver &s, SpecManager &om,
-                                   int nbClause, int nbVar, int sumSize,
-                                   std::ostream &out);
+  ~PartitioningHeuristicTreeDecompCnf();
 };
 }  // namespace d4

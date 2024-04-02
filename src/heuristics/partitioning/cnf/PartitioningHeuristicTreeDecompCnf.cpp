@@ -16,30 +16,29 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
+
+#include "PartitioningHeuristicTreeDecompCnf.hpp"
 
 #include <ostream>
 
-#include "PartitioningHeuristicStaticSingle.hpp"
+#include "src/hyperGraph/representation/HyperGraphExtractorDual.hpp"
 
 namespace d4 {
-class PartitioningHeuristicStaticSingleDual
-    : public PartitioningHeuristicStaticSingle {
- private:
- protected:
-  void setBucketLevelFromEdges(std::vector<std::vector<unsigned>> &hypergraph,
-                               std::vector<unsigned> &indices,
-                               std::vector<int> &mapping, unsigned level);
 
- public:
-  PartitioningHeuristicStaticSingleDual(
-      const OptionPartitioningHeuristic &options, WrapperSolver &s,
-      SpecManager &om, std::ostream &out);
+/**
+ * @brief PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf
+ * implementation.
+ */
+PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf(
+    const OptionPartitioningHeuristic &options, SpecManagerCnf &om,
+    WrapperSolver &s, std::ostream &out) {
+  out << "c [CONSTRUCTOR] Tree Decomposition Partitioner\n";
+}  // constructor
 
-  PartitioningHeuristicStaticSingleDual(
-      const OptionPartitioningHeuristic &options, WrapperSolver &s,
-      SpecManager &om, int nbClause, int nbVar, int sumSize, std::ostream &out);
+/**
+   Destructor.
+ */
+PartitioningHeuristicTreeDecompCnf::~PartitioningHeuristicTreeDecompCnf() {
+}  // destructor
 
-  ~PartitioningHeuristicStaticSingleDual();
-};
 }  // namespace d4

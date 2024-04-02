@@ -49,11 +49,11 @@ class PartitioningHeuristic {
       std::ostream &out);
 
   /**
-     Compute a cutset regarding the subformula built on the set of given
-     variables.
-
-     @param[in] component, the set of variables the problem is built on.
-     @param[out] cutSet, the computed cut set.
+   * Compute a cutset regarding the subformula built on the set of given
+   * variables.
+   *
+   * @param[in] component is the set of variables the problem is built on.
+   * @param[out] cutSet is the computed cut set.
    */
   virtual void computeCutSet(std::vector<Var> &component,
                              std::vector<Var> &cutSet) = 0;

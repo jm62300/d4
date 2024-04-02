@@ -23,12 +23,7 @@
 namespace d4 {
 
 struct ConfigurationPartitioningHeuristic {
-  PartitioningMethod partitioningMethod = PARTITIONING_STATIC_DUAL;
+  PartitioningMethod partitioningMethod = PARTITIONING_TREE_DECOMP;
   PartitionerName partitionerName = PARTITIONER_PATOH;
-  bool reduceFormula = true;
-  bool equivSimp = true;
-  int staticPhase = 0;
-  int limitPhase = 0;
-  double dynamicPhase = 0;
 };
 }  // namespace d4

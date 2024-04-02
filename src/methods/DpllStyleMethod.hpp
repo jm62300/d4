@@ -30,6 +30,7 @@
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/BranchingHeuristic.hpp"
 #include "src/heuristics/partitioning/PartitioningHeuristic.hpp"
+#include "src/heuristics/partitioning/PartitioningHeuristicNone.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
@@ -115,7 +116,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // select the partitioner regarding if it projected model counting or not.
     if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
       m_out << "c [MODE] projected\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
+      m_hCutSet = new PartitioningHeuristicNone();
       if (options.optionBranchingHeuristic.branchingHeuristicType ==
           BRANCHING_LARGE_ARITY) {
         m_out << "c [BRANCHING HEURISTIC] Cannot use the heuristic that branch "

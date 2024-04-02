@@ -41,10 +41,6 @@ OptionPartitioningHeuristic::OptionPartitioningHeuristic(
     const ConfigurationPartitioningHeuristic& config) {
   partitioningMethod = config.partitioningMethod;
   partitionerName = config.partitionerName;
-  reduceFormula = config.reduceFormula;
-  equivSimp = config.equivSimp;
-  staticPhase = config.staticPhase;
-  dynamicPhase = config.dynamicPhase;
 }  // constructor.
 
 }  // namespace d4

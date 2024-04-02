@@ -120,19 +120,5 @@ d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
       d4::PartitionerNameManager::getPartitionerName(
           vm[prefix + "partitioning-heuristic-partitioner"].as<std::string>());
 
-  partitioningHeuristic.reduceFormula =
-      vm[prefix + "partitioning-heuristic-simplification-hyperedge"].as<bool>();
-
-  partitioningHeuristic.equivSimp =
-      vm[prefix + "partitioning-heuristic-simplification-equivalence"]
-          .as<bool>();
-
-  partitioningHeuristic.staticPhase =
-      vm[prefix + "partitioning-heuristic-bipartite-phase-static"].as<int>();
-
-  partitioningHeuristic.dynamicPhase =
-      vm[prefix + "partitioning-heuristic-bipartite-phase-dynamic"]
-          .as<double>();
-
   return partitioningHeuristic;
 }  // parsePartitioningHeuristicConfiguration

@@ -26,6 +26,7 @@ namespace d4 {
 class PartitioningHeuristicNone : public PartitioningHeuristic {
  public:
   PartitioningHeuristicNone() {}
+
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 };
 }  // namespace d4

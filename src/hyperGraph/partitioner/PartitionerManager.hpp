@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/hyperGraph/HyperGraph.hpp"
+#include "src/hyperGraph/representation/HyperGraph.hpp"
 
 namespace d4 {
 

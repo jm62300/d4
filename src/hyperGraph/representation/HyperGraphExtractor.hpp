@@ -22,7 +22,7 @@
 #include <iostream>
 #include <vector>
 
-#include "src/hyperGraph/HyperGraph.hpp"
+#include "HyperGraph.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
@@ -43,5 +43,35 @@ class HyperGraphExtractor {
                                         std::vector<Var> &considered,
                                         std::vector<int> &partition,
                                         std::vector<int> &cutSet) = 0;
+
+#if 0
+  /**
+Associate for each variable in the component an equivalence class.
+
+@pararm[in] eqManager, the equivalence manager.
+@param[in] solver, the SAT solver used in the equivalence manager.
+@param[in] component, the set of variables of the component we want to cut.
+@param[out] unitEquiv, the set of unit literals we find out.
+@param[out] equiClass, the equivalence class we computed (we suppose that
+the verctor is large enough and then we do not allocate).
+*/
+  void PartitioningHeuristic::computeEquivClass(
+      EquivExtractor &eqManager, WrapperSolver &solver,
+      std::vector<Var> &component, std::vector<Lit> &unitEquiv,
+      std::vector<Var> &equivClass, std::vector<std::vector<Var>> &equivVar) {
+    for (auto &v : component) {
+      assert(equivClass.size() >= (unsigned)v);
+      equivClass[v] = v;
+    }
+
+    eqManager.searchEquiv(solver, component, equivVar);
+    solver.whichAreUnits(component, unitEquiv);
+
+    for (auto &c : equivVar) {
+      Var vi = c.back();
+      for (auto &v : c) equivClass[v] = vi;
+    }
+  }  // computeEquivclass
+#endif
 };
 }  // namespace d4
