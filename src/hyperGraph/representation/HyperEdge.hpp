@@ -24,52 +24,31 @@ namespace d4 {
 class HyperEdge {
  private:
   unsigned m_id;
-  unsigned *m_data;
+  unsigned m_size;
+  unsigned m_data[0];
 
  public:
-  HyperEdge(unsigned id, unsigned *data);
+  /**
+   * @brief Construct a new Hyper Edge by copy.
+   *
+   * @param e is the edge we want to copy.
+   */
+  HyperEdge(const HyperEdge &e);
+
+  /**
+   * @brief Construct a new Hyper Edge object.
+   *
+   * @param id is the hyperedge id.
+   * @param size is the size of the edge.
+   * @param data gives the elements.
+   */
+  HyperEdge(unsigned id, unsigned size, unsigned *data);
+
   inline unsigned getId() const { return m_id; }
-  inline unsigned getSize() { return *m_data; }
+  inline unsigned getSize() const { return m_size; }
   inline unsigned *getData() { return m_data; }
 
-  inline void next() {
-    m_id++;
-    m_data += 1 + *m_data;
-  }
-
-  inline unsigned operator[](unsigned i) const { return m_data[1 + i]; }
-
-  class Iterator {
-   private:
-    unsigned *m_edge;
-    unsigned m_pos;
-
-   public:
-    Iterator(unsigned *ptr, unsigned pos) : m_edge(ptr), m_pos(pos) {}
-
-    inline unsigned &operator*() { return m_edge[1 + m_pos]; }
-    inline unsigned operator->() { return m_edge[1 + m_pos]; }
-
-    Iterator &operator++() {
-      m_pos++;
-      return *this;
-    }
-    Iterator operator++(int) {
-      Iterator tmp = *this;
-      ++(*this);
-      return tmp;
-    }
-
-    friend bool operator==(const Iterator &a, const Iterator &b) {
-      return a.m_pos == b.m_pos;
-    }
-    friend bool operator!=(const Iterator &a, const Iterator &b) {
-      return a.m_pos != b.m_pos;
-    }
-  };
-
-  Iterator begin() { return Iterator(m_data, 0); }
-  Iterator end() { return Iterator(m_data, *m_data); }
+  inline unsigned operator[](unsigned i) const { return m_data[i]; }
 };
 
 }  // namespace d4

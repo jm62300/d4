@@ -21,48 +21,53 @@
 
 namespace d4 {
 /**
-   Initialize the hyper graph to NULL.
-*/
+ * @brief HyperGraph::HyperGraph implementation.
+ */
 HyperGraph::HyperGraph()
-    : m_hypergraph(NULL), m_hypergraphCapacity(0), m_hypergraphSize(0) {}
-
-/**
-   Initialize the hyper graph structure with the maximum capacity.
-
-   @param[in] capacity, the max capacity.
-*/
-HyperGraph::HyperGraph(unsigned capacity) : m_hypergraphCapacity(capacity) {
-  m_hypergraph = new unsigned[capacity];
-  m_hypergraphSize = 0;
-}  // constructor
+    : m_edges(NULL),
+      m_nbEdges(0),
+      m_capacityEdge(0),
+      m_memory(NULL),
+      m_sizeMemory(0),
+      m_capacityMemory(0) {}
 
 /**
    Free the allocated memory.
  */
 HyperGraph::~HyperGraph() {
-  if (m_hypergraph) delete[] m_hypergraph;
+  if (m_edges) delete[] m_edges;
+  if (m_memory) delete[] m_memory;
 }  // destructor
 
 /**
-   Print out the hyper graph.
-*/
-void HyperGraph::display() {
-  for (auto it : *this) {
-    for (auto e : it) std::cout << e << " ";
-    std::cout << "\n";
+ * @brief HyperGraph::display implementation.
+ */
+void HyperGraph::display(std::ostream &out) {
+  for (unsigned i = 0; i < m_nbEdges; i++) {
+    for (unsigned j = 0; j < m_edges[i]->getSize(); j++)
+      out << (*m_edges[i])[j] << " ";
+    out << "\n";
   }
 }  // displayHyperGraph
 
 /**
-   Initialize the data structure.
-
-   @param[in] capacity, the max capacity.
+ * @brief HyperGraph::addEdge implementation.
  */
-void HyperGraph::init(unsigned capacity) {
-  if (m_hypergraph) delete[] m_hypergraph;
-  m_hypergraphCapacity = capacity;
-  m_hypergraph = new unsigned[capacity];
-  m_hypergraphSize = 0;
-}  // init
+void HyperGraph::addEdge(const HyperEdge &e) {
+  assert(m_nbEdges <= m_capacityEdge);
+  if (m_nbEdges == m_capacityEdge) {
+    m_capacityMemory += s_BLOC_SIZE_EDGE;
+    m_edges =
+        (HyperEdge **)realloc(m_edges, sizeof(HyperEdge *) * m_capacityEdge);
+  }
+
+  if (m_sizeMemory + e.getSize() > m_capacityMemory) {
+    m_capacityMemory += e.getSize() / s_BLOC_MEMORY + s_BLOC_MEMORY;
+    m_memory = (char *)realloc(m_memory, sizeof(m_capacityMemory));
+  }
+
+  m_edges[m_nbEdges++] = new (&m_memory[m_sizeMemory]) HyperEdge(e);
+  m_sizeMemory += sizeof(HyperEdge) + sizeof(unsigned) * e.getSize();
+}  // addEdge
 
 }  // namespace d4

@@ -20,13 +20,24 @@
 #include "HyperEdge.hpp"
 
 namespace d4 {
-/**
-   Constructor.
 
-   @param[in] id, the edge's id.
-   @param[in] data, the elements.
+/**
+ * @brief HyperEdge::HyperEdge implementation.
  */
-HyperEdge::HyperEdge(unsigned id, unsigned *data)
-    : m_id(id), m_data(data) {}  // constructor
+HyperEdge::HyperEdge(const HyperEdge &e) {
+  m_id = e.getId();
+  m_size = e.getSize();
+
+  // we suppose the memory has been allocated somewhere.
+  for (unsigned i = 0; i < e.getSize(); i++) m_data[i] = e[i];
+}  // constructor
+
+/**
+ * @brief HyperEdge::HyperEdge implementation.
+ */
+HyperEdge::HyperEdge(unsigned id, unsigned size, unsigned *data)
+    : m_id(id), m_size(size) {
+  for (unsigned i = 0; i < size; i++) m_data[i] = data[i];
+}  // constructor
 
 }  // namespace d4

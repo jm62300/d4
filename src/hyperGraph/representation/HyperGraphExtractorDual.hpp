@@ -29,38 +29,16 @@
 
 namespace d4 {
 class HyperGraphExtractorDual : public HyperGraphExtractor {
- private:
-  std::vector<bool> m_markedVar;
-  std::vector<int> m_unmarkSet;
-
-  std::vector<bool> m_markedClauses;
-  std::vector<bool> m_keepClause;
-  std::vector<unsigned> m_idxClauses;
-  std::vector<unsigned> m_sizeClause;
-  std::vector<unsigned> m_countClause;
-
-  std::vector<unsigned *> m_mapVarEdge;
-
-  void reduceHyperGraph(SpecManagerCnf &om, HyperGraph &hypergraph,
-                        std::vector<Var> &considered,
-                        std::vector<unsigned> &idxClauses,
-                        std::vector<Var> &equivClass);
-
-  void clashHyperEdgeIndex(HyperGraph &hypergraph, std::vector<int> &partition,
-                           std::vector<unsigned> &indices);
-
  public:
-  HyperGraphExtractorDual(unsigned nbVar, unsigned nbClause);
-
+  /**
+   * @brief Given the problem definition, we construct the hypergraph following
+   * the dual representation.
+   *
+   * @param[in] om is the formula representation.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] hypergraph is the computed hypergraph.
+   */
   void constructHyperGraph(SpecManagerCnf &om, std::vector<Var> &component,
-                           std::vector<Var> &equivClass,
-                           std::vector<std::vector<Var> > &equivVar,
-                           bool reduceFormula, std::vector<Var> &considered,
                            HyperGraph &hypergraph);
-
-  void extractCutFromHyperGraph(HyperGraph &hypergraph,
-                                std::vector<Var> &considered,
-                                std::vector<int> &partition,
-                                std::vector<int> &cutSet);
 };
 }  // namespace d4

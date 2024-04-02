@@ -25,70 +25,42 @@
 #include "HyperEdge.hpp"
 
 namespace d4 {
-/**
-   We use a raw representation of the hyper graph.
-   -> [size1] [...elts1 ...] [size2] [... elts2...] .......
-*/
 class HyperGraph {
  private:
-  unsigned *m_hypergraph;
-  unsigned m_hypergraphCapacity;
-  unsigned m_hypergraphSize;
+  static const unsigned s_BLOC_SIZE_EDGE = 1024;
+  static const unsigned s_BLOC_MEMORY = 16384;
+
+  HyperEdge **m_edges;
+  unsigned m_nbEdges;
+  unsigned m_capacityEdge;
+  char *m_memory;
+  unsigned m_sizeMemory;
+  unsigned m_capacityMemory;
 
  public:
   HyperGraph();
-  HyperGraph(unsigned capacity);
   ~HyperGraph();
 
-  inline void incSize() { m_hypergraphSize++; }
-  inline void decSize() { m_hypergraphSize--; }
-  inline void setSize(unsigned size) { m_hypergraphSize = size; }
-  inline unsigned getSize() { return m_hypergraphSize; }
-  inline unsigned *getEdges() { return m_hypergraph; }
-  inline unsigned getCapicity() { return m_hypergraphCapacity; }
+  inline unsigned getNbEdges() { return m_nbEdges; }
+  inline HyperEdge **getEdges() { return m_edges; }
 
-  inline unsigned operator[](unsigned i) const {
-    assert(i < m_hypergraphCapacity);
-    return m_hypergraph[i];
+  inline HyperEdge &operator[](unsigned i) {
+    assert(i < m_nbEdges);
+    return *(m_edges[i]);
   }
 
-  inline unsigned &operator[](unsigned i) {
-    assert(i < m_hypergraphCapacity);
-    return m_hypergraph[i];
-  }
+  /**
+   * @brief Display the hpyergraph.
+   *
+   * @param[in] out is the output stream used for printing out the hypergraph.
+   */
+  void display(std::ostream &out = std::cout);
 
-  class Iterator {
-   private:
-    HyperEdge m_hyperEdge;
-
-   public:
-    Iterator(unsigned *ptr, unsigned pos) : m_hyperEdge(pos, ptr) {}
-
-    inline HyperEdge &operator*() { return m_hyperEdge; }
-    inline HyperEdge operator->() { return m_hyperEdge; }
-
-    Iterator &operator++() {
-      m_hyperEdge.next();
-      return *this;
-    }
-    Iterator operator++(int) {
-      Iterator tmp = *this;
-      ++(*this);
-      return tmp;
-    }
-
-    friend bool operator==(const Iterator &a, const Iterator &b) {
-      return a.m_hyperEdge.getId() == b.m_hyperEdge.getId();
-    };
-    friend bool operator!=(const Iterator &a, const Iterator &b) {
-      return a.m_hyperEdge.getId() != b.m_hyperEdge.getId();
-    };
-  };
-
-  Iterator begin() { return Iterator(m_hypergraph, 0); }
-  Iterator end() { return Iterator(m_hypergraph, m_hypergraphSize); }
-
-  void display();
-  void init(unsigned capacity);
+  /**
+   * @brief Add an edge to the hypergraph.
+   *
+   * @param e is the edge we want to add.
+   */
+  void addEdge(const HyperEdge &e);
 };
 }  // namespace d4

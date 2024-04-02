@@ -73,9 +73,10 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
   unsigned sizeXpins = 0;
   int posPins = 0;
 
-  for (auto &edge : hypergraph) {
+  for (unsigned i = 0; i < hypergraph.getNbEdges(); i++) {
     m_xpins[sizeXpins++] = posPins;
-    for (auto x : edge) {
+    for (unsigned j = 0; j < hypergraph[i].getSize(); j++) {
+      unsigned x = hypergraph[i][j];
       assert(x < m_markedNodes.size());
       if (!m_markedNodes[x]) {
         m_markedNodes[x] = true;
