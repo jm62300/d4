@@ -17,18 +17,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "TreeDecompositionCnfPartition.hpp"
+#pragma once
+
+#include <iostream>
+#include <vector>
+
+#include "../HyperGraph.hpp"
+#include "../HyperGraphExtractor.hpp"
+#include "src/problem/ProblemTypes.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-
-/**
- * @brief TreeDecompositionCnfPartition::computeDecomposition implementation.
- *
- */
-void TreeDecompositionCnfPartition::computeDecomposition(
-    std::vector<std::vector<Var>> &decomposition, SpecManager &om) {
-  // compute the hypergraph.
-
-}  // computeDecomposition
-
+class HyperGraphExtractorCnfDual : public HyperGraphExtractor {
+ public:
+  /**
+   * @brief Given the problem definition, we construct the hypergraph following
+   * the dual representation.
+   *
+   * @param[in] om is the formula representation.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] hypergraph is the computed hypergraph.
+   */
+  void constructHyperGraph(SpecManager &om, std::vector<Var> &component,
+                           HyperGraph &hypergraph);
+};
 }  // namespace d4

@@ -27,12 +27,49 @@
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
+
+class OptionPartitioningHeuristic;
+
+enum HyperGraphExtractorMethod { HYPER_GRAPH_DUAL };
+
+class HyperGraphExtractorMethodManager {
+ public:
+  static std::string getHyperGraphExtractorMethodManager(
+      const HyperGraphExtractorMethod &m) {
+    if (m == HYPER_GRAPH_DUAL) return "dual";
+
+    throw(FactoryException("Paritioning method type unknown", __FILE__,
+                           __LINE__));
+  }  // getHyperGraphExtractorMethodManager
+
+  static HyperGraphExtractorMethod getHyperGraphExtractorMethodManager(
+      const std::string &m) {
+    if (m == "dual") return HYPER_GRAPH_DUAL;
+
+    throw(FactoryException("Hyper Graph method unknown", __FILE__, __LINE__));
+  }  // getHyperGraphExtractorMethodManager
+};
+
 class HyperGraphExtractor {
  public:
+  static HyperGraphExtractor *makeHyperGraphExtractor(
+      const OptionPartitioningHeuristic &options,
+      const ProblemInputType &inType);
+
+  /**
+   * @brief Virtual destructor.
+   *
+   */
   virtual ~HyperGraphExtractor() {}
 
-  virtual void constructHyperGraph(SpecManagerCnf &om,
-                                   std::vector<Var> &component,
+  /**
+   * @brief Compute the hypergraph given a formual.
+   *
+   * @param[in] om gives information about the formula.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] hypergraph is the computed hypergraph.
+   */
+  virtual void constructHyperGraph(SpecManager &om, std::vector<Var> &component,
                                    HyperGraph &hypergraph) = 0;
 };
 }  // namespace d4

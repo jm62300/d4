@@ -22,6 +22,7 @@
 
 #include "src/exceptions/FactoryException.hpp"
 #include "src/hyperGraph/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/representation/HyperGraphExtractor.hpp"
 #include "src/hyperGraph/treeDecomposition/TreeDecomposition.hpp"
 
 namespace d4 {
@@ -53,6 +54,7 @@ class OptionPartitioningHeuristic {
   PartitioningMethod partitioningMethod = PARTITIONING_TREE_DECOMP;
   PartitionerName partitionerName = PARTITIONER_PATOH;
   TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
+  HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
 
   /**
    * @brief Construct a new Option Partitioning Heuristic object with the

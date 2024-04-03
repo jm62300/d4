@@ -17,28 +17,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#pragma once
+#include "HyperGraphExtractorCnfDual.hpp"
 
-#include <iostream>
-#include <vector>
-
-#include "HyperGraph.hpp"
-#include "HyperGraphExtractor.hpp"
-#include "src/problem/ProblemTypes.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-class HyperGraphExtractorDual : public HyperGraphExtractor {
- public:
-  /**
-   * @brief Given the problem definition, we construct the hypergraph following
-   * the dual representation.
-   *
-   * @param[in] om is the formula representation.
-   * @param[in] component is the set of variables under consideration.
-   * @param[out] hypergraph is the computed hypergraph.
-   */
-  void constructHyperGraph(SpecManagerCnf &om, std::vector<Var> &component,
-                           HyperGraph &hypergraph);
-};
+
+/**
+ * @brief HyperGraphExtractorCnfDual::constructHyperGraph implementation.
+ */
+void HyperGraphExtractorCnfDual::constructHyperGraph(
+    SpecManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
+  SpecManagerCnf &tmp = static_cast<SpecManagerCnf &>(om);
+  for (auto &v : component) {
+    // collect the edge.
+    unsigned edgeData[tmp.getNbClause(v)];
+    unsigned size = 0;
+
+    for (auto &l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)}) {
+      IteratorIdxClause listIdx = tmp.getVecIdxClauseNotBin(l);
+      for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++)
+        edgeData[size++] = *ptr;
+    }
+
+    // add the hyperedge.
+    hypergraph.addEdge({(unsigned)v, size, edgeData});
+  }
+}  // constructHyperGraph
+
 }  // namespace d4

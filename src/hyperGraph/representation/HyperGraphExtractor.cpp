@@ -17,29 +17,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "HyperGraphExtractorDual.hpp"
+#include "HyperGraphExtractor.hpp"
 
-#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "cnf/HyperGraphExtractorCnfDual.hpp"
+#include "src/exceptions/FactoryException.hpp"
+#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
 
 namespace d4 {
 
-void HyperGraphExtractorDual::constructHyperGraph(SpecManagerCnf &om,
-                                                  std::vector<Var> &component,
-                                                  HyperGraph &hypergraph) {
-  for (auto &v : component) {
-    // collect the edge.
-    unsigned edgeData[om.getNbClause(v)];
-    unsigned size = 0;
-
-    for (auto &l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)}) {
-      IteratorIdxClause listIdx = om.getVecIdxClauseNotBin(l);
-      for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++)
-        edgeData[size++] = *ptr;
-    }
-
-    // add the hyperedge.
-    hypergraph.addEdge({(unsigned)v, size, edgeData});
+/**
+ * @brief HyperGraphExtractor::makeHyperGraphExtractor implementation.
+ */
+HyperGraphExtractor *HyperGraphExtractor::makeHyperGraphExtractor(
+    const OptionPartitioningHeuristic &options,
+    const ProblemInputType &inType) {
+  switch (inType) {
+    case PB_CNF:
+      switch (options.hyperGraphExtractorMethod) {
+        case HYPER_GRAPH_DUAL:
+          return new HyperGraphExtractorCnfDual();
+        default:
+          break;
+      }
+    default:
+      break;
   }
-}  // constructHyperGraph
 
+  throw(FactoryException("Cannot create a HyperGraphExtractor", __FILE__,
+                         __LINE__));
+}  // makeHyperGraphExtractor
 }  // namespace d4
