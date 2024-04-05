@@ -52,9 +52,16 @@ class HyperGraphExtractorMethodManager {
 
 class HyperGraphExtractor {
  public:
+  /**
+   * @brief Factory.
+   *
+   * @param method is the representation used for representing the formula.
+   * @param inType is the type of formula.
+   *
+   * @return an hyper graph extractor.
+   */
   static HyperGraphExtractor *makeHyperGraphExtractor(
-      const OptionPartitioningHeuristic &options,
-      const ProblemInputType &inType);
+      const HyperGraphExtractorMethod &method, const ProblemInputType &inType);
 
   /**
    * @brief Virtual destructor.

@@ -22,14 +22,36 @@
 namespace d4 {
 
 /**
+ * @brief TreeDecompositionCnfPartition::TreeDecompositionCnfPartition
+ * implementation.
+ */
+TreeDecompositionCnfPartition::TreeDecompositionCnfPartition(
+    const PartitionerName partitionerName,
+    const HyperGraphExtractorMethod hyperGraphExtractorMethod)
+    : m_partitionerName(partitionerName),
+      m_hyperGraphExtractorMethod(hyperGraphExtractorMethod) {}  // constructor.
+
+/**
  * @brief TreeDecompositionCnfPartition::computeDecomposition implementation.
  *
  */
 TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
     SpecManager &om) {
-  return NULL;
-  // compute the hypergraph.
+  TreeDecomp *tree = NULL;
 
+  // compute the hypergraph.
+  HyperGraphExtractor *hextract = HyperGraphExtractor::makeHyperGraphExtractor(
+      m_hyperGraphExtractorMethod, PB_CNF);
+  std::vector<Var> component, notLinked;
+  for (unsigned i = 1; i <= om.getNbVariable(); i++) {
+    if (!om.getNbOccurrence(i))
+      notLinked.push_back(i);
+    else
+      component.push_back(i);
+  }
+
+  if (!notLinked.size()) return tree;
+  return new TreeDecomp(notLinked, {tree});
 }  // computeDecomposition
 
 }  // namespace d4

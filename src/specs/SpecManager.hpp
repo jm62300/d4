@@ -62,5 +62,18 @@ class SpecManager {
 
   virtual ProblemInputType getProblemInputType() = 0;
   virtual void printSpecInformation(std::ostream &out) {}
+
+  /**
+   * @brief Get the number of occurrence for a variable (which is the sum of the
+   * occurrences for the literals.)
+   *
+   * @param v is the variable under consideration.
+   *
+   * @return the number occurrences of v.
+   */
+  inline int getNbOccurrence(Var v) {
+    return getNbOccurrence(Lit::makeLitFalse(v)) +
+           getNbOccurrence(Lit::makeLitTrue(v));
+  }  // getNbOccurrence
 };
 }  // namespace d4

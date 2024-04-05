@@ -24,8 +24,8 @@ namespace d4 {
 /**
  * @brief TreeDecomp::TreeDecomp implementation.
  */
-TreeDecomp::TreeDecomp(std::vector<unsigned> node,
-                       std::vector<TreeDecomp *> sons)
+TreeDecomp::TreeDecomp(const std::vector<Var> &node,
+                       const std::vector<TreeDecomp *> &sons)
     : m_node(node), m_sons(sons) {}  // constructor
 
 /**
@@ -38,7 +38,7 @@ TreeDecomp::~TreeDecomp() {
 /**
  * @brief TreeDecomp::getNode implementation.
  */
-std::vector<unsigned> &TreeDecomp::getNode() { return m_node; }  // getNode
+std::vector<Var> &TreeDecomp::getNode() { return m_node; }  // getNode
 
 /**
  * @brief TreeDecomp::getSons implementation.

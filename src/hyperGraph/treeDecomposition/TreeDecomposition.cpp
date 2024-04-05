@@ -36,7 +36,8 @@ TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
     case PB_CNF:
       switch (options.treeDecompositionMethod) {
         case TREE_DECOMP_PARTITION:
-          return new TreeDecompositionCnfPartition();
+          return new TreeDecompositionCnfPartition(
+              options.partitionerName, options.hyperGraphExtractorMethod);
         default:
           break;
       }

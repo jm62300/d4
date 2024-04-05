@@ -29,11 +29,10 @@ namespace d4 {
  * @brief HyperGraphExtractor::makeHyperGraphExtractor implementation.
  */
 HyperGraphExtractor *HyperGraphExtractor::makeHyperGraphExtractor(
-    const OptionPartitioningHeuristic &options,
-    const ProblemInputType &inType) {
+    const HyperGraphExtractorMethod &method, const ProblemInputType &inType) {
   switch (inType) {
     case PB_CNF:
-      switch (options.hyperGraphExtractorMethod) {
+      switch (method) {
         case HYPER_GRAPH_DUAL:
           return new HyperGraphExtractorCnfDual();
         default:

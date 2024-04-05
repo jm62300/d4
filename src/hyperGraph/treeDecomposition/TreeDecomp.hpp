@@ -22,10 +22,12 @@
 
 #include <vector>
 
+#include "src/problem/ProblemTypes.hpp"
+
 namespace d4 {
 class TreeDecomp {
  private:
-  std::vector<unsigned> m_node;
+  std::vector<Var> m_node;
   std::vector<TreeDecomp *> m_sons;
 
  public:
@@ -35,7 +37,8 @@ class TreeDecomp {
    * @param node is the variables in the current node.
    * @param sons is a list of trees.
    */
-  TreeDecomp(std::vector<unsigned> node, std::vector<TreeDecomp *> sons);
+  TreeDecomp(const std::vector<Var> &node,
+             const std::vector<TreeDecomp *> &sons);
 
   /**
    * @brief Destroy the Tree Decomp object
@@ -47,7 +50,7 @@ class TreeDecomp {
    *
    * @return the variable list.
    */
-  std::vector<unsigned> &getNode();
+  std::vector<Var> &getNode();
 
   /**
    * @brief Get the sons.

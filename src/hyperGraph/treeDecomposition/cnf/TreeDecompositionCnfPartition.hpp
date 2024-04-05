@@ -19,10 +19,27 @@
 #pragma once
 
 #include "TreeDecompositionCnf.hpp"
+#include "src/hyperGraph/partitioner/PartitionerManager.hpp"
+#include "src/hyperGraph/representation/HyperGraphExtractor.hpp"
 
 namespace d4 {
 class TreeDecompositionCnfPartition : public TreeDecompositionCnf {
+ private:
+  PartitionerName m_partitionerName = PARTITIONER_PATOH;
+  HyperGraphExtractorMethod m_hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
+
  public:
+  /**
+   * @brief Construct a new Tree Decomposition Cnf Partition object
+   *
+   * @param[in] partitionName is the name of the partioner used.
+   * @param[in] hyperGraphExtractorMethod is way the formula is mapped as an
+   * hyper graph.
+   */
+  TreeDecompositionCnfPartition(
+      const PartitionerName partitionName,
+      const HyperGraphExtractorMethod hyperGraphExtractorMethod);
+
   /**
    * @brief Compute a tree decomposition on a CNF using a partitioner
    * recursively.
