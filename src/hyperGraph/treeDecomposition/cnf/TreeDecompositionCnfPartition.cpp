@@ -50,6 +50,11 @@ TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
       component.push_back(i);
   }
 
+  HyperGraph graph;
+  hextract->constructHyperGraph(om, component, graph);
+
+  // extract the decomposition.
+
   if (!notLinked.size()) return tree;
   return new TreeDecomp(notLinked, {tree});
 }  // computeDecomposition

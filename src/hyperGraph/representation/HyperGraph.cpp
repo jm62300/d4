@@ -70,4 +70,18 @@ void HyperGraph::addEdge(const HyperEdge &e) {
   m_sizeMemory += sizeof(HyperEdge) + sizeof(unsigned) * e.getSize();
 }  // addEdge
 
+/**
+ * @brief HyperGraph::addEdge implementation.
+ */
+void HyperGraph::addEdge(HyperEdge *e) {
+  assert(m_nbEdges <= m_capacityEdge);
+  if (m_nbEdges == m_capacityEdge) {
+    m_capacityMemory += s_BLOC_SIZE_EDGE;
+    m_edges =
+        (HyperEdge **)realloc(m_edges, sizeof(HyperEdge *) * m_capacityEdge);
+  }
+
+  m_edges[m_nbEdges++] = e;
+}  // addEdge
+
 }  // namespace d4

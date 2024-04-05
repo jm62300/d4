@@ -57,10 +57,19 @@ class HyperGraph {
   void display(std::ostream &out = std::cout);
 
   /**
-   * @brief Add an edge to the hypergraph.
+   * @brief Add an edge to the hypergraph (the memory will be allocated for this
+   * edge).
    *
    * @param e is the edge we want to add.
    */
   void addEdge(const HyperEdge &e);
+
+  /**
+   * @brief Add an edge to the hypergraph (we suppose the memory has already
+   * been allocated for this edge).
+   *
+   * @param e is the edge we want to add.
+   */
+  void addEdge(HyperEdge *e);
 };
 }  // namespace d4
