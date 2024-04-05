@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "TreeDecomp.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/SpecManager.hpp"
 
@@ -71,22 +72,21 @@ class TreeDecomposition {
   /**
    * @brief Compute a decomposition.
    *
-   * @param[out] decomposition is the computed decomposition.
    * @param[in] om gives information about the formula.
+   *
+   * @return is the computed tree decomposition.
    */
-  virtual void computeDecomposition(
-      std::vector<std::vector<Var>> &decomposition, SpecManager &om) = 0;
+  virtual TreeDecomp *computeDecomposition(SpecManager &om) = 0;
 
   /**
    * @brief This function check if a given decomposition (given as a partial
    * order) forms really a tree decomposition of the problem.
    *
-   * @param[in] decomposition is the decomposition we want to test.
+   * @param[in] treeDecomp is the decomposition we want to test.
    * @param[in] om gives information about the formula under consideration.
    * @param[in] component is the set of variables we are focusing on.
    */
-  virtual void checkDecomposition(
-      const std::vector<std::vector<Var>> &decomposition, SpecManager &om,
-      const std::vector<Var> &component) = 0;
+  virtual void checkDecomposition(TreeDecomp *treeDecomp, SpecManager &om,
+                                  const std::vector<Var> &component) = 0;
 };
 }  // namespace d4

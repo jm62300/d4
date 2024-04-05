@@ -27,10 +27,10 @@ class TreeDecompositionCnfPartition : public TreeDecompositionCnf {
    * @brief Compute a tree decomposition on a CNF using a partitioner
    * recursively.
    *
-   * @param[out] decomposition is the computed decomposition.
    * @param[in] om gives information about the CNF formula.
+   *
+   * @return the computed decomposition.
    */
-  void computeDecomposition(std::vector<std::vector<Var>> &decomposition,
-                            SpecManager &om) override;
+  TreeDecomp *computeDecomposition(SpecManager &om) override;
 };
 }  // namespace d4

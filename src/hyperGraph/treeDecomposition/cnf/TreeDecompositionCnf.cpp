@@ -27,7 +27,7 @@ namespace d4 {
  * @brief TreeDecompositionCnf::computeDecomposition implementation.
  */
 void TreeDecompositionCnf::checkDecomposition(
-    const std::vector<std::vector<Var>> &decomposition, SpecManager &om,
+    TreeDecomp *treeDecomp, SpecManager &om,
     const std::vector<Var> &component) {
   assert(0);
 }  // checkDecomposition

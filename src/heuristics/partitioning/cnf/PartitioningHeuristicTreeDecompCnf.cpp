@@ -35,12 +35,11 @@ PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf(
   TreeDecomposition *decomp =
       TreeDecomposition::makeTreeDecomposition(options, PB_CNF, out);
 
-  std::vector<std::vector<Var>> decomposition;
-  decomp->computeDecomposition(decomposition, om);
+  TreeDecomp *tree = decomp->computeDecomposition(om);
 
   std::vector<Var> component;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) component.push_back(i);
-  decomp->checkDecomposition(decomposition, om, component);
+  decomp->checkDecomposition(tree, om, component);
 
   delete decomp;
 }  // constructor

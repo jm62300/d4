@@ -1,3 +1,4 @@
+
 /*
  * d4
  * Copyright (C) 2020  Univ. Artois & CNRS
@@ -17,19 +18,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "TreeDecompositionCnfPartition.hpp"
+#pragma once
+
+#include <vector>
 
 namespace d4 {
+class TreeDecomp {
+ private:
+  std::vector<unsigned> m_node;
+  std::vector<TreeDecomp *> m_sons;
 
-/**
- * @brief TreeDecompositionCnfPartition::computeDecomposition implementation.
- *
- */
-TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
-    SpecManager &om) {
-  return NULL;
-  // compute the hypergraph.
+ public:
+  /**
+   * @brief Construct a new Tree Decomp object/
+   *
+   * @param node is the variables in the current node.
+   * @param sons is a list of trees.
+   */
+  TreeDecomp(std::vector<unsigned> node, std::vector<TreeDecomp *> sons);
 
-}  // computeDecomposition
+  /**
+   * @brief Destroy the Tree Decomp object
+   */
+  ~TreeDecomp();
 
+  /**
+   * @brief Get the node.
+   *
+   * @return the variable list.
+   */
+  std::vector<unsigned> &getNode();
+
+  /**
+   * @brief Get the sons.
+   *
+   * @return the list of children.
+   */
+  std::vector<TreeDecomp *> &getSons();
+};
 }  // namespace d4
