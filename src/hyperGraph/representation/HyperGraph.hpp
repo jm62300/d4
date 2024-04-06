@@ -37,12 +37,15 @@ class HyperGraph {
   unsigned m_sizeMemory;
   unsigned m_capacityMemory;
 
+  unsigned m_sumEdgeSize;
+
  public:
   HyperGraph();
   ~HyperGraph();
 
   inline unsigned getNbEdges() { return m_nbEdges; }
   inline HyperEdge **getEdges() { return m_edges; }
+  inline unsigned getSumEdgeSize() { return m_sumEdgeSize; }
 
   inline HyperEdge &operator[](unsigned i) {
     assert(i < m_nbEdges);

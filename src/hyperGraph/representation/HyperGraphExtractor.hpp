@@ -50,6 +50,12 @@ class HyperGraphExtractorMethodManager {
   }  // getHyperGraphExtractorMethodManager
 };
 
+struct InfoHyperGraph {
+  unsigned maxNbEdges;
+  unsigned maxNbNodes;
+  unsigned sumEdgeSizes;
+};
+
 class HyperGraphExtractor {
  public:
   /**
@@ -75,8 +81,11 @@ class HyperGraphExtractor {
    * @param[in] om gives information about the formula.
    * @param[in] component is the set of variables under consideration.
    * @param[out] hypergraph is the computed hypergraph.
+   *
+   * @return information about the hyper graph size in the worst case.
    */
-  virtual void constructHyperGraph(SpecManager &om, std::vector<Var> &component,
-                                   HyperGraph &hypergraph) = 0;
+  virtual InfoHyperGraph constructHyperGraph(SpecManager &om,
+                                             std::vector<Var> &component,
+                                             HyperGraph &hypergraph) = 0;
 };
 }  // namespace d4

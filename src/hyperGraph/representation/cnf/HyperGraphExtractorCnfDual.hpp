@@ -37,8 +37,11 @@ class HyperGraphExtractorCnfDual : public HyperGraphExtractor {
    * @param[in] om is the formula representation.
    * @param[in] component is the set of variables under consideration.
    * @param[out] hypergraph is the computed hypergraph.
+   *
+   * @return information about the hyper graph size in the worst case.
    */
-  void constructHyperGraph(SpecManager &om, std::vector<Var> &component,
-                           HyperGraph &hypergraph);
+  InfoHyperGraph constructHyperGraph(SpecManager &om,
+                                     std::vector<Var> &component,
+                                     HyperGraph &hypergraph);
 };
 }  // namespace d4

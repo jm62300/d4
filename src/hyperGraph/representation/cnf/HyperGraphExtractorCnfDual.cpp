@@ -26,7 +26,7 @@ namespace d4 {
 /**
  * @brief HyperGraphExtractorCnfDual::constructHyperGraph implementation.
  */
-void HyperGraphExtractorCnfDual::constructHyperGraph(
+InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     SpecManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
   SpecManagerCnf &tmp = static_cast<SpecManagerCnf &>(om);
   for (auto &v : component) {
@@ -43,6 +43,10 @@ void HyperGraphExtractorCnfDual::constructHyperGraph(
     // add the hyperedge.
     hypergraph.addEdge({(unsigned)v, size, edgeData});
   }
+
+  return {dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
+          dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
+          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()};
 }  // constructHyperGraph
 
 }  // namespace d4

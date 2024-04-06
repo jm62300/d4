@@ -66,6 +66,7 @@ void HyperGraph::addEdge(const HyperEdge &e) {
     m_memory = (char *)realloc(m_memory, sizeof(m_capacityMemory));
   }
 
+  m_sumEdgeSize += e.getSize();
   m_edges[m_nbEdges++] = new (&m_memory[m_sizeMemory]) HyperEdge(e);
   m_sizeMemory += sizeof(HyperEdge) + sizeof(unsigned) * e.getSize();
 }  // addEdge
@@ -81,6 +82,7 @@ void HyperGraph::addEdge(HyperEdge *e) {
         (HyperEdge **)realloc(m_edges, sizeof(HyperEdge *) * m_capacityEdge);
   }
 
+  m_sumEdgeSize += e->getSize();
   m_edges[m_nbEdges++] = e;
 }  // addEdge
 

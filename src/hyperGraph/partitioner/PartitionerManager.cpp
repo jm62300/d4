@@ -24,19 +24,14 @@
 namespace d4 {
 
 /**
-   Create a partitioner.
-
-   @param[in] vm, the list of options.
-   @param[in] s, a view on the problem's structure.
-
-   \return a partioner if the options are ocrrect, NULL otherwise.
+ * @brief PartitionerManager::makePartitioner implementation.
  */
 PartitionerManager *PartitionerManager::makePartitioner(
-    PartitionerName partitioner, unsigned maxNodes, unsigned maxEdges,
-    unsigned maxSumEdgeSize, std::ostream &out) {
+    PartitionerName partitioner, const InfoHyperGraph &infoHyperGraph,
+    std::ostream &out) {
   switch (partitioner) {
     case PARTITIONER_PATOH:
-      return new PartitionerPatoh(maxNodes, maxEdges, maxSumEdgeSize, out);
+      return new PartitionerPatoh(infoHyperGraph, out);
   }
 
   throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));

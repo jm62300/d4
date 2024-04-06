@@ -51,9 +51,17 @@ TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
   }
 
   HyperGraph graph;
-  hextract->constructHyperGraph(om, component, graph);
+  InfoHyperGraph infoHyperGraph =
+      hextract->constructHyperGraph(om, component, graph);
 
   // extract the decomposition.
+  PartitionerManager *partitioner = PartitionerManager::makePartitioner(
+      m_partitionerName, infoHyperGraph, std::cout);
+
+  std::vector<int> partition(infoHyperGraph.maxNbNodes + 1, 0);
+  partitioner->computePartition(graph, PartitionerManager::QUALITY, partition);
+
+  delete partitioner;
 
   if (!notLinked.size()) return tree;
   return new TreeDecomp(notLinked, {tree});
