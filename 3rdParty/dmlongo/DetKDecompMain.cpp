@@ -33,24 +33,27 @@
 #include <ctime>
 #include <iostream>
 
-using namespace std;
-
 #include "DetKDecomp.h"
 #include "Globals.h"
 #include "Hypergraph.h"
 #include "Hypertree.h"
 #include "PACEParser.h"
 
+namespace dmlongo {
+volatile sig_atomic_t tle = 0;
+volatile int z = 0;
+volatile bool cut = false;
+
+}  // namespace dmlongo
+
+using namespace dmlongo;
+
 HypertreeSharedPtr decompK(HypergraphSharedPtr &, int);
 
-volatile sig_atomic_t tle = 0;
 void term(int signum) {
   std::cout << "signal received\n";
   tle = 1;
 }
-
-volatile int z = 0;
-volatile bool cut = false;
 
 int main(int argc, char **argv) {
   // Initialize random number generator
@@ -67,7 +70,7 @@ int main(int argc, char **argv) {
 
   // Build hypergraph
   PACEParser *p = new PACEParser();
-  HypergraphSharedPtr hg = p->parseInput(&cin);
+  HypergraphSharedPtr hg = p->parseInput(&std::cin);
 
   int n = hg->getNbrOfVertices();
   int m = hg->getNbrOfEdges();
@@ -96,15 +99,15 @@ int main(int argc, char **argv) {
       for (int i = 0; i < iRandomInit; i++) rand();
     }
 
-    cout << "w= " << bestHT->getHTreeWidth() << endl;
+    std::cout << "w= " << bestHT->getHTreeWidth() << std::endl;
   } while (!tle && ((ht != NULL) || (cut && (tries > 0))));
 
   time(&fine);
   p->writeOutput(bestHT, n, m);
 
   // cout << "time= " << difftime(t2, t1) << "s" << endl;
-  cout << "tot= " << difftime(fine, inizio) << "s" << endl;
-  cout << "w= " << bestHT->getHTreeWidth() << endl;
+  std::cout << "tot= " << difftime(fine, inizio) << "s" << std::endl;
+  std::cout << "w= " << bestHT->getHTreeWidth() << std::endl;
 
   delete p;
   return EXIT_SUCCESS;

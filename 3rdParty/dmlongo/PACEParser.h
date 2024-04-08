@@ -13,24 +13,26 @@
 #include "Hypergraph.h"
 #include "Hypertree.h"
 
-class PACEParser
-{
-public:
-	PACEParser();
-	~PACEParser();
+namespace dmlongo {
 
-	HypergraphSharedPtr parseInputFromFile(string filename);
-	HypergraphSharedPtr parseInput(istream *cin);
-	string fromPaceToFischl(istream *cin);
-	void writeOutput(HypertreeSharedPtr ht, int n, int m);
+class PACEParser {
+ public:
+  PACEParser();
+  ~PACEParser();
 
-private:
-	vector<string> split(const string& s, char delimiter);
-	//string getVariable(int i) const;
-	//string getAtom(int i) const;
-	//int getNbrOfVars(int atom) const;
-	//int getNextAtomVar();
+  HypergraphSharedPtr parseInputFromFile(std::string filename);
+  HypergraphSharedPtr parseInput(std::istream *cin);
+  std::string fromPaceToFischl(std::istream *cin);
+  void writeOutput(HypertreeSharedPtr ht, int n, int m);
+
+ private:
+  std::vector<std::string> split(const std::string &s, char delimiter);
+  // string getVariable(int i) const;
+  // string getAtom(int i) const;
+  // int getNbrOfVars(int atom) const;
+  // int getNextAtomVar();
 };
 
+}  // namespace dmlongo
 
 #endif /* PACEPARSER_H_ */

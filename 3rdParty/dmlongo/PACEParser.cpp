@@ -18,53 +18,54 @@
 #include "Hyperedge.h"
 #include "Hypergraph.h"
 
-using namespace std;
+namespace dmlongo {
 
 PACEParser::PACEParser() {}
 
 PACEParser::~PACEParser() {}
 
-vector<string> PACEParser::split(const string &s, char delimiter) {
-  vector<string> tokens;
-  string token;
-  istringstream tokenStream(s);
+std::vector<std::string> PACEParser::split(const std::string &s,
+                                           char delimiter) {
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
   while (getline(tokenStream, token, delimiter)) {
     tokens.push_back(token);
   }
   return tokens;
 }
 
-HypergraphSharedPtr PACEParser::parseInputFromFile(string filename) {
-  ifstream file(filename);
+HypergraphSharedPtr PACEParser::parseInputFromFile(std::string filename) {
+  std::ifstream file(filename);
 
   if (!file) {
     return nullptr;
   }
 
   VertexVector vertices;
-  HypergraphSharedPtr h = make_shared<Hypergraph>();
+  HypergraphSharedPtr h = std::make_shared<Hypergraph>();
   int n = -1;
   int m = -1;
   bool p_read = false;
-  string line;
+  std::string line;
   while (file) {
     do {
       getline(file, line);
     } while (line.empty());
     // istringstream iss(line);
-    vector<string> tokens = split(line, ' ');
+    std::vector<std::string> tokens = split(line, ' ');
     //{ istream_iterator<string> { iss }, istream_iterator<string> { } };
 
-    string tk = tokens.at(0);
+    std::string tk = tokens.at(0);
     if (tk != "c" && tk != "") {
-      cout << line << endl;
+      std::cout << line << std::endl;
       if (!p_read) {
         if (tk == "p") {
           n = stoi(tokens.at(2));
           m = stoi(tokens.at(3));
 
           for (int i = 1; i <= n; i++) {
-            string name = to_string(i);
+            std::string name = std::to_string(i);
             vertices.push_back(std::make_shared<Vertex>(name));
           }
           /*
@@ -76,7 +77,7 @@ HypergraphSharedPtr PACEParser::parseInputFromFile(string filename) {
 
           p_read = true;
         } else {
-          cout << "error" << endl;
+          std::cout << "error" << std::endl;
         }
       } else if (m > 0) {
         // int hedge = stoi(tk);
@@ -103,20 +104,20 @@ HypergraphSharedPtr PACEParser::parseInputFromFile(string filename) {
   return h;
 }
 
-HypergraphSharedPtr PACEParser::parseInput(istream *cin) {
-  HypergraphSharedPtr hg = make_shared<Hypergraph>();
+HypergraphSharedPtr PACEParser::parseInput(std::istream *cin) {
+  HypergraphSharedPtr hg = std::make_shared<Hypergraph>();
   VertexVector vertices;
   HyperedgeSharedPtr edge;
 
   int n = -1;
   int m = -1;
   bool p_read = false;
-  string line;
+  std::string line;
   while (getline(*cin, line)) {
     if (!line.empty()) {
-      vector<string> tokens = split(line, ' ');
+      std::vector<std::string> tokens = split(line, ' ');
 
-      string tk = tokens.at(0);
+      std::string tk = tokens.at(0);
       if (tk != "c" && tk != "") {
         // cout << line << endl;
         if (!p_read) {
@@ -125,7 +126,7 @@ HypergraphSharedPtr PACEParser::parseInput(istream *cin) {
             m = stoi(tokens.at(3));
 
             for (int i = 1; i <= n; i++) {
-              string name = to_string(i);
+              std::string name = std::to_string(i);
               vertices.push_back(std::make_shared<Vertex>(name));
             }
             /*
@@ -137,7 +138,7 @@ HypergraphSharedPtr PACEParser::parseInput(istream *cin) {
 
             p_read = true;
           } else {
-            cout << "error" << endl;
+            std::cout << "error" << std::endl;
           }
         } else if (m > 0) {
           edge = std::make_shared<Hyperedge>(tk);
@@ -161,26 +162,26 @@ HypergraphSharedPtr PACEParser::parseInput(istream *cin) {
   return hg;
 }
 
-string PACEParser::fromPaceToFischl(istream *cin) {
-  stringstream fischl;
+std::string PACEParser::fromPaceToFischl(std::istream *cin) {
+  std::stringstream fischl;
   int n = -1;
   int m = -1;
   bool p_read = false;
-  string line;
+  std::string line;
   while (getline(*cin, line)) {
     if (!line.empty()) {
-      vector<string> tokens = split(line, ' ');
+      std::vector<std::string> tokens = split(line, ' ');
 
-      string tk = tokens.at(0);
+      std::string tk = tokens.at(0);
       if (tk != "c" && tk != "") {
-        cout << line << endl;
+        std::cout << line << std::endl;
         if (!p_read) {
           if (tk == "p") {
             n = stoi(tokens.at(2));
             m = stoi(tokens.at(3));
             p_read = true;
           } else {
-            cout << "error" << endl;
+            std::cout << "error" << std::endl;
           }
         } else if (m > 0) {
           fischl << tk << "(";
@@ -193,10 +194,10 @@ string PACEParser::fromPaceToFischl(istream *cin) {
           fischl << ")";
           m = m - 1;
           if (m == 0) {
-            fischl << "." << endl;
+            fischl << "." << std::endl;
             break;
           } else {
-            fischl << "," << endl;
+            fischl << "," << std::endl;
           }
         } else {
           break;
@@ -211,9 +212,9 @@ string PACEParser::fromPaceToFischl(istream *cin) {
 void PACEParser::writeOutput(HypertreeSharedPtr ht, int n, int m) {
   int numBags = 0;
   int width = ht->getHTreeWidth();
-  stringstream bagsD, treeD, widthD;
+  std::stringstream bagsD, treeD, widthD;
 
-  list<HypertreeSharedPtr> *queue = new list<HypertreeSharedPtr>();
+  std::list<HypertreeSharedPtr> *queue = new std::list<HypertreeSharedPtr>();
   queue->push_back(ht);
   int id = 0;
   int nextID = 2;
@@ -239,6 +240,9 @@ void PACEParser::writeOutput(HypertreeSharedPtr ht, int n, int m) {
   }
   delete queue;
 
-  cout << "s htd " << numBags << " " << width << " " << n << " " << m << endl;
+  std::cout << "s htd " << numBags << " " << width << " " << n << " " << m
+            << std::endl;
   // cout << bagsD.str() << treeD.str() << widthD.str() << endl;
 }
+
+}  // namespace dmlongo

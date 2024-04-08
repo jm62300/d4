@@ -5,9 +5,13 @@
 #if !defined(CLS_DetKDecomp)
 #define CLS_DetKDecomp
 
+#include <memory>
+
 #include "Decomp.h"
 #include "Globals.h"
 #include "Separator.h"
+
+namespace dmlongo {
 
 class Hypergraph;
 class Hyperedge;
@@ -17,16 +21,16 @@ class Subedges;
 
 struct CompCache {
   // Separator component already successfully decomposed
-  list<HyperedgeSharedPtr> succ;
+  std::list<HyperedgeSharedPtr> succ;
   // fractional width for succ components
-  unordered_map<HyperedgeSharedPtr, double> succFW;
+  std::unordered_map<HyperedgeSharedPtr, double> succFW;
   // Separator component not decomposable
-  list<HyperedgeSharedPtr> failed;
+  std::list<HyperedgeSharedPtr> failed;
 };
 
 class DetKDecomp : public Decomp {
  protected:
-  mutable unordered_map<SeparatorSharedPtr, CompCache> MyTriedSeps;
+  mutable std::unordered_map<SeparatorSharedPtr, CompCache> MyTriedSeps;
 
   // Run BIP algorithm
   bool MyBIP;
@@ -34,18 +38,18 @@ class DetKDecomp : public Decomp {
 
   // Initializes a Boolean array representing a subset selection
   virtual int setInitSubset(const VertexSet &Vertices, HyperedgeVector &Edges,
-                            vector<int> &Set, vector<bool> &InComp,
-                            vector<int> &CovWeights) const;
+                            std::vector<int> &Set, std::vector<bool> &InComp,
+                            std::vector<int> &CovWeights) const;
 
   // Selects the next subset in a Boolean array representing a subset selection
   virtual int setNextSubset(const VertexSet &Vertices, HyperedgeVector &Edges,
-                            vector<int> &Set, vector<bool> &InComp,
-                            vector<int> &CovWeights) const;
+                            std::vector<int> &Set, std::vector<bool> &InComp,
+                            std::vector<int> &CovWeights) const;
 
   // Covers a set of nodes by a set of edges
-  int coverNodes(HyperedgeVector &Edges, vector<int> &Set, vector<bool> &InComp,
-                 vector<int> &CovWeights, size_t Uncovered,
-                 bool Reconstr) const;
+  int coverNodes(HyperedgeVector &Edges, std::vector<int> &Set,
+                 std::vector<bool> &InComp, std::vector<int> &CovWeights,
+                 size_t Uncovered, bool Reconstr) const;
 
   // Orders hyperedges according to maximum cardinality search
   // void orderMCS(Hyperedge **HEdges, int iNbrOfEdges);
@@ -61,7 +65,7 @@ class DetKDecomp : public Decomp {
   CompCache &getSepParts(SeparatorSharedPtr &sep) const;
 
   // Checks whether HEdges contains an edge labeled with iLabel
-  bool containsLabel(list<Hyperedge *> *HEdges, int iLabel);
+  bool containsLabel(std::list<Hyperedge *> *HEdges, int iLabel);
 
   // Checks whether the parent connector nodes are distributed to different
   // components
@@ -97,5 +101,6 @@ class DetKDecomp : public Decomp {
   // Constructs a hypertree decomposition of width at most MyK (if it exists)
   virtual HypertreeSharedPtr buildHypertree();
 };
+}  // namespace dmlongo
 
 #endif  // !defined(CLS_DetKDecomp)

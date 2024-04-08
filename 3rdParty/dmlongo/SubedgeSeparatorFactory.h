@@ -1,26 +1,30 @@
 #pragma once
 
-#include <vector>
 #include <set>
+#include <vector>
 
-#include "Hyperedge.h"
 #include "CombinationIterator.h"
+#include "Hyperedge.h"
 #include "Hypergraph.h"
-#include "Vertex.h"
-#include "Subedges.h"
 #include "Separator.h"
+#include "Subedges.h"
+#include "Vertex.h"
 
-class SubedgeSeparatorFactory
-{
-	vector<HyperedgeVector> MySubSets;
-	vector<int> MyState;
-	bool MyInit{ false };
+namespace dmlongo {
 
-public:
-	SubedgeSeparatorFactory();
-	~SubedgeSeparatorFactory();
+class SubedgeSeparatorFactory {
+  std::vector<HyperedgeVector> MySubSets;
+  std::vector<int> MyState;
+  bool MyInit{false};
 
-	void init(const HypergraphSharedPtr &hg, const HyperedgeVector &comp, const SeparatorSharedPtr &sep, const unique_ptr<Subedges> &subs);
-	SeparatorSharedPtr next();
+ public:
+  SubedgeSeparatorFactory();
+  ~SubedgeSeparatorFactory();
+
+  void init(const HypergraphSharedPtr &hg, const HyperedgeVector &comp,
+            const SeparatorSharedPtr &sep,
+            const std::unique_ptr<Subedges> &subs);
+  SeparatorSharedPtr next();
 };
 
+}  // namespace dmlongo

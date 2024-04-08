@@ -12,16 +12,18 @@
 #include "Subedges.h"
 #include "Superedge.h"
 
+namespace dmlongo {
+
 int BalKDecomp::MyMaxRecursion{0};
 HypergraphSharedPtr BalKDecomp::MyBaseGraph{nullptr};
-list<HypergraphSharedPtr> BalKDecomp::sFailedHg;
-unordered_map<HypergraphSharedPtr, HypertreeSharedPtr> BalKDecomp::sSuccHg;
+std::list<HypergraphSharedPtr> BalKDecomp::sFailedHg;
+std::unordered_map<HypergraphSharedPtr, HypertreeSharedPtr> BalKDecomp::sSuccHg;
 
 HypertreeSharedPtr BalKDecomp::decomp(const HyperedgeVector &Edges) {
   int nbr_parts;
-  list<SeparatorSharedPtr> bal_seps;
-  unordered_set<SuperedgeSharedPtr> checked;
-  vector<DecompComponent> partitions;
+  std::list<SeparatorSharedPtr> bal_seps;
+  std::unordered_set<SuperedgeSharedPtr> checked;
+  std::vector<DecompComponent> partitions;
   HypertreeSharedPtr htree;
   SeparatorSharedPtr sep;
   int *indices;
@@ -50,7 +52,7 @@ HypertreeSharedPtr BalKDecomp::decomp(const HyperedgeVector &Edges) {
   while ((indices = comb.next()) != nullptr && htree == nullptr) {
     MyHg->setAllLabels();
 
-    sep = make_shared<Separator>();
+    sep = std::make_shared<Separator>();
 
     for (int i = 0; i < MyK; i++) {
       auto he = sep_edges[indices[i]];
@@ -71,7 +73,7 @@ HypertreeSharedPtr BalKDecomp::decomp(const HyperedgeVector &Edges) {
 
         cnt_bal++;
         // Now try to decompose
-        list<HypertreeSharedPtr> subtrees =
+        std::list<HypertreeSharedPtr> subtrees =
             decompose(sep, sep_edge, partitions);
 
         if (subtrees.size() > 0) {
@@ -87,7 +89,8 @@ HypertreeSharedPtr BalKDecomp::decomp(const HyperedgeVector &Edges) {
     partitions.clear();
   }
 
-  if (MyRecLevel == 0) cout << cnt_bal << " balanced separators tried." << endl;
+  if (MyRecLevel == 0)
+    std::cout << cnt_bal << " balanced separators tried." << std::endl;
 
   // Now we are trying subedge separators
   if (htree == nullptr) {
@@ -118,7 +121,7 @@ HypertreeSharedPtr BalKDecomp::decomp(const HyperedgeVector &Edges) {
 
           if (isBalanced(partitions, Edges.size())) {
             // Now try to decompose
-            list<HypertreeSharedPtr> subtrees =
+            std::list<HypertreeSharedPtr> subtrees =
                 decompose(sep, sep_edge, partitions);
 
             if (subtrees.size() > 0) {
@@ -147,20 +150,21 @@ HypertreeSharedPtr BalKDecomp::decomp(const HyperedgeVector &Edges) {
   //	htree->reduceChi(&vertices);
 
   if (MyRecLevel == 0)
-    cout << cnt_sub_bal << " subedge balanced separators tried." << endl;
+    std::cout << cnt_sub_bal << " subedge balanced separators tried."
+              << std::endl;
 
   return htree;
 }
 
-list<HypertreeSharedPtr> BalKDecomp::decompose(
+std::list<HypertreeSharedPtr> BalKDecomp::decompose(
     const SeparatorSharedPtr &Sep, const SuperedgeSharedPtr &Sup,
-    const vector<DecompComponent> &Parts) {
+    const std::vector<DecompComponent> &Parts) {
   HypergraphSharedPtr hypergraph;
-  unique_ptr<BalKDecomp> baldecomp;
+  std::unique_ptr<BalKDecomp> baldecomp;
   HypertreeSharedPtr htree{nullptr};
-  list<HypertreeSharedPtr> subtrees;
-  vector<HypergraphSharedPtr> hypergraphs;
-  vector<bool> v_succ;
+  std::list<HypertreeSharedPtr> subtrees;
+  std::vector<HypergraphSharedPtr> hypergraphs;
+  std::vector<bool> v_succ;
   bool succ;
   bool failed = false;
 
@@ -183,7 +187,7 @@ list<HypertreeSharedPtr> BalKDecomp::decompose(
         htree = sSuccHg[hg]->clone();
         subtrees.push_back(htree);
       } else {
-        baldecomp = make_unique<BalKDecomp>(hg, MyK, MyRecLevel + 1);
+        baldecomp = std::make_unique<BalKDecomp>(hg, MyK, MyRecLevel + 1);
         htree = baldecomp->buildHypertree();
 
         if (htree == nullptr) {
@@ -218,7 +222,7 @@ HyperedgeVector BalKDecomp::getNeighborEdges(
   return neighbors;
 }
 
-bool BalKDecomp::isBalanced(const vector<DecompComponent> &Parts,
+bool BalKDecomp::isBalanced(const std::vector<DecompComponent> &Parts,
                             int CompSize) {
   if (Parts.size() > 1) {
     for (auto p : Parts)
@@ -232,7 +236,7 @@ bool BalKDecomp::isBalanced(const vector<DecompComponent> &Parts,
 
 BalKDecomp::BalKDecomp(const HypergraphSharedPtr &HGraph, int k, int RecLevel)
     : Decomp(HGraph, k), MyRecLevel{RecLevel} {
-  MySubedges = make_unique<Subedges>(HGraph, k);
+  MySubedges = std::make_unique<Subedges>(HGraph, k);
 }
 
 BalKDecomp::~BalKDecomp() {}
@@ -275,7 +279,7 @@ bool BalKDecomp::getHypergraph(HypergraphSharedPtr &Hg, bool &Succ,
     }
   }
 
-  Hg = make_shared<Hypergraph>();
+  Hg = std::make_shared<Hypergraph>();
   Hg->setParent(MyBaseGraph);
 
   for (auto he : Part) Hg->insertEdge(he);
@@ -299,7 +303,7 @@ void BalKDecomp::expandHTree(const HypertreeSharedPtr &HTree) {
   HyperedgeSet lambda;
   HypergraphSharedPtr hg;
   bool succ;
-  unique_ptr<BalKDecomp> baldecomp;
+  std::unique_ptr<BalKDecomp> baldecomp;
   // set<Hyperedge *>::iterator SetIter1;
   // set<Node *>::iterator SetIter2;
 
@@ -321,7 +325,7 @@ void BalKDecomp::expandHTree(const HypertreeSharedPtr &HTree) {
                     "BalKDecomp::expandHTree");
 
     // Decompose subgraph
-    baldecomp = make_unique<BalKDecomp>(hg, MyK, cut_node->getLabel());
+    baldecomp = std::make_unique<BalKDecomp>(hg, MyK, cut_node->getLabel());
     subtree = baldecomp->buildHypertree();
     baldecomp = nullptr;
 
@@ -360,9 +364,10 @@ HypertreeSharedPtr BalKDecomp::buildHypertree() {
   }
 
   if (MyRecLevel == 0 && HTree != nullptr && HTree->getCutNode() != nullptr) {
-    cout << "Expanding hypertree ..." << endl;
+    std::cout << "Expanding hypertree ..." << std::endl;
     expandHTree(HTree);
   }
 
   return HTree;
 }
+}  // namespace dmlongo

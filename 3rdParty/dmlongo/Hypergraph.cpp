@@ -9,6 +9,8 @@
 #include "PACEParser.h"
 #include "Parser.h"
 
+namespace dmlongo {
+
 void Hypergraph::labelReachEdges(const HyperedgeSharedPtr &edge,
                                  int label) const {
   edge->setLabel(label);
@@ -104,10 +106,10 @@ void Hypergraph::setAllLabels(int value) const {
 void Hypergraph::insertEdge(const HyperedgeSharedPtr &edge) {
   if (getEdgeByID(edge->getId()) != nullptr)
     writeErrorMsg("This hypergraph already contains a Hyperedge with id " +
-                      to_string(edge->getId()),
+                      std::to_string(edge->getId()),
                   "Hypergraph::insertEdge");
 
-  if (dynamic_pointer_cast<Superedge>(edge) != nullptr) CntSuperedges++;
+  if (std::dynamic_pointer_cast<Superedge>(edge) != nullptr) CntSuperedges++;
 
   Edges.insert(edge);
 
@@ -133,15 +135,17 @@ bool Hypergraph::isConnected() const {
 }
 
 void Hypergraph::makeDual(Hypergraph &hg) const {
-  unordered_map<uint, VertexSharedPtr> newVertices;
+  std::unordered_map<uint, VertexSharedPtr> newVertices;
 
   // Every edge becomes a vertex
   for (auto e : Edges)
-    newVertices[e->getId()] = make_shared<Vertex>(e->getId(), e->getName());
+    newVertices[e->getId()] =
+        std::make_shared<Vertex>(e->getId(), e->getName());
 
   // Every vertex becomes an edge
   for (auto v : Vertices) {
-    HyperedgeSharedPtr e = make_shared<Hyperedge>(v->getId(), v->getName());
+    HyperedgeSharedPtr e =
+        std::make_shared<Hyperedge>(v->getId(), v->getName());
     for (auto n : allVertexNeighbors(v)) e->add(newVertices[n->getId()]);
     hg.insertEdge(e);
   }
@@ -331,3 +335,5 @@ int Hypergraph::arity() const {
 
   return ari;
 }
+
+}  // namespace dmlongo

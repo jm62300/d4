@@ -15,6 +15,8 @@
 #include "Superedge.h"
 // #include "PACEParser.h"
 
+namespace dmlongo {
+
 class Hypergraph : NamedEntity {
  private:
   // Stores a parent hypergraph (hence, this hypergraph is a subgraph/copy of
@@ -23,8 +25,8 @@ class Hypergraph : NamedEntity {
   VertexSet Vertices;
   std::shared_ptr<Hypergraph> Parent;
 
-  unordered_map<VertexSharedPtr, HyperedgeSet> VertexNeighbors;
-  unordered_map<HyperedgeSharedPtr, HyperedgeSet> EdgeNeighbors;
+  std::unordered_map<VertexSharedPtr, HyperedgeSet> VertexNeighbors;
+  std::unordered_map<HyperedgeSharedPtr, HyperedgeSet> EdgeNeighbors;
 
   // Nbr of heavy edges (weight > 1)
   int CntSuperedges{0};
@@ -212,5 +214,7 @@ class Hypergraph : NamedEntity {
 };
 
 using HypergraphSharedPtr = std::shared_ptr<Hypergraph>;
+
+}  // namespace dmlongo
 
 #endif

@@ -2,6 +2,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include "DetKDecomp.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -9,10 +11,7 @@
 #include <list>
 #include <vector>
 
-using namespace std;
-
 #include "DecompComponent.h"
-#include "DetKDecomp.h"
 #include "Globals.h"
 #include "Hyperedge.h"
 #include "Hypergraph.h"
@@ -20,6 +19,8 @@ using namespace std;
 #include "SubedgeSeparatorFactory.h"
 #include "Subedges.h"
 #include "Vertex.h"
+
+namespace dmlongo {
 
 extern volatile int tle;
 extern volatile bool cut;
@@ -31,7 +32,7 @@ bool expand = false;
 
 DetKDecomp::DetKDecomp(const HypergraphSharedPtr &HGraph, int k, bool bip)
     : Decomp(HGraph, k), MyBIP{bip} {
-  if (MyBIP) MySubedges = make_unique<Subedges>(HGraph, k);
+  if (MyBIP) MySubedges = std::make_unique<Subedges>(HGraph, k);
 }
 
 DetKDecomp::~DetKDecomp() {}
@@ -55,8 +56,8 @@ hyperedge return: Number of selected hyperedges; -1 if nodes cannot be covered
 */
 
 int DetKDecomp::setInitSubset(const VertexSet &Vertices, HyperedgeVector &Edges,
-                              vector<int> &Set, vector<bool> &InComp,
-                              vector<int> &CovWeights) const {
+                              std::vector<int> &Set, std::vector<bool> &InComp,
+                              std::vector<int> &CovWeights) const {
   int uncov{(int)Vertices.size()};
   int weight, e;
 
@@ -109,8 +110,8 @@ selection
 */
 
 int DetKDecomp::setNextSubset(const VertexSet &Vertices, HyperedgeVector &Edges,
-                              vector<int> &Set, vector<bool> &InComp,
-                              vector<int> &CovWeights) const {
+                              std::vector<int> &Set, std::vector<bool> &InComp,
+                              std::vector<int> &CovWeights) const {
   MyHg->setVertexLabels(-1);
   for (auto v : Vertices) v->setLabel(0);
 
@@ -118,17 +119,18 @@ int DetKDecomp::setNextSubset(const VertexSet &Vertices, HyperedgeVector &Edges,
   return coverNodes(Edges, Set, InComp, CovWeights, Vertices.size(), true);
 }
 
-int DetKDecomp::coverNodes(HyperedgeVector &Edges, vector<int> &Set,
-                           vector<bool> &InComp, vector<int> &CovWeights,
-                           size_t Uncovered, bool Reconstr) const {
+int DetKDecomp::coverNodes(HyperedgeVector &Edges, std::vector<int> &Set,
+                           std::vector<bool> &InComp,
+                           std::vector<int> &CovWeights, size_t Uncovered,
+                           bool Reconstr) const {
   int i;
 
   int pos, nbr_sel, in_comp_sel, weight;
   int size{(int)Edges.size()};
   bool covered, back, select;
-  list<vector<int>> label_stack;
-  list<int *>::iterator ListIter;
-  vector<int> tmp_labels;
+  std::list<std::vector<int>> label_stack;
+  std::list<int *>::iterator ListIter;
+  std::vector<int> tmp_labels;
 
   pos = nbr_sel = in_comp_sel = 0;
   Uncovered == 0 ? covered = true : covered = false;
@@ -276,9 +278,9 @@ size_t DetKDecomp::divideCompEdges(const HyperedgeVector &HEdges,
                                    HyperedgeVector &Bound) const {
   bool covered;
   size_t cnt_edges{HEdges.size()};
-  list<HyperedgeSharedPtr> innerb, outerb;
-  unordered_map<HyperedgeSharedPtr, int> edgeLabels;
-  unordered_map<VertexSharedPtr, int> vertexLabels;
+  std::list<HyperedgeSharedPtr> innerb, outerb;
+  std::unordered_map<HyperedgeSharedPtr, int> edgeLabels;
+  std::unordered_map<VertexSharedPtr, int> vertexLabels;
 
   for (auto he : HEdges) edgeLabels[he] = 1;
 
@@ -405,8 +407,8 @@ OUTPUT: return: true if there exists an edge in HEdges labeled by iLabel;
 otherwise false
 */
 
-bool DetKDecomp::containsLabel(list<Hyperedge *> *HEdges, int iLabel) {
-  list<Hyperedge *>::iterator ListIter;
+bool DetKDecomp::containsLabel(std::list<Hyperedge *> *HEdges, int iLabel) {
+  std::list<Hyperedge *>::iterator ListIter;
 
   // Search for a hyperedge labeled by iLabel
   for (ListIter = HEdges->begin(); ListIter != HEdges->end(); ListIter++)
@@ -459,11 +461,11 @@ HypertreeSharedPtr DetKDecomp::decomp(const HyperedgeVector &HEdges,
     thr = 2;
   }
 
-  list<Hypertree *>::iterator TreeIter;
+  std::list<Hypertree *>::iterator TreeIter;
 
   SeparatorSharedPtr separator{nullptr};
-  vector<int> cov_sep_set, cov_weights;
-  vector<bool> in_comp;
+  std::vector<int> cov_sep_set, cov_weights;
+  std::vector<bool> in_comp;
   size_t cnt_edges{HEdges.size()};
   int comp_end, nbr_sel_cov, i_add, sep_size;
   size_t nbr_of_parts;
@@ -536,7 +538,7 @@ HypertreeSharedPtr DetKDecomp::decomp(const HyperedgeVector &HEdges,
           // cout << "(" << RecLevel << ")" << endl;
 
           // Create a separator
-          separator = make_shared<Separator>();
+          separator = std::make_shared<Separator>();
 
           for (i = 0; i < nbr_sel_cov; i++)
             separator->insert(bound_edges[cov_sep_set[i]]);
@@ -550,9 +552,9 @@ HypertreeSharedPtr DetKDecomp::decomp(const HyperedgeVector &HEdges,
             // separator
             auto &reused = getSepParts(separator);
 
-            vector<DecompComponent> partitions;
-            vector<bool> cut_parts;
-            list<HypertreeSharedPtr> Subtrees;
+            std::vector<DecompComponent> partitions;
+            std::vector<bool> cut_parts;
+            std::list<HypertreeSharedPtr> Subtrees;
 
             // Separate hyperedges into partitions with corresponding connector
             // nodes
@@ -730,3 +732,5 @@ HypertreeSharedPtr DetKDecomp::buildHypertree() {
   if (tle) return NULL;
   return HTree;
 }
+
+}  // namespace dmlongo

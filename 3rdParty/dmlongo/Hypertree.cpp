@@ -10,13 +10,15 @@
 #include <fstream>
 #include <iostream>
 
+namespace dmlongo {
+
 uint G_HTID{0};
 
 //////////////////////////////////////////////////////////////////////
 // Class methods
 //////////////////////////////////////////////////////////////////////
 
-void Hypertree::removeCoveredEdges(list<HyperedgeSharedPtr> &edges) const {
+void Hypertree::removeCoveredEdges(std::list<HyperedgeSharedPtr> &edges) const {
   for (auto edge_it = edges.begin(); edge_it != edges.end();) {
     if ((*edge_it)->isCoveredBy(MyChi))
       edge_it = edges.erase(edge_it);
@@ -48,7 +50,8 @@ void Hypertree::collectChiSets(VertexSet &vertices) const {
   for (auto child : MyChildren) child->collectChiSets(vertices);
 }
 
-void Hypertree::selCovHTNodes(vector<Hypertree *> &CovNodes, bool bStrict) {
+void Hypertree::selCovHTNodes(std::vector<Hypertree *> &CovNodes,
+                              bool bStrict) {
   // Add all nodes of hyperedges that occur the first time to the chi-set
   for (auto he : MyLambda)
     if (CovNodes[he->getLabel()] == nullptr)
@@ -280,13 +283,13 @@ void Hypertree::reduceLambdaBottomUp() {
   }
 }
 
-void Hypertree::writeGMLNodes(ofstream &GMLFile) const {
+void Hypertree::writeGMLNodes(std::ofstream &GMLFile) const {
   int i;
-  vector<int> iOrder;
+  std::vector<int> iOrder;
   HyperedgeSet::const_iterator LambdaIter;
   VertexSet::const_iterator ChiIter;
-  vector<VertexSharedPtr> Chi;
-  vector<HyperedgeSharedPtr> Lambda;
+  std::vector<VertexSharedPtr> Chi;
+  std::vector<HyperedgeSharedPtr> Lambda;
 
   iOrder.clear();
   iOrder.resize(MyLambda.size());
@@ -299,8 +302,8 @@ void Hypertree::writeGMLNodes(ofstream &GMLFile) const {
   }
   sortVectors<HyperedgeSharedPtr>(Lambda, iOrder, 0, (int)MyLambda.size() - 1);
 
-  GMLFile << "  node [" << endl;
-  GMLFile << "    id " << MyLabel << endl;
+  GMLFile << "  node [" << std::endl;
+  GMLFile << "    id " << MyLabel << std::endl;
   GMLFile << "    label \"{";
 
   // Write lambda-set
@@ -358,12 +361,12 @@ void Hypertree::writeGMLNodes(ofstream &GMLFile) const {
   if (MyChi.size() > 0) GMLFile << Chi[0]->getName();
   for (i = 1; i < (int)MyChi.size(); i++) GMLFile << ", " << Chi[i]->getName();
 
-  GMLFile << "}\"" << endl;
-  GMLFile << "    vgj [" << endl;
-  GMLFile << "      labelPosition \"in\"" << endl;
-  GMLFile << "      shape \"Rectangle\"" << endl;
-  GMLFile << "    ]" << endl;
-  GMLFile << "  ]" << endl << endl;
+  GMLFile << "}\"" << std::endl;
+  GMLFile << "    vgj [" << std::endl;
+  GMLFile << "      labelPosition \"in\"" << std::endl;
+  GMLFile << "      shape \"Rectangle\"" << std::endl;
+  GMLFile << "    ]" << std::endl;
+  GMLFile << "  ]" << std::endl << std::endl;
 
   // Write GML nodes for all subtrees
   for (auto ChildIter = MyChildren.begin(); ChildIter != MyChildren.end();
@@ -371,16 +374,16 @@ void Hypertree::writeGMLNodes(ofstream &GMLFile) const {
     (*ChildIter)->writeGMLNodes(GMLFile);
 }
 
-void Hypertree::writeGMLEdges(ofstream &GMLFile) const {
+void Hypertree::writeGMLEdges(std::ofstream &GMLFile) const {
   HypertreeSharedPtr parent{nullptr};
 
   if (!MyParent.expired()) parent = MyParent.lock();
 
   if (parent != nullptr) {
-    GMLFile << "  edge [" << endl;
-    GMLFile << "    source " << parent->MyLabel << endl;
-    GMLFile << "    target " << MyLabel << endl;
-    GMLFile << "  ]" << endl << endl;
+    GMLFile << "  edge [" << std::endl;
+    GMLFile << "    source " << parent->MyLabel << std::endl;
+    GMLFile << "    target " << MyLabel << std::endl;
+    GMLFile << "  ]" << std::endl << std::endl;
   }
 
   // Write GML edges for all subtrees
@@ -389,12 +392,12 @@ void Hypertree::writeGMLEdges(ofstream &GMLFile) const {
     (*ChildIter)->writeGMLEdges(GMLFile);
 }
 
-Hypertree::Hypertree(const shared_ptr<Hypergraph> &Hg) : MyHg{Hg} {
+Hypertree::Hypertree(const std::shared_ptr<Hypergraph> &Hg) : MyHg{Hg} {
   MyId = G_HTID++;
 }
 
 std::shared_ptr<Hypertree> Hypertree::clone() const {
-  std::shared_ptr<Hypertree> ht = make_shared<Hypertree>(MyHg);
+  std::shared_ptr<Hypertree> ht = std::make_shared<Hypertree>(MyHg);
 
   ht->MyChi = MyChi;
   ht->MyLambda = MyLambda;
@@ -411,22 +414,22 @@ std::shared_ptr<Hypertree> Hypertree::clone() const {
   return ht;
 }
 
-void Hypertree::outputToGML(const string &cNameOfFile) const {
-  ofstream GMLFile;
+void Hypertree::outputToGML(const std::string &cNameOfFile) const {
+  std::ofstream GMLFile;
 
-  GMLFile.open(cNameOfFile, ios::out);
+  GMLFile.open(cNameOfFile, std::ios::out);
 
   // Check if file opening was successful
   if (!GMLFile.is_open())
     writeErrorMsg("Error opening file.", "Hypertree::outputToGML");
 
-  GMLFile << "graph [" << endl << endl;
-  GMLFile << "  directed 0" << endl << endl;
+  GMLFile << "graph [" << std::endl << std::endl;
+  GMLFile << "  directed 0" << std::endl << std::endl;
 
   writeGMLNodes(GMLFile);  // Write hypertree nodes in GML format
   writeGMLEdges(GMLFile);  // Write hypertree edges in GML format
 
-  GMLFile << "]" << endl;
+  GMLFile << "]" << std::endl;
 
   GMLFile.close();
 }
@@ -437,11 +440,11 @@ void Hypertree::insLambda(const HyperedgeSharedPtr &Edge) {
   MyLambda.insert(Edge);
 }
 
-void Hypertree::setParent(const weak_ptr<Hypertree> &Parent) {
+void Hypertree::setParent(const std::weak_ptr<Hypertree> &Parent) {
   MyParent = Parent;
 }
 
-const weak_ptr<Hypertree> Hypertree::getParent() const { return MyParent; }
+const std::weak_ptr<Hypertree> Hypertree::getParent() const { return MyParent; }
 
 void Hypertree::insChild(const std::shared_ptr<Hypertree> &Child,
                          bool bSetParent) {
@@ -450,7 +453,7 @@ void Hypertree::insChild(const std::shared_ptr<Hypertree> &Child,
 }
 
 bool Hypertree::remChild(const std::shared_ptr<Hypertree> &Child) {
-  list<std::shared_ptr<Hypertree>>::iterator ChildIter;
+  std::list<std::shared_ptr<Hypertree>>::iterator ChildIter;
 
   for (ChildIter = MyChildren.begin(); ChildIter != MyChildren.end();
        ChildIter++)
@@ -465,7 +468,7 @@ bool Hypertree::remChild(const std::shared_ptr<Hypertree> &Child) {
 
 void Hypertree::remChildren(bool SetParent,
                             const std::shared_ptr<Hypertree> &NewParent) {
-  list<HypertreeSharedPtr>::iterator ChildIter;
+  std::list<HypertreeSharedPtr>::iterator ChildIter;
 
   if (SetParent)
     for (ChildIter = MyChildren.begin(); ChildIter != MyChildren.end();
@@ -496,7 +499,7 @@ HypertreeSharedPtr Hypertree::getCutNode() {
 
 Hypertree *Hypertree::getHTNode(void *Ptr) {
   Hypertree *HTree = nullptr;
-  set<void *>::iterator SetIter;
+  std::set<void *>::iterator SetIter;
 
   // Search for Ptr in the actual node
   SetIter = MyPointers.find(Ptr);
@@ -512,7 +515,7 @@ Hypertree *Hypertree::getHTNode(void *Ptr) {
 
 Hypertree *Hypertree::getHTNode(int iID) {
   Hypertree *HTree = nullptr;
-  set<int>::iterator SetIter;
+  std::set<int>::iterator SetIter;
 
   // Search for Ptr in the actual node
   SetIter = MyIDs.find(iID);
@@ -606,7 +609,7 @@ void Hypertree::reduceChi(const VertexSet &vertices) {
 void Hypertree::shrinkByLambda() {
   bool bChildFound;
   HypertreeSharedPtr Child = shared_from_this();
-  list<HypertreeSharedPtr>::iterator ChildIter;
+  std::list<HypertreeSharedPtr>::iterator ChildIter;
 
   resetLabels();
   while (Child != nullptr) {
@@ -672,10 +675,10 @@ void Hypertree::shrinkByLambda() {
 void Hypertree::shrinkByChi() {
   bool bChildFound;
   HypertreeSharedPtr Child = shared_from_this();
-  list<HypertreeSharedPtr>::iterator ChildIter, ChildIter2;
+  std::list<HypertreeSharedPtr>::iterator ChildIter, ChildIter2;
   VertexSet::iterator ChiIter;
   HyperedgeSet::iterator LambdaIter;
-  set<void *>::iterator PtrIter;
+  std::set<void *>::iterator PtrIter;
 
   resetLabels();
   while (Child != nullptr) {
@@ -794,7 +797,7 @@ void Hypertree::reduceLambda() {
 
 void Hypertree::setChi(bool bStrict) {
   int i = 0;
-  vector<Hypertree *> CovNodes(MyHg->getNbrOfEdges());
+  std::vector<Hypertree *> CovNodes(MyHg->getNbrOfEdges());
 
   for (auto e : MyHg->allEdges()) {
     e->setLabel(i);
@@ -906,8 +909,8 @@ HypertreeSharedPtr Hypertree::findNodeByLambda(const HyperedgeSharedPtr &edge) {
   return node;
 }
 
-list<HyperedgeSharedPtr> Hypertree::checkCond1() const {
-  list<HyperedgeSharedPtr> edges;
+std::list<HyperedgeSharedPtr> Hypertree::checkCond1() const {
+  std::list<HyperedgeSharedPtr> edges;
 
   for (auto e : MyHg->allEdges()) edges.push_back(e);
 
@@ -917,9 +920,10 @@ list<HyperedgeSharedPtr> Hypertree::checkCond1() const {
   return edges;
 }
 
-VertexSharedPtr Hypertree::checkCond2(list<VertexSharedPtr> &forbidden) const {
+VertexSharedPtr Hypertree::checkCond2(
+    std::list<VertexSharedPtr> &forbidden) const {
   VertexSharedPtr Witness;
-  list<Hypertree *>::iterator ChildIter;
+  std::list<Hypertree *>::iterator ChildIter;
 
   // Check "connectedness" for each child and label forbidden nodes
   for (auto child : MyChildren) {
@@ -979,12 +983,12 @@ std::shared_ptr<const Hypertree> Hypertree::checkCond4() const {
   return nullptr;
 }
 
-bool Hypertree::verify(bool hd, ostream &out) {
+bool Hypertree::verify(bool hd, std::ostream &out) {
   bool bAllCondSat = true;
   VertexSharedPtr WitnessNode;
   HyperedgeSharedPtr WitnessEdge;
-  shared_ptr<const Hypertree> WitnessTree;
-  list<HyperedgeSharedPtr> witnessCond1;
+  std::shared_ptr<const Hypertree> WitnessTree;
+  std::list<HyperedgeSharedPtr> witnessCond1;
 
   // Check acyclicity of the hypertree
   this->resetLabels();
@@ -996,22 +1000,22 @@ bool Hypertree::verify(bool hd, ostream &out) {
   out << "Condition 1: ";
   out.flush();
   if ((witnessCond1 = checkCond1()).empty())
-    out << "satisfied." << endl;
+    out << "satisfied." << std::endl;
   else {
     out << "violated! (see atoms \"";
-    for (auto &e : witnessCond1) cout << e->getName() << " ";
-    out << "\")" << endl;
+    for (auto &e : witnessCond1) out << e->getName() << " ";
+    out << "\")" << std::endl;
     bAllCondSat = false;
   }
 
   // Check condition 2
   out << "Condition 2: ";
-  cout.flush();
+  out.flush();
   if ((WitnessNode = checkCond2()) == nullptr)
-    out << "satisfied." << endl;
+    out << "satisfied." << std::endl;
   else {
     out << "violated! (see variable \"" << WitnessNode->getName() << "\")"
-        << endl;
+        << std::endl;
     bAllCondSat = false;
   }
 
@@ -1019,10 +1023,10 @@ bool Hypertree::verify(bool hd, ostream &out) {
   out << "Condition 3: ";
   out.flush();
   if ((WitnessTree = checkCond3()) == nullptr)
-    out << "satisfied." << endl;
+    out << "satisfied." << std::endl;
   else {
     out << "violated! (see hypertree node \"" << WitnessTree->getLabel()
-        << "\")" << endl;
+        << "\")" << std::endl;
     bAllCondSat = false;
   }
 
@@ -1031,12 +1035,14 @@ bool Hypertree::verify(bool hd, ostream &out) {
     out << "Condition 4: ";
     out.flush();
     if ((WitnessTree = checkCond4()) == NULL)
-      out << "satisfied." << endl;
+      out << "satisfied." << std::endl;
     else
       out << "violated! (see hypertree node \"" << WitnessTree->getLabel()
-          << "\")" << endl;
+          << "\")" << std::endl;
     // (see hypertree node \"" << WitnessTree->getLabel() << "\")" << endl;
   }
 
   return bAllCondSat;
 }
+
+}  // namespace dmlongo

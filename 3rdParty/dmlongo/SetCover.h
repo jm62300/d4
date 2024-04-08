@@ -2,46 +2,47 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-
 #if !defined(CLS_SETCOVER)
 #define CLS_SETCOVER
 
 #include <set>
 
 #include "Globals.h"
-#include "Vertex.h"
 #include "Hyperedge.h"
 #include "Hypergraph.h"
+#include "Vertex.h"
 
-class SetCover  
-{
-private:
-	HypergraphSharedPtr MyH;
+namespace dmlongo {
 
-	// Covers a set of nodes by a set of hyperedges
-	HyperedgeSet NodeCover1(const VertexSet &Vertices, const HyperedgeSet &HEdges, bool bDeterm);
+class SetCover {
+ private:
+  HypergraphSharedPtr MyH;
 
-	// Covers a set of nodes by a set of hyperedges
-	HyperedgeSet NodeCover2(const VertexSet &Vertices, const HyperedgeSet &HEdges, bool bDeterm);
+  // Covers a set of nodes by a set of hyperedges
+  HyperedgeSet NodeCover1(const VertexSet &Vertices, const HyperedgeSet &HEdges,
+                          bool bDeterm);
 
-public:
-	// Constructor
-	SetCover(const HypergraphSharedPtr &H);
-	  
+  // Covers a set of nodes by a set of hyperedges
+  HyperedgeSet NodeCover2(const VertexSet &Vertices, const HyperedgeSet &HEdges,
+                          bool bDeterm);
 
+ public:
+  // Constructor
+  SetCover(const HypergraphSharedPtr &H);
 
-	// Destructor
-	virtual ~SetCover();
+  // Destructor
+  virtual ~SetCover();
 
-	// Checks whether a set of nodes can be covered by a set of hyperedges
-	bool covers(const VertexSet &Vertices, const HyperedgeSet &HEdges);
+  // Checks whether a set of nodes can be covered by a set of hyperedges
+  bool covers(const VertexSet &Vertices, const HyperedgeSet &HEdges);
 
-	// Checks whether a set of nodes can be covered by a set of hyperedges
-	//bool covers(Vertex **Nodes, Hyperedge **HEdges);
+  // Checks whether a set of nodes can be covered by a set of hyperedges
+  // bool covers(Vertex **Nodes, Hyperedge **HEdges);
 
-	// Covers a set of nodes by a set of hyperedges
-	HyperedgeSet cover(const VertexSet &Vertices, const HyperedgeSet &HEdges);
+  // Covers a set of nodes by a set of hyperedges
+  HyperedgeSet cover(const VertexSet &Vertices, const HyperedgeSet &HEdges);
 };
 
+}  // namespace dmlongo
 
-#endif // !defined(CLS_SETCOVER)
+#endif  // !defined(CLS_SETCOVER)

@@ -8,6 +8,8 @@
 #include <unordered_set>
 #include <vector>
 
+namespace dmlongo {
+
 int G_VertexID = 0;
 
 Vertex::Vertex(const std::string& name) : Vertex(++G_VertexID, name) {}
@@ -65,4 +67,6 @@ powerset_type powerset(set_type const& set) {
   } while (!elements.empty());
 
   return result;
+}
+
 }

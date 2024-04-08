@@ -15,7 +15,7 @@
 #include "SetCover.h"
 #include "Vertex.h"
 
-using namespace std;
+namespace dmlongo {
 
 class Hypergraph;
 class Hyperedge;
@@ -27,13 +27,13 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   uint MyId;
 
   // Pointer to the hypergraph corresponding to this hypertree
-  shared_ptr<Hypergraph> MyHg;
+  std::shared_ptr<Hypergraph> MyHg;
 
   // Pointer to the parent node in the hypertree
   std::weak_ptr<Hypertree> MyParent;
 
   // Set of pointers to the children in the hypertree
-  list<std::shared_ptr<Hypertree>> MyChildren;
+  std::list<std::shared_ptr<Hypertree>> MyChildren;
 
   // Set of pointers to nodes representing the chi-set
   VertexSet MyChi;
@@ -45,10 +45,10 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   // unique_ptr<FractionalEdgeCover> MyFec{ nullptr };
 
   // Set of pointers used for the construction of a hypertree
-  set<void *> MyPointers;
+  std::set<void *> MyPointers;
 
   // Set of IDs used for the construction of a hypertree
-  set<int> MyIDs;
+  std::set<int> MyIDs;
 
   // Label of the hypertree node (useful for miscellaneous computations)
   int MyLabel{0};
@@ -57,7 +57,7 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   bool MyCut{false};
 
   // Removes from edges all hyperedges covered by the chi-set of some node
-  void removeCoveredEdges(list<HyperedgeSharedPtr> &edges) const;
+  void removeCoveredEdges(std::list<HyperedgeSharedPtr> &edges) const;
 
   // Labels the variables in the chi-sets of all nodes
   void labelChiSets(int iLabel = 1);
@@ -66,7 +66,7 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   void collectChiSets(VertexSet &vertices) const;
 
   // Selects for each hyperedge a hypertree node to cover its nodes
-  void selCovHTNodes(vector<Hypertree *> &CovNodes, bool bStrict = true);
+  void selCovHTNodes(std::vector<Hypertree *> &CovNodes, bool bStrict = true);
 
   // Sets the chi-set such that the chi-labellings are connected
   void setChi_Conn();
@@ -84,22 +84,22 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   void shrinkByChi();
 
   // Writes hypertree nodes into a GML file
-  void writeGMLNodes(ofstream &GMLFile) const;
+  void writeGMLNodes(std::ofstream &GMLFile) const;
 
   // Writes hypertree edges into a GML file
-  void writeGMLEdges(ofstream &GMLFile) const;
+  void writeGMLEdges(std::ofstream &GMLFile) const;
 
   std::shared_ptr<Hypertree> getPtr() { return shared_from_this(); }
 
  public:
   // Constructor
-  Hypertree(const shared_ptr<Hypergraph> &Hg);
+  Hypertree(const std::shared_ptr<Hypergraph> &Hg);
 
   // Copy Constructor for hypertreeSharedPtr
   std::shared_ptr<Hypertree> clone() const;
 
   // Writes hypertree to GML format file
-  void outputToGML(const string &cNameOfFile) const;
+  void outputToGML(const std::string &cNameOfFile) const;
 
   // Inserts a node into the chi-set
   void insChi(const VertexSharedPtr &Vertex);
@@ -241,14 +241,14 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   std::shared_ptr<Hypertree> findNodeByLambda(const HyperedgeSharedPtr &edge);
 
   // Checks hypertree condition 1
-  list<HyperedgeSharedPtr> checkCond1() const;
+  std::list<HyperedgeSharedPtr> checkCond1() const;
 
   // Checks hypertree condition 2
   VertexSharedPtr checkCond2() const {
-    list<VertexSharedPtr> lst;
+    std::list<VertexSharedPtr> lst;
     return checkCond2(lst);
   }
-  VertexSharedPtr checkCond2(list<VertexSharedPtr> &forbidden) const;
+  VertexSharedPtr checkCond2(std::list<VertexSharedPtr> &forbidden) const;
 
   // Checks hypertree condition 3
   std::shared_ptr<const Hypertree> checkCond3() const;
@@ -256,9 +256,11 @@ class Hypertree : public std::enable_shared_from_this<Hypertree> {
   // Checks hypertree condition 4
   std::shared_ptr<const Hypertree> checkCond4() const;
 
-  bool verify(bool hd = true, ostream &out = cout);
+  bool verify(bool hd = true, std::ostream &out = std::cout);
 };
 
 using HypertreeSharedPtr = std::shared_ptr<Hypertree>;
+
+}  // namespace dmlongo
 
 #endif  // !defined(CLS_HYPERTREE)
