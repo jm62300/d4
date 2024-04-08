@@ -55,6 +55,18 @@ TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
       hextract->constructHyperGraph(om, component, graph);
   assert(component.size() || !graph.getNbEdges());
 
+#if 0
+  std::cout << "p htd " << dynamic_cast<SpecManagerCnf &>(om).getNbClause()
+            << " " << graph.getNbEdges() << '\n';
+  for (unsigned i = 0; i < graph.getNbEdges(); i++) {
+    std::cout << i + 1 << ' ';
+    for (unsigned j = 0; j < graph[i].getSize(); j++)
+      std::cout << graph[i][j] << " ";
+    std::cout << '\n';
+  }
+  exit(0);
+#endif
+
   // extract the decomposition.
   PartitionerManager *partitioner = PartitionerManager::makePartitioner(
       m_partitionerName, infoHyperGraph, std::cout);
