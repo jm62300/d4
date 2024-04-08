@@ -23,6 +23,12 @@
 #include "src/hyperGraph/representation/HyperGraphExtractor.hpp"
 
 namespace d4 {
+
+struct Strata {
+  TreeDecomp *father;
+  HyperGraph graph;
+};
+
 class TreeDecompositionCnfPartition : public TreeDecompositionCnf {
  private:
   PartitionerName m_partitionerName = PARTITIONER_PATOH;

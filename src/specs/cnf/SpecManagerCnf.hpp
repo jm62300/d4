@@ -115,11 +115,11 @@ class SpecManagerCnf : public SpecManager {
   }
 
   inline unsigned getNbClause() { return m_clauses.size(); }
-  inline int getNbVariable() override { return m_nbVar; }
-  inline int getMaxSizeClause() { return m_maxSizeClause; }
+  inline unsigned getNbVariable() override { return m_nbVar; }
+  inline unsigned getMaxSizeClause() { return m_maxSizeClause; }
 
-  virtual inline int getSumSizeClauses() {
-    int sum = 0;
+  virtual inline unsigned getSumSizeClauses() {
+    unsigned sum = 0;
     for (auto &cl : m_clauses) sum += cl.size();
     return sum;
   }  // getSumSizeClauses

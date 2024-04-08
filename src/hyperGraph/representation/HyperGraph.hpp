@@ -21,6 +21,7 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <vector>
 
 #include "HyperEdge.hpp"
 
@@ -28,28 +29,28 @@ namespace d4 {
 class HyperGraph {
  private:
   static const unsigned s_BLOC_SIZE_EDGE = 1024;
-  static const unsigned s_BLOC_MEMORY = 16384;
+  static const unsigned s_BLOC_MEMORY = 128;
 
   HyperEdge **m_edges;
   unsigned m_nbEdges;
   unsigned m_capacityEdge;
-  char *m_memory;
-  unsigned m_sizeMemory;
-  unsigned m_capacityMemory;
 
   unsigned m_sumEdgeSize;
 
  public:
   HyperGraph();
+  HyperGraph(unsigned capacity);
+  HyperGraph(const HyperGraph &g);
   ~HyperGraph();
 
-  inline unsigned getNbEdges() { return m_nbEdges; }
-  inline HyperEdge **getEdges() { return m_edges; }
-  inline unsigned getSumEdgeSize() { return m_sumEdgeSize; }
+  inline unsigned getNbEdges() const { return m_nbEdges; }
+  inline unsigned getSumEdgeSize() const { return m_sumEdgeSize; }
+  inline HyperEdge *getEdge(unsigned idx) const { return m_edges[idx]; }
+  inline void setNbEdges(unsigned nb) { m_nbEdges = nb; }
 
   inline HyperEdge &operator[](unsigned i) {
     assert(i < m_nbEdges);
-    return *(m_edges[i]);
+    return *m_edges[i];
   }
 
   /**
@@ -62,14 +63,6 @@ class HyperGraph {
   /**
    * @brief Add an edge to the hypergraph (the memory will be allocated for this
    * edge).
-   *
-   * @param e is the edge we want to add.
-   */
-  void addEdge(const HyperEdge &e);
-
-  /**
-   * @brief Add an edge to the hypergraph (we suppose the memory has already
-   * been allocated for this edge).
    *
    * @param e is the edge we want to add.
    */

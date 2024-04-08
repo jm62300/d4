@@ -87,5 +87,20 @@ class HyperGraphExtractor {
   virtual InfoHyperGraph constructHyperGraph(SpecManager &om,
                                              std::vector<Var> &component,
                                              HyperGraph &hypergraph) = 0;
+
+  /**
+   * @brief This function divide into two set of edges (actually we return the
+   * indexes) regarding a given partition. This function also computes the edges
+   * that are in conflict.
+   *
+   * @param[in] graph is the graph we want to split.
+   * @param[in] partition is the partition under consideration.
+   * @param[out] cut is the computed cutset.
+   * @param[out] firstGraph is the set of edges in the first partition.
+   * @param[out] secondGraph is the set of edges in the second partition.
+   */
+  virtual void split(HyperGraph &graph, std::vector<int> &partition,
+                     std::vector<Var> &cut, HyperGraph &firstGraph,
+                     HyperGraph &secondGraph) = 0;
 };
 }  // namespace d4

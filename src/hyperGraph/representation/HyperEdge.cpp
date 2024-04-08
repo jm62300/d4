@@ -19,6 +19,8 @@
 
 #include "HyperEdge.hpp"
 
+#include <iostream>
+
 namespace d4 {
 
 /**

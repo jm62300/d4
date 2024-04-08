@@ -20,7 +20,6 @@
 
 #include <vector>
 
-#include "TreeDecomp.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/specs/SpecManager.hpp"
 
@@ -29,6 +28,46 @@ namespace d4 {
 class OptionPartitioningHeuristic;
 
 enum TreeDecompositionMethod { TREE_DECOMP_PARTITION };
+
+class TreeDecomp {
+ private:
+  std::vector<Var> m_node;
+  std::vector<TreeDecomp *> m_sons;
+
+ public:
+  /**
+   * @brief Construct a new Tree Decomp object
+   */
+  TreeDecomp();
+
+  /**
+   * @brief Construct a new Tree Decomp object/
+   *
+   * @param node is the variables in the current node.
+   * @param sons is a list of trees.
+   */
+  TreeDecomp(const std::vector<Var> &node,
+             const std::vector<TreeDecomp *> &sons);
+
+  /**
+   * @brief Destroy the Tree Decomp object
+   */
+  ~TreeDecomp();
+
+  /**
+   * @brief Get the node.
+   *
+   * @return the variable list.
+   */
+  std::vector<Var> &getNode();
+
+  /**
+   * @brief Get the sons.
+   *
+   * @return the list of children.
+   */
+  std::vector<TreeDecomp *> &getSons();
+};
 
 class TreeDecompositionMethodManager {
  public:
@@ -77,16 +116,5 @@ class TreeDecomposition {
    * @return is the computed tree decomposition.
    */
   virtual TreeDecomp *computeDecomposition(SpecManager &om) = 0;
-
-  /**
-   * @brief This function check if a given decomposition (given as a partial
-   * order) forms really a tree decomposition of the problem.
-   *
-   * @param[in] treeDecomp is the decomposition we want to test.
-   * @param[in] om gives information about the formula under consideration.
-   * @param[in] component is the set of variables we are focusing on.
-   */
-  virtual void checkDecomposition(TreeDecomp *treeDecomp, SpecManager &om,
-                                  const std::vector<Var> &component) = 0;
 };
 }  // namespace d4

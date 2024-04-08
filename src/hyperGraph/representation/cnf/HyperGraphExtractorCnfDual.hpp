@@ -29,7 +29,15 @@
 
 namespace d4 {
 class HyperGraphExtractorCnfDual : public HyperGraphExtractor {
+ private:
+  char *m_data = NULL;
+
  public:
+  /**
+   * @brief Destroy the Hyper Graph Extractor Cnf Dual object
+   */
+  ~HyperGraphExtractorCnfDual() override;
+
   /**
    * @brief Given the problem definition, we construct the hypergraph following
    * the dual representation.
@@ -43,5 +51,20 @@ class HyperGraphExtractorCnfDual : public HyperGraphExtractor {
   InfoHyperGraph constructHyperGraph(SpecManager &om,
                                      std::vector<Var> &component,
                                      HyperGraph &hypergraph);
+
+  /**
+   * @brief This function divide into two set of edges (actually we return the
+   * indexes) regarding a given partition. This function also computes the edges
+   * that are in conflict.
+   *
+   * @param[in] graph is the graph we want to split.
+   * @param[in] partition is the partition under consideration.
+   * @param[out] cut is the computed cutset.
+   * @param[out] firstGraph is the set of edges in the first partition.
+   * @param[out] secondGraph is the set of edges in the second partition.
+   */
+  void split(HyperGraph &graph, std::vector<int> &partition,
+             std::vector<Var> &cut, HyperGraph &firstGraph,
+             HyperGraph &secondGraph) override;
 };
 }  // namespace d4

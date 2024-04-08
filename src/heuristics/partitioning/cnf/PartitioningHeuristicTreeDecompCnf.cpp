@@ -37,10 +37,27 @@ PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf(
 
   TreeDecomp *tree = decomp->computeDecomposition(om);
 
-  std::vector<Var> component;
-  for (unsigned i = 1; i <= om.getNbVariable(); i++) component.push_back(i);
-  decomp->checkDecomposition(tree, om, component);
+  // construct the topological order.
+  std::vector<TreeDecomp *> stack;
+  stack.push_back(tree);
 
+  m_topologicalOrder.resize(om.getNbVariable() + 1);
+  for (auto &v : m_topologicalOrder) v = 0;
+
+  unsigned level = 1;
+  while (stack.size()) {
+    TreeDecomp *tree = stack.back();
+    stack.pop_back();
+
+    for (auto &v : tree->getNode()) m_topologicalOrder[v] = level;
+    if (tree->getNode().size()) level++;
+    for (auto *t : tree->getSons()) stack.push_back(t);
+  }
+
+  out << "c [TREE DECOMPOSITION HEURISTIC] Number of buckets: " << level - 1
+      << '\n';
+
+  delete tree;
   delete decomp;
 }  // constructor
 

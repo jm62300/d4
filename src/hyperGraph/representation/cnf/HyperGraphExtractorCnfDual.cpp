@@ -24,11 +24,27 @@
 namespace d4 {
 
 /**
+ * @brief HyperGraphExtractorCnfDual::~HyperGraphExtractorCnfDual
+ * implementation.
+ */
+HyperGraphExtractorCnfDual::~HyperGraphExtractorCnfDual() {
+  if (m_data) delete[] m_data;
+}  // destructor
+
+/**
  * @brief HyperGraphExtractorCnfDual::constructHyperGraph implementation.
  */
 InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     SpecManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
+  // cast into a CNF spec manager
   SpecManagerCnf &tmp = static_cast<SpecManagerCnf &>(om);
+
+  // allocate memory.
+  unsigned pos = 0;
+  m_data = new char[component.size() * sizeof(HyperEdge) +
+                    sizeof(unsigned) * tmp.getSumSizeClauses()];
+
+  // create the graph.
   for (auto &v : component) {
     // collect the edge.
     unsigned edgeData[tmp.getNbClause(v)];
@@ -41,12 +57,52 @@ InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     }
 
     // add the hyperedge.
-    hypergraph.addEdge({(unsigned)v, size, edgeData});
+    hypergraph.addEdge(new (&m_data[pos])
+                           HyperEdge((unsigned)v, size, edgeData));
+    pos += sizeof(HyperEdge) + size * sizeof(unsigned);
   }
 
   return {dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
           dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
           dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()};
 }  // constructHyperGraph
+
+/**
+ * @brief HyperGraphExtractorCnfDual::split implementation.
+ */
+void HyperGraphExtractorCnfDual::split(HyperGraph &graph,
+                                       std::vector<int> &partition,
+                                       std::vector<Var> &cut,
+                                       HyperGraph &firstGraph,
+                                       HyperGraph &secondGraph) {
+  for (unsigned i = 0; i < graph.getNbEdges(); i++) {
+    HyperEdge &e = graph[i];
+    if (!e.getSize()) continue;
+
+    int part = partition[e[0]];
+    bool clash = false;
+    for (unsigned j = 1; !clash && j < e.getSize(); j++)
+      clash = part != partition[e[j]];
+
+    if (clash)
+      cut.push_back(e.getId());
+    else if (part == 0)
+      firstGraph.addEdge(graph.getEdge(i));
+    else
+      secondGraph.addEdge(graph.getEdge(i));
+  }
+
+  if (!firstGraph.getNbEdges()) {
+    secondGraph.setNbEdges(0);
+    for (unsigned i = 0; i < graph.getNbEdges(); i++)
+      cut.push_back(graph[i].getId());
+  }
+
+  if (!secondGraph.getNbEdges()) {
+    firstGraph.setNbEdges(0);
+    for (unsigned i = 0; i < graph.getNbEdges(); i++)
+      cut.push_back(graph[i].getId());
+  }
+}  // split
 
 }  // namespace d4

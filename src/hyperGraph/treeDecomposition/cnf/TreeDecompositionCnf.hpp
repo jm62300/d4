@@ -26,15 +26,5 @@
 namespace d4 {
 class TreeDecompositionCnf : public TreeDecomposition {
  public:
-  /**
-   * @brief This function check if a given decomposition (given as a partial
-   * order) forms really a tree decomposition of the CNF given as parameter.
-   *
-   * @param[in] treeDecomp is the decomposition we want to test.
-   * @param[in] om gives information about the formula under consideration.
-   * @param[in] component is the set of variables we are focusing on.
-   */
-  void checkDecomposition(TreeDecomp *treeDecomp, SpecManager &om,
-                          const std::vector<Var> &component) override;
 };
 }  // namespace d4

@@ -46,7 +46,14 @@ PartitioningHeuristicTreeDecomp::makePartitioningTreeDecomp(
  */
 void PartitioningHeuristicTreeDecomp::computeCutSet(std::vector<Var> &component,
                                                     std::vector<Var> &cutSet) {
-  cutSet = component;
+  if (!component.size()) return;
+
+  unsigned min = m_topologicalOrder[component[0]];
+  for (auto &v : component)
+    if (m_topologicalOrder[v] < min) min = m_topologicalOrder[v];
+
+  for (auto &v : component)
+    if (m_topologicalOrder[v] == min) cutSet.push_back(v);
 }  // computeCutSet
 
 }  // namespace d4

@@ -10,7 +10,7 @@ SOLVER="$ROOT_PATH/minisat"
 TIMEOUT=$2
 if [ "$TIMEOUT" == "" ]; then TIMEOUT=2; fi
 
-LIMIT_SIZE=50
+LIMIT_SIZE=500
 
 isExecutableReady()
 {
@@ -60,7 +60,6 @@ do
 
     benchName=$(generateSatisfiableCNF)    
     timeout $TIMEOUT $1 $benchName > /dev/null 2>/dev/null
-
     code=$?
 
     if [ $code -ne 124 ]

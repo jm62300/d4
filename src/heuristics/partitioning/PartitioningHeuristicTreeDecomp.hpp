@@ -30,6 +30,9 @@
 namespace d4 {
 
 class PartitioningHeuristicTreeDecomp : public PartitioningHeuristic {
+ protected:
+  std::vector<unsigned> m_topologicalOrder;
+
  public:
   /**
    * @brief Factory to create a tree decomposition partitioner manager.

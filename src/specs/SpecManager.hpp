@@ -58,7 +58,7 @@ class SpecManager {
   virtual void showCurrentFormula(std::ostream &out) = 0;
   virtual void showTrail(std::ostream &out) = 0;
   virtual int getNbOccurrence(Lit l) = 0;
-  virtual int getNbVariable() = 0;
+  virtual unsigned getNbVariable() = 0;
 
   virtual ProblemInputType getProblemInputType() = 0;
   virtual void printSpecInformation(std::ostream &out) {}

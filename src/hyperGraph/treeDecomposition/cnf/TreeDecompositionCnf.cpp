@@ -19,16 +19,4 @@
 
 #include "TreeDecompositionCnf.hpp"
 
-#include <cassert>
-
-namespace d4 {
-
-/**
- * @brief TreeDecompositionCnf::computeDecomposition implementation.
- */
-void TreeDecompositionCnf::checkDecomposition(
-    TreeDecomp *treeDecomp, SpecManager &om,
-    const std::vector<Var> &component) {
-  assert(0);
-}  // checkDecomposition
-}  // namespace d4
+namespace d4 {}  // namespace d4

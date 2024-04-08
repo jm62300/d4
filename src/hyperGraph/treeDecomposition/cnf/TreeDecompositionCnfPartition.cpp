@@ -53,17 +53,42 @@ TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
   HyperGraph graph;
   InfoHyperGraph infoHyperGraph =
       hextract->constructHyperGraph(om, component, graph);
+  assert(component.size() || !graph.getNbEdges());
 
   // extract the decomposition.
   PartitionerManager *partitioner = PartitionerManager::makePartitioner(
       m_partitionerName, infoHyperGraph, std::cout);
-
   std::vector<int> partition(infoHyperGraph.maxNbNodes + 1, 0);
-  partitioner->computePartition(graph, PartitionerManager::QUALITY, partition);
+
+  // construct the tree decomposition recursively by calling a partitioner.
+  std::vector<Strata> stack;
+  stack.push_back({NULL, graph});
+
+  while (stack.size()) {
+    Strata t = stack.back();
+    stack.pop_back();
+    if (!t.graph.getNbEdges()) continue;
+
+    assert(t.father || !tree);
+    TreeDecomp *currentTree = new TreeDecomp();
+    if (!tree) tree = currentTree;
+    if (t.father) t.father->getSons().push_back(currentTree);
+
+    stack.push_back({currentTree, HyperGraph()});
+    stack.push_back({currentTree, HyperGraph()});
+
+    partitioner->computePartition(t.graph, PartitionerManager::QUALITY,
+                                  partition);
+    hextract->split(t.graph, partition, currentTree->getNode(),
+                    stack[stack.size() - 1].graph,
+                    stack[stack.size() - 2].graph);
+  }
 
   delete partitioner;
+  delete hextract;
 
   if (!notLinked.size()) return tree;
+  if (!component.size()) return new TreeDecomp(notLinked, {});
   return new TreeDecomp(notLinked, {tree});
 }  // computeDecomposition
 

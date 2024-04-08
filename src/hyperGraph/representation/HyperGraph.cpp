@@ -23,20 +23,30 @@ namespace d4 {
 /**
  * @brief HyperGraph::HyperGraph implementation.
  */
-HyperGraph::HyperGraph()
-    : m_edges(NULL),
-      m_nbEdges(0),
-      m_capacityEdge(0),
-      m_memory(NULL),
-      m_sizeMemory(0),
-      m_capacityMemory(0) {}
+HyperGraph::HyperGraph() : m_edges(NULL), m_nbEdges(0), m_capacityEdge(0) {}
+
+/**
+ * @brief HyperGraph::HyperGraph implementation.
+ */
+HyperGraph::HyperGraph(unsigned capacity) {
+  m_edges = (HyperEdge **)malloc(capacity * sizeof(HyperEdge *));
+  m_nbEdges = 0;
+  m_capacityEdge = capacity;
+}  // constructor
+
+/**
+ * @brief HyperGraph::HyperGraph implementation.
+ */
+HyperGraph::HyperGraph(const HyperGraph &g) : HyperGraph(g.getNbEdges()) {
+  for (unsigned i = 0; i < g.getNbEdges(); i++) addEdge(g.getEdge(i));
+  assert(g.getNbEdges() == getNbEdges());
+}  // constructor
 
 /**
    Free the allocated memory.
  */
 HyperGraph::~HyperGraph() {
-  if (m_edges) delete[] m_edges;
-  if (m_memory) delete[] m_memory;
+  if (m_edges) free(m_edges);
 }  // destructor
 
 /**
@@ -44,8 +54,8 @@ HyperGraph::~HyperGraph() {
  */
 void HyperGraph::display(std::ostream &out) {
   for (unsigned i = 0; i < m_nbEdges; i++) {
-    for (unsigned j = 0; j < m_edges[i]->getSize(); j++)
-      out << (*m_edges[i])[j] << " ";
+    HyperEdge &e = *m_edges[i];
+    for (unsigned j = 0; j < e.getSize(); j++) out << e[j] << " ";
     out << "\n";
   }
 }  // displayHyperGraph
@@ -53,31 +63,10 @@ void HyperGraph::display(std::ostream &out) {
 /**
  * @brief HyperGraph::addEdge implementation.
  */
-void HyperGraph::addEdge(const HyperEdge &e) {
-  assert(m_nbEdges <= m_capacityEdge);
-  if (m_nbEdges == m_capacityEdge) {
-    m_capacityMemory += s_BLOC_SIZE_EDGE;
-    m_edges =
-        (HyperEdge **)realloc(m_edges, sizeof(HyperEdge *) * m_capacityEdge);
-  }
-
-  if (m_sizeMemory + e.getSize() > m_capacityMemory) {
-    m_capacityMemory += e.getSize() / s_BLOC_MEMORY + s_BLOC_MEMORY;
-    m_memory = (char *)realloc(m_memory, sizeof(m_capacityMemory));
-  }
-
-  m_sumEdgeSize += e.getSize();
-  m_edges[m_nbEdges++] = new (&m_memory[m_sizeMemory]) HyperEdge(e);
-  m_sizeMemory += sizeof(HyperEdge) + sizeof(unsigned) * e.getSize();
-}  // addEdge
-
-/**
- * @brief HyperGraph::addEdge implementation.
- */
 void HyperGraph::addEdge(HyperEdge *e) {
   assert(m_nbEdges <= m_capacityEdge);
-  if (m_nbEdges == m_capacityEdge) {
-    m_capacityMemory += s_BLOC_SIZE_EDGE;
+  if (m_nbEdges >= m_capacityEdge) {
+    m_capacityEdge += s_BLOC_SIZE_EDGE;
     m_edges =
         (HyperEdge **)realloc(m_edges, sizeof(HyperEdge *) * m_capacityEdge);
   }
