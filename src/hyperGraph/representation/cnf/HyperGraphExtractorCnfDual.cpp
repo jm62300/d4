@@ -51,7 +51,7 @@ InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     unsigned size = 0;
 
     for (auto &l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)}) {
-      IteratorIdxClause listIdx = tmp.getVecIdxClauseNotBin(l);
+      IteratorIdxClause listIdx = tmp.getVecIdxClause(l);
       for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++)
         edgeData[size++] = *ptr;
     }
@@ -75,6 +75,12 @@ void HyperGraphExtractorCnfDual::split(HyperGraph &graph,
                                        std::vector<Var> &cut,
                                        HyperGraph &firstGraph,
                                        HyperGraph &secondGraph) {
+  if (graph.getNbEdges() < 10) {
+    for (unsigned i = 0; i < graph.getNbEdges(); i++)
+      cut.push_back(graph[i].getId());
+    return;
+  }
+
   for (unsigned i = 0; i < graph.getNbEdges(); i++) {
     HyperEdge &e = graph[i];
     if (!e.getSize()) continue;

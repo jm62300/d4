@@ -54,8 +54,7 @@ PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf(
     for (auto *t : tree->getSons()) stack.push_back(t);
   }
 
-  out << "c [TREE DECOMPOSITION HEURISTIC] Number of buckets: " << level - 1
-      << '\n';
+  out << "c [TREE DECOMPOSITION] Number of buckets: " << level - 1 << '\n';
 
   delete tree;
   delete decomp;
