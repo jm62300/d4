@@ -6,6 +6,7 @@
 
 #include "array_id_func.h"
 
+namespace flowCutter {
 struct ListGraph {
   ListGraph() = default;
   ListGraph(int node_count, int arc_count)
@@ -18,5 +19,5 @@ struct ListGraph {
 };
 
 ListGraph uncached_load_pace_graph(const std::string& file_name);
-
+}  // namespace flowCutter
 #endif

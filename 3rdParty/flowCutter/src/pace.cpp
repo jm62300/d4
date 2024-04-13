@@ -1,4 +1,6 @@
 
+#include "pace.h"
+
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +28,10 @@
 #include "sort_arc.h"
 #include "tree_decomposition.h"
 #include "union_find.h"
+
 using namespace std;
+
+namespace flowCutter {
 
 ArrayIDIDFunc tail, head;
 const char* volatile best_decomposition = 0;
@@ -356,7 +361,7 @@ void test_new_order(const ArrayIDIDFunc& order) {
   }
 }
 
-int main(int argc, char* argv[]) {
+int paceMain(int argc, char* argv[]) {
   signal(SIGTERM, signal_handler);
   signal(SIGINT, signal_handler);
   signal(SIGALRM, signal_handler);
@@ -574,4 +579,7 @@ int main(int argc, char* argv[]) {
   } catch (...) {
   }
   signal_handler(0);
+  return 0;
 }
+
+}  // namespace flowCutter

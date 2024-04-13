@@ -9,6 +9,7 @@
 #include "tiny_id_func.h"
 #include "union_find.h"
 
+namespace flowCutter {
 namespace flow_cutter {
 
 class ComputeSeparator {
@@ -265,5 +266,5 @@ class ComputeSeparatorList {
   Config config;
 };
 }  // namespace flow_cutter
-
+}  // namespace flowCutter
 #endif
