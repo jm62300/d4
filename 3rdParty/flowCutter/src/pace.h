@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+
 namespace flowCutter {
-int paceMain(int argc, char* argv[]);
+const char* paceMain(unsigned nbNode,
+                     std::vector<std::pair<unsigned, unsigned>>& graph,
+                     int random_seed = 2911);
 }

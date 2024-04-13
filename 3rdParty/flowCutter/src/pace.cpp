@@ -36,6 +36,7 @@ namespace flowCutter {
 ArrayIDIDFunc tail, head;
 const char* volatile best_decomposition = 0;
 int best_bag_size = numeric_limits<int>::max();
+int tle = 0;
 
 void ignore_return_value(long long) {}
 
@@ -308,16 +309,7 @@ std::string format_multilevel_partition_as_tree_decomposition(
 char no_decomposition_message[] =
     "c info programm was aborted before any decomposition was computed\n";
 
-void signal_handler(int) {
-  const char* x = best_decomposition;
-  if (x != 0)
-    ignore_return_value(write(STDOUT_FILENO, x, strlen(x)));
-  else
-    ignore_return_value(write(STDOUT_FILENO, no_decomposition_message,
-                              sizeof(no_decomposition_message)));
-
-  _Exit(EXIT_SUCCESS);
-}
+void signal_handler(int) { tle = 1; }
 
 int compute_max_bag_size_of_order(const ArrayIDIDFunc& order) {
   auto inv_order = inverse_permutation(order);
@@ -351,37 +343,38 @@ void test_new_order(const ArrayIDIDFunc& order) {
       best_bag_size = x;
       const char* old_decomposition = best_decomposition;
       best_decomposition = compute_decomposition_given_order(order);
+
       delete[] old_decomposition;
-      {
-        string msg = "c status " + to_string(best_bag_size) + " " +
-                     to_string(get_milli_time()) + "\n";
-        ignore_return_value(write(STDOUT_FILENO, msg.data(), msg.length()));
-      }
+      // {
+      //   string msg = "c status " + to_string(best_bag_size) + " " +
+      //                to_string(get_milli_time()) + "\n";
+      //   ignore_return_value(write(STDOUT_FILENO, msg.data(), msg.length()));
+      // }
     }
   }
 }
 
-int paceMain(int argc, char* argv[]) {
-  signal(SIGTERM, signal_handler);
-  signal(SIGINT, signal_handler);
+const char* paceMain(unsigned nbNode,
+                     std::vector<std::pair<unsigned, unsigned>>& graph,
+                     int random_seed) {
   signal(SIGALRM, signal_handler);
 
-  signal(SIGSEGV, signal_handler);
   try {
     {
-      string file_name = "-";
-      if (argc == 2) file_name = argv[1];
-      auto g = uncached_load_pace_graph(file_name);
+      int nextArc = 0;
+      ListGraph g(nbNode, 2 * graph.size());
+      for (auto e : graph) {
+        g.head[nextArc] = e.first - 1;
+        g.tail[nextArc] = e.second - 1;
+        nextArc++;
+
+        g.head[nextArc] = e.second - 1;
+        g.tail[nextArc] = e.first - 1;
+        nextArc++;
+      }
+
       tail = std::move(g.tail);
       head = std::move(g.head);
-    }
-
-    int random_seed = 0;
-
-    if (argc == 3) {
-      if (string(argv[1]) == "-s") {
-        random_seed = atoi(argv[2]);
-      }
     }
 
     {
@@ -412,11 +405,12 @@ int paceMain(int argc, char* argv[]) {
           int tw = get_treewidth_of_multilevel_partition(multilevel_partition);
           {
             // cerr << "New" << endl;
-            // for(int i=0; i<(int)multilevel_partition.size(); ++i){
-            //	cerr << i << " : " << multilevel_partition[i].parent_cell << "
-            //:"; 	for(auto&y:multilevel_partition[i].separator_node_list)
-            //: cerr
-            //<< " " << y ; 	cerr << endl;
+            // for (int i = 0; i < (int)multilevel_partition.size(); ++i) {
+            //   cerr << i << " : " << multilevel_partition[i].parent_cell <<
+            //   ":"; for (auto& y :
+            //   multilevel_partition[i].separator_node_list)
+            //     cerr << " " << y;
+            //   cerr << endl;
             // }
 
             auto td = format_multilevel_partition_as_tree_decomposition(
@@ -429,8 +423,8 @@ int paceMain(int argc, char* argv[]) {
             best_bag_size = tw;
             delete[] old_decomposition;
           }
-          print_comment("status " + to_string(best_bag_size) + " " +
-                        to_string(get_milli_time()));
+          // print_comment("status " + to_string(best_bag_size) + " " +
+          //               to_string(get_milli_time()));
         };
 
     {
@@ -439,7 +433,7 @@ int paceMain(int argc, char* argv[]) {
         rand_gen.seed(random_seed);
 
         if (node_count > 500000) {
-          print_comment("start F1 with 0.1 min balance and edge_first");
+          // print_comment("start F1 with 0.1 min balance and edge_first");
           flow_cutter::Config config;
           config.cutter_count = 1;
           config.random_seed = rand_gen();
@@ -452,87 +446,22 @@ int paceMain(int argc, char* argv[]) {
               on_new_multilevel_partition);
         }
 
-        //				{
-        //					print_comment("start F1 with 0.1
-        // min balance and node_first");
-        // flow_cutter::Config config;
-        // config.cutter_count = 1;
-        //					config.random_seed = rand_gen();
-        //					config.min_small_side_size =
-        // 0.1; 					config.max_cut_size =
-        // 5000; config.separator_selection =
-        // flow_cutter::Config::SeparatorSelection::node_first;
-        //					compute_multilevel_partition(tail,
-        // head, flow_cutter::ComputeSeparator(config), best_bag_size,
-        // on_new_multilevel_partition);
-        //				}
-
-        //				{
-        //					print_comment("start F3 with
-        // 0.05 min balance and node_first");
-        // flow_cutter::Config config;
-        // config.cutter_count = 3;
-        //					config.random_seed = rand_gen();
-        //					config.min_small_side_size =
-        // 0.05; 					config.max_cut_size =
-        // 5000; config.separator_selection =
-        // flow_cutter::Config::SeparatorSelection::node_first;
-        //					compute_multilevel_partition(tail,
-        // head, flow_cutter::ComputeSeparator(config), best_bag_size,
-        // on_new_multilevel_partition);
-        //				}
-
-        //				{
-        //					print_comment("start foo");
-        //					flow_cutter::Config config;
-        //					config.cutter_count = 1;
-        //					config.random_seed = rand_gen();
-        //					config.min_small_side_size =
-        // 0.1; 					config.max_cut_size =
-        // 5000; config.separator_selection =
-        // flow_cutter::Config::SeparatorSelection::node_first;
-
-        //					auto top_sep_list =
-        // flow_cutter::ComputeSeparatorList(config)(tail, head);
-
-        //					top_sep_list.erase(top_sep_list.begin(),
-        // top_sep_list.end()-2);
-
-        //					for(auto&top_sep:top_sep_list){
-        //						print_comment("use top
-        // level sep "+std::to_string(top_sep.size()));
-        // auto default_compute_separator =
-        // flow_cutter::ComputeSeparator(config);
-        // auto compute_separator =
-        //[&](const ArrayIDIDFunc&tail, const
-        // ArrayIDIDFunc&head)->std::vector<int>{
-        // if(tail.image_count() == node_count){
-        // print_comment("Used");
-        // return top_sep; }else
-        // return default_compute_separator(tail, head);
-        //						};
-        //						compute_multilevel_partition(tail,
-        // head, compute_separator, best_bag_size, on_new_multilevel_partition);
-        //					}
-
-        //				}
-
         if (node_count < 50000) {
-          print_comment("min degree heuristic");
+          // print_comment("min degree heuristic");
           test_new_order(
               chain(compute_greedy_min_degree_order(tail, head), inv_preorder));
         }
 
         if (node_count < 10000) {
-          print_comment("min shortcut heuristic");
+          // print_comment("min shortcut heuristic");
           test_new_order(chain(compute_greedy_min_shortcut_order(tail, head),
                                inv_preorder));
         }
 
         {
-          print_comment(
-              "run with 0.0/0.1/0.2 min balance and node_min_expansion in "
-              "endless loop with varying seed");
+          // print_comment(
+          //     "run with 0.0/0.1/0.2 min balance and node_min_expansion in "
+          //     "endless loop with varying seed");
           flow_cutter::Config config;
           config.cutter_count = 1;
           config.random_seed = rand_gen();
@@ -540,7 +469,9 @@ int paceMain(int argc, char* argv[]) {
           config.separator_selection =
               flow_cutter::Config::SeparatorSelection::node_min_expansion;
 
-          for (int i = 2;; ++i) {
+#define MAX_FAIL 10
+          int nbFail = 1;
+          for (int i = 2; nbFail < MAX_FAIL && !tle; ++i) {
             config.random_seed = rand_gen();
             if (i % 16 == 0) ++config.cutter_count;
 
@@ -556,21 +487,15 @@ int paceMain(int argc, char* argv[]) {
                 break;
             }
 
-            //						switch(i % 2){
-            //							case 1:
-            // config.separator_selection =
-            // flow_cutter::Config::SeparatorSelection::node_min_expansion;
-            // break; 							case 0:
-            // config.separator_selection =
-            // flow_cutter::Config::SeparatorSelection::node_first; break;
-            //						}
-
-            //						print_comment("new run
-            // with F"+std::to_string(config.cutter_count));
-
+            int saveBestBagSize = best_bag_size;
             compute_multilevel_partition(
                 tail, head, flow_cutter::ComputeSeparator(config),
                 best_bag_size, on_new_multilevel_partition);
+
+            if (saveBestBagSize >= best_bag_size)
+              nbFail++;
+            else
+              nbFail = 0;
           }
         }
       } catch (...) {
@@ -578,8 +503,8 @@ int paceMain(int argc, char* argv[]) {
     }
   } catch (...) {
   }
-  signal_handler(0);
-  return 0;
+
+  return best_decomposition;
 }
 
 }  // namespace flowCutter
