@@ -11,6 +11,10 @@ then
     cd 3rdParty/bipe/
     ./clean.sh 1
     cd $curRep
+
+    cd 3rdParty/flowCutter
+    make mrproper
+    cd $curRep
 fi
 
 rm -rf build/

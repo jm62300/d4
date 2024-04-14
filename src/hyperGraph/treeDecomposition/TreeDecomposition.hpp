@@ -25,9 +25,9 @@
 
 namespace d4 {
 
-class OptionPartitioningHeuristic;
+class OptionPartialOrderHeuristic;
 
-enum TreeDecompositionMethod { TREE_DECOMP_PARTITION };
+enum TreeDecompositionMethod { TREE_DECOMP_PARTITION, TREE_DECOMP_TREE_WIDTH };
 
 class TreeDecomp {
  private:
@@ -73,7 +73,8 @@ class TreeDecompositionMethodManager {
  public:
   static std::string getTreeDecompositionMethod(
       const TreeDecompositionMethod &m) {
-    if (m == TREE_DECOMP_PARTITION) return "tree decomposition partition";
+    if (m == TREE_DECOMP_PARTITION) return "tree-partition";
+    if (m == TREE_DECOMP_TREE_WIDTH) return "tree-width";
 
     throw(FactoryException("Paritioning method type unknown", __FILE__,
                            __LINE__));
@@ -81,7 +82,8 @@ class TreeDecompositionMethodManager {
 
   static TreeDecompositionMethod getTreeDecompositionMethod(
       const std::string &m) {
-    if (m == "partition") return TREE_DECOMP_PARTITION;
+    if (m == "tree-partition") return TREE_DECOMP_PARTITION;
+    if (m == "tree-width") return TREE_DECOMP_TREE_WIDTH;
 
     throw(FactoryException("Tree Decomposition method unknown", __FILE__,
                            __LINE__));
@@ -105,7 +107,7 @@ class TreeDecomposition {
    * @return a tree decomposition manager.
    */
   static TreeDecomposition *makeTreeDecomposition(
-      const OptionPartitioningHeuristic &options,
+      const OptionPartialOrderHeuristic &options,
       const ProblemInputType &inType, std::ostream &out);
 
   /**

@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -29,7 +29,34 @@ class WrapperSolver;
 class SpecManager;
 class EquivExtractor;
 
-class PartitioningHeuristic {
+enum PartialOrderHeuristicMethod : char {
+  PARTIAL_ORDER_TREE_DECOMPOSITION,
+  PARTIAL_ORDER_NONE
+};
+
+class OptionPartialOrderHeuristic;
+
+class PartialOrderMethodManager {
+ public:
+  static std::string getPartialOrderMethod(
+      const PartialOrderHeuristicMethod &m) {
+    if (m == PARTIAL_ORDER_TREE_DECOMPOSITION) return "tree-decomposition";
+    if (m == PARTIAL_ORDER_NONE) return "none";
+
+    throw(FactoryException("Paritioning method type unknown", __FILE__,
+                           __LINE__));
+  }  // getPartialOrderMethod
+
+  static PartialOrderHeuristicMethod getPartialOrderMethod(
+      const std::string &m) {
+    if (m == "tree-decomposition") return PARTIAL_ORDER_TREE_DECOMPOSITION;
+    if (m == "none") return PARTIAL_ORDER_NONE;
+
+    throw(FactoryException("Paritioning method unknown", __FILE__, __LINE__));
+  }  // getPartialOrderMethod
+};
+
+class PartialOrderHeuristic {
  protected:
   unsigned m_nbVar;
 
@@ -40,12 +67,12 @@ class PartitioningHeuristic {
                          std::vector<std::vector<Var>> &equivVar);
 
  public:
-  virtual ~PartitioningHeuristic() {}
-  static PartitioningHeuristic *makePartitioningHeuristic(
-      const OptionPartitioningHeuristic &options, SpecManager &sm,
+  virtual ~PartialOrderHeuristic() {}
+  static PartialOrderHeuristic *makePartitioningHeuristic(
+      const OptionPartialOrderHeuristic &options, SpecManager &sm,
       WrapperSolver &ws, std::ostream &out);
 
-  static PartitioningHeuristic *makePartitioningHeuristicNone(
+  static PartialOrderHeuristic *makePartitioningHeuristicNone(
       std::ostream &out);
 
   /**

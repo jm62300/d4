@@ -22,14 +22,14 @@
 #include <ostream>
 #include <vector>
 
-#include "PartitioningHeuristic.hpp"
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "PartialOrderHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 
-class PartitioningHeuristicTreeDecomp : public PartitioningHeuristic {
+class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
  protected:
   std::vector<unsigned> m_topologicalOrder;
 
@@ -43,8 +43,8 @@ class PartitioningHeuristicTreeDecomp : public PartitioningHeuristic {
    * @param out is the output stream.
    * @return a tree decomposition partitioner.
    */
-  static PartitioningHeuristicTreeDecomp *makePartitioningTreeDecomp(
-      const OptionPartitioningHeuristic &options, SpecManager &om,
+  static PartialOrderHeuristicTreeDecomp *makePartitioningTreeDecomp(
+      const OptionPartialOrderHeuristic &options, SpecManager &om,
       WrapperSolver &s, std::ostream &out);
 
   void computeCutSet(std::vector<Var> &component,

@@ -24,7 +24,7 @@
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationBranchingHeuristic.hpp"
 #include "src/configurations/ConfigurationCache.hpp"
-#include "src/configurations/ConfigurationPartitioningHeuristic.hpp"
+#include "src/configurations/ConfigurationPartialOrderHeuristic.hpp"
 
 namespace po = boost::program_options;
 
@@ -69,5 +69,5 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  *
  * @return the partitioning heuristic configuration.
  */
-d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
+d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
     const po::variables_map &vm, const std::string &prefix = "");

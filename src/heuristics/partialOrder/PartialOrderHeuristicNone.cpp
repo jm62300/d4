@@ -16,14 +16,21 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "PartialOrderHeuristicNone.hpp"
 
 namespace d4 {
 
-struct ConfigurationPartitioningHeuristic {
-  PartitioningMethod partitioningMethod = PARTITIONING_TREE_DECOMP;
-  PartitionerName partitionerName = PARTITIONER_PATOH;
-};
+/**
+   We do not use the partitioning process, then we return the component as cut
+   set.
+
+   @param[in] component, the set of variables of the component we want to cut.
+   @param[out] cutSet, the cut set we compute.
+*/
+void PartialOrderHeuristicNone::computeCutSet(std::vector<Var> &component,
+                                              std::vector<Var> &cutSet) {
+  cutSet = component;
+}  // component
+
 }  // namespace d4

@@ -28,7 +28,7 @@
 
 namespace d4 {
 
-class OptionPartitioningHeuristic;
+class OptionPartialOrderHeuristic;
 
 enum HyperGraphExtractorMethod { HYPER_GRAPH_DUAL };
 

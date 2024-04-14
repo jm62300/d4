@@ -21,7 +21,7 @@
 
 #include "cnf/HyperGraphExtractorCnfDual.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace d4 {
 

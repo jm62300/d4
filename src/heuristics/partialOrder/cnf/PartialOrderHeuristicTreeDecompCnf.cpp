@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "PartitioningHeuristicTreeDecompCnf.hpp"
+#include "PartialOrderHeuristicTreeDecompCnf.hpp"
 
 #include <ostream>
 
@@ -26,11 +26,11 @@
 namespace d4 {
 
 /**
- * @brief PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf
+ * @brief PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf
  * implementation.
  */
-PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf(
-    const OptionPartitioningHeuristic &options, SpecManagerCnf &om,
+PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
+    const OptionPartialOrderHeuristic &options, SpecManagerCnf &om,
     WrapperSolver &s, std::ostream &out) {
   TreeDecomposition *decomp =
       TreeDecomposition::makeTreeDecomposition(options, PB_CNF, out);
@@ -63,7 +63,7 @@ PartitioningHeuristicTreeDecompCnf::PartitioningHeuristicTreeDecompCnf(
 /**
  * @brief Destructor.
  */
-PartitioningHeuristicTreeDecompCnf::~PartitioningHeuristicTreeDecompCnf() {
+PartialOrderHeuristicTreeDecompCnf::~PartialOrderHeuristicTreeDecompCnf() {
 }  // destructor
 
 }  // namespace d4

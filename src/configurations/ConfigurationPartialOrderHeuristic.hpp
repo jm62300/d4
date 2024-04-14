@@ -16,31 +16,17 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#pragma once
 
-#include "OptionPartitioningHeuristic.hpp"
-
-#include "src/configurations/ConfigurationPartitioningHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace d4 {
-/**
- * @brief Construct a new Option Partitioning Heuristic object with the
- * default configuration.
- *
- */
-OptionPartitioningHeuristic::OptionPartitioningHeuristic()
-    : OptionPartitioningHeuristic(ConfigurationPartitioningHeuristic()) {
-}  // constructor.
 
-/**
- * @brief Construct a new Option Partitioning Heuristic object with the given
- * configuration.
- *
- * @param config is the configuration we want to use.
- */
-OptionPartitioningHeuristic::OptionPartitioningHeuristic(
-    const ConfigurationPartitioningHeuristic& config) {
-  partitioningMethod = config.partitioningMethod;
-  partitionerName = config.partitionerName;
-}  // constructor.
-
+struct ConfigurationPartialOrderHeuristic {
+  PartialOrderHeuristicMethod partialOrderMethod =
+      PARTIAL_ORDER_TREE_DECOMPOSITION;
+  PartitionerName partitionerName = PARTITIONER_PATOH;
+  TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
+  HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
+};
 }  // namespace d4

@@ -29,8 +29,8 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/BranchingHeuristic.hpp"
-#include "src/heuristics/partitioning/PartitioningHeuristic.hpp"
-#include "src/heuristics/partitioning/PartitioningHeuristicNone.hpp"
+#include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
+#include "src/heuristics/partialOrder/PartialOrderHeuristicNone.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
@@ -80,7 +80,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   SpecManager *m_specs;
 
   BranchingHeuristic *m_heuristic;
-  PartitioningHeuristic *m_hCutSet;
+  PartialOrderHeuristic *m_hCutSet;
   TmpEntry<U> NULL_CACHE_ENTRY;
   CacheManager<U> *m_cache;
 
@@ -116,7 +116,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // select the partitioner regarding if it projected model counting or not.
     if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
       m_out << "c [MODE] projected\n";
-      m_hCutSet = new PartitioningHeuristicNone();
+      m_hCutSet = new PartialOrderHeuristicNone();
       if (options.optionBranchingHeuristic.branchingHeuristicType ==
           BRANCHING_LARGE_ARITY) {
         m_out << "c [BRANCHING HEURISTIC] Cannot use the heuristic that branch "
@@ -126,8 +126,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       }
     } else {
       m_out << "c [MODE] classic\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
-          options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
+      m_hCutSet = PartialOrderHeuristic::makePartitioningHeuristic(
+          options.optionPartialOrderHeuristic, *m_specs, *m_solver, m_out);
     }
 
     // we initialize the object used to compute score and partition.

@@ -16,21 +16,28 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#pragma once
 
-#include "PartitioningHeuristicNone.hpp"
+#include <ostream>
+
+#include "../PartialOrderHeuristicTreeDecomp.hpp"
 
 namespace d4 {
+class PartialOrderHeuristicTreeDecompCnf
+    : public PartialOrderHeuristicTreeDecomp {
+ public:
+  /**
+   * @brief Constructor.
+   *
+   * @param options gives the list of options.
+   * @param om is the object which deal with the CNF formula.
+   * @param s is a SAT solver associate with the formula under consideration.
+   * @param out is the output stream.
+   */
+  PartialOrderHeuristicTreeDecompCnf(const OptionPartialOrderHeuristic &options,
+                                     SpecManagerCnf &om, WrapperSolver &s,
+                                     std::ostream &out);
 
-/**
-   We do not use the partitioning process, then we return the component as cut
-   set.
-
-   @param[in] component, the set of variables of the component we want to cut.
-   @param[out] cutSet, the cut set we compute.
-*/
-void PartitioningHeuristicNone::computeCutSet(std::vector<Var> &component,
-                                              std::vector<Var> &cutSet) {
-  cutSet = component;
-}  // component
-
+  ~PartialOrderHeuristicTreeDecompCnf();
+};
 }  // namespace d4

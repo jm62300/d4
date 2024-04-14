@@ -16,32 +16,32 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "PartitioningHeuristic.hpp"
+#include "PartialOrderHeuristic.hpp"
 
-#include "PartitioningHeuristicNone.hpp"
-#include "PartitioningHeuristicTreeDecomp.hpp"
+#include "PartialOrderHeuristicNone.hpp"
+#include "PartialOrderHeuristicTreeDecomp.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
 /**
- * @brief PartitioningHeuristic::makePartitioningHeuristic implementation.
+ * @brief PartialOrderHeuristic::makePartitioningHeuristic implementation.
  */
-PartitioningHeuristic *PartitioningHeuristic::makePartitioningHeuristic(
-    const OptionPartitioningHeuristic &options, SpecManager &s,
+PartialOrderHeuristic *PartialOrderHeuristic::makePartitioningHeuristic(
+    const OptionPartialOrderHeuristic &options, SpecManager &s,
     WrapperSolver &ws, std::ostream &out) {
-  out << "c [PARTITIONING HEURISTIC]" << options << "\n";
+  out << "c [PARTIAL ORDER HEURISTIC]" << options << "\n";
 
-  switch (options.partitioningMethod) {
-    case PARTITIONING_NONE:
-      return new PartitioningHeuristicNone();
-    case PARTITIONING_TREE_DECOMP: {
-      return PartitioningHeuristicTreeDecomp::makePartitioningTreeDecomp(
+  switch (options.partialOrderMethod) {
+    case PARTIAL_ORDER_NONE:
+      return new PartialOrderHeuristicNone();
+    case PARTIAL_ORDER_TREE_DECOMPOSITION: {
+      return PartialOrderHeuristicTreeDecomp::makePartitioningTreeDecomp(
           options, s, ws, out);
     }
   }
 
-  throw(FactoryException("Cannot create a PartitioningHeuristic", __FILE__,
+  throw(FactoryException("Cannot create a PartialOrderHeuristic", __FILE__,
                          __LINE__));
 }  // makePartitioningHeuristic
 

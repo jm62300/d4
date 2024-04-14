@@ -17,30 +17,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
+#include <src/problem/ProblemTypes.hpp>
+#include <vector>
 
-#include "Configuration.hpp"
-#include "ConfigurationBranchingHeuristic.hpp"
-#include "ConfigurationCache.hpp"
-#include "ConfigurationPartialOrderHeuristic.hpp"
-#include "ConfigurationSolver.hpp"
-#include "ConfigurationSpec.hpp"
-#include "src/options/methods/OptionOperationManager.hpp"
+#include "PartialOrderHeuristic.hpp"
 
 namespace d4 {
-class ConfigurationMinSharpSatMathod : public Configuration {
+class PartialOrderHeuristicNone : public PartialOrderHeuristic {
  public:
-  bool greedyInitActivated = false;
-  bool digOnAnd = true;
-  double threshold = 1.0;
-  ConfigurationSolver solver;
-  ConfigurationSpec specManager;
+  PartialOrderHeuristicNone() {}
 
-  std::string phaseHeuristicMin = "best";
-  unsigned randomPhaseHeuristicMin = 6;
-  ConfigurationBranchingHeuristic branchingHeuristicMin;
-  ConfigurationCache cacheManagerMin;
-
-  ConfigurationBranchingHeuristic branchingHeuristicInd;
-  ConfigurationCache cacheManagerInd;
+  void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
 };
 }  // namespace d4

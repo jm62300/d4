@@ -39,8 +39,8 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
       OptionBranchingHeuristic(config.branchingHeuristic);
 
   // Partitioning heuristic:
-  optionPartitioningHeuristic =
-      OptionPartitioningHeuristic(config.partitioningHeuristic);
+  optionPartialOrderHeuristic =
+      OptionPartialOrderHeuristic(config.partitioningHeuristic);
 
   // Set the solver.
   optionSolver = {config.solver.solverName};

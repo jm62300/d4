@@ -102,11 +102,11 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
 /**
  * @brief parsePartitioningHeuristicConfiguration implementation.
  */
-d4::ConfigurationPartitioningHeuristic parsePartitioningHeuristicConfiguration(
+d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
     const po::variables_map &vm, const std::string &prefix) {
-  d4::ConfigurationPartitioningHeuristic partitioningHeuristic;
+  d4::ConfigurationPartialOrderHeuristic partitioningHeuristic;
   partitioningHeuristic.partitioningMethod =
-      d4::PartitioningMethodManager::getPartitioningMethod(
+      d4::PartialOrderMethodManager::getPartitioningMethod(
           vm[prefix + "partitioning-heuristic"].as<std::string>());
 
   partitioningHeuristic.partitionerName =

@@ -18,26 +18,19 @@
  */
 #pragma once
 
-#include <ostream>
-
-#include "../PartitioningHeuristicTreeDecomp.hpp"
+#include "TreeDecompositionCnf.hpp"
 
 namespace d4 {
-class PartitioningHeuristicTreeDecompCnf
-    : public PartitioningHeuristicTreeDecomp {
+class TreeDecompositionTreeWidth : public TreeDecompositionCnf {
  public:
   /**
-   * @brief Constructor.
+   * @brief Compute a tree decomposition on a CNF using a tool that compute a
+   * tree decomposition.
    *
-   * @param options gives the list of options.
-   * @param om is the object which deal with the CNF formula.
-   * @param s is a SAT solver associate with the formula under consideration.
-   * @param out is the output stream.
+   * @param[in] om gives information about the CNF formula.
+   *
+   * @return the computed decomposition.
    */
-  PartitioningHeuristicTreeDecompCnf(const OptionPartitioningHeuristic &options,
-                                     SpecManagerCnf &om, WrapperSolver &s,
-                                     std::ostream &out);
-
-  ~PartitioningHeuristicTreeDecompCnf();
+  TreeDecomp *computeDecomposition(SpecManager &om) override;
 };
 }  // namespace d4

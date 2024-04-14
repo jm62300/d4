@@ -20,8 +20,9 @@
 #include "TreeDecomposition.hpp"
 
 #include "cnf/TreeDecompositionCnfPartition.hpp"
+#include "cnf/TreeDecompositionCnfTreeWidth.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/options/branchingHeuristic/OptionPartitioningHeuristic.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace d4 {
 
@@ -59,7 +60,7 @@ std::vector<TreeDecomp *> &TreeDecomp::getSons() { return m_sons; }  // getSons
  */
 
 TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
-    const OptionPartitioningHeuristic &options, const ProblemInputType &inType,
+    const OptionPartialOrderHeuristic &options, const ProblemInputType &inType,
     std::ostream &out) {
   switch (inType) {
     case PB_CNF:
@@ -67,6 +68,8 @@ TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
         case TREE_DECOMP_PARTITION:
           return new TreeDecompositionCnfPartition(
               options.partitionerName, options.hyperGraphExtractorMethod);
+        case TREE_DECOMP_TREE_WIDTH:
+          return new TreeDecompositionTreeWidth();
         default:
           break;
       }

@@ -31,7 +31,7 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/heuristics/BranchingHeuristic.hpp"
-#include "src/heuristics/partitioning/PartitioningHeuristic.hpp"
+#include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionQbfCounter.hpp"
 #include "src/options/solvers/OptionSolver.hpp"

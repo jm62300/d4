@@ -16,17 +16,16 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
-#include <src/problem/ProblemTypes.hpp>
-#include <vector>
 
-#include "PartitioningHeuristic.hpp"
+#include "TreeDecompositionCnfTreeWidth.hpp"
 
 namespace d4 {
-class PartitioningHeuristicNone : public PartitioningHeuristic {
- public:
-  PartitioningHeuristicNone() {}
+/**
+ * @brief TreeDecompositionTreeWidth::computeDecomposition implementation.
+ */
+TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(SpecManager &om) {
+  assert(0);
+  return NULL;
+}  // computeDecomposition
 
-  void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
-};
 }  // namespace d4

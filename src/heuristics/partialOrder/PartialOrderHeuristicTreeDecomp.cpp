@@ -16,24 +16,25 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "PartitioningHeuristicTreeDecomp.hpp"
 
-#include "cnf/PartitioningHeuristicTreeDecompCnf.hpp"
+#include "PartialOrderHeuristicTreeDecomp.hpp"
+
+#include "cnf/PartialOrderHeuristicTreeDecompCnf.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
 /**
- * @brief PartitioningHeuristicTreeDecomp::makePartitioningTreeDecomp
+ * @brief PartialOrderHeuristicTreeDecomp::makePartitioningTreeDecomp
  * implementation.
  */
-PartitioningHeuristicTreeDecomp *
-PartitioningHeuristicTreeDecomp::makePartitioningTreeDecomp(
-    const OptionPartitioningHeuristic &options, SpecManager &om,
+PartialOrderHeuristicTreeDecomp *
+PartialOrderHeuristicTreeDecomp::makePartitioningTreeDecomp(
+    const OptionPartialOrderHeuristic &options, SpecManager &om,
     WrapperSolver &s, std::ostream &out) {
   switch (om.getProblemInputType()) {
     case PB_CNF:
-      return new PartitioningHeuristicTreeDecompCnf(
+      return new PartialOrderHeuristicTreeDecompCnf(
           options, dynamic_cast<SpecManagerCnf &>(om), s, out);
     default:
       throw(FactoryException("Cannot create a Partitioning Heuristic", __FILE__,
@@ -42,9 +43,9 @@ PartitioningHeuristicTreeDecomp::makePartitioningTreeDecomp(
 }  // makePartitioningHeuristicStatic
 
 /**
- * @brief PartitioningHeuristicTreeDecomp::computeCutSet implementation.
+ * @brief PartialOrderHeuristicTreeDecomp::computeCutSet implementation.
  */
-void PartitioningHeuristicTreeDecomp::computeCutSet(std::vector<Var> &component,
+void PartialOrderHeuristicTreeDecomp::computeCutSet(std::vector<Var> &component,
                                                     std::vector<Var> &cutSet) {
   if (!component.size()) return;
 

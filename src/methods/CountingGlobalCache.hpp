@@ -207,7 +207,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
   SpecManager *m_specs;
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
-  PartitioningHeuristic *m_hCutSet;
+  PartialOrderHeuristic *m_hCutSet;
   TmpEntry<mpz::mpz_int> NULL_CACHE_ENTRY;
   CacheManager<mpz::mpz_int> *m_cache;
 
@@ -259,11 +259,11 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
     // select the partitioner regarding if it projected model counting or not.
     if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
       m_out << "c [MODE] projected\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristicNone(m_out);
+      m_hCutSet = PartialOrderHeuristic::makePartitioningHeuristicNone(m_out);
     } else {
       m_out << "c [MODE] classic\n";
-      m_hCutSet = PartitioningHeuristic::makePartitioningHeuristic(
-          options.optionPartitioningHeuristic, *m_specs, *m_solver, m_out);
+      m_hCutSet = PartialOrderHeuristic::makePartitioningHeuristic(
+          options.optionPartialOrderHeuristic, *m_specs, *m_solver, m_out);
     }
 
     assert(m_hVar && m_hPhase && m_hCutSet);
