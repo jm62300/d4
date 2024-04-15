@@ -17,15 +17,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "TreeDecompositionCnfTreeWidth.hpp"
+#include "GraphExtractorCnfPrimal.hpp"
 
 namespace d4 {
 /**
- * @brief TreeDecompositionTreeWidth::computeDecomposition implementation.
+ * @brief Construct a graph regarding the given CNF formula.
+ *
+ * @param[in] om gives information about the formula.
+ * @param[in] component is the set of variables under consideration.
+ * @param[out] graph is the computed graph.
  */
-TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(SpecManager &om) {
-  assert(0);
-  return NULL;
-}  // computeDecomposition
+void GraphExtractorCnfPrimal::constructGraph(SpecManager &om,
+                                             std::vector<Var> &component,
+                                             Graph &graph) {
+  std::cout << "TODO construct graph\n";
+}  // constructGraph
 
 }  // namespace d4

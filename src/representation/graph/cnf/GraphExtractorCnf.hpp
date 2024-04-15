@@ -18,19 +18,32 @@
  */
 #pragma once
 
-#include "TreeDecompositionCnf.hpp"
+#include "../GraphExtractor.hpp"
+#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
-class TreeDecompositionTreeWidth : public TreeDecompositionCnf {
+class GraphExtractorCnf : public GraphExtractor {
  public:
+  virtual ~GraphExtractorCnf() {}
+
   /**
-   * @brief Compute a tree decomposition on a CNF using a tool that compute a
-   * tree decomposition.
+   * @brief Try to simplify the CNF (following the variable representation -
+   * i.e. we remove information about the literals).
    *
-   * @param[in] om gives information about the CNF formula.
-   *
-   * @return the computed decomposition.
+   * @param[out] clauses is the set of clauses we want to simplify.
    */
-  TreeDecomp *computeDecomposition(SpecManager &om) override;
+  void simplication(std::vector<std::vector<int> > &clauses);
+
+  /**
+   * @brief Extract the CNF formula (keeping only information about the
+   * variables).
+   *
+   * @param[in] formula is the formula we want to extract.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] clauses is the set of computed clauses.
+   */
+  void extractCnf(SpecManagerCnf &formula, std::vector<Var> &component,
+                  std::vector<std::vector<int> > &clauses);
 };
+
 }  // namespace d4

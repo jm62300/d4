@@ -21,7 +21,7 @@
 
 #include <ostream>
 
-#include "src/hyperGraph/treeDecomposition/TreeDecomposition.hpp"
+#include "src/treeDecomposition/TreeDecomposition.hpp"
 
 namespace d4 {
 

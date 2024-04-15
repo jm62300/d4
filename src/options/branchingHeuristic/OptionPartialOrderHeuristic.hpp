@@ -22,9 +22,9 @@
 
 #include "src/exceptions/FactoryException.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
-#include "src/hyperGraph/partitioner/PartitionerManager.hpp"
-#include "src/hyperGraph/representation/HyperGraphExtractor.hpp"
-#include "src/hyperGraph/treeDecomposition/TreeDecomposition.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
+#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
+#include "src/treeDecomposition/TreeDecomposition.hpp"
 
 namespace d4 {
 

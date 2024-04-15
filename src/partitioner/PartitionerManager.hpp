@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/hyperGraph/representation/HyperGraph.hpp"
-#include "src/hyperGraph/representation/HyperGraphExtractor.hpp"
+#include "src/representation/hypergraph/HyperGraph.hpp"
+#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
 
 namespace d4 {
 
