@@ -16,21 +16,28 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
+#include "TreeDecompositioner.hpp"
+
+#include "TreeDecompositionerFlowCutter.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
-struct ConfigurationPartialOrderHeuristic {
-  PartialOrderHeuristicMethod partialOrderMethod =
-      PARTIAL_ORDER_TREE_DECOMPOSITION;
-  PartitionerName partitionerName = PARTITIONER_PATOH;
-  TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
-  TreeDecompositionerMethod treeDecompositionerMethod =
-      TREE_DECOMP_TOOL_FLOW_CUTTER;
-  HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
-  GraphExtractorMethod graphExtractorMethod = GRAPH_PRIMAL;
-  bool useSimpGraphExtractor = true;
-};
+/**
+ * @brief TreeDecompositioner::makeTreeDecompositionMethod implementation.
+ */
+TreeDecompositioner *TreeDecompositioner::makeTreeDecompositionMethod(
+    const TreeDecompositionerMethod &method) {
+  switch (method) {
+    case TREE_DECOMP_TOOL_FLOW_CUTTER:
+      return new TreeDecompositionerFlowCutter();
+
+    default:
+      break;
+  }
+
+  throw(FactoryException("Cannot create a TreeDecompositioner", __FILE__,
+                         __LINE__));
+}  // makeTreeDecompositionMethod
 }  // namespace d4

@@ -130,5 +130,19 @@ d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
           vm[prefix + "partialOrder-heuristic-hyper-graph-representation"]
               .as<std::string>());
 
+  partialOrderHeuristic.graphExtractorMethod =
+      d4::GraphExtractorMethodManager::getGraphExtractorMethodManager(
+          vm[prefix + "partialOrder-heuristic-graph-representation"]
+              .as<std::string>());
+
+  partialOrderHeuristic.treeDecompositionerMethod =
+      d4::TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
+          vm[prefix + "partialOrder-heuristic-tree-decomposition-method"]
+              .as<std::string>());
+
+  partialOrderHeuristic.useSimpGraphExtractor =
+      vm[prefix + "partialOrder-heuristic-representation-simplication"]
+          .as<bool>();
+
   return partialOrderHeuristic;
 }  // parsePartitioningHeuristicConfiguration

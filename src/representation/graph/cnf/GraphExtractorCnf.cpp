@@ -25,7 +25,7 @@ namespace d4 {
  * @brief GraphExtractorCnf::simplication implementation.
  */
 void GraphExtractorCnf::simplication(std::vector<std::vector<int> > &clauses) {
-  std::cout << "TODO simplication\n";
+  std::cout << "c TODO simplication\n";
 }  // simplication
 
 /**

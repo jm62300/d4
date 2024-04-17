@@ -19,17 +19,14 @@
 
 #include "TreeDecompositionCnfTreeWidth.hpp"
 
-#include "3rdParty/flowCutter/src/pace.h"
 #include "src/representation/graph/Graph.hpp"
 
 namespace d4 {
 /**
- * @brief TreeDecompositionTreeWidth::computeDecomposition implementation.
+ * @brief TreeDecompositionCnfTreeWidth::computeDecomposition implementation.
  */
-TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(SpecManager &om) {
-  GraphExtractor *graphExtractor = GraphExtractor::makeGraphExtractor(
-      m_graphExtractorMethod, m_simplification, PB_CNF);
-
+TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
+    SpecManager &om) {
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
     if (!om.getNbOccurrence(i))
@@ -38,14 +35,35 @@ TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(SpecManager &om) {
       component.push_back(i);
   }
   Graph graph;
-  graphExtractor->constructGraph(om, component, graph);
-  graph.display(std::cout);
+  m_graphExtractor->constructGraph(om, component, graph);
 
-  const char *decomp = flowCutter::paceMain(graph.getNbNode(), graph.getEdge());
-  std::cout << "print the decomposition:\n" << decomp;
+  TreeDecomp *treeDecomp =
+      m_treeDecompositioner->constructTreeDecomposition(graph);
 
-  assert(0);
+  assert(treeDecomp);
   return NULL;
 }  // computeDecomposition
+
+/**
+ * @brief TreeDecompositionCnfTreeWidth::TreeDecompositionCnfTreeWidth
+ * implementation.
+ */
+TreeDecompositionCnfTreeWidth::TreeDecompositionCnfTreeWidth(
+    const TreeDecompositionerMethod &treeDecompositionerMethod,
+    const GraphExtractorMethod &graphExtractorMethod, bool simplification) {
+  m_graphExtractor = GraphExtractor::makeGraphExtractor(graphExtractorMethod,
+                                                        simplification, PB_CNF);
+  m_treeDecompositioner = TreeDecompositioner::makeTreeDecompositionMethod(
+      treeDecompositionerMethod);
+}  // constructor.
+
+/**
+ * @brief TreeDecompositionCnfTreeWidth::~TreeDecompositionCnfTreeWidth
+ * implementation.
+ */
+TreeDecompositionCnfTreeWidth::~TreeDecompositionCnfTreeWidth() {
+  if (m_treeDecompositioner) delete m_treeDecompositioner;
+  if (m_graphExtractor) delete m_graphExtractor;
+}  // destructor.
 
 }  // namespace d4

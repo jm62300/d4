@@ -32,7 +32,7 @@ void GraphExtractorCnfPrimal::constructGraph(SpecManager &om,
                                              Graph &graph) {
   std::vector<std::vector<int>> clauses;
   extractCnf(dynamic_cast<SpecManagerCnf &>(om), component, clauses);
-  simplication(clauses);
+  if (m_simplication) simplication(clauses);
 
   std::vector<unsigned> mapping(om.getNbVariable() + 1, 0);
   for (unsigned i = 0; i < component.size(); i++) mapping[component[i]] = i + 1;

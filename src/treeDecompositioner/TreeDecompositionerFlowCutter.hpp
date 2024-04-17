@@ -16,21 +16,21 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+
 #pragma once
 
-#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
+#include "TreeDecompositioner.hpp"
 
 namespace d4 {
-
-struct ConfigurationPartialOrderHeuristic {
-  PartialOrderHeuristicMethod partialOrderMethod =
-      PARTIAL_ORDER_TREE_DECOMPOSITION;
-  PartitionerName partitionerName = PARTITIONER_PATOH;
-  TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
-  TreeDecompositionerMethod treeDecompositionerMethod =
-      TREE_DECOMP_TOOL_FLOW_CUTTER;
-  HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
-  GraphExtractorMethod graphExtractorMethod = GRAPH_PRIMAL;
-  bool useSimpGraphExtractor = true;
+class TreeDecompositionerFlowCutter : public TreeDecompositioner {
+ public:
+  /**
+   * @brief Compute a tree decomposition regarding a given graph using the tool
+   * flow-cutter.
+   *
+   * @param graph is the graph we want to handle.
+   * @return a tree decomposition of graph.
+   */
+  TreeDecomp *constructTreeDecomposition(Graph &graph) override;
 };
 }  // namespace d4

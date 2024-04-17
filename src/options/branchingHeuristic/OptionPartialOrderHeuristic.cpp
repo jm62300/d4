@@ -42,7 +42,10 @@ OptionPartialOrderHeuristic::OptionPartialOrderHeuristic(
   partialOrderMethod = config.partialOrderMethod;
   partitionerName = config.partitionerName;
   treeDecompositionMethod = config.treeDecompositionMethod;
+  treeDecompositionerMethod = config.treeDecompositionerMethod;
   hyperGraphExtractorMethod = config.hyperGraphExtractorMethod;
+  graphExtractorMethod = config.graphExtractorMethod;
+  useSimpGraphExtractor = config.useSimpGraphExtractor;
 }  // constructor.
 
 /**
@@ -55,7 +58,24 @@ std::ostream& operator<<(std::ostream& out,
       << PartialOrderMethodManager::getPartialOrderMethod(dt.partialOrderMethod)
       << ")"
       << " partitioner name("
-      << PartitionerNameManager::getPartitionerName(dt.partitionerName) << ")";
+      << PartitionerNameManager::getPartitionerName(dt.partitionerName) << ")"
+      << " tree decomposition method("
+      << TreeDecompositionMethodManager::getTreeDecompositionMethod(
+             dt.treeDecompositionMethod)
+      << ")"
+      << " tree decompositioner method("
+      << TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
+             dt.treeDecompositionerMethod)
+      << ")"
+      << " hyper graph representation("
+      << HyperGraphExtractorMethodManager::getHyperGraphExtractorMethodManager(
+             dt.hyperGraphExtractorMethod)
+      << ")"
+      << " graph representation("
+      << GraphExtractorMethodManager::getGraphExtractorMethodManager(
+             dt.graphExtractorMethod)
+      << ")"
+      << " graph extractor simplification(" << dt.useSimpGraphExtractor << ")";
   return out;
 }  // <<
 

@@ -356,7 +356,7 @@ void test_new_order(const ArrayIDIDFunc& order) {
 
 const char* paceMain(unsigned nbNode,
                      std::vector<std::pair<unsigned, unsigned>>& graph,
-                     int random_seed) {
+                     int maxNbTrail, int random_seed) {
   signal(SIGALRM, signal_handler);
 
   try {
@@ -436,7 +436,8 @@ const char* paceMain(unsigned nbNode,
         rand_gen.seed(random_seed);
 
         if (node_count > 500000) {
-          // print_comment("start F1 with 0.1 min balance and edge_first");
+          print_comment(
+              "[FLOW-CUTTER] start F1 with 0.1 min balance and edge_first");
           flow_cutter::Config config;
           config.cutter_count = 1;
           config.random_seed = rand_gen();
@@ -447,18 +448,21 @@ const char* paceMain(unsigned nbNode,
           compute_multilevel_partition(
               tail, head, flow_cutter::ComputeSeparator(config), best_bag_size,
               on_new_multilevel_partition);
+          std::cout << "c Tree width: " << best_bag_size << '\n';
         }
 
         if (node_count < 50000) {
-          // print_comment("min degree heuristic");
+          print_comment("[FLOW-CUTTER] min degree heuristic");
           test_new_order(
               chain(compute_greedy_min_degree_order(tail, head), inv_preorder));
+          std::cout << "c Tree width: " << best_bag_size << '\n';
         }
 
         if (node_count < 10000) {
-          // print_comment("min shortcut heuristic");
+          print_comment("[FLOW-CUTTER] min shortcut heuristic");
           test_new_order(chain(compute_greedy_min_shortcut_order(tail, head),
                                inv_preorder));
+          std::cout << "c Tree width: " << best_bag_size << '\n';
         }
 
         {
@@ -472,9 +476,9 @@ const char* paceMain(unsigned nbNode,
           config.separator_selection =
               flow_cutter::Config::SeparatorSelection::node_min_expansion;
 
-#define MAX_FAIL 10
           int nbFail = 1;
-          for (int i = 2; nbFail < MAX_FAIL && !tle; ++i) {
+          std::cout << "c Tree width: " << best_bag_size << '\n';
+          for (int i = 2; nbFail < maxNbTrail && !tle; ++i) {
             config.random_seed = rand_gen();
             if (i % 16 == 0) ++config.cutter_count;
 
@@ -497,8 +501,10 @@ const char* paceMain(unsigned nbNode,
 
             if (saveBestBagSize >= best_bag_size)
               nbFail++;
-            else
+            else {
+              std::cout << "c Tree width: " << best_bag_size << '\n';
               nbFail = 0;
+            }
           }
         }
       } catch (...) {

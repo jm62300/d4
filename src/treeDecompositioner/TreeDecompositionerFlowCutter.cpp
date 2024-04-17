@@ -16,21 +16,33 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
+#include "TreeDecompositionerFlowCutter.hpp"
+
+#include <chrono>
+#include <ctime>
+
+#include "3rdParty/flowCutter/src/pace.h"
 
 namespace d4 {
 
-struct ConfigurationPartialOrderHeuristic {
-  PartialOrderHeuristicMethod partialOrderMethod =
-      PARTIAL_ORDER_TREE_DECOMPOSITION;
-  PartitionerName partitionerName = PARTITIONER_PATOH;
-  TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
-  TreeDecompositionerMethod treeDecompositionerMethod =
-      TREE_DECOMP_TOOL_FLOW_CUTTER;
-  HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
-  GraphExtractorMethod graphExtractorMethod = GRAPH_PRIMAL;
-  bool useSimpGraphExtractor = true;
-};
+/**
+ * @brief TreeDecompositionerFlowCutter::constructTreeDecomposition
+ * implementation.
+ */
+TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
+    Graph &graph) {
+  auto start = std::chrono::system_clock::now();
+
+  const char *decomp =
+      flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11);
+  // std::cout << "print the decomposition:\n" << decomp;
+
+  auto end = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  std::cout << "elapsed time: " << elapsed_seconds.count() << "s" << std::endl;
+
+  return NULL;
+}  // constructTreeDecomposition
 }  // namespace d4

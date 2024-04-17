@@ -69,7 +69,9 @@ TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
           return new TreeDecompositionCnfPartition(
               options.partitionerName, options.hyperGraphExtractorMethod);
         case TREE_DECOMP_TREE_WIDTH:
-          return new TreeDecompositionTreeWidth();
+          return new TreeDecompositionCnfTreeWidth(
+              options.treeDecompositionerMethod, options.graphExtractorMethod,
+              options.useSimpGraphExtractor);
         default:
           break;
       }

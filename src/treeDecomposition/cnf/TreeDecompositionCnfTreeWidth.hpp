@@ -20,17 +20,35 @@
 
 #include "TreeDecompositionCnf.hpp"
 #include "src/representation/graph/GraphExtractor.hpp"
+#include "src/treeDecompositioner/TreeDecompositioner.hpp"
 
 namespace d4 {
-class TreeDecompositionTreeWidth : public TreeDecompositionCnf {
+class TreeDecompositionCnfTreeWidth : public TreeDecompositionCnf {
  private:
-  GraphExtractorMethod m_graphExtractorMethod = GRAPH_PRIMAL;
-  bool m_simplification = true;
+  TreeDecompositioner *m_treeDecompositioner = NULL;
+  GraphExtractor *m_graphExtractor = NULL;
 
  public:
   /**
-   * @brief Compute a tree decomposition on a CNF using a tool that compute a
-   * tree decomposition.
+   * @brief Construct a new object regarding the given options.
+   *
+   * @param treeDecompositionerMethod is the tree decompositioner we will use.
+   * @param graphExtractorMethod is the graph extractor we will use.
+   * @param simplication is set to true if the graph extractor use some kind of
+   * simplification.
+   */
+  TreeDecompositionCnfTreeWidth(
+      const TreeDecompositionerMethod &treeDecompositionerMethod,
+      const GraphExtractorMethod &graphExtractorMethod, bool simplication);
+
+  /**
+   * @brief Destroy the Tree Decomposition Cnf Tree Width object
+   */
+  ~TreeDecompositionCnfTreeWidth();
+
+  /**
+   * @brief Compute a tree decomposition on a CNF using a tool that compute
+   * a tree decomposition.
    *
    * @param[in] om gives information about the CNF formula.
    *
