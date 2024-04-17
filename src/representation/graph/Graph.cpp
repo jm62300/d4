@@ -19,4 +19,26 @@
 
 #include "Graph.hpp"
 
-namespace d4 {}
+namespace d4 {
+/**
+ * @brief Graph::addEdge implementation.
+ */
+void Graph::addEdge(const std::pair<unsigned, unsigned> &edge) {
+  unsigned l = edge.first, r = edge.second;
+  if (l > r) std::swap(l, r);
+
+  if (m_adjList[l].find(r) == m_adjList[l].end()) {
+    m_edges.push_back(std::make_pair(l, r));
+    m_adjList[l].insert(r);
+  }
+}  // addEdge
+
+/**
+ * @brief Graph::display implementation.
+ */
+void Graph::display(std::ostream &out) {
+  out << "#nodes: " << m_nbNode << "\n";
+  for (auto &p : m_edges) out << p.first << " " << p.second << '\n';
+}  // display
+
+}  // namespace d4

@@ -363,7 +363,10 @@ const char* paceMain(unsigned nbNode,
     {
       int nextArc = 0;
       ListGraph g(nbNode, 2 * graph.size());
+
       for (auto e : graph) {
+        assert(nextArc < g.arc_count());
+
         g.head[nextArc] = e.first - 1;
         g.tail[nextArc] = e.second - 1;
         nextArc++;

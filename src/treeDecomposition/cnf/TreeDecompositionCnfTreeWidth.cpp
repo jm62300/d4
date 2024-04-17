@@ -37,11 +37,12 @@ TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(SpecManager &om) {
     else
       component.push_back(i);
   }
-  Graph graph(component.size());
+  Graph graph;
   graphExtractor->constructGraph(om, component, graph);
+  graph.display(std::cout);
 
-  // const char *decomp = flowCutter::paceMain(graph.getNbNode(),
-  // graph.getEdge()); std::cout << "print the decomposition:\n" << decomp;
+  const char *decomp = flowCutter::paceMain(graph.getNbNode(), graph.getEdge());
+  std::cout << "print the decomposition:\n" << decomp;
 
   assert(0);
   return NULL;

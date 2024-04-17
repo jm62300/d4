@@ -18,7 +18,9 @@
  */
 #pragma once
 
-#include "vector"
+#include <ostream>
+#include <set>
+#include <vector>
 
 namespace d4 {
 
@@ -26,14 +28,22 @@ class Graph {
  private:
   unsigned m_nbNode;
   std::vector<std::pair<unsigned, unsigned>> m_edges;
+  std::vector<std::set<int>> m_adjList;
 
  public:
+  /**
+   * @brief Construct a new Graph object
+   */
+  Graph() {}
+
   /**
    * @brief Construct a new Graph object.
    *
    * @param nbNode is the number of nodes in the graph.
    */
-  Graph(unsigned nbNode) : m_nbNode(nbNode) {}
+  Graph(unsigned nbNode) : m_nbNode(nbNode) {
+    m_adjList.resize(nbNode + 1, std::set<int>());
+  }
 
   /**
    * @brief Add an edge into the graph.
@@ -50,6 +60,16 @@ class Graph {
   inline unsigned getNbNode() { return m_nbNode; }
 
   /**
+   * @brief Set the number of nodes.
+   *
+   * @param[in] nbNode is the number of nodes.
+   */
+  inline void setNbNode(unsigned nbNode) {
+    m_nbNode = nbNode;
+    m_adjList.resize(nbNode + 1, std::set<int>());
+  }
+
+  /**
    * @brief Get the edge list.
    *
    * @return the edges.
@@ -57,5 +77,12 @@ class Graph {
   inline std::vector<std::pair<unsigned, unsigned>> &getEdge() {
     return m_edges;
   }  // getEdge
+
+  /**
+   * @brief Display the graph in the given stream.
+   *
+   * @param out is the stream we want to use.
+   */
+  void display(std::ostream &out);
 };
 }  // namespace d4

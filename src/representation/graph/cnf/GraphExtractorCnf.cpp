@@ -34,7 +34,23 @@ void GraphExtractorCnf::simplication(std::vector<std::vector<int> > &clauses) {
 void GraphExtractorCnf::extractCnf(SpecManagerCnf &formula,
                                    std::vector<Var> &component,
                                    std::vector<std::vector<int> > &clauses) {
-  std::cout << "TODO extractCnf\n";
+  std::vector<bool> marked(formula.getNbClause() + 1, false);
+
+  for (auto v : component) {
+    for (auto &l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)}) {
+      IteratorIdxClause listIdx = formula.getVecIdxClause(l);
+      for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++) {
+        if (marked[*ptr]) continue;
+        marked[*ptr] = true;
+
+        clauses.push_back(std::vector<int>());
+        for (auto &m : formula.getClause(*ptr)) {
+          if (formula.litIsAssigned(l)) continue;
+          clauses.back().push_back(m.var());
+        }
+      }
+    }
+  }
 }  // extractCnf
 
 }  // namespace d4

@@ -24,7 +24,7 @@ do
 done
 
 cd $SCRIPT_DIR/3rdParty/flowCutter
-make -j
+make -j DEBUG=$opt
 
 cd $SCRIPT_DIR/3rdParty/glucose-3.0/core/
 make libst       

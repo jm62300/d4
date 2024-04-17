@@ -30,7 +30,23 @@ namespace d4 {
 void GraphExtractorCnfPrimal::constructGraph(SpecManager &om,
                                              std::vector<Var> &component,
                                              Graph &graph) {
-  std::cout << "TODO construct graph\n";
+  std::vector<std::vector<int>> clauses;
+  extractCnf(dynamic_cast<SpecManagerCnf &>(om), component, clauses);
+  simplication(clauses);
+
+  std::vector<unsigned> mapping(om.getNbVariable() + 1, 0);
+  for (unsigned i = 0; i < component.size(); i++) mapping[component[i]] = i + 1;
+
+  graph.setNbNode(component.size());
+  for (auto &cl : clauses) {
+    for (unsigned i = 0; i < cl.size(); i++) {
+      auto &l = cl[i];
+      assert(mapping[l]);
+
+      for (unsigned j = i + 1; j < cl.size(); j++)
+        graph.addEdge(std::make_pair(mapping[l], mapping[cl[j]]));
+    }
+  }
 }  // constructGraph
 
 }  // namespace d4

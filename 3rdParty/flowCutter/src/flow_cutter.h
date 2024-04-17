@@ -628,7 +628,9 @@ class BasicCutter {
       if (!assimilated[source_side].is_inside(x) &&
           !assimilated[target_side].is_inside(x)) {
         int flow_surplus = 0;
-        for (auto xy : graph.out_arc(x)) flow_surplus += flow(xy);
+        for (auto xy : graph.out_arc(x)) {
+          flow_surplus += flow(xy);
+        }
         assert(flow_surplus == 0 &&
                "Flow must be conserved outside of the assimilated sides");
       }
