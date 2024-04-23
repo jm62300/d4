@@ -488,6 +488,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
       return m_operation->manageBottom();
     DataBranch<U> b;
+
     b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
     return m_operation->manageBranch(b);
   }  // compute
