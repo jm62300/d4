@@ -103,6 +103,9 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
   branchingHeuristic.limitSizeClause =
       vm[prefix + "branching-heuristic-limit-clause"].as<unsigned>();
 
+  branchingHeuristic.configurationPartialOrderHeuristic =
+      parsePartitioningHeuristicConfiguration(vm);
+
   return branchingHeuristic;
 }  // parseBranchingHeuristicConfiguration
 
@@ -110,39 +113,36 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  * @brief parsePartitioningHeuristicConfiguration implementation.
  */
 d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
-    const po::variables_map &vm, const std::string &prefix) {
+    const po::variables_map &vm) {
   d4::ConfigurationPartialOrderHeuristic partialOrderHeuristic;
   partialOrderHeuristic.partialOrderMethod =
       d4::PartialOrderMethodManager::getPartialOrderMethod(
-          vm[prefix + "partialOrder-heuristic"].as<std::string>());
+          vm["partialOrder-heuristic"].as<std::string>());
 
   partialOrderHeuristic.partitionerName =
       d4::PartitionerNameManager::getPartitionerName(
-          vm[prefix + "partialOrder-heuristic-partitioner"].as<std::string>());
+          vm["partialOrder-heuristic-partitioner"].as<std::string>());
 
   partialOrderHeuristic.treeDecompositionMethod =
       d4::TreeDecompositionMethodManager::getTreeDecompositionMethod(
-          vm[prefix + "partialOrder-heuristic-tree-decomposition"]
-              .as<std::string>());
+          vm["partialOrder-heuristic-tree-decomposition"].as<std::string>());
 
   partialOrderHeuristic.hyperGraphExtractorMethod =
       d4::HyperGraphExtractorMethodManager::getHyperGraphExtractorMethodManager(
-          vm[prefix + "partialOrder-heuristic-hyper-graph-representation"]
+          vm["partialOrder-heuristic-hyper-graph-representation"]
               .as<std::string>());
 
   partialOrderHeuristic.graphExtractorMethod =
       d4::GraphExtractorMethodManager::getGraphExtractorMethodManager(
-          vm[prefix + "partialOrder-heuristic-graph-representation"]
-              .as<std::string>());
+          vm["partialOrder-heuristic-graph-representation"].as<std::string>());
 
   partialOrderHeuristic.treeDecompositionerMethod =
       d4::TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
-          vm[prefix + "partialOrder-heuristic-tree-decomposition-method"]
+          vm["partialOrder-heuristic-tree-decomposition-method"]
               .as<std::string>());
 
   partialOrderHeuristic.useSimpGraphExtractor =
-      vm[prefix + "partialOrder-heuristic-representation-simplication"]
-          .as<bool>();
+      vm["partialOrder-heuristic-representation-simplication"].as<bool>();
 
   return partialOrderHeuristic;
 }  // parsePartitioningHeuristicConfiguration

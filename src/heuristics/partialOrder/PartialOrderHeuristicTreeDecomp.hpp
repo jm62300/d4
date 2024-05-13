@@ -43,11 +43,22 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    * @param out is the output stream.
    * @return a tree decomposition partitioner.
    */
-  static PartialOrderHeuristicTreeDecomp *makePartitioningTreeDecomp(
+  static PartialOrderHeuristicTreeDecomp *makePartialOrderTreeDecomp(
       const OptionPartialOrderHeuristic &options, SpecManager &om,
       WrapperSolver &s, std::ostream &out);
 
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet) override;
+
+  /**
+   * @brief Get the partial order regarding the topological order.
+   *
+   * @param v is a variable.
+   *
+   * @return the position of v in the order.
+   */
+  inline unsigned getPartialOrder(Var v) override {
+    return m_topologicalOrder[v];
+  }  // getPartialOrder
 };
 }  // namespace d4

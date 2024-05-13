@@ -59,7 +59,6 @@ class PartialOrderMethodManager {
 class PartialOrderHeuristic {
  protected:
   unsigned m_nbVar;
-
   void computeEquivClass(EquivExtractor &eqManager, WrapperSolver &solver,
                          std::vector<Var> &component,
                          std::vector<Lit> &unitEquiv,
@@ -68,12 +67,21 @@ class PartialOrderHeuristic {
 
  public:
   virtual ~PartialOrderHeuristic() {}
-  static PartialOrderHeuristic *makePartitioningHeuristic(
+  static PartialOrderHeuristic *makePartialOrderingHeuristic(
       const OptionPartialOrderHeuristic &options, SpecManager &sm,
       WrapperSolver &ws, std::ostream &out);
 
   static PartialOrderHeuristic *makePartitioningHeuristicNone(
       std::ostream &out);
+
+  /**
+   * @brief Get the partial order for a given variable.
+   *
+   * @param[in] v is a variable.
+   *
+   * @return the position of the given variable.
+   */
+  virtual unsigned getPartialOrder(Var v) { return 1; }
 
   /**
    * Compute a cutset regarding the subformula built on the set of given

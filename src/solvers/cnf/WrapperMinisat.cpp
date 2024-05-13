@@ -137,6 +137,8 @@ void WrapperMinisat::setReversePolarity(bool value) {
  * \return the number of times v occurs in a conflict.
  */
 double WrapperMinisat::getCountConflict(Var v) {
+  assert(v >= 0);
+  assert(v < s.scoreActivity.size());
   return s.scoreActivity[v];
 }  // getCountConflict
 

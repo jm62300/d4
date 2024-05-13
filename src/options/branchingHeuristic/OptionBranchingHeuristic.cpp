@@ -44,5 +44,7 @@ OptionBranchingHeuristic::OptionBranchingHeuristic(
   reversePhase = config.reversePhase;
   freqDecay = config.freqDecay;
   limitSizeClause = config.limitSizeClause;
+  optionPartialOrderHeuristic =
+      OptionPartialOrderHeuristic(config.configurationPartialOrderHeuristic);
 }  // constructor
 }  // namespace d4

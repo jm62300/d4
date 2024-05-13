@@ -18,13 +18,17 @@
  */
 #pragma once
 
+#include "ConfigurationPartialOrderHeuristic.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
+
 struct ConfigurationBranchingHeuristic {
+  ConfigurationPartialOrderHeuristic configurationPartialOrderHeuristic;
   ScoringMethodType scoringMethodType = SCORE_VSADS;
   PhaseHeuristicType phaseHeuristicType = PHASE_POLARITY;
-  BranchingHeuristicType branchingHeuristicType = BRANCHING_CLASSIC;
+  BranchingHeuristicType branchingHeuristicType =
+      BRANCHING_HYBRID_PARTIAL_CLASSIC;
   bool reversePhase = false;
   unsigned freqDecay = 128;
   unsigned limitSizeClause = 30;

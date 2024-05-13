@@ -262,7 +262,7 @@ class CountingGlobalCache : public MethodManager, public Counter<mpz::mpz_int> {
       m_hCutSet = PartialOrderHeuristic::makePartitioningHeuristicNone(m_out);
     } else {
       m_out << "c [MODE] classic\n";
-      m_hCutSet = PartialOrderHeuristic::makePartitioningHeuristic(
+      m_hCutSet = PartialOrderHeuristic::makePartialOrderingHeuristic(
           options.optionPartialOrderHeuristic, *m_specs, *m_solver, m_out);
     }
 

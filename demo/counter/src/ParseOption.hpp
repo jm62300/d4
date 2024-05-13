@@ -65,9 +65,8 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  * @brief Parse the configuration for the paritioning heuristic.
  *
  * @param vm are the options.
- * @param prefix is a string put in front in order to select the method.
  *
  * @return the partitioning heuristic configuration.
  */
 d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
-    const po::variables_map &vm, const std::string &prefix = "");
+    const po::variables_map &vm);

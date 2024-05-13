@@ -28,7 +28,7 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
-#include "src/heuristics/BranchingHeuristic.hpp"
+#include "src/heuristics/branchingHeuristic/BranchingHeuristic.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristicNone.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
@@ -80,7 +80,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   SpecManager *m_specs;
 
   BranchingHeuristic *m_heuristic;
-  PartialOrderHeuristic *m_hCutSet;
   TmpEntry<U> NULL_CACHE_ENTRY;
   CacheManager<U> *m_cache;
 
@@ -108,31 +107,15 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
+    m_isProjectedMode = m_problem->getNbSelectedVar() > 0;
 
     // we initialize the object that will give info about the problem.
     m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
                                            *m_problem, m_out);
 
-    // select the partitioner regarding if it projected model counting or not.
-    if ((m_isProjectedMode = m_problem->getNbSelectedVar())) {
-      m_out << "c [MODE] projected\n";
-      m_hCutSet = new PartialOrderHeuristicNone();
-      if (options.optionBranchingHeuristic.branchingHeuristicType ==
-          BRANCHING_LARGE_ARITY) {
-        m_out << "c [BRANCHING HEURISTIC] Cannot use the heuristic that branch "
-                 "on clauses\n";
-        options.optionBranchingHeuristic.branchingHeuristicType ==
-            BRANCHING_CLASSIC;
-      }
-    } else {
-      m_out << "c [MODE] classic\n";
-      m_hCutSet = PartialOrderHeuristic::makePartitioningHeuristic(
-          options.optionPartialOrderHeuristic, *m_specs, *m_solver, m_out);
-    }
-
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
-        options.optionBranchingHeuristic, m_specs, m_solver, m_out);
+        options.optionBranchingHeuristic, m_problem, m_specs, m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
@@ -168,7 +151,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_solver;
     delete m_specs;
     delete m_heuristic;
-    delete m_hCutSet;
     delete m_cache;
   }  // destructor
 
@@ -263,16 +245,14 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   */
   inline void showHeader(std::ostream &out) {
     separator(out);
-    out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter"
-        << "|\n";
+    out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter" << "|\n";
     separator(out);
   }  // showHeader
 
@@ -303,10 +283,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     out << "c\n";
     m_specs->printSpecInformation(out);
     m_cache->printCacheInformation(out);
-    if (m_hCutSet) {
-      out << "c\n";
-      m_hCutSet->displayStat(out);
-    }
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
   }  // printFinalStat
@@ -420,22 +396,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     std::vector<Var> cutSet;
     bool hasPriority = false, hasVariable = false;
 
-    for (auto v : connected) {
-      if (m_specs->varIsAssigned(v) || !m_isDecisionVariable[v]) continue;
-      hasVariable = true;
-      if ((hasPriority = m_currentPrioritySet[v])) break;
-    }
-
-    if (hasVariable && !hasPriority && m_hCutSet->isReady(connected)) {
-      m_hCutSet->computeCutSet(connected, cutSet);
-      m_callPartitioner++;
-      setCurrentPriority(cutSet);
-    }
-
     // search the next variable to branch on
-
     ListLit lits;
-    m_heuristic->selectLitSet(connected, m_currentPrioritySet, lits);
+    m_heuristic->selectLitSet(connected, lits);
     if (!lits.size()) {
       unsetCurrentPriority(cutSet);
       return m_operation->manageTop(connected);
@@ -459,12 +422,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       nb++;
     }
 
-#if 0
-    std::cout << "trail: ";
-    m_solver->showTrail();
-    std::cout << lits[0] << " -> res: ";
-    std::cout << b[0].d << ' ' << b[0].d << '\n';
-#endif
     // reinit some variables.
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);

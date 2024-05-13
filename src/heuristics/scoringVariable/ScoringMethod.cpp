@@ -60,7 +60,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
 }  // makeScoringMethod
 
 /**
- * @brief ScoringMethod::selectLitSet implementation.
+ * @brief ScoringMethod::selectVariable implementation.
  */
 Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
                                   std::vector<bool> &isDecisionVariable) {
@@ -79,6 +79,6 @@ Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
   }
 
   return ret;
-}  // selectLitSet
+}  // selectVariable
 
 }  // namespace d4

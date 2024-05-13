@@ -38,10 +38,6 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
   optionBranchingHeuristic =
       OptionBranchingHeuristic(config.branchingHeuristic);
 
-  // Partitioning heuristic:
-  optionPartialOrderHeuristic =
-      OptionPartialOrderHeuristic(config.partitioningHeuristic);
-
   // Set the solver.
   optionSolver = {config.solver.solverName};
 

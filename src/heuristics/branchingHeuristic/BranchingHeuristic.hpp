@@ -18,8 +18,8 @@
  */
 #pragma once
 
-#include "phaseSelection/PhaseHeuristic.hpp"
-#include "scoringVariable/ScoringMethod.hpp"
+#include "src/heuristics/phaseSelection/PhaseHeuristic.hpp"
+#include "src/heuristics/scoringVariable/ScoringMethod.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 
 namespace d4 {
@@ -39,7 +39,7 @@ class ListLit {
  public:
   ListLit();
   ListLit(const Lit *tab, int size);
-  ~ListLit();
+  virtual ~ListLit();
 
   void setListLit(const Lit *tab, int size);
 
@@ -57,6 +57,8 @@ class BranchingHeuristic {
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
   SpecManager *m_specs;
+  ProblemManager *m_problem;
+  std::vector<bool> m_isDecisionVariable;
   unsigned m_freqDecay;
   unsigned m_nbCall;
 
@@ -71,13 +73,14 @@ class BranchingHeuristic {
    * @brief Construct a new Branching Heuristic object.
    *
    * @param options are the options.
-   * @param m_specs gives the real time information about the formula.
-   * @param m_solver the solver (used for VSADS/VSIDS)
+   * @param problem gives the problem we are considering.
+   * @param specs gives the real time information about the formula.
+   * @param solver the solver (used for VSADS/VSIDS)
    * @param out is the stream where are printed out the information.
    */
   BranchingHeuristic(const OptionBranchingHeuristic &options,
-                     SpecManager *m_specs, WrapperSolver *m_solver,
-                     std::ostream &out);
+                     ProblemManager *problem, SpecManager *specs,
+                     WrapperSolver *solver, std::ostream &out);
 
   /**
    * @brief Destroy the Branching Heuristic object.
@@ -88,26 +91,25 @@ class BranchingHeuristic {
    * @brief Factory called for constructing a branching heuristic.
    *
    * @param options gives the options.
-   * @param m_specs gives the real time information about the formula.
-   * @param m_solver the solver (used for VSADS/VSIDS)
+   * @param problem gives the problem we are considering.
+   * @param specs gives the real time information about the formula.
+   * @param solver the solver (used for VSADS/VSIDS)
    * @param out is the stream where are printed out the information.
-   * @return a branchinh heuristic that fits the options.
+   *
+   * @return a branching heuristic that fits the options.
    */
   static BranchingHeuristic *makeBranchingHeuristic(
-      const OptionBranchingHeuristic &options, SpecManager *m_specs,
-      WrapperSolver *m_solver, std::ostream &out);
+      const OptionBranchingHeuristic &options, ProblemManager *problem,
+      SpecManager *specs, WrapperSolver *solver, std::ostream &out);
 
   /**
    * @brief Select a list of literals we want to branch on it in a deterministic
    * way.
    *
    * @param vars is the set of variables under consideration.
-   * @param isDecisionVariable are the variable we can decide on.
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  virtual void selectLitSet(std::vector<Var> &vars,
-                            std::vector<bool> &isDecisionVariable,
-                            ListLit &lits) = 0;
+  virtual void selectLitSet(std::vector<Var> &vars, ListLit &lits) = 0;
 };
 }  // namespace d4

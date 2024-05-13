@@ -25,11 +25,11 @@
 namespace d4 {
 
 /**
- * @brief PartialOrderHeuristicTreeDecomp::makePartitioningTreeDecomp
+ * @brief PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp
  * implementation.
  */
 PartialOrderHeuristicTreeDecomp *
-PartialOrderHeuristicTreeDecomp::makePartitioningTreeDecomp(
+PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
     const OptionPartialOrderHeuristic &options, SpecManager &om,
     WrapperSolver &s, std::ostream &out) {
   switch (om.getProblemInputType()) {

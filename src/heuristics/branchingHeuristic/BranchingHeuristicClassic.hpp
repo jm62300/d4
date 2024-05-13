@@ -21,45 +21,36 @@
 #include "BranchingHeuristic.hpp"
 
 namespace d4 {
-class BranchingHeuristicLargeArity : public BranchingHeuristic {
- private:
-  unsigned m_limitClause;
-  std::vector<int> m_indexOfLargeClause;
-  std::vector<bool> m_markedVar;
-
+class BranchingHeuristicClassic : public BranchingHeuristic {
  public:
   /**
    * @brief Remove the defaut constructor.
    *
    */
-  BranchingHeuristicLargeArity() = delete;
+  BranchingHeuristicClassic() = delete;
 
   /**
    * @brief Construct a new Branching Heuristic object.
    *
    * @param options are the options.
-   * @param m_specs gives the real time information about the formula.
-   * @param m_solver the solver (used for VSADS/VSIDS)
+   * @param problem gives the problem we are considering.
+   * @param specs gives the real time information about the formula.
+   * @param solver the solver (used for VSADS/VSIDS)
    * @param out is the stream where are printed out the information.
    */
-  BranchingHeuristicLargeArity(const OptionBranchingHeuristic &options,
-                               SpecManager *specs, WrapperSolver *solver,
-                               std::ostream &out);
+  BranchingHeuristicClassic(const OptionBranchingHeuristic &options,
+                            ProblemManager *problem, SpecManager *specs,
+                            WrapperSolver *solver, std::ostream &out)
+      : BranchingHeuristic(options, problem, specs, solver, out) {}
 
   /**
-   * @brief If a large constraint exists (that is constraint with more than
-   * m_limitClause literals) we branch on priority on the set of variables
-   * of this constraint. Otherwise, the classical heuristic is used (that is
-   * we select the variable and the phase according to the m_hVar and
-   * m_hPhase objects).
+   * @brief Return one literal given the scoring heuristic and the phase
+   * heuristic.
    *
    * @param vars is the set of variables under consideration.
-   * @param isDecisionVariable are the variable we can decide on.
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  void selectLitSet(std::vector<Var> &vars,
-                    std::vector<bool> &isDecisionVariable,
-                    ListLit &lits) override;
+  void selectLitSet(std::vector<Var> &vars, ListLit &lits) override;
 };
 }  // namespace d4

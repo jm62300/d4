@@ -40,8 +40,7 @@ TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
   TreeDecomp *treeDecomp =
       m_treeDecompositioner->constructTreeDecomposition(graph);
 
-  assert(treeDecomp);
-  return NULL;
+  return treeDecomp;
 }  // computeDecomposition
 
 /**

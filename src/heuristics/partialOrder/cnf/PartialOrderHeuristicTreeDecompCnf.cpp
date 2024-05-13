@@ -36,25 +36,34 @@ PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
       TreeDecomposition::makeTreeDecomposition(options, PB_CNF, out);
 
   TreeDecomp *tree = decomp->computeDecomposition(om);
+  assert(tree);
+  std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed\n";
 
   // construct the topological order.
   std::vector<TreeDecomp *> stack;
   stack.push_back(tree);
 
-  m_topologicalOrder.resize(om.getNbVariable() + 1);
+  m_topologicalOrder.resize(om.getNbVariable() + 1, 0);
   for (auto &v : m_topologicalOrder) v = 0;
 
   unsigned level = 1;
   while (stack.size()) {
-    TreeDecomp *tree = stack.back();
-    stack.pop_back();
+    std::vector<TreeDecomp *> saveStack = stack;
+    stack.clear();
 
-    for (auto &v : tree->getNode()) m_topologicalOrder[v] = level;
-    if (tree->getNode().size()) level++;
-    for (auto *t : tree->getSons()) stack.push_back(t);
+    for (auto *tree : saveStack) {
+      for (auto &v : tree->getNode()) {
+        assert(v < m_topologicalOrder.size());
+        if (!m_topologicalOrder[v]) m_topologicalOrder[v] = level;
+      }
+
+      for (auto *t : tree->getSons()) stack.push_back(t);
+    }
+
+    level++;
   }
 
-  out << "c [TREE DECOMPOSITION] Number of buckets: " << level - 1 << '\n';
+  out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
 
   delete tree;
   delete decomp;

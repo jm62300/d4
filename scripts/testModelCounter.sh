@@ -17,5 +17,7 @@ TESTED_METHOD="../demo/counter/build/counter_debug -i"
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 $MODEL_COUNTER $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
 
+
+
 diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null
 exit $?

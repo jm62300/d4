@@ -21,6 +21,8 @@
 
 #include <chrono>
 #include <ctime>
+#include <iostream>
+#include <sstream>
 
 #include "3rdParty/flowCutter/src/pace.h"
 
@@ -32,17 +34,106 @@ namespace d4 {
  */
 TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
     Graph &graph) {
-  auto start = std::chrono::system_clock::now();
+  TreeDecomp *ret = NULL;
 
+  // compute the tree decomposition using flow cutter.
+  auto start = std::chrono::system_clock::now();
   const char *decomp =
       flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11);
-  // std::cout << "print the decomposition:\n" << decomp;
-
   auto end = std::chrono::system_clock::now();
-
   std::chrono::duration<double> elapsed_seconds = end - start;
-  std::cout << "elapsed time: " << elapsed_seconds.count() << "s" << std::endl;
+  std::cout << "c [FLOW-CUTTER] Elapsed time: " << elapsed_seconds.count()
+            << "s" << std::endl;
 
-  return NULL;
+  if (!decomp)  // cannot find a decomposition (in the given time).
+  {
+    std::vector<Var> vars;
+    std::vector<bool> marked;
+
+    for (auto &e : graph.getEdge()) {
+      if (e.first >= marked.size() || !marked[e.first]) {
+        marked.resize(e.first + 1, false);
+        marked[e.first] = true;
+        vars.push_back(e.first);
+      }
+
+      if (e.second >= marked.size() || !marked[e.second]) {
+        marked.resize(e.second + 1, false);
+        marked[e.second] = true;
+        vars.push_back(e.second);
+      }
+    }
+
+    ret = new TreeDecomp(vars, std::vector<TreeDecomp *>());
+  } else {
+    // parse the decomposition from the result returned by flow-cutter.
+    std::istringstream f(decomp);
+    std::string line;
+    std::vector<TreeDecomp *> setOfTrees;
+
+    while (std::getline(f, line)) {
+      if (line.size() == 0) continue;
+      if (line[0] == 's') continue;
+
+      if (line[0] == 'b') {
+        unsigned i = 1;
+        while (i < line.size() && line[i] == ' ') i++;
+        assert(i < line.size());
+
+        // parse the index number
+        unsigned idx = 0;
+        while (line[i] != ' ' && i < line.size()) {
+          idx = idx * 10 + (line[i] - '0');
+          i++;
+        }
+        idx--;
+
+        while (i < line.size() && line[i] == ' ') i++;
+        assert(i < line.size());
+
+        // parse the variables.
+        std::vector<Var> vars;
+        while (i < line.size() && line[i] != '\n') {
+          unsigned v = 0;
+
+          while (line[i] != ' ' && i < line.size()) {
+            v = v * 10 + (line[i] - '0');
+            i++;
+          }
+
+          while (i < line.size() && line[i] == ' ') i++;
+          vars.push_back(v);
+        }
+
+        assert(idx == setOfTrees.size());
+        setOfTrees.push_back(new TreeDecomp(vars, std::vector<TreeDecomp *>()));
+      } else {
+        unsigned e1 = 0, e2 = 0, i = 0;
+        while (line[i] != ' ' && i < line.size()) {
+          e1 = e1 * 10 + (line[i] - '0');
+          i++;
+        }
+        while (i < line.size() && line[i] == ' ') i++;
+        assert(i < line.size());
+
+        e1--;
+
+        while (line[i] != ' ' && i < line.size()) {
+          e2 = e2 * 10 + (line[i] - '0');
+          i++;
+        }
+        e2--;
+
+        assert(e1 < setOfTrees.size() && e2 < setOfTrees.size());
+        setOfTrees[e1]->getSons().push_back(setOfTrees[e2]);
+      }
+    }
+
+    assert(setOfTrees.size());
+    ret = setOfTrees[0];
+  }
+
+  assert(ret);
+  return ret;
 }  // constructTreeDecomposition
 }  // namespace d4

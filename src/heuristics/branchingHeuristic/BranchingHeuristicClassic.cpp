@@ -23,15 +23,28 @@ namespace d4 {
 /**
  * @brief BranchingHeuristic::selectLitSet implementation.
  */
-void BranchingHeuristicClassic::selectLitSet(
-    std::vector<Var> &vars, std::vector<bool> &isDecisionVariable,
-    ListLit &lits) {
+void BranchingHeuristicClassic::selectLitSet(std::vector<Var> &vars,
+                                             ListLit &lits) {
   m_nbCall++;
 
   // decay the variable weights.
   if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
 
-  Var v = m_hVar->selectVariable(vars, *m_specs, isDecisionVariable);
+  // select one variable.
+  Var v = var_Undef;
+  double bestScore = -1;
+
+  for (auto &vTmp : vars) {
+    if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
+
+    double current = m_hVar->computeScore(vTmp);
+    if (v == var_Undef || current > bestScore) {
+      v = vTmp;
+      bestScore = current;
+    }
+  }
+
+  // return the list of lit (here one).
   if (v != var_Undef) {
     Lit tmp[] = {Lit::makeLit(v, m_hPhase->selectPhase(v))};
     lits.setListLit(tmp, 1);
@@ -39,9 +52,6 @@ void BranchingHeuristicClassic::selectLitSet(
     lits.setSize(0);
     lits.setArray(NULL);
   }
-
-  // decay the variable weights.
-  if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
 }  // selectLitSet
 
 }  // namespace d4

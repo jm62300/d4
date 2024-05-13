@@ -448,21 +448,24 @@ const char* paceMain(unsigned nbNode,
           compute_multilevel_partition(
               tail, head, flow_cutter::ComputeSeparator(config), best_bag_size,
               on_new_multilevel_partition);
-          std::cout << "c Tree width: " << best_bag_size << '\n';
+          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                    << '\n';
         }
 
         if (node_count < 50000) {
-          print_comment("[FLOW-CUTTER] min degree heuristic");
+          print_comment("[FLOW-CUTTER SOFT] min degree heuristic");
           test_new_order(
               chain(compute_greedy_min_degree_order(tail, head), inv_preorder));
-          std::cout << "c Tree width: " << best_bag_size << '\n';
+          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                    << '\n';
         }
 
         if (node_count < 10000) {
-          print_comment("[FLOW-CUTTER] min shortcut heuristic");
+          print_comment("[FLOW-CUTTER SOFT] min shortcut heuristic");
           test_new_order(chain(compute_greedy_min_shortcut_order(tail, head),
                                inv_preorder));
-          std::cout << "c Tree width: " << best_bag_size << '\n';
+          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                    << '\n';
         }
 
         {
@@ -477,7 +480,8 @@ const char* paceMain(unsigned nbNode,
               flow_cutter::Config::SeparatorSelection::node_min_expansion;
 
           int nbFail = 1;
-          std::cout << "c Tree width: " << best_bag_size << '\n';
+          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                    << '\n';
           for (int i = 2; nbFail < maxNbTrail && !tle; ++i) {
             config.random_seed = rand_gen();
             if (i % 16 == 0) ++config.cutter_count;
@@ -502,7 +506,8 @@ const char* paceMain(unsigned nbNode,
             if (saveBestBagSize >= best_bag_size)
               nbFail++;
             else {
-              std::cout << "c Tree width: " << best_bag_size << '\n';
+              std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                        << '\n';
               nbFail = 0;
             }
           }

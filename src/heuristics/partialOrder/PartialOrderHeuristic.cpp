@@ -25,9 +25,9 @@
 namespace d4 {
 
 /**
- * @brief PartialOrderHeuristic::makePartitioningHeuristic implementation.
+ * @brief PartialOrderHeuristic::makePartialOrderingHeuristic implementation.
  */
-PartialOrderHeuristic *PartialOrderHeuristic::makePartitioningHeuristic(
+PartialOrderHeuristic *PartialOrderHeuristic::makePartialOrderingHeuristic(
     const OptionPartialOrderHeuristic &options, SpecManager &s,
     WrapperSolver &ws, std::ostream &out) {
   out << "c [PARTIAL ORDER HEURISTIC]" << options << "\n";
@@ -36,13 +36,13 @@ PartialOrderHeuristic *PartialOrderHeuristic::makePartitioningHeuristic(
     case PARTIAL_ORDER_NONE:
       return new PartialOrderHeuristicNone();
     case PARTIAL_ORDER_TREE_DECOMPOSITION: {
-      return PartialOrderHeuristicTreeDecomp::makePartitioningTreeDecomp(
+      return PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
           options, s, ws, out);
     }
   }
 
   throw(FactoryException("Cannot create a PartialOrderHeuristic", __FILE__,
                          __LINE__));
-}  // makePartitioningHeuristic
+}  // makePartialOrderingHeuristic
 
 }  // namespace d4

@@ -20,6 +20,7 @@
 #include "BranchingHeuristic.hpp"
 
 #include "BranchingHeuristicClassic.hpp"
+#include "BranchingHeuristicHybridPartialClassic.hpp"
 #include "BranchingHeuristicLargeArity.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
@@ -92,6 +93,7 @@ void ListLit::setListLit(const Lit *tab, int size) {
  * @brief BranchingHeuristic::BranchingHeuristic implementation.
  */
 BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
+                                       ProblemManager *problem,
                                        SpecManager *specs,
                                        WrapperSolver *solver,
                                        std::ostream &out) {
@@ -101,7 +103,11 @@ BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
   m_hPhase = PhaseHeuristic::makePhaseHeuristic(options, *specs, *solver, out);
   m_freqDecay = options.freqDecay;
   m_specs = specs;
+  m_problem = problem;
   m_nbCall = 0;
+
+  m_isDecisionVariable.resize(problem->getNbVar() + 1, true);
+  for (auto &v : problem->getSelectedVar()) m_isDecisionVariable[v] = false;
 }  // constructor
 
 /**
@@ -115,17 +121,28 @@ BranchingHeuristic::~BranchingHeuristic() {
 
 /**
  * @brief BranchingHeuristic::makeBranchingHeuristic implementation.
+ *
  */
 BranchingHeuristic *BranchingHeuristic::makeBranchingHeuristic(
-    const OptionBranchingHeuristic &options, SpecManager *m_specs,
-    WrapperSolver *m_solver, std::ostream &out) {
+    const OptionBranchingHeuristic &options, ProblemManager *problem,
+    SpecManager *specs, WrapperSolver *solver, std::ostream &out) {
+  if (problem->getNbSelectedVar()) {
+    out << "c [MODE] Projected we can only use the classical heuristic\n";
+    return new BranchingHeuristicClassic(options, problem, specs, solver, out);
+  }
+
+  out << "c [MODE] classic\n";
   if (options.branchingHeuristicType == BRANCHING_CLASSIC)
-    return new BranchingHeuristicClassic(options, m_specs, m_solver, out);
+    return new BranchingHeuristicClassic(options, problem, specs, solver, out);
+  if (options.branchingHeuristicType == BRANCHING_HYBRID_PARTIAL_CLASSIC) {
+    return new BranchingHeuristicHybridPartialClassic(options, problem, specs,
+                                                      solver, out);
+  }
   if (options.branchingHeuristicType == BRANCHING_LARGE_ARITY)
-    return new BranchingHeuristicLargeArity(options, m_specs, m_solver, out);
+    return new BranchingHeuristicLargeArity(options, problem, specs, solver,
+                                            out);
 
   throw(FactoryException("Cannot create a BranchingHeuristic", __FILE__,
                          __LINE__));
 }  // makeBranchingHeuristic
-
 }  // namespace d4

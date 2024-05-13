@@ -35,6 +35,5 @@ class ConfigurationDpllStyleMethod : public Configuration {
   ConfigurationSolver solver;
   ConfigurationSpec spec;
   ConfigurationBranchingHeuristic branchingHeuristic;
-  ConfigurationPartialOrderHeuristic partitioningHeuristic;
 };
 }  // namespace d4

@@ -21,38 +21,49 @@
 #include "BranchingHeuristic.hpp"
 
 namespace d4 {
-class BranchingHeuristicClassic : public BranchingHeuristic {
+class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
+ private:
+  PartialOrderHeuristic *m_partialOrder;
+
  public:
   /**
    * @brief Remove the defaut constructor.
    *
    */
-  BranchingHeuristicClassic() = delete;
+  BranchingHeuristicHybridPartialClassic() = delete;
 
   /**
    * @brief Construct a new Branching Heuristic object.
    *
    * @param options are the options.
-   * @param m_specs gives the real time information about the formula.
-   * @param m_solver the solver (used for VSADS/VSIDS)
+   * @param problem gives the problem we are considering.
+   * @param specs gives the real time information about the formula.
+   * @param solver the solver (used for VSADS/VSIDS)
    * @param out is the stream where are printed out the information.
    */
-  BranchingHeuristicClassic(const OptionBranchingHeuristic &options,
-                            SpecManager *m_specs, WrapperSolver *m_solver,
-                            std::ostream &out)
-      : BranchingHeuristic(options, m_specs, m_solver, out) {}
+  BranchingHeuristicHybridPartialClassic(
+      const OptionBranchingHeuristic &options, ProblemManager *problem,
+      SpecManager *specs, WrapperSolver *solver, std::ostream &out)
+      : BranchingHeuristic(options, problem, specs, solver, out) {
+    // create the partial order.
+    m_partialOrder = PartialOrderHeuristic::makePartialOrderingHeuristic(
+        options.optionPartialOrderHeuristic, *specs, *solver, out);
+  }
+
+  /**
+   * @brief Destructor.
+   *
+   */
+  ~BranchingHeuristicHybridPartialClassic();
 
   /**
    * @brief Return one literal given the scoring heuristic and the phase
    * heuristic.
    *
    * @param vars is the set of variables under consideration.
-   * @param isDecisionVariable are the variable we can decide on.
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  void selectLitSet(std::vector<Var> &vars,
-                    std::vector<bool> &isDecisionVariable,
-                    ListLit &lits) override;
+  void selectLitSet(std::vector<Var> &vars, ListLit &lits) override;
 };
 }  // namespace d4
