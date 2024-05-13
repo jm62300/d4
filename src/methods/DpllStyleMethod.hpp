@@ -334,6 +334,11 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
                                                          freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
 
+    if (0 && nbComponent > 1) {
+      for (auto &v : setOfVar) std::cout << v << "\n";
+      exit(0);
+    }
+
     // consider each connected component.
     if (nbComponent) {
       U tab[nbComponent];

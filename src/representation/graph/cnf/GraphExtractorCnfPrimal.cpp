@@ -34,17 +34,17 @@ void GraphExtractorCnfPrimal::constructGraph(SpecManager &om,
   extractCnf(dynamic_cast<SpecManagerCnf &>(om), component, clauses);
   if (m_simplication) simplication(clauses);
 
-  std::vector<unsigned> mapping(om.getNbVariable() + 1, 0);
-  for (unsigned i = 0; i < component.size(); i++) mapping[component[i]] = i + 1;
+  unsigned maxId = 0;
+  for (auto v : component) {
+    if (v > maxId) maxId = v;
+  }
 
-  graph.setNbNode(component.size());
+  graph.setNbNode(maxId);
   for (auto &cl : clauses) {
     for (unsigned i = 0; i < cl.size(); i++) {
       auto &l = cl[i];
-      assert(mapping[l]);
-
       for (unsigned j = i + 1; j < cl.size(); j++)
-        graph.addEdge(std::make_pair(mapping[l], mapping[cl[j]]));
+        graph.addEdge(std::make_pair(l, cl[j]));
     }
   }
 }  // constructGraph

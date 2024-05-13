@@ -102,6 +102,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
           }
 
           while (i < line.size() && line[i] == ' ') i++;
+
           vars.push_back(v);
         }
 

@@ -45,6 +45,7 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
   double bestScore = -1;
 
   for (auto &vTmp : vars) {
+    assert(m_partialOrder->getPartialOrder(vTmp));
     if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
     if (v == var_Undef) {

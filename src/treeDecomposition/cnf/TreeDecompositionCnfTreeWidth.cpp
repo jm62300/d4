@@ -34,6 +34,7 @@ TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
     else
       component.push_back(i);
   }
+
   Graph graph;
   m_graphExtractor->constructGraph(om, component, graph);
 
