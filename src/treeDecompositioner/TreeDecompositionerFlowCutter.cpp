@@ -70,6 +70,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
     std::istringstream f(decomp);
     std::string line;
     std::vector<TreeDecomp *> setOfTrees;
+    std::vector<std::pair<unsigned, unsigned>> edges;
 
     while (std::getline(f, line)) {
       if (line.size() == 0) continue;
@@ -89,7 +90,6 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
         idx--;
 
         while (i < line.size() && line[i] == ' ') i++;
-        assert(i < line.size());
 
         // parse the variables.
         std::vector<Var> vars;
@@ -108,6 +108,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
 
         assert(idx == setOfTrees.size());
         setOfTrees.push_back(new TreeDecomp(vars, std::vector<TreeDecomp *>()));
+        nbParents.push_back(0);
       } else {
         unsigned e1 = 0, e2 = 0, i = 0;
         while (line[i] != ' ' && i < line.size()) {
@@ -125,12 +126,14 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
         }
         e2--;
 
-        assert(e1 < setOfTrees.size() && e2 < setOfTrees.size());
-        setOfTrees[e1]->getSons().push_back(setOfTrees[e2]);
+        edges.push_back(std::make_pair(e1, e2));
       }
     }
 
-    assert(setOfTrees.size());
+    // create the tree from the edges.
+
+    // select the root.
+
     ret = setOfTrees[0];
   }
 

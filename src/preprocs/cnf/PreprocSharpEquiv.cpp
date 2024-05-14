@@ -62,10 +62,10 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
       [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
 
   // Options:
-  bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
+  bipe::bipartition::OptionBackbone optionBackbone(false, 100, true, "glucose");
   bipe::bipartition::OptionDac optionDac(false, "glucose");
   bipe::bipartition::OptionBipartition optionBipartition(
-      false, true, true, "OCC_ASC", "glucose", 0);
+      false, true, true, "OCC_ASC", "glucose", 1000, 1);
 
   bipe::bipartition::Bipartition b;
   bipe::Problem *formula = nullptr;
@@ -170,11 +170,11 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin, unsigned timeout) {
       bipe::reducer::Method::makeMethod("combinaison", std::cout);
 
   // the reduction + elimination + reduction phase.
-  rm->run(pin->getNbVar(), clauses, 5, true, clauses);
+  rm->run(pin->getNbVar(), clauses, 10, false, clauses);
   std::vector<bipe::Lit> eliminated;
   e.eliminate(pin->getNbVar(), clauses, input, gates, eliminated, false,
               limitNbClauses);
-  rm->run(pin->getNbVar(), clauses, 5, true, clauses);
+  rm->run(pin->getNbVar(), clauses, 10, false, clauses);
 
   // the problem we return.
   ProblemManagerCnf *ret = new ProblemManagerCnf(

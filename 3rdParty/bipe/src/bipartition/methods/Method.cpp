@@ -121,6 +121,7 @@ Problem *Method::simplifyBackbone(Problem &p,
                                   std::vector<std::vector<bool>> &setOfModels) {
   Problem *formula = nullptr;
 
+  std::cout << "c [BiPe] " << optionBackbone << '\n';
   m_backboneMethod = new Backbone();
   bool isSAT =
       m_backboneMethod->run(p, gates, setOfModels, optionBackbone, out);
@@ -153,6 +154,7 @@ Problem *Method::simplifyDac(Problem &p, const OptionDac &optionDac,
                              std::vector<Gate> &gates, std::ostream &out,
                              std::vector<std::vector<bool>> &setOfModels) {
   Problem *formula = nullptr;
+  std::cout << "c [BiPe] " << optionDac << '\n';
 
   m_dacMethod = new DACircuit();
   bool isSAT = m_dacMethod->run(p, gates, setOfModels, optionDac, out);

@@ -31,17 +31,19 @@ class OptionBipartition : public Option {
   std::string heuristicSorting = "OCC_ASC";
   std::string solverName = "glucose";
   unsigned solverNbConflict = 0;
+  unsigned nbTries = 3;
 
   OptionBipartition() {}
   OptionBipartition(bool verb, bool uCore, bool uModel,
                     const std::string& hSorting, const std::string& sName,
-                    unsigned sNbConflict)
+                    unsigned sNbConflict, unsigned snbTries)
       : Option(verb),
         useCore(uCore),
         useModel(uModel),
         heuristicSorting(hSorting),
         solverName(sName),
-        solverNbConflict(sNbConflict) {}
+        solverNbConflict(sNbConflict),
+        nbTries(snbTries) {}
 
   /**
    * @brief Overloading << operator.

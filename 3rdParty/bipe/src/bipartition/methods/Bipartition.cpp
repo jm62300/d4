@@ -54,19 +54,17 @@ void Bipartition::separator(std::ostream &out) {
  */
 void Bipartition::printHeader(std::ostream &out) {
   separator(out);
-  out << "c "
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(SAT)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UNS)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UND)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(SAT)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UNS)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UND)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#i. mod."
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#o. sym."
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#remains"
-      << " |\n";
+  out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(SAT)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UNS)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UND)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(SAT)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UNS)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UND)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#i. mod." << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#o. sym." << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#remains" << " |\n";
   separator(out);
 }  // printHeader
 
@@ -769,6 +767,7 @@ bool Bipartition::run(Problem &p, std::vector<Var> &input,
   out << "c [BIPARTITION] #Projected: " << p.getProjectedVar().size() << "\n";
   out << "c [BIPARTITION] #Protected: " << p.getProtectedVar().size() << "\n";
   out << "c [BIPARTITION] #Gates: " << gates.size() << "\n";
+  out << "c [BiPe] " << optionBipartition << '\n';
 
   m_nbVar = p.getNbVar();
   initTimer();
@@ -832,7 +831,7 @@ bool Bipartition::run(Problem &p, std::vector<Var> &input,
   // compute the partition.
   std::vector<Lit> und;
   unsigned runNumber = 1;
-  while (true) {
+  while (runNumber <= optionBipartition.nbTries || !optionBipartition.nbTries) {
     std::cout << "c Run for " << runNumber * optionBipartition.solverNbConflict
               << " conflicts\n";
     und.resize(0);

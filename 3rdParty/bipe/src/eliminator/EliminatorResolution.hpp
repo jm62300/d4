@@ -30,6 +30,7 @@ class EliminatorResolution {
   std::vector<bool> m_isUnit;
   bool m_isInterrupt = false;
   unsigned m_largerClauses;
+  unsigned m_limitNbClause;
 
   /**
    * @brief Select a variable to be forget.
