@@ -29,6 +29,57 @@
 namespace d4 {
 
 /**
+ * @brief TreeDecompositionerFlowCutter::getCenterGraph implementation.
+ */
+unsigned TreeDecompositionerFlowCutter::getCenterGraph(
+    const std::vector<std::vector<unsigned>> &graph) {
+  std::vector<unsigned> degree, degreeOne, nextDegreeOne;
+  std::vector<bool> removed(graph.size() + 1, false);
+
+  for (unsigned i = 0; i < graph.size(); i++) {
+    degree.push_back(graph[i].size());
+    if (degree[i] == 1) degreeOne.push_back(i);
+  }
+
+  while (degreeOne.size()) {
+    // 'remove' nodes with degree one.
+    nextDegreeOne.clear();
+
+    for (auto n : degreeOne) {
+      assert(!removed[n]);
+      removed[n] = true;
+
+      for (auto m : graph[n]) {
+        if (removed[m]) continue;
+
+        degree[m]--;
+        if (!degree[m]) return m;
+        if (degree[m] == 1) nextDegreeOne.push_back(m);
+      }
+
+      degreeOne = nextDegreeOne;
+    }
+  }
+
+  return graph.size();
+}  // getCenterGraph
+
+/**
+ * @brief TreeDecompositionerFlowCutter::makeTreeFromGraph implementation.
+ */
+void TreeDecompositionerFlowCutter::makeTreeFromGraph(
+    const std::vector<std::vector<unsigned>> &graph, unsigned center,
+    std::vector<TreeDecomp *> &setOfTrees, std::vector<bool> &marked) {
+  marked[center] = true;
+
+  for (auto &n : graph[center]) {
+    if (marked[n]) continue;
+    setOfTrees[center]->getSons().push_back(setOfTrees[n]);
+    makeTreeFromGraph(graph, n, setOfTrees, marked);
+  }
+}  // makeTreeFromGraph
+
+/**
  * @brief TreeDecompositionerFlowCutter::constructTreeDecomposition
  * implementation.
  */
@@ -70,7 +121,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
     std::istringstream f(decomp);
     std::string line;
     std::vector<TreeDecomp *> setOfTrees;
-    std::vector<std::pair<unsigned, unsigned>> edges;
+    std::vector<std::vector<unsigned>> edges;
 
     while (std::getline(f, line)) {
       if (line.size() == 0) continue;
@@ -108,7 +159,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
 
         assert(idx == setOfTrees.size());
         setOfTrees.push_back(new TreeDecomp(vars, std::vector<TreeDecomp *>()));
-        nbParents.push_back(0);
+        edges.push_back(std::vector<unsigned>());
       } else {
         unsigned e1 = 0, e2 = 0, i = 0;
         while (line[i] != ' ' && i < line.size()) {
@@ -126,15 +177,24 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
         }
         e2--;
 
-        edges.push_back(std::make_pair(e1, e2));
+        assert(e1 < edges.size() && e2 < edges.size());
+        edges[e1].push_back(e2);
+        edges[e2].push_back(e1);
       }
     }
 
-    // create the tree from the edges.
+    if (setOfTrees.size() == 1)
+      ret = setOfTrees[0];
+    else {
+      // create the tree from the edges.
+      std::vector<bool> marked(edges.size() + 1, false);
+      unsigned center = getCenterGraph(edges);
+      assert(center < edges.size());
+      makeTreeFromGraph(edges, center, setOfTrees, marked);
 
-    // select the root.
-
-    ret = setOfTrees[0];
+      // select the root.
+      ret = setOfTrees[center];
+    }
   }
 
   assert(ret);

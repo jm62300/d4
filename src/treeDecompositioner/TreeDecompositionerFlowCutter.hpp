@@ -23,6 +23,31 @@
 
 namespace d4 {
 class TreeDecompositionerFlowCutter : public TreeDecompositioner {
+ private:
+  /**
+   * @brief Get the center of the graph using the onion algorithm.
+   *
+   * @param graph is the given graph.
+   *
+   * @return a node from the graph that will represent the center. If the graph
+   * is emptied then we return the last node + 1 (graph.size()).
+   */
+  unsigned getCenterGraph(const std::vector<std::vector<unsigned>> &graph);
+
+  /**
+   * @brief From a given graph and a center, constructs a tree that is stored in
+   * setOfTrees.
+   *
+   * @param[in] graph is the given graph.
+   * @param[in] center is the center we choose in graph.
+   * @param[out] setOfTrees the resulting tree.
+   * @param[out] marked is a boolean vector used in order to mark the visited
+   * nodes.
+   */
+  void makeTreeFromGraph(const std::vector<std::vector<unsigned>> &graph,
+                         unsigned center, std::vector<TreeDecomp *> &setOfTrees,
+                         std::vector<bool> &marked);
+
  public:
   /**
    * @brief Compute a tree decomposition regarding a given graph using the tool
