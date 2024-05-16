@@ -7,6 +7,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <limits>
 #include <queue>
@@ -356,7 +358,7 @@ void test_new_order(const ArrayIDIDFunc& order) {
 
 const char* paceMain(unsigned nbNode,
                      std::vector<std::pair<unsigned, unsigned>>& graph,
-                     int maxNbTrail, int random_seed) {
+                     int maxNbTrail, unsigned timeout, int random_seed) {
   signal(SIGALRM, signal_handler);
 
   try {
@@ -435,6 +437,8 @@ const char* paceMain(unsigned nbNode,
         std::minstd_rand rand_gen;
         rand_gen.seed(random_seed);
 
+        auto start = std::chrono::system_clock::now();
+
         if (node_count > 500000) {
           print_comment(
               "[FLOW-CUTTER] start F1 with 0.1 min balance and edge_first");
@@ -480,8 +484,14 @@ const char* paceMain(unsigned nbNode,
               flow_cutter::Config::SeparatorSelection::node_min_expansion;
 
           int nbFail = 1;
-          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
-                    << '\n';
+          std::cout << "c [FLOW-CUTTER SOFT BEFORE ITE] Tree width: "
+                    << best_bag_size << '\n';
+
+          auto end = std::chrono::system_clock::now();
+          std::chrono::duration<double> elapsed_seconds = end - start;
+          std::cout << "c [FLOW-CUTTER SOFT] Elapsed time: "
+                    << elapsed_seconds.count() << "s" << std::endl;
+
           for (int i = 2; nbFail < maxNbTrail && !tle; ++i) {
             config.random_seed = rand_gen();
             if (i % 16 == 0) ++config.cutter_count;
@@ -503,13 +513,20 @@ const char* paceMain(unsigned nbNode,
                 tail, head, flow_cutter::ComputeSeparator(config),
                 best_bag_size, on_new_multilevel_partition);
 
-            if (saveBestBagSize >= best_bag_size)
+            end = std::chrono::system_clock::now();
+            elapsed_seconds = end - start;
+
+            if (saveBestBagSize <= best_bag_size) {
               nbFail++;
-            else {
-              std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
-                        << '\n';
+            } else {
+              std::cout << "c [FLOW-CUTTER SOFT ITE] Tree width: "
+                        << best_bag_size << '\n';
               nbFail = 0;
+              std::cout << "c [FLOW-CUTTER SOFT] Elapsed time: "
+                        << elapsed_seconds.count() << "s" << std::endl;
             }
+
+            if (timeout && timeout < elapsed_seconds.count()) break;
           }
         }
       } catch (...) {

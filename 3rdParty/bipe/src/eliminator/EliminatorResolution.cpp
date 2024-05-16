@@ -61,9 +61,7 @@ bool EliminatorResolution::generateAllResolution(
     return true;
 
   unsigned limit =
-      m_limitNbClause +
-      (occClauses[l.intern()].size() + occClauses[(~l).intern()].size()) -
-      clauses.size();
+      (occClauses[l.intern()].size() + occClauses[(~l).intern()].size());
 
   std::vector<Lit> tmp;
   tmp.reserve(occClauses.size());
@@ -162,6 +160,7 @@ void EliminatorResolution::eliminate(unsigned nbVar,
   inProcess = output;
   m_limitNbClause = limitNbClauses;
 
+  unsigned iteration = 0, nbRemoved = 0;
   while (!m_isInterrupt && forgetApplied) {
     forgetApplied = false;
 
@@ -177,6 +176,7 @@ void EliminatorResolution::eliminate(unsigned nbVar,
         pass.push_back(v);
       else {
         eliminated.push_back(Lit::makeLitFalse(v));
+        nbRemoved++;
         forgetApplied = true;
 
         // remove the old clauses.
@@ -210,6 +210,8 @@ void EliminatorResolution::eliminate(unsigned nbVar,
     }
 
     inProcess = pass;
+    std::cout << "c [ELIMINATOR] Iteration(" << ++iteration << ") Resolved("
+              << nbRemoved << ")\n";
   }
 }  // eliminate
 

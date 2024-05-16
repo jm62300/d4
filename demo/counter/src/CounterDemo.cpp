@@ -116,5 +116,4 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
     countModels<mpz::mpz_int>(options, problem, format, outFormat, false);
   else
     countModels<mpz::mpf_float>(options, problem, format, outFormat, true);
-
 }  // counterDemo

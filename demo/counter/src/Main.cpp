@@ -21,6 +21,8 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/program_options.hpp>
 #include <cassert>
+#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <vector>
 
@@ -52,6 +54,7 @@ static void signalHandler(int signum) {
    The main function!
 */
 int main(int argc, char **argv) {
+  auto start = std::chrono::system_clock::now();
   po::options_description desc{"Options"};
   desc.add_options()
 #include "option.dsc"
@@ -98,6 +101,11 @@ int main(int argc, char **argv) {
 
   // count.
   counterDemo(vm, problem);
+
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  std::cout << "c [COUNTER] Elapsed time: " << elapsed_seconds.count()
+            << " seconds\n";
 
   delete initProblem;
   return EXIT_SUCCESS;

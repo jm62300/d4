@@ -90,7 +90,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
   // compute the tree decomposition using flow cutter.
   auto start = std::chrono::system_clock::now();
   const char *decomp =
-      flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11);
+      flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11, 100);
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
   std::cout << "c [FLOW-CUTTER] Elapsed time: " << elapsed_seconds.count()
@@ -98,6 +98,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
 
   if (!decomp)  // cannot find a decomposition (in the given time).
   {
+    std::cout << "c [FLOW-CUTTER] Cannot find a decomposition\n";
     std::vector<Var> vars;
     std::vector<bool> marked;
 

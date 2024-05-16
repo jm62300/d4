@@ -62,7 +62,7 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
       [](unsigned var, bool sign) { return bipe::Lit::makeLit(var, sign); });
 
   // Options:
-  bipe::bipartition::OptionBackbone optionBackbone(false, 100, true, "glucose");
+  bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
   bipe::bipartition::OptionDac optionDac(false, "glucose");
   bipe::bipartition::OptionBipartition optionBipartition(
       false, true, true, "OCC_ASC", "glucose", 1000, 1);
@@ -79,16 +79,19 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
       ((bipe::bipartition::Method *)PreprocManager::s_isRunning)->interrupt();
   };
   signal(SIGALRM, handler);
-  alarm(timeout);
 
   std::vector<std::vector<bool>> setOfModels;
   formula =
       b.simplifyBackbone(pb, optionBackbone, gates, std::cout, setOfModels);
 
+  alarm(timeout);
   if (formula) {
     bipe::Problem *tmp = formula;
     formula = b.simplifyDac(*tmp, optionDac, gates, std::cout, setOfModels);
-    delete tmp;
+    if (!formula)
+      formula = tmp;
+    else
+      delete tmp;
   }
 
   if (!formula) {
