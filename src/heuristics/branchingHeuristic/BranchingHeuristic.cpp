@@ -132,15 +132,17 @@ BranchingHeuristic *BranchingHeuristic::makeBranchingHeuristic(
   }
 
   out << "c [MODE] classic\n";
-  if (options.branchingHeuristicType == BRANCHING_CLASSIC)
-    return new BranchingHeuristicClassic(options, problem, specs, solver, out);
-  if (options.branchingHeuristicType == BRANCHING_HYBRID_PARTIAL_CLASSIC) {
-    return new BranchingHeuristicHybridPartialClassic(options, problem, specs,
-                                                      solver, out);
+  switch (options.branchingHeuristicType) {
+    case BRANCHING_CLASSIC:
+      return new BranchingHeuristicClassic(options, problem, specs, solver,
+                                           out);
+    case BRANCHING_HYBRID_PARTIAL_CLASSIC:
+      return new BranchingHeuristicHybridPartialClassic(options, problem, specs,
+                                                        solver, out);
+    case BRANCHING_LARGE_ARITY:
+      return new BranchingHeuristicLargeArity(options, problem, specs, solver,
+                                              out);
   }
-  if (options.branchingHeuristicType == BRANCHING_LARGE_ARITY)
-    return new BranchingHeuristicLargeArity(options, problem, specs, solver,
-                                            out);
 
   throw(FactoryException("Cannot create a BranchingHeuristic", __FILE__,
                          __LINE__));

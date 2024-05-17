@@ -71,7 +71,7 @@ bool Backbone::run(Problem &p, std::vector<Gate> &gates,
   unsigned nbSatCalls = 1;
   unsigned nbFoundUnit = 0;
 
-  std::cout << "c [BIPE BACKONE] Start.\n";
+  std::cout << "c [BIPE BACKBONE] Start.\n";
   if (!m_solver->solve()) return false;
   m_solver->setReversePolarity(option.reversePolarity);
   m_solver->setNeedModel(true);
@@ -84,7 +84,6 @@ bool Backbone::run(Problem &p, std::vector<Gate> &gates,
   for (auto &v : p.getProjectedVar()) markedProjected[v] = true;
   for (auto &v : p.getProtectedVar()) markedProtected[v] = true;
 
-  std::cout << "c [BIPE BACKONE] Run over the variables.\n";
   for (auto &v : p.getProjectedVar()) {
     if (marked[v] || m_solver->varIsAssigned(v) || markedProtected[v]) continue;
     if (m_isInterrupted) break;

@@ -46,6 +46,20 @@ TreeDecomp::~TreeDecomp() {
 }  // destructor
 
 /**
+ * @brief TreeDecomp::getSizeLargestBag implementation.
+ */
+unsigned TreeDecomp::getSizeLargestBag() {
+  unsigned sizeChildren = 0;
+  for (auto &c : m_sons) {
+    unsigned tmp = c->getSizeLargestBag();
+    if (tmp > sizeChildren) sizeChildren = tmp;
+  }
+
+  if (m_node.size() > sizeChildren) return m_node.size();
+  return sizeChildren;
+}  // getSizeLargestBag
+
+/**
  * @brief TreeDecomp::getNode implementation.
  */
 std::vector<Var> &TreeDecomp::getNode() { return m_node; }  // getNode

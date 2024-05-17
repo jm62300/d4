@@ -68,11 +68,9 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
       continue;
     }
 
-    if (nbMin <= WORTH_CUT && m_partialOrder->getPartialOrder(vTmp) != minLevel)
-      continue;
-
     double current = m_hVar->computeScore(vTmp);
-    current *= ratio * (maxLevel - m_partialOrder->getPartialOrder(vTmp));
+    if (minLevel != maxLevel && nbMin < 50)
+      current *= ratio * (maxLevel - m_partialOrder->getPartialOrder(vTmp));
 
     if (v == var_Undef || current > bestScore) {
       v = vTmp;

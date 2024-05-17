@@ -141,13 +141,17 @@ class OptionBranchingHeuristic {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionBranchingHeuristic& dt) {
-    out << " Option Branching Heuristic:" << " scoring method("
+    out << " Option Branching Heuristic:"
+        << " scoring method("
         << ScoringMethodTypeManager::getScoringMethodType(dt.scoringMethodType)
-        << ")" << " phase heuristic("
+        << ")"
+        << " phase heuristic("
         << PhaseHeuristicTypeManager::getPhaseHeuristicType(
                dt.phaseHeuristicType)
-        << ")" << " reverse phase (" << dt.reversePhase << ")"
-        << " freq-decay (" << dt.freqDecay << ")" << " branching heuristic ("
+        << ")"
+        << " reverse phase (" << dt.reversePhase << ")"
+        << " freq-decay (" << dt.freqDecay << ")"
+        << " branching heuristic ("
         << BranchingHeuristicTypeManager::getBranchingHeuristicType(
                dt.branchingHeuristicType);
 

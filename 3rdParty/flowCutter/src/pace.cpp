@@ -358,7 +358,8 @@ void test_new_order(const ArrayIDIDFunc& order) {
 
 const char* paceMain(unsigned nbNode,
                      std::vector<std::pair<unsigned, unsigned>>& graph,
-                     int maxNbTrail, unsigned timeout, int random_seed) {
+                     int maxNbTrail, unsigned timeout, bool rageQuit,
+                     int random_seed) {
   signal(SIGALRM, signal_handler);
 
   try {
@@ -464,7 +465,7 @@ const char* paceMain(unsigned nbNode,
                     << '\n';
         }
 
-        if (node_count < 10000) {
+        if (node_count < 10000 && (!rageQuit || best_bag_size < 300)) {
           print_comment("[FLOW-CUTTER SOFT] min shortcut heuristic");
           test_new_order(chain(compute_greedy_min_shortcut_order(tail, head),
                                inv_preorder));

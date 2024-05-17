@@ -67,6 +67,13 @@ class TreeDecomp {
    * @return the list of children.
    */
   std::vector<TreeDecomp *> &getSons();
+
+  /**
+   * @brief Get the with of the tree decompostion.
+   *
+   * @return the size of the largest bag.
+   */
+  unsigned getSizeLargestBag();
 };
 
 class TreeDecompositionMethodManager {

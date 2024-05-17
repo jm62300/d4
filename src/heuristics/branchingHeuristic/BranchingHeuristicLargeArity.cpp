@@ -75,7 +75,10 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
     unsigned size = 0;
     for (auto &l : specs->getClause(lIdx)) {
       assert(l.var() < m_markedVar.size());
-      if (m_markedVar[l.var()]) tmp[size++] = l;
+      if (m_markedVar[l.var()]) {
+        assert(l.var() >= 0);
+        tmp[size++] = l;
+      }
     }
 
     // sort the lits.
@@ -92,7 +95,7 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
     for (auto &vTmp : vars) {
       if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
-      double current = m_hVar->computeScore(v);
+      double current = m_hVar->computeScore(vTmp);
       if (v == var_Undef || current > bestScore) {
         v = vTmp;
         bestScore = current;

@@ -37,7 +37,9 @@ PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
 
   TreeDecomp *tree = decomp->computeDecomposition(om);
   assert(tree);
-  std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed\n";
+  std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed size("
+            << tree->getSizeLargestBag() << ") first size("
+            << tree->getNode().size() << ")\n";
 
   // construct the topological order.
   std::vector<TreeDecomp *> stack;
