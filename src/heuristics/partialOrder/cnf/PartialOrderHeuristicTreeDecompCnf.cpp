@@ -48,12 +48,14 @@ PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
   m_topologicalOrder.resize(om.getNbVariable() + 1, 0);
   for (auto &v : m_topologicalOrder) v = 0;
 
-  unsigned level = 1;
+  unsigned level = 1, largestBag = 0;
   while (stack.size()) {
     std::vector<TreeDecomp *> saveStack = stack;
     stack.clear();
 
     for (auto *tree : saveStack) {
+      if (tree->getNode().size() > largestBag)
+        largestBag = tree->getNode().size();
       for (auto &v : tree->getNode()) {
         assert(v < m_topologicalOrder.size());
         if (!m_topologicalOrder[v]) m_topologicalOrder[v] = level;
@@ -65,7 +67,19 @@ PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
     level++;
   }
 
+  if (largestBag < 30)
+    m_scaleFactor = 10000000;
+  else if (largestBag < 40)
+    m_scaleFactor = 100000;
+  else if (largestBag < 50)
+    m_scaleFactor = 1000;
+  else if (largestBag < 70)
+    m_scaleFactor = 1000;
+  else
+    m_scaleFactor = 10;
+
   out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
+  out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';
 
   delete tree;
   delete decomp;

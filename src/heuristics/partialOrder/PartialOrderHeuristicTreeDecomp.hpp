@@ -31,6 +31,7 @@ namespace d4 {
 
 class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
  protected:
+  double m_scaleFactor;
   std::vector<unsigned> m_topologicalOrder;
 
  public:
@@ -60,5 +61,12 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
   inline unsigned getPartialOrder(Var v) override {
     return m_topologicalOrder[v];
   }  // getPartialOrder
+
+  /**
+   * @brief The scale factor depends the size of the cutset.
+   *
+   * @return the scale factor variable.
+   */
+  inline double scaleFactor() override { return m_scaleFactor; }
 };
 }  // namespace d4
