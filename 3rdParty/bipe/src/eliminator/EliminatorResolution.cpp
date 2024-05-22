@@ -59,10 +59,12 @@ bool EliminatorResolution::generateAllResolution(
   Lit l = Lit::makeLitFalse(v);
   if (!occClauses[l.intern()].size() || !occClauses[(~l).intern()].size())
     return true;
+  if (occClauses[l.intern()].size() == 1 ||
+      occClauses[(~l).intern()].size() == 1)
+    return true;
 
   unsigned limit =
       (occClauses[l.intern()].size() + occClauses[(~l).intern()].size());
-
   std::vector<Lit> tmp;
   tmp.reserve(occClauses.size());
 

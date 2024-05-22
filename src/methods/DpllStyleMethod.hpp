@@ -69,6 +69,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   unsigned m_freqDecay;
   bool m_isProjectedMode;
 
+  bool m_connectedComponent;
+  unsigned m_lastNbSplit;
+  unsigned m_nbFailedIncreased;
+
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
@@ -108,6 +112,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
     m_isProjectedMode = m_problem->getNbSelectedVar() > 0;
+    m_connectedComponent = true;
+    m_nbFailedIncreased = m_lastNbSplit = 0;
 
     // we initialize the object that will give info about the problem.
     m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
@@ -308,6 +314,58 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   }  // cacheIsActivated
 
   /**
+   * @brief Compute the connected component.
+   *
+   * @param setOfVar is the set of variables under consideration.
+   * @param varConnected are the computed connected component.
+   * @param freeVariable are the free variables.
+   * @return is the number of components.
+   */
+  inline int computeConnectedComponent(
+      std::vector<Var> &setOfVar, std::vector<std::vector<Var>> &varConnected,
+      std::vector<Var> &freeVariable) {
+    if (m_connectedComponent && !(m_nbCallCall % 10000)) {
+      if (m_lastNbSplit == m_nbSplit)
+        m_nbFailedIncreased++;
+      else {
+        m_nbFailedIncreased = 0;
+        m_lastNbSplit = m_nbSplit;
+      }
+
+      m_connectedComponent = m_nbFailedIncreased < 11;
+      if (!m_connectedComponent)
+        std::cout << "c [CONNECTED COMPONENT] Stop searching for connected "
+                     "component\n";
+    }
+
+    if (m_connectedComponent || !(m_nbCallCall % 500)) {
+      unsigned ret = m_specs->computeConnectedComponent(varConnected, setOfVar,
+                                                        freeVariable);
+
+      if (ret > 1 && !m_connectedComponent) {
+        std::cout << "c [CONNECTECT COMPONENT] Start for searching for "
+                     "connected component\n";
+        m_nbFailedIncreased = 0;
+        m_connectedComponent = true;
+      }
+      return ret;
+    }
+
+    // move the free variables.
+    varConnected.push_back(std::vector<Var>());
+    for (auto &v : setOfVar) {
+      if (m_specs->varIsAssigned(v)) continue;
+      if (!m_specs->getNbOccurrence(v))
+        freeVariable.push_back(v);
+      else
+        varConnected[0].push_back(v);
+    }
+    if (!varConnected[0].size()) varConnected.pop_back();
+
+    return varConnected.size();
+  }  // computeConnectedComponent
+
+  /**
    * Call the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -324,14 +382,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
 
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
-
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
-    int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
-                                                         freeVariable);
+    int nbComponent =
+        computeConnectedComponent(setOfVar, varConnected, freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
 
     // consider each connected component.
@@ -341,7 +398,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
 
-        bool cacheActivated = cacheIsActivated(connected);
+        bool cacheActivated = false;  // cacheIsActivated(connected);
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
         if (cacheActivated && cb.defined)
