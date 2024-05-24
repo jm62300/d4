@@ -63,7 +63,12 @@ class CountingOperation : public Operation<T, T> {
     for (unsigned i = 0; i < size; i++)
       ret += elts[i].d * m_problem->computeWeightUnitFree<T>(elts[i].unitLits,
                                                              elts[i].freeVars);
-
+#if 0
+    if (ret > maxCount) {
+      maxCount = ret;
+      std::cout << "c count: " << maxCount << "\n";
+    }
+#endif
     return ret;
   }  // manageDeterministOr
 
@@ -81,7 +86,12 @@ class CountingOperation : public Operation<T, T> {
 
     T ret = 1;
     for (unsigned i = 0; i < size; i++) ret = ret * elts[i];
-
+#if 0
+    if (ret > maxCount) {
+      maxCount = ret;
+      std::cout << "c count: " << maxCount << "\n";
+    }
+#endif
     return ret;
   }  // manageDecomposableAnd
 

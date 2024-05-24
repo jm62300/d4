@@ -397,9 +397,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     if (nbComponent) {
       U tab[nbComponent];
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      // for (int cp = 0; cp < nbComponent; cp++) {
-      for (int cp = nbComponent > 1 ? nbComponent - 2 : 0; cp < nbComponent;
-           cp++) {
+      for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
