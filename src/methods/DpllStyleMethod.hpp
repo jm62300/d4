@@ -465,6 +465,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // compile the formula where l is assigned to true
     DataBranch<U> b[lits.size() + 1];
 
+    // std::cout << "decision " << lits[0] << '\n';
+
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
     for (unsigned i = 0; i <= lits.size(); i++) {
       if (i != 0) {

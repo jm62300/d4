@@ -106,8 +106,9 @@ BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
   m_problem = problem;
   m_nbCall = 0;
 
-  m_isDecisionVariable.resize(problem->getNbVar() + 1, true);
-  for (auto &v : problem->getSelectedVar()) m_isDecisionVariable[v] = false;
+  m_isDecisionVariable.resize(problem->getNbVar() + 1,
+                              !problem->getNbSelectedVar());
+  for (auto &v : problem->getSelectedVar()) m_isDecisionVariable[v] = true;
 }  // constructor
 
 /**

@@ -18,10 +18,9 @@ SOLVER="$ROOT_PATH/minisat"
 # $MODEL_COUNTER $1  | grep "^s " | sed 's/s //g' > /tmp/sol1.txt        
 # $TESTED_METHOD $1  | grep "c s exact arb int" | sed 's/c s exact arb int //g' 2>/dev/null > /tmp/sol2.txt
 
-MODEL_COUNTER="./d4ScriptsCompetition/bin/d4_static -m counting -i"
-TESTED_METHOD="../build/d4_debug -m counting -i"
+MODEL_COUNTER="./d4_static -m counting -i"
+TESTED_METHOD="../demo/counter/build/counter_debug -p sharp-equiv --preproc-timeout 1 --branching-heuristic classic -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
-
 
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 $MODEL_COUNTER $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt

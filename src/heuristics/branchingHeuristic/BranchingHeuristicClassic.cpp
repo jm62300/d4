@@ -35,6 +35,8 @@ void BranchingHeuristicClassic::selectLitSet(std::vector<Var> &vars,
   double bestScore = -1;
 
   for (auto &vTmp : vars) {
+    // std::cout << vTmp << "(" << m_isDecisionVariable[vTmp] << ") ";
+
     if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
     double current = m_hVar->computeScore(vTmp);
@@ -43,6 +45,8 @@ void BranchingHeuristicClassic::selectLitSet(std::vector<Var> &vars,
       bestScore = current;
     }
   }
+
+  // std::cout << '\n';
 
   // return the list of lit (here one).
   if (v != var_Undef) {
