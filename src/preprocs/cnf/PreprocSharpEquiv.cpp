@@ -65,7 +65,7 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
   bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
   bipe::bipartition::OptionDac optionDac(false, "glucose");
   bipe::bipartition::OptionBipartition optionBipartition(
-      false, true, true, "OCC_ASC", "glucose", 1000, 1);
+      false, true, true, "OCC_ASC", "glucose", 200, 5);
 
   bipe::bipartition::Bipartition b;
   bipe::Problem *formula = nullptr;
@@ -181,6 +181,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin, unsigned timeout) {
     previousSize = eliminated.size();
     e.eliminate(pin->getNbVar(), clauses, input, gates, eliminated, false,
                 limitNbClauses);
+
     rm->run(pin->getNbVar(), clauses, 10, false, clauses);
   } while (eliminated.size() != previousSize);
 

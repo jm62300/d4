@@ -60,8 +60,8 @@ bool EliminatorResolution::generateAllResolution(
   if (!occClauses[l.intern()].size() || !occClauses[(~l).intern()].size())
     return true;
 
-  bool bonus = false && occClauses[l.intern()].size() == 1 ||
-               occClauses[(~l).intern()].size() == 1;
+  bool bonus = false && (occClauses[l.intern()].size() == 1 ||
+                         occClauses[(~l).intern()].size() == 1);
 
   int limit =
       (occClauses[l.intern()].size() + occClauses[(~l).intern()].size());

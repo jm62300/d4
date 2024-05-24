@@ -832,20 +832,22 @@ bool Bipartition::run(Problem &p, std::vector<Var> &input,
   std::vector<Lit> und;
   unsigned runNumber = 1;
   while (runNumber <= optionBipartition.nbTries || !optionBipartition.nbTries) {
-    std::cout << "c Run for " << runNumber * optionBipartition.solverNbConflict
-              << " conflicts\n";
+    unsigned nbConflict = optionBipartition.solverNbConflict * runNumber;
+    // nbConflict = 0;
+    std::cout << "c " << runNumber << "/" << optionBipartition.nbTries
+              << " Run for " << nbConflict << " conflicts\n";
     und.resize(0);
-    compute(p, m_solver, input, und, heuristic, mapSelector,
-            runNumber * optionBipartition.solverNbConflict, symGroup, out,
-            optionBipartition.verbose);
+    compute(p, m_solver, input, und, heuristic, mapSelector, nbConflict,
+            symGroup, out, optionBipartition.verbose);
     heuristic->setAssumption(und);
     m_solver->cleanAssumption();
-    runNumber *= 2;
+    runNumber++;
     if (!und.size()) break;
   }
 
   assert(m_nbInputFromCompleteModel + m_nbInputFromPadoaModel ==
          m_nbInputFromModel);
+  for (auto &l : und) input.push_back(l.var());
   assert(m_nbInputFromModel <= input.size());
 
   // manage the result.
