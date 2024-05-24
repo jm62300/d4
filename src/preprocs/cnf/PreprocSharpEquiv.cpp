@@ -175,9 +175,14 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin, unsigned timeout) {
   // the reduction + elimination + reduction phase.
   rm->run(pin->getNbVar(), clauses, 10, false, clauses);
   std::vector<bipe::Lit> eliminated;
-  e.eliminate(pin->getNbVar(), clauses, input, gates, eliminated, false,
-              limitNbClauses);
-  rm->run(pin->getNbVar(), clauses, 10, false, clauses);
+  unsigned previousSize, runNumber = 1;
+  do {
+    std::cout << "c [PREPROC #EQUIV] Run number: " << runNumber++ << '\n';
+    previousSize = eliminated.size();
+    e.eliminate(pin->getNbVar(), clauses, input, gates, eliminated, false,
+                limitNbClauses);
+    rm->run(pin->getNbVar(), clauses, 10, false, clauses);
+  } while (eliminated.size() != previousSize);
 
   // the problem we return.
   ProblemManagerCnf *ret = new ProblemManagerCnf(

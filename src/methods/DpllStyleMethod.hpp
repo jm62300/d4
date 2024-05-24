@@ -365,8 +365,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     return varConnected.size();
   }  // computeConnectedComponent
 
+  unsigned countBop = 0;
+
   /**
-   * Call the CNF formula into a FBDD.
+   * Compile the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
    * @param[in] unitsLit, the set of unit literal detected at this level
@@ -395,10 +397,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     if (nbComponent) {
       U tab[nbComponent];
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
-      for (int cp = 0; cp < nbComponent; cp++) {
+      // for (int cp = 0; cp < nbComponent; cp++) {
+      for (int cp = nbComponent > 1 ? nbComponent - 2 : 0; cp < nbComponent;
+           cp++) {
         std::vector<Var> &connected = varConnected[cp];
 
-        bool cacheActivated = false;  // cacheIsActivated(connected);
+        bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
         if (cacheActivated && cb.defined)
@@ -406,7 +410,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         else {
           // recursive call
           tab[cp] = computeDecisionNode(connected, out);
-
           if (cacheActivated) m_cache->addInCache(cb, tab[cp]);
         }
       }
@@ -417,7 +420,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-
     return m_operation->createTop();
   }  // compute_
 

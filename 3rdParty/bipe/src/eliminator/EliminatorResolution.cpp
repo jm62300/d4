@@ -59,11 +59,8 @@ bool EliminatorResolution::generateAllResolution(
   Lit l = Lit::makeLitFalse(v);
   if (!occClauses[l.intern()].size() || !occClauses[(~l).intern()].size())
     return true;
-  if (occClauses[l.intern()].size() == 1 ||
-      occClauses[(~l).intern()].size() == 1)
-    return true;
 
-  unsigned limit =
+  int limit =
       (occClauses[l.intern()].size() + occClauses[(~l).intern()].size());
   std::vector<Lit> tmp;
   tmp.reserve(occClauses.size());
@@ -110,7 +107,6 @@ bool EliminatorResolution::generateAllResolution(
           if (m != l) result.back().push_back(m);
         for (auto &m : tmp) result.back().push_back(m);
       }
-      if (tooLarge) break;
     }
 
     for (auto &m : clPos) m_marked[m.intern()] = false;
@@ -213,7 +209,7 @@ void EliminatorResolution::eliminate(unsigned nbVar,
 
     inProcess = pass;
     std::cout << "c [ELIMINATOR] Iteration(" << ++iteration << ") Resolved("
-              << nbRemoved << ")\n";
+              << nbRemoved << ") inProcess(" << inProcess.size() << ")\n";
   }
 }  // eliminate
 

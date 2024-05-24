@@ -74,7 +74,7 @@ PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
   else if (largestBag < 50)
     m_scaleFactor = 1000;
   else if (largestBag < 70)
-    m_scaleFactor = 10;
+    m_scaleFactor = 0;
   else
     m_scaleFactor = 0;
 

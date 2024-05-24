@@ -48,6 +48,8 @@ class CountingOperation : public Operation<T, T> {
   CountingOperation(ProblemManager *problem)
       : m_problem(problem) {}  // constructor.
 
+  T maxCount = 0;
+
   /**
      Compute the sum of the given elements.
 
@@ -61,6 +63,7 @@ class CountingOperation : public Operation<T, T> {
     for (unsigned i = 0; i < size; i++)
       ret += elts[i].d * m_problem->computeWeightUnitFree<T>(elts[i].unitLits,
                                                              elts[i].freeVars);
+
     return ret;
   }  // manageDeterministOr
 
@@ -78,6 +81,7 @@ class CountingOperation : public Operation<T, T> {
 
     T ret = 1;
     for (unsigned i = 0; i < size; i++) ret = ret * elts[i];
+
     return ret;
   }  // manageDecomposableAnd
 

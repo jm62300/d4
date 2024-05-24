@@ -62,6 +62,45 @@ class TreeDecomp {
   std::vector<Var> &getNode();
 
   /**
+   * @brief Display the tree.
+   *
+   * @param shift is the depth.
+   */
+  inline void displayTree(unsigned shift) {
+    printf("%3u ", shift);
+    for (unsigned i = 0; i < shift; i++) std::cout << "| ";
+    for (auto &v : m_node) std::cout << v << " ";
+    std::cout << '\n';
+    for (auto *tree : m_sons) tree->displayTree(shift + 1);
+  }  // display
+
+  /**
+   * @brief Get the variables of the tree.
+   *
+   * @param[out] vars are the collected variables.
+   */
+  void getAllVars(std::vector<Var> &vars) {
+    std::vector<bool> marked;
+    for (auto &v : vars) {
+      if (marked.size() <= v) marked.resize(v + 1, false);
+      marked[v] = true;
+    }
+
+    for (auto *tree : m_sons) {
+      std::vector<Var> tmp;
+      tree->getAllVars(tmp);
+      for (auto &v : tmp) {
+        if (marked.size() <= v) marked.resize(v + 1, false);
+        if (!marked[v]) vars.push_back(v);
+        marked[v] = true;
+      }
+    }
+
+    for (auto &v : m_node)
+      if (v >= marked.size() || !marked[v]) vars.push_back(v);
+  }  // getAllVars
+
+  /**
    * @brief Get the sons.
    *
    * @return the list of children.
