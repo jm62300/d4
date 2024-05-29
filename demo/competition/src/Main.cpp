@@ -144,6 +144,78 @@ void wmc(d4::ProblemManager *initProblem) {
 void pmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the projected model counter\n";
 
+  // preproc.
+  d4::ConfigurationPeproc configPreproc = {
+      d4::PreprocMethodManager::getPreprocMethod("basic"),
+      d4::InputTypeManager::getInputType("cnf"), 5, 60};
+
+  ProblemManager *problem =
+      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+  MethodManager::displayInfoVariables(problem, std::cout);
+
+  // count.
+
+  // cache.
+  d4::ConfigurationCache cache;
+  cache.isActivated = true;
+  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod("list");
+  cache.cacheCleaningStrategy =
+      d4::CacheCleaningStrategyManager::getCacheCleaningStrategy("none");
+  cache.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
+  cache.clauseRepresentation =
+      d4::ClauseRepresentationManager::getClauseRepresentation("clause");
+  cache.sizeFirstPage = 1UL << 32;
+  cache.sizeAdditionalPage = 1UL << 29;
+
+  // branching heuristic.
+  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  branchingHeuristic.freqDecay = 2048;
+  branchingHeuristic.scoringMethodType =
+      d4::ScoringMethodTypeManager::getScoringMethodType("vsads");
+  branchingHeuristic.branchingHeuristicType =
+      d4::BranchingHeuristicTypeManager::getBranchingHeuristicType("classic");
+  branchingHeuristic.phaseHeuristicType =
+      d4::PhaseHeuristicTypeManager::getPhaseHeuristicType("polarity");
+  branchingHeuristic.reversePhase = false;
+
+  // configuration of the dpll counter.
+  d4::ConfigurationDpllStyleMethod configCounter;
+  configCounter.methodName = d4::MethodNameManager::getMethodName("counting");
+  configCounter.problemInputType =
+      d4::ProblemInputTypeManager::getInputType("cnf");
+  configCounter.cache = cache;
+  configCounter.branchingHeuristic = branchingHeuristic;
+  configCounter.solver.solverName =
+      d4::SolverNameManager::getSolverName("minisat");
+  configCounter.spec.specUpdateType =
+      d4::SpecUpdateManager::getSpecUpdate("dynamicBlockedSimp");
+  configCounter.operationType =
+      d4::OperationTypeManager::getOperatorType("counting");
+
+  d4::OptionDpllStyleMethod options(configCounter);
+  d4::DpllStyleMethod<mpz::mpz_int, mpz::mpz_int> *counter =
+      new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(options, problem,
+                                                      std::cout);
+  mpz::mpz_int result = counter->run();
+
+  boost::multiprecision::mpf_float::default_precision(128);
+  std::cout.precision(
+      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+
+  if (result == 0) {
+    std::cout << "s UNSATISFIABLE\n";
+    std::cout << "c s type mc\n";
+    std::cout << "c s log10-estimate -inf\n";
+    std::cout << "c s exact quadruple int 0\n";
+  } else {
+    std::cout << "s SATISFIABLE\n";
+    std::cout << "c s type mc\n";
+    std::cout << "c s log10-estimate "
+              << boost::multiprecision::log10(
+                     boost::multiprecision::cpp_dec_float_100(result))
+              << "\n";
+    std::cout << "c s exact arb int " << result << "\n";
+  }
 }  // pmc
 
 void mc(d4::ProblemManager *initProblem) {
