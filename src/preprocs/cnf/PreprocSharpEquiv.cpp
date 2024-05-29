@@ -38,7 +38,7 @@ PreprocSharpEquiv::PreprocSharpEquiv(int nbIteration, std::ostream &out) {
 /**
  * @brief computeBipartition implementation.
  */
-void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
+bool PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
                                            std::vector<Lit> &units,
                                            std::vector<bipe::Var> &input,
                                            std::vector<bipe::Var> &output,
@@ -83,40 +83,45 @@ void PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
   std::vector<std::vector<bool>> setOfModels;
   formula =
       b.simplifyBackbone(pb, optionBackbone, gates, std::cout, setOfModels);
+  bool isSAT = !formula->isTriviallyUnsat();
 
-  alarm(timeout);
-  if (formula) {
-    bipe::Problem *tmp = formula;
-    formula = b.simplifyDac(*tmp, optionDac, gates, std::cout, setOfModels);
-    if (!formula)
-      formula = tmp;
-    else
-      delete tmp;
-  }
-
-  if (!formula) {
-    input = pb.getProjectedVar();
-  } else {
-    std::vector<std::vector<bipe::Var>> symGroup;
-    bool res = b.run(*formula, input, gates, optionBipartition, symGroup,
-                     setOfModels, std::cout);
-
-    if (!res) {
-      std::cout << "c [PREPOC BACKBONE] The preproc has been stopped before "
-                   "the end\n";
+  if (isSAT) {
+    alarm(timeout);
+    if (formula) {
+      bipe::Problem *tmp = formula;
+      formula = b.simplifyDac(*tmp, optionDac, gates, std::cout, setOfModels);
+      if (!formula)
+        formula = tmp;
+      else
+        delete tmp;
     }
-  }
 
-  // put the remaining variable into the output set.
-  std::vector<bool> marked(pb.getNbVar() + 1, false);
-  for (auto &v : input) marked[v] = true;
-  for (unsigned i = 1; i < pb.getNbVar() + 1; i++)
-    if (!marked[i]) output.push_back(i);
-  assert(output.size() + input.size() == pb.getNbVar());
+    if (!formula) {
+      input = pb.getProjectedVar();
+    } else {
+      std::vector<std::vector<bipe::Var>> symGroup;
+      bool res = b.run(*formula, input, gates, optionBipartition, symGroup,
+                       setOfModels, std::cout);
+
+      if (!res) {
+        std::cout << "c [PREPOC BACKBONE] The preproc has been stopped before "
+                     "the end\n";
+      }
+    }
+
+    // put the remaining variable into the output set.
+    std::vector<bool> marked(pb.getNbVar() + 1, false);
+    for (auto &v : input) marked[v] = true;
+    for (unsigned i = 1; i < pb.getNbVar() + 1; i++)
+      if (!marked[i]) output.push_back(i);
+    assert(output.size() + input.size() == pb.getNbVar());
+    alarm(0);
+  }
 
   delete formula;
   s_isRunning = NULL;
-  std::cout << "c [PREPROC #EQUIV] ... done\n";
+  std::cout << "c [PREPROC #EQUIV] Terminated with status: " << isSAT << "\n";
+  return isSAT;
 }  // computeBipartition
 
 /**
@@ -165,7 +170,9 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin, unsigned timeout) {
   std::vector<bipe::Var> input, output;
   std::vector<bipe::Gate> gates;
   std::vector<Lit> units;
-  computeBipartition(pcnf, units, input, output, gates, timeout);
+  bool isSat = computeBipartition(pcnf, units, input, output, gates, timeout);
+
+  if (!isSat) return pin->getUnsatProblem();
 
   // create the problem from the reducer side.
   bipe::eliminator::Eliminator e;

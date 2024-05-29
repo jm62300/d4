@@ -60,9 +60,6 @@ bool EliminatorResolution::generateAllResolution(
   if (!occClauses[l.intern()].size() || !occClauses[(~l).intern()].size())
     return true;
 
-  bool bonus = false && (occClauses[l.intern()].size() == 1 ||
-                         occClauses[(~l).intern()].size() == 1);
-
   int limit =
       (occClauses[l.intern()].size() + occClauses[(~l).intern()].size());
   std::vector<Lit> tmp;
@@ -101,7 +98,7 @@ bool EliminatorResolution::generateAllResolution(
       if (!isTaut) {
         result.push_back(std::vector<Lit>());
         result.back().reserve(clPos.size() - 1 + tmp.size());
-        if (!bonus && clPos.size() - 1 + tmp.size() > m_largerClauses) {
+        if (clPos.size() - 1 + tmp.size() > m_largerClauses) {
           tooLarge = true;
           break;
         }
@@ -114,7 +111,7 @@ bool EliminatorResolution::generateAllResolution(
 
     for (auto &m : clPos) m_marked[m.intern()] = false;
     if (result.size() > limit) return false;
-    if (!bonus && tooLarge) return false;
+    if (tooLarge) return false;
   }
 
   return true;

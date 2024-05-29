@@ -44,8 +44,10 @@ class PreprocSharpEquiv : public PreprocManager {
    * @param[out] output is the set of output variables.
    * @param[out] gates stores the extracted gates.
    * @param timeout is the timeout for computing the bipartition.
+   *
+   * \return true if the formula is satisfiable, false otherwise.
    */
-  void computeBipartition(ProblemManagerCnf &pcnf, std::vector<Lit> &units,
+  bool computeBipartition(ProblemManagerCnf &pcnf, std::vector<Lit> &units,
                           std::vector<bipe::Var> &input,
                           std::vector<bipe::Var> &output,
                           std::vector<bipe::Gate> &gates, unsigned timeout);

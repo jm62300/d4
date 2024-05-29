@@ -133,6 +133,13 @@ Problem *Method::simplifyBackbone(Problem &p,
     formula = p.getConditionedFormula(units);
   }
 
+  if (!isSAT) {
+    std::cout << "c [BiPe] The formula is unsatisfiable.\n";
+    formula = p.getUnsatProblem();
+    assert(formula->isTriviallyUnsat());
+  }
+  assert(!formula->isTriviallyUnsat());
+
   Backbone *tmp = m_backboneMethod;
   m_backboneMethod = nullptr;
   delete tmp;

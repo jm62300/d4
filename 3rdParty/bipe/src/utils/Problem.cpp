@@ -87,6 +87,9 @@ Problem *Problem::getUnsatProblem() {
   cl[0] = l.neg();
   ret->getClauses().push_back(cl);
 
+  std::cout << "c [PROBLEM] create an UNSAT problem.\n";
+  ret->setUnsat();
+
   return ret;
 }  // getUnsatProblem
 

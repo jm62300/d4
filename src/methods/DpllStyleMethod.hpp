@@ -365,8 +365,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     return varConnected.size();
   }  // computeConnectedComponent
 
-  unsigned countBop = 0;
-
   /**
    * Compile the CNF formula into a FBDD.
    *
@@ -384,6 +382,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
 
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
+
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
