@@ -37,7 +37,8 @@ class PreprocEquiv : public PreprocManager {
  public:
   PreprocEquiv(int nbIteration, std::ostream &out);
   ~PreprocEquiv();
-  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin,
+                              const OptionPreprocManager &option) override;
 
   /**
    * @brief Stop.

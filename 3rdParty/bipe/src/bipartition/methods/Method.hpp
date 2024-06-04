@@ -43,6 +43,10 @@ class Method {
   class Backbone *m_backboneMethod = nullptr;
   class DACircuit *m_dacMethod = nullptr;
 
+ protected:
+  bool m_isFixedOrder = false;
+  std::vector<unsigned> m_order;
+
  public:
   virtual ~Method();
 
@@ -61,6 +65,17 @@ class Method {
   Problem *simplifyDac(Problem &p, const OptionDac &optionDac,
                        std::vector<Gate> &units, std::ostream &out,
                        std::vector<std::vector<bool>> &setOfModels);
+
+  /**
+   * @brief Fix the order for the scoring function.
+   *
+   * @param order is the order we want to use.
+   */
+  void setOrder(std::vector<unsigned> &order) {
+    std::cout << "c [BiPe Gates] Fix the order\n";
+    m_isFixedOrder = true;
+    m_order = order;
+  }  // setOrder
 
   /**
    * @brief Ask if we have still time of computing for the bi-partition.

@@ -35,6 +35,9 @@ ProblemManagerCnf::ProblemManagerCnf(const std::string &nameFile) {
   m_weightVar.resize(m_nbVar + 1, 0);
   for (unsigned i = 0; i <= m_nbVar; i++)
     m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
+
+  m_order.resize(m_nbVar + 1);
+  for (unsigned i = 0; i < m_order.size(); i++) m_order[i] = i;
 }  // constructor
 
 /**
@@ -49,6 +52,9 @@ ProblemManagerCnf::ProblemManagerCnf(const int fd, bool keepOpen) {
   m_weightVar.resize(m_nbVar + 1, 0);
   for (unsigned i = 0; i <= m_nbVar; i++)
     m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
+
+  m_order.resize(m_nbVar + 1);
+  for (unsigned i = 0; i < m_order.size(); i++) m_order[i] = i;
 }  // constructor
 
 /**
@@ -69,6 +75,7 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
   m_selected = problem->getSelectedVar();
   m_maxVar = problem->getMaxVar();
   m_indVar = problem->getIndVar();
+  m_order = problem->getOrder();
   m_isUnsat = false;
 }  // constructor
 

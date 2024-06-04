@@ -24,6 +24,7 @@
 #include <ctime>
 
 #include "3rdParty/bipe/src/bipartition/methods/Method.hpp"
+#include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -43,7 +44,8 @@ PreprocBackboneCnf::~PreprocBackboneCnf() {}  // destructor
 /**
  * @brief PreprocBackboneCnf::run implementation.
  */
-ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin, unsigned timeout) {
+ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin,
+                                        const OptionPreprocManager &option) {
   // create the problem regarding the bipe library.
   std::vector<Var> protect, selected;
   if (pin->getSelectedVar().size())
@@ -71,7 +73,7 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin, unsigned timeout) {
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bool>> setOfModels;
 
-  std::cerr << "c [PREPOC BACKBONE] Is running for at most " << timeout
+  std::cerr << "c [PREPOC BACKBONE] Is running for at most " << option.timeout
             << " seconds\n";
 
   PreprocManager::s_isRunning = &bb;
@@ -82,11 +84,13 @@ ProblemManager *PreprocBackboneCnf::run(ProblemManager *pin, unsigned timeout) {
       ((bipe::bipartition::Method *)PreprocManager::s_isRunning)->interrupt();
   };
   signal(SIGALRM, handler);
-  alarm(timeout);
+  alarm(option.timeout);
 
-  bool res = bb.simplifyBackbone(
-      pb, (bipe::bipartition::OptionBackbone){true, timeout, true, "glucose"},
-      gates, std::cout, setOfModels);
+  bool res =
+      bb.simplifyBackbone(pb,
+                          (bipe::bipartition::OptionBackbone){
+                              true, (unsigned)option.timeout, true, "glucose"},
+                          gates, std::cout, setOfModels);
   s_isRunning = nullptr;
 
   if (!res) {

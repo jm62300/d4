@@ -218,6 +218,8 @@ void DACircuit::interrupt() {
  * @return a score that is the average of propagated literals.
  */
 unsigned DACircuit::getScore(Var v) {
+  if (m_isFixedOrder) return m_order[v];
+
   Lit l = Lit::makeLitFalse(v);
   return (m_impliedList[l.intern()].size() +
           m_impliedList[(~l).intern()].size()) >>
@@ -689,11 +691,8 @@ void DACircuit::unmarkDescendant() {
  *
  * @param p is the problem we search for a directed acyclic circuit.
  * @param[out] listOfGates is the set of gates that give you the circuit.
- * @param solverName is the solver we will use for BCP and/or computing the
- * backbone.
- * @param nbConflict is the number of conflict the solver can do (or one
- * restart).
- * @param optBackbone is set to true if we compute first the backbone.
+ * @param[out] models are the visited models.
+ * @param[in] optDac are the options.
  * @param out is the stream where are printed out the logs.
  * @return true if the problem is satisfiable, false otherwise.
  */

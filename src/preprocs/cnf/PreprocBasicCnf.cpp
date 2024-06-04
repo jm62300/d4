@@ -41,7 +41,8 @@ PreprocBasicCnf::~PreprocBasicCnf() {}  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocBasicCnf::run(ProblemManager *pin, unsigned timeout) {
+ProblemManager *PreprocBasicCnf::run(ProblemManager *pin,
+                                     const OptionPreprocManager &option) {
   std::vector<Lit> units;
   return pin->getConditionedFormula(units);
 }  // run

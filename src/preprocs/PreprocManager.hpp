@@ -101,6 +101,7 @@ class PreprocManager {
   static PreprocManager *makePreprocManager(const OptionPreprocManager &options,
                                             std::ostream &out);
 
-  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) = 0;
+  virtual ProblemManager *run(ProblemManager *pin,
+                              const OptionPreprocManager &optionPreproc) = 0;
 };
 }  // namespace d4

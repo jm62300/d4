@@ -43,6 +43,8 @@ class PreprocSharpEquiv : public PreprocManager {
    * @param[out] input stores the input variables.
    * @param[out] output is the set of output variables.
    * @param[out] gates stores the extracted gates.
+   * @param[in] onlyGates specifies if we only run the gates detection for
+   * computing the bipartition.
    * @param timeout is the timeout for computing the bipartition.
    *
    * \return true if the formula is satisfiable, false otherwise.
@@ -50,12 +52,26 @@ class PreprocSharpEquiv : public PreprocManager {
   bool computeBipartition(ProblemManagerCnf &pcnf, std::vector<Lit> &units,
                           std::vector<bipe::Var> &input,
                           std::vector<bipe::Var> &output,
-                          std::vector<bipe::Gate> &gates, unsigned timeout);
+                          std::vector<bipe::Gate> &gates,
+                          const OptionPreprocManager &option);
+
+  /**
+   * @brief Remove the gates that do not follow the given order.
+   *
+   * @param[out] gates are the gates we want to purge, and uptdate the
+   * input/output set accordingly.
+   * @param[in] order is the given order.
+   */
+  void fixGatesModuloOrder(std::vector<bipe::Gate> &gates,
+                           std::vector<bipe::Var> &input,
+                           std::vector<bipe::Var> &output,
+                           std::vector<unsigned> &order);
 
  public:
   PreprocSharpEquiv(int nbIteration, std::ostream &out);
   ~PreprocSharpEquiv();
-  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin,
+                              const OptionPreprocManager &option) override;
 
   /**
    * @brief Stop.

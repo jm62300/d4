@@ -34,6 +34,7 @@ class PreprocCnfFromCircuit : public PreprocManager {
  public:
   PreprocCnfFromCircuit(std::ostream &out);
   ~PreprocCnfFromCircuit();
-  ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
+  ProblemManager *run(ProblemManager *pin,
+                      const OptionPreprocManager &option) override;
 };
 }  // namespace d4

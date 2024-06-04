@@ -35,7 +35,8 @@ class PreprocReducer : public PreprocManager {
  public:
   PreprocReducer(const std::string &method, int nbIteration, std::ostream &out);
   ~PreprocReducer();
-  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin,
+                              const OptionPreprocManager &option) override;
 
   /**
    * @brief Stop.

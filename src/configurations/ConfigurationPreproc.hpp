@@ -26,6 +26,8 @@ struct ConfigurationPeproc {
   PreprocMethod preprocMethod = BASIC;
   InputType inputType = DIMACS_CNF;
   int nbIteration = 1;
+  bool ordered = false;
+  bool onlyUseGates = false;
   int timeout = 0;
 };
 }  // namespace d4

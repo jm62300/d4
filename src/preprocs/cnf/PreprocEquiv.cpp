@@ -21,6 +21,7 @@
 
 #include <csignal>
 
+#include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
@@ -45,7 +46,8 @@ PreprocEquiv::~PreprocEquiv() {}  // destructor
  * @param[out] lastBreath gives information about the way the    preproc sees
  * the problem.
  */
-ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
+ProblemManager *PreprocEquiv::run(ProblemManager *pin,
+                                  const OptionPreprocManager &option) {
   // get the cnf.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
 
@@ -73,7 +75,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
   std::vector<bipe::Gate> gates;
   std::vector<std::vector<bool>> setOfModels;
 
-  std::cerr << "c [PREPOC BACKBONE] Is running for at most " << timeout
+  std::cerr << "c [PREPOC BACKBONE] Is running for at most " << option.timeout
             << " seconds\n";
 
   PreprocManager::s_isRunning = &bb;
@@ -84,7 +86,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
       ((bipe::bipartition::Method *)PreprocManager::s_isRunning)->interrupt();
   };
   signal(SIGALRM, handler);
-  alarm(timeout);
+  alarm(option.timeout);
 
   bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
   bool res =

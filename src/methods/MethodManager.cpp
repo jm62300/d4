@@ -88,7 +88,7 @@ ProblemManager *MethodManager::runPreproc(
   PreprocManager *preproc =
       PreprocManager::makePreprocManager(optionPreproc, out);
   assert(preproc);
-  ProblemManager *problem = preproc->run(initProblem, optionPreproc.timeout);
+  ProblemManager *problem = preproc->run(initProblem, optionPreproc);
   out << "c [MAIN PREPROCESSED INPUT] \033[4m\033[32mStatistics about the "
          "preprocessed formula\033[0m\n";
   problem->displayStat(out, "c [PREPROCESSED INPUT] ");

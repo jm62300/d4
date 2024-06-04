@@ -1,4 +1,4 @@
-EXEC ?= counter
+EXEC ?= compiler
 
 BUILD_DIR ?= build
 SRC_DIRS ?= src

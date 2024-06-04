@@ -60,6 +60,7 @@ class ProblemManager {
   std::vector<Var> m_selected;
   std::vector<Var> m_maxVar;
   std::vector<Var> m_indVar;
+  std::vector<unsigned> m_order;
   bool m_isUnsat = false;
 
  public:
@@ -81,6 +82,7 @@ class ProblemManager {
   inline std::vector<Var> &getIndVar() { return m_indVar; }
   inline std::vector<mpz::mpf_float> &getWeightLit() { return m_weightLit; }
   inline std::vector<mpz::mpf_float> &getWeightVar() { return m_weightVar; }
+  inline std::vector<unsigned> &getOrder() { return m_order; }
 
   inline mpz::mpf_float getWeightLit(Lit l) { return m_weightLit[l.intern()]; }
   inline mpz::mpf_float getWeightVar(Var v) { return m_weightVar[v]; }

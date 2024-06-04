@@ -44,7 +44,8 @@ PreprocReducer::~PreprocReducer() {}  // destructor
 /**
  * @brief PreprocReducer::run implementation.
  */
-ProblemManager *PreprocReducer::run(ProblemManager *pin, unsigned timeout) {
+ProblemManager *PreprocReducer::run(ProblemManager *pin,
+                                    const OptionPreprocManager &option) {
   // prepage the clauses.
   ProblemManagerCnf &pcnf = dynamic_cast<ProblemManagerCnf &>(*pin);
   std::vector<std::vector<bipe::Lit>> clauses;

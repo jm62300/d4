@@ -29,6 +29,7 @@ class PreprocBasicCnf : public PreprocManager {
  public:
   PreprocBasicCnf(std::ostream &out);
   ~PreprocBasicCnf();
-  virtual ProblemManager *run(ProblemManager *pin, unsigned timeout) override;
+  virtual ProblemManager *run(ProblemManager *pin,
+                              const OptionPreprocManager &option) override;
 };
 }  // namespace d4

@@ -78,6 +78,7 @@ class DACircuit : public Method {
 
  public:
   void interrupt();
+
   bool run(Problem &p, std::vector<Gate> &listOfGates,
            std::vector<std::vector<bool>> &setOfModels, const OptionDac &optDac,
            std::ostream &out);

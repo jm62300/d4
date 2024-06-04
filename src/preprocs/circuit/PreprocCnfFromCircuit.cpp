@@ -100,7 +100,7 @@ PreprocCnfFromCircuit::~PreprocCnfFromCircuit() {}
  * @return ProblemManager*
  */
 ProblemManager *PreprocCnfFromCircuit::run(ProblemManager *pin,
-                                           unsigned timeout) {
+                                           const OptionPreprocManager &option) {
   ProblemManagerCnf *cnf = tseytin(static_cast<ProblemManagerCircuit *>(pin));
   std::vector<Lit> units;
   ProblemManager *ret = cnf->getConditionedFormula(units);

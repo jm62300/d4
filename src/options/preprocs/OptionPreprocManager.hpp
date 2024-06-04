@@ -31,22 +31,28 @@ class OptionPreprocManager {
   InputType inputType;
   PreprocMethod preprocMethod;
   unsigned nbIteration = 1;
+  bool onlyUseGates = false;
+  bool ordered = false;
   int timeout = 0;
 
   OptionPreprocManager(const ConfigurationPeproc& config) {
     inputType = config.inputType;
     preprocMethod = config.preprocMethod;
     nbIteration = config.nbIteration;
+    onlyUseGates = config.onlyUseGates;
+    ordered = config.ordered;
     timeout = config.timeout;
   }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionPreprocManager& dt) {
-    out << " Option PreprocManager:"
-        << " preproc("
+    out << " Option PreprocManager:" << " preproc("
         << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ')'
         << " input type(" << InputTypeManager::getInputType(dt.inputType)
         << ')';
+
+    if (dt.preprocMethod == SHARP_EQUIV)
+      out << " onlyGate(" << dt.onlyUseGates << ") ordered(" << dt.ordered;
 
     if (dt.preprocMethod != BASIC) {
       out << ") #iteration(" << dt.nbIteration << ')' << " timeout("
