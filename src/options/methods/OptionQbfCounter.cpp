@@ -33,8 +33,8 @@ OptionQbfCounter::OptionQbfCounter(const ConfigurationQbfCounter& config) {
       OptionBranchingHeuristic(config.branchingHeuristic);
 
   // Partitioning heuristic:
-  optionPartitioningHeuristic =
-      OptionPartitioningHeuristic(config.partitioningHeuristic);
+  optionPartialOrderHeuristic =
+      OptionPartialOrderHeuristic(config.partitioningHeuristic);
 
   optionSolver = {config.solver.solverName};
 

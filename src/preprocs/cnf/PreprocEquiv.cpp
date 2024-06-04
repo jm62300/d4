@@ -86,8 +86,9 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
   signal(SIGALRM, handler);
   alarm(timeout);
 
-  bool res = bb.simplifyBackbone(pb, {true, timeout, true, "glucose"}, gates,
-                                 std::cout, setOfModels);
+  bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
+  bool res =
+      bb.simplifyBackbone(pb, optionBackbone, gates, std::cout, setOfModels);
   s_isRunning = nullptr;
 
   if (!res) {
@@ -104,7 +105,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin, unsigned timeout) {
     bipe::reducer::Method *rm =
         bipe::reducer::Method::makeMethod("combinaison", std::cout);
 
-    rm->run(pin->getNbVar(), clauses, 10, true, clauses);
+    rm->run(pin->getNbVar(), clauses, 10, false, clauses);
 
     ProblemManagerCnf *ret = new ProblemManagerCnf(
         pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),

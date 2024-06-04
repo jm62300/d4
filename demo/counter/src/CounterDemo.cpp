@@ -37,10 +37,9 @@ template <typename T>
 void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
                  const std::string &format, const std::string &outFormat,
                  bool isFloat) {
-  std::cout << "c [FORMAT] Input/Output format:"
-            << " output-symbol(" << format << ")"
-            << " output-format(" << outFormat << ")"
-            << " is-float(" << isFloat << ")\n";
+  std::cout << "c [FORMAT] Input/Output format:" << " output-symbol(" << format
+            << ")" << " output-format(" << outFormat << ")" << " is-float("
+            << isFloat << ")\n";
 
   DpllStyleMethod<T, T> *counter =
       new DpllStyleMethod<T, T>(options, problem, std::cout);
@@ -95,8 +94,6 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
 
   config.cache = parseCacheConfiguration(vm);
   config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
-  config.partitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
-
   config.solver.solverName =
       d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
@@ -119,5 +116,4 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
     countModels<mpz::mpz_int>(options, problem, format, outFormat, false);
   else
     countModels<mpz::mpf_float>(options, problem, format, outFormat, true);
-
 }  // counterDemo

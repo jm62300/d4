@@ -50,7 +50,7 @@ mkdir -p build
 cd build
 
 cmake -GNinja .. -DBUILD_MODE=$opt 
-ninja 
+ninja
 
 mv libbipe.a libbipetmp.a
 ar cqT libbipe.a libbipetmp.a ../3rdParty/glucose-3.0/core/libglucose.a && echo -e 'create libbipe.a\naddlib libbipe.a\nsave\nend' | ar -M

@@ -39,6 +39,7 @@ void Eliminator::eliminate(unsigned nbVar,
                            std::vector<Lit> &eliminated, bool verbose,
                            unsigned limitNbClauses) {
   if (verbose) std::cout << "c [ELIMINATOR] Start\n";
+  std::cout << "c [BiPe] limitNbClauses(" << limitNbClauses << ")\n";
 
   // try to eliminate by considering gates.
   unsigned initPosElim = eliminated.size();

@@ -32,6 +32,7 @@ class Problem {
   std::vector<Var> m_output;
   std::vector<Var> m_heapVariable;
   unsigned m_nbVar;
+  bool m_isUnsat = false;
 
  public:
   Problem();
@@ -49,6 +50,7 @@ class Problem {
   inline std::vector<Var> &getInput() { return m_input; }
   inline std::vector<Var> &getOutput() { return m_output; }
   inline std::vector<Var> &getHeapVariable() { return m_heapVariable; }
+  inline void setUnsat() { m_isUnsat = true; }
 
   inline void setNbVar(unsigned nbVar) { m_nbVar = nbVar; }
   inline void setClauses(std::vector<std::vector<Lit>> &clauses) {
@@ -57,6 +59,7 @@ class Problem {
 
   Problem *getUnsatProblem();
   Problem *getConditionedFormula(std::vector<Lit> &units);
+  bool isTriviallyUnsat() { return m_isUnsat; }
 
   void display(std::ostream &out);
   void displayStat(std::ostream &out, std::string startLine);

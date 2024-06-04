@@ -60,9 +60,8 @@ bool EliminatorResolution::generateAllResolution(
   if (!occClauses[l.intern()].size() || !occClauses[(~l).intern()].size())
     return true;
 
-  unsigned limit =
-      occClauses[l.intern()].size() + occClauses[(~l).intern()].size();
-
+  int limit =
+      (occClauses[l.intern()].size() + occClauses[(~l).intern()].size());
   std::vector<Lit> tmp;
   tmp.reserve(occClauses.size());
 
@@ -99,7 +98,6 @@ bool EliminatorResolution::generateAllResolution(
       if (!isTaut) {
         result.push_back(std::vector<Lit>());
         result.back().reserve(clPos.size() - 1 + tmp.size());
-
         if (clPos.size() - 1 + tmp.size() > m_largerClauses) {
           tooLarge = true;
           break;
@@ -109,8 +107,6 @@ bool EliminatorResolution::generateAllResolution(
           if (m != l) result.back().push_back(m);
         for (auto &m : tmp) result.back().push_back(m);
       }
-
-      if (tooLarge) break;
     }
 
     for (auto &m : clPos) m_marked[m.intern()] = false;
@@ -160,7 +156,9 @@ void EliminatorResolution::eliminate(unsigned nbVar,
   // perform the elimination
   bool forgetApplied = true;
   inProcess = output;
+  m_limitNbClause = limitNbClauses;
 
+  unsigned iteration = 0, nbRemoved = 0;
   while (!m_isInterrupt && forgetApplied) {
     forgetApplied = false;
 
@@ -176,6 +174,7 @@ void EliminatorResolution::eliminate(unsigned nbVar,
         pass.push_back(v);
       else {
         eliminated.push_back(Lit::makeLitFalse(v));
+        nbRemoved++;
         forgetApplied = true;
 
         // remove the old clauses.
@@ -209,6 +208,8 @@ void EliminatorResolution::eliminate(unsigned nbVar,
     }
 
     inProcess = pass;
+    std::cout << "c [ELIMINATOR] Iteration(" << ++iteration << ") Resolved("
+              << nbRemoved << ") inProcess(" << inProcess.size() << ")\n";
   }
 }  // eliminate
 

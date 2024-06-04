@@ -54,19 +54,17 @@ void Bipartition::separator(std::ostream &out) {
  */
 void Bipartition::printHeader(std::ostream &out) {
   separator(out);
-  out << "c "
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(SAT)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UNS)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UND)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(SAT)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UNS)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UND)"
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#i. mod."
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#o. sym."
-      << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#remains"
-      << " |\n";
+  out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(SAT)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UNS)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "time(UND)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(SAT)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UNS)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(UND)" << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#i. mod." << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#o. sym." << "|"
+      << std::setw(WIDTH_PRINT_COLUMN_MC) << "#remains" << " |\n";
   separator(out);
 }  // printHeader
 
@@ -769,6 +767,7 @@ bool Bipartition::run(Problem &p, std::vector<Var> &input,
   out << "c [BIPARTITION] #Projected: " << p.getProjectedVar().size() << "\n";
   out << "c [BIPARTITION] #Protected: " << p.getProtectedVar().size() << "\n";
   out << "c [BIPARTITION] #Gates: " << gates.size() << "\n";
+  out << "c [BiPe] " << optionBipartition << '\n';
 
   m_nbVar = p.getNbVar();
   initTimer();
@@ -832,21 +831,23 @@ bool Bipartition::run(Problem &p, std::vector<Var> &input,
   // compute the partition.
   std::vector<Lit> und;
   unsigned runNumber = 1;
-  while (true) {
-    std::cout << "c Run for " << runNumber * optionBipartition.solverNbConflict
-              << " conflicts\n";
+  while (runNumber <= optionBipartition.nbTries || !optionBipartition.nbTries) {
+    unsigned nbConflict = optionBipartition.solverNbConflict * runNumber;
+    // nbConflict = 0;
+    std::cout << "c " << runNumber << "/" << optionBipartition.nbTries
+              << " Run for " << nbConflict << " conflicts\n";
     und.resize(0);
-    compute(p, m_solver, input, und, heuristic, mapSelector,
-            runNumber * optionBipartition.solverNbConflict, symGroup, out,
-            optionBipartition.verbose);
+    compute(p, m_solver, input, und, heuristic, mapSelector, nbConflict,
+            symGroup, out, optionBipartition.verbose);
     heuristic->setAssumption(und);
     m_solver->cleanAssumption();
-    runNumber *= 2;
+    runNumber++;
     if (!und.size()) break;
   }
 
   assert(m_nbInputFromCompleteModel + m_nbInputFromPadoaModel ==
          m_nbInputFromModel);
+  for (auto &l : und) input.push_back(l.var());
   assert(m_nbInputFromModel <= input.size());
 
   // manage the result.

@@ -27,25 +27,23 @@
 namespace d4 {
 
 /**
-   Constructor.
-
-   @param[in] maxNodes, the maximal number of nodes.
-   @param[in] maxEdges, the maximal number of hyper edges.
+ * @brief PartitionerPatoh::PartitionerPatoh implementation.
  */
-PartitionerPatoh::PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
-                                   unsigned maxSumEdgeSize, std::ostream &out) {
+PartitionerPatoh::PartitionerPatoh(const InfoHyperGraph &infoHyperGraph,
+                                   std::ostream &out) {
   // allocate the memory
-  m_pins = new int[maxSumEdgeSize];
+  m_pins = new int[infoHyperGraph.sumEdgeSizes];
   m_partweights = new int[2];
-  m_xpins = new int[(maxEdges + 3)];
-  m_partvec = new int[(maxNodes + 3)];
-  m_cwghts = new int[(maxNodes + 3)];
+  m_xpins = new int[(infoHyperGraph.maxNbEdges + 3)];
+  m_partvec = new int[(infoHyperGraph.maxNbNodes + 3)];
+  m_cwghts = new int[(infoHyperGraph.maxNbNodes + 3)];
 
   // set all weight to 1
-  for (unsigned i = 0; i < (maxNodes + 3); i++) m_cwghts[i] = 1;
+  for (unsigned i = 0; i < (infoHyperGraph.maxNbNodes + 3); i++)
+    m_cwghts[i] = 1;
 
-  m_mapNodes.resize(maxNodes + 3, false);
-  m_markedNodes.resize(maxNodes + 3, false);
+  m_mapNodes.resize(infoHyperGraph.maxNbNodes + 3, false);
+  m_markedNodes.resize(infoHyperGraph.maxNbNodes + 3, false);
 }  // constructor
 
 /**
@@ -60,10 +58,10 @@ PartitionerPatoh::~PartitionerPatoh() {
 }  // destructor
 
 /**
-   Get a partition from the hypergraph.
-
-   @param[in] hypergraph, the graph we search for a partition.
-   @param[out] parition, the resulting partition (we suppose it is allocated).
+ * @brief Get a partition from the hypergraph.
+ *
+ * @param[in] hypergraph is the graph we search for a partition.
+ * @param[out] parition is the resulting partition.
  */
 void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
                                         std::vector<int> &partition) {
@@ -73,9 +71,10 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
   unsigned sizeXpins = 0;
   int posPins = 0;
 
-  for (auto &edge : hypergraph) {
+  for (unsigned i = 0; i < hypergraph.getNbEdges(); i++) {
     m_xpins[sizeXpins++] = posPins;
-    for (auto x : edge) {
+    for (unsigned j = 0; j < hypergraph[i].getSize(); j++) {
+      unsigned x = hypergraph[i][j];
       assert(x < m_markedNodes.size());
       if (!m_markedNodes[x]) {
         m_markedNodes[x] = true;
@@ -87,7 +86,11 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
     }
   }
 
-  for (auto &x : elts) m_markedNodes[x] = false;
+  unsigned maxVal = 0;
+  for (auto &x : elts) {
+    m_markedNodes[x] = false;
+    if (x > maxVal) maxVal = x;
+  }
   m_xpins[sizeXpins] = posPins;
 
   // hypergraph partitioner
@@ -116,6 +119,7 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
   PaToH_Part(&args, elts.size(), sizeXpins, 1, 0, m_cwghts, NULL, m_xpins,
              m_pins, NULL, m_partvec, m_partweights, &cut);
 
+  partition.resize(maxVal + 1);
   for (unsigned i = 0; i < elts.size(); i++) partition[elts[i]] = m_partvec[i];
   PaToH_Free();
 }  // computePartition

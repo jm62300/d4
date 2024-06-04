@@ -22,7 +22,8 @@
 #include <vector>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/hyperGraph/HyperGraph.hpp"
+#include "src/representation/hypergraph/HyperGraph.hpp"
+#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
 
 namespace d4 {
 
@@ -45,11 +46,18 @@ class PartitionerManager {
  public:
   enum Level { NORMAL, SPEED, QUALITY };
 
-  static PartitionerManager *makePartitioner(PartitionerName partitioner,
-                                             unsigned maxNodes,
-                                             unsigned maxEdges,
-                                             unsigned maxSumEdgeSize,
-                                             std::ostream &out);
+  /**
+   * @brief Fatory for creating a partitioner.
+   *
+   * @param partitioner is the method name.
+   * @param infoHyperGraph gives information about the worst case hypergraph.
+   * @param out is the stream where information will be printed out.
+   *
+   * @return a partitioner manager.
+   */
+  static PartitionerManager *makePartitioner(
+      PartitionerName partitioner, const InfoHyperGraph &infoHyperGraph,
+      std::ostream &out);
 
   virtual ~PartitionerManager() {}
 

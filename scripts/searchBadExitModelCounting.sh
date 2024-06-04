@@ -60,7 +60,6 @@ do
 
     benchName=$(generateSatisfiableCNF)    
     timeout $TIMEOUT $1 $benchName > /dev/null 2>/dev/null
-
     code=$?
 
     if [ $code -ne 124 ]

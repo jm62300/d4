@@ -21,9 +21,11 @@
 #include <string>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace d4 {
 class ConfigurationBranchingHeuristic;
+class ConfigurationPartialOrderHeuristic;
 
 enum ScoringMethodType {
   SCORE_MOM,
@@ -84,13 +86,18 @@ class PhaseHeuristicTypeManager {
   }  // getPhaseHeuristicType
 };
 
-enum BranchingHeuristicType { BRANCHING_CLASSIC, BRANCHING_LARGE_ARITY };
+enum BranchingHeuristicType {
+  BRANCHING_CLASSIC,
+  BRANCHING_LARGE_ARITY,
+  BRANCHING_HYBRID_PARTIAL_CLASSIC
+};
 
 class BranchingHeuristicTypeManager {
  public:
   static std::string getBranchingHeuristicType(
       const BranchingHeuristicType& m) {
     if (m == BRANCHING_CLASSIC) return "classic";
+    if (m == BRANCHING_HYBRID_PARTIAL_CLASSIC) return "hybrid-partial-classic";
     if (m == BRANCHING_LARGE_ARITY) return "large-arity";
     throw(FactoryException("Branching heuristic type unknown", __FILE__,
                            __LINE__));
@@ -99,6 +106,7 @@ class BranchingHeuristicTypeManager {
   static BranchingHeuristicType getBranchingHeuristicType(
       const std::string& m) {
     if (m == "classic") return BRANCHING_CLASSIC;
+    if (m == "hybrid-partial-classic") return BRANCHING_HYBRID_PARTIAL_CLASSIC;
     if (m == "large-arity") return BRANCHING_LARGE_ARITY;
     throw(FactoryException("Branching heuristic type unknown", __FILE__,
                            __LINE__));
@@ -107,6 +115,7 @@ class BranchingHeuristicTypeManager {
 
 class OptionBranchingHeuristic {
  public:
+  OptionPartialOrderHeuristic optionPartialOrderHeuristic;
   ScoringMethodType scoringMethodType;
   PhaseHeuristicType phaseHeuristicType;
   BranchingHeuristicType branchingHeuristicType;

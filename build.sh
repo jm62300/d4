@@ -23,6 +23,9 @@ do
     esac
 done
 
+cd $SCRIPT_DIR/3rdParty/flowCutter
+make -j DEBUG=$opt
+
 cd $SCRIPT_DIR/3rdParty/glucose-3.0/core/
 make libst       
 mv lib_static.a lib_glucose.a
@@ -34,8 +37,8 @@ cd $SCRIPT_DIR
 mkdir -p build
 cd build
 cmake -GNinja .. -DBUILD_MODE=$opt 
-ninja 
+ninja
 
 # make a library of everything
 mv libd4.a libd4tmp.a
-ar cqT libd4.a libd4tmp.a ../3rdParty/patoh/libpatoh.a ../3rdParty/glucose-3.0/core/lib_glucose.a ../3rdParty/bipe/build/libbipe.a && echo -e 'create libd4.a\naddlib libd4.a\nsave\nend' | ar -M
+ar cqT libd4.a libd4tmp.a ../3rdParty/flowCutter/libflowCutter.a ../3rdParty/patoh/libpatoh.a ../3rdParty/glucose-3.0/core/lib_glucose.a ../3rdParty/bipe/build/libbipe.a && echo -e 'create libd4.a\naddlib libd4.a\nsave\nend' | ar -M

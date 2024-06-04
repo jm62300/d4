@@ -71,13 +71,15 @@ bool Backbone::run(Problem &p, std::vector<Gate> &gates,
   unsigned nbSatCalls = 1;
   unsigned nbFoundUnit = 0;
 
+  std::cout << "c [BIPE BACKBONE] Start.\n";
   if (!m_solver->solve()) return false;
   m_solver->setReversePolarity(option.reversePolarity);
+  m_solver->setNeedModel(true);
 
   std::vector<bool> marked(p.getNbVar() + 1, false);
   std::vector<bool> markedProtected(p.getNbVar() + 1, false);
   std::vector<bool> markedProjected(p.getNbVar() + 1, false);
-  std::vector<bool> &model = m_solver->getModel();
+  std::vector<bool> model = m_solver->getModel();
 
   for (auto &v : p.getProjectedVar()) markedProjected[v] = true;
   for (auto &v : p.getProtectedVar()) markedProtected[v] = true;
@@ -90,6 +92,7 @@ bool Backbone::run(Problem &p, std::vector<Gate> &gates,
 
     // test the negation of the literal in order to verify if it is implied
     Lit l = Lit::makeLit(v, model[v]);
+
     m_solver->pushAssumption(l);
     bool isUnsat = m_solver->solveLimited(option.nbConflict) == Status::UNS;
     m_solver->popAssumption();
@@ -97,6 +100,7 @@ bool Backbone::run(Problem &p, std::vector<Gate> &gates,
     if (!isUnsat) {
       // update the model.
       std::vector<bool> &solver_model = m_solver->getModel();
+
       for (unsigned j = 0; j < model.size(); j++)
         marked[j] = marked[j] || (model[j] != solver_model[(Var)j]);
       setOfModels.push_back(solver_model);

@@ -21,7 +21,7 @@
 #include "Configuration.hpp"
 #include "ConfigurationBranchingHeuristic.hpp"
 #include "ConfigurationCache.hpp"
-#include "ConfigurationPartitioningHeuristic.hpp"
+#include "ConfigurationPartialOrderHeuristic.hpp"
 #include "ConfigurationSolver.hpp"
 #include "ConfigurationSpec.hpp"
 #include "src/options/methods/OptionOperationManager.hpp"

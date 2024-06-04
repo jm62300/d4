@@ -219,10 +219,12 @@ void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
   unsigned nbLits = 0;
   unsigned nbBin = 0;
   unsigned nbTer = 0;
+  unsigned nbUnit = 0;
   unsigned nbMoreThree = 0;
 
   for (auto &c : m_clauses) {
     nbLits += c.size();
+    if (c.size() == 1) nbUnit++;
     if (c.size() == 2) nbBin++;
     if (c.size() == 3) nbTer++;
     if (c.size() > 3) nbMoreThree++;
@@ -230,6 +232,7 @@ void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
 
   out << startLine << "Number of variables: " << m_nbVar << "\n";
   out << startLine << "Number of clauses: " << m_clauses.size() << "\n";
+  out << startLine << "Number of unit clauses: " << nbUnit << "\n";
   out << startLine << "Number of binary clauses: " << nbBin << "\n";
   out << startLine << "Number of ternary clauses: " << nbTer << "\n";
   out << startLine << "Number of clauses larger than 3: " << nbMoreThree

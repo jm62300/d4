@@ -36,8 +36,7 @@ class PartitionerPatoh : public PartitionerManager {
   int *m_partweights;
 
  public:
-  PartitionerPatoh(unsigned maxNodes, unsigned maxEdges,
-                   unsigned maxSumEdgeSize, std::ostream &out);
+  PartitionerPatoh(const InfoHyperGraph &infoHyperGraph, std::ostream &out);
 
   ~PartitionerPatoh();
   void computePartition(HyperGraph &hypergraph, Level level,

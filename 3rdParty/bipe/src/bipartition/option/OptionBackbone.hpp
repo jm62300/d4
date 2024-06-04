@@ -27,7 +27,7 @@ namespace bipartition {
 class OptionBackbone : public Option {
  public:
   unsigned nbConflict = 0;
-  bool reversePolarity = false;
+  bool reversePolarity = true;
   std::string solverName = "glucose";
 
   OptionBackbone() {}
