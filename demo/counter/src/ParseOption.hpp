@@ -36,8 +36,7 @@ namespace po = boost::program_options;
  *
  * @return the preproc configuration.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(
-    const po::variables_map &vm, const std::string &prefix = "");
+d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm);
 
 /**
  * @brief Parse the configuration for the preprocessing.

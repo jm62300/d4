@@ -32,12 +32,10 @@ namespace po = boost::program_options;
  * @brief Parse the configuration for the preprocessing.
  *
  * @param vm are the options.
- * @param prefix is a string put in front in order to select the method.
  *
  * @return the preproc configuration.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(
-    const po::variables_map &vm, const std::string &prefix = "");
+d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm);
 
 /**
  * @brief Parse the configuration for the preprocessing.
