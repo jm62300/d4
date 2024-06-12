@@ -36,7 +36,8 @@ class SpecUpdateManager {
     if (m == SPEC_DYNAMIC_BLOCKED_SIMP) return "dynamicBlockedSimp";
     if (m == SPEC_DYNAMIC_PURE_SIMP) return "dynamicPureSimp";
 
-    throw(FactoryException("Spec Update unknown", __FILE__, __LINE__));
+    throw(
+        FactoryException("FormulaManager Update unknown", __FILE__, __LINE__));
   }  // getOperatorType
 
   static SpecUpdateType getSpecUpdate(const std::string& m) {
@@ -54,8 +55,7 @@ class OptionSpecManager {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionSpecManager& dt) {
-    out << " Option Spec Manager:"
-        << " update mode("
+    out << " Option Formula Manager:" << " update mode("
         << SpecUpdateManager::getSpecUpdate(dt.specUpdateType) << ")";
     return out;
   }  // <<
