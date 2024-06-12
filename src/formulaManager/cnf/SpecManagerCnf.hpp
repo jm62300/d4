@@ -38,7 +38,7 @@ class SpecManagerCnf : public SpecManager {
  protected:
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<int> m_clausesNotBin;
-  unsigned m_nbVar, m_maxSizeClause;
+  unsigned m_maxSizeClause;
   std::vector<lbool> m_currentValue;
   std::vector<SpecClauseInfo> m_infoClauses;
 
@@ -114,8 +114,12 @@ class SpecManagerCnf : public SpecManager {
     return m_occurrence[l.intern()].nbBin + m_occurrence[l.intern()].nbNotBin;
   }
 
+  inline bool isFreeVariable(Var v) {
+    return getNbOccurrence(Lit::makeLitFalse(v)) ||
+           getNbOccurrence(Lit::makeLitTrue(v));
+  }  // isFreeVariable
+
   inline unsigned getNbClause() { return m_clauses.size(); }
-  inline unsigned getNbVariable() override { return m_nbVar; }
   inline unsigned getMaxSizeClause() { return m_maxSizeClause; }
 
   virtual inline unsigned getSumSizeClauses() {
@@ -158,7 +162,7 @@ class SpecManagerCnf : public SpecManager {
       return m_currentValue[l.var()] == l_True;
   }
 
-  inline int getNbOccurrence(Lit l) override { return getNbClause(l); }
+  inline int getNbOccurrence(Lit l) { return getNbClause(l); }
 
   inline IteratorIdxClause getVecIdxClauseBin(Lit l) {
     assert(l.intern() < m_occurrence.size());

@@ -28,6 +28,7 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
+#include "src/formulaManager/SpecManager.hpp"
 #include "src/heuristics/branchingHeuristic/BranchingHeuristic.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristicNone.hpp"
@@ -38,7 +39,6 @@
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
-#include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
 #define NB_SEP_MC 104
@@ -287,7 +287,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
     out << "c Number of paritioner calls: " << m_callPartitioner << "\n";
     out << "c\n";
-    m_specs->printSpecInformation(out);
+    m_specs->printInformation(out);
     m_cache->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
@@ -355,7 +355,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     varConnected.push_back(std::vector<Var>());
     for (auto &v : setOfVar) {
       if (m_specs->varIsAssigned(v)) continue;
-      if (!m_specs->getNbOccurrence(v))
+      if (m_specs->isFreeVariable(v))
         freeVariable.push_back(v);
       else
         varConnected[0].push_back(v);

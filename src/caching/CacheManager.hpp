@@ -27,9 +27,9 @@
 #include "TmpEntry.hpp"
 #include "bucket/BucketManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/formulaManager/SpecManager.hpp"
 #include "src/hashing/HashString.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
-#include "src/specs/SpecManager.hpp"
 
 namespace d4 {
 

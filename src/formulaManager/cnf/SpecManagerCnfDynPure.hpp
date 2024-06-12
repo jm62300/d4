@@ -66,10 +66,5 @@ class SpecManagerCnfDynPure : public SpecManagerCnfDyn {
     std::cout << "c Number of pure literal simplication: "
               << m_nbPureSimplification << "\n";
   }
-
-  // we cannot use this function here
-  inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {
-    assert(0);
-  }
 };
 }  // namespace d4

@@ -19,7 +19,7 @@
 #pragma once
 
 #include "../GraphExtractor.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 class GraphExtractorCnf : public GraphExtractor {

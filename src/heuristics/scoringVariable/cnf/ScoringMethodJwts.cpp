@@ -19,8 +19,6 @@
 
 #include "ScoringMethodJwts.hpp"
 
-#include "src/specs/cnf/SpecManagerCnf.hpp"
-
 namespace d4 {
 
 /**

@@ -16,29 +16,17 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-
-#include "PhaseHeuristicOccurrence.hpp"
+#pragma once
+#include "../PhaseHeuristic.hpp"
 
 namespace d4 {
 
-/**
-   Constructor.
+class PhaseHeuristicOccurrence : public PhaseHeuristic {
+ private:
+  SpecManagerCnf &sm;
 
-   @param[in] s, the manager that give information about the formula.
- */
-PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManager &s, bool isRev)
-    : sm(s) {
-  isReversed = isRev;
-}  // constructor
-
-/**
-   Assign the next decision variable regarding the number of occurrence of the
-   variable in the formula.
- */
-bool PhaseHeuristicOccurrence::selectPhase(Var v) {
-  bool ret = sm.getNbOccurrence(Lit::makeLit(v, false)) <
-             sm.getNbOccurrence(Lit::makeLit(v, true));
-  return (ret + isReversed) & 1;
-}  // selectPhase
-
+ public:
+  PhaseHeuristicOccurrence(SpecManagerCnf &s, bool isRev);
+  bool selectPhase(Var v);
+};
 }  // namespace d4

@@ -32,9 +32,9 @@
 #include "cnf/BucketManagerCnfSym.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/formulaManager/SpecManager.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/specs/SpecManager.hpp"
 
 namespace d4 {
 // forward declaration

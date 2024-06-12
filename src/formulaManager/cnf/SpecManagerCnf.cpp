@@ -31,7 +31,7 @@ namespace d4 {
 /**
    Constructor.
 */
-SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
+SpecManagerCnf::SpecManagerCnf(ProblemManager &p) {
   // get the clauses.
   try {
     CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
@@ -41,6 +41,8 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) : m_nbVar(p.getNbVar()) {
     std::cerr << "c A CNF formula was expeted\n";
     assert(0);
   }
+
+  m_nbVar = p.getNbVar();
 
   // store the not binary clauses.
   m_maxSizeClause = 0;

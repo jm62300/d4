@@ -46,8 +46,7 @@ d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm);
  *
  * @return the preproc configuration.
  */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
-                                               const std::string &prefix = "");
+d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm);
 
 /**
  * @brief Parse the configuration for the branching heuristic.
@@ -58,7 +57,7 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
  * @return the branching heuristic configuration.
  */
 d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
-    const po::variables_map &vm, const std::string &prefix = "");
+    const po::variables_map &vm);
 
 /**
  * @brief Parse the configuration for the paritioning heuristic.

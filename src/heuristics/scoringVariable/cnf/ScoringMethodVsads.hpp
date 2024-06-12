@@ -17,8 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
+#include <src/formulaManager/cnf/SpecManagerCnf.hpp>
 #include <src/solvers/ActivityManager.hpp>
-#include <src/specs/cnf/SpecManagerCnf.hpp>
 
 #include "../ScoringMethod.hpp"
 

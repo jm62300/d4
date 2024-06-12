@@ -18,8 +18,8 @@
  */
 
 #pragma once
+#include <src/formulaManager/SpecManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
-#include <src/specs/SpecManager.hpp>
 
 namespace d4 {
 class PolarityManager {

@@ -25,8 +25,8 @@
 #include "../../CachedBucket.hpp"
 #include "../BucketAllocator.hpp"
 #include "../BucketManager.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 template <class T>
@@ -123,12 +123,12 @@ class BucketManagerCnf : public BucketManager<T> {
   }  // isKeptClause
 
   /**
-     Get the clauses that will be used, that are the clause that respect the
-     modeStore.
-
-     @param[in] component, the variables in the current component.
-     @param[out] idxClauses, the resulting clauses (index).
-  */
+   * @brief Get the clauses that will be used, that are the clause that respect
+   * the modeStore.
+   *
+   * @param[in] component, the variables in the current component.
+   * @param[out] idxClauses, the resulting clauses (index).
+   */
   void collectIdActiveClauses(std::vector<Var> &component,
                               std::vector<unsigned> &idxClauses) {
     // collect the clauses

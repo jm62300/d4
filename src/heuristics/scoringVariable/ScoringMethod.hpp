@@ -18,10 +18,10 @@
  */
 #pragma once
 
+#include <src/formulaManager/SpecManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 #include <src/solvers/ActivityManager.hpp>
 #include <src/solvers/WrapperSolver.hpp>
-#include <src/specs/SpecManager.hpp>
 #include <vector>
 
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"

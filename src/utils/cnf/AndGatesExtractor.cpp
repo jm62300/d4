@@ -19,7 +19,7 @@
 
 #include "AndGatesExtractor.hpp"
 
-#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 

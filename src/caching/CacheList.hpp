@@ -23,8 +23,8 @@
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
 #include "cleaning/CacheCleaningManager.hpp"
+#include "src/formulaManager/SpecManager.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
-#include "src/specs/SpecManager.hpp"
 
 namespace d4 {
 

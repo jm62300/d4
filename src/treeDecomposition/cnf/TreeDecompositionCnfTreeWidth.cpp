@@ -29,7 +29,7 @@ TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
     SpecManager &om) {
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
-    if (!om.getNbOccurrence(i))
+    if (!om.isFreeVariable(i))
       notLinked.push_back(i);
     else
       component.push_back(i);

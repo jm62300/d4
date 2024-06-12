@@ -24,8 +24,8 @@
 #include "DataBranch.hpp"
 #include "QueryManager.hpp"
 #include "nnf/NodeManager.hpp"
+#include "src/formulaManager/SpecManager.hpp"
 #include "src/solvers/WrapperSolver.hpp"
-#include "src/specs/SpecManager.hpp"
 
 namespace d4 {
 template <class T, class U>

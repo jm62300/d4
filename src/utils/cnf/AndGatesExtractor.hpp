@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "src/problem/ProblemTypes.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 struct AndGate {

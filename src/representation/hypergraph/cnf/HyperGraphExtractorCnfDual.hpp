@@ -24,8 +24,8 @@
 
 #include "../HyperGraph.hpp"
 #include "../HyperGraphExtractor.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 class HyperGraphExtractorCnfDual : public HyperGraphExtractor {

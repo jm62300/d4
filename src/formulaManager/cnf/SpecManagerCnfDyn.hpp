@@ -106,10 +106,5 @@ class SpecManagerCnfDyn : public SpecManagerCnf {
    * preUpdate.
    */
   void postUpdate(const std::vector<Lit> &lits) override;
-
-  // we cannot use this function here
-  inline void initialize(std::vector<Var> &setOfVar, std::vector<Lit> &units) {
-    assert(0);
-  }
 };
 }  // namespace d4

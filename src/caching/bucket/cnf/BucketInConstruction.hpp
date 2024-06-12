@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include "src/specs/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 

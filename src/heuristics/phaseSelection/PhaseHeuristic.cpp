@@ -19,9 +19,9 @@
 #include "PhaseHeuristic.hpp"
 
 #include "PhaseHeuristicFalse.hpp"
-#include "PhaseHeuristicOccurrence.hpp"
 #include "PhaseHeuristicPolarity.hpp"
 #include "PhaseHeuristicTrue.hpp"
+#include "cnf/PhaseHeuristicOccurrence.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -41,7 +41,8 @@ PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(
   if (options.phaseHeuristicType == PHASE_POLARITY)
     return new PhaseHeuristicPolarity(p, options.reversePhase);
   if (options.phaseHeuristicType == PHASE_OCCURRENCE)
-    return new PhaseHeuristicOccurrence(s, options.reversePhase);
+    return new PhaseHeuristicOccurrence(static_cast<SpecManagerCnf &>(s),
+                                        options.reversePhase);
 
   throw(FactoryException("Cannot create a PhaseHeuristic", __FILE__, __LINE__));
 }  // makePhaseHeuristic

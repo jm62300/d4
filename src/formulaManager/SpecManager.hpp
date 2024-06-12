@@ -1,0 +1,172 @@
+/*
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+ */
+#pragma once
+
+#include <src/problem/ProblemManager.hpp>
+#include <src/problem/ProblemTypes.hpp>
+#include <vector>
+
+#include "src/options/specs/OptionSpecManager.hpp"
+
+namespace d4 {
+class SpecManager {
+ protected:
+  unsigned m_nbVar;
+
+ public:
+  /**
+   * @brief Generate an occurrence manager regarding the options given as
+   * parameter.
+   *
+   * @param options gives the options.
+   * @param p is the problem under consideration.
+   * @param out is the stream where are printed out the logs.
+   * @return a spec manager.
+   */
+  static SpecManager *makeSpecManager(const OptionSpecManager &options,
+                                      ProblemManager &p, std::ostream &out);
+
+  /**
+   * @brief Get the number of variables.
+   *
+   * @return unsigned
+   */
+  inline unsigned getNbVariable() { return m_nbVar; }
+
+  /**
+   * @brief Virtual Destructor.
+   */
+  virtual ~SpecManager() {}
+
+  /**
+   * @brief Get if the given literal is assigned or not.
+   *
+   * @param l is the literal we are looking for.
+   * @return true if l is assigned, false otherwise.
+   */
+  virtual bool litIsAssigned(Lit l) = 0;
+
+  /**
+   * @brief Ask if the given literal is assigned to.
+   *
+   * @param l is the literal we are looking for.
+   * @return true if l is assigned to true, false otherwise.
+   */
+  virtual bool litIsAssignedToTrue(Lit l) = 0;
+
+  /**
+   * @brief Get if the given variable is assigned.
+   *
+   * @param v is the variable.
+   * @return true if the variable is assigned, false otherwise.
+   */
+  virtual bool varIsAssigned(Var v) = 0;
+
+  /**
+   * @brief Search for the connected component of the formula.
+   *
+   * @param[out] varConnected are the computed connected component.
+   * @param setOfVar are the variables under consideration.
+   * @param freeVar are the variables their are free (isFreeVar should return
+   * true on them).
+   *
+   * @return the number of connected component.
+   */
+  virtual int computeConnectedComponent(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<Var> &freeVar) = 0;
+
+  /**
+   * @brief Search for the connected component of the formula regarding a subset
+   * of varaibles specified with a boolean vector.
+   *
+   * @param[out] varConnected are the computed connected component.
+   * @param[in] setOfVar are the variables under consideration.
+   * @param[in] isTargeted is a boolean vector that specifies the variable
+   * under consideration.
+   * @param[out] freeVar are the variables their are free (isFreeVar should
+   * return true on them).
+   *
+   * @return the number of connected component.
+   */
+  virtual int computeConnectedComponentTargeted(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<bool> &isTargeted, std::vector<Var> &freeVar) = 0;
+
+  /**
+   * @brief This function is called to update the formula regarding a set of
+   * literals we want to assigned.
+   *
+   * @param[in] lits is the set of literal under consideration.
+   */
+  virtual void preUpdate(const std::vector<Lit> &lits) = 0;
+
+  /**
+   * @brief This function is called to undo the modification done by the
+   * function preUpdate.
+   *
+   * @param lits are the literals updated.
+   */
+  virtual void postUpdate(const std::vector<Lit> &lits) = 0;
+
+  /**
+   * @brief Display the initial formula.
+   *
+   * @param[out] out is the stream used.
+   */
+  virtual void showFormula(std::ostream &out) = 0;
+
+  /**
+   * @brief Display the current formula.
+   *
+   * @param[out] out is the stream used.
+   */
+  virtual void showCurrentFormula(std::ostream &out) = 0;
+
+  /**
+   * @brief  Show the set of unit literals.
+   *
+   * @param[out] out is the stream used.
+   */
+  virtual void showTrail(std::ostream &out) = 0;
+
+  /**
+   * @brief Get the problem input type.
+   *
+   * @return a element of the enum ProblemInputType.
+   */
+  virtual ProblemInputType getProblemInputType() = 0;
+
+  /**
+   * @brief Display some information about the object.
+   *
+   * @param[out] out is the stream used.
+   */
+  virtual void printInformation(std::ostream &out) {}
+
+  /**
+   * @brief Ask if the given variable is free in the current formula.
+   *
+   * @param[in] v is the variable we are looking for.
+   *
+   * @return true if the variable is free, false otherwise.
+   */
+  virtual bool isFreeVariable(Var v) = 0;
+};
+}  // namespace d4

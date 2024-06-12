@@ -36,6 +36,7 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
+#include "src/formulaManager/SpecManager.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/heuristics/phaseSelection/PhaseHeuristic.hpp"
 #include "src/heuristics/scoringVariable/ScoringMethod.hpp"
@@ -48,7 +49,6 @@
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
-#include "src/specs/SpecManager.hpp"
 #include "src/utils/MemoryStat.hpp"
 
 namespace d4 {
@@ -272,17 +272,17 @@ class MaxSharpSAT : public MethodManager {
      @param[in] out, the stream we use to print out information.
   */
   inline void showInter(std::ostream &out) {
-    out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall << std::fixed
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj << std::fixed
-        << std::setprecision(2) << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << getTimer() << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << m_cacheMax->getNbPositiveHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheMax->getNbNegativeHit()
+    out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall
+        << std::fixed << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj
+        << std::fixed << std::setprecision(2) << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheMax->getNbPositiveHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
-        << m_cacheInd->getNbPositiveHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->getNbNegativeHit()
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitMax << "|"
+        << m_cacheMax->getNbNegativeHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->getNbPositiveHit()
+        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << m_cacheInd->getNbNegativeHit() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitMax << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplitInd << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
@@ -309,21 +309,19 @@ class MaxSharpSAT : public MethodManager {
   */
   inline void showHeader(std::ostream &out) {
     separator(out);
-    out << "c "
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(m)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(m)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(i)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(i)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(m)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(i)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node"
-        << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count"
-        << "|\n";
+    out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(m)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(m)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(i)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(i)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(m)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split(i)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count" << "|\n";
     separator(out);
   }  // showHeader
 

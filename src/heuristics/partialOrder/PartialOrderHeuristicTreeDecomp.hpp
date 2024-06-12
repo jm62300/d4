@@ -23,9 +23,9 @@
 #include <vector>
 
 #include "PartialOrderHeuristic.hpp"
+#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/solvers/WrapperSolver.hpp"
-#include "src/specs/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 
