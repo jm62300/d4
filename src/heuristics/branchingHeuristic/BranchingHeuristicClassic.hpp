@@ -39,7 +39,7 @@ class BranchingHeuristicClassic : public BranchingHeuristic {
    * @param out is the stream where are printed out the information.
    */
   BranchingHeuristicClassic(const OptionBranchingHeuristic &options,
-                            ProblemManager *problem, SpecManager *specs,
+                            ProblemManager *problem, FormulaManager *specs,
                             WrapperSolver *solver, std::ostream &out)
       : BranchingHeuristic(options, problem, specs, solver, out) {}
 

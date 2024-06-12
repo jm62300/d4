@@ -27,7 +27,7 @@
 #include "TmpEntry.hpp"
 #include "bucket/BucketManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/hashing/HashString.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 
@@ -75,7 +75,7 @@ class CacheManager {
    * @param out is the stream where are printed out the logs.
    */
   CacheManager(const OptionCacheManager &options, unsigned nbVar,
-               SpecManager *specs, std::ostream &out)
+               FormulaManager *specs, std::ostream &out)
       : m_out(nullptr) {
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
@@ -110,7 +110,8 @@ class CacheManager {
    * @return CacheManager<T>*
    */
   static CacheManager<T> *makeCacheManager(const OptionCacheManager &options,
-                                           unsigned nbVar, SpecManager *specs,
+                                           unsigned nbVar,
+                                           FormulaManager *specs,
                                            std::ostream &out) {
     if (options.cachingMethod == CACHE_NO_COL)
       return new CacheNoCollision<T>(options, nbVar, specs, out);

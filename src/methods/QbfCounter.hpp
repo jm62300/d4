@@ -30,7 +30,7 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/heuristics/BranchingHeuristic.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
@@ -76,7 +76,7 @@ class QbfCounter : public MethodManager {
 
   ProblemManagerQbf *m_problem;
   WrapperSolver *m_solver;
-  SpecManager *m_specs;
+  FormulaManager *m_specs;
 
   BranchingHeuristic *m_heuristic;
   TmpEntry<mpz::mpz_int> NULL_CACHE_ENTRY;
@@ -114,8 +114,8 @@ class QbfCounter : public MethodManager {
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
-                                           *m_problem, m_out);
+    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
+                                              *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(

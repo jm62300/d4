@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include <src/formulaManager/SpecManager.hpp>
+#include <src/formulaManager/FormulaManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 #include <src/solvers/ActivityManager.hpp>
 #include <src/solvers/WrapperSolver.hpp>
@@ -30,7 +30,7 @@ namespace d4 {
 class ScoringMethod {
  public:
   static ScoringMethod *makeScoringMethod(
-      const OptionBranchingHeuristic &options, SpecManager &p,
+      const OptionBranchingHeuristic &options, FormulaManager &p,
       ActivityManager &am, std::ostream &out);
   virtual ~ScoringMethod() { ; }
   virtual double computeScore(Var v) = 0;
@@ -45,7 +45,7 @@ class ScoringMethod {
    * @param isDecisionVariable maps the decision variables to true.
    * @return the selected variable.
    */
-  Var selectVariable(std::vector<Var> &vars, SpecManager &s,
+  Var selectVariable(std::vector<Var> &vars, FormulaManager &s,
                      std::vector<bool> &isDecisionVariable);
 };
 }  // namespace d4

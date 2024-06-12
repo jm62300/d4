@@ -36,7 +36,7 @@ TreeDecompositionCnfPartition::TreeDecompositionCnfPartition(
  *
  */
 TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
-    SpecManager &om) {
+    FormulaManager &om) {
   TreeDecomp *tree = NULL;
 
   // compute the hypergraph.

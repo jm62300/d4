@@ -48,7 +48,7 @@ class HyperGraphExtractorCnfDual : public HyperGraphExtractor {
    *
    * @return information about the hyper graph size in the worst case.
    */
-  InfoHyperGraph constructHyperGraph(SpecManager &om,
+  InfoHyperGraph constructHyperGraph(FormulaManager &om,
                                      std::vector<Var> &component,
                                      HyperGraph &hypergraph);
 

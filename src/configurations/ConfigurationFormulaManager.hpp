@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include "src/options/specs/OptionSpecManager.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 
 namespace d4 {
 struct ConfigurationSpec {

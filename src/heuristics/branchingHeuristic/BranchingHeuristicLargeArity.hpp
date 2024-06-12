@@ -44,7 +44,7 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
    * @param out is the stream where are printed out the information.
    */
   BranchingHeuristicLargeArity(const OptionBranchingHeuristic &options,
-                               ProblemManager *problem, SpecManager *specs,
+                               ProblemManager *problem, FormulaManager *specs,
                                WrapperSolver *solver, std::ostream &out);
 
   /**

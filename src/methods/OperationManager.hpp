@@ -44,7 +44,8 @@ class Operation {
      \return an operation manager regarding the given options.
   */
   static void *makeOperationManager(const OptionOperationManager &options,
-                                    ProblemManager *problem, SpecManager *specs,
+                                    ProblemManager *problem,
+                                    FormulaManager *specs,
                                     WrapperSolver *solver, std::ostream &out) {
     out << "c [OPERATION MANAGER]" << options << '\n';
 

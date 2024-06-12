@@ -30,7 +30,7 @@ namespace d4 {
  */
 PartialOrderHeuristicTreeDecomp *
 PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
-    const OptionPartialOrderHeuristic &options, SpecManager &om,
+    const OptionPartialOrderHeuristic &options, FormulaManager &om,
     WrapperSolver &s, std::ostream &out) {
   switch (om.getProblemInputType()) {
     case PB_CNF:

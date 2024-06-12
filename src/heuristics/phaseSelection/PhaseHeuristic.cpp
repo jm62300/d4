@@ -32,8 +32,8 @@ namespace d4 {
    @param[in] vm, the set of options.
  */
 PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(
-    const OptionBranchingHeuristic &options, SpecManager &s, PolarityManager &p,
-    std::ostream &out) {
+    const OptionBranchingHeuristic &options, FormulaManager &s,
+    PolarityManager &p, std::ostream &out) {
   if (options.phaseHeuristicType == PHASE_FALSE)
     return new PhaseHeuristicFalse(options.reversePhase);
   if (options.phaseHeuristicType == PHASE_TRUE)

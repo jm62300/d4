@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include <src/formulaManager/SpecManager.hpp>
+#include <src/formulaManager/FormulaManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 
 namespace d4 {

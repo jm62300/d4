@@ -36,15 +36,15 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/heuristics/phaseSelection/PhaseHeuristic.hpp"
 #include "src/heuristics/scoringVariable/ScoringMethod.hpp"
 #include "src/methods/nnf/Node.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/methods/OptionMaxSharpSatMethod.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
-#include "src/options/specs/OptionSpecManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -108,7 +108,7 @@ class MaxSharpSAT : public MethodManager {
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
-  SpecManager *m_specs;
+  FormulaManager *m_specs;
   ScoringMethod *m_hVarMax;
   PhaseHeuristic *m_hPhaseMax;
   ScoringMethod *m_hVarInd;
@@ -158,8 +158,8 @@ class MaxSharpSAT : public MethodManager {
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
-                                           *m_problem, m_out);
+    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
+                                              *m_problem, m_out);
     assert(m_specs);
 
     // we initialize the object used to compute score and partition.

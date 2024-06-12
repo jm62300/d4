@@ -22,7 +22,7 @@
 
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 
 namespace d4 {
@@ -45,7 +45,7 @@ class CacheNoCollision : public CacheManager<T> {
    * @param out is the stream where are printed out the logs.
    */
   CacheNoCollision(const OptionCacheManager &options, unsigned nbVar,
-                   SpecManager *specs, std::ostream &out)
+                   FormulaManager *specs, std::ostream &out)
       : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
     initHashTable(nbVar);

@@ -84,7 +84,7 @@ class HyperGraphExtractor {
    *
    * @return information about the hyper graph size in the worst case.
    */
-  virtual InfoHyperGraph constructHyperGraph(SpecManager &om,
+  virtual InfoHyperGraph constructHyperGraph(FormulaManager &om,
                                              std::vector<Var> &component,
                                              HyperGraph &hypergraph) = 0;
 

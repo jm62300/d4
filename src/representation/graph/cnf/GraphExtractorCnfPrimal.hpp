@@ -40,7 +40,7 @@ class GraphExtractorCnfPrimal : public GraphExtractorCnf {
    * @param[in] component is the set of variables under consideration.
    * @param[out] graph is the computed graph.
    */
-  void constructGraph(SpecManager &om, std::vector<Var> &component,
+  void constructGraph(FormulaManager &om, std::vector<Var> &component,
                       Graph &graph) override;
 };
 }  // namespace d4

@@ -35,7 +35,7 @@ HyperGraphExtractorCnfDual::~HyperGraphExtractorCnfDual() {
  * @brief HyperGraphExtractorCnfDual::constructHyperGraph implementation.
  */
 InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
-    SpecManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
+    FormulaManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
   // cast into a CNF spec manager
   SpecManagerCnf &tmp = static_cast<SpecManagerCnf &>(om);
 

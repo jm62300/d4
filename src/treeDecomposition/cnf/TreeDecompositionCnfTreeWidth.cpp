@@ -26,7 +26,7 @@ namespace d4 {
  * @brief TreeDecompositionCnfTreeWidth::computeDecomposition implementation.
  */
 TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
-    SpecManager &om) {
+    FormulaManager &om) {
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
     if (!om.isFreeVariable(i))

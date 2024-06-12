@@ -27,7 +27,7 @@ namespace d4 {
  * @param[in] component is the set of variables under consideration.
  * @param[out] graph is the computed graph.
  */
-void GraphExtractorCnfPrimal::constructGraph(SpecManager &om,
+void GraphExtractorCnfPrimal::constructGraph(FormulaManager &om,
                                              std::vector<Var> &component,
                                              Graph &graph) {
   std::vector<std::vector<int>> clauses;

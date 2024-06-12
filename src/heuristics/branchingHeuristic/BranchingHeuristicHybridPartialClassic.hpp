@@ -46,7 +46,7 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    */
   BranchingHeuristicHybridPartialClassic(
       const OptionBranchingHeuristic &options, ProblemManager *problem,
-      SpecManager *specs, WrapperSolver *solver, std::ostream &out)
+      FormulaManager *specs, WrapperSolver *solver, std::ostream &out)
       : BranchingHeuristic(options, problem, specs, solver, out) {
     // create the partial order.
     m_partialOrder = PartialOrderHeuristic::makePartialOrderingHeuristic(

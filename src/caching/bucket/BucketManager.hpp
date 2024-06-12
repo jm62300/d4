@@ -32,7 +32,7 @@
 #include "cnf/BucketManagerCnfSym.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
@@ -63,7 +63,7 @@ class BucketManager {
    */
   static BucketManager<T> *makeBucketManager(OptionBucketManager options,
                                              CacheManager<T> *cache,
-                                             SpecManager &s,
+                                             FormulaManager &s,
                                              std::ostream &out) {
     out << "c [BUCKET MANAGER] " << options << "\n";
 

@@ -36,7 +36,7 @@ namespace d4 {
    \return the scoring method
  */
 ScoringMethod *ScoringMethod::makeScoringMethod(
-    const OptionBranchingHeuristic &options, SpecManager &p,
+    const OptionBranchingHeuristic &options, FormulaManager &p,
     ActivityManager &am, std::ostream &out) {
   try {
     SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf &>(p);
@@ -62,7 +62,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
 /**
  * @brief ScoringMethod::selectVariable implementation.
  */
-Var ScoringMethod::selectVariable(std::vector<Var> &vars, SpecManager &s,
+Var ScoringMethod::selectVariable(std::vector<Var> &vars, FormulaManager &s,
                                   std::vector<bool> &isDecisionVariable) {
   Var ret = var_Undef;
   double bestScore = -1;

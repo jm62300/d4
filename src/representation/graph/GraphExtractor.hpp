@@ -19,7 +19,7 @@
 #pragma once
 
 #include "Graph.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -58,7 +58,7 @@ class GraphExtractor {
    * @param[in] component is the set of variables under consideration.
    * @param[out] graph is the computed graph.
    */
-  virtual void constructGraph(SpecManager &om, std::vector<Var> &component,
+  virtual void constructGraph(FormulaManager &om, std::vector<Var> &component,
                               Graph &graph) = 0;
 
   /**

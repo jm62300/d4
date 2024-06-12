@@ -67,7 +67,7 @@ class ProjMCMethod : public MethodManager {
   std::unordered_map<std::string, Lit> mapProjClSelector;
   std::vector<CoupleNotProjClauseSelector> notProjClauses;
 
-  SpecManager *m_specs;
+  FormulaManager *m_specs;
   WrapperSolver *m_solver;
   Counter<T> *m_counter;
   CacheManager<T> *m_cache;
@@ -117,7 +117,7 @@ class ProjMCMethod : public MethodManager {
 
     // prepare the spec manager.
     m_specs =
-        SpecManager::makeSpecManager(options.optionSpecs, *problem, m_out);
+        FormulaManager::makeSpecManager(options.optionSpecs, *problem, m_out);
 
     // prepare the cache.
     m_cache = CacheManager<T>::makeCacheManager(options.optionCache, idxVar - 1,
@@ -587,15 +587,15 @@ class ProjMCMethod : public MethodManager {
    @param[in] out, the stream we use to print out information.
 */
   inline void showInter(std::ostream &out) {
-    out << "c [PROJMC] "
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << m_nbCallRec << std::fixed
-        << std::setprecision(2) << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
-        << getTimer() << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
-        << m_cache->getNbPositiveHit() << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
-        << m_cache->getNbNegativeHit() << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
-        << m_cache->usedMemory() << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
-        << m_nbSplit << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
-        << MemoryStat::memUsedPeak() << "|\n";
+    out << "c [PROJMC] " << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
+        << m_nbCallRec << std::fixed << std::setprecision(2) << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << getTimer() << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << m_cache->getNbPositiveHit() << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << m_cache->getNbNegativeHit() << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << m_cache->usedMemory() << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << m_nbSplit << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << MemoryStat::memUsedPeak()
+        << "|\n";
   }  // showInter
 
   /**
@@ -616,15 +616,13 @@ class ProjMCMethod : public MethodManager {
   */
   inline void showHeader(std::ostream &out) {
     separator(out);
-    out << "c [PROJMC] "
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#rec. call"
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "time"
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#posHit"
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#negHit"
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "memory"
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#split"
-        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "mem(MB)"
-        << "|\n";
+    out << "c [PROJMC] " << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
+        << "#rec. call" << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "time"
+        << "|" << std::setw(c_WIDTH_PRINT_COLUMN) << "#posHit" << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << "#negHit" << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << "memory" << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << "#split" << "|"
+        << std::setw(c_WIDTH_PRINT_COLUMN) << "mem(MB)" << "|\n";
     separator(out);
   }  // showHeader
 

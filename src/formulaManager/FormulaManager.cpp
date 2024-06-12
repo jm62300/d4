@@ -16,7 +16,7 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include "SpecManager.hpp"
+#include "FormulaManager.hpp"
 
 #include "cnf/SpecManagerCnfDyn.hpp"
 #include "cnf/SpecManagerCnfDynBlockedCl.hpp"
@@ -26,11 +26,10 @@
 namespace d4 {
 
 /**
- * @brief SpecManager::makeSpecManager implementation.
+ * @brief FormulaManager::makeSpecManager implementation.
  */
-SpecManager *SpecManager::makeSpecManager(const OptionSpecManager &options,
-                                          ProblemManager &p,
-                                          std::ostream &out) {
+FormulaManager *FormulaManager::makeSpecManager(
+    const OptionSpecManager &options, ProblemManager &p, std::ostream &out) {
   out << "c [SPEC MANAGER]" << options << "\n";
 
   if (p.getProblemType() == PB_CNF || p.getProblemType() == PB_QBF ||
@@ -45,7 +44,7 @@ SpecManager *SpecManager::makeSpecManager(const OptionSpecManager &options,
       return new SpecManagerCnfDynPure(p);
   }
 
-  throw(FactoryException("Cannot create a SpecManager", __FILE__, __LINE__));
+  throw(FactoryException("Cannot create a FormulaManager", __FILE__, __LINE__));
 }  // makeSpecManager
 
 }  // namespace d4

@@ -28,7 +28,7 @@ namespace d4 {
  * @brief PartialOrderHeuristic::makePartialOrderingHeuristic implementation.
  */
 PartialOrderHeuristic *PartialOrderHeuristic::makePartialOrderingHeuristic(
-    const OptionPartialOrderHeuristic &options, SpecManager &s,
+    const OptionPartialOrderHeuristic &options, FormulaManager &s,
     WrapperSolver &ws, std::ostream &out) {
   out << "c [PARTIAL ORDER HEURISTIC]" << options << "\n";
 

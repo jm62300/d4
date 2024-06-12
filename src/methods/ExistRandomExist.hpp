@@ -39,7 +39,7 @@
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/heuristics/phaseSelection/PhaseHeuristic.hpp"
 #include "src/heuristics/scoringVariable/ScoringMethod.hpp"
@@ -116,7 +116,7 @@ class ExistRandomExist : public MethodManager {
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
-  SpecManager *m_specs;
+  FormulaManager *m_specs;
   ScoringMethod *m_hVarExist;
   ScoringMethod *m_hVarRandom;
   PhaseHeuristic *m_hPhaseExist;
@@ -176,8 +176,8 @@ class ExistRandomExist : public MethodManager {
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = SpecManager::makeSpecManager(options.optionSpecManager,
-                                           *m_problem, m_out);
+    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
+                                              *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_hVarExist = ScoringMethod::makeScoringMethod(

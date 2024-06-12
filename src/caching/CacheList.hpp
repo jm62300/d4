@@ -23,7 +23,7 @@
 #include "CacheManager.hpp"
 #include "CachedBucket.hpp"
 #include "cleaning/CacheCleaningManager.hpp"
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 
 namespace d4 {
@@ -44,7 +44,7 @@ class CacheList : public CacheManager<T> {
    * @param out is the stream where are printed out the logs.
    */
   CacheList(const OptionCacheManager &options, unsigned nbVar,
-            SpecManager *specs, std::ostream &out)
+            FormulaManager *specs, std::ostream &out)
       : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE LIST CONSTRUCTOR]\n";
     initHashTable(nbVar);

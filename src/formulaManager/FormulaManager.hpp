@@ -22,10 +22,10 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
-#include "src/options/specs/OptionSpecManager.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 
 namespace d4 {
-class SpecManager {
+class FormulaManager {
  protected:
   unsigned m_nbVar;
 
@@ -39,8 +39,8 @@ class SpecManager {
    * @param out is the stream where are printed out the logs.
    * @return a spec manager.
    */
-  static SpecManager *makeSpecManager(const OptionSpecManager &options,
-                                      ProblemManager &p, std::ostream &out);
+  static FormulaManager *makeSpecManager(const OptionSpecManager &options,
+                                         ProblemManager &p, std::ostream &out);
 
   /**
    * @brief Get the number of variables.
@@ -52,7 +52,7 @@ class SpecManager {
   /**
    * @brief Virtual Destructor.
    */
-  virtual ~SpecManager() {}
+  virtual ~FormulaManager() {}
 
   /**
    * @brief Get if the given literal is assigned or not.

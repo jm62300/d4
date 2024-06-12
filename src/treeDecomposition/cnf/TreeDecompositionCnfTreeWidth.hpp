@@ -54,6 +54,6 @@ class TreeDecompositionCnfTreeWidth : public TreeDecompositionCnf {
    *
    * @return the computed decomposition.
    */
-  TreeDecomp *computeDecomposition(SpecManager &om) override;
+  TreeDecomp *computeDecomposition(FormulaManager &om) override;
 };
 }  // namespace d4

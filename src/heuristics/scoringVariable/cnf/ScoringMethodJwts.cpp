@@ -30,14 +30,14 @@ ScoringMethodJwts::ScoringMethodJwts(SpecManagerCnf &o)
     : om(o) {}  // constructor
 
 /**
-   This scoring function favorises the varaibles which appear in
-   most clauses.
-
-   R. G. Jeroslow and J. Wang. Solving propositional satisfiability
-   problems. Annals of Mathematics and Artificial Intelligence,
-   1:167–187, 1990.
-
-   @param[in] v, the variable we want the score.
+ * @brief This scoring function favorises the varaibles which appear in most
+ * clauses.
+ *
+ * R. G. Jeroslow and J. Wang. Solving propositional satisfiability
+ * problems. Annals of Mathematics and Artificial Intelligence,
+ * 1:167–187, 1990.
+ *
+ * @param[in] v, the variable we want the score.
  */
 double ScoringMethodJwts::computeScore(Var v) {
   Lit lp = Lit::makeLit(v, false);

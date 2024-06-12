@@ -30,7 +30,7 @@ namespace d4 {
  */
 BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
     const OptionBranchingHeuristic &options, ProblemManager *problem,
-    SpecManager *specs, WrapperSolver *solver, std::ostream &out)
+    FormulaManager *specs, WrapperSolver *solver, std::ostream &out)
     : BranchingHeuristic(options, problem, specs, solver, out) {
   m_limitClause = options.limitSizeClause;
 

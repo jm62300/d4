@@ -94,7 +94,7 @@ void ListLit::setListLit(const Lit *tab, int size) {
  */
 BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
                                        ProblemManager *problem,
-                                       SpecManager *specs,
+                                       FormulaManager *specs,
                                        WrapperSolver *solver,
                                        std::ostream &out) {
   out << "c [BRANCHING HEURISTIC]" << options << "\n";
@@ -126,7 +126,7 @@ BranchingHeuristic::~BranchingHeuristic() {
  */
 BranchingHeuristic *BranchingHeuristic::makeBranchingHeuristic(
     const OptionBranchingHeuristic &options, ProblemManager *problem,
-    SpecManager *specs, WrapperSolver *solver, std::ostream &out) {
+    FormulaManager *specs, WrapperSolver *solver, std::ostream &out) {
   if (problem->getNbSelectedVar()) {
     out << "c [MODE] Projected we can only use the classical heuristic\n";
     return new BranchingHeuristicClassic(options, problem, specs, solver, out);

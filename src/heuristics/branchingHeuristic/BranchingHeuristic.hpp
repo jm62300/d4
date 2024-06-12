@@ -56,7 +56,7 @@ class BranchingHeuristic {
  protected:
   ScoringMethod *m_hVar;
   PhaseHeuristic *m_hPhase;
-  SpecManager *m_specs;
+  FormulaManager *m_specs;
   ProblemManager *m_problem;
   std::vector<bool> m_isDecisionVariable;
   unsigned m_freqDecay;
@@ -79,7 +79,7 @@ class BranchingHeuristic {
    * @param out is the stream where are printed out the information.
    */
   BranchingHeuristic(const OptionBranchingHeuristic &options,
-                     ProblemManager *problem, SpecManager *specs,
+                     ProblemManager *problem, FormulaManager *specs,
                      WrapperSolver *solver, std::ostream &out);
 
   /**
@@ -100,7 +100,7 @@ class BranchingHeuristic {
    */
   static BranchingHeuristic *makeBranchingHeuristic(
       const OptionBranchingHeuristic &options, ProblemManager *problem,
-      SpecManager *specs, WrapperSolver *solver, std::ostream &out);
+      FormulaManager *specs, WrapperSolver *solver, std::ostream &out);
 
   /**
    * @brief Select a list of literals we want to branch on it in a deterministic

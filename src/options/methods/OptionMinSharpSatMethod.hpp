@@ -21,8 +21,8 @@
 #include "src/configurations/ConfigurationMinSharpSatMethod.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
-#include "src/options/specs/OptionSpecManager.hpp"
 
 namespace d4 {
 class OptionMinSharpSatMethod {

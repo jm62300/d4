@@ -20,7 +20,7 @@
 
 #include <iterator>
 
-#include "../SpecManager.hpp"
+#include "../FormulaManager.hpp"
 #include "DataOccurrence.hpp"
 #include "SpecClauseInfo.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
@@ -34,7 +34,7 @@ struct InfoCluster {
   int pos;
 };
 
-class SpecManagerCnf : public SpecManager {
+class SpecManagerCnf : public FormulaManager {
  protected:
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<int> m_clausesNotBin;

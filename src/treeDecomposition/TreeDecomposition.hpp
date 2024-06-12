@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "src/formulaManager/SpecManager.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -163,6 +163,6 @@ class TreeDecomposition {
    *
    * @return is the computed tree decomposition.
    */
-  virtual TreeDecomp *computeDecomposition(SpecManager &om) = 0;
+  virtual TreeDecomp *computeDecomposition(FormulaManager &om) = 0;
 };
 }  // namespace d4

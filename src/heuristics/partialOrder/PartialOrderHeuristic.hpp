@@ -26,7 +26,7 @@
 
 namespace d4 {
 class WrapperSolver;
-class SpecManager;
+class FormulaManager;
 class EquivExtractor;
 
 enum PartialOrderHeuristicMethod : char {
@@ -68,7 +68,7 @@ class PartialOrderHeuristic {
  public:
   virtual ~PartialOrderHeuristic() {}
   static PartialOrderHeuristic *makePartialOrderingHeuristic(
-      const OptionPartialOrderHeuristic &options, SpecManager &sm,
+      const OptionPartialOrderHeuristic &options, FormulaManager &sm,
       WrapperSolver &ws, std::ostream &out);
 
   static PartialOrderHeuristic *makePartitioningHeuristicNone(

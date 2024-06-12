@@ -45,7 +45,7 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    * @return a tree decomposition partitioner.
    */
   static PartialOrderHeuristicTreeDecomp *makePartialOrderTreeDecomp(
-      const OptionPartialOrderHeuristic &options, SpecManager &om,
+      const OptionPartialOrderHeuristic &options, FormulaManager &om,
       WrapperSolver &s, std::ostream &out);
 
   void computeCutSet(std::vector<Var> &component,
