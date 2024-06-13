@@ -22,10 +22,10 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
-#include "SpecManagerCnfDyn.hpp"
+#include "CnfManagerDyn.hpp"
 
 namespace d4 {
-class SpecManagerCnfDynPure : public SpecManagerCnfDyn {
+class CnfManagerDynPure : public CnfManagerDyn {
  private:
   unsigned long m_nbPureSimplification;
 
@@ -60,7 +60,7 @@ class SpecManagerCnfDynPure : public SpecManagerCnfDyn {
   void inprocessing() override;
 
  public:
-  SpecManagerCnfDynPure(ProblemManager &p);
+  CnfManagerDynPure(ProblemManager &p);
 
   inline void printSpecInformation(std::ostream &out) {
     std::cout << "c Number of pure literal simplication: "

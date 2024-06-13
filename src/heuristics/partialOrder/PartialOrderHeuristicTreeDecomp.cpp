@@ -35,7 +35,7 @@ PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
   switch (om.getProblemInputType()) {
     case PB_CNF:
       return new PartialOrderHeuristicTreeDecompCnf(
-          options, dynamic_cast<SpecManagerCnf &>(om), s, out);
+          options, dynamic_cast<CnfManager &>(om), s, out);
     default:
       throw(FactoryException("Cannot create a Partitioning Heuristic", __FILE__,
                              __LINE__));

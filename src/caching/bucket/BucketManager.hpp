@@ -67,7 +67,7 @@ class BucketManager {
                                              std::ostream &out) {
     out << "c [BUCKET MANAGER] " << options << "\n";
 
-    SpecManagerCnf &scnf = dynamic_cast<SpecManagerCnf &>(s);
+    CnfManager &scnf = dynamic_cast<CnfManager &>(s);
     if (options.clauseRepresentation == CACHE_CLAUSE)
       return new BucketManagerCnfCl<T>(scnf, cache, options.modeStore,
                                        options.sizeFirstPage,

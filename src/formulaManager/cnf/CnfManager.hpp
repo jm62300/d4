@@ -21,8 +21,8 @@
 #include <iterator>
 
 #include "../FormulaManager.hpp"
+#include "ClauseInfo.hpp"
 #include "DataOccurrence.hpp"
-#include "SpecClauseInfo.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
@@ -34,13 +34,13 @@ struct InfoCluster {
   int pos;
 };
 
-class SpecManagerCnf : public FormulaManager {
+class CnfManager : public FormulaManager {
  protected:
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<int> m_clausesNotBin;
   unsigned m_maxSizeClause;
   std::vector<lbool> m_currentValue;
-  std::vector<SpecClauseInfo> m_infoClauses;
+  std::vector<ClauseInfo> m_infoClauses;
 
   std::vector<bool> m_inCurrentComponent;
   std::vector<DataOccurrence> m_occurrence;
@@ -60,8 +60,8 @@ class SpecManagerCnf : public FormulaManager {
   }  // resetUnMark
 
  public:
-  SpecManagerCnf(ProblemManager &p);
-  ~SpecManagerCnf();
+  CnfManager(ProblemManager &p);
+  ~CnfManager();
 
   int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
                                 std::vector<Var> &setOfVar,

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
 
@@ -36,7 +36,7 @@ class BucketInConstruction {
   unsigned maxSizeClause;
 
   BucketInConstruction();
-  BucketInConstruction(SpecManagerCnf &occM);
+  BucketInConstruction(CnfManager &occM);
   ~BucketInConstruction();
   void reinit();
 };

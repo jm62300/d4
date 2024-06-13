@@ -26,8 +26,7 @@ namespace d4 {
 
    @param[in] s, the manager that give information about the formula.
  */
-PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(SpecManagerCnf &s,
-                                                   bool isRev)
+PhaseHeuristicOccurrence::PhaseHeuristicOccurrence(CnfManager &s, bool isRev)
     : sm(s) {
   isReversed = isRev;
 }  // constructor

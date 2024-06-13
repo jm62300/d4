@@ -19,7 +19,7 @@
 
 #include "AndGatesExtractor.hpp"
 
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
 
@@ -48,8 +48,7 @@ void AndGatesExtractor::init(int nbVar) {
    @param[in] v, the set of variables we search in.
    @param[out] equivVar, le resulting equivalences.
  */
-void AndGatesExtractor::searchAndGates(SpecManagerCnf *om,
-                                       std::vector<Var> &vars,
+void AndGatesExtractor::searchAndGates(CnfManager *om, std::vector<Var> &vars,
                                        std::vector<AndGate> &gates) {
   for (unsigned i = 0; i < om->getNbClause(); i++) {
     if (om->isSatisfiedClause(i) || om->getInitSize(i) < 5) continue;

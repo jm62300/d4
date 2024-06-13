@@ -76,7 +76,7 @@ class BucketManagerCnfCombi : public BucketManagerCnf<T> {
      allocation.
   */
   BucketManagerCnfCombi(
-      SpecManagerCnf &occM, CacheManager<T> *cache, ModeStore mdStore,
+      CnfManager &occM, CacheManager<T> *cache, ModeStore mdStore,
       unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
       unsigned limitNbVarSym, unsigned limitNbVarIndex,
       BucketAllocator *bucketAllocator = new BucketAllocator())

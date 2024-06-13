@@ -30,7 +30,7 @@ namespace d4 {
  * implementation.
  */
 PartialOrderHeuristicTreeDecompCnf::PartialOrderHeuristicTreeDecompCnf(
-    const OptionPartialOrderHeuristic &options, SpecManagerCnf &om,
+    const OptionPartialOrderHeuristic &options, CnfManager &om,
     WrapperSolver &s, std::ostream &out) {
   TreeDecomposition *decomp =
       TreeDecomposition::makeTreeDecomposition(options, PB_CNF, out);

@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "HyperGraph.hpp"
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

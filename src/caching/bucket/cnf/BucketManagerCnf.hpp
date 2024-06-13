@@ -25,7 +25,7 @@
 #include "../../CachedBucket.hpp"
 #include "../BucketAllocator.hpp"
 #include "../BucketManager.hpp"
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -37,7 +37,7 @@ class CacheManager;
 template <class T>
 class BucketManagerCnf : public BucketManager<T> {
  protected:
-  SpecManagerCnf &m_specManager;
+  CnfManager &m_specManager;
 
   ModeStore m_modeStore;
   unsigned m_nbClauseCnf;
@@ -83,8 +83,8 @@ class BucketManagerCnf : public BucketManager<T> {
      pages.
      @param[in] bucketAllocator, a bucket allocator.
   */
-  BucketManagerCnf(SpecManagerCnf &occM, CacheManager<T> *cache,
-                   ModeStore mdStore, unsigned long sizeFirstPage,
+  BucketManagerCnf(CnfManager &occM, CacheManager<T> *cache, ModeStore mdStore,
+                   unsigned long sizeFirstPage,
                    unsigned long sizeAdditionalPage,
                    BucketAllocator *bucketAllocator)
       : m_specManager(occM) {

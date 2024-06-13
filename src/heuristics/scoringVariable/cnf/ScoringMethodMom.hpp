@@ -17,17 +17,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <src/formulaManager/cnf/SpecManagerCnf.hpp>
+#include <src/formulaManager/cnf/CnfManager.hpp>
 
 #include "../ScoringMethod.hpp"
 
 namespace d4 {
 class ScoringMethodMom : public ScoringMethod {
  private:
-  SpecManagerCnf &om;
+  CnfManager &om;
 
  public:
-  ScoringMethodMom(SpecManagerCnf &om);
+  ScoringMethodMom(CnfManager &om);
   double computeScore(Var v);
 };
 }  // namespace d4

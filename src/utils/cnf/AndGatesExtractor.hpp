@@ -20,8 +20,8 @@
 
 #include <vector>
 
+#include "src/formulaManager/cnf/CnfManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
 
 namespace d4 {
 struct AndGate {
@@ -45,7 +45,7 @@ class AndGatesExtractor {
   AndGatesExtractor(int nbVar);
   void init(int nbVar);
 
-  void searchAndGates(SpecManagerCnf *om, std::vector<Var> &v,
+  void searchAndGates(CnfManager *om, std::vector<Var> &v,
                       std::vector<AndGate> &gates);
 };
 }  // namespace d4

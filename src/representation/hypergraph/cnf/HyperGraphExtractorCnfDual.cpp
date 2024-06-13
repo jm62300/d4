@@ -19,7 +19,7 @@
 
 #include "HyperGraphExtractorCnfDual.hpp"
 
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
 
@@ -37,7 +37,7 @@ HyperGraphExtractorCnfDual::~HyperGraphExtractorCnfDual() {
 InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     FormulaManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
   // cast into a CNF spec manager
-  SpecManagerCnf &tmp = static_cast<SpecManagerCnf &>(om);
+  CnfManager &tmp = static_cast<CnfManager &>(om);
 
   // allocate memory.
   unsigned pos = 0;
@@ -62,9 +62,9 @@ InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     pos += sizeof(HyperEdge) + size * sizeof(unsigned);
   }
 
-  return {dynamic_cast<SpecManagerCnf &>(om).getNbVariable(),
-          dynamic_cast<SpecManagerCnf &>(om).getNbClause(),
-          dynamic_cast<SpecManagerCnf &>(om).getSumSizeClauses()};
+  return {dynamic_cast<CnfManager &>(om).getNbVariable(),
+          dynamic_cast<CnfManager &>(om).getNbClause(),
+          dynamic_cast<CnfManager &>(om).getSumSizeClauses()};
 }  // constructHyperGraph
 
 /**

@@ -18,9 +18,9 @@
  */
 #include "FormulaManager.hpp"
 
-#include "cnf/SpecManagerCnfDyn.hpp"
-#include "cnf/SpecManagerCnfDynBlockedCl.hpp"
-#include "cnf/SpecManagerCnfDynPure.hpp"
+#include "cnf/CnfManagerDyn.hpp"
+#include "cnf/CnfManagerDynBlockedCl.hpp"
+#include "cnf/CnfManagerDynPure.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -37,11 +37,11 @@ FormulaManager *FormulaManager::makeSpecManager(
     if (p.getProblemType() == PB_CIRC)
       out << "c Warning: only handle the case where the circuit is translated "
              "into a CNF formula\n";
-    if (options.specUpdateType == SPEC_DYNAMIC) return new SpecManagerCnfDyn(p);
+    if (options.specUpdateType == SPEC_DYNAMIC) return new CnfManagerDyn(p);
     if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_SIMP)
-      return new SpecManagerCnfDynBlockedCl(p);
+      return new CnfManagerDynBlockedCl(p);
     if (options.specUpdateType == SPEC_DYNAMIC_PURE_SIMP)
-      return new SpecManagerCnfDynPure(p);
+      return new CnfManagerDynPure(p);
   }
 
   throw(FactoryException("Cannot create a FormulaManager", __FILE__, __LINE__));

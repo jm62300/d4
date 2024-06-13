@@ -31,7 +31,7 @@ void GraphExtractorCnfPrimal::constructGraph(FormulaManager &om,
                                              std::vector<Var> &component,
                                              Graph &graph) {
   std::vector<std::vector<int>> clauses;
-  extractCnf(dynamic_cast<SpecManagerCnf &>(om), component, clauses);
+  extractCnf(dynamic_cast<CnfManager &>(om), component, clauses);
   if (m_simplication) simplication(clauses);
 
   unsigned maxId = 0;

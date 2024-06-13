@@ -40,7 +40,7 @@ BucketInConstruction::BucketInConstruction() {
 
    @param[in] occM, the spec manager.
 */
-BucketInConstruction::BucketInConstruction(SpecManagerCnf &occM) {
+BucketInConstruction::BucketInConstruction(CnfManager &occM) {
   nbClauseInDistrib = 0;
   sizeDistrib = 0;
   capacityDistrib = 3 * occM.getSumSizeClauses() + occM.getNbVariable();

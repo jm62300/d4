@@ -27,7 +27,7 @@ namespace d4 {
    @param[in] o, the specification of a CNF problem.
    @param[in] a, an activity manager linked to a solver.
  */
-ScoringMethodVsads::ScoringMethodVsads(SpecManagerCnf &o, ActivityManager &a)
+ScoringMethodVsads::ScoringMethodVsads(CnfManager &o, ActivityManager &a)
     : om(o), activity(a) {}  // constructor
 
 /**

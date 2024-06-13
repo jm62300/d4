@@ -17,17 +17,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "SpecManagerCnfDynPure.hpp"
-
-#include "SpecManagerCnf.hpp"
+#include "CnfManagerDynPure.hpp"
 
 namespace d4 {
 
 /**
- * @brief SpecManagerCnfDynPure::SpecManagerCnfDynPure implementation.
+ * @brief CnfManagerDynPure::CnfManagerDynPure implementation.
  */
-SpecManagerCnfDynPure::SpecManagerCnfDynPure(ProblemManager &p)
-    : SpecManagerCnfDyn(p) {
+CnfManagerDynPure::CnfManagerDynPure(ProblemManager &p) : CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with pure literal elimination\n";
   m_currentMarkedLitIndex = 0;
   m_nbPureSimplification = 0;
@@ -41,12 +38,12 @@ SpecManagerCnfDynPure::SpecManagerCnfDynPure(ProblemManager &p)
   affectInitPureLit();
   for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++)
     m_markedLit[m_savedStateOccs[i].l.intern()] = 0;
-}  // SpecManagerCnfDynPure
+}  // CnfManagerDynPure
 
 /**
- * @brief SpecManagerCnfDynPure::affectInitPureLit implementation.
+ * @brief CnfManagerDynPure::affectInitPureLit implementation.
  */
-void SpecManagerCnfDynPure::affectInitPureLit() {
+void CnfManagerDynPure::affectInitPureLit() {
   getPureLiterals(m_pureDetected);
   m_stackPosClause.push_back(m_savedStateClauses.size());
   m_stackPosOcc.push_back(m_savedStateOccs.size());
@@ -57,9 +54,9 @@ void SpecManagerCnfDynPure::affectInitPureLit() {
 }  // affectInitPureLit
 
 /**
- * @brief SpecManagerCnfDynPure::getPureLiterals implementation.
+ * @brief CnfManagerDynPure::getPureLiterals implementation.
  */
-void SpecManagerCnfDynPure::getPureLiterals(std::vector<Lit> &pureLits) {
+void CnfManagerDynPure::getPureLiterals(std::vector<Lit> &pureLits) {
   for (unsigned i = 1; i < m_isDecisionVariable.size(); i++)
     if (m_isDecisionVariable[i] || m_currentValue[i] != l_Undef)
       continue;
@@ -75,9 +72,9 @@ void SpecManagerCnfDynPure::getPureLiterals(std::vector<Lit> &pureLits) {
 }  // getPureLiterals
 
 /**
- * @brief SpecManagerCnfDynPure::inprocessing implementation.
+ * @brief CnfManagerDynPure::inprocessing implementation.
  */
-void SpecManagerCnfDynPure::inprocessing() {
+void CnfManagerDynPure::inprocessing() {
   // consider the pure literals.
   do {
     m_pureDetected.resize(0);

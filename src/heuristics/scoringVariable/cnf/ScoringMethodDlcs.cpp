@@ -26,8 +26,7 @@ namespace d4 {
 
    @param[in] om, the manager that give information about the CNF formula.
  */
-ScoringMethodDlcs::ScoringMethodDlcs(SpecManagerCnf &o)
-    : om(o) {}  // constructor
+ScoringMethodDlcs::ScoringMethodDlcs(CnfManager &o) : om(o) {}  // constructor
 
 /**
    This scoring function favorises the variables which appear in

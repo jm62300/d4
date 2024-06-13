@@ -77,7 +77,7 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfCl(SpecManagerCnf &occM, CacheManager<T> *cache,
+  BucketManagerCnfCl(CnfManager &occM, CacheManager<T> *cache,
                      ModeStore mdStore, unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage,
                      BucketAllocator *bucketAllocator = new BucketAllocator())

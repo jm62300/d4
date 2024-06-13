@@ -23,10 +23,10 @@ namespace d4 {
 
 class PhaseHeuristicOccurrence : public PhaseHeuristic {
  private:
-  SpecManagerCnf &sm;
+  CnfManager &sm;
 
  public:
-  PhaseHeuristicOccurrence(SpecManagerCnf &s, bool isRev);
+  PhaseHeuristicOccurrence(CnfManager &s, bool isRev);
   bool selectPhase(Var v);
 };
 }  // namespace d4

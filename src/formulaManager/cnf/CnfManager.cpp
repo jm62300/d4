@@ -17,12 +17,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "SpecManagerCnf.hpp"
+#include "CnfManager.hpp"
 
 #include <algorithm>  // std::sort
 #include <iostream>
 
-#include "SpecManagerCnfDyn.hpp"
+#include "CnfManagerDyn.hpp"
 #include "src/methods/nnf/Node.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
@@ -31,7 +31,7 @@ namespace d4 {
 /**
    Constructor.
 */
-SpecManagerCnf::SpecManagerCnf(ProblemManager &p) {
+CnfManager::CnfManager(ProblemManager &p) {
   // get the clauses.
   try {
     CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
@@ -107,9 +107,7 @@ SpecManagerCnf::SpecManagerCnf(ProblemManager &p) {
  * @brief Destroy the Spec Manager Cnf:: Spec Manager Cnf object
  *
  */
-SpecManagerCnf::~SpecManagerCnf() {
-  delete[] m_dataOccurrenceMemory;
-}  // destructor
+CnfManager::~CnfManager() { delete[] m_dataOccurrenceMemory; }  // destructor
 
 /**
    Look all the formula in order to compute the connected component
@@ -122,9 +120,9 @@ SpecManagerCnf::~SpecManagerCnf() {
 
    \return the number of component found
 */
-int SpecManagerCnf::computeConnectedComponent(
-    std::vector<std::vector<Var>> &varCo, std::vector<Var> &setOfVar,
-    std::vector<Var> &freeVar) {
+int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
+                                          std::vector<Var> &setOfVar,
+                                          std::vector<Var> &freeVar) {
   for (auto v : setOfVar) {
     assert(v < m_infoCluster.size());
     m_infoCluster[v].parent = v;
@@ -224,9 +222,9 @@ int SpecManagerCnf::computeConnectedComponent(
    @param[in] varComponent, the set of varaible connected to l.
    @param[in] nbComponent, the component label.
 */
-void SpecManagerCnf::connectedToLit(Lit l, std::vector<int> &v,
-                                    std::vector<Var> &varComponent,
-                                    int nbComponent) {
+void CnfManager::connectedToLit(Lit l, std::vector<int> &v,
+                                std::vector<Var> &varComponent,
+                                int nbComponent) {
   for (unsigned i = 0; i < 2; i++) {
     IteratorIdxClause listIndex =
         i ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
@@ -262,7 +260,7 @@ void SpecManagerCnf::connectedToLit(Lit l, std::vector<int> &v,
 
    \return the number of component found
 */
-int SpecManagerCnf::computeConnectedComponentTargeted(
+int CnfManager::computeConnectedComponentTargeted(
     std::vector<std::vector<Var>> &varCo, std::vector<Var> &setOfVar,
     std::vector<bool> &isProjected, std::vector<Var> &freeVar) {
   freeVar.resize(0);
@@ -324,7 +322,7 @@ int SpecManagerCnf::computeConnectedComponentTargeted(
 
    \return true if the clause is satisfied, false otherwise.
 */
-bool SpecManagerCnf::isSatisfiedClause(unsigned idx) {
+bool CnfManager::isSatisfiedClause(unsigned idx) {
   assert(idx < m_clauses.size());
   return m_infoClauses[idx].isSat;
 }  // isSatisfiedClause
@@ -337,7 +335,7 @@ bool SpecManagerCnf::isSatisfiedClause(unsigned idx) {
 
    \return true if the clause is satisfied, false otherwise.
 */
-bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c) {
+bool CnfManager::isSatisfiedClause(std::vector<Lit> &c) {
   for (auto &l : c) {
     if (!litIsAssigned(l)) continue;
     if (l.sign() && m_currentValue[l.var()] == l_False) return true;
@@ -359,15 +357,15 @@ bool SpecManagerCnf::isSatisfiedClause(std::vector<Lit> &c) {
 
    \return false if the clause is satisfied, true otherwise.
 */
-bool SpecManagerCnf::isNotSatisfiedClauseAndInComponent(
+bool CnfManager::isNotSatisfiedClauseAndInComponent(
     int idx, std::vector<bool> &m_inCurrentComponent) {
   if (m_infoClauses[idx].isSat) return false;
   assert(!litIsAssigned(m_clauses[idx][0]));
   return m_inCurrentComponent[m_clauses[idx][0].var()];
 }  // isSatisfiedClause
 
-void SpecManagerCnf::getCurrentClauses(std::vector<unsigned> &idxClauses,
-                                       std::vector<Var> &component) {
+void CnfManager::getCurrentClauses(std::vector<unsigned> &idxClauses,
+                                   std::vector<Var> &component) {
   idxClauses.resize(0);
   for (auto &v : component) m_inCurrentComponent[v] = true;
   for (unsigned i = 0; i < m_clauses.size(); i++) {
@@ -377,8 +375,8 @@ void SpecManagerCnf::getCurrentClauses(std::vector<unsigned> &idxClauses,
   for (auto &v : component) m_inCurrentComponent[v] = false;
 }  // getCurrentclauses
 
-void SpecManagerCnf::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
-                                             std::vector<Var> &component) {
+void CnfManager::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
+                                         std::vector<Var> &component) {
   idxClauses.resize(0);
   for (auto &v : component) m_inCurrentComponent[v] = true;
   for (auto &i : m_clausesNotBin) {
@@ -388,7 +386,7 @@ void SpecManagerCnf::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
   for (auto &v : component) m_inCurrentComponent[v] = false;
 }  // getCurrentclauses
 
-void SpecManagerCnf::showFormula(std::ostream &out) {
+void CnfManager::showFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (auto &cl : m_clauses) {
     showListLit(out, cl);
@@ -396,7 +394,7 @@ void SpecManagerCnf::showFormula(std::ostream &out) {
   }
 }  // showFormula
 
-void SpecManagerCnf::showTrail(std::ostream &out) {
+void CnfManager::showTrail(std::ostream &out) {
   for (int i = 0; i < getNbVariable(); i++) {
     if (!varIsAssigned(i)) continue;
     Lit l = Lit::makeLit(i, false);
@@ -408,7 +406,7 @@ void SpecManagerCnf::showTrail(std::ostream &out) {
   out << "\n";
 }  // showFormula
 
-void SpecManagerCnf::showCurrentFormula(std::ostream &out) {
+void CnfManager::showCurrentFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_infoClauses[i].isSat) continue;

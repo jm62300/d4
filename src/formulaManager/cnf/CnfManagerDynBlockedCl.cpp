@@ -17,15 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "SpecManagerCnfDynBlockedCl.hpp"
+#include "CnfManagerDynBlockedCl.hpp"
 
 namespace d4 {
 
 /**
- * @brief SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl implementation.
+ * @brief CnfManagerDynBlockedCl::CnfManagerDynBlockedCl implementation.
  */
-SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
-    : SpecManagerCnfDyn(p) {
+CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
+    : CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with blocked clause elimination\n";
 
   m_nbBlockedClauseRemoved = 0;
@@ -124,12 +124,12 @@ SpecManagerCnfDynBlockedCl::SpecManagerCnfDynBlockedCl(ProblemManager &p)
   // unmark the literals.
   for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++)
     m_markedLit[m_savedStateOccs[i].l.intern()] = 0;
-}  // SpecManagerCnfDynBlockedCl
+}  // CnfManagerDynBlockedCl
 
 /**
- * @brief SpecManagerCnfDynBlockedCl::searchTautNotResolution implementation.
+ * @brief CnfManagerDynBlockedCl::searchTautNotResolution implementation.
  */
-unsigned SpecManagerCnfDynBlockedCl::searchTautNotResolution(
+unsigned CnfManagerDynBlockedCl::searchTautNotResolution(
     std::vector<bool> &isPresentLit, Lit l) {
   // do not consider l in the resolution.
   m_isPresentLit[l.intern()] = false;
@@ -160,9 +160,9 @@ unsigned SpecManagerCnfDynBlockedCl::searchTautNotResolution(
 }  // searchTautNotResolution
 
 /**
- * @brief SpecManagerCnfDynBlockedCl::getBlockedClauses implementation.
+ * @brief CnfManagerDynBlockedCl::getBlockedClauses implementation.
  */
-void SpecManagerCnfDynBlockedCl::getBlockedClauses(
+void CnfManagerDynBlockedCl::getBlockedClauses(
     std::vector<unsigned> &idxClauses) {
   idxClauses.clear();
   for (unsigned i = 0; i < m_clauses.size(); i++) {
@@ -191,11 +191,11 @@ void SpecManagerCnfDynBlockedCl::getBlockedClauses(
 }  // getBlockedClauses
 
 /**
- * @brief SpecManagerCnfDynBlockedCl::inprocessing implementation.
+ * @brief CnfManagerDynBlockedCl::inprocessing implementation.
  * m_indexSatClauses contains the clause we have to propagate at the current
  * level.
  */
-void SpecManagerCnfDynBlockedCl::inprocessing() {
+void CnfManagerDynBlockedCl::inprocessing() {
   // get the blocked clauses.
   m_idxBlockedClauses.resize(0);
   while (m_indexSatClauses.size()) {

@@ -22,7 +22,7 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
-#include "SpecManagerCnf.hpp"
+#include "CnfManager.hpp"
 
 namespace d4 {
 
@@ -38,7 +38,7 @@ struct SavedStateClause {
   unsigned nbUnsat : 31;
 };
 
-class SpecManagerCnfDyn : public SpecManagerCnf {
+class CnfManagerDyn : public CnfManager {
  protected:
   unsigned m_currentMarkedLitIndex;
 
@@ -88,7 +88,7 @@ class SpecManagerCnfDyn : public SpecManagerCnf {
   virtual void inprocessing() {}
 
  public:
-  SpecManagerCnfDyn(ProblemManager &p);
+  CnfManagerDyn(ProblemManager &p);
 
   /**
    * @brief Update the occurrence list w.r.t. a new set of assigned variables.

@@ -19,7 +19,7 @@
 #pragma once
 
 #include "../GraphExtractor.hpp"
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
 class GraphExtractorCnf : public GraphExtractor {
@@ -42,7 +42,7 @@ class GraphExtractorCnf : public GraphExtractor {
    * @param[in] component is the set of variables under consideration.
    * @param[out] clauses is the set of computed clauses.
    */
-  void extractCnf(SpecManagerCnf &formula, std::vector<Var> &component,
+  void extractCnf(CnfManager &formula, std::vector<Var> &component,
                   std::vector<std::vector<int> > &clauses);
 };
 

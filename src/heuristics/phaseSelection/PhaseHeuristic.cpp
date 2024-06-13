@@ -41,7 +41,7 @@ PhaseHeuristic *PhaseHeuristic::makePhaseHeuristic(
   if (options.phaseHeuristicType == PHASE_POLARITY)
     return new PhaseHeuristicPolarity(p, options.reversePhase);
   if (options.phaseHeuristicType == PHASE_OCCURRENCE)
-    return new PhaseHeuristicOccurrence(static_cast<SpecManagerCnf &>(s),
+    return new PhaseHeuristicOccurrence(static_cast<CnfManager &>(s),
                                         options.reversePhase);
 
   throw(FactoryException("Cannot create a PhaseHeuristic", __FILE__, __LINE__));

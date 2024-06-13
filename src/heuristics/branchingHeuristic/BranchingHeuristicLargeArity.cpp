@@ -21,7 +21,7 @@
 
 #include <algorithm>
 
-#include "src/formulaManager/cnf/SpecManagerCnf.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
 
@@ -35,7 +35,7 @@ BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
   m_limitClause = options.limitSizeClause;
 
   std::vector<std::vector<Lit>> &clauses =
-      static_cast<SpecManagerCnf *>(specs)->getClauses();
+      static_cast<CnfManager *>(specs)->getClauses();
   for (unsigned i = 0; i < clauses.size(); i++) {
     if (clauses[i].size() >= m_limitClause) m_indexOfLargeClause.push_back(i);
   }
@@ -57,7 +57,7 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
   for (auto &v : vars) m_markedVar[v] = true;
 
   // check if we still have a large enough clause.
-  SpecManagerCnf *specs = static_cast<SpecManagerCnf *>(m_specs);
+  CnfManager *specs = static_cast<CnfManager *>(m_specs);
   unsigned larger = 0, lIdx = 0;
   for (auto &idx : m_indexOfLargeClause) {
     if (specs->getSize(idx) >= m_limitClause &&

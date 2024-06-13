@@ -26,8 +26,7 @@ namespace d4 {
 
    @param[in] om, the manager that give information about the CNF formula.
  */
-ScoringMethodJwts::ScoringMethodJwts(SpecManagerCnf &o)
-    : om(o) {}  // constructor
+ScoringMethodJwts::ScoringMethodJwts(CnfManager &o) : om(o) {}  // constructor
 
 /**
  * @brief This scoring function favorises the varaibles which appear in most

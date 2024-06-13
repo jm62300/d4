@@ -39,7 +39,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
     const OptionBranchingHeuristic &options, FormulaManager &p,
     ActivityManager &am, std::ostream &out) {
   try {
-    SpecManagerCnf &ps = dynamic_cast<SpecManagerCnf &>(p);
+    CnfManager &ps = dynamic_cast<CnfManager &>(p);
 
     if (options.scoringMethodType == SCORE_MOM) return new ScoringMethodMom(ps);
     if (options.scoringMethodType == SCORE_DLCS)

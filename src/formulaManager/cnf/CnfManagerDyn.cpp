@@ -17,28 +17,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "SpecManagerCnfDyn.hpp"
-
-#include "SpecManagerCnf.hpp"
+#include "CnfManagerDyn.hpp"
 
 namespace d4 {
 
 /**
- * @brief SpecManagerCnfDyn::SpecManagerCnfDyn implementation.
+ * @brief CnfManagerDyn::CnfManagerDyn implementation.
  */
-SpecManagerCnfDyn::SpecManagerCnfDyn(ProblemManager &p) : SpecManagerCnf(p) {
+CnfManagerDyn::CnfManagerDyn(ProblemManager &p) : CnfManager(p) {
   m_markedLit.resize((1 + p.getNbVar()) << 1, false);
   m_markedClauseIdx.resize(m_clauses.size() + 1, false);
   m_indexSatClauses.reserve(m_clauses.size());
 
   m_savedStateClauses.reserve(getSumSizeClauses());
   m_savedStateOccs.reserve(getSumSizeClauses());
-}  // SpecManagerCnfDyn
+}  // CnfManagerDyn
 
 /**
- * @brief SpecManagerCnfDynPure::propagateFalseInNotBin implementation.
+ * @brief CnfManagerDynPure::propagateFalseInNotBin implementation.
  */
-void SpecManagerCnfDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
+void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
   m_currentMarkedLitIndex++;
   for (auto &l : lits) {
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
@@ -67,9 +65,9 @@ void SpecManagerCnfDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
 }  // propagateFalseInNotBin
 
 /**
- * @brief SpecManagerCnfDyn::removeSatisfiedClauses implementation.
+ * @brief CnfManagerDyn::removeSatisfiedClauses implementation.
  */
-void SpecManagerCnfDyn::removeSatisfiedClauses(
+void CnfManagerDyn::removeSatisfiedClauses(
     const std::vector<unsigned> &idxClauses) {
   for (auto idxCl : idxClauses) {
     for (auto &ll : m_clauses[idxCl]) {
@@ -88,9 +86,9 @@ void SpecManagerCnfDyn::removeSatisfiedClauses(
 }  // removeSatisfiedClauses
 
 /**
- * @brief SpecManagerCnfDyn::propagateTrue implementation.
+ * @brief CnfManagerDyn::propagateTrue implementation.
  */
-void SpecManagerCnfDyn::propagateTrue(const std::vector<Lit> &lits) {
+void CnfManagerDyn::propagateTrue(const std::vector<Lit> &lits) {
   m_currentMarkedLitIndex++;
 
   for (auto &l : lits) {
@@ -121,9 +119,9 @@ void SpecManagerCnfDyn::propagateTrue(const std::vector<Lit> &lits) {
 }  // propagateTrue
 
 /**
- * @brief SpecManagerCnfDyn::preUpdate implementation.
+ * @brief CnfManagerDyn::preUpdate implementation.
  */
-void SpecManagerCnfDyn::preUpdate(const std::vector<Lit> &lits) {
+void CnfManagerDyn::preUpdate(const std::vector<Lit> &lits) {
   m_stackPosClause.push_back(m_savedStateClauses.size());
   m_stackPosOcc.push_back(m_savedStateOccs.size());
   m_currentMarkedLitIndex = 0;
@@ -152,9 +150,9 @@ void SpecManagerCnfDyn::preUpdate(const std::vector<Lit> &lits) {
 }  // preUpdate
 
 /**
- * @brief SpecManagerCnfDyn::postUpdate implementation.
+ * @brief CnfManagerDyn::postUpdate implementation.
  */
-void SpecManagerCnfDyn::postUpdate(const std::vector<Lit> &lits) {
+void CnfManagerDyn::postUpdate(const std::vector<Lit> &lits) {
   // manage the literal information.
   unsigned previousOcc = m_stackPosOcc.back();
   m_stackPosOcc.pop_back();

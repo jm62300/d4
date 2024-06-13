@@ -35,7 +35,7 @@ class PartialOrderHeuristicTreeDecompCnf
    * @param out is the output stream.
    */
   PartialOrderHeuristicTreeDecompCnf(const OptionPartialOrderHeuristic &options,
-                                     SpecManagerCnf &om, WrapperSolver &s,
+                                     CnfManager &om, WrapperSolver &s,
                                      std::ostream &out);
 
   ~PartialOrderHeuristicTreeDecompCnf();

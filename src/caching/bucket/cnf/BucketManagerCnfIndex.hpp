@@ -45,7 +45,7 @@ class BucketManagerCnfIndex : public BucketManagerCnf<T> {
      pages.
   */
   BucketManagerCnfIndex(
-      SpecManagerCnf &occM, CacheManager<T> *cache, ModeStore mdStore,
+      CnfManager &occM, CacheManager<T> *cache, ModeStore mdStore,
       unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
       BucketAllocator *bucketAllocator = new BucketAllocator())
       : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,

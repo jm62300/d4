@@ -22,7 +22,7 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
-#include "SpecManagerCnfDyn.hpp"
+#include "CnfManagerDyn.hpp"
 
 namespace d4 {
 
@@ -32,7 +32,7 @@ struct BlockedInfo {
   std::vector<unsigned> listIdxNonTaut;
 };
 
-class SpecManagerCnfDynBlockedCl : public SpecManagerCnfDyn {
+class CnfManagerDynBlockedCl : public CnfManagerDyn {
  private:
   unsigned long m_nbBlockedClauseRemoved;
   std::vector<bool> m_isDecisionVariable;
@@ -71,7 +71,7 @@ class SpecManagerCnfDynBlockedCl : public SpecManagerCnfDyn {
   void inprocessing();
 
  public:
-  SpecManagerCnfDynBlockedCl(ProblemManager &p);
+  CnfManagerDynBlockedCl(ProblemManager &p);
 
   inline void printSpecInformation(std::ostream &out) {
     std::cout << "c Number of blocked clause removed: "

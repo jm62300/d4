@@ -31,7 +31,7 @@ void GraphExtractorCnf::simplication(std::vector<std::vector<int> > &clauses) {
 /**
  * @brief GraphExtractorCnf::extractCnf implementation.
  */
-void GraphExtractorCnf::extractCnf(SpecManagerCnf &formula,
+void GraphExtractorCnf::extractCnf(CnfManager &formula,
                                    std::vector<Var> &component,
                                    std::vector<std::vector<int> > &clauses) {
   std::vector<bool> marked(formula.getNbClause() + 1, false);
