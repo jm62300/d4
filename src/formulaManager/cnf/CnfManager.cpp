@@ -364,28 +364,6 @@ bool CnfManager::isNotSatisfiedClauseAndInComponent(
   return m_inCurrentComponent[m_clauses[idx][0].var()];
 }  // isSatisfiedClause
 
-void CnfManager::getCurrentClauses(std::vector<unsigned> &idxClauses,
-                                   std::vector<Var> &component) {
-  idxClauses.resize(0);
-  for (auto &v : component) m_inCurrentComponent[v] = true;
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
-      idxClauses.push_back(i);
-  }
-  for (auto &v : component) m_inCurrentComponent[v] = false;
-}  // getCurrentclauses
-
-void CnfManager::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
-                                         std::vector<Var> &component) {
-  idxClauses.resize(0);
-  for (auto &v : component) m_inCurrentComponent[v] = true;
-  for (auto &i : m_clausesNotBin) {
-    if (isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
-      idxClauses.push_back(i);
-  }
-  for (auto &v : component) m_inCurrentComponent[v] = false;
-}  // getCurrentclauses
-
 void CnfManager::showFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (auto &cl : m_clauses) {

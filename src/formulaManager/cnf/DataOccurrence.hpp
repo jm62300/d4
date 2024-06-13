@@ -48,7 +48,7 @@ struct DataOccurrence {
     assert(bin == notBin);
   }
 
-  inline void removeMarkedBin(const std::vector<ClauseInfo> &infoClauses) {
+  inline void removeSatisfiedBin(const std::vector<ClauseInfo> &infoClauses) {
     if (!nbBin) return;
     int *end = &bin[nbBin - 1], *endSize = &bin[nbBin];
     while (end >= bin) {
@@ -87,7 +87,8 @@ struct DataOccurrence {
     assert(0);  // we have to remove one element.
   }
 
-  inline void removeNotBinMarked(const std::vector<ClauseInfo> &infoClauses) {
+  inline void removeSatisfiedNotBin(
+      const std::vector<ClauseInfo> &infoClauses) {
     for (unsigned i = 0; i < nbNotBin;) {
       if (infoClauses[notBin[i]].isSat) {
         std::swap(notBin[i], notBin[nbNotBin - 1]);
@@ -95,7 +96,7 @@ struct DataOccurrence {
       } else
         i++;
     }
-  }  // removeNotBinMarked
+  }  // removeSatisfiedNotBin
 
   inline void addBin(int idx) {
     --bin;

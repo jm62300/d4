@@ -39,8 +39,16 @@ struct SavedStateClause {
 };
 
 class CnfManagerDyn : public CnfManager {
+ private:
+  std::vector<unsigned> m_stackSizeListNotSatisfiedClauses;
+  std::vector<unsigned> m_markedNotSatClauses;
+  unsigned m_stampNotSatClauses;
+  unsigned *m_notSatifiedClauses;
+  unsigned m_sizeNotSatifiedClauses;
+
  protected:
   unsigned m_currentMarkedLitIndex;
+  bool m_keepListNotSatisfiedClauses;
 
   std::vector<int> m_reviewWatcher;
   std::vector<char> m_markedLit;
@@ -58,7 +66,7 @@ class CnfManagerDyn : public CnfManager {
    *
    * @param idxClauses is the list of indexes.
    */
-  virtual void removeSatisfiedClauses(const std::vector<unsigned> &idxClauses);
+  void removeSatisfiedClauses(const std::vector<unsigned> &idxClauses);
 
   /**
    * @brief Suppose that the literal in lits are true (even if it is not really
@@ -88,7 +96,41 @@ class CnfManagerDyn : public CnfManager {
   virtual void inprocessing() {}
 
  public:
-  CnfManagerDyn(ProblemManager &p);
+  /**
+   * @brief Construct a new Cnf Manager Dyn object.
+   *
+   * @param[in] p is the proble we want to model (it is a CNF formula).
+   * @param[in] keepListNotSatisfiedClauses is a boolean set to true if we want
+   * to keep in memory the list of clauses that are not yet satisfied by the
+   * current assignation.
+   */
+  CnfManagerDyn(ProblemManager &p, bool keepListNotSatisfiedClauses = false);
+
+  /**
+   * @brief Destroy the Cnf Manager Dyn object
+   */
+  ~CnfManagerDyn();
+
+  /**
+   * @brief Get the set of not satisfied clauses regarding a given component
+   * represented by the set of variables.
+   *
+   * @param[out] idxClauses is the set of clause indices.
+   * @param[in] component is the connected component under consideration.
+   */
+  void getCurrentClauses(std::vector<unsigned> &idxClauses,
+                         std::vector<Var> &component) override;
+
+  /**
+   * @brief Get the set of not satisfied clauses with a size larger than 2 (here
+   * we speak about the initial size). We return the clauses regarding a given
+   * component represented by the set of variables.
+   *
+   * @param[out] idxClauses is the set of clause indices.
+   * @param[in] component is the connected component under consideration.
+   */
+  void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
+                               std::vector<Var> &component) override;
 
   /**
    * @brief Update the occurrence list w.r.t. a new set of assigned variables.

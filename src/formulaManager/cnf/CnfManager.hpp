@@ -88,11 +88,11 @@ class CnfManager : public FormulaManager {
   bool isNotSatisfiedClauseAndInComponent(
       int idx, std::vector<bool> &m_inCurrentComponent);
 
-  void getCurrentClauses(std::vector<unsigned> &idxClauses,
-                         std::vector<Var> &component);
+  virtual void getCurrentClauses(std::vector<unsigned> &idxClauses,
+                                 std::vector<Var> &component) = 0;
 
-  void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
-                               std::vector<Var> &component);
+  virtual void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
+                                       std::vector<Var> &component) = 0;
 
   // inline functions.
   // about the CNF.

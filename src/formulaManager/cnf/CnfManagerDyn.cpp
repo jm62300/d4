@@ -24,14 +24,66 @@ namespace d4 {
 /**
  * @brief CnfManagerDyn::CnfManagerDyn implementation.
  */
-CnfManagerDyn::CnfManagerDyn(ProblemManager &p) : CnfManager(p) {
+CnfManagerDyn::CnfManagerDyn(ProblemManager &p,
+                             bool keepListNotSatisfiedClauses)
+    : CnfManager(p),
+      m_keepListNotSatisfiedClauses(keepListNotSatisfiedClauses) {
   m_markedLit.resize((1 + p.getNbVar()) << 1, false);
   m_markedClauseIdx.resize(m_clauses.size() + 1, false);
   m_indexSatClauses.reserve(m_clauses.size());
 
   m_savedStateClauses.reserve(getSumSizeClauses());
   m_savedStateOccs.reserve(getSumSizeClauses());
+
+  m_notSatifiedClauses = nullptr;
+  if (m_keepListNotSatisfiedClauses) {
+    m_notSatifiedClauses = new unsigned[m_clauses.size()];
+    for (unsigned i = 0; i < m_clauses.size(); i++) m_notSatifiedClauses[i] = i;
+    m_sizeNotSatifiedClauses = m_clauses.size();
+    m_markedNotSatClauses.resize(m_clauses.size() + 1, 0);
+    m_stampNotSatClauses = 0;
+  }
 }  // CnfManagerDyn
+
+/**
+ * @brief CnfManagerDyn::~CnfManagerDyn implementation.
+ */
+CnfManagerDyn::~CnfManagerDyn() {
+  if (m_keepListNotSatisfiedClauses) delete[] m_notSatifiedClauses;
+}  // destructor
+
+/**
+ * @brief CnfManagerDyn::getCurrentClauses implementation.
+ */
+void CnfManagerDyn::getCurrentClauses(std::vector<unsigned> &idxClauses,
+                                      std::vector<Var> &component) {
+  idxClauses.resize(0);
+  for (auto &v : component) m_inCurrentComponent[v] = true;
+  for (unsigned i = 0; i < m_clauses.size(); i++) {
+    if (isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
+      idxClauses.push_back(i);
+  }
+  for (auto &v : component) m_inCurrentComponent[v] = false;
+}  // getCurrentclauses
+
+/**
+ * @brief CnfManagerDyn::getCurrentClausesNotBin implementation.
+ */
+void CnfManagerDyn::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
+                                            std::vector<Var> &component) {
+  assert(m_keepListNotSatisfiedClauses);
+  idxClauses.resize(0);
+  for (auto &v : component) m_inCurrentComponent[v] = true;
+  for (unsigned i = 0; i < m_sizeNotSatifiedClauses; i++) {
+    unsigned idx = m_notSatifiedClauses[i];
+    if (m_clauses[idx].size() > 2 &&
+        m_inCurrentComponent[m_clauses[idx][0].var()])
+      idxClauses.push_back(m_notSatifiedClauses[i]);
+  }
+
+  std::sort(idxClauses.begin(), idxClauses.end());
+  for (auto &v : component) m_inCurrentComponent[v] = false;
+}  // getCurrentclauses
 
 /**
  * @brief CnfManagerDynPure::propagateFalseInNotBin implementation.
@@ -42,7 +94,7 @@ void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
       int idxCl = m_occurrence[(~l).intern()].notBin[i];
       if (!m_markedClauseIdx[idxCl]) {
-        m_markedClauseIdx[idxCl] = m_currentMarkedLitIndex;
+        m_markedClauseIdx[idxCl] = true;
         m_savedStateClauses.push_back((SavedStateClause){
             idxCl, m_infoClauses[idxCl].isSat, m_infoClauses[idxCl].nbUnsat});
       }
@@ -78,9 +130,27 @@ void CnfManagerDyn::removeSatisfiedClauses(
                               m_occurrence[ll.intern()].nbNotBin});
 
         m_markedLit[ll.intern()] = m_currentMarkedLitIndex;
-        m_occurrence[ll.intern()].removeNotBinMarked(m_infoClauses);
-        m_occurrence[ll.intern()].removeMarkedBin(m_infoClauses);
+        m_occurrence[ll.intern()].removeSatisfiedNotBin(m_infoClauses);
+        m_occurrence[ll.intern()].removeSatisfiedBin(m_infoClauses);
       }
+    }
+  }
+
+  if (m_keepListNotSatisfiedClauses) {
+    m_stackSizeListNotSatisfiedClauses.push_back(m_sizeNotSatifiedClauses);
+    m_stampNotSatClauses++;
+    for (auto idxCl : idxClauses)
+      m_markedNotSatClauses[idxCl] = m_stampNotSatClauses;
+
+    for (unsigned i = 0; i < m_sizeNotSatifiedClauses;) {
+      assert(m_notSatifiedClauses[i] < m_markedNotSatClauses.size());
+      if (m_markedNotSatClauses[m_notSatifiedClauses[i]] ==
+          m_stampNotSatClauses) {
+        m_sizeNotSatifiedClauses--;
+        std::swap(m_notSatifiedClauses[i],
+                  m_notSatifiedClauses[m_sizeNotSatifiedClauses]);
+      } else
+        i++;
     }
   }
 }  // removeSatisfiedClauses
@@ -180,6 +250,12 @@ void CnfManagerDyn::postUpdate(const std::vector<Lit> &lits) {
 
   // reset the unit literals.
   for (auto &l : lits) m_currentValue[l.var()] = l_Undef;
+
+  if (m_keepListNotSatisfiedClauses) {
+    assert(m_stackSizeListNotSatisfiedClauses.size());
+    m_sizeNotSatifiedClauses = m_stackSizeListNotSatisfiedClauses.back();
+    m_stackSizeListNotSatisfiedClauses.pop_back();
+  }
 }  // postUpdate
 
 }  // namespace d4
