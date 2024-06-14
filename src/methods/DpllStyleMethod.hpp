@@ -452,6 +452,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     std::vector<Var> cutSet;
     bool hasPriority = false, hasVariable = false;
 
+    float timeStart = getTimer();
+
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
@@ -463,8 +465,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     // compile the formula where l is assigned to true
     DataBranch<U> b[lits.size() + 1];
-
-    // std::cout << "decision " << lits[0] << '\n';
 
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
     for (unsigned i = 0; i <= lits.size(); i++) {
@@ -484,6 +484,20 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
     unsetCurrentPriority(cutSet);
+
+#if 0
+    static float cumulTime = 0;
+    U tmp = m_operation->manageDeterministOr(b, nb);
+    U countProjectedVar = 1;
+    for (auto &v : connected)
+      if (m_isDecisionVariable[v]) countProjectedVar *= 2;
+    if (countProjectedVar - tmp < 5 && countProjectedVar == 32) {
+      float elapsedTime = getTimer() - timeStart;
+      cumulTime += elapsedTime;
+      std::cout << cumulTime << " ~~~~ " << elapsedTime << " => " << tmp << " "
+                << countProjectedVar << '\n';
+    }
+#endif
     return m_operation->manageDeterministOr(b, nb);
   }  // computeDecisionNode
 
