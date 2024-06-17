@@ -43,6 +43,9 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
 
   // Set the spec manager.
   optionSpecManager = {config.spec.specUpdateType};
+
+  // set the use of the model
+  exploitModel = config.exploitModel;
 }  // constructor
 
 }  // namespace d4

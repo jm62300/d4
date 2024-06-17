@@ -90,6 +90,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   std::ostream m_out;
   Operation<T, U> *m_operation;
 
+  bool m_expoitModelActivated;
+  unsigned m_nbExploitModel;
+  std::vector<unsigned> m_sharedClauses;
+
  public:
   /**
      Constructor.
@@ -146,6 +150,29 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
     m_operation = static_cast<Operation<T, U> *>(op);
     m_out << "c\n";
+
+    // variable needed for the part exploiting the model.
+    m_expoitModelActivated = options.exploitModel && m_isProjectedMode;
+    m_out << "c [DPLL STYLE METHOD] Exploitation models: "
+          << m_expoitModelActivated << '\n';
+
+    if (m_expoitModelActivated) {
+      m_nbExploitModel = 0;
+
+      // compute the set of clause they share varaible between projected and not
+      CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
+      for (unsigned i = 0; i < cnfManager->getClauses().size(); i++) {
+        std::vector<Lit> &cl = cnfManager->getClause(i);
+
+        unsigned nbProjected = 0, nbNotProjected = 0;
+        for (auto &l : cl)
+          if (m_isDecisionVariable[l.var()])
+            nbProjected++;
+          else
+            nbNotProjected++;
+        if (nbProjected && nbNotProjected) m_sharedClauses.push_back(i);
+      }
+    }
   }  // constructor
 
   /**
@@ -230,7 +257,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_callPartitioner << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbExploitModel << "|\n";
   }  // showInter
 
   /**
@@ -258,7 +285,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#cutter" << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#models" << "|\n";
     separator(out);
   }  // showHeader
 
@@ -285,7 +312,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     out << "c Number of recursive call: " << m_nbCallCall << "\n";
     out << "c Number of split formula: " << m_nbSplit << "\n";
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
-    out << "c Number of paritioner calls: " << m_callPartitioner << "\n";
+    out << "c Number of models used: " << m_nbExploitModel << "\n";
     out << "c\n";
     m_specs->printInformation(out);
     m_cache->printCacheInformation(out);
@@ -366,6 +393,57 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   }  // computeConnectedComponent
 
   /**
+   * @brief Try to take advantage of the computed model stored in the SAT solver
+   * to assigned some variables that are not projected.
+   *
+   * @param[in] setOfVar is the set of variables under consideration.
+   * @param[out] unitsLit is the list of unit literals detected.
+   */
+  void exploitModel(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit) {
+    assert(m_expoitModelActivated);
+    std::vector<lbool> &model = m_solver->getModel();
+
+    CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
+    std::vector<bool> isInComponent(m_problem->getNbVar() + 1, false);
+    unsigned nbProjectedRemaining = 0;
+    for (auto &v : setOfVar) {
+      if (!m_specs->varIsAssigned(v) && m_isDecisionVariable[v]) {
+        nbProjectedRemaining++;
+      }
+      isInComponent[v] = true;
+    }
+    if (!nbProjectedRemaining) return;
+
+    unsigned cptActive = 0;
+    bool canBeSatisfied = true;
+    for (auto &idx : m_sharedClauses) {
+      if (cnfManager->isNotSatisfiedClauseAndInComponent(idx, isInComponent)) {
+        std::vector<Lit> &cl = cnfManager->getClause(idx);
+        bool isSAT = false;
+        for (auto &l : cl)
+          if ((!m_isDecisionVariable[l.var()] ||
+               m_solver->varIsAssigned(l.var())) &&
+              model[l.var()] == l.sign()) {
+            isSAT = true;
+            break;
+          }
+
+        if (isSAT) continue;
+        if (!isSAT) cptActive++;
+        canBeSatisfied = false;
+        break;
+      }
+    }
+
+    if (canBeSatisfied && setOfVar.size() - nbProjectedRemaining > 0) {
+      m_nbExploitModel++;
+      for (auto &v : setOfVar)
+        if (!m_isDecisionVariable[v] && !m_solver->varIsAssigned(v))
+          unitsLit.push_back(Lit::makeLit(v, model[v]));
+    }
+  }  // expoitModel
+
+  /**
    * Compile the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -382,6 +460,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
 
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
+    if (m_expoitModelActivated) exploitModel(setOfVar, unitsLit);
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
@@ -443,7 +522,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   /**
      This function select a variable and compile a decision node.
 
-     @param[in] connected, the set of variable present in the current problem.
+     @param[in] connected, the set of variable present in the current
+     problem.
      @param[in] out, the stream whare are printed out the logs.
 
      \return the compiled formula.
@@ -485,19 +565,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
     unsetCurrentPriority(cutSet);
 
-#if 0
-    static float cumulTime = 0;
-    U tmp = m_operation->manageDeterministOr(b, nb);
-    U countProjectedVar = 1;
-    for (auto &v : connected)
-      if (m_isDecisionVariable[v]) countProjectedVar *= 2;
-    if (countProjectedVar - tmp < 5 && countProjectedVar == 32) {
-      float elapsedTime = getTimer() - timeStart;
-      cumulTime += elapsedTime;
-      std::cout << cumulTime << " ~~~~ " << elapsedTime << " => " << tmp << " "
-                << countProjectedVar << '\n';
-    }
-#endif
     return m_operation->manageDeterministOr(b, nb);
   }  // computeDecisionNode
 
@@ -525,16 +592,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
  public:
   /**
-     Given an assumption, we compute the number of models.  That is different
-     from the query strategy, where we first compute and then condition the
-     computed structure.
+     Given an assumption, we compute the number of models.  That is
+     different from the query strategy, where we first compute and then
+     condition the computed structure.
 
      @param[in] setOfVar, the set of variables of the considered problem.
      @param[in] assumption, the set of literals we want to assign.
      @param[in] out, the stream where are print out the log.
 
-     \return the number of models when the formula is simplified by the given
-     assumption.
+     \return the number of models when the formula is simplified by the
+     given assumption.
    */
   T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
           std::ostream &out) {

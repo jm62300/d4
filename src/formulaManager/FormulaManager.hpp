@@ -140,6 +140,14 @@ class FormulaManager {
   virtual void showCurrentFormula(std::ostream &out) = 0;
 
   /**
+   * @brief Display the current formula.
+   *
+   * @param[out] out is the stream used.
+   */
+  virtual void showCurrentFormula(std::ostream &out,
+                                  std::vector<bool> &isInComponent) = 0;
+
+  /**
    * @brief  Show the set of unit literals.
    *
    * @param[out] out is the stream used.

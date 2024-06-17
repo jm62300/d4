@@ -358,10 +358,10 @@ bool CnfManager::isSatisfiedClause(std::vector<Lit> &c) {
    \return false if the clause is satisfied, true otherwise.
 */
 bool CnfManager::isNotSatisfiedClauseAndInComponent(
-    int idx, std::vector<bool> &m_inCurrentComponent) {
+    int idx, std::vector<bool> &inCurrentComponent) {
   if (m_infoClauses[idx].isSat) return false;
   assert(!litIsAssigned(m_clauses[idx][0]));
-  return m_inCurrentComponent[m_clauses[idx][0].var()];
+  return inCurrentComponent[m_clauses[idx][0].var()];
 }  // isSatisfiedClause
 
 void CnfManager::showFormula(std::ostream &out) {
@@ -393,4 +393,17 @@ void CnfManager::showCurrentFormula(std::ostream &out) {
     out << "0\n";
   }
 }  // showFormula
+
+void CnfManager::showCurrentFormula(std::ostream &out,
+                                    std::vector<bool> &isInComponent) {
+  out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
+  for (unsigned i = 0; i < m_clauses.size(); i++) {
+    if (!isNotSatisfiedClauseAndInComponent(i, isInComponent)) continue;
+    if (m_infoClauses[i].isSat) continue;
+    for (auto &l : m_clauses[i])
+      if (!litIsAssigned(l)) out << l << " ";
+    out << "0\n";
+  }
+}  // showFormula
+
 }  // namespace d4

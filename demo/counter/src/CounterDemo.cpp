@@ -99,6 +99,7 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
 
   config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
+  config.exploitModel = vm["exploit-model-activated"].as<bool>();
 
   config.operationType = d4::OperationTypeManager::getOperatorType("counting");
 

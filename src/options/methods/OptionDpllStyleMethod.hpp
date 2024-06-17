@@ -36,6 +36,7 @@ class OptionDpllStyleMethod {
   OptionSpecManager optionSpecManager;
   OptionBranchingHeuristic optionBranchingHeuristic;
   OptionPartialOrderHeuristic optionPartialOrderHeuristic;
+  bool exploitModel;
 
   /**
    * @brief Construct a new object with the default parameter.
@@ -52,7 +53,8 @@ class OptionDpllStyleMethod {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method";
+    out << " Option DPLL-style Method: exploit-model(" << dt.exploitModel
+        << ") ";
     return out;
   }  // <<
 };

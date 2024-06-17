@@ -19,7 +19,7 @@ SOLVER="$ROOT_PATH/minisat"
 # $TESTED_METHOD $1  | grep "c s exact arb int" | sed 's/c s exact arb int //g' 2>/dev/null > /tmp/sol2.txt
 
 MODEL_COUNTER="./d4_static -m counting -i"
-TESTED_METHOD="../demo/counter/build/counter_debug -p sharp-equiv --preproc-timeout 1 --preproc-onlyGates 1 --preproc-order 1 -i"
+TESTED_METHOD="../demo/counter/build/counter_debug --occurrence-manager dynamicBlockedSimp -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
 
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt

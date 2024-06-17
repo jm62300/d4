@@ -2,6 +2,7 @@
 ("input,i", boost::program_options::value<std::string>(), "(required) Path to get the input file")
 ("input-type,it", boost::program_options::value<std::string>()->default_value("cnf"), "The input type")
 ("solver,s", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use")
+("exploit-model-activated", boost::program_options::value<bool>()->default_value(true), "Activate or not the exploitation of the computed models.")
 ("preproc-solver,ps", boost::program_options::value<std::string>()->default_value("minisat"), "The solver we will use in the preproc")
 ("preproc,p",boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use (basic, backbone, vivification, occElimination, combinaison, sharp-equiv, equiv).")
 ("preproc-reducer-iteration",boost::program_options::value<int>()->default_value(10), "The number of iterations for the preproc that call reducer (-1 means we want to apply until we reach a fix point).")

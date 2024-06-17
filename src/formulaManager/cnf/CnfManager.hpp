@@ -76,6 +76,9 @@ class CnfManager : public FormulaManager {
 
   void showFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out) override;
+  void showCurrentFormula(std::ostream &out,
+                          std::vector<bool> &isInComponent) override;
+
   void showTrail(std::ostream &out) override;
 
   int getInitSize(int i) { return m_clauses[i].size(); }
@@ -115,8 +118,8 @@ class CnfManager : public FormulaManager {
   }
 
   inline bool isFreeVariable(Var v) {
-    return getNbOccurrence(Lit::makeLitFalse(v)) ||
-           getNbOccurrence(Lit::makeLitTrue(v));
+    return !getNbOccurrence(Lit::makeLitFalse(v)) &&
+           !getNbOccurrence(Lit::makeLitTrue(v));
   }  // isFreeVariable
 
   inline unsigned getNbClause() { return m_clauses.size(); }

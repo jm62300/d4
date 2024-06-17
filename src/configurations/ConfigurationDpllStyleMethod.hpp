@@ -35,5 +35,6 @@ class ConfigurationDpllStyleMethod : public Configuration {
   ConfigurationSolver solver;
   ConfigurationSpec spec;
   ConfigurationBranchingHeuristic branchingHeuristic;
+  bool exploitModel = true;
 };
 }  // namespace d4
