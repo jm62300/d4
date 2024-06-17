@@ -44,7 +44,7 @@ TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
       m_hyperGraphExtractorMethod, PB_CNF);
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
-    if (!om.isFreeVariable(i))
+    if (om.isFreeVariable(i))
       notLinked.push_back(i);
     else
       component.push_back(i);
