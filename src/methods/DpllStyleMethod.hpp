@@ -401,8 +401,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    */
   void exploitModel(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit) {
     assert(m_expoitModelActivated);
-    std::vector<lbool> &model = m_solver->getModel();
-
     CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
     std::vector<bool> isInComponent(m_problem->getNbVar() + 1, false);
     unsigned nbProjectedRemaining = 0;
@@ -423,7 +421,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         for (auto &l : cl)
           if ((!m_isDecisionVariable[l.var()] ||
                m_solver->varIsAssigned(l.var())) &&
-              model[l.var()] == l.sign()) {
+              m_solver->getModelVar(l.var()) == l.sign()) {
             isSAT = true;
             break;
           }
@@ -439,7 +437,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       m_nbExploitModel++;
       for (auto &v : setOfVar)
         if (!m_isDecisionVariable[v] && !m_solver->varIsAssigned(v))
-          unitsLit.push_back(Lit::makeLit(v, model[v]));
+          unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
     }
   }  // expoitModel
 
@@ -458,6 +456,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
+
+    // if (m_nbCallCall > 300000) exit(0);
 
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
     if (m_expoitModelActivated) exploitModel(setOfVar, unitsLit);
