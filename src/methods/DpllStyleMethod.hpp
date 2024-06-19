@@ -92,7 +92,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
   bool m_expoitModelActivated;
   unsigned m_nbExploitModel;
-  std::vector<unsigned> m_sharedClauses;
+  std::vector<bool> m_isInComponent;
+  std::vector<bool> m_isSharedClause;
+  std::vector<bool> m_isWithExistensialClause;
 
  public:
   /**
@@ -156,11 +158,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out << "c [DPLL STYLE METHOD] Exploitation models: "
           << m_expoitModelActivated << '\n';
 
-    if (m_expoitModelActivated) {
-      m_nbExploitModel = 0;
+    m_isInComponent.resize(m_problem->getNbVar() + 1, false);
 
+    m_nbExploitModel = 0;
+    if (m_expoitModelActivated) {
       // compute the set of clause they share varaible between projected and not
       CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
+      m_isSharedClause.resize(cnfManager->getClauses().size() + 1, false);
+      m_isWithExistensialClause.resize(cnfManager->getClauses().size() + 1,
+                                       false);
+
       for (unsigned i = 0; i < cnfManager->getClauses().size(); i++) {
         std::vector<Lit> &cl = cnfManager->getClause(i);
 
@@ -170,7 +177,15 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
             nbProjected++;
           else
             nbNotProjected++;
-        if (nbProjected && nbNotProjected) m_sharedClauses.push_back(i);
+
+        m_isSharedClause[i] = nbProjected && nbNotProjected;
+        m_isWithExistensialClause[i] = nbNotProjected;
+
+        if (m_isSharedClause[i]) {
+          for (auto &l : cl)
+            std::cout << l << (m_isDecisionVariable[l.var()] ? "* " : " ");
+          std::cout << '\n';
+        }
       }
     }
   }  // constructor
@@ -402,44 +417,132 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   void exploitModel(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit) {
     assert(m_expoitModelActivated);
     CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
-    std::vector<bool> isInComponent(m_problem->getNbVar() + 1, false);
+
     unsigned nbProjectedRemaining = 0;
     for (auto &v : setOfVar) {
-      if (!m_specs->varIsAssigned(v) && m_isDecisionVariable[v]) {
+      if (!m_specs->varIsAssigned(v) && m_isDecisionVariable[v])
         nbProjectedRemaining++;
-      }
-      isInComponent[v] = true;
     }
     if (!nbProjectedRemaining) return;
 
-    unsigned cptActive = 0;
-    bool canBeSatisfied = true;
-    for (auto &idx : m_sharedClauses) {
-      if (cnfManager->isNotSatisfiedClauseAndInComponent(idx, isInComponent)) {
-        std::vector<Lit> &cl = cnfManager->getClause(idx);
-        bool isSAT = false;
-        for (auto &l : cl)
-          if ((!m_isDecisionVariable[l.var()] ||
-               m_solver->varIsAssigned(l.var())) &&
-              m_solver->getModelVar(l.var()) == l.sign()) {
-            isSAT = true;
-            break;
-          }
+    std::vector<unsigned> countUnsat(cnfManager->getNbClause() + 1, 0);
+    for (auto &v : setOfVar) {
+      if (m_specs->varIsAssigned(v)) continue;
+      Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
 
-        if (isSAT) continue;
-        if (!isSAT) cptActive++;
-        canBeSatisfied = false;
-        break;
+      for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
+           ite.end != ite.start; ite.start++) {
+        if (!m_isSharedClause[*(ite.start)]) continue;
+
+        countUnsat[*(ite.start)]++;
+        if (countUnsat[*(ite.start)] ==
+            cnfManager->getCurrentSize(*(ite.start))) {
+          return;
+        }
+      }
+
+      if (m_isDecisionVariable[v]) {
+        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(l);
+             ite.end != ite.start; ite.start++) {
+          if (!m_isSharedClause[*(ite.start)]) continue;
+          countUnsat[*(ite.start)]++;
+          if (countUnsat[*(ite.start)] ==
+              cnfManager->getCurrentSize(*(ite.start))) {
+            return;
+          }
+        }
       }
     }
 
-    if (canBeSatisfied && setOfVar.size() - nbProjectedRemaining > 0) {
-      m_nbExploitModel++;
-      for (auto &v : setOfVar)
-        if (!m_isDecisionVariable[v] && !m_solver->varIsAssigned(v))
-          unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
-    }
+    for (auto &v : setOfVar)
+      if (!m_isDecisionVariable[v] && !m_solver->varIsAssigned(v)) {
+        unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
+        m_nbExploitModel++;
+      }
   }  // expoitModel
+
+  /**
+   * @brief Try to take advantage of the computed model stored in the SAT
+   * solver to assigned some variables that are not projected.
+   *
+   * @param[in] setOfVar is the set of variables under consideration.
+   * @param[out] unitsLit is the list of unit literals detected.
+   */
+  void exploitTerm(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit) {
+    assert(m_expoitModelActivated);
+    CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
+
+    unsigned nbProjectedRemaining = 0;
+    for (auto &v : setOfVar) {
+      if (!m_specs->varIsAssigned(v) && m_isDecisionVariable[v])
+        nbProjectedRemaining++;
+    }
+    if (!nbProjectedRemaining) return;
+
+    std::vector<unsigned> countUnsat(cnfManager->getNbClause() + 1, 0);
+    std::vector<unsigned> countSat(cnfManager->getNbClause() + 1, 0);
+    std::vector<unsigned> listUnsat;
+
+    for (auto &v : setOfVar) {
+      if (m_specs->varIsAssigned(v)) continue;
+      Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
+
+      for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
+           ite.end != ite.start; ite.start++) {
+        if (!m_isWithExistensialClause[*(ite.start)]) continue;
+
+        countUnsat[*(ite.start)]++;
+        if (countUnsat[*(ite.start)] ==
+            cnfManager->getCurrentSize(*(ite.start))) {
+          listUnsat.push_back(*(ite.start));
+        }
+      }
+
+      for (IteratorIdxClause ite = cnfManager->getVecIdxClause(l);
+           ite.end != ite.start; ite.start++) {
+        if (!m_isWithExistensialClause[*(ite.start)]) continue;
+
+        if (m_isDecisionVariable[v]) {
+          countUnsat[*(ite.start)]++;
+          if (countUnsat[*(ite.start)] ==
+              cnfManager->getCurrentSize(*(ite.start))) {
+            listUnsat.push_back(*(ite.start));
+          }
+        } else
+          countSat[*(ite.start)]++;
+      }
+    }
+
+    unsigned nbRelax = 0;
+    std::vector<bool> relax(m_problem->getNbVar() + 1, false);
+    while (listUnsat.size()) {
+      unsigned idx = listUnsat.back();
+      listUnsat.pop_back();
+
+      for (auto &l : cnfManager->getClause(idx)) {
+        if (relax[l.var()] || m_isDecisionVariable[l.var()]) continue;
+        relax[l.var()] = true;
+        nbRelax++;
+        if (nbRelax + nbProjectedRemaining == setOfVar.size()) return;
+
+        Lit m = Lit::makeLit(l.var(), m_solver->getModelVar(l.var()));
+        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(m);
+             ite.end != ite.start; ite.start++) {
+          if (!m_isWithExistensialClause[*(ite.start)]) continue;
+
+          countSat[*(ite.start)]--;
+          if (!countSat[*(ite.start)]) listUnsat.push_back(*(ite.start));
+        }
+      }
+    }
+
+    for (auto &v : setOfVar)
+      if (!relax[v] && !m_isDecisionVariable[v] &&
+          !m_solver->varIsAssigned(v)) {
+        unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
+        m_nbExploitModel++;
+      }
+  }  // expoitTerm
 
   /**
    * Compile the CNF formula into a FBDD.
@@ -457,13 +560,24 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     showRun(out);
     m_nbCallCall++;
 
-    // if (m_nbCallCall > 300000) exit(0);
+    // std::cout << "ready ... \n";
+    if (!m_solver->solve(setOfVar)) {
+      // std::cout << "unsat\n";
+      return m_operation->manageBottom();
+    }
 
-    if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
-    if (m_expoitModelActivated) exploitModel(setOfVar, unitsLit);
+    // std::cout << "SAT\n";
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
+
+    std::vector<Lit> additionalUnit;
+    if (m_expoitModelActivated) {
+      // exploitModel(setOfVar, additionalUnit);
+      exploitTerm(setOfVar, additionalUnit);
+      // std::cout << "==> " << m_expoitModelActivated << '\n';
+    }
+    m_specs->preUpdate(additionalUnit);
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -490,10 +604,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         }
       }
 
+      m_specs->postUpdate(additionalUnit);
       m_specs->postUpdate(unitsLit);
       return m_operation->manageDecomposableAnd(tab, nbComponent);
     }  // else we have a tautology
 
+    m_specs->postUpdate(additionalUnit);
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
     return m_operation->createTop();
