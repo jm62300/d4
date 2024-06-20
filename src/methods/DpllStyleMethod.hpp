@@ -181,7 +181,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         m_isSharedClause[i] = nbProjected && nbNotProjected;
         m_isWithExistensialClause[i] = nbNotProjected;
 
-        if (m_isSharedClause[i]) {
+        if (0 && m_isSharedClause[i]) {
           for (auto &l : cl)
             std::cout << l << (m_isDecisionVariable[l.var()] ? "* " : " ");
           std::cout << '\n';
@@ -513,25 +513,40 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       }
     }
 
+    if (0 && listUnsat.size() < 10 && nbProjectedRemaining > 2) {
+      std::cout << "==> " << nbProjectedRemaining << '\n';
+      for (auto &idx : listUnsat) {
+        std::vector<Lit> &cl = cnfManager->getClause(idx);
+        for (auto &l : cl) {
+          if (m_specs->litIsAssigned(l)) continue;
+          std::cout << l << (m_isDecisionVariable[l.var()] ? "* " : " ");
+        }
+        std::cout << '\n';
+      }
+      exit(0);
+    }
+
     unsigned nbRelax = 0;
     std::vector<bool> relax(m_problem->getNbVar() + 1, false);
-    while (listUnsat.size()) {
-      unsigned idx = listUnsat.back();
-      listUnsat.pop_back();
+    if (listUnsat.size() >= 0) {
+      while (listUnsat.size()) {
+        unsigned idx = listUnsat.back();
+        listUnsat.pop_back();
 
-      for (auto &l : cnfManager->getClause(idx)) {
-        if (relax[l.var()] || m_isDecisionVariable[l.var()]) continue;
-        relax[l.var()] = true;
-        nbRelax++;
-        if (nbRelax + nbProjectedRemaining == setOfVar.size()) return;
+        for (auto &l : cnfManager->getClause(idx)) {
+          if (relax[l.var()] || m_isDecisionVariable[l.var()]) continue;
+          relax[l.var()] = true;
+          nbRelax++;
+          if (nbRelax + nbProjectedRemaining == setOfVar.size()) return;
 
-        Lit m = Lit::makeLit(l.var(), m_solver->getModelVar(l.var()));
-        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(m);
-             ite.end != ite.start; ite.start++) {
-          if (!m_isWithExistensialClause[*(ite.start)]) continue;
+          Lit m = Lit::makeLit(l.var(), m_solver->getModelVar(l.var()));
+          for (IteratorIdxClause ite = cnfManager->getVecIdxClause(m);
+               ite.end != ite.start; ite.start++) {
+            if (!m_isWithExistensialClause[*(ite.start)]) continue;
 
-          countSat[*(ite.start)]--;
-          if (!countSat[*(ite.start)]) listUnsat.push_back(*(ite.start));
+            countSat[*(ite.start)]--;
+            if (!countSat[*(ite.start)]) listUnsat.push_back(*(ite.start));
+          }
         }
       }
     }
