@@ -52,9 +52,12 @@ void wmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the weigted model counter\n";
 
   // preproc.
-  d4::ConfigurationPeproc configPreproc = {
-      d4::PreprocMethodManager::getPreprocMethod("sharp-equiv"),
-      d4::InputTypeManager::getInputType("cnf"), 5, 60};
+  d4::ConfigurationPeproc configPreproc;
+  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.preprocMethod =
+      d4::PreprocMethodManager::getPreprocMethod("sharp-equiv");
+  configPreproc.nbIteration = 5;
+  configPreproc.timeout = 60;
 
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
@@ -145,9 +148,12 @@ void pmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the projected model counter\n";
 
   // preproc.
-  d4::ConfigurationPeproc configPreproc = {
-      d4::PreprocMethodManager::getPreprocMethod("basic"),
-      d4::InputTypeManager::getInputType("cnf"), 5, 60};
+  d4::ConfigurationPeproc configPreproc;
+  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.preprocMethod =
+      d4::PreprocMethodManager::getPreprocMethod("basic");
+  configPreproc.nbIteration = 5;
+  configPreproc.timeout = 60;
 
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
@@ -222,9 +228,12 @@ void mc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the model counter\n";
 
   // preproc.
-  d4::ConfigurationPeproc configPreproc = {
-      d4::PreprocMethodManager::getPreprocMethod("sharp-equiv"),
-      d4::InputTypeManager::getInputType("cnf"), 5, 60};
+  d4::ConfigurationPeproc configPreproc;
+  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.preprocMethod =
+      d4::PreprocMethodManager::getPreprocMethod("sharp-equiv");
+  configPreproc.nbIteration = 5;
+  configPreproc.timeout = 60;
 
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);

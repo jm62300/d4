@@ -216,6 +216,26 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
 }  // decideAndComputeUnit
 
 /**
+ * @brief WrapperMinisat::literalProbing implementation.
+ */
+bool WrapperMinisat::failedLiteralProbing(Lit l) {
+  if (!s.okay()) return true;
+  minisat::Lit ml = minisat::mkLit(l.var(), (~l).sign());
+  if (varIsAssigned(l.var())) {
+    if (s.litAssigned(l.var()) == ml) return true;
+    return false;
+  }
+
+  s.newDecisionLevel();
+  s.uncheckedEnqueue(ml);
+  minisat::CRef confl = s.propagate();
+  s.cancelUntil(s.decisionLevel() - 1);
+
+  if (confl != minisat::CRef_Undef) return true;  // unit literal
+  return false;
+}  // failedLiteralProbing
+
+/**
    Fill the vector units with the literal l that are units such that l.var() is
    in component.
 

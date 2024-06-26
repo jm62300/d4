@@ -160,6 +160,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     m_isInComponent.resize(m_problem->getNbVar() + 1, false);
 
+#if 0
     m_nbExploitModel = 0;
     if (m_expoitModelActivated) {
       // compute the set of clause they share varaible between projected and not
@@ -188,6 +189,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         }
       }
     }
+#endif
   }  // constructor
 
   /**
@@ -483,80 +485,67 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     std::vector<unsigned> countSat(cnfManager->getNbClause() + 1, 0);
     std::vector<unsigned> listUnsat;
 
+    // first phase: consider existential variables.
     for (auto &v : setOfVar) {
-      if (m_specs->varIsAssigned(v)) continue;
+      if (m_specs->varIsAssigned(v) || m_isDecisionVariable[v]) continue;
       Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
 
       for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
-           ite.end != ite.start; ite.start++) {
-        if (!m_isWithExistensialClause[*(ite.start)]) continue;
-
+           ite.end != ite.start; ite.start++)
         countUnsat[*(ite.start)]++;
-        if (countUnsat[*(ite.start)] ==
-            cnfManager->getCurrentSize(*(ite.start))) {
-          listUnsat.push_back(*(ite.start));
-        }
-      }
 
       for (IteratorIdxClause ite = cnfManager->getVecIdxClause(l);
-           ite.end != ite.start; ite.start++) {
-        if (!m_isWithExistensialClause[*(ite.start)]) continue;
+           ite.end != ite.start; ite.start++)
+        countSat[*(ite.start)]++;
+    }
 
-        if (m_isDecisionVariable[v]) {
+    for (auto &v : setOfVar) {
+      if (m_specs->varIsAssigned(v) || !m_isDecisionVariable[v]) continue;
+      Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
+      for (unsigned i = 0; i < 2; i++) {
+        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
+             ite.end != ite.start; ite.start++) {
+          if (!m_isSharedClause[*(ite.start)]) continue;
           countUnsat[*(ite.start)]++;
+
           if (countUnsat[*(ite.start)] ==
               cnfManager->getCurrentSize(*(ite.start))) {
             listUnsat.push_back(*(ite.start));
           }
-        } else
-          countSat[*(ite.start)]++;
-      }
-    }
-
-    if (0 && listUnsat.size() < 10 && nbProjectedRemaining > 2) {
-      std::cout << "==> " << nbProjectedRemaining << '\n';
-      for (auto &idx : listUnsat) {
-        std::vector<Lit> &cl = cnfManager->getClause(idx);
-        for (auto &l : cl) {
-          if (m_specs->litIsAssigned(l)) continue;
-          std::cout << l << (m_isDecisionVariable[l.var()] ? "* " : " ");
         }
-        std::cout << '\n';
+        l = ~l;
       }
-      exit(0);
     }
 
+    // relax if needed.
     unsigned nbRelax = 0;
     std::vector<bool> relax(m_problem->getNbVar() + 1, false);
-    if (listUnsat.size() >= 0) {
-      while (listUnsat.size()) {
-        unsigned idx = listUnsat.back();
-        listUnsat.pop_back();
+    while (listUnsat.size()) {
+      unsigned idx = listUnsat.back();
+      listUnsat.pop_back();
 
-        for (auto &l : cnfManager->getClause(idx)) {
-          if (relax[l.var()] || m_isDecisionVariable[l.var()]) continue;
-          relax[l.var()] = true;
-          nbRelax++;
-          if (nbRelax + nbProjectedRemaining == setOfVar.size()) return;
+      for (auto &l : cnfManager->getClause(idx)) {
+        if (relax[l.var()] || m_isDecisionVariable[l.var()]) continue;
+        relax[l.var()] = true;
+        nbRelax++;
+        if (nbRelax + nbProjectedRemaining == setOfVar.size()) return;
 
-          Lit m = Lit::makeLit(l.var(), m_solver->getModelVar(l.var()));
-          for (IteratorIdxClause ite = cnfManager->getVecIdxClause(m);
-               ite.end != ite.start; ite.start++) {
-            if (!m_isWithExistensialClause[*(ite.start)]) continue;
+        Lit m = Lit::makeLit(l.var(), m_solver->getModelVar(l.var()));
+        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(m);
+             ite.end != ite.start; ite.start++) {
+          if (!m_isWithExistensialClause[*(ite.start)]) continue;
 
-            countSat[*(ite.start)]--;
-            if (!countSat[*(ite.start)]) listUnsat.push_back(*(ite.start));
-          }
+          countSat[*(ite.start)]--;
+          if (!countSat[*(ite.start)]) listUnsat.push_back(*(ite.start));
         }
       }
     }
 
     for (auto &v : setOfVar)
-      if (!relax[v] && !m_isDecisionVariable[v] &&
-          !m_solver->varIsAssigned(v)) {
+      if (!relax[v] && !m_isDecisionVariable[v] && !m_solver->varIsAssigned(v))
         unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
-        m_nbExploitModel++;
-      }
+
+    m_nbExploitModel += unitsLit.size();
   }  // expoitTerm
 
   /**
@@ -575,24 +564,19 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     showRun(out);
     m_nbCallCall++;
 
-    // std::cout << "ready ... \n";
-    if (!m_solver->solve(setOfVar)) {
-      // std::cout << "unsat\n";
-      return m_operation->manageBottom();
-    }
-
-    // std::cout << "SAT\n";
+    if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
+#if 0
     std::vector<Lit> additionalUnit;
     if (m_expoitModelActivated) {
       // exploitModel(setOfVar, additionalUnit);
       exploitTerm(setOfVar, additionalUnit);
-      // std::cout << "==> " << m_expoitModelActivated << '\n';
     }
     m_specs->preUpdate(additionalUnit);
+#endif
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
@@ -619,36 +603,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         }
       }
 
-      m_specs->postUpdate(additionalUnit);
+      // m_specs->postUpdate(additionalUnit);
       m_specs->postUpdate(unitsLit);
       return m_operation->manageDecomposableAnd(tab, nbComponent);
     }  // else we have a tautology
 
-    m_specs->postUpdate(additionalUnit);
+    // m_specs->postUpdate(additionalUnit);
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
     return m_operation->createTop();
   }  // compute_
-
-  /**
-   * @brief Set the Current Priority.
-   *
-   * @param cutSet is the set of variables that become decision variables.
-   */
-  inline void setCurrentPriority(std::vector<Var> &cutSet) {
-    for (auto &v : cutSet)
-      if (m_isDecisionVariable[v]) m_currentPrioritySet[v] = true;
-  }  // setCurrentPriority
-
-  /**
-   * @brief Unset the Current Priority.
-   *
-   * @param cutSet is the set of variables that become decision variables.
-   */
-  inline void unsetCurrentPriority(std::vector<Var> &cutSet) {
-    for (auto &v : cutSet)
-      if (m_isDecisionVariable[v]) m_currentPrioritySet[v] = false;
-  }  // setCurrentPriority
 
   /**
      This function select a variable and compile a decision node.
@@ -661,17 +625,11 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   */
   U computeDecisionNode(std::vector<Var> &connected, std::ostream &out) {
     std::vector<Var> cutSet;
-    bool hasPriority = false, hasVariable = false;
-
-    float timeStart = getTimer();
 
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
-    if (!lits.size()) {
-      unsetCurrentPriority(cutSet);
-      return m_operation->manageTop(connected);
-    }
+    if (!lits.size()) return m_operation->manageTop(connected);
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
@@ -694,7 +652,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // reinit some variables.
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
-    unsetCurrentPriority(cutSet);
 
     return m_operation->manageDeterministOr(b, nb);
   }  // computeDecisionNode
@@ -712,8 +669,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   */
   U compute(std::vector<Var> &setOfVar, std::ostream &out,
             bool warmStart = true) {
+    std::vector<Var> decisionVar;
+    for (auto &v : setOfVar)
+      if (m_isDecisionVariable[v]) decisionVar.push_back(v);
+
     if (m_problem->isUnsat() ||
-        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out)))
+        (warmStart && !m_solver->warmStart(29, 11, decisionVar, m_out)))
       return m_operation->manageBottom();
     DataBranch<U> b;
 

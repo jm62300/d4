@@ -40,6 +40,7 @@ namespace d4 {
    @param[in] p, the problem we want to link with the SAT solver.
  */
 void WrapperGlucose::initSolver(ProblemManager &p) {
+  std::cout << "c [GLUCOSE SOLVER] Init phase\n";
   try {
     CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
 
@@ -214,6 +215,26 @@ bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
   s.cancelUntil(s.decisionLevel() - 1);
   return true;
 }  // decideAndComputeUnit
+
+/**
+ * @brief WrapperGlucose::literalProbing implementation.
+ */
+bool WrapperGlucose::failedLiteralProbing(Lit l) {
+  if (!s.okay()) return true;
+  Glucose::Lit ml = Glucose::mkLit(l.var(), (~l).sign());
+  if (varIsAssigned(l.var())) {
+    if (s.litAssigned(l.var()) == ml) return true;
+    return false;
+  }
+
+  s.newDecisionLevel();
+  s.uncheckedEnqueue(ml);
+  Glucose::CRef confl = s.propagate();
+  s.cancelUntil(s.decisionLevel() - 1);
+
+  if (confl != Glucose::CRef_Undef) return true;  // unit literal
+  return false;
+}  // failedLiteralProbing
 
 /**
    Fill the vector units with the literal l that are units such that l.var() is

@@ -45,6 +45,7 @@ class WrapperGlucose : public WrapperSolver {
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
   bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) override;
+  bool failedLiteralProbing(Lit l) override;
   void whichAreUnits(std::vector<Var> &component,
                      std::vector<Lit> &units) override;
   void restart() override;
