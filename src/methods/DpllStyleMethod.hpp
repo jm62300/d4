@@ -96,6 +96,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   std::vector<bool> m_isSharedClause;
   std::vector<bool> m_isWithExistensialClause;
 
+  unsigned m_nbUnsat = 0, m_nbSat = 0;
+  float m_timeSat = 0, m_timeUnsat = 0;
+
  public:
   /**
      Constructor.
@@ -313,7 +316,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    */
   inline void showRun(std::ostream &out) {
     if (!(m_nbCallCall & (MASK_HEADER))) showHeader(out);
-    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) showInter(out);
+    if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) {
+      showInter(out);
+
+      std::cout << "time: " << m_timeSat << '/' << m_timeUnsat << " "
+                << " number: " << m_nbSat << '/' << m_nbUnsat << '\n';
+    }
+
   }  // showRun
 
   /**
@@ -335,6 +344,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_cache->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
+
+    std::cout << "time: " << m_timeSat << '/' << m_timeUnsat << " "
+              << " number: " << m_nbSat << '/' << m_nbUnsat << '\n';
+
   }  // printFinalStat
 
   /**
@@ -410,145 +423,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   }  // computeConnectedComponent
 
   /**
-   * @brief Try to take advantage of the computed model stored in the SAT solver
-   * to assigned some variables that are not projected.
-   *
-   * @param[in] setOfVar is the set of variables under consideration.
-   * @param[out] unitsLit is the list of unit literals detected.
-   */
-  void exploitModel(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit) {
-    assert(m_expoitModelActivated);
-    CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
-
-    unsigned nbProjectedRemaining = 0;
-    for (auto &v : setOfVar) {
-      if (!m_specs->varIsAssigned(v) && m_isDecisionVariable[v])
-        nbProjectedRemaining++;
-    }
-    if (!nbProjectedRemaining) return;
-
-    std::vector<unsigned> countUnsat(cnfManager->getNbClause() + 1, 0);
-    for (auto &v : setOfVar) {
-      if (m_specs->varIsAssigned(v)) continue;
-      Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
-
-      for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
-           ite.end != ite.start; ite.start++) {
-        if (!m_isSharedClause[*(ite.start)]) continue;
-
-        countUnsat[*(ite.start)]++;
-        if (countUnsat[*(ite.start)] ==
-            cnfManager->getCurrentSize(*(ite.start))) {
-          return;
-        }
-      }
-
-      if (m_isDecisionVariable[v]) {
-        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(l);
-             ite.end != ite.start; ite.start++) {
-          if (!m_isSharedClause[*(ite.start)]) continue;
-          countUnsat[*(ite.start)]++;
-          if (countUnsat[*(ite.start)] ==
-              cnfManager->getCurrentSize(*(ite.start))) {
-            return;
-          }
-        }
-      }
-    }
-
-    for (auto &v : setOfVar)
-      if (!m_isDecisionVariable[v] && !m_solver->varIsAssigned(v)) {
-        unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
-        m_nbExploitModel++;
-      }
-  }  // expoitModel
-
-  /**
-   * @brief Try to take advantage of the computed model stored in the SAT
-   * solver to assigned some variables that are not projected.
-   *
-   * @param[in] setOfVar is the set of variables under consideration.
-   * @param[out] unitsLit is the list of unit literals detected.
-   */
-  void exploitTerm(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit) {
-    assert(m_expoitModelActivated);
-    CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
-
-    unsigned nbProjectedRemaining = 0;
-    for (auto &v : setOfVar) {
-      if (!m_specs->varIsAssigned(v) && m_isDecisionVariable[v])
-        nbProjectedRemaining++;
-    }
-    if (!nbProjectedRemaining) return;
-
-    std::vector<unsigned> countUnsat(cnfManager->getNbClause() + 1, 0);
-    std::vector<unsigned> countSat(cnfManager->getNbClause() + 1, 0);
-    std::vector<unsigned> listUnsat;
-
-    // first phase: consider existential variables.
-    for (auto &v : setOfVar) {
-      if (m_specs->varIsAssigned(v) || m_isDecisionVariable[v]) continue;
-      Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
-
-      for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
-           ite.end != ite.start; ite.start++)
-        countUnsat[*(ite.start)]++;
-
-      for (IteratorIdxClause ite = cnfManager->getVecIdxClause(l);
-           ite.end != ite.start; ite.start++)
-        countSat[*(ite.start)]++;
-    }
-
-    for (auto &v : setOfVar) {
-      if (m_specs->varIsAssigned(v) || !m_isDecisionVariable[v]) continue;
-      Lit l = Lit::makeLit(v, m_solver->getModelVar(v));
-      for (unsigned i = 0; i < 2; i++) {
-        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(~l);
-             ite.end != ite.start; ite.start++) {
-          if (!m_isSharedClause[*(ite.start)]) continue;
-          countUnsat[*(ite.start)]++;
-
-          if (countUnsat[*(ite.start)] ==
-              cnfManager->getCurrentSize(*(ite.start))) {
-            listUnsat.push_back(*(ite.start));
-          }
-        }
-        l = ~l;
-      }
-    }
-
-    // relax if needed.
-    unsigned nbRelax = 0;
-    std::vector<bool> relax(m_problem->getNbVar() + 1, false);
-    while (listUnsat.size()) {
-      unsigned idx = listUnsat.back();
-      listUnsat.pop_back();
-
-      for (auto &l : cnfManager->getClause(idx)) {
-        if (relax[l.var()] || m_isDecisionVariable[l.var()]) continue;
-        relax[l.var()] = true;
-        nbRelax++;
-        if (nbRelax + nbProjectedRemaining == setOfVar.size()) return;
-
-        Lit m = Lit::makeLit(l.var(), m_solver->getModelVar(l.var()));
-        for (IteratorIdxClause ite = cnfManager->getVecIdxClause(m);
-             ite.end != ite.start; ite.start++) {
-          if (!m_isWithExistensialClause[*(ite.start)]) continue;
-
-          countSat[*(ite.start)]--;
-          if (!countSat[*(ite.start)]) listUnsat.push_back(*(ite.start));
-        }
-      }
-    }
-
-    for (auto &v : setOfVar)
-      if (!relax[v] && !m_isDecisionVariable[v] && !m_solver->varIsAssigned(v))
-        unitsLit.push_back(Lit::makeLit(v, m_solver->getModelVar(v)));
-
-    m_nbExploitModel += unitsLit.size();
-  }  // expoitTerm
-
-  /**
    * Compile the CNF formula into a FBDD.
    *
    * @param[in] setOfVar, the current set of considered variables
@@ -562,21 +436,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
-    m_nbCallCall++;
-
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
-
-#if 0
-    std::vector<Lit> additionalUnit;
-    if (m_expoitModelActivated) {
-      // exploitModel(setOfVar, additionalUnit);
-      exploitTerm(setOfVar, additionalUnit);
-    }
-    m_specs->preUpdate(additionalUnit);
-#endif
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;

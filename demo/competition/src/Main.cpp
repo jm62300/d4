@@ -35,6 +35,8 @@
 
 using namespace d4;
 
+#define SOLVER "glucose"
+
 MethodManager *methodRun = nullptr;
 
 /**
@@ -112,7 +114,7 @@ void wmc(d4::ProblemManager *initProblem) {
   configCounter.cache = cache;
   configCounter.branchingHeuristic = branchingHeuristic;
   configCounter.solver.solverName =
-      d4::SolverNameManager::getSolverName("minisat");
+      d4::SolverNameManager::getSolverName(SOLVER);
   configCounter.spec.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamic");
   configCounter.operationType =
@@ -192,7 +194,7 @@ void pmc(d4::ProblemManager *initProblem) {
   configCounter.cache = cache;
   configCounter.branchingHeuristic = branchingHeuristic;
   configCounter.solver.solverName =
-      d4::SolverNameManager::getSolverName("minisat");
+      d4::SolverNameManager::getSolverName(SOLVER);
   configCounter.spec.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamicBlockedSimp");
   configCounter.operationType =
@@ -288,7 +290,7 @@ void mc(d4::ProblemManager *initProblem) {
   configCounter.cache = cache;
   configCounter.branchingHeuristic = branchingHeuristic;
   configCounter.solver.solverName =
-      d4::SolverNameManager::getSolverName("minisat");
+      d4::SolverNameManager::getSolverName(SOLVER);
   configCounter.spec.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamic");
   configCounter.operationType =
