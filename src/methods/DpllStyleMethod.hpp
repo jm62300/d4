@@ -437,6 +437,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       // m_specs->postUpdate(additionalUnit);
       m_specs->postUpdate(unitsLit);
+      // REB 2024-01-19.  Begin
+      // Inserting this prevents non-decision literals from being included in NNF
+      expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+      // REB 2024-01-19.  End
       return m_operation->manageDecomposableAnd(tab, nbComponent);
     }  // else we have a tautology
 
