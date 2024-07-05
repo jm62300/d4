@@ -162,37 +162,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
           << m_expoitModelActivated << '\n';
 
     m_isInComponent.resize(m_problem->getNbVar() + 1, false);
-
-#if 0
-    m_nbExploitModel = 0;
-    if (m_expoitModelActivated) {
-      // compute the set of clause they share varaible between projected and not
-      CnfManager *cnfManager = dynamic_cast<CnfManager *>(m_specs);
-      m_isSharedClause.resize(cnfManager->getClauses().size() + 1, false);
-      m_isWithExistensialClause.resize(cnfManager->getClauses().size() + 1,
-                                       false);
-
-      for (unsigned i = 0; i < cnfManager->getClauses().size(); i++) {
-        std::vector<Lit> &cl = cnfManager->getClause(i);
-
-        unsigned nbProjected = 0, nbNotProjected = 0;
-        for (auto &l : cl)
-          if (m_isDecisionVariable[l.var()])
-            nbProjected++;
-          else
-            nbNotProjected++;
-
-        m_isSharedClause[i] = nbProjected && nbNotProjected;
-        m_isWithExistensialClause[i] = nbNotProjected;
-
-        if (0 && m_isSharedClause[i]) {
-          for (auto &l : cl)
-            std::cout << l << (m_isDecisionVariable[l.var()] ? "* " : " ");
-          std::cout << '\n';
-        }
-      }
-    }
-#endif
   }  // constructor
 
   /**
