@@ -1,6 +1,6 @@
 /*
  * d4
- * Copyright (C) 2020  Univ. Artois & CNRS
+ * Copyright (C) 2024  Univ. Artois & CNRS & KU Leuven
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,34 +23,33 @@
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
-
 /**
- * @brief Construct a new Problem Manager Circuit:: Problem Manager Circuit
- * object
- *
- * @param nameFile
+   Constructor.
+
+   @param[in] nameFile, parse the instance from a file
  */
 ProblemManagerCircuit::ProblemManagerCircuit(const std::string &nameFile) {
   ParserCircuit parser;
-  m_nbVar = parser.parse_Circuit(nameFile, this);
-
+  m_nbVar = parser.parse_circuit(nameFile, this);
+  assert(m_weightLit.size() == ((m_nbVar + 1) << 1));
   m_weightVar.resize(m_nbVar + 1, 0);
   for (unsigned i = 0; i <= m_nbVar; i++)
     m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
-}
+
+  m_order.resize(m_nbVar + 1);
+  for (unsigned i = 0; i < m_order.size(); i++) m_order[i] = i;
+}  // constructor
 
 /**
- * @brief Construct a new Problem Manager Circuit:: Problem Manager Circuit
- * object
- *
+   Constructor.
+   Construct an empty formula.
  */
-ProblemManagerCircuit::ProblemManagerCircuit() { m_nbVar = 0; }
+ProblemManagerCircuit::ProblemManagerCircuit() { m_nbVar = 0; }  // constructor
 
 /**
- * @brief Construct a new Problem Manager Circuit:: Problem Manager Circuit
- * object
+ * @brief Construct a new Problem Manager Bc:: Problem Manager Bc object
  *
- * @param problem
+ * @param problem a problem manager object.
  */
 ProblemManagerCircuit::ProblemManagerCircuit(ProblemManager *problem) {
   m_nbVar = problem->getNbVar();
@@ -63,65 +62,147 @@ ProblemManagerCircuit::ProblemManagerCircuit(ProblemManager *problem) {
 }  // constructor
 
 /**
- * @brief Destroy the Problem Manager Circuit:: Problem Manager Circuit object
+ * @brief Construct a new Problem Manager Bc:: Problem Manager Bc object
  *
+ * @param nbVar, the number of variables.
+ * @param weightLit, the weights associate with the literals.
+ * @param weightVar, the weights associate with the variables (sum of weight
+   of the lit)
+ * @param selected, the projected variables.
  */
-ProblemManagerCircuit::~ProblemManagerCircuit() { m_nbVar = 0; }
+ProblemManagerCircuit::ProblemManagerCircuit(
+    int nbVar, std::vector<mpz::mpf_float> &weightLit,
+    std::vector<mpz::mpf_float> &weightVar, std::vector<Var> &selected) {
+  m_nbVar = nbVar;
+  m_weightLit = weightLit;
+  m_weightVar = weightVar;
+  m_selected = selected;
+  m_isUnsat = false;
+}  // constructor
 
 /**
- * @brief
+ * @brief Construct a new Problem Manager Bc:: Problem Manager Bc object
  *
- * @param out
+ * @param nbVar, the number of variables.
+ * @param weightLit, the weights associate with the literals.
+ * @param weightVar, the weights associate with the variables (sum of weight
+   of the lit)
+ * @param selected, the projected variables.
+ * @param maxVar is the set of existential variables.
+ * @param indVar is the set of randomized variables.
  */
-void ProblemManagerCircuit::display(std::ostream &out) {
-  out << "p noncnf " << m_nbVar << "\n";
-  assert(gates.size() == wires.size() && gates.size() == m_nbVar);
-
-  for (unsigned i = 0; i < gates.size(); i++) {
-    if (!gates[i]) continue;
-    out << gates[i] << " -1 ";
-    out << i + 1 << " ";
-
-    for (auto &v : wires[i]) out << v << " ";
-    out << "0\n";
-  }
-}  // display
+ProblemManagerCircuit::ProblemManagerCircuit(
+    int nbVar, std::vector<mpz::mpf_float> &weightLit,
+    std::vector<mpz::mpf_float> &weightVar, std::vector<Var> &selected,
+    std::vector<Var> &maxVar, std::vector<Var> &indVar) {
+  m_nbVar = nbVar;
+  m_weightLit = weightLit;
+  m_weightVar = weightVar;
+  m_selected = selected;
+  m_maxVar = maxVar;
+  m_indVar = indVar;
+  m_isUnsat = false;
+}  // constructor
 
 /**
- * @brief
- *
- * @param out
- * @param startLine
+   Destructor.
  */
-void ProblemManagerCircuit::displayStat(std::ostream &out,
-                                        std::string startLine) {
-  out << "c problemManagerCircuit displayStat() -- not implemented yet\n";
-  // TODO
-  // Afficher le nombre de portes
-  // Afficher le nomnbre de variables
-  // Stat sur le circuit
-}  // displayStat
+ProblemManagerCircuit::~ProblemManagerCircuit() {
+  m_gates.clear();
+  m_nbVar = 0;
+}  // destructor
 
+/**
+ * @brief Get the Unsat ProblemManager object.
+ *
+ * @return an unsatisfiable problem.
+ */
 ProblemManager *ProblemManagerCircuit::getUnsatProblem() {
-  std::cerr << "Method not corectly implemented yet, just used for compilation "
-               "purposes, do not use !";
-  ProblemManagerCircuit *ret = new ProblemManagerCircuit();
+  ProblemManagerCircuit *ret = new ProblemManagerCircuit(this);
+  ret->m_isUnsat = true;
+
+  std::vector<Lit> &true_lits = ret->getTrueLiterals();
+  true_lits.push_back({Lit::makeLit(1, false)});
+  true_lits.push_back({Lit::makeLit(1, true)});
+
   return ret;
-}
+}  // getUnsatProblem
 
 /**
- * @brief
+ * @brief Simplify the formula by unit propagation and return the resulting CNF
+ * formula.
  *
- * @param units
- * @return ProblemManager*
+ * @param units is the set of unit literals we want to condition with.
+ * @return the simplified formula.
  */
 ProblemManager *ProblemManagerCircuit::getConditionedFormula(
     std::vector<Lit> &units) {
-  std::cerr << "Method not corectly implemented yet, just used for compilation "
-               "purposes, do not use !";
-  assert(0);
-  ProblemManagerCircuit *ret = new ProblemManagerCircuit();
+  ProblemManagerCircuit *ret = new ProblemManagerCircuit(this);
+
+  ret->m_gates = this->m_gates;
+  ret->m_true_lits = this->m_true_lits;
+
+  for (Lit l : units) {
+    ret->m_true_lits.push_back(l);
+  }
+
   return ret;
-}
+}  // getConditionedFormula
+
+/**
+   Display the problem.
+
+   @param[out] out, the stream where the messages are redirected.
+ */
+void ProblemManagerCircuit::display(std::ostream &out) {
+  out << "weight list: ";
+  for (unsigned i = 1; i <= m_nbVar; i++) {
+    Lit l = Lit::makeLit(i, false);
+    out << i << "[" << m_weightVar[i] << "] ";
+    out << l << "(" << m_weightLit[l.intern()] << ") ";
+    out << ~l << "(" << m_weightLit[(~l).intern()] << ") ";
+  }
+  out << "\n";
+
+  out << "BCS-1.0 " << m_nbVar << " " << m_gates.size() << "\n";
+  for (auto &gate : m_gates) {
+    gate.display(out);
+    out << "\n";
+  }
+
+  out << "True literals: ";
+  for (auto &Lit : m_true_lits) {
+    out << Lit << " ";
+  }
+}  // diplay
+
+/**
+   Print out some statistic about the problem. Each line will start with the
+   string startLine given in parameter.
+
+   @param[in] out, the stream where the messages are redirected.
+   @param[in] startLine, each line will start with this string.
+ */
+void ProblemManagerCircuit::displayStat(std::ostream &out,
+                                        std::string startLine) {
+  unsigned nbLits = 0;
+  unsigned nbBin = 0;
+  unsigned nbTer = 0;
+  unsigned nbMoreThree = 0;
+
+  for (auto &gate : m_gates) {
+    nbLits += gate.input.size();
+    if (gate.input.size() == 2) nbBin++;
+    if (gate.input.size() == 3) nbTer++;
+    if (gate.input.size() > 3) nbMoreThree++;
+  }
+
+  out << startLine << "Number of variables: " << m_nbVar << "\n";
+  out << startLine << "Number of gates: " << m_gates.size() << "\n";
+  out << startLine << "Number of binary gates: " << nbBin << "\n";
+  out << startLine << "Number of ternary gates: " << nbTer << "\n";
+  out << startLine << "Number of gates larger than 3: " << nbMoreThree << "\n";
+  out << startLine << "Number of literals: " << nbLits << "\n";
+}  // displaystat
 
 }  // namespace d4

@@ -36,6 +36,8 @@ const int NOT = 3;
 ProblemManagerCnf *PreprocCnfFromCircuit::tseytin(
     ProblemManagerCircuit *circuit) {
   ProblemManagerCnf *retCnf = new ProblemManagerCnf(circuit);
+#if 0
+  
   std::vector<std::vector<Lit>> &clauses = retCnf->getClauses();
 
   std::vector<unsigned> &gates = circuit->getGates();
@@ -73,6 +75,7 @@ ProblemManagerCnf *PreprocCnfFromCircuit::tseytin(
       }
     }
   }
+#endif
   return retCnf;
 }  // tseytin
 

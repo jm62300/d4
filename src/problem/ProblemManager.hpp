@@ -69,13 +69,13 @@ class ProblemManager {
                                             std::ostream &out);
 
   virtual ~ProblemManager() { ; }
-  unsigned getNbVar() { return m_nbVar; }
-  void setNbVar(int n) { m_nbVar = n; }
-
   virtual void display(std::ostream &out) = 0;
   virtual void displayStat(std::ostream &out, std::string startLine) = 0;
   virtual ProblemManager *getUnsatProblem() = 0;
   virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units) = 0;
+
+  unsigned getNbVar() { return m_nbVar; }
+  void setNbVar(int n) { m_nbVar = n; }
 
   inline std::vector<Var> &getSelectedVar() { return m_selected; }
   inline std::vector<Var> &getMaxVar() { return m_maxVar; }
@@ -103,7 +103,7 @@ class ProblemManager {
   virtual ProblemInputType getProblemType() { return PB_NONE; }
 
   /**
-     Get the weight for a variable.
+   * @brief Get the weight for a variable.
    */
   template <typename T>
   inline T getWeightVar(Var v) {
@@ -111,7 +111,7 @@ class ProblemManager {
   }  // getWeightLar
 
   /**
-     Get the weight for a literal.
+   * @brief Get the weight for a literal.
    */
   template <typename T>
   inline T getWeightLit(Lit l) {
@@ -119,13 +119,13 @@ class ProblemManager {
   }  // getWeightLit
 
   /**
-     Compute the value for free and unit variables.
-
-     @param[in] units, the units variables
-     @param[in] frees, the free variables
-
-     \return the right value
-  */
+   * @brief Compute the value for free and unit variables.
+   *
+   * @param[in] units are the units literals.
+   * @param[in] frees are the free variables.
+   *
+   * \return the right value.
+   */
   template <typename T>
   inline T computeWeightUnitFree(std::vector<Lit> &units,
                                  std::vector<Var> &frees) {

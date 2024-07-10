@@ -1,6 +1,6 @@
 /*
  * d4
- * Copyright (C) 2020  Univ. Artois & CNRS
+ * Copyright (C) 2024  Univ. Artois & CNRS & KU Leuven
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,26 +22,66 @@
 #include "../ProblemTypes.hpp"
 
 namespace d4 {
+
+enum class BcGateType { AND, OR };
+
+struct BcGate {
+  std::vector<Lit> input;
+  Lit output;
+  BcGateType gate_type;
+
+  /**
+   * @brief Print out the circuit.
+   *
+   * @param[out] out is the stream where the messages are redirected.
+   */
+  void display(std::ostream &out) {
+    out << output;
+    switch (gate_type) {
+      case BcGateType::AND:
+        out << " =(AND): ";
+        break;
+      case BcGateType::OR:
+        out << " =(OR): ";
+        break;
+      default:
+        out << " =(UNKNOWN): ";
+        break;
+    }
+    for (auto &l : input) out << l << " ";
+  }
+};
+
 class ProblemManagerCircuit : public ProblemManager {
  private:
-  std::vector<unsigned> gates;
-  std::vector<std::vector<unsigned>> wires;
+  std::vector<BcGate> m_gates;
+  std::vector<Lit> m_true_lits;  // conjunction of output literals that must be
+                                 // true. unsigned m_nbInputVars;
 
  public:
   ProblemManagerCircuit();
-  ~ProblemManagerCircuit();
-  ProblemManagerCircuit(const std::string &nameFile);
+
+  ProblemManagerCircuit(int nbVar, std::vector<mpz::mpf_float> &weightLit,
+                        std::vector<mpz::mpf_float> &weightVar,
+                        std::vector<Var> &selected);
+
+  ProblemManagerCircuit(int nbVar, std::vector<mpz::mpf_float> &weightLit,
+                        std::vector<mpz::mpf_float> &weightVar,
+                        std::vector<Var> &selected, std::vector<Var> &maxVar,
+                        std::vector<Var> &indVar);
+
   ProblemManagerCircuit(ProblemManager *problem);
 
+  ProblemManagerCircuit(const std::string &nameFile);
+
+  ~ProblemManagerCircuit();
   void display(std::ostream &out) override;
   void displayStat(std::ostream &out, std::string startLine) override;
-
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
-  inline std::vector<unsigned> &getGates() { return gates; }
-  inline std::vector<std::vector<unsigned>> &getWires() { return wires; }
-
+  std::vector<BcGate> &getGates() { return m_gates; }
+  std::vector<Lit> &getTrueLiterals() { return m_true_lits; }
   inline ProblemInputType getProblemType() override { return PB_CIRC; }
 };
 }  // namespace d4

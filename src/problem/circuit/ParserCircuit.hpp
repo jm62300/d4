@@ -1,6 +1,6 @@
 /*
  * d4
- * Copyright (C) 2020  Univ. Artois & CNRS
+ * Copyright (C) 2024  Univ. Artois & CNRS & KU Leuven
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,27 +18,20 @@
  */
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <cassert>
 #include <fstream>
-#include <iostream>
-#include <limits>
-#include <vector>
 
 #include "../ProblemTypes.hpp"
-#include "src/problem/ProblemManager.hpp"
 #include "src/problem/circuit/ProblemManagerCircuit.hpp"
 #include "src/utils/BufferRead.hpp"
 
 namespace d4 {
 class ParserCircuit {
  private:
-  int parse_Circuit_main(BufferRead &in, ProblemManagerCircuit *problemManager);
+  int parse_circuit_main(std::ifstream &in,
+                         ProblemManagerCircuit *problemManager);
 
  public:
-  int parse_Circuit(std::string input_stream,
+  int parse_circuit(const std::string &input_stream,
                     ProblemManagerCircuit *problemManager);
 };
 }  // namespace d4
