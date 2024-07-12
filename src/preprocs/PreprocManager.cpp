@@ -22,7 +22,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <csignal>
 
-#include "circuit/PreprocCnfFromCircuit.hpp"
+#include "circuit/PreprocBasicCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
 #include "cnf/PreprocEquiv.hpp"
@@ -48,9 +48,7 @@ PreprocManager* PreprocManager::makePreprocManager(
 
   switch (options.inputType) {
     case PB_CIRC:
-      assert(0);
-      break;
-
+      return new PreprocBasicCircuit(out);
     case PB_QBF:
       if (options.preprocMethod == SHARP_EQUIV) {
         out << "c [PREPROC MANAGER] The sharp-equiv preprocessor is not "
