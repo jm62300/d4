@@ -24,8 +24,8 @@
  */
 d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
   d4::ConfigurationPeproc config;
-  config.inputType =
-      d4::InputTypeManager::getInputType(vm["input-type"].as<std::string>());
+  config.inputType = d4::ProblemInputTypeManager::getInputType(
+      vm["input-type"].as<std::string>());
   config.nbIteration = vm["preproc-reducer-iteration"].as<int>();
   config.preprocMethod = d4::PreprocMethodManager::getPreprocMethod(
       vm["preproc"].as<std::string>());

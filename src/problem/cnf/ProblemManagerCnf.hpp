@@ -48,6 +48,6 @@ class ProblemManagerCnf : public ProblemManager, public CnfMatrix {
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
-  inline ProblemInputType getProblemType() override { return PB_CNF; }
+  inline ProblemInputType getProblemType() const override { return PB_CNF; }
 };
 }  // namespace d4

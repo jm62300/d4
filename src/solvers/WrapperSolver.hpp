@@ -36,11 +36,13 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
    * compilation/counting problems.
    *
    * @param name is the solver name.
+   * @param p is the problem under consideration (CNF, QBF, ...).
    * @param out is the stream where is printed out the logs.
-   * @return a solver.
+   *
+   * \return a solver.
    */
   static WrapperSolver *makeWrapperSolver(const OptionSolver &name,
-                                          std::ostream &out);
+                                          ProblemManager &p, std::ostream &out);
 
   virtual ~WrapperSolver() {}
   virtual void initSolver(ProblemManager &p) = 0;

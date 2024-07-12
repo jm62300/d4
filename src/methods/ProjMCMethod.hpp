@@ -203,7 +203,7 @@ class ProjMCMethod : public MethodManager {
    */
   void initSatSolver(const OptionSolver &options, ProblemManager *problem,
                      std::vector<std::vector<Lit>> &clauses, unsigned nbVar) {
-    m_solver = WrapperSolver::makeWrapperSolver(options, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options, *problem, m_out);
     assert(m_solver);
 
     // prepare the weight vectors and init the problem.

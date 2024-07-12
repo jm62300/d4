@@ -50,6 +50,6 @@ class ProblemManagerQbf : public ProblemManager, public CnfMatrix {
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
-  inline ProblemInputType getProblemType() override { return PB_QBF; }
+  inline ProblemInputType getProblemType() const override { return PB_QBF; }
 };
 }  // namespace d4

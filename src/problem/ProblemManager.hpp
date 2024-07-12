@@ -129,7 +129,7 @@ class ProblemManager {
     return false;
   }  // isFloat
 
-  virtual ProblemInputType getProblemType() { return PB_NONE; }
+  virtual ProblemInputType getProblemType() const { return PB_NONE; }
 
   /**
    * @brief Get the weight for a variable.

@@ -20,5 +20,6 @@
 #pragma once
 
 namespace d4 {
-#define ERROR_BAD_OPTION 1
+#define ERROR_BAD_OPTION 255
+#define ERROR_BAD_TYPE_PROBLEM 254
 }  // namespace d4

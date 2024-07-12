@@ -109,7 +109,8 @@ class QbfCounter : public MethodManager {
     m_out << "c [QBF COUNTER]" << options << "\n";
 
     // we create and init the SAT solver.
-    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
+                                                *m_problem, m_out);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
 

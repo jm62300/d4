@@ -28,7 +28,7 @@ namespace d4 {
 
 class OptionPreprocManager {
  public:
-  InputType inputType;
+  ProblemInputType inputType;
   PreprocMethod preprocMethod;
   unsigned nbIteration = 1;
   bool onlyUseGates = false;
@@ -48,7 +48,7 @@ class OptionPreprocManager {
                                   const OptionPreprocManager& dt) {
     out << " Option PreprocManager:" << " preproc("
         << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ')'
-        << " input type(" << InputTypeManager::getInputType(dt.inputType)
+        << " input type(" << ProblemInputTypeManager::getInputType(dt.inputType)
         << ')';
 
     if (dt.preprocMethod == SHARP_EQUIV)
