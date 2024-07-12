@@ -177,8 +177,8 @@ class ExistRandomExist : public MethodManager {
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
-                                              *m_problem, m_out);
+    m_specs = FormulaManager::makeFormulaManager(options.optionSpecManager,
+                                                 *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_hVarExist = ScoringMethod::makeScoringMethod(

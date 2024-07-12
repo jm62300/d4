@@ -27,16 +27,15 @@
 namespace d4 {
 
 /**
- * @brief FormulaManager::makeSpecManager implementation.
+ * @brief FormulaManager::makeFormulaManager implementation.
  */
-FormulaManager *FormulaManager::makeSpecManager(
+FormulaManager *FormulaManager::makeFormulaManager(
     const OptionSpecManager &options, ProblemManager &p, std::ostream &out) {
   out << "c [SPEC MANAGER]" << options << "\n";
 
   switch (p.getProblemType()) {
     case PB_CIRC:
-      out << "c Warning: only handle the case where the circuit is translated "
-             "into a CNF formula\n";
+      out << "c TODO\n";
       exit(3);
       break;
 
@@ -58,6 +57,6 @@ FormulaManager *FormulaManager::makeSpecManager(
   }
 
   throw(FactoryException("Cannot create a FormulaManager", __FILE__, __LINE__));
-}  // makeSpecManager
+}  // makeFormulaManager
 
 }  // namespace d4

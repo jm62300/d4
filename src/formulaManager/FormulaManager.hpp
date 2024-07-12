@@ -39,8 +39,9 @@ class FormulaManager {
    * @param out is the stream where are printed out the logs.
    * @return a spec manager.
    */
-  static FormulaManager *makeSpecManager(const OptionSpecManager &options,
-                                         ProblemManager &p, std::ostream &out);
+  static FormulaManager *makeFormulaManager(const OptionSpecManager &options,
+                                            ProblemManager &p,
+                                            std::ostream &out);
 
   /**
    * @brief Get the number of variables.

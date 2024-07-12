@@ -118,8 +118,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbFailedIncreased = m_lastNbSplit = 0;
 
     // we initialize the object that will give info about the problem.
-    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
-                                              *m_problem, m_out);
+    m_specs = FormulaManager::makeFormulaManager(options.optionSpecManager,
+                                                 *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(

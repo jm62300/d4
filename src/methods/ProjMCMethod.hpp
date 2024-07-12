@@ -116,8 +116,8 @@ class ProjMCMethod : public MethodManager {
                   idxVar - 1);
 
     // prepare the spec manager.
-    m_specs =
-        FormulaManager::makeSpecManager(options.optionSpecs, *problem, m_out);
+    m_specs = FormulaManager::makeFormulaManager(options.optionSpecs, *problem,
+                                                 m_out);
 
     // prepare the cache.
     m_cache = CacheManager<T>::makeCacheManager(options.optionCache, idxVar - 1,

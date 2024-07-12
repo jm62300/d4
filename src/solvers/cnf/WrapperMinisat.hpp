@@ -25,7 +25,7 @@
 
 namespace d4 {
 class WrapperMinisat : public WrapperSolver {
- private:
+ protected:
   minisat::Solver s;
   minisat::vec<minisat::Var> m_setOfVar_m;
 
@@ -34,7 +34,6 @@ class WrapperMinisat : public WrapperSolver {
   bool m_activeModel;
   bool m_needModel;
 
- protected:
   using WrapperSolver::m_isInAssumption;
 
  public:
