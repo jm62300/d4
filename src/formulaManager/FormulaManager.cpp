@@ -22,6 +22,7 @@
 #include "cnf/CnfManagerDynBlockedCl.hpp"
 #include "cnf/CnfManagerDynPure.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
 
@@ -32,16 +33,28 @@ FormulaManager *FormulaManager::makeSpecManager(
     const OptionSpecManager &options, ProblemManager &p, std::ostream &out) {
   out << "c [SPEC MANAGER]" << options << "\n";
 
-  if (p.getProblemType() == PB_CNF || p.getProblemType() == PB_QBF ||
-      p.getProblemType() == PB_CIRC) {
-    if (p.getProblemType() == PB_CIRC)
+  switch (p.getProblemType()) {
+    case PB_CIRC:
       out << "c Warning: only handle the case where the circuit is translated "
              "into a CNF formula\n";
-    if (options.specUpdateType == SPEC_DYNAMIC) return new CnfManagerDyn(p);
-    if (options.specUpdateType == SPEC_DYNAMIC_BLOCKED_SIMP)
-      return new CnfManagerDynBlockedCl(p);
-    if (options.specUpdateType == SPEC_DYNAMIC_PURE_SIMP)
-      return new CnfManagerDynPure(p);
+      exit(3);
+      break;
+
+    case PB_TCNF:
+    case PB_CNF:
+    case PB_QBF:
+      switch (options.specUpdateType) {
+        case SPEC_DYNAMIC:
+          return new CnfManagerDyn(p);
+        case SPEC_DYNAMIC_BLOCKED_SIMP:
+          return new CnfManagerDynBlockedCl(p);
+        case SPEC_DYNAMIC_PURE_SIMP:
+          return new CnfManagerDynPure(p);
+      }
+    case PB_NONE:
+      std::cerr << "c The problem type has to be specified\n";
+      ProblemInputTypeManager::displayPossibleOptions(std::cerr);
+      exit(ERROR_BAD_OPTION);
   }
 
   throw(FactoryException("Cannot create a FormulaManager", __FILE__, __LINE__));
