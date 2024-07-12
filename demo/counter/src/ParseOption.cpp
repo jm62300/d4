@@ -30,6 +30,8 @@ d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
   config.preprocMethod = d4::PreprocMethodManager::getPreprocMethod(
       vm["preproc"].as<std::string>());
   config.timeout = vm["preproc-timeout"].as<int>();
+  config.strongElim = vm["preproc-strong-elim"].as<bool>();
+
   return config;
 }  // parsePreprocConfiguration
 

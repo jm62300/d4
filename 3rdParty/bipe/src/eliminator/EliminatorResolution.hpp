@@ -31,6 +31,7 @@ class EliminatorResolution {
   bool m_isInterrupt = false;
   unsigned m_largerClauses;
   unsigned m_limitNbClause;
+  bool m_strongElim = false;
 
   /**
    * @brief Select a variable to be forget.
@@ -43,14 +44,32 @@ class EliminatorResolution {
                       std::vector<std::vector<unsigned>> &occClauses);
 
   /**
-   * @brief
+   * @brief Try to generate all the resolution (stop if that generate too large
+   * clauses, or if the number of clauses generated is too large).
    *
-   * @param v
-   * @param clauses
-   * @param occClauses
-   * @param result
+   * @param[in] v is the variable used for the resolution.
+   * @param[in] clauses are the clauses.
+   * @param[in] occClauses give an occurrence list representation of the
+   * clauses.
+   * @param[out] result is the resulting clauses.
+   *
+   * \return true if we can generate all the resolution while keeping the
+   * constraints of size.
    */
-  bool generateAllResolution(Var v, std::vector<std::vector<Lit>> &clauses,
+  bool tryGenerateAllResolution(Var v, std::vector<std::vector<Lit>> &clauses,
+                                std::vector<std::vector<unsigned>> &occClauses,
+                                std::vector<std::vector<Lit>> &result);
+
+  /**
+   * @brief Generate all the resolution.
+   *
+   * @param[in] v is the variable used for the resolution.
+   * @param[in] clauses are the clauses.
+   * @param[in] occClauses give an occurrence list representation of the
+   * clauses.
+   * @param[out] result is the resulting clauses.
+   */
+  void generateAllResolution(Var v, std::vector<std::vector<Lit>> &clauses,
                              std::vector<std::vector<unsigned>> &occClauses,
                              std::vector<std::vector<Lit>> &result);
 
@@ -75,7 +94,7 @@ class EliminatorResolution {
    * @param nbVar is the number of variables for the input formula.
    * @param clauses is the CNF.
    * @param input are the input variables.
-   * @param[out] eliminated are the elminated variables.
+   * @param[out] eliminated are the eliminated variables.
    * @param verbose is set to true if we want to print out logs.
    * @param limitNbClauses is the maximum number of clauses allowed.
    */
@@ -88,6 +107,8 @@ class EliminatorResolution {
    *
    */
   inline void interrupt() { m_isInterrupt = true; }
+
+  inline void setStrongElim(bool b) { m_strongElim = b; }
 };
 }  // namespace eliminator
 }  // namespace bipe

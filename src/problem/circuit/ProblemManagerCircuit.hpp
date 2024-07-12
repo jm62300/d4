@@ -83,5 +83,6 @@ class ProblemManagerCircuit : public ProblemManager {
   std::vector<BcGate> &getGates() { return m_gates; }
   std::vector<Lit> &getTrueLiterals() { return m_true_lits; }
   inline ProblemInputType getProblemType() const override { return PB_CIRC; }
+  inline ProblemManager *translate(const ProblemTranslateType &t) override;
 };
 }  // namespace d4

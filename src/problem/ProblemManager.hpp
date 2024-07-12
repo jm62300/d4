@@ -81,6 +81,53 @@ class ProblemInputTypeManager {
   }  // getOperatorType
 };
 
+enum ProblemTranslateType { TRANSLATE_CNF, TRANSLATE_PCNF, TRANSLATE_NONE };
+
+class ProblemTranslateTypeManager {
+ public:
+  /**
+   * @brief This function maps the enum type option to the associate string
+   * option.
+   *
+   * @test getInputType("cnf") == PB_CNF
+   *
+   * @param m is the enum type option.
+   * @return the string associate with this type.
+   */
+  static std::string getInputType(const ProblemTranslateType &m) {
+    if (m == TRANSLATE_CNF) return "cnf";
+    if (m == TRANSLATE_PCNF) return "pcnf";
+    if (m == TRANSLATE_NONE) return "none";
+    throw(FactoryException("Type unknown", __FILE__, __LINE__));
+  }  // getOutputType
+
+  /**
+   * @brief Display the possible options on the given stream.
+   *
+   * @param out is the output stream where write the information.
+   */
+  static void displayPossibleOptions(std::ostream &out) {
+    out << "\033[1m\033[31mTranslation type handling by d4: \033[0m\n";
+    out << "\t- Do not translate the formula -> none\n";
+    out << "\t- Translate the formula into a CNF formula -> cnf\n";
+    out << "\t- Translate the formula into a projected CNF formula -> pcnf\n";
+  }  // displayPossibleOptions
+
+  /***
+   * @brief This function maps the string option to the enum type.
+   *
+   * @param[in] m is the string representing the option.
+   */
+  static ProblemTranslateType getInputType(const std::string &m) {
+    if (m == "cnf") return TRANSLATE_CNF;
+    if (m == "pcnf") return TRANSLATE_PCNF;
+    if (m == "none") return TRANSLATE_NONE;
+
+    displayPossibleOptions(std::cerr);
+    throw(FactoryException("Translation type unknown", __FILE__, __LINE__));
+  }  // getOperatorType
+};
+
 class ProblemManager {
  protected:
   unsigned m_nbVar;
@@ -102,6 +149,7 @@ class ProblemManager {
   virtual void displayStat(std::ostream &out, std::string startLine) = 0;
   virtual ProblemManager *getUnsatProblem() = 0;
   virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units) = 0;
+  virtual ProblemManager *translate(const ProblemTranslateType &t) = 0;
 
   unsigned getNbVar() { return m_nbVar; }
   void setNbVar(int n) { m_nbVar = n; }

@@ -25,6 +25,7 @@
 #include "circuit/PreprocBasicCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
+#include "cnf/PreprocCompileEquiv.hpp"
 #include "cnf/PreprocEquiv.hpp"
 #include "cnf/PreprocReducer.hpp"
 #include "cnf/PreprocSharpEquiv.hpp"
@@ -73,6 +74,8 @@ PreprocManager* PreprocManager::makePreprocManager(
           return new PreprocReducer("occElimination", options.nbIteration, out);
         case COMB:
           return new PreprocReducer("combinaison", options.nbIteration, out);
+        case COMPILE_EQUIV:
+          return new PreprocCompileEquiv(options.nbIteration, out);
       }
     case PB_NONE:
       out << "The problem type cannot be NONE\n";

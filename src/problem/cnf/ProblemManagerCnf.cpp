@@ -216,11 +216,7 @@ void ProblemManagerCnf::display(std::ostream &out) {
 }  // diplay
 
 /**
-   Print out some statistic about the problem. Each line will start with the
-   string startLine given in parameter.
-
-   @param[in] out, the stream where the messages are redirected.
-   @param[in] startLine, each line will start with this string.
+ * @brief
  */
 void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
   unsigned nbLits = 0;
@@ -246,5 +242,14 @@ void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
       << "\n";
   out << startLine << "Number of literals: " << nbLits << "\n";
 }  // displaystat
+
+/**
+ * @brief ProblemManagerCnf::translate implementation.
+ */
+inline ProblemManager *ProblemManagerCnf::translate(
+    const ProblemTranslateType &t) {
+  assert(t == TRANSLATE_NONE);
+  return this;
+}  // translate
 
 }  // namespace d4

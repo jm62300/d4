@@ -28,6 +28,7 @@ struct ConfigurationPeproc {
   int nbIteration = 1;
   bool ordered = false;
   bool onlyUseGates = false;
+  bool strongElim = false;
   int timeout = 0;
 };
 }  // namespace d4

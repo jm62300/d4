@@ -380,6 +380,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    */
   U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
              std::vector<Var> &freeVariable, std::ostream &out) {
+    m_nbCallCall++;
     showRun(out);
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 

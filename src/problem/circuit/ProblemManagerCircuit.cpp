@@ -19,6 +19,7 @@
 
 #include "ProblemManagerCircuit.hpp"
 
+#include "../cnf/ProblemManagerCnf.hpp"
 #include "ParserCircuit.hpp"
 #include "src/problem/ProblemManager.hpp"
 
@@ -174,14 +175,15 @@ void ProblemManagerCircuit::display(std::ostream &out) {
   for (auto &Lit : m_true_lits) {
     out << Lit << " ";
   }
+  std::cout << "\n";
 }  // diplay
 
 /**
-   Print out some statistic about the problem. Each line will start with the
-   string startLine given in parameter.
-
-   @param[in] out, the stream where the messages are redirected.
-   @param[in] startLine, each line will start with this string.
+ * @brief Print out some statistic about the problem. Each line will start with
+ * the string startLine given in parameter.
+ *
+ * @param[in] out is the stream where the messages are redirected.
+ * @param[in] startLine is the string each line will start with.
  */
 void ProblemManagerCircuit::displayStat(std::ostream &out,
                                         std::string startLine) {
@@ -204,5 +206,55 @@ void ProblemManagerCircuit::displayStat(std::ostream &out,
   out << startLine << "Number of gates larger than 3: " << nbMoreThree << "\n";
   out << startLine << "Number of literals: " << nbLits << "\n";
 }  // displaystat
+
+/**
+ * @brief ProblemManagerCircuit::translate implementation.
+ */
+inline ProblemManager *ProblemManagerCircuit::translate(
+    const ProblemTranslateType &t) {
+  if (t == TRANSLATE_NONE) return this;
+
+  std::vector<Var> projectedVar;
+  std::vector<std::vector<Lit>> clauses;
+
+  std::vector<Lit> cl;
+  for (auto &g : m_gates) {
+    switch (g.gate_type) {
+      case BcGateType::AND:
+        cl.clear();
+        cl.push_back(g.output);
+        for (auto l : g.input) {
+          clauses.push_back({l, ~g.output});
+          cl.push_back(~l);
+        }
+        clauses.push_back(cl);
+        break;
+      case BcGateType::OR:
+        cl.clear();
+        cl.push_back(~g.output);
+        for (auto l : g.input) {
+          clauses.push_back({~l, g.output});
+          cl.push_back(l);
+        }
+        clauses.push_back(cl);
+        break;
+    }
+  }
+
+  for (auto &l : m_true_lits) clauses.push_back({l});
+
+  if (t == TRANSLATE_PCNF) {
+    std::vector<bool> isInput(m_nbVar + 1, true);
+    for (auto &g : m_gates) isInput[g.output.var()] = false;
+    for (unsigned i = 1; i <= m_nbVar; i++)
+      if (isInput[i]) projectedVar.push_back(i);
+  }
+
+  ProblemManagerCnf *ret =
+      new ProblemManagerCnf(m_nbVar, m_weightLit, m_weightVar, projectedVar);
+  ret->setClauses(clauses);
+
+  return ret;
+}  // translate
 
 }  // namespace d4
