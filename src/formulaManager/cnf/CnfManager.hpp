@@ -39,7 +39,6 @@ class CnfManager : public FormulaManager {
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<int> m_clausesNotBin;
   unsigned m_maxSizeClause;
-  std::vector<lbool> m_currentValue;
   std::vector<ClauseInfo> m_infoClauses;
 
   std::vector<bool> m_inCurrentComponent;
@@ -78,8 +77,6 @@ class CnfManager : public FormulaManager {
   void showCurrentFormula(std::ostream &out) override;
   void showCurrentFormula(std::ostream &out,
                           std::vector<bool> &isInComponent) override;
-
-  void showTrail(std::ostream &out) override;
 
   int getInitSize(int i) { return m_clauses[i].size(); }
   int getCurrentSize(int i) {
@@ -149,20 +146,6 @@ class CnfManager : public FormulaManager {
   inline std::vector<Lit> &getClause(int idx) {
     assert((unsigned)idx < m_clauses.size());
     return m_clauses[idx];
-  }
-
-  // about the assignment.
-  inline bool varIsAssigned(Var v) override {
-    return m_currentValue[v] != l_Undef;
-  }
-  inline bool litIsAssigned(Lit l) override {
-    return m_currentValue[l.var()] != l_Undef;
-  }
-  inline bool litIsAssignedToTrue(Lit l) override {
-    if (l.sign())
-      return m_currentValue[l.var()] == l_False;
-    else
-      return m_currentValue[l.var()] == l_True;
   }
 
   inline int getNbOccurrence(Lit l) { return getNbClause(l); }

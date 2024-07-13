@@ -372,18 +372,6 @@ void CnfManager::showFormula(std::ostream &out) {
   }
 }  // showFormula
 
-void CnfManager::showTrail(std::ostream &out) {
-  for (int i = 0; i < getNbVariable(); i++) {
-    if (!varIsAssigned(i)) continue;
-    Lit l = Lit::makeLit(i, false);
-    if (litIsAssignedToTrue(l))
-      out << l << " ";
-    else
-      out << ~l << " ";
-  }
-  out << "\n";
-}  // showFormula
-
 void CnfManager::showCurrentFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (unsigned i = 0; i < m_clauses.size(); i++) {

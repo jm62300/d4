@@ -59,4 +59,19 @@ FormulaManager *FormulaManager::makeFormulaManager(
   throw(FactoryException("Cannot create a FormulaManager", __FILE__, __LINE__));
 }  // makeFormulaManager
 
+/**
+ * @brief FormulaManager::showTrail implementation.
+ */
+void FormulaManager::showTrail(std::ostream &out) {
+  for (int i = 0; i < getNbVariable(); i++) {
+    if (!varIsAssigned(i)) continue;
+    Lit l = Lit::makeLit(i, false);
+    if (litIsAssignedToTrue(l))
+      out << l << " ";
+    else
+      out << ~l << " ";
+  }
+  out << "\n";
+}  // showFormula
+
 }  // namespace d4

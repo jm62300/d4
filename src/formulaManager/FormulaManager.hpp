@@ -28,6 +28,7 @@ namespace d4 {
 class FormulaManager {
  protected:
   unsigned m_nbVar;
+  std::vector<lbool> m_currentValue;
 
  public:
   /**
@@ -56,12 +57,22 @@ class FormulaManager {
   virtual ~FormulaManager() {}
 
   /**
+   * @brief Get if the given variable is assigned.
+   *
+   * @param v is the variable.
+   * @return true if the variable is assigned, false otherwise.
+   */
+  inline bool varIsAssigned(Var v) { return m_currentValue[v] != l_Undef; }
+
+  /**
    * @brief Get if the given literal is assigned or not.
    *
    * @param l is the literal we are looking for.
    * @return true if l is assigned, false otherwise.
    */
-  virtual bool litIsAssigned(Lit l) = 0;
+  inline bool litIsAssigned(Lit l) {
+    return m_currentValue[l.var()] != l_Undef;
+  }  // litIsAssigned
 
   /**
    * @brief Ask if the given literal is assigned to.
@@ -69,15 +80,19 @@ class FormulaManager {
    * @param l is the literal we are looking for.
    * @return true if l is assigned to true, false otherwise.
    */
-  virtual bool litIsAssignedToTrue(Lit l) = 0;
+  inline bool litIsAssignedToTrue(Lit l) {
+    if (l.sign())
+      return m_currentValue[l.var()] == l_False;
+    else
+      return m_currentValue[l.var()] == l_True;
+  }  // litIsAssignedToTrue
 
   /**
-   * @brief Get if the given variable is assigned.
+   * @brief  Show the set of unit literals.
    *
-   * @param v is the variable.
-   * @return true if the variable is assigned, false otherwise.
+   * @param[out] out is the stream used.
    */
-  virtual bool varIsAssigned(Var v) = 0;
+  void showTrail(std::ostream &out);
 
   /**
    * @brief Search for the connected component of the formula.
@@ -147,13 +162,6 @@ class FormulaManager {
    */
   virtual void showCurrentFormula(std::ostream &out,
                                   std::vector<bool> &isInComponent) = 0;
-
-  /**
-   * @brief  Show the set of unit literals.
-   *
-   * @param[out] out is the stream used.
-   */
-  virtual void showTrail(std::ostream &out) = 0;
 
   /**
    * @brief Get the problem input type.
