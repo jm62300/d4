@@ -23,7 +23,14 @@
 
 namespace d4 {
 
-enum class BcGateType { AND, OR };
+/**
+ * @brief Different gate types.
+ *
+ * The IDENTITY gate has one input and simply passes
+ * on the information. This could be used to represent
+ * gates `x := y` or `x := -y`
+ */
+enum class BcGateType { AND, OR, IDENTITY };
 
 struct BcGate {
   std::vector<Lit> input;
@@ -43,6 +50,9 @@ struct BcGate {
         break;
       case BcGateType::OR:
         out << " =(OR): ";
+        break;
+      case BcGateType::IDENTITY:
+          out << " =(I): ";
         break;
       default:
         out << " =(UNKNOWN): ";

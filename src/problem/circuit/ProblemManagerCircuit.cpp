@@ -166,19 +166,19 @@ void ProblemManagerCircuit::display(std::ostream &out) {
     out << l << "(" << m_weightLit[l.intern()] << ") ";
     out << ~l << "(" << m_weightLit[(~l).intern()] << ") ";
   }
-  out << "\n";
+  out << std::endl;
 
-  out << "BCS-1.0 " << m_nbVar << " " << m_gates.size() << "\n";
+  out << "BC-S1.2 " << m_nbVar << " " << m_gates.size() << "\n";
   for (auto &gate : m_gates) {
     gate.display(out);
-    out << "\n";
+    out << std::endl;
   }
 
   out << "True literals: ";
   for (auto &Lit : m_true_lits) {
     out << Lit << " ";
   }
-  std::cout << "\n";
+  std::cout << std::endl;
 }  // diplay
 
 /**
@@ -246,6 +246,11 @@ inline ProblemManager *ProblemManagerCircuit::translate(
           cl.push_back(l);
         }
         clauses.push_back(cl);
+        break;
+      case BcGateType::IDENTITY:
+        assert (g.input.size() == 1);
+        clauses.push_back({g.input[0], ~g.output});
+        clauses.push_back({~g.input[0], g.output});
         break;
     }
   }
