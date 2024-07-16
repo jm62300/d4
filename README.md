@@ -47,3 +47,80 @@ The different methods available.
 
 
 ## Parallel Model Counting
+
+
+# Input Formats
+
+The different input formats available.
+
+## circuit
+
+We currently use our own defined format (BC-S1.2), where 
+a formula is represented as a list of gates (input, output, gate_type), 
+and a list of gates that must evaluate to true or false.
+
+The BC-S1.2 format is the following:
+
+Comment
+* c *\n
+
+WeightInfo
+* c w literal weight\n
+
+Var
+* name
+
+Literal
+* Var
+* -Var
+
+Circuit
+* Statement
+* Statement\nCircuit
+
+Statement
+* G Var := FlatFormula\n 
+* I var\n
+* T literal\n
+
+FlatFormula
+* A LiteralList
+* O LiteralList
+* I Literal
+
+LiteralList
+* Literal
+* Literal LiteralList
+
+A statement defines a gate represented by a formula, or 
+declares an input variable that is no gate, or 
+declares a literal that must be true. Multiple of each statements may occur.
+
+A formula is either an AND (A), OR (O), or identity (I). The latter
+can also be used to denote negation `x := -y`.  
+Negation is supported by minus sign in front of a name. 
+
+A LiteralList in O, or A must contain at least 2 literals.
+
+
+### Examples
+A formula that is a single literal `-x`
+```
+c BC-S1.2
+I x
+T -x
+```
+
+A formula that is `(a & b) | -(-c & b)`
+```
+c BC-S1.2
+I a
+I b
+I c
+G g1 := A a b
+G g2 := A -c b
+G g3 := O g1 -g2
+T g3
+```
+
+# cnf
