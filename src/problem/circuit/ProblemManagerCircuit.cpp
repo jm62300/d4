@@ -60,6 +60,9 @@ ProblemManagerCircuit::ProblemManagerCircuit(ProblemManager *problem) {
   m_maxVar = problem->getMaxVar();
   m_indVar = problem->getIndVar();
   m_isUnsat = false;
+
+  m_order.resize(m_nbVar + 1);
+  for (unsigned i = 0; i < m_order.size(); i++) m_order[i] = i;
 }  // constructor
 
 /**
@@ -212,7 +215,13 @@ void ProblemManagerCircuit::displayStat(std::ostream &out,
  */
 inline ProblemManager *ProblemManagerCircuit::translate(
     const ProblemTranslateType &t) {
-  if (t == TRANSLATE_NONE) return this;
+  if (t == TRANSLATE_NONE) {
+      // Create copy of this (since users may delete this after translation)
+      ProblemManagerCircuit *ret = new ProblemManagerCircuit(this);
+      ret->getTrueLiterals() = this->getTrueLiterals();
+      ret->getGates() = this->getGates();
+      return ret;
+  }
 
   std::vector<Var> projectedVar;
   std::vector<std::vector<Lit>> clauses;
