@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "PartialOrderHeuristic.hpp"
-#include "src/formulaManager/cnf/CnfManager.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 

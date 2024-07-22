@@ -33,6 +33,8 @@ PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
     const OptionPartialOrderHeuristic &options, FormulaManager &om,
     WrapperSolver &s, std::ostream &out) {
   switch (om.getProblemInputType()) {
+    case PB_CIRC:
+      return NULL;
     case PB_CNF:
       return new PartialOrderHeuristicTreeDecompCnf(
           options, dynamic_cast<CnfManager &>(om), s, out);

@@ -21,6 +21,7 @@
 #include <ostream>
 
 #include "../PartialOrderHeuristicTreeDecomp.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
 class PartialOrderHeuristicTreeDecompCnf
