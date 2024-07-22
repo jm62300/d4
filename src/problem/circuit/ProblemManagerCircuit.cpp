@@ -211,21 +211,10 @@ void ProblemManagerCircuit::displayStat(std::ostream &out,
 }  // displaystat
 
 /**
- * @brief ProblemManagerCircuit::translate implementation.
+ * @brief ProblemManagerCircuit::tseitinEncoding implementation.
  */
-inline ProblemManager *ProblemManagerCircuit::translate(
-    const ProblemTranslateType &t) {
-  if (t == TRANSLATE_NONE) {
-      // Create copy of this (since users may delete this after translation)
-      ProblemManagerCircuit *ret = new ProblemManagerCircuit(this);
-      ret->getTrueLiterals() = this->getTrueLiterals();
-      ret->getGates() = this->getGates();
-      return ret;
-  }
-
-  std::vector<Var> projectedVar;
-  std::vector<std::vector<Lit>> clauses;
-
+void ProblemManagerCircuit::tseitinEncoding(
+    std::vector<std::vector<Lit>> &clauses) {
   std::vector<Lit> cl;
   for (auto &g : m_gates) {
     switch (g.gate_type) {
@@ -248,7 +237,7 @@ inline ProblemManager *ProblemManagerCircuit::translate(
         clauses.push_back(cl);
         break;
       case BcGateType::IDENTITY:
-        assert (g.input.size() == 1);
+        assert(g.input.size() == 1);
         clauses.push_back({g.input[0], ~g.output});
         clauses.push_back({~g.input[0], g.output});
         break;
@@ -256,6 +245,24 @@ inline ProblemManager *ProblemManagerCircuit::translate(
   }
 
   for (auto &l : m_true_lits) clauses.push_back({l});
+}  // tseintinEncoding
+
+/**
+ * @brief ProblemManagerCircuit::translate implementation.
+ */
+inline ProblemManager *ProblemManagerCircuit::translate(
+    const ProblemTranslateType &t) {
+  if (t == TRANSLATE_NONE) {
+    // Create copy of this (since users may delete this after translation)
+    ProblemManagerCircuit *ret = new ProblemManagerCircuit(this);
+    ret->getTrueLiterals() = this->getTrueLiterals();
+    ret->getGates() = this->getGates();
+    return ret;
+  }
+
+  std::vector<Var> projectedVar;
+  std::vector<std::vector<Lit>> clauses;
+  tseitinEncoding(clauses);
 
   if (t == TRANSLATE_PCNF) {
     std::vector<bool> isInput(m_nbVar + 1, true);

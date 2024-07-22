@@ -24,7 +24,8 @@ namespace d4 {
 /**
  * @brief CircuitManager::CircuitManager implementation.
  */
-CircuitManager::CircuitManager(ProblemManager &p) {
+CircuitManager::CircuitManager(ProblemManager &p)
+    : FormulaManager(p.getNbVar()) {
   std::cout << "c [CIRCUIT MANAGER] Constructor called\n";
 
   try {

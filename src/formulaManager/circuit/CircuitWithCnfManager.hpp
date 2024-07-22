@@ -35,5 +35,99 @@ class CircuitWithCnfManager : public CircuitManager {
  public:
   CircuitWithCnfManager(ProblemManager &p);
   ~CircuitWithCnfManager();
+
+  inline CnfManager *getCnfManager() { return m_cnfManager; };
+
+  /**
+   * @brief Search for the connected component of the formula.
+   *
+   * @param[out] varConnected are the computed connected component.
+   * @param setOfVar are the variables under consideration.
+   * @param freeVar are the variables their are free (isFreeVar should return
+   * true on them).
+   *
+   * @return the number of connected component.
+   */
+  int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
+                                std::vector<Var> &setOfVar,
+                                std::vector<Var> &freeVar) override;
+
+  /**
+   * @brief Search for the connected component of the formula regarding a subset
+   * of varaibles specified with a boolean vector.
+   *
+   * @param[out] varConnected are the computed connected component.
+   * @param[in] setOfVar are the variables under consideration.
+   * @param[in] isTargeted is a boolean vector that specifies the variable
+   * under consideration.
+   * @param[out] freeVar are the variables their are free (isFreeVar should
+   * return true on them).
+   *
+   * @return the number of connected component.
+   */
+  int computeConnectedComponentTargeted(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<bool> &isTargeted, std::vector<Var> &freeVar) override;
+
+  /**
+   * @brief This function is called to update the formula regarding a set of
+   * literals we want to assigned.
+   *
+   * @param[in] lits is the set of literal under consideration.
+   */
+  void preUpdate(const std::vector<Lit> &lits) override;
+
+  /**
+   * @brief This function is called to undo the modification done by the
+   * function preUpdate.
+   *
+   * @param lits are the literals updated.
+   */
+  void postUpdate(const std::vector<Lit> &lits) override;
+
+  /**
+   * @brief Display the initial formula.
+   *
+   * @param[out] out is the stream used.
+   */
+  void showFormula(std::ostream &out) override;
+
+  /**
+   * @brief Display the current formula.
+   *
+   * @param[out] out is the stream used.
+   */
+  void showCurrentFormula(std::ostream &out) override;
+
+  /**
+   * @brief Display the current formula.
+   *
+   * @param[out] out is the stream used.
+   */
+  void showCurrentFormula(std::ostream &out,
+                          std::vector<bool> &isInComponent) override;
+
+  /**
+   * @brief Get the problem input type.
+   *
+   * @return a element of the enum ProblemInputType.
+   */
+  ProblemInputType getProblemInputType() override;
+
+  /**
+   * @brief Display some information about the object.
+   *
+   * @param[out] out is the stream used.
+   */
+  void printInformation(std::ostream &out) override;
+
+  /**
+   * @brief Ask if the given variable is free in the current formula.
+   *
+   * @param[in] v is the variable we are looking for.
+   *
+   * @return true if the variable is free, false otherwise.
+   */
+  bool isFreeVariable(Var v) override;
 };
 }  // namespace d4

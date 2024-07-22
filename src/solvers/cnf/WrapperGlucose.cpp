@@ -31,6 +31,7 @@
 #include "src/problem/CnfMatrix.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
 /**
@@ -58,7 +59,7 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
   } catch (std::bad_cast &bc) {
     std::cerr << "c bad_cast caught: " << bc.what() << '\n';
     std::cerr << "c A CNF formula was expeted\n";
-    assert(0);
+    exit(ERROR_BAD_CAST);
   }
 
   m_activeModel = false;

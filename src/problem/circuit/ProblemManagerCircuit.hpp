@@ -52,7 +52,7 @@ struct BcGate {
         out << " =(OR): ";
         break;
       case BcGateType::IDENTITY:
-          out << " =(I): ";
+        out << " =(I): ";
         break;
       default:
         out << " =(UNKNOWN): ";
@@ -90,9 +90,16 @@ class ProblemManagerCircuit : public ProblemManager {
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
+  /**
+   * @brief Encode the formula using the tseitin encoding.
+   *
+   * @param clauses is the resulting CNF.
+   */
+  void tseitinEncoding(std::vector<std::vector<Lit>> &clauses);
+
   std::vector<BcGate> &getGates() { return m_gates; }
   std::vector<Lit> &getTrueLiterals() { return m_true_lits; }
   inline ProblemInputType getProblemType() const override { return PB_CIRC; }
-  inline ProblemManager *translate(const ProblemTranslateType &t) override;
+  ProblemManager *translate(const ProblemTranslateType &t) override;
 };
 }  // namespace d4

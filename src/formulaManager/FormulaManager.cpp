@@ -18,6 +18,7 @@
  */
 #include "FormulaManager.hpp"
 
+#include "circuit/CircuitWithCnfManager.hpp"
 #include "cnf/CnfManagerDyn.hpp"
 #include "cnf/CnfManagerDynBlockedCl.hpp"
 #include "cnf/CnfManagerDynPure.hpp"
@@ -35,10 +36,7 @@ FormulaManager *FormulaManager::makeFormulaManager(
 
   switch (p.getProblemType()) {
     case PB_CIRC:
-      out << "c TODO\n";
-      exit(3);
-      break;
-
+      return new CircuitWithCnfManager(p);
     case PB_TCNF:
     case PB_CNF:
     case PB_QBF:

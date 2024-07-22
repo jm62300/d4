@@ -23,8 +23,9 @@
 #include <iostream>
 #include <typeinfo>
 
-#include "src/problem/CnfMatrix.hpp"
 #include "src/problem/ProblemManager.hpp"
+#include "src/problem/circuit/ProblemManagerCircuit.hpp"
+#include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
 using minisat::toInt;
@@ -33,8 +34,35 @@ using minisat::toInt;
  * @brief WrapperCircuitMinisat::initSolver implementation.
  */
 void WrapperCircuitMinisat::initSolver(ProblemManager &p) {
-  std::cout << "not ready\n";
-  exit(51);
+  std::cout << "c [MINISAT CIRCUIT SOLVER] Init phase\n";
+
+  try {
+    ProblemManagerCircuit &pcircuit = dynamic_cast<ProblemManagerCircuit &>(p);
+
+    // say to the solver we have pcnf.getNbVar() variables.
+    while ((unsigned)s.nVars() <= p.getNbVar()) s.newVar();
+    m_model.resize(p.getNbVar() + 1, l_Undef);
+
+    // load the clauses
+
+    std::vector<std::vector<Lit>> clauses;
+    pcircuit.tseitinEncoding(clauses);
+
+    for (auto &cl : clauses) {
+      minisat::vec<minisat::Lit> lits;
+      for (auto &l : cl) lits.push(minisat::mkLit(l.var(), l.sign()));
+      s.addClause(lits);
+    }
+  } catch (std::bad_cast &bc) {
+    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
+    std::cerr << "c A CNF formula was expeted\n";
+    exit(ERROR_BAD_CAST);
+  }
+
+  m_activeModel = false;
+  m_needModel = false;
+  setNeedModel(m_needModel);
+  m_isInAssumption.resize(p.getNbVar() + 1, 0);
 }  // initSolver
 
 }  // namespace d4

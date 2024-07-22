@@ -22,4 +22,7 @@
 namespace d4 {
 #define ERROR_BAD_OPTION 255
 #define ERROR_BAD_TYPE_PROBLEM 254
+
+#define ERROR_BAD_CAST 127
+
 }  // namespace d4

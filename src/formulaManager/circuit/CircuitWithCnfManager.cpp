@@ -52,4 +52,82 @@ CircuitWithCnfManager::~CircuitWithCnfManager() {
 
 }  // constructor
 
+/**
+ * @brief CircuitWithCnfManager::computeConnectedComponent implementation.
+ */
+int CircuitWithCnfManager::computeConnectedComponent(
+    std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+    std::vector<Var> &freeVar) {
+  return m_cnfManager->computeConnectedComponent(varConnected, setOfVar,
+                                                 freeVar);
+}  // computeConnectedComponent
+
+/**
+ * @brief CircuitWithCnfManager::computeConnectedComponentTargeted
+ * implementation.
+ */
+int CircuitWithCnfManager::computeConnectedComponentTargeted(
+    std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+    std::vector<bool> &isTargeted, std::vector<Var> &freeVar) {
+  return m_cnfManager->computeConnectedComponentTargeted(varConnected, setOfVar,
+                                                         isTargeted, freeVar);
+}  // computeConnectedComponentTargeted
+
+/**
+ * @brief CircuitWithCnfManager::preUpdate implementation.
+ */
+void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
+  m_cnfManager->preUpdate(lits);
+}  // preUpdate
+
+/**
+ * @brief CircuitWithCnfManager::postUpdate implementation.
+ */
+void CircuitWithCnfManager::postUpdate(const std::vector<Lit> &lits) {
+  m_cnfManager->postUpdate(lits);
+}  // postUpdate
+
+/**
+ * @brief CircuitWithCnfManager::showFormula implementation.
+ */
+void CircuitWithCnfManager::showFormula(std::ostream &out) {
+  m_cnfManager->showFormula(out);
+}  // showFormula
+
+/**
+ * @brief CircuitWithCnfManager::showCurrentFormula implementation.
+ */
+void CircuitWithCnfManager::showCurrentFormula(std::ostream &out) {
+  m_cnfManager->showCurrentFormula(out);
+}  // showCurrentFormula
+
+/**
+ * @brief CircuitWithCnfManager::showCurrentFormula implementation.
+ */
+void CircuitWithCnfManager::showCurrentFormula(
+    std::ostream &out, std::vector<bool> &isInComponent) {
+  m_cnfManager->showCurrentFormula(out, isInComponent);
+}  // showCurrentFormula
+
+/**
+ * @brief CircuitWithCnfManager::getProblemInputType implementation.
+ */
+ProblemInputType CircuitWithCnfManager::getProblemInputType() {
+  return PB_CIRC;
+}  // getProblemType
+
+/**
+ * @brief CircuitWithCnfManager::printInformation implementation.
+ */
+void CircuitWithCnfManager::printInformation(std::ostream &out) {
+  m_cnfManager->printInformation(out);
+}  // printInformation
+
+/**
+ * CircuitWithCnfManager::isFreeVariable implementation.
+ */
+bool CircuitWithCnfManager::isFreeVariable(Var v) {
+  return isFreeVariable(v);
+}  // isFreeVariable
+
 }  // namespace d4

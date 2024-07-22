@@ -32,6 +32,13 @@ class FormulaManager {
 
  public:
   /**
+   * @brief A constructor needed to know the number of variables.
+   *
+   * @param nbVar
+   */
+  FormulaManager(unsigned nbVar) : m_nbVar(nbVar) {}
+
+  /**
    * @brief Generate an occurrence manager regarding the options given as
    * parameter.
    *
