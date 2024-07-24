@@ -35,7 +35,7 @@
 
 using namespace d4;
 
-#define SOLVER "glucose"
+#define SOLVER "minisat"
 
 MethodManager *methodRun = nullptr;
 
@@ -145,6 +145,86 @@ void wmc(d4::ProblemManager *initProblem) {
     std::cout << "c s exact quadruple int " << result << "\n";
   }
 }  // wmc
+
+void pwmc(d4::ProblemManager *initProblem) {
+  std::cout << "c [D4] Run the weighted projected model counter\n";
+
+  // preproc.
+  d4::ConfigurationPeproc configPreproc;
+  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.preprocMethod =
+      d4::PreprocMethodManager::getPreprocMethod("basic");
+  configPreproc.nbIteration = 5;
+  configPreproc.timeout = 60;
+
+  ProblemManager *problem =
+      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+  MethodManager::displayInfoVariables(problem, std::cout);
+
+  // count.
+
+  // cache.
+  d4::ConfigurationCache cache;
+  cache.isActivated = true;
+  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod("list");
+  cache.cacheCleaningStrategy =
+      d4::CacheCleaningStrategyManager::getCacheCleaningStrategy("none");
+  cache.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
+  cache.clauseRepresentation =
+      d4::ClauseRepresentationManager::getClauseRepresentation("clause");
+  cache.sizeFirstPage = 1UL << 32;
+  cache.sizeAdditionalPage = 1UL << 29;
+
+  // branching heuristic.
+  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  branchingHeuristic.freqDecay = 2048;
+  branchingHeuristic.scoringMethodType =
+      d4::ScoringMethodTypeManager::getScoringMethodType("vsads");
+  branchingHeuristic.branchingHeuristicType =
+      d4::BranchingHeuristicTypeManager::getBranchingHeuristicType("classic");
+  branchingHeuristic.phaseHeuristicType =
+      d4::PhaseHeuristicTypeManager::getPhaseHeuristicType("polarity");
+  branchingHeuristic.reversePhase = false;
+
+  // configuration of the dpll counter.
+  d4::ConfigurationDpllStyleMethod configCounter;
+  configCounter.methodName = d4::MethodNameManager::getMethodName("counting");
+  configCounter.problemInputType =
+      d4::ProblemInputTypeManager::getInputType("cnf");
+  configCounter.cache = cache;
+  configCounter.branchingHeuristic = branchingHeuristic;
+  configCounter.solver.solverName =
+      d4::SolverNameManager::getSolverName(SOLVER);
+  configCounter.spec.specUpdateType =
+      d4::SpecUpdateManager::getSpecUpdate("dynamicBlockedSimp");
+  configCounter.operationType =
+      d4::OperationTypeManager::getOperatorType("counting");
+
+  d4::OptionDpllStyleMethod options(configCounter);
+  d4::DpllStyleMethod<mpz::mpf_float, mpz::mpf_float> *counter =
+      new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(options, problem,
+                                                          std::cout);
+  mpz::mpf_float result = counter->run();
+
+  boost::multiprecision::mpf_float::default_precision(128);
+  std::cout.precision(
+      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+
+  if (result == 0) {
+    std::cout << "s UNSATISFIABLE\n";
+    std::cout << "c s type mc\n";
+    std::cout << "c s log10-estimate -inf\n";
+    std::cout << "c s exact quadruple int 0\n";
+  } else {
+    std::cout << "s SATISFIABLE\n";
+    std::cout << "c s type mc\n";
+    std::cout << "c s log10-estimate "
+              << boost::multiprecision::log10(
+                     boost::multiprecision::cpp_dec_float_100(result))
+              << "\n";
+    std::cout << "c s exact quadruple int " << result << "\n";
+  }
+}  // pwmc
 
 void pmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the projected model counter\n";
@@ -323,6 +403,8 @@ void mc(d4::ProblemManager *initProblem) {
 }  // mc
 
 void run(d4::ProblemManager *initProblem) {
+  if (initProblem->isFloat() && initProblem->getSelectedVar().size())
+    return pwmc(initProblem);
   if (initProblem->isFloat()) return wmc(initProblem);
   if (initProblem->getSelectedVar().size()) return pmc(initProblem);
   mc(initProblem);

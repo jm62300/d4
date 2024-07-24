@@ -404,6 +404,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    */
   U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
              std::vector<Var> &freeVariable, std::ostream &out) {
+    m_nbCallCall++;
     showRun(out);
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
@@ -438,7 +439,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       // m_specs->postUpdate(additionalUnit);
       m_specs->postUpdate(unitsLit);
       // REB 2024-01-19.  Begin
-      // Inserting this prevents non-decision literals from being included in NNF
+      // Inserting this prevents non-decision literals from being included in
+      // NNF
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
       // REB 2024-01-19.  End
       return m_operation->manageDecomposableAnd(tab, nbComponent);
