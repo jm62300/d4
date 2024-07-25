@@ -127,7 +127,7 @@ void CircuitWithCnfManager::printInformation(std::ostream &out) {
  * CircuitWithCnfManager::isFreeVariable implementation.
  */
 bool CircuitWithCnfManager::isFreeVariable(Var v) {
-  return isFreeVariable(v);
+  return m_cnfManager->isFreeVariable(v);
 }  // isFreeVariable
 
 }  // namespace d4

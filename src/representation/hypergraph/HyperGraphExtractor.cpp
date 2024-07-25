@@ -22,6 +22,7 @@
 #include "cnf/HyperGraphExtractorCnfDual.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
+#include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
 
@@ -39,7 +40,9 @@ HyperGraphExtractor *HyperGraphExtractor::makeHyperGraphExtractor(
           break;
       }
     default:
-      break;
+      std::cerr << "Only CNF formula can be considered, all the other type are "
+                   "not supported yet.\n";
+      exit(ERROR_BAD_TYPE_PROBLEM);
   }
 
   throw(FactoryException("Cannot create a HyperGraphExtractor", __FILE__,

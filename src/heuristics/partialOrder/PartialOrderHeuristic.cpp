@@ -35,10 +35,8 @@ PartialOrderHeuristic *PartialOrderHeuristic::makePartialOrderingHeuristic(
   switch (options.partialOrderMethod) {
     case PARTIAL_ORDER_NONE:
       return new PartialOrderHeuristicNone();
-    case PARTIAL_ORDER_TREE_DECOMPOSITION: {
-      return PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
-          options, s, ws, out);
-    }
+    case PARTIAL_ORDER_TREE_DECOMPOSITION:
+      return new PartialOrderHeuristicTreeDecomp(options, s, ws, out);
   }
 
   throw(FactoryException("Cannot create a PartialOrderHeuristic", __FILE__,

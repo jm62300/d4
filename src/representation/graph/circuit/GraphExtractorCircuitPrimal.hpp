@@ -18,27 +18,27 @@
  */
 #pragma once
 
-#include <ostream>
-
-#include "../PartialOrderHeuristicTreeDecomp.hpp"
-#include "src/formulaManager/circuit/CircuitWithCnfManager.hpp"
+#include "../Graph.hpp"
+#include "GraphExtractorCircuit.hpp"
 
 namespace d4 {
-class PartialOrderHeuristicTreeDecompCircuit
-    : public PartialOrderHeuristicTreeDecomp {
+class GraphExtractorCircuitPrimal : public GraphExtractorCircuit {
  public:
   /**
-   * @brief Constructor.
+   * @brief Construct a new Graph Extractor Cnf Primal object.
    *
-   * @param options gives the list of options.
-   * @param om is the object which deal with the formula.
-   * @param s is a SAT solver associate with the formula under consideration.
-   * @param out is the output stream.
+   * @param simplication to activate/deactivate the simplications.
    */
-  PartialOrderHeuristicTreeDecompCircuit(
-      const OptionPartialOrderHeuristic &options, CircuitManager &om,
-      WrapperSolver &s, std::ostream &out);
+  GraphExtractorCircuitPrimal(bool simplication) {}  // constructor
 
-  ~PartialOrderHeuristicTreeDecompCircuit();
+  /**
+   * @brief Construct a graph regarding the given CNF formula.
+   *
+   * @param[in] om gives information about the formula.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] graph is the computed graph.
+   */
+  void constructGraph(FormulaManager &om, std::vector<Var> &component,
+                      Graph &graph) override;
 };
 }  // namespace d4

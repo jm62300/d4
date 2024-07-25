@@ -41,7 +41,7 @@
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/utils/MemoryStat.hpp"
 
-#define NB_SEP_MC 104
+#define NB_SEP_MC 92
 #define MASK_SHOWRUN_MC ((2 << 13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 1048575
@@ -258,8 +258,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#models" << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|\n";
     separator(out);
   }  // showHeader
 
@@ -380,8 +379,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    */
   U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
              std::vector<Var> &freeVariable, std::ostream &out) {
-    m_nbCallCall++;
     showRun(out);
+    m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
