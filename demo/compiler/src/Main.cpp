@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
       d4::MethodNameManager::getMethodName("ddnnf-compiler");
 
   // preproc.
+
   d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
   configPreproc.inputType = initProblem->getProblemType();
   ProblemManager *problem =
