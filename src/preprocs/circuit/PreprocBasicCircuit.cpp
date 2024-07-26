@@ -40,7 +40,8 @@ PreprocBasicCircuit::PreprocBasicCircuit(std::ostream &out) {
  */
 ProblemManager *PreprocBasicCircuit::run(ProblemManager *pin,
                                          const OptionPreprocManager &option) {
-  return new ProblemManagerCircuit(pin);
+  std::vector<Lit> units;
+  return pin->getConditionedFormula(units);
 }  // run
 
 }  // namespace d4

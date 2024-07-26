@@ -81,7 +81,6 @@ CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
 
   // variables:
   m_inCurrentComponent.resize(m_nbVar + 1, false);
-  m_currentValue.resize(m_nbVar + 1, l_Undef);
   m_idxComponent.resize(m_nbVar + 1, 0);
 
   // clauses:

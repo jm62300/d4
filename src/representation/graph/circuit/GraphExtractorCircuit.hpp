@@ -16,7 +16,26 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#pragma once
 
-#include "TreeDecompositionCnf.hpp"
+#include "../GraphExtractor.hpp"
+#include "src/formulaManager/circuit/CircuitManager.hpp"
 
-namespace d4 {}  // namespace d4
+namespace d4 {
+class GraphExtractorCircuit : public GraphExtractor {
+ public:
+  virtual ~GraphExtractorCircuit() {}
+
+  /**
+   * @brief Extract the circuit (keeping only information about the
+   * variables).
+   *
+   * @param[in] formula is the formula we want to extract.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] gates is the set of computed gates.
+   */
+  void extractCircuit(CircuitManager &formula, std::vector<Var> &component,
+                      std::vector<std::vector<int> > &gates);
+};
+
+}  // namespace d4

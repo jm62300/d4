@@ -19,30 +19,75 @@
 
 #include "PartialOrderHeuristicTreeDecomp.hpp"
 
-#include "cnf/PartialOrderHeuristicTreeDecompCnf.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
 /**
- * @brief PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp
+ * @brief PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp
  * implementation.
  */
-PartialOrderHeuristicTreeDecomp *
-PartialOrderHeuristicTreeDecomp::makePartialOrderTreeDecomp(
+PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
     const OptionPartialOrderHeuristic &options, FormulaManager &om,
     WrapperSolver &s, std::ostream &out) {
-  switch (om.getProblemInputType()) {
-    case PB_CIRC:
-      return NULL;
-    case PB_CNF:
-      return new PartialOrderHeuristicTreeDecompCnf(
-          options, dynamic_cast<CnfManager &>(om), s, out);
-    default:
-      throw(FactoryException("Cannot create a Partitioning Heuristic", __FILE__,
-                             __LINE__));
+  TreeDecomposition *decomp = TreeDecomposition::makeTreeDecomposition(
+      options, om.getProblemInputType(), out);
+
+  TreeDecomp *tree = decomp->computeDecomposition(om);
+  assert(tree);
+  std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed size("
+            << tree->getSizeLargestBag() << ") first size("
+            << tree->getNode().size() << ")\n";
+
+  // construct the topological order.
+  std::vector<TreeDecomp *> stack;
+  stack.push_back(tree);
+
+  m_topologicalOrder.resize(om.getNbVariable() + 1, 0);
+  for (auto &v : m_topologicalOrder) v = 0;
+
+  unsigned level = 1, largestBag = 0;
+  while (stack.size()) {
+    std::vector<TreeDecomp *> saveStack = stack;
+    stack.clear();
+
+    for (auto *tree : saveStack) {
+      if (tree->getNode().size() > largestBag)
+        largestBag = tree->getNode().size();
+      for (auto &v : tree->getNode()) {
+        assert(v < m_topologicalOrder.size());
+        if (!m_topologicalOrder[v]) m_topologicalOrder[v] = level;
+      }
+
+      for (auto *t : tree->getSons()) stack.push_back(t);
+    }
+
+    level++;
   }
-}  // makePartitioningHeuristicStatic
+
+  if (largestBag < 30)
+    m_scaleFactor = 100000000;
+  else if (largestBag < 40)
+    m_scaleFactor = 100000;
+  else if (largestBag < 50)
+    m_scaleFactor = 1000;
+  else if (largestBag < 70)
+    m_scaleFactor = 0;
+  else
+    m_scaleFactor = 0;
+
+  out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
+  out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';
+
+  delete tree;
+  delete decomp;
+}  // constructor
+
+/**
+ * @brief Destructor.
+ */
+PartialOrderHeuristicTreeDecomp::~PartialOrderHeuristicTreeDecomp() {
+}  // destructor
 
 /**
  * @brief PartialOrderHeuristicTreeDecomp::computeCutSet implementation.

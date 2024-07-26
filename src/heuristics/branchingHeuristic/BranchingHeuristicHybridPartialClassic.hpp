@@ -51,6 +51,7 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
     // create the partial order.
     m_partialOrder = PartialOrderHeuristic::makePartialOrderingHeuristic(
         options.optionPartialOrderHeuristic, *specs, *solver, out);
+    assert(m_partialOrder);
   }
 
   /**

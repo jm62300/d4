@@ -18,37 +18,39 @@
  */
 #pragma once
 
-#include "TreeDecompositionCnf.hpp"
-#include "src/representation/graph/GraphExtractor.hpp"
-#include "src/treeDecompositioner/TreeDecompositioner.hpp"
+#include "TreeDecomposition.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
+#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
 
 namespace d4 {
-class TreeDecompositionCnfTreeWidth : public TreeDecompositionCnf {
+
+struct Strata {
+  TreeDecomp *father;
+  HyperGraph graph;
+};
+
+class TreeDecompositionPartition : public TreeDecomposition {
  private:
-  TreeDecompositioner *m_treeDecompositioner = NULL;
-  GraphExtractor *m_graphExtractor = NULL;
+  PartitionerName m_partitionerName = PARTITIONER_PATOH;
+  HyperGraphExtractorMethod m_hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
 
  public:
   /**
-   * @brief Construct a new object regarding the given options.
+   * @brief Construct a new Tree Decomposition Cnf Partition object
    *
-   * @param treeDecompositionerMethod is the tree decompositioner we will use.
-   * @param graphExtractorMethod is the graph extractor we will use.
-   * @param simplication is set to true if the graph extractor use some kind of
-   * simplification.
+   * @param[in] partitionName is the name of the partioner used.
+   * @param[in] hyperGraphExtractorMethod is way the formula is mapped as an
+   * hyper graph.
+   * @param[in] pbType gives the type of problem we are handling.
    */
-  TreeDecompositionCnfTreeWidth(
-      const TreeDecompositionerMethod &treeDecompositionerMethod,
-      const GraphExtractorMethod &graphExtractorMethod, bool simplication);
+  TreeDecompositionPartition(
+      const PartitionerName partitionName,
+      const HyperGraphExtractorMethod hyperGraphExtractorMethod,
+      const ProblemInputType pbType);
 
   /**
-   * @brief Destroy the Tree Decomposition Cnf Tree Width object
-   */
-  ~TreeDecompositionCnfTreeWidth();
-
-  /**
-   * @brief Compute a tree decomposition on a CNF using a tool that compute
-   * a tree decomposition.
+   * @brief Compute a tree decomposition on a CNF using a partitioner
+   * recursively.
    *
    * @param[in] om gives information about the CNF formula.
    *

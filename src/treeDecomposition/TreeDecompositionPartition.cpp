@@ -17,17 +17,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "TreeDecompositionCnfPartition.hpp"
+#include "TreeDecompositionPartition.hpp"
 
 namespace d4 {
 
 /**
- * @brief TreeDecompositionCnfPartition::TreeDecompositionCnfPartition
- * implementation.
+ * @brief TreeDecompositionPartition::TreeDecompositionPartition implementation.
  */
-TreeDecompositionCnfPartition::TreeDecompositionCnfPartition(
+TreeDecompositionPartition::TreeDecompositionPartition(
     const PartitionerName partitionerName,
-    const HyperGraphExtractorMethod hyperGraphExtractorMethod)
+    const HyperGraphExtractorMethod hyperGraphExtractorMethod,
+    const ProblemInputType pbType)
     : m_partitionerName(partitionerName),
       m_hyperGraphExtractorMethod(hyperGraphExtractorMethod) {}  // constructor.
 
@@ -35,13 +35,13 @@ TreeDecompositionCnfPartition::TreeDecompositionCnfPartition(
  * @brief TreeDecompositionCnfPartition::computeDecomposition implementation.
  *
  */
-TreeDecomp *TreeDecompositionCnfPartition::computeDecomposition(
+TreeDecomp *TreeDecompositionPartition::computeDecomposition(
     FormulaManager &om) {
   TreeDecomp *tree = NULL;
 
   // compute the hypergraph.
   HyperGraphExtractor *hextract = HyperGraphExtractor::makeHyperGraphExtractor(
-      m_hyperGraphExtractorMethod, PB_CNF);
+      m_hyperGraphExtractorMethod, om.getProblemInputType());
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
     if (om.isFreeVariable(i))

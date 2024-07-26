@@ -16,15 +16,23 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
 
-#include <vector>
-
-#include "../TreeDecomposition.hpp"
-#include "src/problem/ProblemTypes.hpp"
+#include "GraphExtractorCircuit.hpp"
 
 namespace d4 {
-class TreeDecompositionCnf : public TreeDecomposition {
- public:
-};
+
+/**
+ * @brief GraphExtractorCnf::extractCnf implementation.
+ */
+void GraphExtractorCircuit::extractCircuit(
+    CircuitManager &formula, std::vector<Var> &component,
+    std::vector<std::vector<int> > &gates) {
+  for (auto &g : formula.getGates()) {
+    std::vector<int> gate;
+    gate.push_back(g.output.var());
+    for (auto &l : g.input) gate.push_back(l.var());
+    gates.push_back(gate);
+  }
+}  // extractCircuit
+
 }  // namespace d4

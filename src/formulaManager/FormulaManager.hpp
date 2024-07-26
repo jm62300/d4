@@ -36,7 +36,9 @@ class FormulaManager {
    *
    * @param nbVar
    */
-  FormulaManager(unsigned nbVar) : m_nbVar(nbVar) {}
+  FormulaManager(unsigned nbVar) : m_nbVar(nbVar) {
+    m_currentValue.resize(m_nbVar + 1, l_Undef);
+  }
 
   /**
    * @brief Generate an occurrence manager regarding the options given as
