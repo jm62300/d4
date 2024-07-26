@@ -40,8 +40,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p)
     assert(0);
   }
 
-  m_cnfManager = static_cast<CnfManager *>(FormulaManager::makeFormulaManager(
-      {SPEC_DYNAMIC}, *m_problemCnf, std::cout));
+  m_cnfManager = new CnfManagerDyn(*m_problemCnf);
 }  // constructor
 
 /**
@@ -77,7 +76,15 @@ int CircuitWithCnfManager::computeConnectedComponentTargeted(
  * @brief CircuitWithCnfManager::preUpdate implementation.
  */
 void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
-  m_cnfManager->preUpdate(lits);
+  m_cnfManager->pushStacks();
+  m_cnfManager->assignListLit(lits);
+
+  // manage the non binary clauses.
+  m_cnfManager->propagateTrue(lits);
+  m_cnfManager->propagateFalseInNotBin(lits);
+
+  // unmark the clauses.
+  m_cnfManager->unmarkLastClausesSaved();
 }  // preUpdate
 
 /**

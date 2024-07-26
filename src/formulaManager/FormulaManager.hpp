@@ -66,6 +66,19 @@ class FormulaManager {
   virtual ~FormulaManager() {}
 
   /**
+   * @brief Given a list of literals, this function assigns this literals.
+   *
+   * @param[in] lits is the list of literal we search to assigned.
+   *
+   */
+  inline void assignListLit(const std::vector<Lit> &lits) {
+    for (auto &l : lits) {
+      assert(m_currentValue[l.var()] == l_Undef);
+      m_currentValue[l.var()] = l.sign();
+    }
+  }  // assignListLit
+
+  /**
    * @brief Get if the given variable is assigned.
    *
    * @param v is the variable.

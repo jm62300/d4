@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include "../cnf/CnfManager.hpp"
+#include "../cnf/CnfManagerDyn.hpp"
 #include "CircuitManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -29,7 +29,7 @@ namespace d4 {
 
 class CircuitWithCnfManager : public CircuitManager {
  private:
-  CnfManager *m_cnfManager;
+  CnfManagerDyn *m_cnfManager;
   ProblemManagerCnf *m_problemCnf;
 
  public:

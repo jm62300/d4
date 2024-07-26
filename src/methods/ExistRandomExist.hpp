@@ -589,8 +589,6 @@ class ExistRandomExist : public MethodManager {
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
       } else if (m_isDecisionVariable[l.var()]) {
-        std::cout << "Propagate one literal from the ind " << l.human() << "\n";
-        exit(0);
         fixInd *= T(m_problem->getWeightLit(l));
       }
 
