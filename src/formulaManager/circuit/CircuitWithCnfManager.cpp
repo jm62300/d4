@@ -40,16 +40,100 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p)
     assert(0);
   }
 
+  m_propagatedFree = 0;
   m_cnfManager = new CnfManagerDyn(*m_problemCnf);
+
+  // assign variable with their definition, and for each variable v store the
+  // gates where v is part of the input.
+  m_lastIndex = m_gates.size();
+  m_varToGate.resize(p.getNbVar() + 1, m_lastIndex);
+  m_gateToVar.resize(m_gates.size());
+  m_varInputInGates.resize(p.getNbVar() + 1);
+
+  for (unsigned i = 0; i < m_gates.size(); i++) {
+    if (m_gates[i].gate_type == BcGateType::IDENTITY) continue;
+
+    assert(m_varToGate[m_gates[i].output.var()] == m_lastIndex);
+    m_varToGate[m_gates[i].output.var()] = i;
+    m_gateToVar[i] = m_gates[i].output.var();
+
+    for (auto &l : m_gates[i].input)
+      m_varInputInGates[l.var()].push_back(m_gates[i].output.var());
+  }
+
+  // set the watch list.
+  std::vector<Var> shouldBePropagated;
+  m_watchList.resize(p.getNbVar() + 1);
+  for (unsigned i = 1; i <= p.getNbVar() + 1; i++) {
+    if (m_varToGate[i] == m_lastIndex) continue;  // input var.
+
+    if (m_varInputInGates[i].size())
+      m_watchList[m_varInputInGates[i][0]].push_back(i);
+    else
+      shouldBePropagated.push_back(i);
+  }
+
+  std::vector<Var> puVars;
+  propagate(shouldBePropagated, puVars);
+  m_propagatedFree += puVars.size();
 }  // constructor
 
 /**
- * @brief CircuiWithCnftManager::CircuitWithCnfManager implementation.
+ * @brief CircuiWithCnfManager::CircuitWithCnfManager implementation.
  */
 CircuitWithCnfManager::~CircuitWithCnfManager() {
   std::cout << "c [CIRCUIT WITH CNF MANAGER] Destructor called\n";
 
 }  // constructor
+
+/**
+ * @brief CircuitWithCnfManager::propagate implementation.
+ */
+void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
+                                      std::vector<Var> pVars) {
+  while (vars.size()) {
+    Var v = vars.back();
+    vars.pop_back();
+    pVars.push_back(v);
+
+    unsigned i, j;
+    for (i = j = 0; i < m_watchList[v].size(); i++) {
+      Var w = m_watchList[v][i];
+      if (m_currentValue[w] != l_Undef)
+        m_watchList[v][j++] = w;
+      else {
+        // search another watch for w.
+        int next = var_Undef;
+        for (auto &x : m_varInputInGates[w]) {
+          if (m_currentValue[x] == l_Undef) {
+            next = x;
+            break;
+          }
+
+          // only work when AND/OR gates are considered!
+          BcGate &g = m_gates[m_varToGate[x]];
+          switch (g.gate_type) {
+            case BcGateType::AND:
+              /* code */
+              break;
+
+            case BcGateType::OR:
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (next != var_Undef)
+          m_watchList[next].push_back(w);
+        else {
+          m_watchList[v][j++] = w;
+          vars.push_back(w);
+        }
+      }
+    }
+  }
+}  // propagate
 
 /**
  * @brief CircuitWithCnfManager::computeConnectedComponent implementation.
@@ -78,6 +162,11 @@ int CircuitWithCnfManager::computeConnectedComponentTargeted(
 void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
   m_cnfManager->pushStacks();
   m_cnfManager->assignListLit(lits);
+
+  std::vector<Var> toPu, puVars;
+  toPu.reserve(lits.size());
+  for (auto &l : lits) toPu.push_back(l.var());
+  propagate(toPu, puVars);
 
   // manage the non binary clauses.
   m_cnfManager->propagateTrue(lits);

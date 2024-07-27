@@ -32,11 +32,20 @@ class CircuitWithCnfManager : public CircuitManager {
   CnfManagerDyn *m_cnfManager;
   ProblemManagerCnf *m_problemCnf;
 
+  unsigned m_propagatedFree;
+  unsigned m_lastIndex;
+  std::vector<unsigned> m_varToGate;
+  std::vector<Var> m_gateToVar;
+  std::vector<std::vector<Var>> m_varInputInGates;
+  std::vector<std::vector<Var>> m_watchList;
+
  public:
   CircuitWithCnfManager(ProblemManager &p);
   ~CircuitWithCnfManager();
 
   inline CnfManager *getCnfManager() { return m_cnfManager; };
+
+  void propagate(std::vector<Var> &vars, std::vector<Var> pVars);
 
   /**
    * @brief Search for the connected component of the formula.
