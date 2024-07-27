@@ -13,7 +13,7 @@ The seed corresponds to the CNF and BC filename that is then also left behind in
 Usage example,
 
 ```
-python3.10 fuzzy_testing.py -i ./counter -t 120 -n 100 --runconfigs cnf circuit_cnf circuit_cnf_equiv circuit_pcnf circuit_pcnf_preproc0 circuit_pcnf_preproc1
+python3.10 fuzzy_testing.py -i ./counter -t 120 -n 100 --runconfigs cnf circuit_cnf circuit_cnf_equiv circuit_pcnf circuit_pcnf_dynbl circuit_pcnf_preproc0 circuit_pcnf_preproc1
 ```
 
 Use the `-h` argument to print usage information. Note that `--runconfigs` is 'multiple choice' and 
@@ -21,14 +21,14 @@ specifies the configurations to test against eachother.
 
 ```
 usage: fuzzy_testing.py [-h] [-t T] [-n N] -i I
-                        [--runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]]
+                        [--runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_dynbl,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]]
 
 options:
   -h, --help            show this help message and exit
   -t T                  The timeout for each instance (seconds).
   -n N                  Number of instances to try.
   -i I                  Filepath to a D4 counter binary.
-  --runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]
+  --runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_dynbl,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]
                         Which configurations to test
 ```
 
@@ -57,6 +57,9 @@ COUNTER --input-type cnf -i BENCH
 COUNTER --input-type circuit -i BENCH --translate cnf
 
 // circuit_pcnf: Translate into projected CNF
+COUNTER --input-type circuit -i BENCH --translate pcnf
+
+// circuit_pcnf_dynbl: Translate into projected CNF with occ dynamicBlockedSimp
 COUNTER --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp
 
 // circuit_cnf_equiv: Translate into CNF and use the preprocessor to keep the formula equivalent

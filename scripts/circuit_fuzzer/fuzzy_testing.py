@@ -1,40 +1,53 @@
 """
-Run this file to do fuzzy testing.
+Run this file to do fuzzy testing of circuit.
 
-Near the bottom you can find additional parameters you can tune,
-that control the random circuit generation process.
+# Usage
 
 Usage example,
-fuzzy_testing.py -i ./counter -t 120 -n 10 --runconfigs cnf circuit_cnf circuit_cnf_equiv circuit_pcnf circuit_pcnf_preproc0 circuit_pcnf_preproc1
+```
+fuzzy_testing.py -i ./counter -t 120 -n 10 --runconfigs cnf circuit_cnf circuit_cnf_equiv circuit_pcnf circuit_pcnf_dynbl circuit_pcnf_preproc0 circuit_pcnf_preproc1
+```
 
-Use the -h argument to print usage information.
+Use the `-h` argument to print usage information.
 
+```
 usage: fuzzy_testing.py [-h] [-t T] [-n N] -i I
-                        [--runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]]
+                        [--runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_dynbl,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]]
 
 options:
   -h, --help            show this help message and exit
   -t T                  The timeout for each instance (seconds).
   -n N                  Number of instances to try.
   -i I                  Filepath to a D4 counter binary.
-  --runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]
+  --runconfigs {cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_dynbl,circuit_pcnf_preproc0,circuit_pcnf_preproc1} [{cnf,circuit,circuit_cnf,circuit_cnf_equiv,circuit_pcnf,circuit_pcnf_preproc0,circuit_pcnf_preproc1} ...]
                         Which configurations to test
+```
 
+In the main() method near the bottom you can find additional parameters you can tune,
+that control the random circuit generation process.
+As of now, the circuits are between 2-20 inputs nodes and 2-100 gates.
 
-// Translate into CNF
-./build/compiler --input-type circuit -i BENCH --translate cnf
+# Run configurations
+// cnf: Run a CNF file
+COUNTER --input-type cnf -i BENCH
 
-// Translate into projected CNF
-./build/compiler --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp
+// circuit_cnf: Translate into CNF
+COUNTER --input-type circuit -i BENCH --translate cnf
 
-// Translate into CNF and use the preprocessor to keep the formula equivalent
-./build/compiler --input-type circuit -i BENCH --translate cnf  -p equiv
+// circuit_pcnf: Translate into projected CNF
+COUNTER --input-type circuit -i BENCH --translate pcnf
 
-// Translate into projected CNF and use the preprocessor to forget existentially quantified variables without impacting the formula's size
-./build/compiler --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp -p compile-equiv --preproc-strong-elim 0
+// circuit_pcnf_dynbl: Translate into projected CNF
+COUNTER --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp
 
-// Translate into projected CNF and use the preprocessor to forget existentially quantified variables
-./build/compiler --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp -p compile-equiv --preproc-strong-elim 1
+// circuit_cnf_equiv: Translate into CNF and use the preprocessor to keep the formula equivalent
+COUNTER --input-type circuit -i BENCH --translate cnf  -p equiv
+
+// circuit_pcnf_preproc0: Translate into projected CNF and use the preprocessor to forget existentially quantified variables without impacting the formula's size
+COUNTER --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp -p compile-equiv --preproc-strong-elim 0
+
+// circuit_pcnf_preproc1: Translate into projected CNF and use the preprocessor to forget existentially quantified variables
+COUNTER --input-type circuit -i BENCH --translate pcnf --occurrence-manager dynamicBlockedSimp -p compile-equiv --preproc-strong-elim 1
 """
 import pathlib
 import random
@@ -42,7 +55,7 @@ import subprocess
 import sys
 import time
 import re
-from typing import Tuple, List
+from typing import List
 
 from to_bcs import gates_to_bcs_file
 from to_dimacs import gates_to_dimacs_file
@@ -150,7 +163,7 @@ def mc_circuit_via_cnf(filepath_counter, filepath_cnf, filepath_circuit, timeout
     """
     cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--translate", "cnf"]
     output = run_d4(cmd, timeout)
-    assert output.returncode == 0
+    assert output.returncode == 0, f"Return code {output.returncode} not 0 for {filepath_circuit}.\n{output.stdout}"
     mc = extract_mc(output.stdout)
     return mc
 
@@ -172,6 +185,19 @@ def mc_circuit_via_cnf_equiv(filepath_counter, filepath_cnf, filepath_circuit, t
 def mc_circuit_via_pcnf(filepath_counter, filepath_cnf, filepath_circuit, timeout):
     """
     Compute MC of the given circuit, via translation to pcnf.
+    May throw subprocess.TimeoutExpired.
+    """
+    cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--translate", "pcnf"]
+    output = run_d4(cmd, timeout)
+    assert output.returncode == 0
+    mc = extract_mc(output.stdout)
+    return mc
+
+
+def mc_circuit_via_pcnf_dynbl(filepath_counter, filepath_cnf, filepath_circuit, timeout):
+    """
+    Compute MC of the given circuit, via translation to pcnf,
+    with occurrence manager set to dynamic Blocked Simple.
     May throw subprocess.TimeoutExpired.
     """
     cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--translate", "pcnf",
@@ -276,6 +302,7 @@ run_config_map = {
     "circuit_cnf": mc_circuit_via_cnf,
     "circuit_cnf_equiv": mc_circuit_via_cnf_equiv,
     "circuit_pcnf": mc_circuit_via_pcnf,
+    "circuit_pcnf_dynbl": mc_circuit_via_pcnf_dynbl,
     "circuit_pcnf_preproc0": mc_circuit_via_pcnf_preproc0,
     "circuit_pcnf_preproc1": mc_circuit_via_pcnf_preproc1,
 }
@@ -293,7 +320,7 @@ def get_argparser():
     argparser.add_argument("--runconfigs",
                            help="Which configurations to test",
                            choices=['cnf', 'circuit', 'circuit_cnf',
-                                    'circuit_cnf_equiv', 'circuit_pcnf',
+                                    'circuit_cnf_equiv', 'circuit_pcnf', 'circuit_pcnf_dynbl',
                                     'circuit_pcnf_preproc0', 'circuit_pcnf_preproc1'
                                     ], nargs="+")
     return argparser
@@ -323,7 +350,6 @@ def main(args):
                # generate_function=generate_rnd_gates1),
                generate_function=func_generate_rnd_gates1_1(max_inputs=20, max_gates=100),
                )
-
 
 
 if __name__ == "__main__":
