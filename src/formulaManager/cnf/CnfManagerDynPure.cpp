@@ -26,7 +26,6 @@ namespace d4 {
  */
 CnfManagerDynPure::CnfManagerDynPure(ProblemManager &p) : CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with pure literal elimination\n";
-  m_currentMarkedLitIndex = 0;
   m_nbPureSimplification = 0;
 
   m_markedPureLiteral.resize(1 + p.getNbVar(), false);
@@ -36,8 +35,6 @@ CnfManagerDynPure::CnfManagerDynPure(ProblemManager &p) : CnfManagerDyn(p) {
   for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
 
   affectInitPureLit();
-  for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++)
-    m_markedLit[m_savedStateOccs[i].l.intern()] = 0;
 }  // CnfManagerDynPure
 
 /**
@@ -47,7 +44,6 @@ void CnfManagerDynPure::affectInitPureLit() {
   getPureLiterals(m_pureDetected);
   m_stackPosClause.push_back(m_savedStateClauses.size());
   m_stackPosOcc.push_back(m_savedStateOccs.size());
-  m_currentMarkedLitIndex = 0;
   propagateTrue(m_pureDetected);
 
   m_nbPureSimplification += m_pureDetected.size();

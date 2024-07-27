@@ -101,10 +101,8 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
   m_nbBlockedClauseRemoved += m_indexSatClauses.size();
 
   // remove the satisfied clauses.
-  m_currentMarkedLitIndex = 1;
   for (auto &idx : m_indexSatClauses) m_infoClauses[idx].isSat = true;
-  m_stackPosClause.push_back(m_savedStateClauses.size());
-  m_stackPosOcc.push_back(m_savedStateOccs.size());
+  pushStacks();
   removeSatisfiedClauses(m_indexSatClauses);
 
   // call the simplification to progate.
@@ -120,10 +118,6 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
         wlist[j++] = wlist[i];
     wlist.resize(j);
   }
-
-  // unmark the literals.
-  for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++)
-    m_markedLit[m_savedStateOccs[i].l.intern()] = 0;
 }  // CnfManagerDynBlockedCl
 
 /**
@@ -241,7 +235,6 @@ void CnfManagerDynBlockedCl::inprocessing() {
   }
 
   // remove.
-  m_currentMarkedLitIndex++;
   m_nbBlockedClauseRemoved += m_idxBlockedClauses.size();
   removeSatisfiedClauses(m_idxBlockedClauses);
 }  // inprocessing

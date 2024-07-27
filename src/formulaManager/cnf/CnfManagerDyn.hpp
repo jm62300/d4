@@ -47,11 +47,14 @@ class CnfManagerDyn : public CnfManager {
   unsigned m_sizeNotSatifiedClauses;
 
  protected:
-  unsigned m_currentMarkedLitIndex;
+  unsigned m_currentMarkedLitStackIndex;
+  unsigned m_currentMarkedLitRemoveIndex;
   bool m_keepListNotSatisfiedClauses;
 
   std::vector<int> m_reviewWatcher;
-  std::vector<unsigned> m_markedLit;
+  std::vector<unsigned> m_markedLitStack;
+  std::vector<unsigned> m_markedLitRemove;
+
   std::vector<unsigned> m_indexSatClauses;
   std::vector<bool> m_markedClauseIdx;
 
@@ -117,6 +120,7 @@ class CnfManagerDyn : public CnfManager {
   inline void pushStacks() {
     m_stackPosClause.push_back(m_savedStateClauses.size());
     m_stackPosOcc.push_back(m_savedStateOccs.size());
+    m_currentMarkedLitStackIndex++;
   }  // pushStacks
 
   /**

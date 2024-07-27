@@ -28,9 +28,12 @@ CnfManagerDyn::CnfManagerDyn(ProblemManager &p,
                              bool keepListNotSatisfiedClauses)
     : CnfManager(p),
       m_keepListNotSatisfiedClauses(keepListNotSatisfiedClauses) {
-  m_markedLit.resize((1 + p.getNbVar()) << 1, false);
+  m_markedLitStack.resize((1 + p.getNbVar()) << 1, 0);
+  m_markedLitRemove.resize((1 + p.getNbVar()) << 1, 0);
   m_markedClauseIdx.resize(m_clauses.size() + 1, false);
   m_indexSatClauses.reserve(m_clauses.size());
+
+  m_currentMarkedLitStackIndex = m_currentMarkedLitRemoveIndex = 0;
 
   m_savedStateClauses.reserve(getSumSizeClauses());
   m_savedStateOccs.reserve(getSumSizeClauses());
@@ -121,14 +124,19 @@ void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
  */
 void CnfManagerDyn::removeSatisfiedClauses(
     const std::vector<unsigned> &idxClauses) {
+  m_currentMarkedLitRemoveIndex++;
+
   for (auto idxCl : idxClauses) {
     for (auto &ll : m_clauses[idxCl]) {
-      if (m_markedLit[ll.intern()] != m_currentMarkedLitIndex) {
+      if (m_markedLitStack[ll.intern()] != m_currentMarkedLitStackIndex) {
         m_savedStateOccs.push_back(
             (SavedStateOcc){ll, m_occurrence[ll.intern()].nbBin,
                             m_occurrence[ll.intern()].nbNotBin});
+        m_markedLitStack[ll.intern()] = m_currentMarkedLitStackIndex;
+      }
 
-        m_markedLit[ll.intern()] = m_currentMarkedLitIndex;
+      if (m_markedLitRemove[ll.intern()] != m_currentMarkedLitRemoveIndex) {
+        m_markedLitRemove[ll.intern()] = m_currentMarkedLitRemoveIndex;
         m_occurrence[ll.intern()].removeSatisfiedNotBin(m_infoClauses);
         m_occurrence[ll.intern()].removeSatisfiedBin(m_infoClauses);
       }
@@ -159,7 +167,6 @@ void CnfManagerDyn::removeSatisfiedClauses(
  */
 void CnfManagerDyn::propagateTrue(const std::vector<Lit> &lits) {
   m_indexSatClauses.resize(0);
-  m_currentMarkedLitIndex++;
 
   for (auto &l : lits) {
     // mark all the clauses containing l as SAT.
@@ -176,11 +183,11 @@ void CnfManagerDyn::propagateTrue(const std::vector<Lit> &lits) {
     }
 
     // remove the occurrence list.
-    if (m_markedLit[l.intern()] != m_currentMarkedLitIndex) {
+    if (m_markedLitStack[l.intern()] != m_currentMarkedLitStackIndex) {
       m_savedStateOccs.push_back(
           (SavedStateOcc){l, m_occurrence[l.intern()].nbBin,
                           m_occurrence[l.intern()].nbNotBin});
-      m_markedLit[l.intern()] = m_currentMarkedLitIndex;
+      m_markedLitStack[l.intern()] = m_currentMarkedLitStackIndex;
     }
     m_occurrence[l.intern()].clean();
   }

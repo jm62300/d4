@@ -58,6 +58,12 @@ class CnfManager : public FormulaManager {
     m_mustUnMark.resize(0);
   }  // resetUnMark
 
+  /**
+   * @brief This function can be used in order to check the validity of the
+   * occurence list.
+   */
+  void debugFunction();
+
  public:
   CnfManager(ProblemManager &p);
   ~CnfManager();
@@ -175,6 +181,7 @@ class CnfManager : public FormulaManager {
   inline void showOccurenceList(std::ostream &out) {
     printf("Occurence list\n");
     for (unsigned i = 0; i < m_occurrence.size(); i++) {
+      if (m_currentValue[i >> 1] != l_Undef) continue;
       if (!m_occurrence[i].nbBin && !m_occurrence[i].nbNotBin) continue;
       out << ((i & 1) ? "-" : "") << (i >> 1) << " --> [ ";
       for (unsigned j = 0; j < m_occurrence[i].nbBin; j++)
