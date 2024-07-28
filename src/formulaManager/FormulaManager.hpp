@@ -79,9 +79,29 @@ class FormulaManager {
   }  // assignListLit
 
   /**
+   * @brief Assign a variable to a value.
+   *
+   * @param v is the variable we want to assign.
+   * @param val is the value given to v.
+   */
+  inline void assignLit(Var &v, lbool val) {
+    m_currentValue[v] = val;
+  }  // assignLit
+
+  /**
+   * @brief Get the value assigned to a variable.
+   *
+   * @param v is the variable we are looking for.
+   *
+   * @return the value assigned to v.
+   */
+  inline lbool getValue(Var v) { return m_currentValue[v]; }
+
+  /**
    * @brief Get if the given variable is assigned.
    *
    * @param v is the variable.
+   *
    * @return true if the variable is assigned, false otherwise.
    */
   inline bool varIsAssigned(Var v) { return m_currentValue[v] != l_Undef; }

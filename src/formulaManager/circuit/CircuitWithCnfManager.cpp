@@ -64,7 +64,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p)
   // set the watch list.
   std::vector<Var> shouldBePropagated;
   m_watchList.resize(p.getNbVar() + 1);
-  for (unsigned i = 1; i <= p.getNbVar() + 1; i++) {
+  for (unsigned i = 1; i <= p.getNbVar(); i++) {
     if (m_varToGate[i] == m_lastIndex) continue;  // input var.
 
     if (m_varInputInGates[i].size())
@@ -87,6 +87,38 @@ CircuitWithCnfManager::~CircuitWithCnfManager() {
 }  // constructor
 
 /**
+ * @brief CircuitWithCnfManager::stillActive implementation.
+ */
+bool CircuitWithCnfManager::stillActive(BcGate &g) {
+  if (!m_cnfManager->varIsAssigned(g.output.var())) {
+    std::cout << "A";
+    return true;
+  }
+  Lit &l = g.output;
+  switch (g.gate_type) {
+    case BcGateType::OR:
+      if (m_cnfManager->litIsAssignedToTrue(~l)) {
+        std::cout << "B";
+        return false;
+      }
+      for (auto &m : g.input)
+        if (m_cnfManager->litIsAssignedToTrue(m)) {
+          std::cout << "C";
+          return false;
+        }
+      std::cout << "D";
+      return true;
+    case BcGateType::AND:
+      if (m_cnfManager->litIsAssignedToTrue(l)) return false;
+      for (auto &m : g.input)
+        if (m_cnfManager->litIsAssignedToTrue(~m)) return false;
+      return true;
+    default:
+      return true;
+  }
+}  // stillActive
+
+/**
  * @brief CircuitWithCnfManager::propagate implementation.
  */
 void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
@@ -94,33 +126,23 @@ void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
   while (vars.size()) {
     Var v = vars.back();
     vars.pop_back();
-    pVars.push_back(v);
+
+    std::cout << "=> " << v << '\n';
 
     unsigned i, j;
     for (i = j = 0; i < m_watchList[v].size(); i++) {
       Var w = m_watchList[v][i];
-      if (m_currentValue[w] != l_Undef)
+      if (stillActive(m_gates[m_varToGate[w]]))
         m_watchList[v][j++] = w;
       else {
         // search another watch for w.
         int next = var_Undef;
         for (auto &x : m_varInputInGates[w]) {
-          if (m_currentValue[x] == l_Undef) {
+          if (!m_cnfManager->varIsAssigned(x) ||
+              stillActive(m_gates[m_varToGate[x]])) {
             next = x;
+            std::cout << "find a watch: " << x << '\n';
             break;
-          }
-
-          // only work when AND/OR gates are considered!
-          BcGate &g = m_gates[m_varToGate[x]];
-          switch (g.gate_type) {
-            case BcGateType::AND:
-              /* code */
-              break;
-
-            case BcGateType::OR:
-              break;
-            default:
-              break;
           }
         }
 
@@ -129,9 +151,12 @@ void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
         else {
           m_watchList[v][j++] = w;
           vars.push_back(w);
+          m_cnfManager->assignLit(w, l_True);
+          pVars.push_back(w);
         }
       }
     }
+    m_watchList[v].resize(j);
   }
 }  // propagate
 
@@ -167,9 +192,45 @@ void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
   toPu.reserve(lits.size());
   for (auto &l : lits) toPu.push_back(l.var());
   propagate(toPu, puVars);
+  m_propagatedFree += puVars.size();
 
-  // manage the non binary clauses.
-  m_cnfManager->propagateTrue(lits);
+#if 1
+  std::cout << "assigned: ";
+  for (auto &l : lits) {
+    assert(m_cnfManager->varIsAssigned(l.var()));
+    std::cout << l << ' ';
+  }
+  std::cout << '\n';
+
+  std::cout << "watch list:\n";
+  for (auto &g : m_gates) {
+    std::cout << g.output.var() << '(' << stillActive(g) << ") => ";
+    for (auto &w : m_watchList[g.output.var()]) std::cout << w << " ";
+    std::cout << '\n';
+  }
+
+  std::cout << "=> ";
+  for (auto &g : m_gates) {
+    std::cout << g.output.var() << '('
+              << (int)m_cnfManager->getValue(g.output.var()) << ") ";
+  }
+  std::cout << '\n';
+
+  for (auto &g : m_gates) {
+    g.display(std::cout);
+    std::cout << '\n';
+  }
+
+  if (puVars.size()) exit(0);
+#endif
+
+  std::vector<Lit> litsTrue = lits;
+  for (auto &v : puVars) {
+    litsTrue.push_back(Lit::makeLitTrue(v));
+    litsTrue.push_back(Lit::makeLitFalse(v));
+  }
+
+  m_cnfManager->propagateTrue(litsTrue);
   m_cnfManager->propagateFalseInNotBin(lits);
 
   // unmark the clauses.
@@ -216,7 +277,10 @@ ProblemInputType CircuitWithCnfManager::getProblemInputType() {
  * @brief CircuitWithCnfManager::printInformation implementation.
  */
 void CircuitWithCnfManager::printInformation(std::ostream &out) {
+  out << "c \033[1m\033[36mFormula Manager Information\033[0m\n";
   m_cnfManager->printInformation(out);
+  out << "c Number of variable eliminated: " << m_propagatedFree << '\n';
+  out << "c\n";
 }  // printInformation
 
 /**

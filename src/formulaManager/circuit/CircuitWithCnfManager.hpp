@@ -45,6 +45,7 @@ class CircuitWithCnfManager : public CircuitManager {
 
   inline CnfManager *getCnfManager() { return m_cnfManager; };
 
+  bool stillActive(BcGate &g);
   void propagate(std::vector<Var> &vars, std::vector<Var> pVars);
 
   /**
