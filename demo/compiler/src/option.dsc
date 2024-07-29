@@ -43,3 +43,4 @@
 ("keyword-output-format-solution", boost::program_options::value<std::string>()->default_value("s"), "The keyword prints in front of the solution when it is printed out.")
 ("output-format", boost::program_options::value<std::string>()->default_value("classic"), "The way the solution is printed out ('classic' only gives the number of solution after printing 's', 'competition' follows the MC competition 2021).")
 ("translate,t", boost::program_options::value<std::string>()->default_value("none"), "Translate the input formula in another formula before solving (none, cnf or pcnf (cnf with projected variable))")
+("remove-gates", boost::program_options::value<bool>()->default_value(false), "If this option is activated and if the problem is a circuit, then some gates can be removed during the search if those ones are not active.")

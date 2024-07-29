@@ -23,5 +23,6 @@
 namespace d4 {
 struct ConfigurationSpec {
   SpecUpdateType specUpdateType = SPEC_DYNAMIC;
+  bool removeGates = false;
 };
 }  // namespace d4

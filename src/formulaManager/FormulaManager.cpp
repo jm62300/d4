@@ -36,7 +36,7 @@ FormulaManager *FormulaManager::makeFormulaManager(
 
   switch (p.getProblemType()) {
     case PB_CIRC:
-      return new CircuitWithCnfManager(p);
+      return new CircuitWithCnfManager(p, options.removeGates);
     case PB_TCNF:
     case PB_CNF:
     case PB_QBF:

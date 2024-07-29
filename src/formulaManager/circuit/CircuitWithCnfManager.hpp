@@ -39,14 +39,23 @@ class CircuitWithCnfManager : public CircuitManager {
   std::vector<std::vector<Var>> m_varInputInGates;
   std::vector<std::vector<Var>> m_watchList;
 
+  std::vector<std::vector<Var>> m_litThatInactiveVar;
+
+  bool m_optionRemoveGates;
+  std::vector<bool> m_isStillAlive;
+  std::vector<unsigned> m_stackGatesNotAlive;
+  std::vector<unsigned> m_stackGatesNotAliveSize;
+
+  void debugFunction();
+
  public:
-  CircuitWithCnfManager(ProblemManager &p);
+  CircuitWithCnfManager(ProblemManager &p, bool optRmGates);
   ~CircuitWithCnfManager();
 
   inline CnfManager *getCnfManager() { return m_cnfManager; };
 
   bool stillActive(BcGate &g);
-  void propagate(std::vector<Var> &vars, std::vector<Var> pVars);
+  void propagate(std::vector<Var> &vars, std::vector<Var> &pVars);
 
   /**
    * @brief Search for the connected component of the formula.
