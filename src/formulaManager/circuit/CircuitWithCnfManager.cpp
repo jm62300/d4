@@ -234,6 +234,9 @@ void CircuitWithCnfManager::debugFunction() {
 void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
   m_stackGatesNotAliveSize.push_back(m_stackGatesNotAlive.size());
 
+  std::cout << "\n";
+  m_cnfManager->showCurrentFormula(std::cout);
+
   m_cnfManager->pushStacks();
   assignListLit(lits);
   m_cnfManager->assignListLit(lits);
@@ -272,6 +275,9 @@ void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
 
   m_cnfManager->propagateTrue(litsTrue);
   m_cnfManager->propagateFalseInNotBin(lits);
+
+  m_cnfManager->showCurrentFormula(std::cout);
+  std::cout << "----------------------------------------------\n";
 
   // unmark the clauses.
   m_cnfManager->unmarkLastClausesSaved();
