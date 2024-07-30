@@ -456,6 +456,17 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       if (i != lits.size()) m_solver->pushAssumption(lits[i]);
 
       b[nb].d = compute_(connected, b[nb].unitLits, b[nb].freeVars, out);
+#if 0
+      std::cout << "==============================================\n";
+      std::cout << "free : ";
+      for (auto &v : b[nb].freeVars) std::cout << v << ' ';
+      std::cout << '\n';
+      std::cout << "trail: ";
+      m_solver->displayAssumption(std::cout);
+      std::cout << b[nb].d * m_problem->computeWeightUnitFree<U>(b[nb].unitLits,
+                                                                 b[nb].freeVars)
+                << "\n";
+#endif
       nb++;
     }
 

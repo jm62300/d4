@@ -28,6 +28,9 @@ that control the random circuit generation process.
 As of now, the circuits are between 2-20 inputs nodes and 2-100 gates.
 
 # Run configurations
+// circuit: Run a BC file
+COUNTER --input-type circuit -i BENCH
+
 // cnf: Run a CNF file
 COUNTER --input-type cnf -i BENCH
 
@@ -148,12 +151,12 @@ def mc_circuit(filepath_counter, filepath_cnf, filepath_circuit, timeout):
     Compute MC of the given circuit.
     May throw subprocess.TimeoutExpired.
     """
-    raise NotImplementedError("Not implemented yet.")
-    # cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit]
-    # output = run_d4(cmd, timeout)
-    # assert output.returncode == 0
-    # mc = extract_mc(output.stdout)
-    # return mc
+    #raise NotImplementedError("Not implemented yet.")
+    cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--remove-gates", "1"]
+    output = run_d4(cmd, timeout)
+    assert output.returncode == 0
+    mc = extract_mc(output.stdout)
+    return mc
 
 
 def mc_circuit_via_cnf(filepath_counter, filepath_cnf, filepath_circuit, timeout):

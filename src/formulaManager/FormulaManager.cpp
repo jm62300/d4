@@ -61,7 +61,7 @@ FormulaManager *FormulaManager::makeFormulaManager(
  * @brief FormulaManager::showTrail implementation.
  */
 void FormulaManager::showTrail(std::ostream &out) {
-  for (int i = 0; i < getNbVariable(); i++) {
+  for (int i = 1; i <= getNbVariable(); i++) {
     if (!varIsAssigned(i)) continue;
     Lit l = Lit::makeLit(i, false);
     if (litIsAssignedToTrue(l))
