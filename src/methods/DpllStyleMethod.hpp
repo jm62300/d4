@@ -353,17 +353,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     }
 
     // move the free variables.
-    varConnected.push_back(std::vector<Var>());
-    for (auto &v : setOfVar) {
-      if (m_specs->varIsAssigned(v)) continue;
-      if (m_specs->isFreeVariable(v))
-        freeVariable.push_back(v);
-      else
-        varConnected[0].push_back(v);
-    }
-    if (!varConnected[0].size()) varConnected.pop_back();
-
-    return varConnected.size();
+    return m_specs->computeTrivialConnectedComponent(varConnected, setOfVar,
+                                                     freeVariable);
   }  // computeConnectedComponent
 
   /**

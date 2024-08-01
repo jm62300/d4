@@ -53,9 +53,16 @@ class CircuitWithCnfManager : public CircuitManager {
   ~CircuitWithCnfManager();
 
   inline CnfManager *getCnfManager() { return m_cnfManager; };
+  inline bool isActiveGates(BcGate &g) override {
+    return m_isStillAlive[g.output.var()];
+  }
 
   bool stillActive(BcGate &g);
   void propagate(std::vector<Var> &vars, std::vector<Var> &pVars);
+
+  int computeTrivialConnectedComponent(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<Var> &freeVar) override;
 
   /**
    * @brief Search for the connected component of the formula.

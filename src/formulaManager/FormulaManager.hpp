@@ -137,6 +137,21 @@ class FormulaManager {
   void showTrail(std::ostream &out);
 
   /**
+   * @brief Compute a trivial partition of the formula by considering only one
+   * component.
+   *
+   * @param[out] varConnected are the computed connected component.
+   * @param setOfVar are the variables under consideration.
+   * @param freeVar are the variables their are free (isFreeVar should return
+   * true on them).
+   *
+   * @return the number of connected component.
+   */
+  virtual int computeTrivialConnectedComponent(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<Var> &freeVar);
+
+  /**
    * @brief Search for the connected component of the formula.
    *
    * @param[out] varConnected are the computed connected component.

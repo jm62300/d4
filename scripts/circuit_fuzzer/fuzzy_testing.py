@@ -108,7 +108,8 @@ class ResultsCounter:
             print(f"\tModel counts are the same: {unique_model_counts}")
         else:
             self.keep_instance_files = True
-            print(f"\tModel counts are different for {self.seed}", file=sys.stderr)
+            print(f"\tModel counts are different for {
+                  self.seed}", file=sys.stderr)
             for key, mc in modelcounts.items():
                 print(f"\tModel count for {key}: {mc}", file=sys.stderr)
 
@@ -141,7 +142,8 @@ def mc_cnf(filepath_counter, filepath_cnf, filepath_circuit, timeout):
     """
     cmd = [filepath_counter, "--input-type", "cnf", "-i", filepath_cnf]
     output = run_d4(cmd, timeout)
-    assert output.returncode == 0, f"Return code {output.returncode} not 0 for {filepath_cnf}.\n{output.stdout}"
+    assert output.returncode == 0, f"Return code {
+        output.returncode} not 0 for {filepath_cnf}.\n{output.stdout}"
     mc = extract_mc(output.stdout)
     return mc
 
@@ -151,8 +153,9 @@ def mc_circuit(filepath_counter, filepath_cnf, filepath_circuit, timeout):
     Compute MC of the given circuit.
     May throw subprocess.TimeoutExpired.
     """
-    #raise NotImplementedError("Not implemented yet.")
-    cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--remove-gates", "1"]
+    # raise NotImplementedError("Not implemented yet.")
+    cmd = [filepath_counter, "--input-type", "circuit",
+           "-i", filepath_circuit, "--remove-gates", "1"]
     output = run_d4(cmd, timeout)
     assert output.returncode == 0
     mc = extract_mc(output.stdout)
@@ -164,9 +167,11 @@ def mc_circuit_via_cnf(filepath_counter, filepath_cnf, filepath_circuit, timeout
     Compute MC of the given circuit, via translation to cnf.
     May throw subprocess.TimeoutExpired.
     """
-    cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--translate", "cnf"]
+    cmd = [filepath_counter, "--input-type", "circuit",
+           "-i", filepath_circuit, "--translate", "cnf"]
     output = run_d4(cmd, timeout)
-    assert output.returncode == 0, f"Return code {output.returncode} not 0 for {filepath_circuit}.\n{output.stdout}"
+    assert output.returncode == 0, f"Return code {
+        output.returncode} not 0 for {filepath_circuit}.\n{output.stdout}"
     mc = extract_mc(output.stdout)
     return mc
 
@@ -190,7 +195,8 @@ def mc_circuit_via_pcnf(filepath_counter, filepath_cnf, filepath_circuit, timeou
     Compute MC of the given circuit, via translation to pcnf.
     May throw subprocess.TimeoutExpired.
     """
-    cmd = [filepath_counter, "--input-type", "circuit", "-i", filepath_circuit, "--translate", "pcnf"]
+    cmd = [filepath_counter, "--input-type", "circuit",
+           "-i", filepath_circuit, "--translate", "pcnf"]
     output = run_d4(cmd, timeout)
     assert output.returncode == 0
     mc = extract_mc(output.stdout)
@@ -335,11 +341,12 @@ def main(args):
     _timeout = args.t
     _nb_inst = args.n
     _filepath_counter = args.i
-    _run_configs = [run_config_map[run_config] for run_config in args.runconfigs]
+    _run_configs = [run_config_map[run_config]
+                    for run_config in args.runconfigs]
 
     gen_args = {
-        "nb_inputs": 15,
-        "nb_gates": 20,
+        "nb_inputs": 200,
+        "nb_gates": 500,
         "polarity_prob": 0.7,  # probability of a variable being positive
         "gate_type_OR_prob": 0.3,  # probability of a gate being an OR gate
         "aggregate_roots": GateType.OR,  # how to aggregate root nodes.
@@ -351,7 +358,8 @@ def main(args):
                run_configs=_run_configs,
                gen_args=gen_args,
                # generate_function=generate_rnd_gates1),
-               generate_function=func_generate_rnd_gates1_1(max_inputs=20, max_gates=100),
+               generate_function=func_generate_rnd_gates1_1(
+                   max_inputs=100, max_gates=20),
                )
 
 

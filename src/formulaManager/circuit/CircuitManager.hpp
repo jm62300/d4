@@ -36,7 +36,7 @@ class CircuitManager : public FormulaManager {
   virtual ~CircuitManager() {}
 
   inline std::vector<BcGate> &getGates() { return m_gates; }
-
   inline ProblemInputType getProblemInputType() override { return PB_CIRC; }
+  virtual bool isActiveGates(BcGate &g) = 0;
 };
 }  // namespace d4

@@ -16,7 +16,7 @@ def get_default_rnd_args1() -> Dict:
     }
 
 
-def generate_rnd_gates1(gen_args:Dict = None) -> GateList:
+def generate_rnd_gates1(gen_args: Dict = None) -> GateList:
     """ use get_default_rnd_args1() to pass arguments """
     if gen_args is None:
         gen_args = get_default_rnd_args1()
@@ -39,11 +39,13 @@ def generate_rnd_gates1(gen_args:Dict = None) -> GateList:
     for i in range(nb_gates):
         gname = f"g{i}"
         # randomize inputs
-        ginputs_nb = 2 + abs(math.floor(random.gauss(mu=0.0, sigma=sigma_gate_inputs)))
+        ginputs_nb = 2 + \
+            abs(math.floor(random.gauss(mu=0.0, sigma=sigma_gate_inputs)))
         ginputs_nb = min(ginputs_nb, len(names))
         ginputs = []
         for _input in random.sample(names, ginputs_nb):
-            _input = _input if random.random() < prob_polarity_p else f"{NEG_SYMBOL}{_input}"
+            _input = _input if random.random() < prob_polarity_p else f"{
+                NEG_SYMBOL}{_input}"
             ginputs.append(_input)
 
         # random gate type
@@ -53,7 +55,7 @@ def generate_rnd_gates1(gen_args:Dict = None) -> GateList:
         gates.add_gate(Gate(gname, ginputs, gtype))
 
     # root gate
-    ## detect what are the root nodes, then combine them into an OR
+    # detect what are the root nodes, then combine them into an OR
     names = set(names)
     for gate in gates:
         names.difference_update({to_abs_name(x) for x in gate.inputs})
@@ -66,7 +68,7 @@ def generate_rnd_gates1(gen_args:Dict = None) -> GateList:
     return gates
 
 
-def generate_rnd_gates1_1(gen_args:Dict = None,
+def generate_rnd_gates1_1(gen_args: Dict = None,
                           max_inputs=10,
                           max_gates=100) -> GateList:
     """
