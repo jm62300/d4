@@ -97,6 +97,13 @@ class ProblemManagerCircuit : public ProblemManager {
    */
   void tseitinEncoding(std::vector<std::vector<Lit>> &clauses);
 
+  /**
+   * @brief Collect the input variables.
+   *
+   * @param[out] outVars store the input vars.
+   */
+  void getInputVar(std::vector<Var> &outVars);
+
   std::vector<BcGate> &getGates() { return m_gates; }
   std::vector<Lit> &getTrueLiterals() { return m_true_lits; }
   inline ProblemInputType getProblemType() const override { return PB_CIRC; }

@@ -154,6 +154,16 @@ ProblemManager *ProblemManagerCircuit::getConditionedFormula(
 }  // getConditionedFormula
 
 /**
+ * @brief ProblemManagerCircuit::getInputVar implementation.
+ */
+void ProblemManagerCircuit::getInputVar(std::vector<Var> &outVars) {
+  std::vector<bool> marked(getNbVar() + 1, true);
+  for (auto &g : m_gates) marked[g.output.var()] = false;
+  for (unsigned i = 1; i <= getNbVar(); i++)
+    if (marked[i]) outVars.push_back(i);
+}  // getInputVar
+
+/**
    Display the problem.
 
    @param[out] out, the stream where the messages are redirected.
