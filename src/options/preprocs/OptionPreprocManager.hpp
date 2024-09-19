@@ -28,11 +28,12 @@ namespace d4 {
 
 class OptionPreprocManager {
  public:
-  InputType inputType;
+  ProblemInputType inputType;
   PreprocMethod preprocMethod;
   unsigned nbIteration = 1;
   bool onlyUseGates = false;
   bool ordered = false;
+  bool strongElim = false;
   int timeout = 0;
 
   OptionPreprocManager(const ConfigurationPeproc& config) {
@@ -42,17 +43,19 @@ class OptionPreprocManager {
     onlyUseGates = config.onlyUseGates;
     ordered = config.ordered;
     timeout = config.timeout;
+    strongElim = config.strongElim;
   }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionPreprocManager& dt) {
     out << " Option PreprocManager:" << " preproc("
         << PreprocMethodManager::getPreprocMethod(dt.preprocMethod) << ')'
-        << " input type(" << InputTypeManager::getInputType(dt.inputType)
+        << " input type(" << ProblemInputTypeManager::getInputType(dt.inputType)
         << ')';
 
-    if (dt.preprocMethod == SHARP_EQUIV)
-      out << " onlyGate(" << dt.onlyUseGates << ") ordered(" << dt.ordered;
+    if (dt.preprocMethod == SHARP_EQUIV || dt.preprocMethod == COMPILE_EQUIV)
+      out << " onlyGate(" << dt.onlyUseGates << ") ordered(" << dt.ordered
+          << ") strong-elim(" << dt.strongElim;
 
     if (dt.preprocMethod != BASIC) {
       out << ") #iteration(" << dt.nbIteration << ')' << " timeout("

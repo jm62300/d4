@@ -27,7 +27,6 @@ namespace d4 {
 
 class OptionPreprocManager;
 
-enum InputType { DIMACS_CNF, TCNF, CIRCUIT, QCNF };
 enum PreprocMethod {
   BASIC,
   BACKBONE,
@@ -35,35 +34,8 @@ enum PreprocMethod {
   SHARP_EQUIV,
   VIVI,
   OCC_ELIM,
+  COMPILE_EQUIV,
   COMB
-};
-
-class InputTypeManager {
- public:
-  static std::string getInputType(const InputType &m) {
-    switch (m) {
-      case DIMACS_CNF:
-        return "dimacs cnf";
-      case TCNF:
-        return "dimacs CNF extended with theory";
-      case CIRCUIT:
-        return "circuit";
-      case QCNF:
-        return "qcnf";
-    }
-
-    throw(FactoryException("Input type unknown", __FILE__, __LINE__));
-  }  // getInputType
-
-  static InputType getInputType(const std::string &m) {
-    if (m == "cnf") return DIMACS_CNF;
-    if (m == "dimacs") return DIMACS_CNF;
-    if (m == "tcnf") return TCNF;
-    if (m == "circuit") return CIRCUIT;
-    if (m == "qcnf") return QCNF;
-
-    throw(FactoryException("Input type unknown", __FILE__, __LINE__));
-  }  // getInputType
 };
 
 class PreprocMethodManager {
@@ -76,6 +48,7 @@ class PreprocMethodManager {
     if (m == VIVI) return "vivification";
     if (m == OCC_ELIM) return "occElimination";
     if (m == COMB) return "combinaison";
+    if (m == COMPILE_EQUIV) return "compile-equiv";
 
     throw(FactoryException("Preproc Method unknown", __FILE__, __LINE__));
   }  // getInputType
@@ -88,6 +61,7 @@ class PreprocMethodManager {
     if (m == "vivification") return VIVI;
     if (m == "occElimination") return OCC_ELIM;
     if (m == "combinaison") return COMB;
+    if (m == "compile-equiv") return COMPILE_EQUIV;
 
     throw(FactoryException("Preproc Method unknown", __FILE__, __LINE__));
   }  // getInputType

@@ -16,15 +16,32 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#pragma once
+#include "PreprocBasicCircuit.hpp"
 
-#include <vector>
-
-#include "../TreeDecomposition.hpp"
-#include "src/problem/ProblemTypes.hpp"
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/circuit/ProblemManagerCircuit.hpp"
+#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
-class TreeDecompositionCnf : public TreeDecomposition {
- public:
-};
+
+/**
+ * @brief PreprocBasicCircuit::PreprocBasicCircuit implementation.
+ */
+PreprocBasicCircuit::PreprocBasicCircuit(std::ostream &out) {
+  out << "c [PREPROC CIRCUIT] Basic\n";
+}  // constructor
+
+/**
+ * @brief This preprocessing technique does nothing.
+ *
+ * @param[in] pin is the problem we want to prepocess.
+ *
+ * \return a copy of pin.
+ */
+ProblemManager *PreprocBasicCircuit::run(ProblemManager *pin,
+                                         const OptionPreprocManager &option) {
+  std::vector<Lit> units;
+  return pin->getConditionedFormula(units);
+}  // run
+
 }  // namespace d4

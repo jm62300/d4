@@ -71,6 +71,8 @@ class Eliminator {
     m_elimGates.interrupt();
     m_elimResolution.interrupt();
   }
+
+  inline void setStrongElim(bool b) { m_elimResolution.setStrongElim(b); }
 };
 }  // namespace eliminator
 }  // namespace bipe

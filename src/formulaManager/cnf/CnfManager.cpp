@@ -31,7 +31,7 @@ namespace d4 {
 /**
    Constructor.
 */
-CnfManager::CnfManager(ProblemManager &p) {
+CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
   // get the clauses.
   try {
     CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
@@ -41,8 +41,6 @@ CnfManager::CnfManager(ProblemManager &p) {
     std::cerr << "c A CNF formula was expeted\n";
     assert(0);
   }
-
-  m_nbVar = p.getNbVar();
 
   // store the not binary clauses.
   m_maxSizeClause = 0;
@@ -83,7 +81,6 @@ CnfManager::CnfManager(ProblemManager &p) {
 
   // variables:
   m_inCurrentComponent.resize(m_nbVar + 1, false);
-  m_currentValue.resize(m_nbVar + 1, l_Undef);
   m_idxComponent.resize(m_nbVar + 1, 0);
 
   // clauses:
@@ -372,28 +369,23 @@ void CnfManager::showFormula(std::ostream &out) {
   }
 }  // showFormula
 
-void CnfManager::showTrail(std::ostream &out) {
-  for (int i = 0; i < getNbVariable(); i++) {
-    if (!varIsAssigned(i)) continue;
-    Lit l = Lit::makeLit(i, false);
-    if (litIsAssignedToTrue(l))
-      out << l << " ";
-    else
-      out << ~l << " ";
-  }
-  out << "\n";
-}  // showFormula
-
+/**
+ * @brief CnfManager::showCurrentFormula implementation.
+ */
 void CnfManager::showCurrentFormula(std::ostream &out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_infoClauses[i].isSat) continue;
+    out << "[" << i << "] ";
     for (auto &l : m_clauses[i])
       if (!litIsAssigned(l)) out << l << " ";
     out << "0\n";
   }
 }  // showFormula
 
+/**
+ * @brief CnfManager::showCurrentFormula implementation.
+ */
 void CnfManager::showCurrentFormula(std::ostream &out,
                                     std::vector<bool> &isInComponent) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
@@ -405,5 +397,42 @@ void CnfManager::showCurrentFormula(std::ostream &out,
     out << "0\n";
   }
 }  // showFormula
+
+/**
+ * @brief CnfManager::debugFunction implementation.
+ */
+void CnfManager::debugFunction() {
+  for (unsigned i = 0; i < m_clauses.size(); i++) {
+    if (m_infoClauses[i].isSat) continue;
+    for (auto &l : m_clauses[i])
+      if (!litIsAssigned(l)) {
+        unsigned nbOcc = 0;
+        for (unsigned j = 0; j < m_occurrence[l.intern()].nbBin; j++)
+          if (i == m_occurrence[l.intern()].bin[j]) nbOcc++;
+        for (unsigned j = 0; j < m_occurrence[l.intern()].nbNotBin; j++)
+          if (i == m_occurrence[l.intern()].notBin[j]) nbOcc++;
+
+        if (nbOcc != 1) {
+          std::cout << "literal " << l << " nbOcc = " << nbOcc
+                    << " and the clause is " << i << '\n';
+        }
+        assert(nbOcc == 1);
+      }
+  }
+
+  for (unsigned i = 0; i < m_occurrence.size(); i++) {
+    if (m_currentValue[i >> 1] != l_Undef) continue;
+    if (!m_occurrence[i].nbBin && !m_occurrence[i].nbNotBin) continue;
+    for (unsigned j = 0; j < m_occurrence[i].nbBin; j++)
+      assert(!m_infoClauses[m_occurrence[i].bin[j]].isSat);
+    for (unsigned j = 0; j < m_occurrence[i].nbNotBin; j++) {
+      if (m_infoClauses[m_occurrence[i].notBin[j]].isSat)
+        std::cout << "=> " << (i >> 1) << " " << m_occurrence[i].notBin[j]
+                  << '\n';
+      assert(!m_infoClauses[m_occurrence[i].notBin[j]].isSat);
+    }
+  }
+
+}  // debugFunction
 
 }  // namespace d4

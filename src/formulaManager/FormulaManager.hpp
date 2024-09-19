@@ -28,8 +28,18 @@ namespace d4 {
 class FormulaManager {
  protected:
   unsigned m_nbVar;
+  std::vector<lbool> m_currentValue;
 
  public:
+  /**
+   * @brief A constructor needed to know the number of variables.
+   *
+   * @param nbVar
+   */
+  FormulaManager(unsigned nbVar) : m_nbVar(nbVar) {
+    m_currentValue.resize(m_nbVar + 1, l_Undef);
+  }
+
   /**
    * @brief Generate an occurrence manager regarding the options given as
    * parameter.
@@ -39,8 +49,9 @@ class FormulaManager {
    * @param out is the stream where are printed out the logs.
    * @return a spec manager.
    */
-  static FormulaManager *makeSpecManager(const OptionSpecManager &options,
-                                         ProblemManager &p, std::ostream &out);
+  static FormulaManager *makeFormulaManager(const OptionSpecManager &options,
+                                            ProblemManager &p,
+                                            std::ostream &out);
 
   /**
    * @brief Get the number of variables.
@@ -55,12 +66,55 @@ class FormulaManager {
   virtual ~FormulaManager() {}
 
   /**
+   * @brief Given a list of literals, this function assigns this literals.
+   *
+   * @param[in] lits is the list of literal we search to assigned.
+   *
+   */
+  inline void assignListLit(const std::vector<Lit> &lits) {
+    for (auto &l : lits) {
+      assert(m_currentValue[l.var()] == l_Undef);
+      m_currentValue[l.var()] = l.sign();
+    }
+  }  // assignListLit
+
+  /**
+   * @brief Assign a variable to a value.
+   *
+   * @param v is the variable we want to assign.
+   * @param val is the value given to v.
+   */
+  inline void assignLit(Var &v, lbool val) {
+    m_currentValue[v] = val;
+  }  // assignLit
+
+  /**
+   * @brief Get the value assigned to a variable.
+   *
+   * @param v is the variable we are looking for.
+   *
+   * @return the value assigned to v.
+   */
+  inline lbool getValue(Var v) { return m_currentValue[v]; }
+
+  /**
+   * @brief Get if the given variable is assigned.
+   *
+   * @param v is the variable.
+   *
+   * @return true if the variable is assigned, false otherwise.
+   */
+  inline bool varIsAssigned(Var v) { return m_currentValue[v] != l_Undef; }
+
+  /**
    * @brief Get if the given literal is assigned or not.
    *
    * @param l is the literal we are looking for.
    * @return true if l is assigned, false otherwise.
    */
-  virtual bool litIsAssigned(Lit l) = 0;
+  inline bool litIsAssigned(Lit l) {
+    return m_currentValue[l.var()] != l_Undef;
+  }  // litIsAssigned
 
   /**
    * @brief Ask if the given literal is assigned to.
@@ -68,15 +122,34 @@ class FormulaManager {
    * @param l is the literal we are looking for.
    * @return true if l is assigned to true, false otherwise.
    */
-  virtual bool litIsAssignedToTrue(Lit l) = 0;
+  inline bool litIsAssignedToTrue(Lit l) {
+    if (l.sign())
+      return m_currentValue[l.var()] == l_False;
+    else
+      return m_currentValue[l.var()] == l_True;
+  }  // litIsAssignedToTrue
 
   /**
-   * @brief Get if the given variable is assigned.
+   * @brief  Show the set of unit literals.
    *
-   * @param v is the variable.
-   * @return true if the variable is assigned, false otherwise.
+   * @param[out] out is the stream used.
    */
-  virtual bool varIsAssigned(Var v) = 0;
+  void showTrail(std::ostream &out);
+
+  /**
+   * @brief Compute a trivial partition of the formula by considering only one
+   * component.
+   *
+   * @param[out] varConnected are the computed connected component.
+   * @param setOfVar are the variables under consideration.
+   * @param freeVar are the variables their are free (isFreeVar should return
+   * true on them).
+   *
+   * @return the number of connected component.
+   */
+  virtual int computeTrivialConnectedComponent(
+      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
+      std::vector<Var> &freeVar);
 
   /**
    * @brief Search for the connected component of the formula.
@@ -146,13 +219,6 @@ class FormulaManager {
    */
   virtual void showCurrentFormula(std::ostream &out,
                                   std::vector<bool> &isInComponent) = 0;
-
-  /**
-   * @brief  Show the set of unit literals.
-   *
-   * @param[out] out is the stream used.
-   */
-  virtual void showTrail(std::ostream &out) = 0;
 
   /**
    * @brief Get the problem input type.

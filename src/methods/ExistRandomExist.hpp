@@ -170,14 +170,15 @@ class ExistRandomExist : public MethodManager {
     srand(0);
 
     // we create the SAT solver.
-    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
+                                                *m_problem, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
-                                              *m_problem, m_out);
+    m_specs = FormulaManager::makeFormulaManager(options.optionSpecManager,
+                                                 *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_hVarExist = ScoringMethod::makeScoringMethod(
@@ -588,8 +589,6 @@ class ExistRandomExist : public MethodManager {
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
       } else if (m_isDecisionVariable[l.var()]) {
-        std::cout << "Propagate one literal from the ind " << l.human() << "\n";
-        exit(0);
         fixInd *= T(m_problem->getWeightLit(l));
       }
 

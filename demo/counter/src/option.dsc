@@ -7,6 +7,7 @@
 ("preproc,p",boost::program_options::value<std::string>()->default_value("basic"), "The preprocessing technique we will use (basic, backbone, vivification, occElimination, combinaison, sharp-equiv, equiv).")
 ("preproc-reducer-iteration",boost::program_options::value<int>()->default_value(10), "The number of iterations for the preproc that call reducer (-1 means we want to apply until we reach a fix point).")
 ("preproc-timeout",boost::program_options::value<int>()->default_value(0), "The time in second given to the preproc (0 means no timeout).")
+("preproc-strong-elim",boost::program_options::value<bool>()->default_value(false), "If set to true, then the variable are elminated whatever the impact on the size of the formula.")
 ("occurrence-manager",boost::program_options::value<std::string>()->default_value("dynamic"),"The occurrence manager used (dynamic, dynamicBlockedSimp or dynamicPureSimp). ")
 ("branching-heuristic", boost::program_options::value<std::string>()->default_value("hybrid-partial-classic"),"The branching heuristic used (classic or large-clause if d4 selects first literals in large clauses.)")
 ("branching-heuristic-limit-clause",boost::program_options::value<unsigned>()->default_value(30),"The size limit for the branching heuristic based on large clauses.")
@@ -39,3 +40,5 @@
 ("float,f", boost::program_options::value<bool>()->default_value(false), "If the count is computed as a float or not.")
 ("keyword-output-format-solution", boost::program_options::value<std::string>()->default_value("s"), "The keyword prints in front of the solution when it is printed out.")
 ("output-format", boost::program_options::value<std::string>()->default_value("classic"), "The way the solution is printed out ('classic' only gives the number of solution after printing 's', 'competition' follows the MC competition 2021).")
+("translate,t", boost::program_options::value<std::string>()->default_value("none"), "Translate the input formula in another formula before solving (none, cnf or pcnf (cnf with projected variable))")
+("remove-gates", boost::program_options::value<bool>()->default_value(false), "If this option is activated and if the problem is a circuit, then some gates can be removed during the search if those ones are not active.")

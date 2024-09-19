@@ -23,7 +23,14 @@
 
 namespace d4 {
 
-enum class BcGateType { AND, OR };
+/**
+ * @brief Different gate types.
+ *
+ * The IDENTITY gate has one input and simply passes
+ * on the information. This could be used to represent
+ * gates `x := y` or `x := -y`
+ */
+enum class BcGateType { AND, OR, IDENTITY };
 
 struct BcGate {
   std::vector<Lit> input;
@@ -43,6 +50,9 @@ struct BcGate {
         break;
       case BcGateType::OR:
         out << " =(OR): ";
+        break;
+      case BcGateType::IDENTITY:
+        out << " =(I): ";
         break;
       default:
         out << " =(UNKNOWN): ";
@@ -80,8 +90,23 @@ class ProblemManagerCircuit : public ProblemManager {
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
+  /**
+   * @brief Encode the formula using the tseitin encoding.
+   *
+   * @param clauses is the resulting CNF.
+   */
+  void tseitinEncoding(std::vector<std::vector<Lit>> &clauses);
+
+  /**
+   * @brief Collect the input variables.
+   *
+   * @param[out] outVars store the input vars.
+   */
+  void getInputVar(std::vector<Var> &outVars);
+
   std::vector<BcGate> &getGates() { return m_gates; }
   std::vector<Lit> &getTrueLiterals() { return m_true_lits; }
-  inline ProblemInputType getProblemType() override { return PB_CIRC; }
+  inline ProblemInputType getProblemType() const override { return PB_CIRC; }
+  ProblemManager *translate(const ProblemTranslateType &t) override;
 };
 }  // namespace d4

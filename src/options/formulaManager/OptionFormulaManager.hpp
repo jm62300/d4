@@ -52,11 +52,13 @@ class SpecUpdateManager {
 class OptionSpecManager {
  public:
   SpecUpdateType specUpdateType;
+  bool removeGates;
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionSpecManager& dt) {
     out << " Option Formula Manager:" << " update mode("
-        << SpecUpdateManager::getSpecUpdate(dt.specUpdateType) << ")";
+        << SpecUpdateManager::getSpecUpdate(dt.specUpdateType) << ") rm-gates("
+        << dt.removeGates << ") ";
     return out;
   }  // <<
 };

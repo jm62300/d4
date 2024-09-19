@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "PartialOrderHeuristic.hpp"
-#include "src/formulaManager/cnf/CnfManager.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/solvers/WrapperSolver.hpp"
 
@@ -36,17 +35,18 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
 
  public:
   /**
-   * @brief Factory to create a tree decomposition partitioner manager.
+   * @brief Constructor.
    *
    * @param options gives the list of options.
    * @param om is the object which deal with the formula.
    * @param s is a SAT solver associate with the formula under consideration.
    * @param out is the output stream.
-   * @return a tree decomposition partitioner.
    */
-  static PartialOrderHeuristicTreeDecomp *makePartialOrderTreeDecomp(
-      const OptionPartialOrderHeuristic &options, FormulaManager &om,
-      WrapperSolver &s, std::ostream &out);
+  PartialOrderHeuristicTreeDecomp(const OptionPartialOrderHeuristic &options,
+                                  FormulaManager &om, WrapperSolver &s,
+                                  std::ostream &out);
+
+  ~PartialOrderHeuristicTreeDecomp();
 
   void computeCutSet(std::vector<Var> &component,
                      std::vector<Var> &cutSet) override;

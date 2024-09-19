@@ -30,6 +30,7 @@
 #include "src/methods/MethodManager.hpp"
 #include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
+#include "src/problem/circuit/ProblemManagerCircuit.hpp"
 
 #ifndef NOMAIN
 
@@ -89,13 +90,44 @@ int main(int argc, char **argv) {
   initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
   std::cout << "c\n";
 
+  std::vector<d4::Var> projectedVar;
+
+  if (vm["translate"].as<std::string>() != "none") {
+    std::cout << "c [TRANSLATION] Translate the input formula: "
+              << vm["input-type"].as<std::string>() << " -> "
+              << vm["translate"].as<std::string>() << '\n';
+
+    static_cast<d4::ProblemManagerCircuit *>(initProblem)
+        ->getInputVar(projectedVar);
+
+    d4::ProblemManager *tmp =
+        initProblem->translate(d4::ProblemTranslateTypeManager::getInputType(
+            vm["translate"].as<std::string>()));
+    delete initProblem;
+    initProblem = tmp;
+  }
+
   // run the method asked.
   d4::MethodName methodName =
       d4::MethodNameManager::getMethodName("ddnnf-compiler");
 
   // preproc.
-  ProblemManager *problem = d4::MethodManager::runPreproc(
-      parsePreprocConfiguration(vm), initProblem, std::cout);
+  d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
+
+  bool rewind = false;
+  if (vm["translate"].as<std::string>() == "cnf" &&
+      vm["preproc"].as<std::string>() == "compile-equiv") {
+    rewind = true;
+
+    std::vector<d4::Var> &vars = initProblem->getSelectedVar();
+    for (auto &v : projectedVar) vars.push_back(v);
+  }
+
+  configPreproc.inputType = initProblem->getProblemType();
+  ProblemManager *problem =
+      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+
+  if (rewind) problem->getSelectedVar().clear();
 
   // compile.
   compilerDemo(vm, problem);

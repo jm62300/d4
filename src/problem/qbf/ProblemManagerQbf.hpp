@@ -46,10 +46,20 @@ class ProblemManagerQbf : public ProblemManager, public CnfMatrix {
   inline void setBlocks(std::vector<Block> qblocks) { m_qblocks = qblocks; }
   inline std::vector<Block> &getQBlocks() { return m_qblocks; }
 
+  /**
+   * @brief Print out some statistic about the problem. Each line will start
+   * with the string startLine given in parameter.
+   *
+   * @param[in] out is the stream where the messages are redirected.
+   * @param[in] startLine is a string s.t. each line will start with this
+   * string.
+   */
   void displayStat(std::ostream &out, std::string startLine) override;
+
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
-  inline ProblemInputType getProblemType() override { return PB_QBF; }
+  inline ProblemInputType getProblemType() const override { return PB_QBF; }
+  inline ProblemManager *translate(const ProblemTranslateType &t) override;
 };
 }  // namespace d4

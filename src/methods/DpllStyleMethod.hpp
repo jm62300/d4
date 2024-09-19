@@ -41,7 +41,7 @@
 #include "src/solvers/WrapperSolver.hpp"
 #include "src/utils/MemoryStat.hpp"
 
-#define NB_SEP_MC 104
+#define NB_SEP_MC 92
 #define MASK_SHOWRUN_MC ((2 << 13) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 1048575
@@ -90,15 +90,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   std::ostream m_out;
   Operation<T, U> *m_operation;
 
-  bool m_expoitModelActivated;
-  unsigned m_nbExploitModel;
-  std::vector<bool> m_isInComponent;
-  std::vector<bool> m_isSharedClause;
-  std::vector<bool> m_isWithExistensialClause;
-
-  unsigned m_nbUnsat = 0, m_nbSat = 0;
-  float m_timeSat = 0, m_timeUnsat = 0;
-
  public:
   /**
      Constructor.
@@ -116,17 +107,19 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     m_out << "c [DPLL STYLE METHOD]" << options << "\n";
 
-    // we create and init the SAT solver.
-    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
+    // we create and init the solver.
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
+                                                *m_problem, m_out);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
+
     m_isProjectedMode = m_problem->getNbSelectedVar() > 0;
     m_connectedComponent = true;
     m_nbFailedIncreased = m_lastNbSplit = 0;
 
     // we initialize the object that will give info about the problem.
-    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
-                                              *m_problem, m_out);
+    m_specs = FormulaManager::makeFormulaManager(options.optionSpecManager,
+                                                 *m_problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
@@ -155,13 +148,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
     m_operation = static_cast<Operation<T, U> *>(op);
     m_out << "c\n";
-
-    // variable needed for the part exploiting the model.
-    m_expoitModelActivated = options.exploitModel && m_isProjectedMode;
-    m_out << "c [DPLL STYLE METHOD] Exploitation models: "
-          << m_expoitModelActivated << '\n';
-
-    m_isInComponent.resize(m_problem->getNbVar() + 1, false);
   }  // constructor
 
   /**
@@ -245,8 +231,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbExploitModel << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|\n";
   }  // showInter
 
   /**
@@ -273,8 +258,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#split" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#models" << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|\n";
     separator(out);
   }  // showHeader
 
@@ -287,11 +271,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     if (!(m_nbCallCall & (MASK_HEADER))) showHeader(out);
     if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) {
       showInter(out);
-
-      std::cout << "time: " << m_timeSat << '/' << m_timeUnsat << " "
-                << " number: " << m_nbSat << '/' << m_nbUnsat << '\n';
     }
-
   }  // showRun
 
   /**
@@ -307,16 +287,11 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     out << "c Number of recursive call: " << m_nbCallCall << "\n";
     out << "c Number of split formula: " << m_nbSplit << "\n";
     out << "c Number of decision: " << m_nbDecisionNode << "\n";
-    out << "c Number of models used: " << m_nbExploitModel << "\n";
     out << "c\n";
     m_specs->printInformation(out);
     m_cache->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
     out << "c\n";
-
-    std::cout << "time: " << m_timeSat << '/' << m_timeUnsat << " "
-              << " number: " << m_nbSat << '/' << m_nbUnsat << '\n';
-
   }  // printFinalStat
 
   /**
@@ -378,17 +353,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     }
 
     // move the free variables.
-    varConnected.push_back(std::vector<Var>());
-    for (auto &v : setOfVar) {
-      if (m_specs->varIsAssigned(v)) continue;
-      if (m_specs->isFreeVariable(v))
-        freeVariable.push_back(v);
-      else
-        varConnected[0].push_back(v);
-    }
-    if (!varConnected[0].size()) varConnected.pop_back();
-
-    return varConnected.size();
+    return m_specs->computeTrivialConnectedComponent(varConnected, setOfVar,
+                                                     freeVariable);
   }  // computeConnectedComponent
 
   /**
@@ -406,6 +372,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var> &freeVariable, std::ostream &out) {
     m_nbCallCall++;
     showRun(out);
+    m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
@@ -438,11 +405,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       // m_specs->postUpdate(additionalUnit);
       m_specs->postUpdate(unitsLit);
-      // REB 2024-01-19.  Begin
-      // Inserting this prevents non-decision literals from being included in
-      // NNF
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-      // REB 2024-01-19.  End
+
       return m_operation->manageDecomposableAnd(tab, nbComponent);
     }  // else we have a tautology
 
@@ -484,6 +448,17 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       if (i != lits.size()) m_solver->pushAssumption(lits[i]);
 
       b[nb].d = compute_(connected, b[nb].unitLits, b[nb].freeVars, out);
+#if 0
+      std::cout << "==============================================\n";
+      std::cout << "free : ";
+      for (auto &v : b[nb].freeVars) std::cout << v << ' ';
+      std::cout << '\n';
+      std::cout << "trail: ";
+      m_solver->displayAssumption(std::cout);
+      std::cout << b[nb].d * m_problem->computeWeightUnitFree<U>(b[nb].unitLits,
+                                                                 b[nb].freeVars)
+                << "\n";
+#endif
       nb++;
     }
 

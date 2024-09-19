@@ -25,7 +25,7 @@
 
 namespace d4 {
 class WrapperGlucose : public WrapperSolver {
- private:
+ protected:
   Glucose::Solver s;
   Glucose::vec<Glucose::Var> m_setOfVar_m;
 
@@ -34,7 +34,6 @@ class WrapperGlucose : public WrapperSolver {
   bool m_activeModel;
   bool m_needModel;
 
- protected:
   using WrapperSolver::m_isInAssumption;
 
  public:

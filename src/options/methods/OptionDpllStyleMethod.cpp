@@ -42,7 +42,7 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
   optionSolver = {config.solver.solverName};
 
   // Set the spec manager.
-  optionSpecManager = {config.spec.specUpdateType};
+  optionSpecManager = {config.spec.specUpdateType, config.spec.removeGates};
 
   // set the use of the model
   exploitModel = config.exploitModel;

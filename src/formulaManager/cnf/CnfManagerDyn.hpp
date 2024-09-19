@@ -47,11 +47,14 @@ class CnfManagerDyn : public CnfManager {
   unsigned m_sizeNotSatifiedClauses;
 
  protected:
-  unsigned m_currentMarkedLitIndex;
+  unsigned m_currentMarkedLitStackIndex;
+  unsigned m_currentMarkedLitRemoveIndex;
   bool m_keepListNotSatisfiedClauses;
 
   std::vector<int> m_reviewWatcher;
-  std::vector<char> m_markedLit;
+  std::vector<unsigned> m_markedLitStack;
+  std::vector<unsigned> m_markedLitRemove;
+
   std::vector<unsigned> m_indexSatClauses;
   std::vector<bool> m_markedClauseIdx;
 
@@ -67,6 +70,27 @@ class CnfManagerDyn : public CnfManager {
    * @param idxClauses is the list of indexes.
    */
   void removeSatisfiedClauses(const std::vector<unsigned> &idxClauses);
+
+  /**
+   * @brief Call an inprocessing method for simplifying the formula.
+   */
+  virtual void inprocessing() {}
+
+ public:
+  /**
+   * @brief Construct a new Cnf Manager Dyn object.
+   *
+   * @param[in] p is the proble we want to model (it is a CNF formula).
+   * @param[in] keepListNotSatisfiedClauses is a boolean set to true if we want
+   * to keep in memory the list of clauses that are not yet satisfied by the
+   * current assignation.
+   */
+  CnfManagerDyn(ProblemManager &p, bool keepListNotSatisfiedClauses = false);
+
+  /**
+   * @brief Destroy the Cnf Manager Dyn object
+   */
+  ~CnfManagerDyn();
 
   /**
    * @brief Suppose that the literal in lits are true (even if it is not really
@@ -91,25 +115,21 @@ class CnfManagerDyn : public CnfManager {
   void propagateFalseInNotBin(const std::vector<Lit> &lits);
 
   /**
-   * @brief Call an inprocessing method for simplifying the formula.
+   * @brief This function prepares the stacks.
    */
-  virtual void inprocessing() {}
-
- public:
-  /**
-   * @brief Construct a new Cnf Manager Dyn object.
-   *
-   * @param[in] p is the proble we want to model (it is a CNF formula).
-   * @param[in] keepListNotSatisfiedClauses is a boolean set to true if we want
-   * to keep in memory the list of clauses that are not yet satisfied by the
-   * current assignation.
-   */
-  CnfManagerDyn(ProblemManager &p, bool keepListNotSatisfiedClauses = false);
+  inline void pushStacks() {
+    m_stackPosClause.push_back(m_savedStateClauses.size());
+    m_stackPosOcc.push_back(m_savedStateOccs.size());
+    m_currentMarkedLitStackIndex++;
+  }  // pushStacks
 
   /**
-   * @brief Destroy the Cnf Manager Dyn object
+   * @brief Unmark the clauses' that have been just put into the stack.
    */
-  ~CnfManagerDyn();
+  inline void unmarkLastClausesSaved() {
+    for (int i = m_stackPosClause.back(); i < m_savedStateClauses.size(); i++)
+      m_markedClauseIdx[m_savedStateClauses[i].idx] = false;
+  }  // unmarkLastClausesSaved
 
   /**
    * @brief Get the set of not satisfied clauses regarding a given component

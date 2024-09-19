@@ -18,23 +18,13 @@
  */
 #pragma once
 
-#include <vector>
-
-#include "../PreprocManager.hpp"
+#include "../cnf/WrapperGlucose.hpp"
+#include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/problem/circuit/ProblemManagerCircuit.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
-#include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
-class PreprocCnfFromCircuit : public PreprocManager {
- private:
-  ProblemManagerCnf *tseytin(ProblemManagerCircuit *circuit);
-
+class WrapperCircuitGlucose : public WrapperGlucose {
  public:
-  PreprocCnfFromCircuit(std::ostream &out);
-  ~PreprocCnfFromCircuit();
-  ProblemManager *run(ProblemManager *pin,
-                      const OptionPreprocManager &option) override;
+  void initSolver(ProblemManager &p) override;
 };
 }  // namespace d4

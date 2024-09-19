@@ -92,12 +92,25 @@ int main(int argc, char **argv) {
   initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
   std::cout << "c\n";
 
+  if (vm["translate"].as<std::string>() != "none") {
+    std::cout << "c [TRANSLATION] Translate the input formula: "
+              << vm["input-type"].as<std::string>() << " -> "
+              << vm["translate"].as<std::string>() << '\n';
+    d4::ProblemManager *tmp =
+        initProblem->translate(d4::ProblemTranslateTypeManager::getInputType(
+            vm["translate"].as<std::string>()));
+    delete initProblem;
+    initProblem = tmp;
+  }
+
   // run the method asked.
   d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
 
   // preproc.
-  ProblemManager *problem = d4::MethodManager::runPreproc(
-      parsePreprocConfiguration(vm), initProblem, std::cout);
+  d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
+  configPreproc.inputType = initProblem->getProblemType();
+  ProblemManager *problem =
+      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
 
   // count.
   counterDemo(vm, problem);

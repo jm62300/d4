@@ -19,8 +19,10 @@
 
 #include "GraphExtractor.hpp"
 
+#include "circuit/GraphExtractorCircuitPrimal.hpp"
 #include "cnf/GraphExtractorCnfPrimal.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
 
@@ -31,16 +33,25 @@ GraphExtractor *GraphExtractor::makeGraphExtractor(
     const GraphExtractorMethod &method, bool simplication,
     const ProblemInputType &inType) {
   switch (inType) {
+    case PB_CIRC:
+      switch (method) {
+        case GRAPH_PRIMAL:
+          return new GraphExtractorCircuitPrimal(simplication);
+      }
     case PB_CNF:
       switch (method) {
         case GRAPH_PRIMAL:
           return new GraphExtractorCnfPrimal(simplication);
-        default:
-          break;
       }
-    default:
-      break;
+    case PB_TCNF:
+    case PB_QBF:
+      std::cerr << "This type of formula is not handle yet.\n";
+      exit(ERROR_BAD_TYPE_PROBLEM);
+    case PB_NONE:
+      std::cerr << "This type none is not supported.\n";
+      exit(ERROR_BAD_TYPE_PROBLEM);
   }
+
   throw(FactoryException("Cannot create GraphExtractor", __FILE__, __LINE__));
 }  // makeGraphExtractor
 

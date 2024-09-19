@@ -223,11 +223,7 @@ void ProblemManagerErosionCnf::display(std::ostream &out) {
 }  // diplay
 
 /**
-   Print out some statistic about the problem. Each line will start with the
-   string startLine given in parameter.
-
-   @param[in] out, the stream where the messages are redirected.
-   @param[in] startLine, each line will start with this string.
+ * @brief
  */
 void ProblemManagerErosionCnf::displayStat(std::ostream &out,
                                            std::string startLine) {
@@ -267,5 +263,14 @@ void ProblemManagerErosionCnf::displayStat(std::ostream &out,
   out << startLine << "Number of literals in hard clauses: " << nbHardLits
       << "\n";
 }  // displaystat
+
+/**
+ * @brief ProblemManagerErosionCnf::translate implementation.
+ */
+inline ProblemManager *ProblemManagerErosionCnf::translate(
+    const ProblemTranslateType &t) {
+  assert(t == TRANSLATE_NONE);
+  return this;
+}  // translate
 
 }  // namespace d4

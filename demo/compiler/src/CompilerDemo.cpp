@@ -118,6 +118,7 @@ void compilerDemo(const po::variables_map &vm, ProblemManager *problem) {
 
   config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
+  config.spec.removeGates = vm["remove-gates"].as<bool>();
 
   config.operationType =
       d4::OperationTypeManager::getOperatorType("ddnnf-compiler");

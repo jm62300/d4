@@ -24,15 +24,14 @@
  */
 d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
   d4::ConfigurationPeproc config;
-  config.inputType =
-      d4::InputTypeManager::getInputType(vm["input-type"].as<std::string>());
+  config.inputType = d4::ProblemInputTypeManager::getInputType(
+      vm["input-type"].as<std::string>());
   config.nbIteration = vm["preproc-reducer-iteration"].as<int>();
   config.preprocMethod = d4::PreprocMethodManager::getPreprocMethod(
       vm["preproc"].as<std::string>());
   config.timeout = vm["preproc-timeout"].as<int>();
+  config.strongElim = vm["preproc-strong-elim"].as<bool>();
 
-  config.onlyUseGates = vm["preproc-onlyGates"].as<bool>();
-  config.ordered = vm["preproc-ordered"].as<bool>();
   return config;
 }  // parsePreprocConfiguration
 

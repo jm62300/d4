@@ -145,11 +145,7 @@ void ProblemManagerQbf::display(std::ostream &out) {
 }  // diplay
 
 /**
-   Print out some statistic about the problem. Each line will start with the
-   string startLine given in parameter.
-
-   @param[in] out, the stream where the messages are redirected.
-   @param[in] startLine, each line will start with this string.
+ * @brief ProblemManagerQbf::displayStat implementation.
  */
 void ProblemManagerQbf::displayStat(std::ostream &out, std::string startLine) {
   unsigned nbLits = 0;
@@ -172,5 +168,14 @@ void ProblemManagerQbf::displayStat(std::ostream &out, std::string startLine) {
       << "\n";
   out << startLine << "Number of literals: " << nbLits << "\n";
 }  // displaystat
+
+/**
+ * @brief ProblemManagerQbf::translate implementation.
+ */
+inline ProblemManager *ProblemManagerQbf::translate(
+    const ProblemTranslateType &t) {
+  assert(t == TRANSLATE_NONE);
+  return this;
+}  // translate
 
 }  // namespace d4

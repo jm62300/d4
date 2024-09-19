@@ -94,8 +94,18 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
 
   // - gate_type
   linestream >> nextWord;  // eat 'A' or 'O'
-  assert(nextWord[0] == 'A' || nextWord[0] == 'O');
-  gate.gate_type = (nextWord[0] == 'A') ? BcGateType::AND : BcGateType::OR;
+  assert(nextWord[0] == 'A' || nextWord[0] == 'O' || nextWord[0] == 'I');
+  switch(nextWord[0]) {
+    case 'A':
+      gate.gate_type = BcGateType::AND;
+      break;
+    case 'O':
+      gate.gate_type = BcGateType::OR;
+      break;
+    case 'I':
+      gate.gate_type = BcGateType::IDENTITY;
+      break;
+  }
 
   // - gate_inputs
   //      fill input by converting names to literals
@@ -111,7 +121,7 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
       lits.push_back(litname_map.get_lit(nextWord));
     }
   }
-  assert(lits.size() >= 2);
+  assert(lits.size() >= 2 || (gate.gate_type == BcGateType::IDENTITY && lits.size() == 1));
   std::sort(lits.begin(), lits.end());
   // TODO: QoL check for redundant gate? (e.g., l v -l,  l ^ -l,   l v l,  or l
   // ^ l)
@@ -181,7 +191,7 @@ inline void process_weight_comment(std::string &line, std::string &nextWord,
 }
 
 /**
- * @brief Parse the BC-S1.0 format in order to extract the formula
+ * @brief Parse the BC-S1.2 format in order to extract the formula
  * and literal weights.
  *
  * The BC-S1.0 format is the following:

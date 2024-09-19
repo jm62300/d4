@@ -17,15 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "TreeDecompositionCnfTreeWidth.hpp"
+#include "TreeDecompositionTreeWidth.hpp"
 
 #include "src/representation/graph/Graph.hpp"
 
 namespace d4 {
 /**
- * @brief TreeDecompositionCnfTreeWidth::computeDecomposition implementation.
+ * @brief TreeDecompositionTreeWidth::computeDecomposition implementation.
  */
-TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
+TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(
     FormulaManager &om) {
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
@@ -45,23 +45,24 @@ TreeDecomp *TreeDecompositionCnfTreeWidth::computeDecomposition(
 }  // computeDecomposition
 
 /**
- * @brief TreeDecompositionCnfTreeWidth::TreeDecompositionCnfTreeWidth
+ * @brief TreeDecompositionTreeWidth::TreeDecompositionCnfTreeWidth
  * implementation.
  */
-TreeDecompositionCnfTreeWidth::TreeDecompositionCnfTreeWidth(
+TreeDecompositionTreeWidth::TreeDecompositionTreeWidth(
     const TreeDecompositionerMethod &treeDecompositionerMethod,
-    const GraphExtractorMethod &graphExtractorMethod, bool simplification) {
+    const GraphExtractorMethod &graphExtractorMethod,
+    const ProblemInputType pbType, bool simplification) {
   m_graphExtractor = GraphExtractor::makeGraphExtractor(graphExtractorMethod,
-                                                        simplification, PB_CNF);
+                                                        simplification, pbType);
   m_treeDecompositioner = TreeDecompositioner::makeTreeDecompositionMethod(
       treeDecompositionerMethod);
 }  // constructor.
 
 /**
- * @brief TreeDecompositionCnfTreeWidth::~TreeDecompositionCnfTreeWidth
+ * @brief TreeDecompositionTreeWidth::~TreeDecompositionTreeWidth
  * implementation.
  */
-TreeDecompositionCnfTreeWidth::~TreeDecompositionCnfTreeWidth() {
+TreeDecompositionTreeWidth::~TreeDecompositionTreeWidth() {
   if (m_treeDecompositioner) delete m_treeDecompositioner;
   if (m_graphExtractor) delete m_graphExtractor;
 }  // destructor.

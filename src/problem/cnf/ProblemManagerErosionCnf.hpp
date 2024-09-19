@@ -54,10 +54,20 @@ class ProblemManagerErosionCnf : public ProblemManager {
     m_hardClauses = clauses;
   }
 
+  /**
+   * @brief Print out some statistic about the problem. Each line will start
+   * with the string startLine given in parameter.
+   *
+   * @param[in] out is the stream where the messages are redirected.
+   * @param[in] startLine is the string each line will start with.
+   */
   void displayStat(std::ostream &out, std::string startLine) override;
+
   ProblemManager *getUnsatProblem() override;
   ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
 
-  inline ProblemInputType getProblemType() override { return PB_CNF; }
+  inline ProblemInputType getProblemType() const override { return PB_CNF; }
+
+  inline ProblemManager *translate(const ProblemTranslateType &t) override;
 };
 }  // namespace d4

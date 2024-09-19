@@ -22,9 +22,10 @@
 #include <boost/algorithm/string/split.hpp>
 #include <csignal>
 
-#include "circuit/PreprocCnfFromCircuit.hpp"
+#include "circuit/PreprocBasicCircuit.hpp"
 #include "cnf/PreprocBackboneCnf.hpp"
 #include "cnf/PreprocBasicCnf.hpp"
+#include "cnf/PreprocCompileEquiv.hpp"
 #include "cnf/PreprocEquiv.hpp"
 #include "cnf/PreprocReducer.hpp"
 #include "cnf/PreprocSharpEquiv.hpp"
@@ -46,35 +47,39 @@ PreprocManager* PreprocManager::makePreprocManager(
     const OptionPreprocManager& options, std::ostream& out) {
   out << "c [PREPROC MANAGER]" << options << "\n";
 
-  if (options.inputType == QCNF && options.preprocMethod == SHARP_EQUIV) {
-    out << "c [PREPROC MANAGER] The sharp-equiv preprocessor is not compatible "
-           "with a QBF formula\n";
-    return new PreprocBasicCnf(out);
-  }
-
-  if (options.inputType == DIMACS_CNF || options.inputType == TCNF ||
-      options.inputType == QCNF) {
-    switch (options.preprocMethod) {
-      case BASIC:
+  switch (options.inputType) {
+    case PB_CIRC:
+      return new PreprocBasicCircuit(out);
+    case PB_QBF:
+      if (options.preprocMethod == SHARP_EQUIV) {
+        out << "c [PREPROC MANAGER] The sharp-equiv preprocessor is not "
+               "compatible "
+               "with a QBF formula\n";
         return new PreprocBasicCnf(out);
-      case BACKBONE:
-        return new PreprocBackboneCnf(out);
-      case EQUIV:
-        return new PreprocEquiv(options.nbIteration, out);
-      case SHARP_EQUIV:
-        return new PreprocSharpEquiv(options.nbIteration, out);
-      case VIVI:
-        return new PreprocReducer("vivification", options.nbIteration, out);
-      case OCC_ELIM:
-        return new PreprocReducer("occElimination", options.nbIteration, out);
-      case COMB:
-        return new PreprocReducer("combinaison", options.nbIteration, out);
-    }
-  }
-
-  if (options.inputType == CIRCUIT) {
-    return new PreprocCnfFromCircuit(out);
-  }
+      }
+    case PB_TCNF:
+    case PB_CNF:
+      switch (options.preprocMethod) {
+        case BASIC:
+          return new PreprocBasicCnf(out);
+        case BACKBONE:
+          return new PreprocBackboneCnf(out);
+        case EQUIV:
+          return new PreprocEquiv(options.nbIteration, out);
+        case SHARP_EQUIV:
+          return new PreprocSharpEquiv(options.nbIteration, out);
+        case VIVI:
+          return new PreprocReducer("vivification", options.nbIteration, out);
+        case OCC_ELIM:
+          return new PreprocReducer("occElimination", options.nbIteration, out);
+        case COMB:
+          return new PreprocReducer("combinaison", options.nbIteration, out);
+        case COMPILE_EQUIV:
+          return new PreprocCompileEquiv(options.nbIteration, out);
+      }
+    case PB_NONE:
+      out << "The problem type cannot be NONE\n";
+  };
 
   throw(FactoryException("Cannot create a PreprocManager", __FILE__, __LINE__));
 }  // makePreprocManager

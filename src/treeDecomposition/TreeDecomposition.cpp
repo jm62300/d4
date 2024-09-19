@@ -19,8 +19,8 @@
 
 #include "TreeDecomposition.hpp"
 
-#include "cnf/TreeDecompositionCnfPartition.hpp"
-#include "cnf/TreeDecompositionCnfTreeWidth.hpp"
+#include "TreeDecompositionPartition.hpp"
+#include "TreeDecompositionTreeWidth.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
@@ -76,19 +76,14 @@ std::vector<TreeDecomp *> &TreeDecomp::getSons() { return m_sons; }  // getSons
 TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
     const OptionPartialOrderHeuristic &options, const ProblemInputType &inType,
     std::ostream &out) {
-  switch (inType) {
-    case PB_CNF:
-      switch (options.treeDecompositionMethod) {
-        case TREE_DECOMP_PARTITION:
-          return new TreeDecompositionCnfPartition(
-              options.partitionerName, options.hyperGraphExtractorMethod);
-        case TREE_DECOMP_TREE_WIDTH:
-          return new TreeDecompositionCnfTreeWidth(
-              options.treeDecompositionerMethod, options.graphExtractorMethod,
-              options.useSimpGraphExtractor);
-        default:
-          break;
-      }
+  switch (options.treeDecompositionMethod) {
+    case TREE_DECOMP_PARTITION:
+      return new TreeDecompositionPartition(
+          options.partitionerName, options.hyperGraphExtractorMethod, inType);
+    case TREE_DECOMP_TREE_WIDTH:
+      return new TreeDecompositionTreeWidth(
+          options.treeDecompositionerMethod, options.graphExtractorMethod,
+          inType, options.useSimpGraphExtractor);
     default:
       break;
   }

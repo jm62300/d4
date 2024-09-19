@@ -18,26 +18,24 @@
  */
 #pragma once
 
-#include <ostream>
-
-#include "../PartialOrderHeuristicTreeDecomp.hpp"
+#include "../GraphExtractor.hpp"
+#include "src/formulaManager/circuit/CircuitManager.hpp"
 
 namespace d4 {
-class PartialOrderHeuristicTreeDecompCnf
-    : public PartialOrderHeuristicTreeDecomp {
+class GraphExtractorCircuit : public GraphExtractor {
  public:
-  /**
-   * @brief Constructor.
-   *
-   * @param options gives the list of options.
-   * @param om is the object which deal with the CNF formula.
-   * @param s is a SAT solver associate with the formula under consideration.
-   * @param out is the output stream.
-   */
-  PartialOrderHeuristicTreeDecompCnf(const OptionPartialOrderHeuristic &options,
-                                     CnfManager &om, WrapperSolver &s,
-                                     std::ostream &out);
+  virtual ~GraphExtractorCircuit() {}
 
-  ~PartialOrderHeuristicTreeDecompCnf();
+  /**
+   * @brief Extract the circuit (keeping only information about the
+   * variables).
+   *
+   * @param[in] formula is the formula we want to extract.
+   * @param[in] component is the set of variables under consideration.
+   * @param[out] gates is the set of computed gates.
+   */
+  void extractCircuit(CircuitManager &formula, std::vector<Var> &component,
+                      std::vector<std::vector<int> > &gates);
 };
+
 }  // namespace d4

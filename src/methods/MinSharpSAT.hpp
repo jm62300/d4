@@ -112,14 +112,15 @@ class MinSharpSAT : public MethodManager {
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     // we create the SAT solver.
-    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
+                                                *m_problem, m_out);
     assert(m_solver);
     m_solver->initSolver(*m_problem);
     m_solver->setNeedModel(true);
 
     // we initialize the object that will give info about the problem.
-    m_specs = FormulaManager::makeSpecManager(options.optionSpecManager,
-                                              *m_problem, m_out);
+    m_specs = FormulaManager::makeFormulaManager(options.optionSpecManager,
+                                                 *m_problem, m_out);
     assert(m_specs);
 
     // we initialize the object used to compute score and partition.

@@ -52,7 +52,62 @@ Var EliminatorResolution::selectVarAndPop(
  * @brief generateAllResolution implementation.
  *
  */
-bool EliminatorResolution::generateAllResolution(
+void EliminatorResolution::generateAllResolution(
+    Var v, std::vector<std::vector<Lit>> &clauses,
+    std::vector<std::vector<unsigned>> &occClauses,
+    std::vector<std::vector<Lit>> &result) {
+  Lit l = Lit::makeLitFalse(v);
+  std::vector<Lit> tmp;
+  tmp.reserve(occClauses.size());
+
+  for (auto idxPos : occClauses[l.intern()]) {
+    std::vector<Lit> &clPos = clauses[idxPos];
+    for (auto &m : clPos)
+      if (m != l) m_marked[m.intern()] = true;
+
+    unsigned currentPos = result.size();
+    for (auto &idxNeg : occClauses[(~l).intern()]) {
+      std::vector<Lit> &clNeg = clauses[idxNeg];
+      bool isTaut = false;
+
+      tmp.resize(0);
+      for (auto &m : clNeg) {
+        if (m == ~l) continue;
+        if ((isTaut = m_marked[(~m).intern()])) break;
+        if (!m_marked[m.intern()]) tmp.push_back(m);
+      }
+
+      if (isTaut) continue;
+
+      if (!tmp.size())  // selfSubsum
+      {
+        result.resize(currentPos);
+        result.push_back(std::vector<Lit>());
+        result.back().reserve(clPos.size() - 1);
+        for (auto &m : clPos)
+          if (m != l) result.back().push_back(m);
+        break;
+      }
+
+      if (!isTaut) {
+        result.push_back(std::vector<Lit>());
+        result.back().reserve(clPos.size() - 1 + tmp.size());
+
+        for (auto &m : clPos)
+          if (m != l) result.back().push_back(m);
+        for (auto &m : tmp) result.back().push_back(m);
+      }
+    }
+
+    for (auto &m : clPos) m_marked[m.intern()] = false;
+  }
+}  // generateAllResolution
+
+/**
+ * @brief tryGenerateAllResolution implementation.
+ *
+ */
+bool EliminatorResolution::tryGenerateAllResolution(
     Var v, std::vector<std::vector<Lit>> &clauses,
     std::vector<std::vector<unsigned>> &occClauses,
     std::vector<std::vector<Lit>> &result) {
@@ -115,11 +170,10 @@ bool EliminatorResolution::generateAllResolution(
   }
 
   return true;
-}  // generateAllResolution
+}  // tryGenerateAllResolution
 
 /**
- * @brief eliminate implementation.
- *
+ * @brief EliminatorResolution::eliminate implementation.
  */
 void EliminatorResolution::eliminate(unsigned nbVar,
                                      std::vector<std::vector<Lit>> &clauses,
@@ -167,8 +221,12 @@ void EliminatorResolution::eliminate(unsigned nbVar,
       Var v = selectVarAndPop(inProcess, occClauses);
 
       std::vector<std::vector<Lit>> allResolution;
-      bool canForget =
-          generateAllResolution(v, clauses, occClauses, allResolution);
+      bool canForget = true;
+      if (m_strongElim)
+        generateAllResolution(v, clauses, occClauses, allResolution);
+      else
+        canForget =
+            tryGenerateAllResolution(v, clauses, occClauses, allResolution);
 
       if (!canForget)
         pass.push_back(v);

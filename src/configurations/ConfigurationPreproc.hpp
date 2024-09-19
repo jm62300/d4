@@ -24,10 +24,11 @@
 namespace d4 {
 struct ConfigurationPeproc {
   PreprocMethod preprocMethod = BASIC;
-  InputType inputType = DIMACS_CNF;
+  ProblemInputType inputType = PB_CNF;
   int nbIteration = 1;
   bool ordered = false;
   bool onlyUseGates = false;
+  bool strongElim = false;
   int timeout = 0;
 };
 }  // namespace d4
