@@ -65,8 +65,10 @@ bool PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
   // Options:
   bipe::bipartition::OptionBackbone optionBackbone(false, 0, true, "glucose");
   bipe::bipartition::OptionDac optionDac(false, "glucose");
+
+  std::string order = (option.ordered) ? "NATURAL_ORDER" : "OCC_ASC";
   bipe::bipartition::OptionBipartition optionBipartition(
-      false, true, true, "OCC_ASC", "glucose", 200, 5);
+      false, true, true, order, "glucose", 200, 5);
 
   bipe::bipartition::Bipartition b;
   bipe::Problem *formula = nullptr;
@@ -223,6 +225,10 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   bipe::reducer::Method *rm =
       bipe::reducer::Method::makeMethod("combinaison", std::cout);
 
+  std::vector<bool> markedAsUnit(pcnf.getNbVar() + 1, false);
+  for (auto &g : gates)
+    markedAsUnit[g.output.var()] = g.type == bipe::TypeGate::UNIT;
+
   // the reduction + elimination + reduction phase.
   rm->run(pin->getNbVar(), clauses, 10, false, clauses);
   std::vector<bipe::Lit> eliminated;
@@ -259,6 +265,18 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   // to be sure to expel the removed variables.
   for (auto &l : eliminated)
     clausesAfter.push_back({Lit::makeLit(l.var(), l.sign())});
+
+  // print out the eliminated variables.
+  unsigned cpt = 0;
+  std::cout << "c Removed variables: ";
+  for (auto &l : eliminated)
+    if (!markedAsUnit[l.var()]) {
+      std::cout << l.var() << ' ';
+      cpt++;
+    }
+  std::cout << "0\n";
+  std::cout << "c Number of defined variables removed (not unit): " << cpt
+            << '\n';
 
   delete rm;
   return ret;

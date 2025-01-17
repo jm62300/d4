@@ -34,7 +34,7 @@ HeuristicBipartitionNaturalOrder::HeuristicBipartitionNaturalOrder(
     Problem &p, const std::vector<Lit> &selectors) {
   m_assumptions = selectors;
   sort(m_assumptions.begin(), m_assumptions.end(),
-       [](const Lit &a, const Lit &b) { return a.var() > b.var(); });
+       [](const Lit &a, const Lit &b) { return a.var() < b.var(); });
 }  // constructor
 }  // namespace bipartition
 }  // namespace bipe

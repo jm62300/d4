@@ -31,6 +31,8 @@ d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
       vm["preproc"].as<std::string>());
   config.timeout = vm["preproc-timeout"].as<int>();
   config.strongElim = vm["preproc-strong-elim"].as<bool>();
+  config.onlyUseGates = vm["preproc-onlyGates"].as<bool>();
+  config.ordered = vm["preproc-ordered"].as<bool>();
 
   return config;
 }  // parsePreprocConfiguration
