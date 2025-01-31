@@ -43,8 +43,7 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    * @param out is the output stream.
    */
   PartialOrderHeuristicTreeDecomp(const OptionPartialOrderHeuristic &options,
-                                  FormulaManager &om, WrapperSolver &s,
-                                  std::ostream &out);
+                                  FormulaManager &om, std::ostream &out);
 
   ~PartialOrderHeuristicTreeDecomp();
 

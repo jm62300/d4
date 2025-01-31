@@ -29,14 +29,14 @@ namespace d4 {
  */
 PartialOrderHeuristic *PartialOrderHeuristic::makePartialOrderingHeuristic(
     const OptionPartialOrderHeuristic &options, FormulaManager &s,
-    WrapperSolver &ws, std::ostream &out) {
+    std::ostream &out) {
   out << "c [PARTIAL ORDER HEURISTIC]" << options << "\n";
 
   switch (options.partialOrderMethod) {
     case PARTIAL_ORDER_NONE:
       return new PartialOrderHeuristicNone();
     case PARTIAL_ORDER_TREE_DECOMPOSITION:
-      return new PartialOrderHeuristicTreeDecomp(options, s, ws, out);
+      return new PartialOrderHeuristicTreeDecomp(options, s, out);
   }
 
   throw(FactoryException("Cannot create a PartialOrderHeuristic", __FILE__,

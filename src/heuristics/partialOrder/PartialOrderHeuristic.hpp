@@ -59,17 +59,12 @@ class PartialOrderMethodManager {
 class PartialOrderHeuristic {
  protected:
   unsigned m_nbVar;
-  void computeEquivClass(EquivExtractor &eqManager, WrapperSolver &solver,
-                         std::vector<Var> &component,
-                         std::vector<Lit> &unitEquiv,
-                         std::vector<Var> &equivClass,
-                         std::vector<std::vector<Var>> &equivVar);
 
  public:
   virtual ~PartialOrderHeuristic() {}
   static PartialOrderHeuristic *makePartialOrderingHeuristic(
       const OptionPartialOrderHeuristic &options, FormulaManager &sm,
-      WrapperSolver &ws, std::ostream &out);
+      std::ostream &out);
 
   static PartialOrderHeuristic *makePartitioningHeuristicNone(
       std::ostream &out);

@@ -29,7 +29,7 @@ namespace d4 {
  */
 PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
     const OptionPartialOrderHeuristic &options, FormulaManager &om,
-    WrapperSolver &s, std::ostream &out) {
+    std::ostream &out) {
   TreeDecomposition *decomp = TreeDecomposition::makeTreeDecomposition(
       options, om.getProblemInputType(), out);
 
