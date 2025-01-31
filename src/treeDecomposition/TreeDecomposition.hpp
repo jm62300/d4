@@ -82,7 +82,7 @@ class TreeDecomp {
   void getAllVars(std::vector<Var> &vars) {
     std::vector<bool> marked;
     for (auto &v : vars) {
-      if (marked.size() <= v) marked.resize(v + 1, false);
+      if (marked.size() <= (unsigned)v) marked.resize(v + 1, false);
       marked[v] = true;
     }
 
@@ -90,14 +90,14 @@ class TreeDecomp {
       std::vector<Var> tmp;
       tree->getAllVars(tmp);
       for (auto &v : tmp) {
-        if (marked.size() <= v) marked.resize(v + 1, false);
+        if (marked.size() <= (unsigned)v) marked.resize(v + 1, false);
         if (!marked[v]) vars.push_back(v);
         marked[v] = true;
       }
     }
 
     for (auto &v : m_node)
-      if (v >= marked.size() || !marked[v]) vars.push_back(v);
+      if ((unsigned)v >= marked.size() || !marked[v]) vars.push_back(v);
   }  // getAllVars
 
   /**

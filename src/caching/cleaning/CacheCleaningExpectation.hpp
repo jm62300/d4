@@ -105,10 +105,11 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
    * depending their number of variables.
    */
   void reduceCache() {
+    if (m_cache->MIN_NBVAR_NOTCACHED == 0) return;
     m_nbReduceCall++;
     unsigned limit = m_cache->getLimitVarCached();
 
-    for (int i = limit;
+    for (unsigned i = limit;
          i < m_statVar.size() && i > m_cache->MIN_NBVAR_NOTCACHED; i--) {
       double ratio = 0;
       assert(i < m_statVar.size());

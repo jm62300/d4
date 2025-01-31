@@ -127,7 +127,8 @@ class CnfManagerDyn : public CnfManager {
    * @brief Unmark the clauses' that have been just put into the stack.
    */
   inline void unmarkLastClausesSaved() {
-    for (int i = m_stackPosClause.back(); i < m_savedStateClauses.size(); i++)
+    for (unsigned i = m_stackPosClause.back(); i < m_savedStateClauses.size();
+         i++)
       m_markedClauseIdx[m_savedStateClauses[i].idx] = false;
   }  // unmarkLastClausesSaved
 

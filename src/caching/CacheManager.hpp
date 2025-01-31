@@ -82,7 +82,9 @@ class CacheManager {
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     m_sumDataSize = m_nbEntry = m_nbCreationBucket = 0;
-    verb = m_nbRemoveEntry = sumAffectedHitCache = 0;
+    verb = 0;
+    m_nbRemoveEntry = 0;
+    sumAffectedHitCache = 0;
     m_limitVarCached = (nbVar < MAX_NBVAR_CACHED) ? nbVar : MAX_NBVAR_CACHED;
 
     m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(

@@ -66,9 +66,6 @@ class PartialOrderHeuristic {
       const OptionPartialOrderHeuristic &options, FormulaManager &sm,
       std::ostream &out);
 
-  static PartialOrderHeuristic *makePartitioningHeuristicNone(
-      std::ostream &out);
-
   /**
    * @brief Get the partial order for a given variable.
    *
