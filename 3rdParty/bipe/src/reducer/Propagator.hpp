@@ -85,6 +85,7 @@ class Propagator {
   inline bool getIsUnsat() { return m_isUnsat; }
   inline unsigned getNbVar() { return m_nbVar; }
   inline Imply *litImplied(Lit l) { return m_binListRefs[l.intern()]; }
+  inline Lit *getTrail() { return m_trail; }
   inline unsigned getTrailSize() { return m_trailSize; }
 
   /**
