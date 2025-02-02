@@ -87,7 +87,7 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
     });
 
     // fill the given structure.
-    lits.setListLit(tmp, size);
+    lits.setListLit(tmp, size, m_listLitAllocator);
   } else {
     Var v = var_Undef;
     double bestScore = -1;
@@ -104,10 +104,9 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
 
     if (v != var_Undef) {
       Lit tmp[1] = {Lit::makeLit(v, m_hPhase->selectPhase(v))};
-      lits.setListLit(tmp, 1);
+      lits.setListLit(tmp, 1, m_listLitAllocator);
     } else {
-      lits.setSize(0);
-      lits.setArray(NULL);
+      lits.setListLit(NULL, 0, m_listLitAllocator);
     }
   }
 

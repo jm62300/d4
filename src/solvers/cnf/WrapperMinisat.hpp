@@ -37,7 +37,7 @@ class WrapperMinisat : public WrapperSolver {
   using WrapperSolver::m_isInAssumption;
 
  public:
-  ~WrapperMinisat() override { std::cout << "call the destructor\n"; }
+  ~WrapperMinisat() override {}
 
   void initSolver(ProblemManager &p) override;
   bool solve(std::vector<Var> &setOfVar) override;
