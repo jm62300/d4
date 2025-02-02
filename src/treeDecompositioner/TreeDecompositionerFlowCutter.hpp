@@ -54,8 +54,12 @@ class TreeDecompositionerFlowCutter : public TreeDecompositioner {
    * flow-cutter.
    *
    * @param graph is the graph we want to handle.
+   * @param budget is a time in second the method is run.
+   * @param seed is the seed use if the method use random numbers.
+   *
    * @return a tree decomposition of graph.
    */
-  TreeDecomp *constructTreeDecomposition(Graph &graph) override;
+  TreeDecomp *constructTreeDecomposition(Graph &graph, unsigned budget,
+                                         unsigned seed) override;
 };
 }  // namespace d4

@@ -27,6 +27,8 @@ class TreeDecompositionTreeWidth : public TreeDecomposition {
  private:
   TreeDecompositioner *m_treeDecompositioner = NULL;
   GraphExtractor *m_graphExtractor = NULL;
+  unsigned m_budget;
+  unsigned m_seed;
 
  public:
   /**

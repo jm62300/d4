@@ -84,15 +84,15 @@ void TreeDecompositionerFlowCutter::makeTreeFromGraph(
  * implementation.
  */
 TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
-    Graph &graph) {
+    Graph &graph, unsigned budget, unsigned seed) {
   TreeDecomp *ret = NULL;
 
   // compute the tree decomposition using flow cutter.
   auto start = std::chrono::system_clock::now();
   const char *decomp = NULL;
 
-  decomp =
-      flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11, 100, true);
+  decomp = flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11, budget,
+                                true, seed);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;

@@ -435,6 +435,9 @@ const char* paceMain(unsigned nbNode,
 
     {
       try {
+        std::cout << "c [FLOW-CUTTER] timeout(" << timeout << ") seed("
+                  << random_seed << ")\n";
+
         std::minstd_rand rand_gen;
         rand_gen.seed(random_seed);
 

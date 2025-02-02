@@ -38,8 +38,8 @@ TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(
   Graph graph;
   m_graphExtractor->constructGraph(om, component, graph);
 
-  TreeDecomp *treeDecomp =
-      m_treeDecompositioner->constructTreeDecomposition(graph);
+  TreeDecomp *treeDecomp = m_treeDecompositioner->constructTreeDecomposition(
+      graph, m_budget, m_seed);
 
   return treeDecomp;
 }  // computeDecomposition
@@ -57,6 +57,9 @@ TreeDecompositionTreeWidth::TreeDecompositionTreeWidth(
                                                         simplification, pbType);
   m_treeDecompositioner = TreeDecompositioner::makeTreeDecompositionMethod(
       treeDecompositionerMethod);
+
+  m_budget = budget;
+  m_seed = seed;
 }  // constructor.
 
 /**
