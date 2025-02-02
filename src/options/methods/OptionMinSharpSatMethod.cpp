@@ -25,7 +25,9 @@ namespace d4 {
  * @brief OptionMinSharpSat::OptionMinSharpSat implementation.
  */
 OptionMinSharpSatMethod::OptionMinSharpSatMethod(
-    const ConfigurationMinSharpSatMathod& config) {
+    const ConfigurationMinSharpSatMathod& config)
+    : optionBranchingHeuristicMin(config.branchingHeuristicMin),
+      optionBranchingHeuristicInd(config.branchingHeuristicInd) {
   // general options.
   greedyInitActivated = config.greedyInitActivated;
   digOnAnd = config.digOnAnd;
@@ -36,13 +38,9 @@ OptionMinSharpSatMethod::OptionMinSharpSatMethod(
   // options about the max level.
   randomPhaseHeuristicMin = config.randomPhaseHeuristicMin;
   phaseHeuristicMin = config.phaseHeuristicMin;
-  optionBranchingHeuristicMin =
-      OptionBranchingHeuristic(config.branchingHeuristicMin);
   optionCacheManagerMin = OptionCacheManager(config.cacheManagerMin);
 
   // options about the ind level.
-  optionBranchingHeuristicInd =
-      OptionBranchingHeuristic(config.branchingHeuristicInd);
   optionCacheManagerInd = OptionCacheManager(config.cacheManagerInd);
 }
 

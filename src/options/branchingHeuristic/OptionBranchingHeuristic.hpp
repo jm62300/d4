@@ -114,6 +114,13 @@ class BranchingHeuristicTypeManager {
 };
 
 class OptionBranchingHeuristic {
+  /**
+   * @brief Construct a new Option Branching Heuristic object with the default
+   * configuration.
+   *
+   */
+  OptionBranchingHeuristic();
+
  public:
   OptionPartialOrderHeuristic optionPartialOrderHeuristic;
   ScoringMethodType scoringMethodType;
@@ -124,14 +131,7 @@ class OptionBranchingHeuristic {
   unsigned freqDecay;
   unsigned limitSizeClause;
 
-  /**
-   * @brief Construct a new Option Branching Heuristic object with the default
-   * configuration.
-   *
-   */
-  OptionBranchingHeuristic();
-
-  /**
+    /**
    * @brief Construct a new Option Branching Heuristic object with a given
    * configuration.
    *

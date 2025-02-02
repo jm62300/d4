@@ -35,7 +35,6 @@ class OptionDpllStyleMethod {
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
   OptionBranchingHeuristic optionBranchingHeuristic;
-  OptionPartialOrderHeuristic optionPartialOrderHeuristic;
   bool exploitModel;
 
   /**

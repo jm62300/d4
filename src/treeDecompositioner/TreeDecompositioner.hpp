@@ -62,6 +62,7 @@ class TreeDecompositioner {
    * @brief Compute a tree decomposition regarding a given graph.
    *
    * @param graph is the graph we want to handle.
+   *
    * @return a tree decomposition of graph.
    */
   virtual TreeDecomp *constructTreeDecomposition(Graph &graph) = 0;

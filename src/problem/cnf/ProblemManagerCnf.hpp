@@ -30,7 +30,7 @@ class ProblemManagerCnf : public ProblemManager, public CnfMatrix {
 
   ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
                     std::vector<mpz::mpf_float> &weightVar,
-                    std::vector<Var> &selected);
+                    const std::vector<Var> &selected = std::vector<Var>());
 
   ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
                     std::vector<mpz::mpf_float> &weightVar,

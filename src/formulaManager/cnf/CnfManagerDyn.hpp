@@ -62,8 +62,6 @@ class CnfManagerDyn : public CnfManager {
   std::vector<SavedStateClause> m_savedStateClauses;
   std::vector<unsigned> m_stackPosOcc, m_stackPosClause;
 
-  void initClauses(std::vector<std::vector<Lit>> &clauses);
-
   /**
    * @brief Remove from the formula the given set of satisfied clauses.
    *

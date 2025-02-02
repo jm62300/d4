@@ -23,6 +23,8 @@
 #include "TreeDecompositionTreeWidth.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecompositionBiPartition.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecompositionFlowCutter.hpp"
 
 namespace d4 {
 
@@ -76,20 +78,7 @@ std::vector<TreeDecomp *> &TreeDecomp::getSons() { return m_sons; }  // getSons
 TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
     const OptionPartialOrderHeuristic &options, const ProblemInputType &inType,
     std::ostream &out) {
-  switch (options.treeDecompositionMethod) {
-    case TREE_DECOMP_PARTITION:
-      return new TreeDecompositionPartition(
-          options.partitionerName, options.hyperGraphExtractorMethod, inType);
-    case TREE_DECOMP_TREE_WIDTH:
-      return new TreeDecompositionTreeWidth(
-          options.treeDecompositionerMethod, options.graphExtractorMethod,
-          inType, options.useSimpGraphExtractor);
-    default:
-      break;
-  }
-
-  throw(FactoryException("Cannot create a TreeDecomposition", __FILE__,
-                         __LINE__));
+  return options.optionTreeDecomposition->createTreeDecomposition(inType);
 }  // makeTreeDecomposition
 
 }  // namespace d4

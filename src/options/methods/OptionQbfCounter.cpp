@@ -24,17 +24,10 @@ namespace d4 {
 /**
  * @brief OptionQbfCounter::OptionQbfCounter implementation.
  */
-OptionQbfCounter::OptionQbfCounter(const ConfigurationQbfCounter& config) {
+OptionQbfCounter::OptionQbfCounter(const ConfigurationQbfCounter& config)
+    : optionBranchingHeuristic(config.branchingHeuristic) {
   // Cache Options:
   optionCacheManager = OptionCacheManager(config.cache);
-
-  // Branching heuristic:
-  optionBranchingHeuristic =
-      OptionBranchingHeuristic(config.branchingHeuristic);
-
-  // Partitioning heuristic:
-  optionPartialOrderHeuristic =
-      OptionPartialOrderHeuristic(config.partitioningHeuristic);
 
   optionSolver = {config.solver.solverName};
 

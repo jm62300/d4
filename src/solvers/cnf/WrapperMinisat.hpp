@@ -26,7 +26,7 @@
 namespace d4 {
 class WrapperMinisat : public WrapperSolver {
  protected:
-  minisat::Solver s;
+  minisat::Solver m_solver;
   minisat::vec<minisat::Var> m_setOfVar_m;
 
   std::vector<Lit> m_assumption;
@@ -37,6 +37,8 @@ class WrapperMinisat : public WrapperSolver {
   using WrapperSolver::m_isInAssumption;
 
  public:
+  ~WrapperMinisat() override { std::cout << "call the destructor\n"; }
+
   void initSolver(ProblemManager &p) override;
   bool solve(std::vector<Var> &setOfVar) override;
   bool solve() override;

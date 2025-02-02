@@ -22,11 +22,7 @@
 
 #include "src/exceptions/FactoryException.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
-#include "src/partitioner/PartitionerManager.hpp"
-#include "src/representation/graph/GraphExtractor.hpp"
-#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
-#include "src/treeDecomposition/TreeDecomposition.hpp"
-#include "src/treeDecompositioner/TreeDecompositioner.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecomposition.hpp"
 
 namespace d4 {
 
@@ -34,21 +30,21 @@ class ConfigurationPartialOrderHeuristic;
 enum PartialOrderHeuristicMethod : char;
 
 class OptionPartialOrderHeuristic {
- public:
-  PartialOrderHeuristicMethod partialOrderMethod;
-  PartitionerName partitionerName;
-  HyperGraphExtractorMethod hyperGraphExtractorMethod;
-  TreeDecompositionMethod treeDecompositionMethod;
-  TreeDecompositionerMethod treeDecompositionerMethod;
-  GraphExtractorMethod graphExtractorMethod;
-  bool useSimpGraphExtractor;
-
   /**
    * @brief Construct a new Option Partitioning Heuristic object with the
    * default configuration.
    *
    */
   OptionPartialOrderHeuristic();
+
+ public:
+  PartialOrderHeuristicMethod partialOrderMethod;
+  OptionTreeDecomposition* optionTreeDecomposition = NULL;
+
+  /**
+   * @brief Destroy the object.
+   */
+  ~OptionPartialOrderHeuristic();
 
   /**
    * @brief Construct a new Option Partitioning Heuristic object with the given

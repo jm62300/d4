@@ -26,7 +26,9 @@ namespace d4 {
  *
  * @param config
  */
-OptionEREMethod::OptionEREMethod(const ConfigurationEREMethod& config) {
+OptionEREMethod::OptionEREMethod(const ConfigurationEREMethod& config)
+    : optionBranchingHeuristicExist(config.branchingHeuristicExist),
+      optionBranchingHeuristicRandom(config.branchingHeuristicRandom) {
   // general options.
   greedyInitActivated = config.greedyInitActivated;
   digOnAnd = config.digOnAnd;
@@ -38,14 +40,10 @@ OptionEREMethod::OptionEREMethod(const ConfigurationEREMethod& config) {
   cutExist = config.cutExist;
   phaseHeuristicBestExist = config.phaseHeuristicBestExist;
   randomPhaseHeuristicExist = config.randomPhaseHeuristicExist;
-  optionBranchingHeuristicExist =
-      OptionBranchingHeuristic(config.branchingHeuristicExist);
   optionCacheManagerExist = OptionCacheManager(config.cacheManagerExist);
 
   // options about the random level.
   computeComponentOnRandom = config.computeComponentOnRandom;
-  optionBranchingHeuristicRandom =
-      OptionBranchingHeuristic(config.branchingHeuristicRandom);
   optionCacheManagerRandom = OptionCacheManager(config.cacheManagerRandom);
 }  // constructor
 

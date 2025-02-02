@@ -25,7 +25,9 @@ namespace d4 {
  * @brief OptionMaxSharpSat::OptionMaxSharpSat implementation.
  */
 OptionMaxSharpSatMethod::OptionMaxSharpSatMethod(
-    const ConfigurationMaxSharpSatMathod& config) {
+    const ConfigurationMaxSharpSatMathod& config)
+    : optionBranchingHeuristicMax(config.branchingHeuristicMax),
+      optionBranchingHeuristicInd(config.branchingHeuristicInd) {
   // general options.
   greedyInitActivated = config.greedyInitActivated;
   digOnAnd = config.digOnAnd;
@@ -36,13 +38,9 @@ OptionMaxSharpSatMethod::OptionMaxSharpSatMethod(
   // options about the max level.
   randomPhaseHeuristicMax = config.randomPhaseHeuristicMax;
   phaseHeuristicMax = config.phaseHeuristicMax;
-  optionBranchingHeuristicMax =
-      OptionBranchingHeuristic(config.branchingHeuristicMax);
   optionCacheManagerMax = OptionCacheManager(config.cacheManagerMax);
 
   // options about the ind level.
-  optionBranchingHeuristicInd =
-      OptionBranchingHeuristic(config.branchingHeuristicInd);
   optionCacheManagerInd = OptionCacheManager(config.cacheManagerInd);
 }
 

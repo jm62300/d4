@@ -44,8 +44,6 @@ void BranchingHeuristicClassic::selectLitSet(std::vector<Var> &vars,
     }
   }
 
-  // std::cout << '\n';
-
   // return the list of lit (here one).
   if (v != var_Undef) {
     Lit tmp[] = {Lit::makeLit(v, m_hPhase->selectPhase(v))};

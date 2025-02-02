@@ -199,6 +199,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
       // select the root.
       ret = setOfTrees[center];
     }
+    delete[] decomp;
   }
 
   assert(ret);

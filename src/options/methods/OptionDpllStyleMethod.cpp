@@ -27,16 +27,13 @@ namespace d4 {
  * @brief OptionDpllStyleMethod::OptionDpllStyleMethod implementation.
  */
 OptionDpllStyleMethod::OptionDpllStyleMethod(
-    const ConfigurationDpllStyleMethod& config) {
+    const ConfigurationDpllStyleMethod& config)
+    : optionBranchingHeuristic(config.branchingHeuristic) {
   // Operator used:
   optionOperationManager.operatorType = config.operationType;
 
   // Cache Options:
   optionCacheManager = OptionCacheManager(config.cache);
-
-  // Branching heuristic:
-  optionBranchingHeuristic =
-      OptionBranchingHeuristic(config.branchingHeuristic);
 
   // Set the solver.
   optionSolver = {config.solver.solverName};

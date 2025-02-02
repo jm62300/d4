@@ -69,6 +69,7 @@ void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
       else
         std::cout << "c s exact arb int " << result << "\n";
     }
+    exit(0);  // stop faster than cleaning the memory!
   } else {
     assert(outFormat == "classic");
     std::cout << format << " ";

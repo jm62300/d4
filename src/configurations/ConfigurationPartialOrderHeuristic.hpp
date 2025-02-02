@@ -19,6 +19,11 @@
 #pragma once
 
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
+#include "src/partitioner/PartitionerManager.hpp"
+#include "src/representation/graph/GraphExtractor.hpp"
+#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
+#include "src/treeDecomposition/TreeDecomposition.hpp"
+#include "src/treeDecompositioner/TreeDecompositioner.hpp"
 
 namespace d4 {
 

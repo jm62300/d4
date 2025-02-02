@@ -117,7 +117,7 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar,
 ProblemManagerCnf::ProblemManagerCnf(int nbVar,
                                      std::vector<mpz::mpf_float> &weightLit,
                                      std::vector<mpz::mpf_float> &weightVar,
-                                     std::vector<Var> &selected) {
+                                     const std::vector<Var> &selected) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;

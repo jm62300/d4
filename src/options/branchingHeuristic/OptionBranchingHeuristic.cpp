@@ -37,14 +37,13 @@ OptionBranchingHeuristic::OptionBranchingHeuristic()
  * @param config is the configuration used to fill the option structure.
  */
 OptionBranchingHeuristic::OptionBranchingHeuristic(
-    const ConfigurationBranchingHeuristic& config) {
+    const ConfigurationBranchingHeuristic& config)
+    : optionPartialOrderHeuristic(config.configurationPartialOrderHeuristic) {
   scoringMethodType = config.scoringMethodType;
   phaseHeuristicType = config.phaseHeuristicType;
   branchingHeuristicType = config.branchingHeuristicType;
   reversePhase = config.reversePhase;
   freqDecay = config.freqDecay;
   limitSizeClause = config.limitSizeClause;
-  optionPartialOrderHeuristic =
-      OptionPartialOrderHeuristic(config.configurationPartialOrderHeuristic);
 }  // constructor
 }  // namespace d4

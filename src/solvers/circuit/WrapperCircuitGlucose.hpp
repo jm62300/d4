@@ -18,9 +18,9 @@
  */
 #pragma once
 
-#include "../cnf/WrapperGlucose.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/solvers/cnf/WrapperGlucose.hpp"
 
 namespace d4 {
 class WrapperCircuitGlucose : public WrapperGlucose {

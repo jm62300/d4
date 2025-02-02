@@ -34,7 +34,6 @@ class OptionQbfCounter {
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
   OptionBranchingHeuristic optionBranchingHeuristic;
-  OptionPartialOrderHeuristic optionPartialOrderHeuristic;
 
   /**
    * @brief Construct a new object with the default parameter.

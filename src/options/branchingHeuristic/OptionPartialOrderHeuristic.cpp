@@ -20,6 +20,8 @@
 #include "OptionPartialOrderHeuristic.hpp"
 
 #include "src/configurations/ConfigurationPartialOrderHeuristic.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecompositionBiPartition.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecompositionFlowCutter.hpp"
 
 namespace d4 {
 /**
@@ -40,13 +42,32 @@ OptionPartialOrderHeuristic::OptionPartialOrderHeuristic()
 OptionPartialOrderHeuristic::OptionPartialOrderHeuristic(
     const ConfigurationPartialOrderHeuristic& config) {
   partialOrderMethod = config.partialOrderMethod;
-  partitionerName = config.partitionerName;
-  treeDecompositionMethod = config.treeDecompositionMethod;
-  treeDecompositionerMethod = config.treeDecompositionerMethod;
-  hyperGraphExtractorMethod = config.hyperGraphExtractorMethod;
-  graphExtractorMethod = config.graphExtractorMethod;
-  useSimpGraphExtractor = config.useSimpGraphExtractor;
+
+  switch (config.treeDecompositionMethod) {
+    case TREE_DECOMP_PARTITION: {
+      optionTreeDecomposition = new OptionTreeDecompositionBiPartition(
+          config.partitionerName, config.hyperGraphExtractorMethod);
+      break;
+    }
+    case TREE_DECOMP_TREE_WIDTH: {
+      optionTreeDecomposition = new OptionTreeDecompositionFlowCutter(
+          config.treeDecompositionerMethod, config.graphExtractorMethod,
+          config.useSimpGraphExtractor);
+      break;
+    }
+    default:
+      assert(0);
+  }
 }  // constructor.
+
+/**
+ * @brief OptionPartialOrderHeuristic::~OptionPartialOrderHeuristic
+ * implementation.
+ *
+ */
+OptionPartialOrderHeuristic::~OptionPartialOrderHeuristic() {
+  if (optionTreeDecomposition) delete optionTreeDecomposition;
+}  // destructor
 
 /**
  * @brief Redefinition of <<
@@ -56,26 +77,7 @@ std::ostream& operator<<(std::ostream& out,
   out << " Option Partitioning Heuristic:"
       << " method("
       << PartialOrderMethodManager::getPartialOrderMethod(dt.partialOrderMethod)
-      << ")"
-      << " partitioner name("
-      << PartitionerNameManager::getPartitionerName(dt.partitionerName) << ")"
-      << " tree decomposition method("
-      << TreeDecompositionMethodManager::getTreeDecompositionMethod(
-             dt.treeDecompositionMethod)
-      << ")"
-      << " tree decompositioner method("
-      << TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
-             dt.treeDecompositionerMethod)
-      << ")"
-      << " hyper graph representation("
-      << HyperGraphExtractorMethodManager::getHyperGraphExtractorMethodManager(
-             dt.hyperGraphExtractorMethod)
-      << ")"
-      << " graph representation("
-      << GraphExtractorMethodManager::getGraphExtractorMethodManager(
-             dt.graphExtractorMethod)
-      << ")"
-      << " graph extractor simplification(" << dt.useSimpGraphExtractor << ")";
+      << ")" << dt.optionTreeDecomposition << ")";
   return out;
 }  // <<
 

@@ -39,20 +39,28 @@ WrapperSolver *WrapperSolver::makeWrapperSolver(const OptionSolver &options,
   switch (p.getProblemType()) {
     case PB_CIRC:
       switch (options.solverName) {
-        case MINISAT_CNF:
+        case MINISAT_CNF: {
           ret = new WrapperCircuitMinisat();
-        case GLUCOSE_CNF:
+          break;
+        }
+        case GLUCOSE_CNF: {
           ret = new WrapperCircuitGlucose();
+          break;
+        }
       }
       break;
     case PB_TCNF:
     case PB_CNF:
     case PB_QBF:
       switch (options.solverName) {
-        case MINISAT_CNF:
+        case MINISAT_CNF: {
           ret = new WrapperMinisat();
-        case GLUCOSE_CNF:
+          break;
+        }
+        case GLUCOSE_CNF: {
           ret = new WrapperGlucose();
+          break;
+        }
       }
       break;
     case PB_NONE:
@@ -61,7 +69,6 @@ WrapperSolver *WrapperSolver::makeWrapperSolver(const OptionSolver &options,
   }
 
   return ret;
-  throw(FactoryException("Cannot create a WrapperSolver", __FILE__, __LINE__));
 }  // makeWrapperSolver
 
 /**

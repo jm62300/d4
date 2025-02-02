@@ -49,7 +49,7 @@ namespace Glucose {
 // Solver -- the main class:
 
 class Solver {
-public:
+ public:
   std::ostream *cert;
 
   // Constructor/Destructor:
@@ -60,36 +60,38 @@ public:
   // Problem specification:
   //
   Var newVar(bool polarity = true,
-             bool dvar = true); // Add a new variable with parameters specifying
-                                // variable mode.
+             bool dvar = true);  // Add a new variable with parameters
+                                 // specifying variable mode.
 
-  bool addClause(const vec<Lit> &ps); // Add a clause to the solver.
+  bool addClause(const vec<Lit> &ps);  // Add a clause to the solver.
   bool
-  addEmptyClause(); // Add the empty clause, making the solver contradictory.
-  bool addClause(Lit p);               // Add a unit clause to the solver.
-  bool addClause(Lit p, Lit q);        // Add a binary clause to the solver.
-  bool addClause(Lit p, Lit q, Lit r); // Add a ternary clause to the solver.
+  addEmptyClause();  // Add the empty clause, making the solver contradictory.
+  bool addClause(Lit p);                // Add a unit clause to the solver.
+  bool addClause(Lit p, Lit q);         // Add a binary clause to the solver.
+  bool addClause(Lit p, Lit q, Lit r);  // Add a ternary clause to the solver.
   bool addClause_(
-      vec<Lit> &ps); // Add a clause to the solver without making superflous
-                     // internal copy. Will change the passed vector 'ps'.
+      vec<Lit> &ps);  // Add a clause to the solver without making superflous
+                      // internal copy. Will change the passed vector 'ps'.
 
   // Solving:
   //
-  bool simplify();                     // Removes already satisfied clauses.
-  bool solve(const vec<Lit> &assumps); // Search for a model that respects a
-                                       // given set of assumptions.
+  bool simplify();                      // Removes already satisfied clauses.
+  bool solve(const vec<Lit> &assumps);  // Search for a model that respects a
+                                        // given set of assumptions.
   lbool solveLimited(
-      const vec<Lit> &assumps); // Search for a model that respects a given set
-                                // of assumptions (With resource constraints).
-  bool solve();                 // Search without assumptions.
-  bool solve(Lit p); // Search for a model that respects a single assumption.
-  bool solve(Lit p, Lit q); // Search for a model that respects two assumptions.
+      const vec<Lit> &assumps);  // Search for a model that respects a given set
+                                 // of assumptions (With resource constraints).
+  bool solve();                  // Search without assumptions.
+  bool solve(Lit p);  // Search for a model that respects a single assumption.
+  bool solve(Lit p,
+             Lit q);  // Search for a model that respects two assumptions.
   bool solve(Lit p, Lit q,
-             Lit r); // Search for a model that respects three assumptions.
-  bool okay() const; // FALSE means solver is in a conflicting state
+             Lit r);  // Search for a model that respects three assumptions.
+  bool okay() const;  // FALSE means solver is in a conflicting state
 
-  void toDimacs(FILE *f,
-                const vec<Lit> &assumps); // Write CNF to file in DIMACS-format.
+  void toDimacs(
+      FILE *f,
+      const vec<Lit> &assumps);  // Write CNF to file in DIMACS-format.
   void toDimacs(const char *file, const vec<Lit> &assumps);
   void toDimacs(FILE *f, Clause &c, vec<Var> &map, Var &max);
   void printLit(Lit l);
@@ -103,28 +105,28 @@ public:
 
   // Variable mode:
   //
-  void
-  setPolarity(Var v,
-              bool b); // Declare which polarity the decision heuristic should
-                       // use for a variable. Requires mode 'polarity_user'.
+  void setPolarity(
+      Var v,
+      bool b);  // Declare which polarity the decision heuristic should
+                // use for a variable. Requires mode 'polarity_user'.
   void setDecisionVar(Var v,
-                      bool b); // Declare if a variable should be eligible for
-                               // selection in the decision heuristic.
+                      bool b);  // Declare if a variable should be eligible for
+                                // selection in the decision heuristic.
 
   // Read state:
   //
-  lbool value(Var x) const; // The current value of a variable.
-  lbool value(Lit p) const; // The current value of a literal.
-  lbool
-  modelValue(Var x) const; // The value of a variable in the last model. The
-                           // last call to solve must have been satisfiable.
-  lbool
-  modelValue(Lit p) const; // The value of a literal in the last model. The last
-                           // call to solve must have been satisfiable.
-  int nAssigns() const;    // The current number of assigned literals.
-  int nClauses() const;    // The current number of original clauses.
-  int nLearnts() const;    // The current number of learnt clauses.
-  int nVars() const;       // The current number of variables.
+  lbool value(Var x) const;  // The current value of a variable.
+  lbool value(Lit p) const;  // The current value of a literal.
+  lbool modelValue(
+      Var x) const;  // The value of a variable in the last model. The
+                     // last call to solve must have been satisfiable.
+  lbool modelValue(
+      Lit p) const;      // The value of a literal in the last model. The last
+                         // call to solve must have been satisfiable.
+  int nAssigns() const;  // The current number of assigned literals.
+  int nClauses() const;  // The current number of original clauses.
+  int nLearnts() const;  // The current number of learnt clauses.
+  int nVars() const;     // The current number of variables.
   int nFreeVars() const;
 
   // Incremental mode
@@ -137,9 +139,9 @@ public:
   void setConfBudget(int64_t x);
   void setPropBudget(int64_t x);
   void budgetOff();
-  void interrupt(); // Trigger a (potentially asynchronous) interruption of the
-                    // solver.
-  void clearInterrupt(); // Clear interrupt indicator flag.
+  void interrupt();  // Trigger a (potentially asynchronous) interruption of the
+                     // solver.
+  void clearInterrupt();  // Clear interrupt indicator flag.
 
   // Memory managment:
   //
@@ -149,11 +151,11 @@ public:
 
   // Extra results: (read-only member variable)
   //
-  vec<lbool> model; // If problem is satisfiable, this vector contains the model
-                    // (if any).
-  vec<Lit> conflict; // If problem is unsatisfiable (possibly under
-                     // assumptions), this vector represent the final conflict
-                     // clause expressed in the assumptions.
+  vec<lbool> model;  // If problem is satisfiable, this vector contains the
+                     // model (if any).
+  vec<Lit> conflict;  // If problem is unsatisfiable (possibly under
+                      // assumptions), this vector represent the final conflict
+                      // clause expressed in the assumptions.
 
   // Mode of operation:
   //
@@ -180,15 +182,15 @@ public:
   double clause_decay;
   double random_var_freq;
   double random_seed;
-  int ccmin_mode;   // Controls conflict clause minimization (0=none, 1=basic,
-                    // 2=deep).
-  int phase_saving; // Controls the level of phase saving (0=none, 1=limited,
-                    // 2=full).
-  bool rnd_pol;     // Use random polarities for branching heuristics.
-  bool
-      rnd_init_act; // Initialize variable activities with a small random value.
-  double garbage_frac; // The fraction of wasted memory allowed before a garbage
-                       // collection is triggered.
+  int ccmin_mode;     // Controls conflict clause minimization (0=none, 1=basic,
+                      // 2=deep).
+  int phase_saving;   // Controls the level of phase saving (0=none, 1=limited,
+                      // 2=full).
+  bool rnd_pol;       // Use random polarities for branching heuristics.
+  bool rnd_init_act;  // Initialize variable activities with a small random
+                      // value.
+  double garbage_frac;  // The fraction of wasted memory allowed before a
+                        // garbage collection is triggered.
 
   // Certified UNSAT ( Thanks to Marijn Heule)
   FILE *certifiedOutput;
@@ -203,7 +205,7 @@ public:
   uint64_t dec_vars, clauses_literals, learnts_literals, max_literals,
       tot_literals;
 
-public:
+ public:
   long curRestart;
   // Helper structures:
   //
@@ -239,47 +241,47 @@ public:
   // Solver state:
   //
   int lastIndexRed;
-  bool ok; // If FALSE, the constraints are already unsatisfiable. No part of
-           // the solver state may be used!
-  double cla_inc; // Amount to bump next clause with.
+  bool ok;  // If FALSE, the constraints are already unsatisfiable. No part of
+            // the solver state may be used!
+  double cla_inc;  // Amount to bump next clause with.
   vec<double>
-      activity;   // A heuristic measurement of the activity of a variable.
-  double var_inc; // Amount to bump next variable with.
+      activity;    // A heuristic measurement of the activity of a variable.
+  double var_inc;  // Amount to bump next variable with.
   OccLists<Lit, vec<Watcher>, WatcherDeleted>
-      watches; // 'watches[lit]' is a list of constraints watching 'lit' (will
-               // go there if literal becomes true).
+      watches;  // 'watches[lit]' is a list of constraints watching 'lit' (will
+                // go there if literal becomes true).
   OccLists<Lit, vec<Watcher>, WatcherDeleted>
-      watchesBin;    // 'watches[lit]' is a list of constraints watching 'lit'
-                     // (will go there if literal becomes true).
-  vec<CRef> clauses; // List of problem clauses.
-  vec<CRef> learnts; // List of learnt clauses.
+      watchesBin;     // 'watches[lit]' is a list of constraints watching 'lit'
+                      // (will go there if literal becomes true).
+  vec<CRef> clauses;  // List of problem clauses.
+  vec<CRef> learnts;  // List of learnt clauses.
 
-  vec<lbool> assigns; // The current assignments.
-  vec<char> polarity; // The preferred polarity of each variable.
-  vec<char> decision; // Declares if a variable is eligible for selection in the
-                      // decision heuristic.
-  vec<Lit> trail; // Assignment stack; stores all assigments made in the order
-                  // they were made.
+  vec<lbool> assigns;  // The current assignments.
+  vec<char> polarity;  // The preferred polarity of each variable.
+  vec<char> decision;  // Declares if a variable is eligible for selection in
+                       // the decision heuristic.
+  vec<Lit> trail;  // Assignment stack; stores all assigments made in the order
+                   // they were made.
   vec<int> nbpos;
   vec<int>
-      trail_lim; // Separator indices for different decision levels in 'trail'.
-  vec<VarData> vardata; // Stores reason and level for each variable.
-  int qhead; // Head of queue (as index into the trail -- no more explicit
-             // propagation queue in MiniSat).
-  int simpDB_assigns; // Number of top-level assignments since last execution of
-                      // 'simplify()'.
-  int64_t simpDB_props; // Remaining number of propagations that must be made
-                        // before next execution of 'simplify()'.
+      trail_lim;  // Separator indices for different decision levels in 'trail'.
+  vec<VarData> vardata;  // Stores reason and level for each variable.
+  int qhead;  // Head of queue (as index into the trail -- no more explicit
+              // propagation queue in MiniSat).
+  int simpDB_assigns;  // Number of top-level assignments since last execution
+                       // of 'simplify()'.
+  int64_t simpDB_props;  // Remaining number of propagations that must be made
+                         // before next execution of 'simplify()'.
   vec<Lit>
-      assumptions; // Current set of assumptions provided to solve by the user.
-  Heap<VarOrderLt> order_heap; // A priority queue of variables ordered with
-                               // respect to the variable activity.
-  double progress_estimate;    // Set by 'search()'.
-  bool remove_satisfied; // Indicates whether possibly inefficient linear scan
-                         // for satisfied clauses should be performed in
-                         // 'simplify'.
-  vec<unsigned int> permDiff; // permDiff[var] contains the current conflict
-                              // number... Used to count the number of  LBD
+      assumptions;  // Current set of assumptions provided to solve by the user.
+  Heap<VarOrderLt> order_heap;  // A priority queue of variables ordered with
+                                // respect to the variable activity.
+  double progress_estimate;     // Set by 'search()'.
+  bool remove_satisfied;  // Indicates whether possibly inefficient linear scan
+                          // for satisfied clauses should be performed in
+                          // 'simplify'.
+  vec<unsigned int> permDiff;  // permDiff[var] contains the current conflict
+                               // number... Used to count the number of  LBD
 
 #ifdef UPDATEVARACTIVITY
   // UPDATEVARACTIVITY trick (see competition'09 companion paper)
@@ -288,11 +290,11 @@ public:
 
   ClauseAllocator ca;
 
-  int nbclausesbeforereduce; // To know when it is time to reduce clause
-                             // database
+  int nbclausesbeforereduce;  // To know when it is time to reduce clause
+                              // database
 
-  bqueue<unsigned int> trailQueue, lbdQueue; // Bounded queues for restarts.
-  float sumLBD; // used to compute the global average of LBD. Restarts...
+  bqueue<unsigned int> trailQueue, lbdQueue;  // Bounded queues for restarts.
+  float sumLBD;  // used to compute the global average of LBD. Restarts...
   int sumAssumptions;
 
   // Temporaries (to reduce allocation overhead). Each variable is prefixed by
@@ -311,14 +313,14 @@ public:
 
   // Resource contraints:
   //
-  int64_t conflict_budget;    // -1 means no budget.
-  int64_t propagation_budget; // -1 means no budget.
+  int64_t conflict_budget;     // -1 means no budget.
+  int64_t propagation_budget;  // -1 means no budget.
   bool asynch_interrupt;
 
   // Variables added for incremental mode
-  int incremental;          // Use incremental SAT Solver
-  int nbVarsInitialFormula; // nb VAR in formula without assumptions
-                            // (incremental SAT)
+  int incremental;           // Use incremental SAT Solver
+  int nbVarsInitialFormula;  // nb VAR in formula without assumptions
+                             // (incremental SAT)
   double totalTime4Sat, totalTime4Unsat;
   int nbSatCalls, nbUnsatCalls;
   vec<int> assumptionPositions, initialPositions;
@@ -326,26 +328,26 @@ public:
   // Main internal methods:
   //
   void insertVarOrder(
-      Var x); // Insert a variable in the decision order priority queue.
-  Lit pickBranchLit();     // Return the next decision variable.
-  void newDecisionLevel(); // Begins a new decision level.
-  void
-  uncheckedEnqueue(Lit p,
-                   CRef from = CRef_Undef); // Enqueue a literal. Assumes value
-                                            // of literal is undefined.
+      Var x);  // Insert a variable in the decision order priority queue.
+  Lit pickBranchLit();      // Return the next decision variable.
+  void newDecisionLevel();  // Begins a new decision level.
+  void uncheckedEnqueue(
+      Lit p,
+      CRef from = CRef_Undef);  // Enqueue a literal. Assumes value
+                                // of literal is undefined.
   bool enqueue(Lit p,
-               CRef from = CRef_Undef); // Test if fact 'p' contradicts current
-                                        // state, enqueue otherwise.
-  CRef
-  propagate(); // Perform unit propagation. Returns possibly conflicting clause.
-  void cancelUntil(int level); // Backtrack until a certain level.
+               CRef from = CRef_Undef);  // Test if fact 'p' contradicts current
+                                         // state, enqueue otherwise.
+  CRef propagate();  // Perform unit propagation. Returns possibly conflicting
+                     // clause.
+  void cancelUntil(int level);  // Backtrack until a certain level.
   void analyze(CRef confl, vec<Lit> &out_learnt, vec<Lit> &selectors,
                int &out_btlevel, unsigned int &nblevels,
-               unsigned int &szWithoutSelectors); // (bt = backtrack)
+               unsigned int &szWithoutSelectors);  // (bt = backtrack)
   void analyzeFinal(
       Lit p,
-      vec<Lit> &out_conflict); // COULD THIS BE IMPLEMENTED BY THE ORDINARIY
-                               // "analyze" BY SOME REASONABLE GENERALIZATION?
+      vec<Lit> &out_conflict);  // COULD THIS BE IMPLEMENTED BY THE ORDINARIY
+                                // "analyze" BY SOME REASONABLE GENERALIZATION?
   bool
   // (helper method for 'analyze()')
   litRedundant(Lit p, uint32_t abstract_levels);
@@ -367,29 +369,29 @@ public:
   // Maintaining Variable/Clause activity:
   //
   void
-  varDecayActivity(); // Decay all variables with the specified factor.
-                      // Implemented by increasing the 'bump' value instead.
+  varDecayActivity();  // Decay all variables with the specified factor.
+                       // Implemented by increasing the 'bump' value instead.
   void varBumpActivity(
-      Var v, double inc); // Increase a variable with the current 'bump' value.
+      Var v, double inc);  // Increase a variable with the current 'bump' value.
+  void varBumpActivity(
+      Var v);  // Increase a variable with the current 'bump' value.
   void
-  varBumpActivity(Var v); // Increase a variable with the current 'bump' value.
-  void
-  claDecayActivity(); // Decay all clauses with the specified factor.
-                      // Implemented by increasing the 'bump' value instead.
+  claDecayActivity();  // Decay all clauses with the specified factor.
+                       // Implemented by increasing the 'bump' value instead.
   void claBumpActivity(
-      Clause &c); // Increase a clause with the current 'bump' value.
+      Clause &c);  // Increase a clause with the current 'bump' value.
 
   // Operations on clauses:
   //
-  void attachClause(CRef cr); // Attach a clause to watcher lists.
+  void attachClause(CRef cr);  // Attach a clause to watcher lists.
   void detachClause(CRef cr,
-                    bool strict = false); // Detach a clause to watcher lists.
-  void removeClause(CRef cr);             // Detach and free a clause.
-  bool
-  locked(const Clause &c) const; // Returns TRUE if a clause is a reason for
-                                 // some implication in the current state.
+                    bool strict = false);  // Detach a clause to watcher lists.
+  void removeClause(CRef cr);              // Detach and free a clause.
+  bool locked(
+      const Clause &c) const;  // Returns TRUE if a clause is a reason for
+                               // some implication in the current state.
   bool satisfied(const Clause &c)
-      const; // Returns TRUE if a clause is satisfied in the current state.
+      const;  // Returns TRUE if a clause is satisfied in the current state.
 
   unsigned int computeLBD(const vec<Lit> &lits, int end = -1);
   unsigned int computeLBD(const Clause &c);
@@ -399,12 +401,12 @@ public:
 
   // Misc:
   //
-  int decisionLevel() const; // Gives the current decisionlevel.
+  int decisionLevel() const;  // Gives the current decisionlevel.
   uint32_t abstractLevel(Var x)
-      const; // Used to represent an abstraction of sets of decision levels.
+      const;  // Used to represent an abstraction of sets of decision levels.
   CRef reason(Var x) const;
   int level(Var x) const;
-  double progressEstimate() const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
+  double progressEstimate() const;  // DELETE THIS ?? IT'S NOT VERY USEFUL ...
   bool withinBudget() const;
   inline bool isSelector(Var v) {
     return (incremental && v > nbVarsInitialFormula);
@@ -439,28 +441,26 @@ public:
     v.copyTo(problemVariable);
     stampInTheHeap++;
     for (int j = 0; j < v.size(); j++)
-      if (value(v[j]) == l_Undef)
-        inTheHeap[v[j]] = stampInTheHeap;
+      if (value(v[j]) == l_Undef) inTheHeap[v[j]] = stampInTheHeap;
     rebuildOrderHeap();
-  } // rebuidWithConnectedComponent
+  }  // rebuidWithConnectedComponent
 
   inline void rebuildWithAllVar() {
     problemVariable.setSize(0);
     stampInTheHeap++;
     for (Var v = 0; v < nVars(); v++) {
-      if (value(v) != l_Undef)
-        continue;
+      if (value(v) != l_Undef) continue;
       inTheHeap[v] = stampInTheHeap;
       problemVariable.push(v);
     }
     rebuildOrderHeap();
-  } // rebuildWithAllVar
+  }  // rebuildWithAllVar
 
   inline bool solveWithAssumptions() {
     budgetOff();
     bool ret = solve_(false) == l_True;
     return ret;
-  } // solveWithAssumptions
+  }  // solveWithAssumptions
 
   /**
    * @brief Propagate the assumption.
@@ -482,13 +482,12 @@ public:
 
   inline bool isAssigned(Var v) { return value(v) != l_Undef; }
   inline Lit litAssigned(Var v) {
-    if (value(v) == l_Undef)
-      return lit_Undef;
+    if (value(v) == l_Undef) return lit_Undef;
     return mkLit(v, value(v) == l_False);
   }
 
   void analyzeLastUIP(CRef confl, vec<Lit> &out_learnt,
-                      int &out_btlevel); // (bt = backtrack)
+                      int &out_btlevel);  // (bt = backtrack)
 
   bool needModel = false;
   inline void setNeedModel(bool b) { needModel = b; }
@@ -536,11 +535,10 @@ public:
     while (decisionLevel() < assumptions.size()) {
       Lit p = assumptions[decisionLevel()];
       newDecisionLevel();
-      if (value(p) == l_Undef)
-        uncheckedEnqueue(p);
+      if (value(p) == l_Undef) uncheckedEnqueue(p);
       propagate();
     }
-  } // insertClauseAndPropagate
+  }  // insertClauseAndPropagate
 };
 
 //=================================================================================================
@@ -550,8 +548,7 @@ inline CRef Solver::reason(Var x) const { return vardata[x].reason; }
 inline int Solver::level(Var x) const { return vardata[x].level; }
 
 inline void Solver::insertVarOrder(Var x) {
-  if (!order_heap.inHeap(x) && decision[x])
-    order_heap.insert(x);
+  if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x);
 }
 
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
@@ -560,30 +557,26 @@ inline void Solver::varBumpActivity(Var v, double inc) {
   scoreActivity[v] += 1;
   if ((activity[v] += inc) > 1e100) {
     // Rescale:
-    for (int i = 0; i < nVars(); i++)
-      activity[i] *= 1e-100;
+    for (int i = 0; i < nVars(); i++) activity[i] *= 1e-100;
     var_inc *= 1e-100;
   }
 
   // Update order_heap with respect to new activity:
-  if (order_heap.inHeap(v))
-    order_heap.decrease(v);
+  if (order_heap.inHeap(v)) order_heap.decrease(v);
 }
 
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity(Clause &c) {
   if ((c.activity() += cla_inc) > 1e20) {
     // Rescale:
-    for (int i = 0; i < learnts.size(); i++)
-      ca[learnts[i]].activity() *= 1e-20;
+    for (int i = 0; i < learnts.size(); i++) ca[learnts[i]].activity() *= 1e-20;
     cla_inc *= 1e-20;
   }
 }
 
 inline void Solver::checkGarbage(void) { return checkGarbage(garbage_frac); }
 inline void Solver::checkGarbage(double gf) {
-  if (ca.wasted() > ca.size() * gf)
-    garbageCollect();
+  if (ca.wasted() > ca.size() * gf) garbageCollect();
 }
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
@@ -760,6 +753,6 @@ inline void Solver::printInitialClause(CRef cr) {
 }
 
 //=================================================================================================
-} // namespace Glucose
+}  // namespace Glucose
 
 #endif
