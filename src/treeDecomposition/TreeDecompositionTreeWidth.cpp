@@ -51,7 +51,8 @@ TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(
 TreeDecompositionTreeWidth::TreeDecompositionTreeWidth(
     const TreeDecompositionerMethod &treeDecompositionerMethod,
     const GraphExtractorMethod &graphExtractorMethod,
-    const ProblemInputType pbType, bool simplification) {
+    const ProblemInputType pbType, bool simplification, unsigned budget,
+    unsigned seed) {
   m_graphExtractor = GraphExtractor::makeGraphExtractor(graphExtractorMethod,
                                                         simplification, pbType);
   m_treeDecompositioner = TreeDecompositioner::makeTreeDecompositionMethod(

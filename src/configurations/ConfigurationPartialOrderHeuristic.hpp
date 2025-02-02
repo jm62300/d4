@@ -37,5 +37,7 @@ struct ConfigurationPartialOrderHeuristic {
   HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
   GraphExtractorMethod graphExtractorMethod = GRAPH_PRIMAL;
   bool useSimpGraphExtractor = true;
+  unsigned budget = 100;
+  unsigned seed = 2911;
 };
 }  // namespace d4

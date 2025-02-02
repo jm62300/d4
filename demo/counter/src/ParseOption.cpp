@@ -138,5 +138,10 @@ d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
   partialOrderHeuristic.useSimpGraphExtractor =
       vm["partialOrder-heuristic-representation-simplication"].as<bool>();
 
+  partialOrderHeuristic.budget =
+      vm["partialOrder-heuristic-budget"].as<unsigned>();
+
+  partialOrderHeuristic.seed = vm["partialOrder-heuristic-seed"].as<unsigned>();
+
   return partialOrderHeuristic;
 }  // parsePartitioningHeuristicConfiguration

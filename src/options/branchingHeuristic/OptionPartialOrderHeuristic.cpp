@@ -52,7 +52,7 @@ OptionPartialOrderHeuristic::OptionPartialOrderHeuristic(
     case TREE_DECOMP_TREE_WIDTH: {
       optionTreeDecomposition = new OptionTreeDecompositionPace(
           config.treeDecompositionerMethod, config.graphExtractorMethod,
-          config.useSimpGraphExtractor);
+          config.useSimpGraphExtractor, config.budget, config.seed);
       break;
     }
     default:
@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& out,
   out << " Option Partitioning Heuristic:"
       << " method("
       << PartialOrderMethodManager::getPartialOrderMethod(dt.partialOrderMethod)
-      << ")" << dt.optionTreeDecomposition << ")";
+      << ") " << *dt.optionTreeDecomposition;
   return out;
 }  // <<
 

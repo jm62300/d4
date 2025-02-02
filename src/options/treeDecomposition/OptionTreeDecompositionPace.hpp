@@ -29,6 +29,8 @@ class OptionTreeDecompositionPace : public OptionTreeDecomposition {
   TreeDecompositionerMethod m_treeDecompositionTool;
   GraphExtractorMethod m_graphExtractorMethod;
   bool m_useSimpGraphExtractor;
+  unsigned m_budget = 100;
+  unsigned m_seed = 2911;
 
  protected:
   /**
@@ -41,23 +43,28 @@ class OptionTreeDecompositionPace : public OptionTreeDecomposition {
 
  public:
   /**
-   * @brief Constructs an OptionTreeDecompositionPace object, which is a
-   * specialized type of OptionTreeDecomposition.
+   * @brief Constructs an OptionTreeDecompositionPace object, a specialized
+   *        variant of OptionTreeDecomposition.
    *
-   * This constructor initializes the tree decomposition method, the graph
-   * extraction method, and specifies whether to apply simplifications to the
-   * extracted graph before computing its tree decomposition.
+   * This constructor initializes the tree decomposition method, graph
+   * extraction technique, and whether to apply simplifications to the extracted
+   * graph before computing its tree decomposition. Additionally, it sets the
+   * computation budget (timeout) and a random seed for stochastic methods.
    *
-   * @param treeDecompositionerMethod The method used to compute the tree
-   *        decomposition.
-   * @param graphExtractorMethod The method used to extract the graph from the
-   *        CNF formula.
-   * @param useSimpGraphExtractor A boolean indicating whether to apply
-   *        simplifications to the extracted graph before processing.
+   * @param treeDecompositionerMethod The algorithm used for computing the tree
+   * decomposition.
+   * @param graphExtractorMethod The approach used to extract the graph from the
+   * CNF formula.
+   * @param useSimpGraphExtractor Specifies whether to apply graph
+   * simplifications before decomposition.
+   * @param budget The maximum allowed computation time (in seconds) for tree
+   * decomposition.
+   * @param seed A random seed for methods incorporating randomness.
    */
   OptionTreeDecompositionPace(
       TreeDecompositionerMethod treeDecompositionerMethod,
-      GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor);
+      GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor,
+      unsigned budget, unsigned seed);
 
   /**
    * @brief Creates a TreeDecompositionPartition object.

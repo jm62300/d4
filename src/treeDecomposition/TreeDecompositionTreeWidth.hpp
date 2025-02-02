@@ -37,11 +37,14 @@ class TreeDecompositionTreeWidth : public TreeDecomposition {
    * @param pbType is the type of problem we are handling (CNF, Circuit, ...).
    * @param simplication is set to true if the graph extractor use some kind of
    * simplification.
+   * @param budget is a time in second the method is run.
+   * @param seed is the seed use if the method use random numbers.
    */
   TreeDecompositionTreeWidth(
       const TreeDecompositionerMethod &treeDecompositionerMethod,
       const GraphExtractorMethod &graphExtractorMethod,
-      const ProblemInputType pbType, bool simplication);
+      const ProblemInputType pbType, bool simplication, unsigned budget,
+      unsigned seed);
 
   /**
    * @brief Destroy the Tree Decomposition Cnf Tree Width object

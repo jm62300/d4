@@ -28,10 +28,13 @@ namespace d4 {
  */
 OptionTreeDecompositionPace::OptionTreeDecompositionPace(
     TreeDecompositionerMethod treeDecompositionTool,
-    GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor)
+    GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor,
+    unsigned budget, unsigned seed)
     : m_treeDecompositionTool(treeDecompositionTool),
       m_graphExtractorMethod(graphExtractorMethod),
-      m_useSimpGraphExtractor(useSimpGraphExtractor) {
+      m_useSimpGraphExtractor(useSimpGraphExtractor),
+      m_budget(budget),
+      m_seed(seed) {
   m_treeDecompositionMethod = TREE_DECOMP_TREE_WIDTH;
 }  // constructor
 
@@ -39,6 +42,14 @@ OptionTreeDecompositionPace::OptionTreeDecompositionPace(
  * @brief OptionTreeDecompositionPace::display implementation.
  */
 void OptionTreeDecompositionPace::display(std::ostream& out) const {
+  out << "tree-decomp-tool("
+      << TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
+             m_treeDecompositionTool)
+      << ") graph-extractor("
+      << GraphExtractorMethodManager::getGraphExtractorMethodManager(
+             m_graphExtractorMethod)
+      << ") simplification(" << m_useSimpGraphExtractor << ") budget("
+      << m_budget << ") seed(" << m_seed << ")\n";
 }  // display
 
 /**
@@ -47,9 +58,9 @@ void OptionTreeDecompositionPace::display(std::ostream& out) const {
  */
 TreeDecomposition* OptionTreeDecompositionPace::createTreeDecomposition(
     const ProblemInputType& inType) {
-  return new TreeDecompositionTreeWidth(m_treeDecompositionTool,
-                                        m_graphExtractorMethod, inType,
-                                        m_useSimpGraphExtractor);
+  return new TreeDecompositionTreeWidth(
+      m_treeDecompositionTool, m_graphExtractorMethod, inType,
+      m_useSimpGraphExtractor, m_budget, m_seed);
 }  // createTreeDecomposition
 
 }  // namespace d4
