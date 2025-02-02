@@ -17,16 +17,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "OptionTreeDecompositionFlowCutter.hpp"
+#include "OptionTreeDecompositionPace.hpp"
 
 #include "src/treeDecomposition/TreeDecompositionTreeWidth.hpp"
 
 namespace d4 {
 /**
- * @brief OptionTreeDecompositionFlowCutter::OptionTreeDecompositionFlowCutter
+ * @brief OptionTreeDecompositionPace::OptionTreeDecompositionPace
  * implementation.
  */
-OptionTreeDecompositionFlowCutter::OptionTreeDecompositionFlowCutter(
+OptionTreeDecompositionPace::OptionTreeDecompositionPace(
     TreeDecompositionerMethod treeDecompositionTool,
     GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor)
     : m_treeDecompositionTool(treeDecompositionTool),
@@ -36,16 +36,16 @@ OptionTreeDecompositionFlowCutter::OptionTreeDecompositionFlowCutter(
 }  // constructor
 
 /**
- * @brief OptionTreeDecompositionFlowCutter::display implementation.
+ * @brief OptionTreeDecompositionPace::display implementation.
  */
-void OptionTreeDecompositionFlowCutter::display(std::ostream& out) const {
+void OptionTreeDecompositionPace::display(std::ostream& out) const {
 }  // display
 
 /**
- * @brief OptionTreeDecompositionFlowCutter::createTreeDecomposition
+ * @brief OptionTreeDecompositionPace::createTreeDecomposition
  * implementation.
  */
-TreeDecomposition* OptionTreeDecompositionFlowCutter::createTreeDecomposition(
+TreeDecomposition* OptionTreeDecompositionPace::createTreeDecomposition(
     const ProblemInputType& inType) {
   return new TreeDecompositionTreeWidth(m_treeDecompositionTool,
                                         m_graphExtractorMethod, inType,

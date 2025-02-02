@@ -24,7 +24,7 @@
 #include "src/treeDecompositioner/TreeDecompositioner.hpp"
 
 namespace d4 {
-class OptionTreeDecompositionFlowCutter : public OptionTreeDecomposition {
+class OptionTreeDecompositionPace : public OptionTreeDecomposition {
  private:
   TreeDecompositionerMethod m_treeDecompositionTool;
   GraphExtractorMethod m_graphExtractorMethod;
@@ -41,7 +41,7 @@ class OptionTreeDecompositionFlowCutter : public OptionTreeDecomposition {
 
  public:
   /**
-   * @brief Constructs an OptionTreeDecompositionFlowCutter object, which is a
+   * @brief Constructs an OptionTreeDecompositionPace object, which is a
    * specialized type of OptionTreeDecomposition.
    *
    * This constructor initializes the tree decomposition method, the graph
@@ -55,7 +55,7 @@ class OptionTreeDecompositionFlowCutter : public OptionTreeDecomposition {
    * @param useSimpGraphExtractor A boolean indicating whether to apply
    *        simplifications to the extracted graph before processing.
    */
-  OptionTreeDecompositionFlowCutter(
+  OptionTreeDecompositionPace(
       TreeDecompositionerMethod treeDecompositionerMethod,
       GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor);
 

@@ -24,7 +24,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/options/treeDecomposition/OptionTreeDecompositionBiPartition.hpp"
-#include "src/options/treeDecomposition/OptionTreeDecompositionFlowCutter.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecompositionPace.hpp"
 
 namespace d4 {
 

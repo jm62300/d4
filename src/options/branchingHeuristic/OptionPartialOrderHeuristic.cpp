@@ -21,7 +21,7 @@
 
 #include "src/configurations/ConfigurationPartialOrderHeuristic.hpp"
 #include "src/options/treeDecomposition/OptionTreeDecompositionBiPartition.hpp"
-#include "src/options/treeDecomposition/OptionTreeDecompositionFlowCutter.hpp"
+#include "src/options/treeDecomposition/OptionTreeDecompositionPace.hpp"
 
 namespace d4 {
 /**
@@ -50,7 +50,7 @@ OptionPartialOrderHeuristic::OptionPartialOrderHeuristic(
       break;
     }
     case TREE_DECOMP_TREE_WIDTH: {
-      optionTreeDecomposition = new OptionTreeDecompositionFlowCutter(
+      optionTreeDecomposition = new OptionTreeDecompositionPace(
           config.treeDecompositionerMethod, config.graphExtractorMethod,
           config.useSimpGraphExtractor);
       break;
