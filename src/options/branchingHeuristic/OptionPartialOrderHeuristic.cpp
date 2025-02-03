@@ -52,7 +52,8 @@ OptionPartialOrderHeuristic::OptionPartialOrderHeuristic(
     case TREE_DECOMP_TREE_WIDTH: {
       optionTreeDecomposition = new OptionTreeDecompositionPace(
           config.treeDecompositionerMethod, config.graphExtractorMethod,
-          config.useSimpGraphExtractor, config.budget, config.seed);
+          config.useSimpGraphExtractor, config.budget, config.seed,
+          config.verbosity);
       break;
     }
     default:

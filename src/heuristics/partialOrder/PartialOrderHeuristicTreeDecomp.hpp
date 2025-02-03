@@ -32,6 +32,7 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
  protected:
   double m_scaleFactor;
   std::vector<unsigned> m_topologicalOrder;
+  unsigned m_treeWidth;
 
  public:
   /**
@@ -60,6 +61,13 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
   inline unsigned getPartialOrder(Var v) override {
     return m_topologicalOrder[v];
   }  // getPartialOrder
+
+  /**
+   * @brief Retrieves the computed tree width of the decomposition.
+   *
+   * @return The tree width of the current tree decomposition.
+   */
+  inline unsigned getTreeWidth() { return m_treeWidth; }
 
   /**
    * @brief The scale factor depends the size of the cutset.

@@ -29,6 +29,7 @@ class TreeDecompositionTreeWidth : public TreeDecomposition {
   GraphExtractor *m_graphExtractor = NULL;
   unsigned m_budget;
   unsigned m_seed;
+  bool m_verbose;
 
  public:
   /**
@@ -41,12 +42,13 @@ class TreeDecompositionTreeWidth : public TreeDecomposition {
    * simplification.
    * @param budget is a time in second the method is run.
    * @param seed is the seed use if the method use random numbers.
+   * @param verbose controls the verbosity.
    */
   TreeDecompositionTreeWidth(
       const TreeDecompositionerMethod &treeDecompositionerMethod,
       const GraphExtractorMethod &graphExtractorMethod,
       const ProblemInputType pbType, bool simplication, unsigned budget,
-      unsigned seed);
+      unsigned seed, bool verbose);
 
   /**
    * @brief Destroy the Tree Decomposition Cnf Tree Width object

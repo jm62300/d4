@@ -39,7 +39,7 @@ TreeDecomp *TreeDecompositionTreeWidth::computeDecomposition(
   m_graphExtractor->constructGraph(om, component, graph);
 
   TreeDecomp *treeDecomp = m_treeDecompositioner->constructTreeDecomposition(
-      graph, m_budget, m_seed);
+      graph, m_budget, m_seed, m_verbose);
 
   return treeDecomp;
 }  // computeDecomposition
@@ -52,7 +52,7 @@ TreeDecompositionTreeWidth::TreeDecompositionTreeWidth(
     const TreeDecompositionerMethod &treeDecompositionerMethod,
     const GraphExtractorMethod &graphExtractorMethod,
     const ProblemInputType pbType, bool simplification, unsigned budget,
-    unsigned seed) {
+    unsigned seed, bool verbose) {
   m_graphExtractor = GraphExtractor::makeGraphExtractor(graphExtractorMethod,
                                                         simplification, pbType);
   m_treeDecompositioner = TreeDecompositioner::makeTreeDecompositionMethod(
@@ -60,6 +60,7 @@ TreeDecompositionTreeWidth::TreeDecompositionTreeWidth(
 
   m_budget = budget;
   m_seed = seed;
+  m_verbose = verbose;
 }  // constructor.
 
 /**

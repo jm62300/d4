@@ -39,5 +39,6 @@ struct ConfigurationPartialOrderHeuristic {
   bool useSimpGraphExtractor = true;
   unsigned budget = 100;
   unsigned seed = 2911;
+  bool verbosity = false;
 };
 }  // namespace d4

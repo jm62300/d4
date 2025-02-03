@@ -56,10 +56,12 @@ class TreeDecompositionerFlowCutter : public TreeDecompositioner {
    * @param graph is the graph we want to handle.
    * @param budget is a time in second the method is run.
    * @param seed is the seed use if the method use random numbers.
+   * @param verbosity controls the verbosity.
    *
    * @return a tree decomposition of graph.
    */
   TreeDecomp *constructTreeDecomposition(Graph &graph, unsigned budget,
-                                         unsigned seed) override;
+                                         unsigned seed,
+                                         bool verbosity) override;
 };
 }  // namespace d4

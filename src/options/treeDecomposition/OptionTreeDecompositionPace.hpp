@@ -31,6 +31,7 @@ class OptionTreeDecompositionPace : public OptionTreeDecomposition {
   bool m_useSimpGraphExtractor;
   unsigned m_budget = 100;
   unsigned m_seed = 2911;
+  bool m_verbosity = false;
 
  protected:
   /**
@@ -60,11 +61,12 @@ class OptionTreeDecompositionPace : public OptionTreeDecomposition {
    * @param budget The maximum allowed computation time (in seconds) for tree
    * decomposition.
    * @param seed A random seed for methods incorporating randomness.
+   * @param verbosity controls the verbosity.
    */
   OptionTreeDecompositionPace(
       TreeDecompositionerMethod treeDecompositionerMethod,
       GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor,
-      unsigned budget, unsigned seed);
+      unsigned budget, unsigned seed, bool verbosity);
 
   /**
    * @brief Creates a TreeDecompositionPartition object.

@@ -64,11 +64,13 @@ class TreeDecompositioner {
    * @param graph is the graph we want to handle.
    * @param budget is a time in second the method is run.
    * @param seed is the seed use if the method use random numbers.
+   * @param verbose controls the verbosity.
    *
    * @return a tree decomposition of graph.
    */
   virtual TreeDecomp *constructTreeDecomposition(Graph &graph, unsigned budget,
-                                                 unsigned seed) = 0;
+                                                 unsigned seed,
+                                                 bool verbose) = 0;
 };
 
 }  // namespace d4

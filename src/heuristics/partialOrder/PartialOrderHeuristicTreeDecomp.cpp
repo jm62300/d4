@@ -64,6 +64,7 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
 
     level++;
   }
+  m_treeWidth = largestBag;
 
   if (largestBag < 30)
     m_scaleFactor = 100000000;

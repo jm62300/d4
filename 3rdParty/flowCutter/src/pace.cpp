@@ -359,7 +359,7 @@ void test_new_order(const ArrayIDIDFunc& order) {
 const char* paceMain(unsigned nbNode,
                      std::vector<std::pair<unsigned, unsigned>>& graph,
                      int maxNbTrail, unsigned timeout, bool rageQuit,
-                     int random_seed) {
+                     int random_seed, bool verbose) {
   signal(SIGALRM, signal_handler);
 
   try {
@@ -435,8 +435,9 @@ const char* paceMain(unsigned nbNode,
 
     {
       try {
-        std::cout << "c [FLOW-CUTTER] timeout(" << timeout << ") seed("
-                  << random_seed << ")\n";
+        if (verbose)
+          std::cout << "c [FLOW-CUTTER] timeout(" << timeout << ") seed("
+                    << random_seed << ")\n";
 
         std::minstd_rand rand_gen;
         rand_gen.seed(random_seed);
@@ -456,24 +457,27 @@ const char* paceMain(unsigned nbNode,
           compute_multilevel_partition(
               tail, head, flow_cutter::ComputeSeparator(config), best_bag_size,
               on_new_multilevel_partition);
-          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
-                    << '\n';
+          if (verbose)
+            std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                      << '\n';
         }
 
         if (node_count < 50000) {
-          print_comment("[FLOW-CUTTER SOFT] min degree heuristic");
+          if (verbose) print_comment("[FLOW-CUTTER SOFT] min degree heuristic");
           test_new_order(
               chain(compute_greedy_min_degree_order(tail, head), inv_preorder));
-          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
-                    << '\n';
+          if (verbose)
+            std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                      << '\n';
         }
 
         if (node_count < 10000 && (!rageQuit || best_bag_size < 300)) {
           print_comment("[FLOW-CUTTER SOFT] min shortcut heuristic");
           test_new_order(chain(compute_greedy_min_shortcut_order(tail, head),
                                inv_preorder));
-          std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
-                    << '\n';
+          if (verbose)
+            std::cout << "c [FLOW-CUTTER SOFT] Tree width: " << best_bag_size
+                      << '\n';
         }
 
         {
@@ -488,13 +492,15 @@ const char* paceMain(unsigned nbNode,
               flow_cutter::Config::SeparatorSelection::node_min_expansion;
 
           int nbFail = 1;
-          std::cout << "c [FLOW-CUTTER SOFT BEFORE ITE] Tree width: "
-                    << best_bag_size << '\n';
+          if (verbose)
+            std::cout << "c [FLOW-CUTTER SOFT BEFORE ITE] Tree width: "
+                      << best_bag_size << '\n';
 
           auto end = std::chrono::system_clock::now();
           std::chrono::duration<double> elapsed_seconds = end - start;
-          std::cout << "c [FLOW-CUTTER SOFT] Elapsed time: "
-                    << elapsed_seconds.count() << "s" << std::endl;
+          if (verbose)
+            std::cout << "c [FLOW-CUTTER SOFT] Elapsed time: "
+                      << elapsed_seconds.count() << "s" << std::endl;
 
           for (int i = 2; nbFail < maxNbTrail && !tle; ++i) {
             config.random_seed = rand_gen();
@@ -523,11 +529,13 @@ const char* paceMain(unsigned nbNode,
             if (saveBestBagSize <= best_bag_size) {
               nbFail++;
             } else {
-              std::cout << "c [FLOW-CUTTER SOFT ITE] Tree width: "
-                        << best_bag_size << '\n';
+              if (verbose)
+                std::cout << "c [FLOW-CUTTER SOFT ITE] Tree width: "
+                          << best_bag_size << '\n';
               nbFail = 0;
-              std::cout << "c [FLOW-CUTTER SOFT] Elapsed time: "
-                        << elapsed_seconds.count() << "s" << std::endl;
+              if (verbose)
+                std::cout << "c [FLOW-CUTTER SOFT] Elapsed time: "
+                          << elapsed_seconds.count() << "s" << std::endl;
             }
 
             if (timeout && timeout < elapsed_seconds.count()) break;

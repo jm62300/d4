@@ -142,6 +142,8 @@ d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
       vm["partialOrder-heuristic-budget"].as<unsigned>();
 
   partialOrderHeuristic.seed = vm["partialOrder-heuristic-seed"].as<unsigned>();
+  partialOrderHeuristic.verbosity =
+      vm["partialOrder-heuristic-verbosity"].as<bool>();
 
   return partialOrderHeuristic;
 }  // parsePartitioningHeuristicConfiguration

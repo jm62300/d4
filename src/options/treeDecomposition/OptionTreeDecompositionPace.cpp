@@ -29,12 +29,13 @@ namespace d4 {
 OptionTreeDecompositionPace::OptionTreeDecompositionPace(
     TreeDecompositionerMethod treeDecompositionTool,
     GraphExtractorMethod graphExtractorMethod, bool useSimpGraphExtractor,
-    unsigned budget, unsigned seed)
+    unsigned budget, unsigned seed, bool verbosity)
     : m_treeDecompositionTool(treeDecompositionTool),
       m_graphExtractorMethod(graphExtractorMethod),
       m_useSimpGraphExtractor(useSimpGraphExtractor),
       m_budget(budget),
-      m_seed(seed) {
+      m_seed(seed),
+      m_verbosity(verbosity) {
   m_treeDecompositionMethod = TREE_DECOMP_TREE_WIDTH;
 }  // constructor
 
@@ -60,7 +61,7 @@ TreeDecomposition* OptionTreeDecompositionPace::createTreeDecomposition(
     const ProblemInputType& inType) {
   return new TreeDecompositionTreeWidth(
       m_treeDecompositionTool, m_graphExtractorMethod, inType,
-      m_useSimpGraphExtractor, m_budget, m_seed);
+      m_useSimpGraphExtractor, m_budget, m_seed, m_verbosity);
 }  // createTreeDecomposition
 
 }  // namespace d4
