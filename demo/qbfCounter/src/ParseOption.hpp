@@ -24,7 +24,7 @@
 #include "src/configurations/Configuration.hpp"
 #include "src/configurations/ConfigurationBranchingHeuristic.hpp"
 #include "src/configurations/ConfigurationCache.hpp"
-#include "src/configurations/ConfigurationPartitioningHeuristic.hpp"
+#include "src/configurations/ConfigurationPartialOrderHeuristic.hpp"
 
 namespace po = boost::program_options;
 

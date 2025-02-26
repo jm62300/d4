@@ -35,17 +35,29 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
   BranchingHeuristicLargeArity() = delete;
 
   /**
-   * @brief Construct a new Branching Heuristic object.
+   * @brief Constructs a new large-arity branching heuristic.
    *
-   * @param options are the options.
-   * @param problem gives the problem we are considering.
-   * @param specs gives the real time information about the formula.
-   * @param solver the solver (used for VSADS/VSIDS)
-   * @param out is the stream where are printed out the information.
+   * This constructor initializes a branching heuristic designed to handle
+   * decision-making in SAT solvers, particularly when dealing with high-arity
+   * constraints. It integrates variable activity tracking and polarity
+   * selection strategies to improve search efficiency.
+   *
+   * @param[in] options The configuration options for the branching heuristic.
+   * @param[in] problem A pointer to the problem manager, responsible for
+   * handling problem-specific data and operations.
+   * @param[in] specs A pointer to the formula manager, which provides real-time
+   * information about the CNF formula.
+   * @param[in] activityManager A reference to the activity manager, which
+   * tracks variable activity levels to guide branching.
+   * @param[in] polarityManager A reference to the polarity manager, which
+   * handles polarity selection strategies.
+   * @param[in] out The output stream used for logging or debugging information.
    */
   BranchingHeuristicLargeArity(const OptionBranchingHeuristic &options,
                                ProblemManager *problem, FormulaManager *specs,
-                               WrapperSolver *solver, std::ostream &out);
+                               ActivityManager &activityManager,
+                               PolarityManager &polarityManager,
+                               std::ostream &out);
 
   /**
    * @brief If a large constraint exists (that is constraint with more than

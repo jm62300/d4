@@ -143,17 +143,29 @@ class BranchingHeuristic {
   BranchingHeuristic() = delete;
 
   /**
-   * @brief Construct a new Branching Heuristic object.
+   * @brief Constructs a new Branching Heuristic object.
    *
-   * @param options are the options.
-   * @param problem gives the problem we are considering.
-   * @param specs gives the real time information about the formula.
-   * @param solver the solver (used for VSADS/VSIDS)
-   * @param out is the stream where are printed out the information.
+   * This constructor initializes a branching heuristic, which is responsible
+   * for guiding the decision-making process during formula solving. It takes
+   * into account various parameters, including problem specifications,
+   * real-time formula information, activity levels, and polarity management.
+   *
+   * @param[in] options The configuration options for the branching heuristic.
+   * @param[in] problem A pointer to the problem manager, which handles
+   * problem-specific data and operations.
+   * @param[in] specs A pointer to the formula manager, providing real-time
+   * information about the CNF formula.
+   * @param[in] activityManager A reference to the activity manager, which
+   * tracks variable activity levels.
+   * @param[in] polarityManager A reference to the polarity manager, which
+   * handles polarity selection strategies.
+   * @param[in] out The output stream where debugging or status information is
+   * printed.
    */
   BranchingHeuristic(const OptionBranchingHeuristic &options,
                      ProblemManager *problem, FormulaManager *specs,
-                     WrapperSolver *solver, std::ostream &out);
+                     ActivityManager &activityManager,
+                     PolarityManager &polarityManager, std::ostream &out);
 
   /**
    * @brief Destroy the Branching Heuristic object.
@@ -161,19 +173,32 @@ class BranchingHeuristic {
   virtual ~BranchingHeuristic();
 
   /**
-   * @brief Factory called for constructing a branching heuristic.
+   * @brief Factory method for creating a branching heuristic instance.
    *
-   * @param options gives the options.
-   * @param problem gives the problem we are considering.
-   * @param specs gives the real time information about the formula.
-   * @param solver the solver (used for VSADS/VSIDS)
-   * @param out is the stream where are printed out the information.
+   * This static factory function constructs and returns a branching heuristic
+   * based on the provided options. The created heuristic is responsible for
+   * guiding variable selection during the search process in SAT solving,
+   * potentially using strategies such as VSADS or VSIDS.
    *
-   * @return a branching heuristic that fits the options.
+   * @param[in] options The configuration options specifying the type of
+   * branching heuristic to use.
+   * @param[in] problem A pointer to the problem manager, which handles
+   * problem-specific data and operations.
+   * @param[in] specs A pointer to the formula manager, providing real-time
+   * information about the CNF formula.
+   * @param[in] activityManager A reference to the activity manager, which
+   * tracks variable activity levels for decision-making.
+   * @param[in] polarityManager A reference to the polarity manager, responsible
+   * for determining variable polarities.
+   * @param[in] out The output stream for logging or debugging information.
+   *
+   * @return A pointer to a newly created branching heuristic that matches the
+   * specified options.
    */
   static BranchingHeuristic *makeBranchingHeuristic(
       const OptionBranchingHeuristic &options, ProblemManager *problem,
-      FormulaManager *specs, WrapperSolver *solver, std::ostream &out);
+      FormulaManager *specs, ActivityManager &activityManager,
+      PolarityManager &polarityManager, std::ostream &out);
 
   /**
    * @brief Select a list of literals we want to branch on it in a

@@ -30,18 +30,31 @@ class BranchingHeuristicClassic : public BranchingHeuristic {
   BranchingHeuristicClassic() = delete;
 
   /**
-   * @brief Construct a new Branching Heuristic object.
+   * @brief Constructs a new Branching Heuristic Classic object.
    *
-   * @param options are the options.
-   * @param problem gives the problem we are considering.
-   * @param specs gives the real time information about the formula.
-   * @param solver the solver (used for VSADS/VSIDS)
-   * @param out is the stream where are printed out the information.
+   * This constructor initializes a classic branching heuristic, which is
+   * used for decision-making in SAT solving. It extends the base
+   * BranchingHeuristic class and supports traditional heuristics such as
+   * VSADS and VSIDS.
+   *
+   * @param[in] options The configuration options for the branching heuristic.
+   * @param[in] problem A pointer to the problem manager, which handles
+   * problem-specific data and operations.
+   * @param[in] specs A pointer to the formula manager, providing real-time
+   * information about the CNF formula.
+   * @param[in] activityManager A reference to the activity manager, which
+   * tracks variable activity levels.
+   * @param[in] polarityManager A reference to the polarity manager, which
+   * handles polarity selection strategies.
+   * @param[in] out The output stream where debugging or status information is
+   * printed.
    */
   BranchingHeuristicClassic(const OptionBranchingHeuristic &options,
                             ProblemManager *problem, FormulaManager *specs,
-                            WrapperSolver *solver, std::ostream &out)
-      : BranchingHeuristic(options, problem, specs, solver, out) {}
+                            ActivityManager &activityManager,
+                            PolarityManager &polarityManager, std::ostream &out)
+      : BranchingHeuristic(options, problem, specs, activityManager,
+                           polarityManager, out) {}
 
   /**
    * @brief Return one literal given the scoring heuristic and the phase

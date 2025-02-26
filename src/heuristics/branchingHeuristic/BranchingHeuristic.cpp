@@ -66,12 +66,15 @@ ListLit::~ListLit() {
 BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
                                        ProblemManager *problem,
                                        FormulaManager *specs,
-                                       WrapperSolver *solver,
+                                       ActivityManager &activityManager,
+                                       PolarityManager &polarityManager,
                                        std::ostream &out) {
   out << "c [BRANCHING HEURISTIC]" << options << "\n";
 
-  m_hVar = ScoringMethod::makeScoringMethod(options, *specs, *solver, out);
-  m_hPhase = PhaseHeuristic::makePhaseHeuristic(options, *specs, *solver, out);
+  m_hVar =
+      ScoringMethod::makeScoringMethod(options, *specs, activityManager, out);
+  m_hPhase =
+      PhaseHeuristic::makePhaseHeuristic(options, *specs, polarityManager, out);
   m_freqDecay = options.freqDecay;
   m_specs = specs;
   m_problem = problem;
@@ -99,23 +102,25 @@ BranchingHeuristic::~BranchingHeuristic() {
  */
 BranchingHeuristic *BranchingHeuristic::makeBranchingHeuristic(
     const OptionBranchingHeuristic &options, ProblemManager *problem,
-    FormulaManager *specs, WrapperSolver *solver, std::ostream &out) {
+    FormulaManager *specs, ActivityManager &activityManager,
+    PolarityManager &polarityManager, std::ostream &out) {
   if (problem->getNbSelectedVar()) {
     out << "c [MODE] Projected we can only use the classical heuristic\n";
-    return new BranchingHeuristicClassic(options, problem, specs, solver, out);
+    return new BranchingHeuristicClassic(options, problem, specs,
+                                         activityManager, polarityManager, out);
   }
 
   out << "c [MODE] classic\n";
   switch (options.branchingHeuristicType) {
     case BRANCHING_CLASSIC:
-      return new BranchingHeuristicClassic(options, problem, specs, solver,
-                                           out);
+      return new BranchingHeuristicClassic(
+          options, problem, specs, activityManager, polarityManager, out);
     case BRANCHING_HYBRID_PARTIAL_CLASSIC:
-      return new BranchingHeuristicHybridPartialClassic(options, problem, specs,
-                                                        solver, out);
+      return new BranchingHeuristicHybridPartialClassic(
+          options, problem, specs, activityManager, polarityManager, out);
     case BRANCHING_LARGE_ARITY:
-      return new BranchingHeuristicLargeArity(options, problem, specs, solver,
-                                              out);
+      return new BranchingHeuristicLargeArity(
+          options, problem, specs, activityManager, polarityManager, out);
   }
 
   throw(FactoryException("Cannot create a BranchingHeuristic", __FILE__,

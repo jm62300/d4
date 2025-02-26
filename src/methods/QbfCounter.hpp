@@ -31,7 +31,7 @@
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
 #include "src/formulaManager/FormulaManager.hpp"
-#include "src/heuristics/BranchingHeuristic.hpp"
+#include "src/heuristics/branchingHeuristic/BranchingHeuristic.hpp"
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionQbfCounter.hpp"
@@ -72,7 +72,6 @@ class QbfCounter : public MethodManager {
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
-  std::vector<bool> m_currentPrioritySet;
 
   ProblemManagerQbf *m_problem;
   WrapperSolver *m_solver;
@@ -120,7 +119,8 @@ class QbfCounter : public MethodManager {
 
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
-        options.optionBranchingHeuristic, m_specs, m_solver, m_out);
+        options.optionBranchingHeuristic, m_problem, m_specs, *m_solver,
+        *m_solver, m_out);
 
     // init the cache manager.
     m_cache = CacheManager<mpz::mpz_int>::makeCacheManager(
@@ -133,8 +133,6 @@ class QbfCounter : public MethodManager {
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
-
-    m_currentPrioritySet.resize(m_specs->getNbVariable() + 1, true);
     m_isDecisionVariable.resize(m_specs->getNbVariable() + 1, true);
 
     m_qblocks = initProblem->getQBlocks();
@@ -443,7 +441,7 @@ class QbfCounter : public MethodManager {
     getLowestLevelVariables(connected, candidateVar);
 
     ListLit lits;
-    m_heuristic->selectLitSet(candidateVar, m_currentPrioritySet, lits);
+    m_heuristic->selectLitSet(candidateVar, lits);
     assert(lits.size() == 1);
 
     Lit x = lits[0];

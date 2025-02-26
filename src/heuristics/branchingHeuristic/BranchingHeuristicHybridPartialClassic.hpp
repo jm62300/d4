@@ -34,23 +34,37 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    *
    */
   BranchingHeuristicHybridPartialClassic() = delete;
-
   /**
-   * @brief Construct a new Branching Heuristic object.
+   * @brief Constructs a new hybrid branching heuristic that integrates
+   *        both classic and partial order heuristics.
    *
-   * @param options are the options.
-   * @param problem gives the problem we are considering.
-   * @param specs gives the real time information about the formula.
-   * @param solver the solver (used for VSADS/VSIDS)
-   * @param out is the stream where are printed out the information.
+   * This constructor initializes a hybrid branching heuristic, combining
+   * traditional heuristics (e.g., VSADS, VSIDS) with a partial order
+   * heuristic for improved decision-making in SAT solving.
+   *
+   * @param[in] options The configuration options for the branching heuristic.
+   * @param[in] problem A pointer to the problem manager, which handles
+   *                    problem-specific data and operations.
+   * @param[in] specs A pointer to the formula manager, providing real-time
+   *                  information about the CNF formula.
+   * @param[in] activityManager A reference to the activity manager, which
+   *                            tracks variable activity levels.
+   * @param[in] polarityManager A reference to the polarity manager, which
+   *                             handles polarity selection strategies.
+   * @param[in] out The output stream where debugging or status information
+   *                is printed.
    */
   BranchingHeuristicHybridPartialClassic(
       const OptionBranchingHeuristic &options, ProblemManager *problem,
-      FormulaManager *specs, WrapperSolver *solver, std::ostream &out)
-      : BranchingHeuristic(options, problem, specs, solver, out) {
-    // create the partial order.
+      FormulaManager *specs, ActivityManager &activityManager,
+      PolarityManager &polarityManager, std::ostream &out)
+      : BranchingHeuristic(options, problem, specs, activityManager,
+                           polarityManager, out) {
+    // Create the partial order heuristic based on the given options.
     m_partialOrder = PartialOrderHeuristic::makePartialOrderingHeuristic(
         options.optionPartialOrderHeuristic, *specs, out);
+
+    // Ensure that the partial order heuristic was successfully initialized.
     assert(m_partialOrder);
   }
 

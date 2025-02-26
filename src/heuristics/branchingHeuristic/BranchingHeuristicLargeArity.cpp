@@ -30,8 +30,10 @@ namespace d4 {
  */
 BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
     const OptionBranchingHeuristic &options, ProblemManager *problem,
-    FormulaManager *specs, WrapperSolver *solver, std::ostream &out)
-    : BranchingHeuristic(options, problem, specs, solver, out) {
+    FormulaManager *specs, ActivityManager &activityManager,
+    PolarityManager &polarityManager, std::ostream &out)
+    : BranchingHeuristic(options, problem, specs, activityManager,
+                         polarityManager, out) {
   m_limitClause = options.limitSizeClause;
 
   std::vector<std::vector<Lit>> &clauses =
