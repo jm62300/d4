@@ -40,6 +40,7 @@ class OptionPartialOrderHeuristic {
  public:
   PartialOrderHeuristicMethod partialOrderMethod;
   OptionTreeDecomposition* optionTreeDecomposition = NULL;
+  std::vector<int> partialOrder;  // can be empty, if not activated.
 
   /**
    * @brief Destroy the object.
