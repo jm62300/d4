@@ -31,6 +31,7 @@ class EquivExtractor;
 
 enum PartialOrderHeuristicMethod : char {
   PARTIAL_ORDER_TREE_DECOMPOSITION,
+  PARTIAL_ORDER_GIVEN,
   PARTIAL_ORDER_NONE
 };
 

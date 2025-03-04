@@ -18,6 +18,7 @@
  */
 #include "PartialOrderHeuristic.hpp"
 
+#include "PartialOrderHeuristicGiven.hpp"
 #include "PartialOrderHeuristicNone.hpp"
 #include "PartialOrderHeuristicTreeDecomp.hpp"
 #include "src/exceptions/FactoryException.hpp"
@@ -37,6 +38,8 @@ PartialOrderHeuristic *PartialOrderHeuristic::makePartialOrderingHeuristic(
       return new PartialOrderHeuristicNone();
     case PARTIAL_ORDER_TREE_DECOMPOSITION:
       return new PartialOrderHeuristicTreeDecomp(options, s, out);
+    case PARTIAL_ORDER_GIVEN:
+      return new PartialOrderHeuristicGiven(options, s, out);
   }
 
   throw(FactoryException("Cannot create a PartialOrderHeuristic", __FILE__,
