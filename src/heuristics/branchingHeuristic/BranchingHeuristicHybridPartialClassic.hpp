@@ -35,24 +35,24 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    */
   BranchingHeuristicHybridPartialClassic() = delete;
   /**
-   * @brief Constructs a new hybrid branching heuristic that integrates
-   *        both classic and partial order heuristics.
+   * @brief Constructs a new hybrid branching heuristic that integrates both
+   * classic and partial order heuristics.
    *
    * This constructor initializes a hybrid branching heuristic, combining
-   * traditional heuristics (e.g., VSADS, VSIDS) with a partial order
-   * heuristic for improved decision-making in SAT solving.
+   * traditional heuristics (e.g., VSADS, VSIDS) with a partial order heuristic
+   * for improved decision-making in SAT solving.
    *
    * @param[in] options The configuration options for the branching heuristic.
    * @param[in] problem A pointer to the problem manager, which handles
-   *                    problem-specific data and operations.
+   * problem-specific data and operations.
    * @param[in] specs A pointer to the formula manager, providing real-time
-   *                  information about the CNF formula.
+   * information about the CNF formula.
    * @param[in] activityManager A reference to the activity manager, which
-   *                            tracks variable activity levels.
+   * tracks variable activity levels.
    * @param[in] polarityManager A reference to the polarity manager, which
-   *                             handles polarity selection strategies.
-   * @param[in] out The output stream where debugging or status information
-   *                is printed.
+   * handles polarity selection strategies.
+   * @param[in] out The output stream where debugging or status information is
+   * printed.
    */
   BranchingHeuristicHybridPartialClassic(
       const OptionBranchingHeuristic &options, ProblemManager *problem,

@@ -31,7 +31,11 @@ class EquivExtractor;
 
 enum PartialOrderHeuristicMethod : char {
   PARTIAL_ORDER_TREE_DECOMPOSITION,
+<<<<<<< HEAD
   PARTIAL_ORDER_GIVEN,
+=======
+  PARTIAL_ORDER_STATIC,
+>>>>>>> f10c198007f57c6218979fb0bffd6084c923ce39
   PARTIAL_ORDER_NONE
 };
 
@@ -42,6 +46,7 @@ class PartialOrderMethodManager {
   static std::string getPartialOrderMethod(
       const PartialOrderHeuristicMethod &m) {
     if (m == PARTIAL_ORDER_TREE_DECOMPOSITION) return "tree-decomposition";
+    if (m == PARTIAL_ORDER_STATIC) return "static";
     if (m == PARTIAL_ORDER_NONE) return "none";
 
     throw(FactoryException("Paritioning method type unknown", __FILE__,
@@ -51,6 +56,7 @@ class PartialOrderMethodManager {
   static PartialOrderHeuristicMethod getPartialOrderMethod(
       const std::string &m) {
     if (m == "tree-decomposition") return PARTIAL_ORDER_TREE_DECOMPOSITION;
+    if (m == "static") return PARTIAL_ORDER_STATIC;
     if (m == "none") return PARTIAL_ORDER_NONE;
 
     throw(FactoryException("Paritioning method unknown", __FILE__, __LINE__));

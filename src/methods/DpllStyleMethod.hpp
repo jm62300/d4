@@ -62,7 +62,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
   unsigned m_nbCallCall;
   unsigned m_nbSplit;
-  unsigned m_callPartitioner;
   unsigned m_nbDecisionNode;
   unsigned m_optCached;
   unsigned m_stampIdx;
@@ -77,8 +76,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
 
-  std::vector<bool> m_currentPrioritySet;
-
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
   FormulaManager *m_specs;
@@ -92,9 +89,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
  public:
   /**
-     Constructor.
-
-     @param[in] vm, the list of options.
+   * Constructor.
+   *
+   * @param[in] vm, the list of options.
    */
   DpllStyleMethod(const OptionDpllStyleMethod &options,
                   ProblemManager *initProblem, std::ostream &out)
@@ -131,7 +128,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_isDecisionVariable.resize(m_problem->getNbVar() + 1,
                                 !m_problem->getNbSelectedVar());
     for (auto v : m_problem->getSelectedVar()) m_isDecisionVariable[v] = true;
-    m_currentPrioritySet.resize(m_problem->getNbVar() + 1, false);
 
     m_cache = CacheManager<U>::makeCacheManager(
         options.optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
@@ -140,7 +136,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     initTimer();
 
     m_optCached = options.optionCacheManager.isActivated;
-    m_callPartitioner = 0;
     m_nbDecisionNode = m_nbSplit = m_nbCallCall = 0;
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
@@ -428,8 +423,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      \return the compiled formula.
   */
   U computeDecisionNode(std::vector<Var> &connected, std::ostream &out) {
-    std::vector<Var> cutSet;
-
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
