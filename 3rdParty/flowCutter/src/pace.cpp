@@ -362,6 +362,11 @@ const char* paceMain(unsigned nbNode,
                      int random_seed, bool verbose) {
   signal(SIGALRM, signal_handler);
 
+  best_bag_size = numeric_limits<int>::max();
+  // if (best_decomposition) delete[] best_decomposition;
+  best_decomposition = NULL;
+  tle = 0;
+
   try {
     {
       int nextArc = 0;

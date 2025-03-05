@@ -153,7 +153,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_operation;
     delete m_problem;
 
-    std::cout << "call the destructor\n";
     delete m_solver;
     delete m_specs;
     delete m_heuristic;
