@@ -43,6 +43,9 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
 
   // set the use of the model
   exploitModel = config.exploitModel;
+
+  // set the verbosity
+  verbosity = config.verbosity;
 }  // constructor
 
 }  // namespace d4

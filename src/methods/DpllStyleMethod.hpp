@@ -59,6 +59,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
  private:
   bool optDomConst;
   bool optReversePolarity;
+  bool m_verbosity;
 
   unsigned m_nbCallCall;
   unsigned m_nbSplit;
@@ -103,6 +104,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_out.setstate(out.rdstate());
 
     m_out << "c [DPLL STYLE METHOD]" << options << "\n";
+    m_verbosity = options.verbosity;
 
     // we create and init the solver.
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
@@ -220,6 +222,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      @param[in] out, the stream we use to print out information.
   */
   inline void showInter(std::ostream &out) {
+    if (!m_verbosity) return;
     out << "c " << std::fixed << std::setprecision(2) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbPositiveHit()
@@ -248,6 +251,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      @param[in] out, the stream we use to print out information.
   */
   inline void showHeader(std::ostream &out) {
+    if (!m_verbosity) return;
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" << "|"

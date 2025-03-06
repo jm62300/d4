@@ -36,5 +36,6 @@ class ConfigurationDpllStyleMethod : public Configuration {
   ConfigurationSpec spec;
   ConfigurationBranchingHeuristic branchingHeuristic;
   bool exploitModel = true;
+  bool verbosity = true;
 };
 }  // namespace d4

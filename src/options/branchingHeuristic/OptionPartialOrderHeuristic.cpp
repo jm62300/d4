@@ -42,6 +42,8 @@ OptionPartialOrderHeuristic::OptionPartialOrderHeuristic()
 OptionPartialOrderHeuristic::OptionPartialOrderHeuristic(
     const ConfigurationPartialOrderHeuristic& config) {
   partialOrderMethod = config.partialOrderMethod;
+  givenOrder = config.givenOrder;
+  scaleFactor = config.scaleFactor;
 
   switch (config.treeDecompositionMethod) {
     case TREE_DECOMP_PARTITION: {

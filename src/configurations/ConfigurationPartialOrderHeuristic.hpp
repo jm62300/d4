@@ -41,5 +41,6 @@ struct ConfigurationPartialOrderHeuristic {
   unsigned seed = 2911;
   bool verbosity = false;
   std::vector<unsigned> givenOrder;
+  double scaleFactor = 0;
 };
 }  // namespace d4

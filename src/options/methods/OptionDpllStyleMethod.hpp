@@ -36,6 +36,7 @@ class OptionDpllStyleMethod {
   OptionSpecManager optionSpecManager;
   OptionBranchingHeuristic optionBranchingHeuristic;
   bool exploitModel;
+  bool verbosity;
 
   /**
    * @brief Construct a new object with the default parameter.

@@ -33,6 +33,7 @@ PartialOrderHeuristicGiven::PartialOrderHeuristicGiven(
   out << "c [PARTIAL ORDER] Fixed by the user\n";
   assert(om.getNbVariable() < options.givenOrder.size());
   m_order = options.givenOrder;
+  m_scaleFactor = options.scaleFactor;
 }  // constructor
 
 /**
