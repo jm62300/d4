@@ -56,7 +56,7 @@ namespace d4 {
 template <class T>
 class Counter;
 
-template <class T>
+template <class T, class A>
 class MaxT : public MethodManager {
   enum TypeDecision { NO_DEC, EXIST_DEC, MAX_DEC };
 
@@ -64,7 +64,7 @@ class MaxT : public MethodManager {
     T count;
     u_int8_t *valuation;
 
-    MaxSharpSatResult() : count(T(0)), valuation(NULL) {}
+    MaxSharpSatResult() : count(T()), valuation(NULL) {}
     MaxSharpSatResult(const T c, u_int8_t *v) : count(c), valuation(v) {}
 
     void display(unsigned size) {
@@ -80,6 +80,7 @@ class MaxT : public MethodManager {
   bool optDomConst;
   bool optReversePolarity;
 
+  bool m_solutionFound = false;
   unsigned m_nbCallCall;
   unsigned m_nbCallProj;
   unsigned m_nbSplitMax = 0;
@@ -120,13 +121,14 @@ class MaxT : public MethodManager {
   std::ostream m_out;
   bool m_panicMode;
 
-  double m_threshold = -1;
   bool m_stopProcess = false;
   std::string m_heuristicMax = "none";
   unsigned m_heuristicMaxRdm = 0;
 
-  MaxSharpSatResult m_scale = {T(1), NULL};
-  MaxSharpSatResult m_maxCount = {T(0), NULL};
+  MaxSharpSatResult m_scale;
+  MaxSharpSatResult m_maxCount;
+
+  A m_aggregator;
 
  public:
   /**
@@ -138,15 +140,17 @@ class MaxT : public MethodManager {
    */
   MaxT(const OptionMaxTMethod &options, ProblemManager *initProblem,
        std::ostream &out)
-      : m_problem(initProblem), m_out(nullptr) {
+      : m_problem(initProblem), m_out(nullptr), m_aggregator(initProblem) {
     // init the output stream
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
     m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
+    m_scale = {m_aggregator.mulIdentity(), NULL};
+    m_maxCount = {m_aggregator.min(), NULL};
+
     m_heuristicMax = options.phaseHeuristicMax;
     m_heuristicMaxRdm = options.randomPhaseHeuristicMax;
-    m_threshold = options.threshold;
     m_greedyInitActivated = options.greedyInitActivated;
     out << "c " << options << '\n';
 
@@ -249,7 +253,7 @@ class MaxT : public MethodManager {
    * @param solution is the maxsharp SAT solution we want to print.
    */
   void printSolution(MaxSharpSatResult &solution, char status) {
-    if (solution.count == T(0)) {
+    if (!m_solutionFound) {
       std::cout << "s UNSAT\n";
       exit(0);
     }
@@ -454,17 +458,10 @@ class MaxT : public MethodManager {
           m_maxCount.valuation[m_redirectionPos[v]] =
               result.valuation[m_redirectionPos[v]];
 
-      if (m_threshold < 0 || m_maxCount.count < T(m_threshold)) {
-        m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
-              << std::setprecision(2) << getTimer() << " ";
-        m_out << std::fixed << std::setprecision(50) << m_maxCount.count
-              << "\n";
-      } else {
-        m_out << "c Stop because we found out a good enough solution\n";
-        m_out << "r SATISFIABLE\n";
-        printSolution(m_maxCount, 's');
-        m_stopProcess = true;
-      }
+      m_solutionFound = true;
+      m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
+            << std::setprecision(2) << getTimer() << " ";
+      m_out << std::fixed << std::setprecision(50) << m_maxCount.count << "\n";
     }
   }  // updateBound
 
@@ -490,7 +487,7 @@ class MaxT : public MethodManager {
 
     // is the problem still satisfiable?
     if (!m_solver->solve(setOfVar)) {
-      result = {T(0), NULL};
+      result = {m_aggregator.sumIdentity(), NULL};
       return;
     }
 
@@ -508,27 +505,28 @@ class MaxT : public MethodManager {
 
     // set a valuation for fixed variables.
     T saveCount = m_scale.count;
-    T fixCount = T(1), fixInd = T(1);
+    T fixCount = m_aggregator.mulIdentity(),
+      fixInd = m_aggregator.mulIdentity();
 
     for (auto &v : freeVariable)
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLitTrue(v);
-        if (m_problem->getWeightLit(l) < m_problem->getWeightLit(~l)) l = ~l;
+        if (m_aggregator.isGreaterThan(~l, l)) l = ~l;
 
         m_scale.valuation[m_redirectionPos[v]] = 1 - l.sign();
         result.valuation[m_redirectionPos[v]] = 1 - l.sign();
-        fixCount *= T(m_problem->getWeightLit(l));
+        fixCount = fixCount * m_aggregator.getWeightLit(l);
       } else if (m_isDecisionVariable[v])
-        fixInd *= T(m_problem->getWeightVar(v));
+        fixInd = fixInd * m_aggregator.getWeightVar(v);
 
     // consider the unit literals that belong to max
     for (auto &l : unitsLit)
       if (m_isMaxDecisionVariable[l.var()]) {
-        fixCount *= T(m_problem->getWeightLit(l));
+        fixCount = fixCount * m_aggregator.getWeightLit(l);
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
       } else if (m_isDecisionVariable[l.var()])
-        fixInd *= T(m_problem->getWeightLit(l));
+        fixInd = fixInd * m_aggregator.getWeightLit(l);
 
     result.count = fixCount;
     m_scale.count = m_scale.count * fixCount * fixInd;
@@ -537,11 +535,10 @@ class MaxT : public MethodManager {
     bool wasUnderAnd = m_isUnderAnd;
 
     // dig for an assignment for each component (execpt the first one).
-    std::vector<MaxSharpSatResult> andCount;
     m_isUnderAnd = wasUnderAnd || nbComponent > 1;
 
     // consider each connected component.
-    T mustMultiply = T(1);
+    T mustMultiply = m_aggregator.mulIdentity();
     if (nbComponent) {
       m_nbSplitMax += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
@@ -572,7 +569,7 @@ class MaxT : public MethodManager {
     expelNoDecisionLit(unitsLit);
 
     // update the global maxcount if needed.
-    m_scale.count *= fixInd;
+    m_scale.count = m_scale.count * fixInd;
     updateBound(result, setOfVar);
     m_scale.count = saveCount;
   }  // searchMaxValuation
@@ -588,8 +585,6 @@ class MaxT : public MethodManager {
     assert(m_isMaxDecisionVariable[v]);
     int rdm = rand() % 100;
     if (rdm <= m_heuristicMaxRdm) return rdm & 1;
-    if (m_scale.count > 0 && m_heuristicMax == "best")
-      return m_scale.valuation[m_redirectionPos[v]];
     return m_hPhaseMax->selectPhase(v);
   }  // selectPhase
 
@@ -613,7 +608,7 @@ class MaxT : public MethodManager {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
       result.count = countInd_(connected, unitsLit, freeVar, out);
-      result.count *= m_problem->computeWeightUnitFree<T>(unitsLit, freeVar);
+      m_aggregator.multiplyUnitFree(result.count, unitsLit, freeVar);
       result.valuation = NULL;
       return;
     }
@@ -631,12 +626,12 @@ class MaxT : public MethodManager {
     searchMaxValuation(connected, b[0].unitLits, b[0].freeVars, out, res[0]);
 
     m_solver->popAssumption();
-    b[0].d = res[0].count *
-             m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    b[0].d = res[0].count;
+    m_aggregator.multiplyUnitFree(b[0].d, b[0].unitLits, b[0].freeVars);
 
     // search max#sat for the next phase.
     if (m_solver->isInAssumption(l))
-      res[1].count = T(0);
+      res[1].count = m_aggregator.sumIdentity();
     else if (m_solver->isInAssumption(~l))
       searchMaxValuation(connected, b[1].unitLits, b[1].freeVars, out, res[1]);
     else {
@@ -645,8 +640,8 @@ class MaxT : public MethodManager {
       m_solver->popAssumption();
     }
 
-    b[1].d = res[1].count *
-             m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+    b[1].d = res[1].count;
+    m_aggregator.multiplyUnitFree(b[1].d, b[1].unitLits, b[1].freeVars);
 
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
@@ -665,12 +660,12 @@ class MaxT : public MethodManager {
    */
   T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
               std::vector<Var> &freeVariable, std::ostream &out) {
-    if (m_stopProcess) return T(0);
+    if (m_stopProcess) return m_aggregator.sumIdentity();
 
     showRun(out);
     m_nbCallProj++;
 
-    if (!m_solver->solve(setOfVar)) return T(0);
+    if (!m_solver->solve(setOfVar)) return m_aggregator.sumIdentity();
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
@@ -683,7 +678,7 @@ class MaxT : public MethodManager {
     expelNoDecisionVar(freeVariable);
 
     // consider each connected component.
-    T result = T(1);
+    T result = m_aggregator.mulIdentity();
     if (nbComponent) {
       m_nbSplitInd += (nbComponent > 1) ? nbComponent : 0;
 
@@ -716,13 +711,13 @@ class MaxT : public MethodManager {
    * \return the number of computed models.
    */
   T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
-    if (m_stopProcess) return T(0);
+    if (m_stopProcess) return m_aggregator.sumIdentity();
 
     // search the next variable to branch on
     Var v =
         m_hVarInd->selectVariable(connected, *m_specs, m_isDecisionVariable);
 
-    if (v == var_Undef) return T(1);
+    if (v == var_Undef) return m_aggregator.mulIdentity();
 
     // select a variable for decision.
     Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
@@ -738,10 +733,10 @@ class MaxT : public MethodManager {
     m_solver->popAssumption();
 
     // compute the next lower regarding the already compute information.
-    b[0].d *= m_problem->computeWeightUnitFree<T>(b[0].unitLits, b[0].freeVars);
+    m_aggregator.multiplyUnitFree(b[0].d, b[0].unitLits, b[0].freeVars);
 
     if (m_solver->isInAssumption(l))
-      b[1].d = 0;
+      b[1].d = m_aggregator.sumIdentity();
     else if (m_solver->isInAssumption(~l))
       b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
     else {
@@ -750,7 +745,7 @@ class MaxT : public MethodManager {
       m_solver->popAssumption();
     }
 
-    b[1].d *= m_problem->computeWeightUnitFree<T>(b[1].unitLits, b[1].freeVars);
+    m_aggregator.multiplyUnitFree(b[1].d, b[1].unitLits, b[1].freeVars);
 
     return b[0].d + b[1].d;
   }  // computeIndDecisionNode
@@ -770,16 +765,16 @@ class MaxT : public MethodManager {
     if (m_problem->isUnsat() ||
         (warmStart && !m_panicMode &&
          !m_solver->warmStart(29, 11, setOfVar, m_out))) {
-      result = {T(0), NULL};
+      result = {m_aggregator.sumIdentity(), NULL};
       return;
     }
 
     DataBranch<T> b;
     searchMaxValuation(setOfVar, b.unitLits, b.freeVars, out, result);
     assert(result.valuation);
+
     if (!m_stopProcess)
-      result.count *=
-          m_problem->computeWeightUnitFree<T>(b.unitLits, b.freeVars);
+      m_aggregator.multiplyUnitFree(result.count, b.unitLits, b.freeVars);
   }  // compute
 
  public:
@@ -789,7 +784,7 @@ class MaxT : public MethodManager {
    *
    */
   void interrupt() override {
-    if (m_maxCount.count < 0)
+    if (m_maxCount.count < m_aggregator.min())
       std::cout << "c No solution found so far\n";
     else {
       std::cout << "c Processus interrupted, here is the best solution found\n";
@@ -812,17 +807,7 @@ class MaxT : public MethodManager {
     compute(setOfVar, m_out, result);
     printFinalStats(m_out);
     if (!m_stopProcess) {
-      if (m_threshold < 0)
-        printSolution(result, 'o');
-      else {
-        if (result.count >= T(m_threshold)) {
-          std::cout << "r SATISFIABLE\n";
-          printSolution(result, 's');
-        } else {
-          std::cout << "r UNSATISFIABLE\n";
-          printSolution(result, 'o');
-        }
-      }
+      printSolution(result, 'o');
     }
   }  // run
 
