@@ -1,0 +1,80 @@
+c [CONSTRUCTOR] Problem: ./syn_files/rz_pi_8_gate/fullP_6_quokka_syn.cnf cnf
+c [INITIAL INPUT] [4m[32mStatistics about the input formula[0m
+c [INITIAL INPUT] Number of variables: 54
+c [INITIAL INPUT] Number of clauses: 288
+c [INITIAL INPUT] Number of binary clauses: 83
+c [INITIAL INPUT] Number of ternary clauses: 150
+c [INITIAL INPUT] Number of clauses larger than 3: 55
+c [INITIAL INPUT] Number of literals: 850
+c
+c [CONSTRUCTOR] MethodManager: max#sat
+c [CONSTRUCTOR] Preproc: basic cnf
+c [CONSTRUCTOR] Preproc solver: minisat cnf
+c [MAIN PREPROCESSED INPUT] [4m[32mStatistics about the preprocessed formula[0m
+c [PREPROCESSED INPUT] Number of variables: 54
+c [PREPROCESSED INPUT] Number of clauses: 288
+c [PREPROCESSED INPUT] Number of binary clauses: 83
+c [PREPROCESSED INPUT] Number of ternary clauses: 150
+c [PREPROCESSED INPUT] Number of clauses larger than 3: 55
+c [PREPROCESSED INPUT] Number of literals: 850
+c
+c
+c [MAX VARIABLES] list: 11 12 13 14 19 20 21 22 27 28 29 30 35 36 37 38 43 44 45 46 51 52 53 54 
+c
+c
+c [IND VARIABLES] list: 1 2 3 4 5 6 7 8 9 10 15 16 17 18 23 24 25 26 31 32 33 34 39 40 41 42 47 48 49 50 
+c
+c [MODE] Panic: 0
+c [CONSTRUCTOR MAX#SAT] Heuristic on MAX variables: best
+c [CONSTRUCTOR MAX#SAT] Use random on MAX variables: 5
+c [CONSTRUCTOR MAX#SAT] Threshold: 4
+c [CONSTRUCTOR MAX#SAT] Dig for a partial solution under an AND: 0
+c [CONSTRUCTOR] Solver: minisat cnf
+c [CONSTRUCTOR SPEC] Spec manager: dynamic cnf
+c [CONSTRUCTOR] Variable heuristic: vsads
+c [CONSTRUCTOR] Phase heuristic: polarity
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [MAX#SAT] Greedy init activated: 0
+c
+c Warm start process (11): 5/29
+c -----------------------------------------------------------------------------------------------------------------------------------
+c |    #call(m)|    #call(i)|        time|     #posHit|     #negHit|      memory|      #split|     mem(MB)|  #dec. Node|   max#count|
+c -----------------------------------------------------------------------------------------------------------------------------------
+i 1 0.00 1.92387953251128706653140562040423911150174005616391
+i 2 0.00 2.36038826362473596163508394756206284831827055388418
+i 3 0.00 3.28426779613602282295232671923431070174318053014146
+i 4 0.00 3.28426779613602295171891534465092232763278982405636
+i 5 0.01 3.84775906502257362782571468262407161235896206682883
+c -----------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of recursive call: 375
+c Number of split formula: 200
+c Number of decision: 866
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 582
+c Number of negative hit: 679
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 0
+c Number of negative hit: 373
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c Final time: 0.00708100013434886932373046875000000000000000000000
+c
+r UNSATISFIABLE
+v -11 -12 -13 14 19 -20 -21 -22 27 -28 -29 -30 35 -36 -37 -38 43 -44 -45 -46 51 -52 -53 -54 0
+o 3.84775906502257362782571468262407161235896206682883

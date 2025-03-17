@@ -1,0 +1,85 @@
+c [CONSTRUCTOR] Problem: ./syn_files/rz_pi_8_gate/fullP_11_quokka_syn.cnf cnf
+c [INITIAL INPUT] [4m[32mStatistics about the input formula[0m
+c [INITIAL INPUT] Number of variables: 94
+c [INITIAL INPUT] Number of clauses: 523
+c [INITIAL INPUT] Number of binary clauses: 148
+c [INITIAL INPUT] Number of ternary clauses: 270
+c [INITIAL INPUT] Number of clauses larger than 3: 105
+c [INITIAL INPUT] Number of literals: 1560
+c
+c [CONSTRUCTOR] MethodManager: max#sat
+c [CONSTRUCTOR] Preproc: basic cnf
+c [CONSTRUCTOR] Preproc solver: minisat cnf
+c [MAIN PREPROCESSED INPUT] [4m[32mStatistics about the preprocessed formula[0m
+c [PREPROCESSED INPUT] Number of variables: 94
+c [PREPROCESSED INPUT] Number of clauses: 523
+c [PREPROCESSED INPUT] Number of binary clauses: 148
+c [PREPROCESSED INPUT] Number of ternary clauses: 270
+c [PREPROCESSED INPUT] Number of clauses larger than 3: 105
+c [PREPROCESSED INPUT] Number of literals: 1560
+c
+c
+c [MAX VARIABLES] list: 11 12 13 14 19 20 21 22 27 28 29 30 35 36 37 38 43 44 45 46 51 52 53 54 59 60 61 62 67 68 69 70 75 76 77 78 83 84 85 86 91 92 93 94 
+c
+c
+c [IND VARIABLES] list: 1 2 3 4 5 6 7 8 9 10 15 16 17 18 23 24 25 26 31 32 33 34 39 40 41 42 47 48 49 50 55 56 57 58 63 64 65 66 71 72 73 74 79 80 81 82 87 88 89 90 
+c
+c [MODE] Panic: 0
+c [CONSTRUCTOR MAX#SAT] Heuristic on MAX variables: best
+c [CONSTRUCTOR MAX#SAT] Use random on MAX variables: 5
+c [CONSTRUCTOR MAX#SAT] Threshold: 4
+c [CONSTRUCTOR MAX#SAT] Dig for a partial solution under an AND: 0
+c [CONSTRUCTOR] Solver: minisat cnf
+c [CONSTRUCTOR SPEC] Spec manager: dynamic cnf
+c [CONSTRUCTOR] Variable heuristic: vsads
+c [CONSTRUCTOR] Phase heuristic: polarity
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [MAX#SAT] Greedy init activated: 0
+c
+c Warm start process (11): 8/29
+c -----------------------------------------------------------------------------------------------------------------------------------
+c |    #call(m)|    #call(i)|        time|     #posHit|     #negHit|      memory|      #split|     mem(MB)|  #dec. Node|   max#count|
+c -----------------------------------------------------------------------------------------------------------------------------------
+i 1 0.00 2.61522124869383217997617191177843273888207274947839
+i 2 0.00 3.28426779613602323192161139866238052081634226750259
+i 3 0.01 3.28426779613602346982258195034372723970736362062766
+i 4 0.01 3.37467171439675374478242791629256584626410940720108
+i 5 0.01 3.67809881287129000479062370522635688407615159275709
+i 6 0.02 3.90053670430039411366816280741772279170384729944454
+c |        2827|       13557|        0.10|        9416|        6074|      822347|        5176|     4161.22|        7490|    3.90e+00|
+i 7 0.17 3.90053670430039425392598241572262839412579838988620
+c |        5840|       26928|        0.20|       19234|       12007|     1671966|       10479|     4162.51|       14930|    3.90e+00|
+c |        8886|       40266|        0.29|       28311|       17916|     2474223|       14929|     4164.05|       22361|    3.90e+00|
+c -----------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of recursive call: 10759
+c Number of split formula: 18014
+c Number of decision: 26658
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 34092
+c Number of negative hit: 21279
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 0
+c Number of negative hit: 10753
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c Final time: 3.50e-01
+c
+r UNSATISFIABLE
+v -11 -12 -13 14 -19 20 -21 -22 -27 -28 -29 30 -35 36 -37 -38 -43 -44 -45 46 -51 52 -53 -54 -59 -60 -61 62 -67 68 -69 -70 -75 -76 -77 78 -83 84 -85 -86 -91 -92 -93 94 0
+o 3.90053670430039425392598241572262839412579838988620

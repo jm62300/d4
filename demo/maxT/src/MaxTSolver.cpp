@@ -54,6 +54,7 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
   MethodManager::displayInfoVariables(problem, std::cout);
 
   // init the options.
+  config.threshold = -1;
   OptionMaxTMethod options(config);
 
   if (!isFloat)

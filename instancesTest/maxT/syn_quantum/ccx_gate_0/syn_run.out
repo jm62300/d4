@@ -1,0 +1,60 @@
+
+fidelity_threshold:1, onehot_xz:False
+TIMEOUT set to: 14400
+
+Global Time: 2025-03-13 20:08:42.526466
+Iteration: 1
+num_layers: 1
+num qubits: 3 + 0
+../../d4v2/build/d4 -m max#sat --maxsharpsat-option-and-dig false --float 1 --maxsharpsat-threshold 64 -i ./syn_files/ccx_gate_0/fullP_1_quokka_syn.cnf
+Out file: ./syn_files/ccx_gate_0/fullP_1_d4.out
+Err file: ./syn_files/ccx_gate_0/fullP_1_d4.err
+found:False, weight:0.56250000000000011102230246251565
+Res file: ./syn_files/ccx_gate_0/fullP_1_d4.res
+Run Time: 0.05446124076843262
+
+Global Time: 2025-03-13 20:08:42.581326
+Iteration: 2
+num_layers: 2
+num qubits: 3 + 0
+../../d4v2/build/d4 -m max#sat --maxsharpsat-option-and-dig false --float 1 --maxsharpsat-threshold 64 -i ./syn_files/ccx_gate_0/fullP_2_quokka_syn.cnf
+Out file: ./syn_files/ccx_gate_0/fullP_2_d4.out
+Err file: ./syn_files/ccx_gate_0/fullP_2_d4.err
+found:False, weight:0.56250000000000011102230246251565
+Res file: ./syn_files/ccx_gate_0/fullP_2_d4.res
+Run Time: 0.4586923122406006
+
+Global Time: 2025-03-13 20:08:43.040026
+Iteration: 3
+num_layers: 3
+num qubits: 3 + 0
+../../d4v2/build/d4 -m max#sat --maxsharpsat-option-and-dig false --float 1 --maxsharpsat-threshold 64 -i ./syn_files/ccx_gate_0/fullP_3_quokka_syn.cnf
+Out file: ./syn_files/ccx_gate_0/fullP_3_d4.out
+Err file: ./syn_files/ccx_gate_0/fullP_3_d4.err
+found:False, weight:0.56250000000000011102230246251565
+Res file: ./syn_files/ccx_gate_0/fullP_3_d4.res
+Run Time: 15.886624336242676
+
+Global Time: 2025-03-13 20:08:58.926668
+Iteration: 4
+num_layers: 4
+num qubits: 3 + 0
+../../d4v2/build/d4 -m max#sat --maxsharpsat-option-and-dig false --float 1 --maxsharpsat-threshold 64 -i ./syn_files/ccx_gate_0/fullP_4_quokka_syn.cnf
+Out file: ./syn_files/ccx_gate_0/fullP_4_d4.out
+Err file: ./syn_files/ccx_gate_0/fullP_4_d4.err
+found:False, weight:0.62185921676911470878934551365091
+Res file: ./syn_files/ccx_gate_0/fullP_4_d4.res
+Run Time: 699.4100604057312
+
+Global Time: 2025-03-13 20:20:38.336743
+Iteration: 5
+num_layers: 5
+num qubits: 3 + 0
+../../d4v2/build/d4 -m max#sat --maxsharpsat-option-and-dig false --float 1 --maxsharpsat-threshold 64 -i ./syn_files/ccx_gate_0/fullP_5_quokka_syn.cnf
+Out file: ./syn_files/ccx_gate_0/fullP_5_d4.out
+Err file: ./syn_files/ccx_gate_0/fullP_5_d4.err
+found:False, weight:CRASH
+0 None
+
+ *** *** ***	 Time: 4993.14 	 Result: CRASH 	 best weight: 0 		 solution: ./basic_to_run_syn_solutions/onehotFalse_ccx_gate_0.qasm
+

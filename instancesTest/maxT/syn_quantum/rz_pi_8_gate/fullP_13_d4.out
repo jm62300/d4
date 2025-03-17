@@ -1,0 +1,99 @@
+c [CONSTRUCTOR] Problem: ./syn_files/rz_pi_8_gate/fullP_13_quokka_syn.cnf cnf
+c [INITIAL INPUT] [4m[32mStatistics about the input formula[0m
+c [INITIAL INPUT] Number of variables: 110
+c [INITIAL INPUT] Number of clauses: 617
+c [INITIAL INPUT] Number of binary clauses: 174
+c [INITIAL INPUT] Number of ternary clauses: 318
+c [INITIAL INPUT] Number of clauses larger than 3: 125
+c [INITIAL INPUT] Number of literals: 1844
+c
+c [CONSTRUCTOR] MethodManager: max#sat
+c [CONSTRUCTOR] Preproc: basic cnf
+c [CONSTRUCTOR] Preproc solver: minisat cnf
+c [MAIN PREPROCESSED INPUT] [4m[32mStatistics about the preprocessed formula[0m
+c [PREPROCESSED INPUT] Number of variables: 110
+c [PREPROCESSED INPUT] Number of clauses: 617
+c [PREPROCESSED INPUT] Number of binary clauses: 174
+c [PREPROCESSED INPUT] Number of ternary clauses: 318
+c [PREPROCESSED INPUT] Number of clauses larger than 3: 125
+c [PREPROCESSED INPUT] Number of literals: 1844
+c
+c
+c [MAX VARIABLES] list: 11 12 13 14 19 20 21 22 27 28 29 30 35 36 37 38 43 44 45 46 51 52 53 54 59 60 61 62 67 68 69 70 75 76 77 78 83 84 85 86 91 92 93 94 99 100 101 102 107 108 109 110 
+c
+c
+c [IND VARIABLES] list: 1 2 3 4 5 6 7 8 9 10 15 16 17 18 23 24 25 26 31 32 33 34 39 40 41 42 47 48 49 50 55 56 57 58 63 64 65 66 71 72 73 74 79 80 81 82 87 88 89 90 95 96 97 98 103 104 105 106 
+c
+c [MODE] Panic: 0
+c [CONSTRUCTOR MAX#SAT] Heuristic on MAX variables: best
+c [CONSTRUCTOR MAX#SAT] Use random on MAX variables: 5
+c [CONSTRUCTOR MAX#SAT] Threshold: 4
+c [CONSTRUCTOR MAX#SAT] Dig for a partial solution under an AND: 0
+c [CONSTRUCTOR] Solver: minisat cnf
+c [CONSTRUCTOR SPEC] Spec manager: dynamic cnf
+c [CONSTRUCTOR] Variable heuristic: vsads
+c [CONSTRUCTOR] Phase heuristic: polarity
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [MAX#SAT] Greedy init activated: 0
+c
+c Warm start process (11): 7/29
+c -----------------------------------------------------------------------------------------------------------------------------------
+c |    #call(m)|    #call(i)|        time|     #posHit|     #negHit|      memory|      #split|     mem(MB)|  #dec. Node|   max#count|
+c -----------------------------------------------------------------------------------------------------------------------------------
+i 1 0.00 2.36038826362473639328704202407444934500880240972922
+i 2 0.00 3.28426779613602357631161843444883286831113298681515
+i 3 0.01 3.37467171439675399146564963157524875380573722177985
+i 4 0.02 3.49463962919074665185990512006756471514091766618263
+i 5 0.03 3.67809881287129023941732108082771067702922829806786
+i 6 0.04 3.90053670430039425392598241572262839412579838988620
+c |        2462|       13922|        0.11|       10456|        6348|     1003542|        6899|     4161.25|        7582|    3.90e+00|
+i 7 0.12 3.90053670430039437849135563649201938164373088307589
+i 8 0.15 3.90053670430039452048759214678010760957275028396688
+c |        5123|       27645|        0.22|       21192|       12545|     2046789|       13913|     4162.81|       15110|    3.90e+00|
+c |        7594|       41558|        0.33|       31739|       18884|     3097032|       20584|     4164.10|       22686|    3.90e+00|
+c |       10055|       55481|        0.44|       42572|       25230|     4161568|       27402|     4165.26|       30260|    3.90e+00|
+c |       12500|       69420|        0.56|       54176|       31589|     5290520|       35289|     4165.88|       37841|    3.90e+00|
+c |       14800|       83504|        0.67|       65718|       38056|     6375840|       43453|     4165.88|       45460|    3.90e+00|
+c |       17488|       97200|        0.78|       76238|       44233|     7435143|       49785|     4165.88|       52980|    3.90e+00|
+c |       20039|      111033|        0.89|       87739|       50511|     8548818|       57391|     4166.65|       60532|    3.90e+00|
+c |       22498|      124958|        1.01|       98685|       56860|     9665227|       64438|     4168.12|       68114|    3.90e+00|
+c |       24802|      139038|        1.12|      110039|       63323|    10756358|       72038|     4169.29|       75727|    3.90e+00|
+c |       27200|      153024|        1.23|      121273|       69717|    11875083|       79467|     4170.89|       83320|    3.90e+00|
+c |       29609|      166999|        1.34|      132181|       76102|    12957529|       86579|     4172.05|       90909|    3.90e+00|
+c |       32339|      180653|        1.45|      142392|       82249|    14000625|       92356|     4173.59|       98423|    3.90e+00|
+c |       35077|      194299|        1.57|      152838|       88388|    15046596|       98464|     4174.88|      105929|    3.90e+00|
+c |       37747|      208013|        1.68|      163653|       94578|    16179985|      105008|     4176.43|      113454|    3.90e+00|
+c |       40507|      221637|        1.80|      174180|      100699|    17289845|      111077|     4177.89|      120954|    3.90e+00|
+c -----------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of recursive call: 41059
+c Number of split formula: 112121
+c Number of decision: 122319
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 176075
+c Number of negative hit: 101790
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 0
+c Number of negative hit: 41047
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c Final time: 1.82e+00
+c
+r UNSATISFIABLE
+v -11 12 -13 -14 -19 -20 21 -22 -27 28 -29 -30 -35 -36 37 -38 -43 -44 45 -46 -51 -52 53 -54 -59 60 -61 -62 -67 -68 -69 70 -75 76 -77 -78 -83 -84 -85 86 -91 92 -93 -94 -99 -100 101 -102 -107 -108 109 -110 0
+o 3.90053670430039452048759214678010760957275028396688

@@ -60,8 +60,31 @@ void Parsing::parseNextWeightedLits(BufferRead &in,
 }  // parseWeightedLit
 
 /**
- * @brief Parse a variable index and a weight and store the result in the given
+ * @brief Parse a literal index and a weight and store the result in the given
  * vector.
+ *
+ * @param in, the stream buffer where we get the information.
+ * @param weightLit, the place where is stored the data.
+ */
+void Parsing::parseNextComplexLits(BufferRead &in,
+                                   std::vector<mpz::mpf_float> &weightLitR,
+                                   std::vector<mpz::mpf_float> &weightLitI) {
+  int lit = in.nextInt();
+  mpz::mpf_float r = in.nextMpf_float();
+  mpz::mpf_float i = in.nextMpf_float();
+
+  if (lit > 0) {
+    weightLitR[lit << 1] = r;
+    weightLitI[lit << 1] = i;
+  } else {
+    weightLitR[((-lit) << 1) + 1] = r;
+    weightLitI[((-lit) << 1) + 1] = i;
+  }
+}  // parseComplexLit
+
+/**
+ * @brief Parse a variable index and a weight and store the result in the
+ * given vector.
  *
  * @param in, the stream buffer where we get the information.
  * @param weightLit, the place where is stored the data.

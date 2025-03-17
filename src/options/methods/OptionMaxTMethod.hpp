@@ -55,7 +55,9 @@ class OptionMaxTMethod {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionMaxTMethod& dt) {
-    out << " Option MaxSharpSAT Method:";
+    out << " Option MaxSharpSAT Method:" << " greedyInitActivated("
+        << dt.greedyInitActivated << ")" << " threshold(" << dt.threshold
+        << ")";
     return out;
   }  // <<
 };

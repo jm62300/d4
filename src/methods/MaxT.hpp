@@ -148,6 +148,7 @@ class MaxT : public MethodManager {
     m_heuristicMaxRdm = options.randomPhaseHeuristicMax;
     m_threshold = options.threshold;
     m_greedyInitActivated = options.greedyInitActivated;
+    out << "c " << options << '\n';
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
