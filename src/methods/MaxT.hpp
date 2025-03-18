@@ -446,7 +446,8 @@ class MaxT : public MethodManager {
    * compute result.
    */
   void updateBound(MaxSharpSatResult &result, std::vector<Var> &vars) {
-    if (!m_isUnderAnd && result.count * m_scale.count > m_maxCount.count) {
+    if (!m_isUnderAnd &&
+        (!m_solutionFound || result.count * m_scale.count > m_maxCount.count)) {
       m_maxCount.count = result.count * m_scale.count;
 
       assert(result.valuation);

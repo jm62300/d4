@@ -105,7 +105,7 @@ class AggregateComplex {
     Complex v1(m_realLits[l.intern()], m_imLits[l.intern()]);
     Complex v2(m_realLits[(~l).intern()], m_imLits[(~l).intern()]);
 
-    return v1 * v2;
+    return v1 + v2;
   }  // getWeightVar
 
   inline void multiplyUnitFree(Complex &out, std::vector<Lit> &units,
@@ -164,7 +164,7 @@ class AggregateMpfFloat {
 
   inline BigFloat getWeightVar(Var v) {
     Lit l = Lit::makeLitTrue(v);
-    return BigFloat(m_weightLits[l.intern()] * m_weightLits[(~l).intern()]);
+    return BigFloat(m_weightLits[l.intern()] + m_weightLits[(~l).intern()]);
   }
 
   inline void multiplyUnitFree(BigFloat &out, std::vector<Lit> &units,
@@ -192,5 +192,11 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
   config.threshold = -1;
   OptionMaxTMethod options(config);
 
-  maxT<Complex, AggregateComplex>(options, problem);
+  if (vm["complex"].as<bool>()) {
+    std::cout << "c Run with the complex mode\n";
+    maxT<Complex, AggregateComplex>(options, problem);
+  } else {
+    std::cout << "c Run with the classic mode\n";
+    maxT<BigFloat, AggregateMpfFloat>(options, problem);
+  }
 }  // counterDemo

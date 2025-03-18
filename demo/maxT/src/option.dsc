@@ -29,3 +29,4 @@
 ("float,f", boost::program_options::value<bool>()->default_value(false), "If the count is computed as a float or not.")
 ("keyword-output-format-solution", boost::program_options::value<std::string>()->default_value("s"), "The keyword prints in front of the solution when it is printed out.")
 ("output-format", boost::program_options::value<std::string>()->default_value("classic"), "The way the solution is printed out ('classic' only gives the number of solution after printing 's', 'competition' follows the MC competition 2021).")
+("complex", boost::program_options::value<bool>()->default_value(false), "Specify if the problem use complex.")
