@@ -70,7 +70,10 @@ class Complex {
   bool operator>(Complex const &obj) { return norm() > obj.norm(); }
 
   friend std::ostream &operator<<(std::ostream &os, const Complex &dt) {
-    os << dt.real << " + " << dt.im << 'i';
+    if (dt.im < 0)
+      os << dt.real << dt.im << 'i';
+    else
+      os << dt.real << "+" << dt.im << 'i';
     return os;
   }
 };
