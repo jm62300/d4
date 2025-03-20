@@ -188,6 +188,19 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
   // get the configuration.
   ConfigurationMaxTMethod config;
 
+  config.solver.solverName = MINISAT_CNF;
+
+  config.cacheManagerMax.isActivated = true;
+  config.cacheManagerMax.sizeFirstPage = 1UL << 30;
+
+  config.cacheManagerInd.isActivated = true;
+  config.cacheManagerInd.sizeFirstPage = 1UL << 30;
+
+  config.branchingHeuristicMax.branchingHeuristicType = BRANCHING_CLASSIC;
+  config.branchingHeuristicInd.branchingHeuristicType = BRANCHING_CLASSIC;
+  config.branchingHeuristicMax.scoringMethodType = SCORE_VSADS;
+  config.branchingHeuristicInd.scoringMethodType = SCORE_VSADS;
+
   bool isFloat = problem->isFloat();
   MethodManager::displayInfoVariables(problem, std::cout);
 

@@ -69,7 +69,8 @@ class MaxT : public MethodManager {
 
     void display(unsigned size) {
       assert(valuation);
-      for (unsigned i = 0; i < size; i++) std::cout << (int)valuation[i] << " ";
+      for (unsigned i = 0; i < size; i++)
+        std::cout << (int)getBit(valuation, i) << " ";
       std::cout << "\n";
     }
   };
@@ -102,7 +103,7 @@ class MaxT : public MethodManager {
   std::vector<unsigned> m_redirectionPos;
   unsigned m_countUpdateMaxCount = 0;
 
-  const unsigned c_sizePage = 1 << 18;
+  const unsigned c_sizePage = 1 << 25;
   std::vector<u_int8_t *> m_memoryPages;
   unsigned m_posInMemoryPages;
   unsigned m_sizeArray;
@@ -119,7 +120,10 @@ class MaxT : public MethodManager {
   CacheManager<MaxSharpSatResult> *m_cacheMax;
 
   std::ostream m_out;
-  bool m_panicMode;
+  TmpEntry<MaxSharpSatResult> NULL_CACHE_ENTRY;
+  bool m_cacheMaxActivated = true;
+  TmpEntry<T> NULL_CACHE_ENTRY_T;
+  bool m_cacheIndActivated = true;
 
   bool m_stopProcess = false;
   std::string m_heuristicMax = "none";
@@ -153,6 +157,9 @@ class MaxT : public MethodManager {
     m_heuristicMaxRdm = options.randomPhaseHeuristicMax;
     m_greedyInitActivated = options.greedyInitActivated;
     out << "c " << options << '\n';
+
+    m_cacheMaxActivated = options.optionCacheManagerMax.isActivated;
+    m_cacheIndActivated = options.optionCacheManagerInd.isActivated;
 
     // we create the SAT solver.
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
@@ -221,11 +228,13 @@ class MaxT : public MethodManager {
     // init the memory required for storing interpretation.
     m_memoryPages.push_back(new u_int8_t[c_sizePage]);
     m_posInMemoryPages = 0;
-    m_sizeArray = m_problem->getMaxVar().size();
+    m_sizeArray = computeSizeArray(m_problem->getMaxVar().size());
 
     // set the m_scale variable if needed.
+    out << "c [MAXT] The size of the valuation array is: " << m_sizeArray
+        << '\n';
     m_scale.valuation = getArray();
-    for (unsigned i = 0; i < m_sizeArray; i++) m_scale.valuation[i] = 0;
+    setZeroArray(m_scale.valuation);
     m_maxCount.valuation = getArray();
   }  // constructor
 
@@ -248,6 +257,45 @@ class MaxT : public MethodManager {
 
  private:
   /**
+   * @brief Initializes the given array by setting all elements to zero.
+   *
+   * This function fills the provided array with zero values, ensuring
+   * it is properly initialized for further use.
+   *
+   * @param[out] arr Pointer to the array that needs to be zero-initialized.
+   */
+  inline void setZeroArray(uint8_t *arr) {
+    std::memset(arr, 0, m_sizeArray);
+  }  // setZeroArray
+
+  inline unsigned computeSizeArray(unsigned maxVal) { return maxVal >> 3; }
+
+  inline u_int8_t getBit(uint8_t *arr, int idx) {
+    return (arr[idx >> 3] >> (idx & 7)) & 1;
+  }  // getBit
+
+  inline void setBit(uint8_t *arr, int idx, u_int8_t val) {
+    arr[idx >> 3] |= val << (idx & 7);
+  }  // setBit
+
+  inline void orBit(uint8_t *dst, const uint8_t *src, unsigned idx) {
+    dst[idx >> 3] |= src[idx >> 3] & (1 << (idx & 7));
+  }  // orBit
+
+  /**
+   * @brief Copies the contents of the source array into the destination array.
+   *
+   * This function performs an element-wise copy from the source array to the
+   * destination array, ensuring that all values are transferred correctly.
+   *
+   * @param[out] dst Pointer to the destination array where data will be copied.
+   * @param[in] src Pointer to the source array from which data is copied.
+   */
+  inline void setArr(uint8_t *dst, const uint8_t *src) {
+    std::memcpy(dst, src, m_sizeArray);
+  }
+
+  /**
    * @brief Print out the solution.
    *
    * @param solution is the maxsharp SAT solution we want to print.
@@ -262,7 +310,7 @@ class MaxT : public MethodManager {
     assert(m_problem->getMaxVar().size() == m_sizeArray);
     std::cout << "v ";
     for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
-      std::cout << ((solution.valuation[i]) ? "" : "-")
+      std::cout << ((getBit(solution.valuation, i)) ? "" : "-")
                 << m_problem->getMaxVar()[i] << " ";
     }
     std::cout << "0\n";
@@ -368,10 +416,12 @@ class MaxT : public MethodManager {
    *
    * @return a pointer on a u_int8_t array.
    */
-  u_int8_t *getArray() {
+  inline u_int8_t *getArray() {
     u_int8_t *ret = &(m_memoryPages.back()[m_posInMemoryPages]);
     m_posInMemoryPages += m_sizeArray;
     if (m_posInMemoryPages > c_sizePage) {
+      m_out << "c [MAXT] Allocate memory for valuation: "
+            << m_memoryPages.size() * c_sizePage << '\n';
       m_memoryPages.push_back(new u_int8_t[c_sizePage]);
       m_posInMemoryPages = 0;
       ret = m_memoryPages.back();
@@ -434,7 +484,7 @@ class MaxT : public MethodManager {
                   u_int8_t *orValuation) {
     for (auto v : vars) {
       if (m_isMaxDecisionVariable[v])
-        resValuation[m_redirectionPos[v]] |= orValuation[m_redirectionPos[v]];
+        orBit(resValuation, orValuation, m_redirectionPos[v]);
     }
   }  // disjunctionOnMaxVariable
 
@@ -451,13 +501,12 @@ class MaxT : public MethodManager {
       m_maxCount.count = result.count * m_scale.count;
 
       assert(result.valuation);
-      for (unsigned i = 0; i < m_sizeArray; i++)
-        m_maxCount.valuation[i] = m_scale.valuation[i];
+      setArr(m_maxCount.valuation, m_scale.valuation);
 
       for (auto v : vars)
         if (m_isMaxDecisionVariable[v])
-          m_maxCount.valuation[m_redirectionPos[v]] =
-              result.valuation[m_redirectionPos[v]];
+          setBit(m_maxCount.valuation, m_redirectionPos[v],
+                 getBit(result.valuation, m_redirectionPos[v]));
 
       m_solutionFound = true;
       m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
@@ -502,7 +551,7 @@ class MaxT : public MethodManager {
 
     // init the returned result.
     result.valuation = getArray();
-    for (unsigned i = 0; i < m_sizeArray; i++) result.valuation[i] = 0;
+    setZeroArray(result.valuation);
 
     // set a valuation for fixed variables.
     T saveCount = m_scale.count;
@@ -514,8 +563,8 @@ class MaxT : public MethodManager {
         Lit l = Lit::makeLitTrue(v);
         if (m_aggregator.isGreaterThan(~l, l)) l = ~l;
 
-        m_scale.valuation[m_redirectionPos[v]] = 1 - l.sign();
-        result.valuation[m_redirectionPos[v]] = 1 - l.sign();
+        setBit(m_scale.valuation, m_redirectionPos[v], 1 - l.sign());
+        setBit(result.valuation, m_redirectionPos[v], 1 - l.sign());
         fixCount = fixCount * m_aggregator.getWeightLit(l);
       } else if (m_isDecisionVariable[v])
         fixInd = fixInd * m_aggregator.getWeightVar(v);
@@ -524,8 +573,8 @@ class MaxT : public MethodManager {
     for (auto &l : unitsLit)
       if (m_isMaxDecisionVariable[l.var()]) {
         fixCount = fixCount * m_aggregator.getWeightLit(l);
-        m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
-        result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
+        setBit(m_scale.valuation, m_redirectionPos[l.var()], 1 - l.sign());
+        setBit(result.valuation, m_redirectionPos[l.var()], 1 - l.sign());
       } else if (m_isDecisionVariable[l.var()])
         fixInd = fixInd * m_aggregator.getWeightLit(l);
 
@@ -544,7 +593,10 @@ class MaxT : public MethodManager {
       m_nbSplitMax += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
+
+        TmpEntry<MaxSharpSatResult> cb =
+            m_cacheMaxActivated ? m_cacheMax->searchInCache(connected)
+                                : NULL_CACHE_ENTRY;
 
         if (cb.defined) {
           mustMultiply = cb.getValue().count;
@@ -553,7 +605,7 @@ class MaxT : public MethodManager {
         } else {
           MaxSharpSatResult tmpResult;
           searchMaxSharpSatDecision(connected, out, tmpResult);
-          m_cacheMax->addInCache(cb, tmpResult);
+          if (m_cacheMaxActivated) m_cacheMax->addInCache(cb, tmpResult);
           mustMultiply = tmpResult.count;
           if (tmpResult.valuation)
             orOnMaxVar(connected, result.valuation, tmpResult.valuation);
@@ -685,13 +737,16 @@ class MaxT : public MethodManager {
 
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var> &connected = varConnected[cp];
-        TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
+
+        TmpEntry<T> cb = m_cacheIndActivated
+                             ? m_cacheInd->searchInCache(connected)
+                             : NULL_CACHE_ENTRY_T;
 
         if (cb.defined)
           result = result * cb.getValue();
         else {
           T curr = countIndDecisionNode(connected, out);
-          m_cacheInd->addInCache(cb, curr);
+          if (m_cacheIndActivated) m_cacheInd->addInCache(cb, curr);
           result = result * curr;
         }
       }
@@ -764,8 +819,7 @@ class MaxT : public MethodManager {
   void compute(std::vector<Var> &setOfVar, std::ostream &out,
                MaxSharpSatResult &result, bool warmStart = true) {
     if (m_problem->isUnsat() ||
-        (warmStart && !m_panicMode &&
-         !m_solver->warmStart(29, 11, setOfVar, m_out))) {
+        (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out))) {
       result = {m_aggregator.sumIdentity(), NULL};
       return;
     }

@@ -38,7 +38,7 @@ struct StatVarSizeCache {
 template <class T>
 class CacheCleaningExpectation : public CacheCleaningManager<T> {
  private:
-  const double INC_THRESHOD = 0.05;
+  const double INC_THRESHOD = 0.1;
   const double INIT_THRESHOD = 0;
 
   unsigned m_nbReduceCall;
@@ -109,8 +109,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     m_nbReduceCall++;
     unsigned limit = m_cache->getLimitVarCached();
 
-    for (unsigned i = limit;
-         i < m_statVar.size() && i > m_cache->MIN_NBVAR_NOTCACHED; i--) {
+    for (unsigned i = limit; i < m_statVar.size(); i--) {
       double ratio = 0;
       assert(i < m_statVar.size());
       if (m_statVar[i].negative) {
@@ -129,7 +128,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     // bonus and set the limit for the cache.
     limit *= 1.1;
     m_cache->setLimitVarCache(limit);
-    limit = m_cache->getLimitVarCached();
+    // limit = m_cache->getLimitVarCached();
     m_threshold += INC_THRESHOD;
 
     unsigned nbRemoveEntry = m_cache->removeEntry([limit](CachedBucket<T> &c) {
@@ -139,7 +138,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     m_nbRemoveEntry += nbRemoveEntry;
     std::cout << "c #rm=" << nbRemoveEntry << " #allRm=" << m_nbRemoveEntry
               << " #entries=" << m_cache->getNbEntry() << " limit=" << limit
-              << "\n";
+              << " threshold=" << m_threshold << "\n";
   }  // reduceCache
 
   /**
