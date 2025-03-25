@@ -28,7 +28,7 @@ namespace d4 {
 class OptionMaxTMethod {
  public:
   bool greedyInitActivated;
-  double threshold;
+  std::vector<std::string> thresholdList;
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
 
@@ -56,8 +56,8 @@ class OptionMaxTMethod {
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionMaxTMethod& dt) {
     out << " Option MaxSharpSAT Method:" << " greedyInitActivated("
-        << dt.greedyInitActivated << ")" << " threshold(" << dt.threshold
-        << ")";
+        << dt.greedyInitActivated << ")" << " threshold("
+        << (dt.thresholdList.size() > 0) << ")";
     return out;
   }  // <<
 };

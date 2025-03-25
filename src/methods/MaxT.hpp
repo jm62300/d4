@@ -78,9 +78,7 @@ class MaxT : public MethodManager {
  private:
   const unsigned NB_SEP = 170;
 
-  bool optDomConst;
-  bool optReversePolarity;
-
+  bool m_optThreshold = false;
   bool m_solutionFound = false;
   unsigned m_nbCallCall;
   unsigned m_nbCallProj;
@@ -133,6 +131,7 @@ class MaxT : public MethodManager {
   MaxSharpSatResult m_maxCount;
 
   A m_aggregator;
+  T m_threshold;
 
  public:
   /**
@@ -236,6 +235,12 @@ class MaxT : public MethodManager {
     m_scale.valuation = getArray();
     setZeroArray(m_scale.valuation);
     m_maxCount.valuation = getArray();
+
+    m_optThreshold = options.thresholdList.size();
+    if (m_optThreshold) {
+      m_threshold = T(options.thresholdList);
+      out << "c [MAXT] Set the threshold limit: " << m_threshold << '\n';
+    }
   }  // constructor
 
   /**
@@ -312,7 +317,6 @@ class MaxT : public MethodManager {
     }
 
     assert(solution.valuation);
-    assert(m_problem->getMaxVar().size() == m_sizeArray);
     std::cout << "v ";
     for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
       std::cout << ((getBit(solution.valuation, i)) ? "" : "-")
@@ -517,6 +521,12 @@ class MaxT : public MethodManager {
       m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
             << std::setprecision(2) << getTimer() << " ";
       m_out << std::fixed << std::setprecision(50) << m_maxCount.count << "\n";
+
+      if (m_optThreshold && m_threshold <= result.count) {
+        std::cout << "s SATISFIABLE\n";
+        printSolution(m_maxCount, 't');
+        exit(0);
+      }
     }
   }  // updateBound
 

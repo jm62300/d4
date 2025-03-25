@@ -29,7 +29,7 @@ OptionMaxTMethod::OptionMaxTMethod(const ConfigurationMaxTMethod& config)
       optionBranchingHeuristicInd(config.branchingHeuristicInd) {
   // general options.
   greedyInitActivated = config.greedyInitActivated;
-  threshold = config.threshold;
+  thresholdList = config.thresholdList;
   optionSolver = {config.solver.solverName};
   optionSpecManager = {config.specManager.specUpdateType};
 

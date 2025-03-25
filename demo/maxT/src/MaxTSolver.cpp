@@ -49,6 +49,11 @@ class Complex {
 
   Complex() : real(0), im(0) {}
   Complex(mpz::mpf_float r, mpz::mpf_float i) : real(r), im(i) {}
+  Complex(const std::vector<std::string> &v) {
+    assert(v.size() == 2);
+    real = mpz::mpf_float(v[0]);
+    im = mpz::mpf_float(v[1]);
+  }
 
   Complex operator*(Complex const &obj) {
     Complex res(real * obj.real - im * obj.im, real * obj.im + im * obj.real);
@@ -68,6 +73,8 @@ class Complex {
 
   bool operator<(Complex const &obj) { return norm() < obj.norm(); }
   bool operator>(Complex const &obj) { return norm() > obj.norm(); }
+  bool operator<=(Complex const &obj) { return norm() <= obj.norm(); }
+  bool operator>=(Complex const &obj) { return norm() >= obj.norm(); }
 
   friend std::ostream &operator<<(std::ostream &os, const Complex &dt) {
     if (dt.im < 0)
@@ -129,6 +136,10 @@ class BigFloat {
 
   BigFloat() : val(0) {}
   BigFloat(mpz::mpf_float v) : val(v) {}
+  BigFloat(const std::vector<std::string> &v) {
+    assert(v.size() == 1);
+    val = mpz::mpf_float(v[0]);
+  }
 
   BigFloat operator*(BigFloat const &obj) {
     BigFloat res(val * obj.val);
@@ -143,6 +154,8 @@ class BigFloat {
   bool operator==(BigFloat const &obj) { return val == obj.val; }
   bool operator<(BigFloat const &obj) { return val < obj.val; }
   bool operator>(BigFloat const &obj) { return val > obj.val; }
+  bool operator<=(BigFloat const &obj) { return val <= obj.val; }
+  bool operator>=(BigFloat const &obj) { return val >= obj.val; }
   friend std::ostream &operator<<(std::ostream &os, const BigFloat &dt) {
     os << dt.val;
     return os;
@@ -176,9 +189,9 @@ class AggregateMpfFloat {
     for (auto &v : free) out = out * getWeightVar(v);
   }
 
-  inline BigFloat sumIdentity() { return BigFloat(0); }
-  inline BigFloat mulIdentity() { return BigFloat(1); }
-  inline BigFloat min() { return BigFloat(0); }
+  inline BigFloat sumIdentity() { return BigFloat(mpz::mpf_float(0)); }
+  inline BigFloat mulIdentity() { return BigFloat(mpz::mpf_float(1)); }
+  inline BigFloat min() { return BigFloat(mpz::mpf_float(0)); }
 };
 
 /**
@@ -201,11 +214,18 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
   config.branchingHeuristicMax.scoringMethodType = SCORE_VSADS;
   config.branchingHeuristicInd.scoringMethodType = SCORE_VSADS;
 
+  std::string s = vm["threshold"].as<std::string>();
+  std::stringstream ss(s);
+  std::string t;
+
+  // Splitting the str string by delimiter
+  while (getline(ss, t, ' '))
+    if (t.size()) config.thresholdList.push_back(t);
+
   bool isFloat = problem->isFloat();
   MethodManager::displayInfoVariables(problem, std::cout);
 
   // init the options.
-  config.threshold = -1;
   OptionMaxTMethod options(config);
 
   if (vm["complex"].as<bool>()) {

@@ -30,3 +30,4 @@
 ("keyword-output-format-solution", boost::program_options::value<std::string>()->default_value("s"), "The keyword prints in front of the solution when it is printed out.")
 ("output-format", boost::program_options::value<std::string>()->default_value("classic"), "The way the solution is printed out ('classic' only gives the number of solution after printing 's', 'competition' follows the MC competition 2021).")
 ("complex", boost::program_options::value<bool>()->default_value(false), "Specify if the problem use complex.")
+("threshold", boost::program_options::value<std::string>()->default_value(""), "Specify a threshold value as a list of string (e.g. for a complex 12 3 is equivalent to 12 + 3i).")

@@ -30,7 +30,6 @@ namespace d4 {
 class ConfigurationMaxTMethod : public Configuration {
  public:
   bool greedyInitActivated = false;
-  double threshold = 1.0;
   ConfigurationSolver solver;
   ConfigurationSpec specManager;
 
@@ -41,5 +40,7 @@ class ConfigurationMaxTMethod : public Configuration {
 
   ConfigurationBranchingHeuristic branchingHeuristicInd;
   ConfigurationCache cacheManagerInd;
+
+  std::vector<std::string> thresholdList;
 };
 }  // namespace d4
