@@ -268,14 +268,19 @@ class MaxT : public MethodManager {
     std::memset(arr, 0, m_sizeArray);
   }  // setZeroArray
 
-  inline unsigned computeSizeArray(unsigned maxVal) { return maxVal >> 3; }
+  inline unsigned computeSizeArray(unsigned maxVal) {
+    return 1 + (maxVal >> 3);
+  }
 
   inline u_int8_t getBit(uint8_t *arr, int idx) {
     return (arr[idx >> 3] >> (idx & 7)) & 1;
   }  // getBit
 
   inline void setBit(uint8_t *arr, int idx, u_int8_t val) {
-    arr[idx >> 3] |= val << (idx & 7);
+    if (val)
+      arr[idx >> 3] |= val << (idx & 7);
+    else
+      arr[idx >> 3] &= ~(val << (idx & 7));
   }  // setBit
 
   inline void orBit(uint8_t *dst, const uint8_t *src, unsigned idx) {
@@ -660,6 +665,8 @@ class MaxT : public MethodManager {
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
+
+      unsigned save = m_nbCallCall;
       result.count = countInd_(connected, unitsLit, freeVar, out);
       m_aggregator.multiplyUnitFree(result.count, unitsLit, freeVar);
       result.valuation = NULL;

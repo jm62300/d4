@@ -1,0 +1,86 @@
+c [CONSTRUCTOR] Problem: ./syn_files/ccx_gate_0/fullP_2_quokka_syn.cnf cnf
+c [INITIAL INPUT] [4m[32mStatistics about the input formula[0m
+c [INITIAL INPUT] Number of variables: 107
+c [INITIAL INPUT] Number of clauses: 818
+c [INITIAL INPUT] Number of binary clauses: 300
+c [INITIAL INPUT] Number of ternary clauses: 298
+c [INITIAL INPUT] Number of clauses larger than 3: 220
+c [INITIAL INPUT] Number of literals: 2488
+c
+c [CONSTRUCTOR] MethodManager: max#sat
+c [CONSTRUCTOR] Preproc: basic cnf
+c [CONSTRUCTOR] Preproc solver: minisat cnf
+c [MAIN PREPROCESSED INPUT] [4m[32mStatistics about the preprocessed formula[0m
+c [PREPROCESSED INPUT] Number of variables: 107
+c [PREPROCESSED INPUT] Number of clauses: 818
+c [PREPROCESSED INPUT] Number of binary clauses: 300
+c [PREPROCESSED INPUT] Number of ternary clauses: 298
+c [PREPROCESSED INPUT] Number of clauses larger than 3: 220
+c [PREPROCESSED INPUT] Number of literals: 2488
+c
+c
+c [MAX VARIABLES] list: 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 
+c
+c
+c [IND VARIABLES] list: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 78 79 80 81 82 83 84 85 86 87 88 89 
+c
+c [MODE] Panic: 0
+c [CONSTRUCTOR MAX#SAT] Heuristic on MAX variables: best
+c [CONSTRUCTOR MAX#SAT] Use random on MAX variables: 5
+c [CONSTRUCTOR MAX#SAT] Threshold: 64
+c [CONSTRUCTOR MAX#SAT] Dig for a partial solution under an AND: 0
+c [CONSTRUCTOR] Solver: minisat cnf
+c [CONSTRUCTOR SPEC] Spec manager: dynamic cnf
+c [CONSTRUCTOR] Variable heuristic: vsads
+c [CONSTRUCTOR] Phase heuristic: polarity
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [CACHE] Cache method used: list
+c [CONSTRUCTOR] Cache cleaning manager: expectation
+c [CONSTRUCTOR] Cache bucket manager: storage(not-touched)  representation(clause)  size_first_page(2147483648) size_additional_page(536870912)
+c [CACHE LIST CONSTRUCTOR]
+c [MAX#SAT] Greedy init activated: 0
+c
+c Warm start process (11): 11/29
+c -----------------------------------------------------------------------------------------------------------------------------------
+c |    #call(m)|    #call(i)|        time|     #posHit|     #negHit|      memory|      #split|     mem(MB)|  #dec. Node|   max#count|
+c -----------------------------------------------------------------------------------------------------------------------------------
+i 1 0.00 11.65685424949238310913541658168986639026952857765879
+i 2 0.00 13.65685424949238322239480281332945112742643948462335
+i 3 0.00 13.65685424949238338256776288816675707649469032466252
+i 4 0.00 16.00000000000000328118815567772336112193400095024878
+i 5 0.04 19.89949493661167079936386499816413032701733217764200
+i 6 0.04 26.72792206135786323085830532425971486252605382379250
+i 7 0.04 31.31370849898476863224837607847470063188623293148057
+c |        1376|       15008|        0.10|        6390|        7194|      581569|        1965|     4160.55|        7883|    3.13e+01|
+c |        3069|       29699|        0.21|       14019|       14117|     1230884|        4282|     4160.55|       15654|    3.13e+01|
+i 8 0.22 36.00000000000000765610569658135450928451266888391383
+c |        4991|       44161|        0.32|       23149|       20893|     1893093|        7823|     4160.55|       23390|    3.60e+01|
+c -----------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of recursive call: 6583
+c Number of split formula: 11445
+c Number of decision: 29560
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 31102
+c Number of negative hit: 26269
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c
+c [1m[34mCache Information[0m
+c Number of positive hit: 114
+c Number of negative hit: 6466
+c Number of reduce calls: 0
+c Number of entry removedreduce: 0
+c
+c Final time: 4.21e-01
+c
+r UNSATISFIABLE
+v -60 61 -62 -63 -64 -65 -66 -67 -68 -69 -70 -71 -72 73 -74 -75 -76 -77 90 91 92 -93 -94 -95 -96 -97 -98 -99 -100 -101 -102 -103 -104 -105 -106 -107 0
+o 36.00000000000000765610569658135450928451266888391383
