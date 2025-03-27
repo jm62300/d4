@@ -283,9 +283,9 @@ class MaxT : public MethodManager {
 
   inline void setBit(uint8_t *arr, int idx, u_int8_t val) {
     if (val)
-      arr[idx >> 3] |= val << (idx & 7);
+      arr[idx >> 3] |= 1 << (idx & 7);
     else
-      arr[idx >> 3] &= ~(val << (idx & 7));
+      arr[idx >> 3] &= ~(1 << (idx & 7));
   }  // setBit
 
   inline void orBit(uint8_t *dst, const uint8_t *src, unsigned idx) {
@@ -513,14 +513,15 @@ class MaxT : public MethodManager {
       setArr(m_maxCount.valuation, m_scale.valuation);
 
       for (auto v : vars)
-        if (m_isMaxDecisionVariable[v])
+        if (m_isMaxDecisionVariable[v]) {
           setBit(m_maxCount.valuation, m_redirectionPos[v],
                  getBit(result.valuation, m_redirectionPos[v]));
 
+          assert(getBit(result.valuation, m_redirectionPos[v]) ==
+                 getBit(m_maxCount.valuation, m_redirectionPos[v]));
+        }
+
       m_solutionFound = true;
-      m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
-            << std::setprecision(2) << getTimer() << " ";
-      m_out << std::fixed << std::setprecision(50) << m_maxCount.count << "\n";
 
       if (m_optThreshold && m_threshold <= result.count) {
         std::cout << "s SATISFIABLE\n";
