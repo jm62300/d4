@@ -523,7 +523,7 @@ class MaxT : public MethodManager {
 
       m_solutionFound = true;
 
-      if (m_optThreshold && m_threshold <= result.count) {
+      if (m_optThreshold && m_threshold <= m_maxCount.count) {
         std::cout << "s SATISFIABLE\n";
         printSolution(m_maxCount, 't');
         exit(0);

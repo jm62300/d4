@@ -151,6 +151,8 @@ class BigFloat {
     return res;
   }
 
+  inline mpz::mpf_float norm() const { return val > 0 ? val : -val; }
+
   bool operator==(BigFloat const &obj) { return val == obj.val; }
   bool operator<(BigFloat const &obj) { return val < obj.val; }
   bool operator>(BigFloat const &obj) { return val > obj.val; }
