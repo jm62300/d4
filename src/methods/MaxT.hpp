@@ -527,6 +527,11 @@ class MaxT : public MethodManager {
         std::cout << "s SATISFIABLE\n";
         printSolution(m_maxCount, 't');
         exit(0);
+      } else {
+        m_out << "i " << ++m_countUpdateMaxCount << " " << std::fixed
+              << std::setprecision(2) << getTimer() << " ";
+        m_out << std::fixed << std::setprecision(50) << m_maxCount.count
+              << "\n";
       }
     }
   }  // updateBound
@@ -677,7 +682,6 @@ class MaxT : public MethodManager {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
 
-      unsigned save = m_nbCallCall;
       result.count = countInd_(connected, unitsLit, freeVar, out);
       m_aggregator.multiplyUnitFree(result.count, unitsLit, freeVar);
       result.valuation = NULL;
