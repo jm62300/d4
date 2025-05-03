@@ -66,16 +66,19 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
   }
   m_treeWidth = largestBag;
 
-  if (largestBag < 30)
-    m_scaleFactor = 100000000;
-  else if (largestBag < 40)
-    m_scaleFactor = 100000;
-  else if (largestBag < 50)
-    m_scaleFactor = 1000;
-  else if (largestBag < 70)
-    m_scaleFactor = 0;
-  else
-    m_scaleFactor = 0;
+  if (options.scaleFactor == 0) {
+    if (largestBag < 30)
+      m_scaleFactor = 100000000;
+    else if (largestBag < 40)
+      m_scaleFactor = 100000;
+    else if (largestBag < 50)
+      m_scaleFactor = 1000;
+    else if (largestBag < 70)
+      m_scaleFactor = 0;
+    else
+      m_scaleFactor = 0;
+  } else
+    m_scaleFactor = options.scaleFactor;
 
   out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
   out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';

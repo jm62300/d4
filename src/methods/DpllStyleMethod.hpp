@@ -42,9 +42,9 @@
 #include "src/utils/MemoryStat.hpp"
 
 #define NB_SEP_MC 92
-#define MASK_SHOWRUN_MC ((2 << 13) - 1)
+#define MASK_SHOWRUN_MC ((2 << 16) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
-#define MASK_HEADER 1048575
+#define MASK_HEADER 33554431
 
 #include "CountingOperation.hpp"
 #include "DecisionDNNFOperation.hpp"

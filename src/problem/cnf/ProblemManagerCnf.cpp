@@ -71,6 +71,7 @@ ProblemManagerCnf::ProblemManagerCnf() { m_nbVar = 0; }  // constructor
 ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
   m_nbVar = problem->getNbVar();
   m_weightLit = problem->getWeightLit();
+  m_weightLitIm = problem->getWeightLitIm();
   m_weightVar = problem->getWeightVar();
   m_selected = problem->getSelectedVar();
   m_maxVar = problem->getMaxVar();

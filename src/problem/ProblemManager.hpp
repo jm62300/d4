@@ -132,6 +132,7 @@ class ProblemManager {
  protected:
   unsigned m_nbVar;
   std::vector<mpz::mpf_float> m_weightLit;
+  std::vector<mpz::mpf_float> m_weightLitIm;
   std::vector<mpz::mpf_float> m_weightVar;
   std::vector<Var> m_selected;
   std::vector<Var> m_maxVar;
@@ -158,6 +159,7 @@ class ProblemManager {
   inline std::vector<Var> &getMaxVar() { return m_maxVar; }
   inline std::vector<Var> &getIndVar() { return m_indVar; }
   inline std::vector<mpz::mpf_float> &getWeightLit() { return m_weightLit; }
+  inline std::vector<mpz::mpf_float> &getWeightLitIm() { return m_weightLitIm; }
   inline std::vector<mpz::mpf_float> &getWeightVar() { return m_weightVar; }
   inline std::vector<unsigned> &getOrder() { return m_order; }
 

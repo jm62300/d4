@@ -40,6 +40,10 @@ class Parsing {
   static void parseNextWeightedLits(BufferRead &in,
                                     std::vector<mpz::mpf_float> &weightLit);
 
+  static void parseNextComplexLits(BufferRead &in,
+                                   std::vector<mpz::mpf_float> &weightLitR,
+                                   std::vector<mpz::mpf_float> &weightLitI);
+
   static void parseRandonVars(BufferRead &in,
                               std::vector<mpz::mpf_float> &weightLit,
                               std::vector<Var> &vars);

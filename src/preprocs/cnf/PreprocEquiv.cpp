@@ -109,9 +109,7 @@ ProblemManager *PreprocEquiv::run(ProblemManager *pin,
 
     rm->run(pin->getNbVar(), clauses, 10, false, clauses);
 
-    ProblemManagerCnf *ret = new ProblemManagerCnf(
-        pin->getNbVar(), pin->getWeightLit(), pin->getWeightVar(),
-        pin->getSelectedVar(), pin->getMaxVar(), pin->getIndVar());
+    ProblemManagerCnf *ret = new ProblemManagerCnf(pin);
 
     std::vector<std::vector<Lit>> &clausesAfter = ret->getClauses();
     for (auto &cl : clauses) {

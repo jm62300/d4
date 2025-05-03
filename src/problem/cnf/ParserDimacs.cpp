@@ -43,6 +43,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
   std::string s;
 
   std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
+  std::vector<mpz::mpf_float> &weightLitIm = problemManager->getWeightLitIm();
   std::vector<std::vector<Lit>> &clauses = problemManager->getClauses();
 
   int nbVars = 0;
@@ -78,6 +79,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
       if (vpActivated)
         std::cout << "c Some variable are marked: " << in.nextInt() << "\n";
       weightLit.resize(((nbVars + 1) << 1), 1);
+      weightLitIm.resize(((nbVars + 1) << 1), 0);
 
       if (nbClauses < 0) printf("parse error\n"), exit(2);
     } else if (in.currentChar() == 'e') {
@@ -140,6 +142,12 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
         in.consumeChar();
         if (in.canConsume("weight")) {
           Parsing::parseNextWeightedLits(in, weightLit);
+
+          // in this format we have an end line we have to consume.
+          [[maybe_unused]] int endLine = in.nextInt();
+          assert(!endLine);
+        } else if (in.canConsume("complex")) {
+          Parsing::parseNextComplexLits(in, weightLit, weightLitIm);
 
           // in this format we have an end line we have to consume.
           [[maybe_unused]] int endLine = in.nextInt();
