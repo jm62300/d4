@@ -24,6 +24,7 @@
 ("partialOrder-heuristic-tree-decomposition-method",boost::program_options::value<std::string>()->default_value("flow-cutter"),"The tool used for computing the tree decomposition (flow-cutter).")
 ("partialOrder-heuristic-budget",boost::program_options::value<unsigned>()->default_value(100),"The maximum allowed computation time (in seconds) for tree decomposition.")
 ("partialOrder-heuristic-seed",boost::program_options::value<unsigned>()->default_value(2911),"A random seed for methods incorporating randomness.")
+("partialOrder-heuristic-scaling-factor",boost::program_options::value<double>()->default_value(0),"The scaling factor used for increasing the priority of the use of the tree decomposition (0 means we use the dynamic strategy).")
 ("partialOrder-heuristic-verbosity",boost::program_options::value<bool>()->default_value(false),"Control if the tool for computing the tree-decompositio will be verbose or not.")
 ("cache-reduction-strategy,crs", boost::program_options::value<std::string>()->default_value("none"), "The strategy used to reduce the cache structure [none, expectation, cache or sharpSAT].")
 ("cache-reduction-strategy-cachet-limit,crscl", boost::program_options::value<unsigned long>()->default_value(10UL * (1<<21)), "The limit in term of number of entries, the cachet reduction strategy allows.")

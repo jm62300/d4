@@ -40,45 +40,39 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
   // decay the variable weights.
   if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
 
-  // select one variable.
-  Var v = var_Undef;
-  double bestScore = -1;
+  // get the best variables (in the cut and in general).
+  Var vCut = var_Undef, vBest = var_Undef;
+  double bestScore = -1, bestScoreCut = -1;
 
-  // stat on the current cut set.
-  unsigned minLevel = -1, maxLevel = 0;
+  unsigned minLevel = -1;
   unsigned nbMin = 0;
   for (auto &vTmp : vars) {
     if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
+
     if (minLevel > m_partialOrder->getPartialOrder(vTmp)) {
       minLevel = m_partialOrder->getPartialOrder(vTmp);
+      vCut = var_Undef;
     }
     if (minLevel == m_partialOrder->getPartialOrder(vTmp)) nbMin++;
 
-    if (maxLevel < m_partialOrder->getPartialOrder(vTmp))
-      maxLevel = m_partialOrder->getPartialOrder(vTmp);
-  }
-
-  for (auto &vTmp : vars) {
-    assert(m_partialOrder->getPartialOrder(vTmp));
-    if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
-
-    if (v == var_Undef) {
-      bestScore = m_hVar->computeScore(vTmp) +
-                  m_partialOrder->scaleFactor() *
-                      (maxLevel - m_partialOrder->getPartialOrder(vTmp));
-      v = vTmp;
-      continue;
+    double current = m_hVar->computeScore(vTmp);
+    if (vCut == var_Undef ||
+        (m_partialOrder->getPartialOrder(vTmp) == minLevel &&
+         bestScoreCut < current)) {
+      vCut = vTmp;
+      bestScoreCut = current;
     }
 
-    double current = m_hVar->computeScore(vTmp);
-    current += m_partialOrder->scaleFactor() *
-               (maxLevel - m_partialOrder->getPartialOrder(vTmp));
-
-    if (v == var_Undef || current > bestScore) {
-      v = vTmp;
+    if (vBest == var_Undef || bestScore < current) {
+      vBest = vTmp;
       bestScore = current;
     }
   }
+
+  Var v = vCut;
+  if (nbMin > WORTH_CUT &&
+      (bestScoreCut * m_partialOrder->scaleFactor() / nbMin) < bestScore)
+    v = vBest;
 
   // return the list of lit (here it contains one literal).
   if (v != var_Undef) {

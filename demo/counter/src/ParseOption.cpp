@@ -145,5 +145,8 @@ d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
   partialOrderHeuristic.verbosity =
       vm["partialOrder-heuristic-verbosity"].as<bool>();
 
+  partialOrderHeuristic.scaleFactor =
+      vm["partialOrder-heuristic-scaling-factor"].as<double>();
+
   return partialOrderHeuristic;
 }  // parsePartitioningHeuristicConfiguration
