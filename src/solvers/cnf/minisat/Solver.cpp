@@ -371,6 +371,8 @@ void Solver::analyze(CRef confl, vec<Lit> &out_learnt, int &out_btlevel) {
 
       if (!seen[var(q)] && level(var(q)) > 0) {
         varBumpActivity(var(q));
+        scoreActivity[var(q)]++;
+
         // printf("bump %d %lf\n", var(q), activity[var(q)]);
         seen[var(q)] = 1;
         if (level(var(q)) >= decisionLevel())
@@ -381,8 +383,7 @@ void Solver::analyze(CRef confl, vec<Lit> &out_learnt, int &out_btlevel) {
     }
 
     // Select next clause to look at:
-    while (!seen[var(trail[index--])])
-      ;
+    while (!seen[var(trail[index--])]);
     p = trail[index + 1];
     confl = reason(var(p));
     seen[var(p)] = 0;
@@ -968,8 +969,7 @@ static double luby(double y, int x) {
   // Find the finite subsequence that contains index 'x', and the size of that
   // subsequence:
   int size, seq;
-  for (size = 1, seq = 0; size < x + 1; seq++, size = 2 * size + 1)
-    ;
+  for (size = 1, seq = 0; size < x + 1; seq++, size = 2 * size + 1);
 
   while (size - 1 != x) {
     size = (size - 1) >> 1;

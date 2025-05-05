@@ -23,7 +23,7 @@
 namespace d4 {
 class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
  private:
-  const unsigned WORTH_CUT = 11;
+  const unsigned WORTH_CUT = 50;
 
  private:
   PartialOrderHeuristic *m_partialOrder;

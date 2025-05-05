@@ -30,7 +30,8 @@ struct ConfigurationBranchingHeuristic {
   BranchingHeuristicType branchingHeuristicType =
       BRANCHING_HYBRID_PARTIAL_CLASSIC;
   bool reversePhase = false;
-  unsigned freqDecay = 128;
+  unsigned freqDecay = 1 << 13;
+
   unsigned limitSizeClause = 30;
 };
 }  // namespace d4

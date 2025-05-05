@@ -52,6 +52,7 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
     if (minLevel > m_partialOrder->getPartialOrder(vTmp)) {
       minLevel = m_partialOrder->getPartialOrder(vTmp);
       vCut = var_Undef;
+      nbMin = 0;
     }
     if (minLevel == m_partialOrder->getPartialOrder(vTmp)) nbMin++;
 
@@ -70,9 +71,13 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
   }
 
   Var v = vCut;
-  if (nbMin > WORTH_CUT &&
-      (bestScoreCut * m_partialOrder->scaleFactor() / nbMin) < bestScore)
+  if (nbMin > WORTH_CUT && bestScoreCut < bestScore &&
+      (bestScoreCut * m_partialOrder->scaleFactor()) < bestScore) {
+    // std::cout << nbMin << " " << m_partialOrder->scaleFactor() << " "
+    //           << (bestScoreCut * m_partialOrder->scaleFactor()) << " "
+    //           << bestScore << " " << bestScoreCut << '\n';
     v = vBest;
+  }
 
   // return the list of lit (here it contains one literal).
   if (v != var_Undef) {

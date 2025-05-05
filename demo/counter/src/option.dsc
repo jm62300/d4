@@ -12,7 +12,7 @@
 ("branching-heuristic", boost::program_options::value<std::string>()->default_value("hybrid-partial-classic"),"The branching heuristic used (classic or large-clause if d4 selects first literals in large clauses.)")
 ("branching-heuristic-limit-clause",boost::program_options::value<unsigned>()->default_value(30),"The size limit for the branching heuristic based on large clauses.")
 ("scoring-method,sm",boost::program_options::value<std::string>()->default_value("vsads"),"The scoring method used for selecting the next variable. [mom, dlcs, vsids, vsads, jwts]")
-("scoring-method-freq-decay",boost::program_options::value<unsigned>()->default_value(2048),"Gives the decay frequency")
+("scoring-method-freq-decay",boost::program_options::value<unsigned>()->default_value(8192),"Gives the decay frequency")
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected (false, true, polarity or occurrence).")
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(false), "Consider or not the reverse of the current phase.")
 ("partialOrder-heuristic",boost::program_options::value<std::string>()->default_value("tree-decomposition"),"The method used to compute a cut. [none, tree-decomposition]")

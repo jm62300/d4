@@ -73,10 +73,8 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
       m_scaleFactor = 100000;
     else if (largestBag < 50)
       m_scaleFactor = 1000;
-    else if (largestBag < 70)
-      m_scaleFactor = 0;
     else
-      m_scaleFactor = 0;
+      m_scaleFactor = 1;
   } else
     m_scaleFactor = options.scaleFactor;
 
