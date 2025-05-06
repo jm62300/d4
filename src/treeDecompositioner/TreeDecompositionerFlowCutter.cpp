@@ -91,7 +91,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
   auto start = std::chrono::system_clock::now();
   const char *decomp = NULL;
 
-  decomp = flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 11, budget,
+  decomp = flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 29, budget,
                                 true, seed, verbose);
 
   auto end = std::chrono::system_clock::now();

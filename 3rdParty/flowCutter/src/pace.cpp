@@ -524,6 +524,7 @@ const char* paceMain(unsigned nbNode,
             }
 
             int saveBestBagSize = best_bag_size;
+
             compute_multilevel_partition(
                 tail, head, flow_cutter::ComputeSeparator(config),
                 best_bag_size, on_new_multilevel_partition);

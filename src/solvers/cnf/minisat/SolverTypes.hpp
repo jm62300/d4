@@ -24,8 +24,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CUBE_GENERATOR_SolverTypes_h
 
 #include <assert.h>
-#include <iostream>
 #include <stdio.h>
+
+#include <iostream>
 
 #include "mtl/Alg.hpp"
 #include "mtl/Alloc.hpp"
@@ -54,7 +55,7 @@ struct Lit {
   bool operator!=(Lit p) const { return x != p.x; }
   bool operator<(Lit p) const {
     return x < p.x;
-  } // '<' makes p, ~p adjacent in the ordering.
+  }  // '<' makes p, ~p adjacent in the ordering.
 };
 
 inline Lit mkLit(Var var) {
@@ -92,8 +93,7 @@ inline Lit toLit(int i) {
 inline int maxLitToIntValue(int nbVar) { return nbVar + nbVar + 1; }
 
 inline Lit readableLitToLit(int l) {
-  if (l < 0)
-    return mkLit(-l - 1, true);
+  if (l < 0) return mkLit(-l - 1, true);
   return mkLit(l - 1, false);
 }
 
@@ -104,32 +104,26 @@ inline int readableLit(Lit l) { return sign(l) ? -(var(l)) : (var(l)); }
 inline int litToInt(Lit l) { return sign(l) ? -(var(l)) : (var(l)); }
 
 inline void showListVar(vec<Var> &v) {
-  for (int i = 0; i < v.size(); i++)
-    printf("%d ", v[i] + 1);
+  for (int i = 0; i < v.size(); i++) printf("%d ", v[i] + 1);
   printf("\n");
 }
 inline void showListLit(vec<Lit> &v) {
-  for (int i = 0; i < v.size(); i++)
-    printf("%d ", readableLit(v[i]));
+  for (int i = 0; i < v.size(); i++) printf("%d ", readableLit(v[i]));
   printf("\n");
 }
 inline void showListLitNoLn(vec<Lit> &v) {
-  for (int i = 0; i < v.size(); i++)
-    printf("%d ", readableLit(v[i]));
+  for (int i = 0; i < v.size(); i++) printf("%d ", readableLit(v[i]));
 }
 inline void showListInt(vec<unsigned int> &v) {
-  for (int i = 0; i < v.size(); i++)
-    printf("%d ", v[i]);
+  for (int i = 0; i < v.size(); i++) printf("%d ", v[i]);
   printf("\n");
 }
 inline void showListInt(vec<int> &v) {
-  for (int i = 0; i < v.size(); i++)
-    printf("%d ", v[i]);
+  for (int i = 0; i < v.size(); i++) printf("%d ", v[i]);
   printf("\n");
 }
 inline void showListBool(vec<bool> &v) {
-  for (int i = 0; i < v.size(); i++)
-    printf("%d ", v[i]);
+  for (int i = 0; i < v.size(); i++) printf("%d ", v[i]);
   printf("\n");
 }
 
@@ -142,13 +136,12 @@ inline void showListBool(vec<bool> &v) {
 */
 inline void addInSortedVecLit(vec<Lit> &v, Lit l) {
   int i;
-  for (i = v.size() - 1; i >= 0 && toInt(v[i]) > toInt(l); i--)
-    v[i + 1] = v[i];
+  for (i = v.size() - 1; i >= 0 && toInt(v[i]) > toInt(l); i--) v[i + 1] = v[i];
   assert(i < 0 || v[i] != l);
   i++;
   v[i] = l;
   v.setSize(v.size() + 1);
-} // addInSortedVec
+}  // addInSortedVec
 
 inline void removeLitFromUnsortedListLit(vec<Lit> &v, Lit l) {
   for (int i = 0; i < v.size(); i++)
@@ -158,30 +151,26 @@ inline void removeLitFromUnsortedListLit(vec<Lit> &v, Lit l) {
       return;
     }
   assert(0);
-} // removeLitFromUnsortedList
+}  // removeLitFromUnsortedList
 
 inline void removeLitFromSortedListLit(vec<Lit> &v, Lit l) {
   bool isIn = false;
-  for (int i = 0; i < v.size() && !isIn; i++)
-    isIn = v[i] == l;
-  if (!isIn)
-    return;
+  for (int i = 0; i < v.size() && !isIn; i++) isIn = v[i] == l;
+  if (!isIn) return;
 
   int p = -1;
   for (int i = 0; i < v.size() && p == -1; i++)
-    if (v[i] == l)
-      p = i;
+    if (v[i] == l) p = i;
   assert(p != -1);
-  for (; p < v.size() - 1; p++)
-    v[p] = v[p + 1];
+  for (; p < v.size() - 1; p++) v[p] = v[p + 1];
   v.pop();
-} // removeLitFromSortedList
+}  // removeLitFromSortedList
 
 // const Lit lit_Undef = mkLit(var_Undef, false);  // }- Useful special
 // constants. const Lit lit_Error = mkLit(var_Undef, true );  // }
 
-const Lit lit_Undef = {-2}; // }- Useful special constants.
-const Lit lit_Error = {-1}; // }
+const Lit lit_Undef = {-2};  // }- Useful special constants.
+const Lit lit_Error = {-1};  // }
 
 //=================================================================================================
 // Lifted booleans:
@@ -195,7 +184,7 @@ const Lit lit_Error = {-1}; // }
 class lbool {
   uint8_t value;
 
-public:
+ public:
   explicit lbool(uint8_t v) : value(v) {}
 
   lbool() : value(0) {}
@@ -248,7 +237,6 @@ class Clause {
     unsigned used : 1;
     unsigned size : 24;
     unsigned markIdx : 32;
-    int idxReason : 32;
   } header;
   union {
     Lit lit;
@@ -261,20 +249,19 @@ class Clause {
 
   // NOTE: This constructor cannot be used directly (doesn't allocate enough
   // memory).
-  template <class V> Clause(const V &ps, bool use_extra, bool learnt) {
+  template <class V>
+  Clause(const V &ps, bool use_extra, bool learnt) {
     header.mark = 0;
     header.used = 0;
     header.attached = 0;
     header.markIdx = 0;
     header.markView = 0;
-    header.idxReason = 0;
     header.learnt = learnt;
     header.has_extra = use_extra;
     header.reloced = 0;
     header.size = ps.size();
 
-    for (int i = 0; i < ps.size(); i++)
-      data[i].lit = ps[i];
+    for (int i = 0; i < ps.size(); i++) data[i].lit = ps[i];
 
     if (header.has_extra) {
       if (header.learnt)
@@ -284,7 +271,7 @@ class Clause {
     }
   }
 
-public:
+ public:
   void calcAbstraction() {
     assert(header.has_extra);
     uint32_t abstraction = 0;
@@ -296,8 +283,7 @@ public:
   int size() const { return header.size; }
   void shrink(int i) {
     assert(i <= size());
-    if (header.has_extra)
-      data[header.size - i] = data[header.size];
+    if (header.has_extra) data[header.size - i] = data[header.size];
     header.size -= i;
   }
   void pop() { shrink(1); }
@@ -314,8 +300,6 @@ public:
   void attached(uint32_t m) { header.attached = m; }
   uint32_t markIdx() const { return header.markIdx; }
   void markIdx(uint32_t m) { header.markIdx = m; }
-  int idxReason() const { return header.idxReason; }
-  void idxReason(int m) { header.idxReason = m; }
 
   uint32_t markView() const { return header.markView; }
   void markView(uint32_t m) { header.markView = m; }
@@ -373,7 +357,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t> {
            sizeof(uint32_t);
   }
 
-public:
+ public:
   bool extra_clause_field;
 
   ClauseAllocator(uint32_t start_cap)
@@ -385,7 +369,8 @@ public:
     RegionAllocator<uint32_t>::moveTo(to);
   }
 
-  template <class Lits> CRef alloc(const Lits &ps, bool learnt = false) {
+  template <class Lits>
+  CRef alloc(const Lits &ps, bool learnt = false) {
     assert(sizeof(Lit) == sizeof(uint32_t));
     assert(sizeof(float) == sizeof(uint32_t));
     bool use_extra = learnt | extra_clause_field;
@@ -436,7 +421,6 @@ public:
     to[cr].attached(c.attached());
     to[cr].markView(c.markView());
     to[cr].markIdx(c.markIdx());
-    to[cr].idxReason(c.idxReason());
     if (to[cr].learnt())
       to[cr].activity() = c.activity();
     else if (to[cr].has_extra())
@@ -447,13 +431,14 @@ public:
 //=================================================================================================
 // OccLists -- a class for maintaining occurence lists with lazy deletion:
 
-template <class Idx, class Vec, class Deleted> class OccLists {
+template <class Idx, class Vec, class Deleted>
+class OccLists {
   vec<Vec> occs;
   vec<char> dirty;
   vec<Idx> dirties;
   Deleted deleted;
 
-public:
+ public:
   OccLists(const Deleted &d) : deleted(d) {}
 
   void init(const Idx &idx) {
@@ -464,8 +449,7 @@ public:
   // Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
   Vec &operator[](const Idx &idx) { return occs[toInt(idx)]; }
   Vec &lookup(const Idx &idx) {
-    if (dirty[toInt(idx)])
-      clean(idx);
+    if (dirty[toInt(idx)]) clean(idx);
     return occs[toInt(idx)];
   }
 
@@ -495,8 +479,7 @@ void OccLists<Idx, Vec, Deleted>::cleanAll() {
   for (int i = 0; i < dirties.size(); i++)
     // Dirties may contain duplicates so check here if a variable is already
     // cleaned:
-    if (dirty[toInt(dirties[i])])
-      clean(dirties[i]);
+    if (dirty[toInt(dirties[i])]) clean(dirties[i]);
   dirties.clear();
 }
 
@@ -505,8 +488,7 @@ void OccLists<Idx, Vec, Deleted>::clean(const Idx &idx) {
   Vec &vec = occs[toInt(idx)];
   int i, j;
   for (i = j = 0; i < vec.size(); i++)
-    if (!deleted(vec[i]))
-      vec[j++] = vec[i];
+    if (!deleted(vec[i])) vec[j++] = vec[i];
   vec.shrink(i - j);
   dirty[toInt(idx)] = 0;
 }
@@ -514,7 +496,8 @@ void OccLists<Idx, Vec, Deleted>::clean(const Idx &idx) {
 //=================================================================================================
 // CMap -- a class for mapping clauses to values:
 
-template <class T> class CMap {
+template <class T>
+class CMap {
   struct CRefHash {
     uint32_t operator()(CRef cr) const { return (uint32_t)cr; }
   };
@@ -522,7 +505,7 @@ template <class T> class CMap {
   typedef Map<CRef, T, CRefHash> HashTable;
   HashTable map;
 
-public:
+ public:
   // Size-operations:
   void clear() { map.clear(); }
   int size() const { return map.elems(); }
@@ -531,7 +514,7 @@ public:
   void insert(CRef cr, const T &t) { map.insert(cr, t); }
   void growTo(CRef cr, const T &t) {
     map.insert(cr, t);
-  } // NOTE: for compatibility
+  }  // NOTE: for compatibility
   void remove(CRef cr) { map.remove(cr); }
   bool has(CRef cr, T &t) { return map.peek(cr, t); }
 
@@ -614,5 +597,5 @@ inline void Clause::print() const {
 }
 
 //=================================================================================================
-} // namespace minisat
+}  // namespace minisat
 #endif

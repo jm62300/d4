@@ -72,6 +72,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   bool m_connectedComponent;
   unsigned m_lastNbSplit;
   unsigned m_nbFailedIncreased;
+  unsigned m_limitNbFailedInRaw = 11;
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> m_clauses;
@@ -326,7 +327,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   inline int computeConnectedComponent(
       std::vector<Var> &setOfVar, std::vector<std::vector<Var>> &varConnected,
       std::vector<Var> &freeVariable) {
-    if (m_connectedComponent && !(m_nbCallCall % 10000)) {
+    if (m_connectedComponent && !(m_nbCallCall % 100000)) {
       if (m_lastNbSplit == m_nbSplit)
         m_nbFailedIncreased++;
       else {
@@ -334,7 +335,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         m_lastNbSplit = m_nbSplit;
       }
 
-      m_connectedComponent = m_nbFailedIncreased < 11;
+      m_connectedComponent = m_nbFailedIncreased < m_limitNbFailedInRaw;
       if (!m_connectedComponent)
         std::cout << "c [CONNECTED COMPONENT] Stop searching for connected "
                      "component\n";
@@ -348,6 +349,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         std::cout << "c [CONNECTECT COMPONENT] Start for searching for "
                      "connected component\n";
         m_nbFailedIncreased = 0;
+        m_limitNbFailedInRaw++;
         m_connectedComponent = true;
       }
       return ret;
