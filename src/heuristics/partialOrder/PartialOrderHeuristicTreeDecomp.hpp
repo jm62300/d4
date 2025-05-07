@@ -31,7 +31,7 @@ namespace d4 {
 class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
  protected:
   double m_scaleFactor;
-  std::vector<unsigned> m_topologicalOrder;
+  std::vector<double> m_topologicalOrder;
   unsigned m_treeWidth;
 
  public:
@@ -58,7 +58,7 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    *
    * @return the position of v in the order.
    */
-  inline unsigned getPartialOrder(Var v) override {
+  inline double getPartialOrder(Var v) override {
     return m_topologicalOrder[v];
   }  // getPartialOrder
 

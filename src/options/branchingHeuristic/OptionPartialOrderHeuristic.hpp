@@ -41,7 +41,7 @@ class OptionPartialOrderHeuristic {
   PartialOrderHeuristicMethod partialOrderMethod;
   OptionTreeDecomposition* optionTreeDecomposition = NULL;
   // is set if partialOrderMethod is PARTIAL_ORDER_GIVEN
-  std::vector<unsigned> givenOrder;
+  std::vector<double> givenOrder;
   double scaleFactor;
 
   /**

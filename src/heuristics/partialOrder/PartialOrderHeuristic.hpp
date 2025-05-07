@@ -76,7 +76,7 @@ class PartialOrderHeuristic {
    *
    * @return the position of the given variable.
    */
-  virtual unsigned getPartialOrder(Var v) { return 1; }
+  virtual double getPartialOrder(Var v) { return 1; }
 
   /**
    * Compute a cutset regarding the subformula built on the set of given

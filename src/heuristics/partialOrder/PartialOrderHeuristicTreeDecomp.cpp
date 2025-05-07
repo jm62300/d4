@@ -66,14 +66,18 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
   }
   m_treeWidth = largestBag;
 
-  double rt = (double)om.getNbVariable() / (double)m_treeWidth;
-  if (rt > 40)
-    m_scaleFactor = 1e7;
-  else
-    m_scaleFactor = 100.0 * exp(rt) / (double)om.getNbVariable();
+  if (options.scaleFactor == 0) {
+    double rt = (double)om.getNbVariable() / (double)m_treeWidth;
+    if (rt > 40)
+      m_scaleFactor = 1e7;
+    else
+      m_scaleFactor = 100.0 * exp(rt) / (double)om.getNbVariable();
+  } else
+    m_scaleFactor = options.scaleFactor;
 
-  for (auto &w : m_topologicalOrder)
+  for (auto &w : m_topologicalOrder) {
     w = m_scaleFactor * ((double)(level - w + 1)) / (double)level;
+  }
 
   out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
   out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';
