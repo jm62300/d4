@@ -103,15 +103,20 @@ class BucketManagerCnf : public BucketManager<T> {
   virtual void storeFormula(std::vector<Var> &component,
                             CachedBucket<T> &b) = 0;
 
+  inline bool canSkipLit(const Lit &l) {
+    if (m_modeStore != CACHE_ALL) return !m_specManager.getNbNotBinaryClause(l);
+    return false;
+  }  // canSkipLit
+
   /**
-     Tell if the clause given as parameter (which is represented by its index in
-     the spec manager) should be considered or not.
-
-     @param[in] idx, the index of the clause.
-
-     \return true if the clause is kept, false otherwise.
+   * Tell if the clause given as parameter (which is represented by its index in
+   * the spec manager) should be considered or not.
+   *
+   * @param[in] idx, the index of the clause.
+   *
+   * \return true if the clause is kept, false otherwise.
    */
-  bool isKeptClause(int idx) {
+  inline bool isKeptClause(int idx) {
     switch (m_modeStore) {
       case CACHE_NT:
         return m_specManager.getNbUnsat(idx);

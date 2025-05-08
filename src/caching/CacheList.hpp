@@ -31,7 +31,7 @@ namespace d4 {
 template <class T>
 class CacheList : public CacheManager<T> {
  private:
-  const unsigned SIZE_HASH = 999331;
+  const unsigned SIZE_HASH = 2000083;
   std::vector<std::vector<CachedBucket<T>>> hashTable;
 
  public:
@@ -72,6 +72,25 @@ class CacheList : public CacheManager<T> {
     this->m_sumDataSize += cb.szData();
     this->m_cacheCleaningManager->initCountCachedBucket(&cbIn);
     this->m_nbEntry++;
+
+    static unsigned cpt = 0;
+    cpt++;
+
+    if (!(cpt % 1000000)) {
+      // stat:
+      std::vector<unsigned> count;
+
+      for (auto &list : hashTable) {
+        if (count.size() <= list.size()) count.resize(list.size() + 1, 0);
+        count[list.size()]++;
+      }
+
+      for (unsigned i = 0; i < count.size(); i++) {
+        if (!count[i]) continue;
+        std::cout << i << " " << count[i] << '\n';
+      }
+    }
+
   }  // pushinhashtable
 
   /**
@@ -84,6 +103,7 @@ class CacheList : public CacheManager<T> {
    */
   CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned hashValue) {
     char *refData = cb.data;
+    assert(hashValue % SIZE_HASH < hashTable.size());
     std::vector<CachedBucket<T>> &listCollision =
         hashTable[hashValue % SIZE_HASH];
 

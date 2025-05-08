@@ -17,12 +17,12 @@ d: $(BUILD_DIR)/$(EXEC)_debug
 s: $(BUILD_DIR)/$(EXEC)_static
 
 $(BUILD_DIR)/$(EXEC): CFLAGS += -O3
-$(BUILD_DIR)/$(EXEC)_profile: CFLAGS += -O2 -pg
+$(BUILD_DIR)/$(EXEC)_profile: CFLAGS += -O2 -p -g
 $(BUILD_DIR)/$(EXEC)_debug: CFLAGS += -O2 -g
 $(BUILD_DIR)/$(EXEC)_static: CFLAGS += -O3 -DNDEBUG
 
 $(BUILD_DIR)/$(EXEC):	LDFLAGS += 
-$(BUILD_DIR)/$(EXEC)_profile:	LDFLAGS += -pg
+$(BUILD_DIR)/$(EXEC)_profile:	LDFLAGS += -p -g
 $(BUILD_DIR)/$(EXEC)_debug:	LDFLAGS += -g
 $(BUILD_DIR)/$(EXEC)_static:	LDFLAGS += -static
 

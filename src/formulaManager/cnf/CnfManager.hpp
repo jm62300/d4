@@ -58,6 +58,8 @@ class CnfManager : public FormulaManager {
     m_mustUnMark.resize(0);
   }  // resetUnMark
 
+  Var *m_activeVariables;
+
   /**
    * @brief This function can be used in order to check the validity of the
    * occurence list.

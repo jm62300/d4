@@ -8,7 +8,7 @@ set -o pipefail
 
 opt=0
 
-while getopts 'dsl' OPTION
+while getopts 'dsp' OPTION
 do
     case "$OPTION" in
         d)
