@@ -68,6 +68,7 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
 
   if (options.scaleFactor == 0) {
     double rt = (double)om.getNbVariable() / (double)m_treeWidth;
+    out << "c [TREE DECOMPOSITION] Ratio #var/tree-width: " << rt << '\n';
     if (rt > 40)
       m_scaleFactor = 1e7;
     else
