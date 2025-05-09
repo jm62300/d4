@@ -72,25 +72,6 @@ class CacheList : public CacheManager<T> {
     this->m_sumDataSize += cb.szData();
     this->m_cacheCleaningManager->initCountCachedBucket(&cbIn);
     this->m_nbEntry++;
-
-    static unsigned cpt = 0;
-    cpt++;
-
-    if (!(cpt % 1000000)) {
-      // stat:
-      std::vector<unsigned> count;
-
-      for (auto &list : hashTable) {
-        if (count.size() <= list.size()) count.resize(list.size() + 1, 0);
-        count[list.size()]++;
-      }
-
-      for (unsigned i = 0; i < count.size(); i++) {
-        if (!count[i]) continue;
-        std::cout << i << " " << count[i] << '\n';
-      }
-    }
-
   }  // pushinhashtable
 
   /**

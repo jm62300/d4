@@ -104,13 +104,14 @@ class BucketManagerCnf : public BucketManager<T> {
                             CachedBucket<T> &b) = 0;
 
   inline bool canSkipLit(const Lit &l) {
-    if (m_modeStore != CACHE_ALL) return !m_specManager.getNbNotBinaryClause(l);
+    if (m_modeStore == CACHE_NT)
+      return m_specManager.getNbRemainingInitNotBinaryClause(l) == 0;
     return false;
   }  // canSkipLit
 
   /**
-   * Tell if the clause given as parameter (which is represented by its index in
-   * the spec manager) should be considered or not.
+   * Tell if the clause given as parameter (which is represented by its index
+   * in the spec manager) should be considered or not.
    *
    * @param[in] idx, the index of the clause.
    *
@@ -128,8 +129,8 @@ class BucketManagerCnf : public BucketManager<T> {
   }  // isKeptClause
 
   /**
-   * @brief Get the clauses that will be used, that are the clause that respect
-   * the modeStore.
+   * @brief Get the clauses that will be used, that are the clause that
+   * respect the modeStore.
    *
    * @param[in] component, the variables in the current component.
    * @param[out] idxClauses, the resulting clauses (index).

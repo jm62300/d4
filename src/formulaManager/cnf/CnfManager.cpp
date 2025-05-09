@@ -99,6 +99,11 @@ CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
 
   m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
   m_activeVariables = new Var[p.getNbVar() + 1];
+
+  m_occInitSizeNotBin.resize((p.getNbVar() + 1) << 1, 0);
+  assert(m_occInitSizeNotBin.size() == m_occurrence.size());
+  for (unsigned i = 0; i < m_occurrence.size(); i++)
+    m_occInitSizeNotBin[i] = m_occurrence[i].nbNotBin;
 }  // construtor
 
 /**

@@ -206,9 +206,9 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
       inConstruction.nbClauseInDistrib += counter;
     }
 
-    if (currentPos == inConstruction.sizeDistrib - 2)
+    if (currentPos == inConstruction.sizeDistrib - 2) {
       inConstruction.sizeDistrib -= 2;
-    else {
+    } else {
       inConstruction.distrib[currentPos] = l.intern();
       inConstruction.distrib[currentPos + 1] =
           inConstruction.sizeDistrib - currentPos - 2;

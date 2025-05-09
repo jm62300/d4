@@ -167,5 +167,14 @@ class CnfManagerDyn : public CnfManager {
    * preUpdate.
    */
   void postUpdate(const std::vector<Lit> &lits) override;
+
+  /**
+   * Return true if no clauses containing this literal have been touched.
+   *
+   * @param l is the literal we are looking to check the property.
+   */
+  inline bool canSkipLit(const Lit &l) override {
+    return m_occurrence[l.intern()].nbNotBin == 0;
+  }  // canSkipLit
 };
 }  // namespace d4
