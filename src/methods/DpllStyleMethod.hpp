@@ -377,7 +377,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
-    // if (m_nbCallCall > 500000) exit(0);
+    // if (m_nbCallCall > 10000000) exit(0);
 
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
