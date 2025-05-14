@@ -60,12 +60,5 @@ class PartialOrderHeuristicGiven : public PartialOrderHeuristic {
   inline double getPartialOrder(Var v) override {
     return m_order[v];
   }  // getPartialOrder
-
-  /**
-   * @brief The scale factor depends the size of the cutset.
-   *
-   * @return the scale factor variable.
-   */
-  inline double scaleFactor() override { return m_scaleFactor; }
 };
 }  // namespace d4

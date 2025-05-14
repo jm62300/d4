@@ -100,12 +100,5 @@ class PartialOrderHeuristic {
      conducted.
    */
   virtual void displayStat(std::ostream &out) {}
-
-  /**
-   * @brief It is used for scale the partial order heuristic.
-   *
-   * @return double is the scale factor used.
-   */
-  virtual double scaleFactor() { return 0; }
 };
 }  // namespace d4

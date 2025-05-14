@@ -68,12 +68,5 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    * @return The tree width of the current tree decomposition.
    */
   inline unsigned getTreeWidth() { return m_treeWidth; }
-
-  /**
-   * @brief The scale factor depends the size of the cutset.
-   *
-   * @return the scale factor variable.
-   */
-  inline double scaleFactor() override { return m_scaleFactor; }
 };
 }  // namespace d4

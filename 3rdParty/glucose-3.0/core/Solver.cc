@@ -1096,7 +1096,7 @@ void Solver::reduceDB() {
   nbReduceDB++;
   sort(learnts, reduceDB_lt(ca));
 
-  printf("reduce DB : %d\n", learnts.size());
+  // printf("reduce DB : %d\n", learnts.size());
 
   // We have a lot of "good" clauses, it is difficult to compare them. Keep more
   // !
