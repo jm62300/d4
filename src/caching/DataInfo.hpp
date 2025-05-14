@@ -26,8 +26,6 @@
 #include <cstdint>
 #include <iostream>
 
-#define MASK_SIZE (~((((uint64_t)1 << 21) - 1) << 21))
-
 namespace d4 {
 class DataInfo {
  protected:
@@ -36,8 +34,8 @@ class DataInfo {
     struct {
       unsigned nbBitFormula : 5;
       unsigned nbBitVar : 5;
-      unsigned szData : 32;
       unsigned nbVar : 22;
+      unsigned szData : 32;
     } info;
     u_int64_t info1;
   };

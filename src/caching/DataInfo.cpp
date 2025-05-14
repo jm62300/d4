@@ -38,7 +38,7 @@ DataInfo::DataInfo() { info1 = 0; }  // constructor
  */
 DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
                    unsigned nbBitFormula) {
-  info = {nbBitFormula, nbBitVar, szData, nbVar};
+  info = {nbBitFormula, nbBitVar, nbVar, szData};
 
   assert(nbBitFormula < (1 << 5));
   assert(nbBitVar < (1 << 5));
