@@ -37,10 +37,8 @@ class CachedBucket {
   }
 
   inline void set(char *d, DataInfo &dnew) {
-    std::cout << dnew.nbVar() << "  " << dnew.szData() << '\n';
     data = d;
     header = dnew;
-    display();
   }  // set
 
   inline void lockedBucket(T v) { fc = v; }
