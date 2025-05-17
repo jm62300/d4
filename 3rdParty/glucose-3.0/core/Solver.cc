@@ -1283,10 +1283,10 @@ lbool Solver::search(int nof_conflicts) {
         lbdQueue.fastclear();
         progress_estimate = progressEstimate();
         int bt = 0;
-        if (incremental) {  // DO NOT BACKTRACK UNTIL 0.. USELESS
-          bt = (decisionLevel() < assumptions.size()) ? decisionLevel()
-                                                      : assumptions.size();
-        }
+        // if (incremental) {  // DO NOT BACKTRACK UNTIL 0.. USELESS
+        bt = (decisionLevel() < assumptions.size()) ? decisionLevel()
+                                                    : assumptions.size();
+        // }
         cancelUntil(bt);
         return l_Undef;
       }
@@ -1385,6 +1385,15 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   double curTime = cpuTime();
 
   solves++;
+
+#if 0
+  printf(
+      "decision level = %d  --- assumption = %d  --- trail = %d --- rebuild = "
+      "%d -- propagations = %lu\n",
+      decisionLevel(), assumptions.size(), trail.size(), rebuildHeap,
+      propagations);
+#endif
+  // incremental = 1;
 
   lbool status = l_Undef;
   if (!incremental && verbosity >= 1) {
@@ -1488,6 +1497,14 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
     totalTime4Unsat += (finalTime - curTime);
   }
 
+#if 0
+  printf("%d %d ~~~~~~ trail = %d ~~~~ propagations = %lu\n", nbSatCalls,
+         nbUnsatCalls, trail.size(), propagations);
+
+  if (!(solves % 10000))
+    printf("%lu %d %d %lf %lf\n", solves, nbSatCalls, nbUnsatCalls,
+           totalTime4Sat, totalTime4Unsat);
+#endif
   return status;
 }
 

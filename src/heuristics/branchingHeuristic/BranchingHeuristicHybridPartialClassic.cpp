@@ -50,6 +50,9 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
     double current =
         m_hVar->computeScore(vTmp) + m_partialOrder->getPartialOrder(vTmp);
 
+    // std::cout << vTmp << " -> " << m_hVar->computeScore(vTmp) << " "
+    //           << m_partialOrder->getPartialOrder(vTmp) << '\n';
+
     if (vBest == var_Undef || bestScore < current) {
       vBest = vTmp;
       bestScore = current;

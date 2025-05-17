@@ -155,6 +155,7 @@ void OccElimination::removeLitFromLargeClauses(
 
       isUnsat = isUnsat || !propagator.propagate();
       propagator.restart();
+
       if (isUnsat) {
         propagator.detachClause(cref);
 
@@ -163,21 +164,23 @@ void OccElimination::removeLitFromLargeClauses(
         for (unsigned i = 0; !isSat && i < cl.size;) {
           if (propagator.value(cl[i]) == l_True)
             isSat = true;
-          else if (propagator.value(cl[i]) == l_False)
+          else if (cl[i] == l || propagator.value(cl[i]) == l_False) {
+            m_nbRemoveLit++;
             cl[i] = cl[--cl.size];
-          else
+          } else
             i++;
         }
 
-        if (isSat)
+        if (isSat) {
+          m_nbRemoveLit += cl.size;
           cl.size = 0;
-        else {
-          m_nbRemoveLit++;
+        } else {
           if (cl.size == 0)
             propagator.setIsUnsat(true);
           else if (cl.size == 1) {
             propagator.uncheckedEnqueue(cl[0]);
             propagator.propagateLevelZero();
+            cl.size = 0;
           } else if (cl.size == 2) {
             propagator.addBinary(cl[0], cl[1]);
             cl.size = 0;
