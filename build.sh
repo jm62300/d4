@@ -36,8 +36,8 @@ cd $SCRIPT_DIR/3rdParty/bipe/
 cd $SCRIPT_DIR
 mkdir -p build
 cd build
-cmake -GNinja .. -DBUILD_MODE=$opt 
-ninja
+cmake .. -DBUILD_MODE=$opt 
+make -j
 
 # make a library of everything
 mv libd4.a libd4tmp.a
