@@ -100,7 +100,28 @@ int main(int argc, char **argv) {
   configPreproc.inputType = initProblem->getProblemType();
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+#if 1
+  for (auto v : initProblem->getMaxVar()) {
+    initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] = 0.3;
+    initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] = 0.7;
+  }
 
+  for (auto v : initProblem->getIndVar()) {
+    if (initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] == 1 &&
+        initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] == 1) {
+      initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] = 1;
+      initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] = 1;
+
+    } else {
+      initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] = 1;
+      initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] = 1;
+    }
+  }
+
+  configPreproc.preprocMethod = d4::SHARP_EQUIV;
+  ProblemManager *testproblem =
+      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+#endif
   // count.
   maxT(vm, problem);
 

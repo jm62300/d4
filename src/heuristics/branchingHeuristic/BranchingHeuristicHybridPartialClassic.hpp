@@ -25,7 +25,7 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
  private:
   const unsigned WORTH_CUT = 10;
 
- private:
+  const OptionPartialOrderHeuristic &m_saveOptionPartialOrderHeuristic;
   PartialOrderHeuristic *m_partialOrder;
 
  public:
@@ -34,6 +34,7 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    *
    */
   BranchingHeuristicHybridPartialClassic() = delete;
+
   /**
    * @brief Constructs a new hybrid branching heuristic that integrates both
    * classic and partial order heuristics.
@@ -59,7 +60,8 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
       FormulaManager *specs, ActivityManager &activityManager,
       PolarityManager &polarityManager, std::ostream &out)
       : BranchingHeuristic(options, problem, specs, activityManager,
-                           polarityManager, out) {
+                           polarityManager, out),
+        m_saveOptionPartialOrderHeuristic(options.optionPartialOrderHeuristic) {
     // Create the partial order heuristic based on the given options.
     m_partialOrder = PartialOrderHeuristic::makePartialOrderingHeuristic(
         options.optionPartialOrderHeuristic, *specs, out);
@@ -83,5 +85,14 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    * considering.
    */
   void selectLitSet(std::vector<Var> &vars, ListLit &lits) override;
+
+  /**
+   * @brief This function is called in order to update the branching heuristic
+   * regarding the current formula and a set of variables. The technique used
+   * consist in updating the partial order.
+   *
+   * @param vars is the set of variables under consideration.
+   */
+  void updateHeuristic(std::vector<Var> &vars);
 };
 }  // namespace d4

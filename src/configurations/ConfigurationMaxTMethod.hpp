@@ -34,7 +34,7 @@ class ConfigurationMaxTMethod : public Configuration {
   ConfigurationSpec specManager;
 
   std::string phaseHeuristicMax = "best";
-  unsigned randomPhaseHeuristicMax = 6;
+  unsigned randomPhaseHeuristicMax = 100;
   ConfigurationBranchingHeuristic branchingHeuristicMax;
   ConfigurationCache cacheManagerMax;
 

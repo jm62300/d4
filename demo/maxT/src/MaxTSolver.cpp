@@ -213,8 +213,13 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
 
   config.branchingHeuristicMax.branchingHeuristicType = BRANCHING_CLASSIC;
   config.branchingHeuristicInd.branchingHeuristicType = BRANCHING_CLASSIC;
+  config.branchingHeuristicInd.configurationPartialOrderHeuristic.verbosity =
+      false;
+
   config.branchingHeuristicMax.scoringMethodType = SCORE_VSADS;
   config.branchingHeuristicInd.scoringMethodType = SCORE_VSADS;
+
+  config.phaseHeuristicMax = vm["phaseHeuristicMax"].as<std::string>();
 
   std::string s = vm["threshold"].as<std::string>();
   std::stringstream ss(s);

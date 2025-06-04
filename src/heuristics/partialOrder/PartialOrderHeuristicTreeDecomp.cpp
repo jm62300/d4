@@ -30,58 +30,10 @@ namespace d4 {
 PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
     const OptionPartialOrderHeuristic &options, FormulaManager &om,
     std::ostream &out) {
-  TreeDecomposition *decomp = TreeDecomposition::makeTreeDecomposition(
-      options, om.getProblemInputType(), out);
-
-  TreeDecomp *tree = decomp->computeDecomposition(om);
-  assert(tree);
-  std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed size("
-            << tree->getSizeLargestBag() << ") first size("
-            << tree->getNode().size() << ")\n";
-
-  // construct the topological order.
-  std::vector<TreeDecomp *> stack;
-  stack.push_back(tree);
-
-  m_topologicalOrder.resize(om.getNbVariable() + 1, 0);
-  for (auto &v : m_topologicalOrder) v = 0;
-
-  unsigned level = 1, largestBag = 0;
-  while (stack.size()) {
-    std::vector<TreeDecomp *> saveStack = stack;
-    stack.clear();
-
-    for (auto *tree : saveStack) {
-      if (tree->getNode().size() > largestBag)
-        largestBag = tree->getNode().size();
-      for (auto &v : tree->getNode()) {
-        assert(v < m_topologicalOrder.size());
-        if (!m_topologicalOrder[v]) m_topologicalOrder[v] = level;
-      }
-
-      for (auto *t : tree->getSons()) stack.push_back(t);
-    }
-
-    level++;
-  }
-  m_treeWidth = largestBag;
-
-  if (largestBag < 30)
-    m_scaleFactor = 100000000;
-  else if (largestBag < 40)
-    m_scaleFactor = 100000;
-  else if (largestBag < 50)
-    m_scaleFactor = 1000;
-  else if (largestBag < 70)
-    m_scaleFactor = 0;
-  else
-    m_scaleFactor = 0;
-
-  out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
+  init(options, om, out);
+  out << "c [TREE DECOMPOSITION] Tree Width: " << m_treeWidth << '\n';
+  out << "c [TREE DECOMPOSITION] Number of levels: " << m_level << '\n';
   out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';
-
-  delete tree;
-  delete decomp;
 }  // constructor
 
 /**
@@ -104,5 +56,58 @@ void PartialOrderHeuristicTreeDecomp::computeCutSet(std::vector<Var> &component,
   for (auto &v : component)
     if (m_topologicalOrder[v] == min) cutSet.push_back(v);
 }  // computeCutSet
+
+/**
+ * @brief PartialOrderHeuristicTreeDecomp::init implementation.
+ */
+void PartialOrderHeuristicTreeDecomp::init(
+    const OptionPartialOrderHeuristic &options, FormulaManager &om,
+    std::ostream &out) {
+  TreeDecomposition *decomp = TreeDecomposition::makeTreeDecomposition(
+      options, om.getProblemInputType(), out);
+
+  TreeDecomp *tree = decomp->computeDecomposition(om);
+  assert(tree);
+
+  // construct the topological order.
+  std::vector<TreeDecomp *> stack;
+  stack.push_back(tree);
+
+  m_topologicalOrder.resize(om.getNbVariable() + 1, 0);
+  for (auto &v : m_topologicalOrder) v = 0;
+
+  m_level = 1, m_treeWidth = 0;
+  while (stack.size()) {
+    std::vector<TreeDecomp *> saveStack = stack;
+    stack.clear();
+
+    for (auto *tree : saveStack) {
+      if (tree->getNode().size() > m_treeWidth)
+        m_treeWidth = tree->getNode().size();
+      for (auto &v : tree->getNode()) {
+        assert(v < m_topologicalOrder.size());
+        if (!m_topologicalOrder[v]) m_topologicalOrder[v] = m_level;
+      }
+
+      for (auto *t : tree->getSons()) stack.push_back(t);
+    }
+
+    m_level++;
+  }
+
+  if (m_treeWidth < 30)
+    m_scaleFactor = 100000000;
+  else if (m_treeWidth < 40)
+    m_scaleFactor = 100000;
+  else if (m_treeWidth < 50)
+    m_scaleFactor = 1000;
+  else if (m_treeWidth < 70)
+    m_scaleFactor = 0;
+  else
+    m_scaleFactor = 0;
+
+  delete tree;
+  delete decomp;
+}  // init
 
 }  // namespace d4

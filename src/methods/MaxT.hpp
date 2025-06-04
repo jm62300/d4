@@ -111,8 +111,8 @@ class MaxT : public MethodManager {
   FormulaManager *m_specs;
   ScoringMethod *m_hVarMax;
   PhaseHeuristic *m_hPhaseMax;
-  ScoringMethod *m_hVarInd;
-  PhaseHeuristic *m_hPhaseInd;
+
+  BranchingHeuristic *m_heuristicInd;
 
   CacheManager<T> *m_cacheInd;
   CacheManager<MaxSharpSatResult> *m_cacheMax;
@@ -178,10 +178,9 @@ class MaxT : public MethodManager {
     m_hPhaseMax = PhaseHeuristic::makePhaseHeuristic(
         options.optionBranchingHeuristicMax, *m_specs, *m_solver, m_out);
 
-    m_hVarInd = ScoringMethod::makeScoringMethod(
-        options.optionBranchingHeuristicInd, *m_specs, *m_solver, m_out);
-    m_hPhaseInd = PhaseHeuristic::makePhaseHeuristic(
-        options.optionBranchingHeuristicInd, *m_specs, *m_solver, m_out);
+    m_heuristicInd = BranchingHeuristic::makeBranchingHeuristic(
+        options.optionBranchingHeuristicInd, m_problem, m_specs, *m_solver,
+        *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_redirectionPos.clear();
@@ -252,8 +251,9 @@ class MaxT : public MethodManager {
     delete m_specs;
     delete m_hVarMax;
     delete m_hPhaseMax;
-    delete m_hVarInd;
-    delete m_hPhaseInd;
+
+    delete m_heuristicInd;
+
     delete m_cacheInd;
     delete m_cacheMax;
 
@@ -303,7 +303,7 @@ class MaxT : public MethodManager {
    */
   inline void setArr(uint8_t *dst, const uint8_t *src) {
     std::memcpy(dst, src, m_sizeArray);
-  }
+  }  // setArr
 
   /**
    * @brief Print out the solution.
@@ -579,6 +579,8 @@ class MaxT : public MethodManager {
     T fixCount = m_aggregator.mulIdentity(),
       fixInd = m_aggregator.mulIdentity();
 
+    // std::cout << "==> " << m_solver->getAssumption().size() << '\n';
+
     for (auto &v : freeVariable)
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLitTrue(v);
@@ -587,8 +589,10 @@ class MaxT : public MethodManager {
         setBit(m_scale.valuation, m_redirectionPos[v], 1 - l.sign());
         setBit(result.valuation, m_redirectionPos[v], 1 - l.sign());
         fixCount = fixCount * m_aggregator.getWeightLit(l);
-      } else if (m_isDecisionVariable[v])
+      } else if (m_isDecisionVariable[v]) {
         fixInd = fixInd * m_aggregator.getWeightVar(v);
+        // std::cout << "free " << v << '\n';
+      }
 
     // consider the unit literals that belong to max
     for (auto &l : unitsLit)
@@ -596,8 +600,11 @@ class MaxT : public MethodManager {
         fixCount = fixCount * m_aggregator.getWeightLit(l);
         setBit(m_scale.valuation, m_redirectionPos[l.var()], 1 - l.sign());
         setBit(result.valuation, m_redirectionPos[l.var()], 1 - l.sign());
-      } else if (m_isDecisionVariable[l.var()])
+      } else if (m_isDecisionVariable[l.var()]) {
         fixInd = fixInd * m_aggregator.getWeightLit(l);
+        // std::cout << "fix " << l << ' ' << m_aggregator.getWeightLit(l) <<
+        // '\n';
+      }
 
     result.count = fixCount;
     m_scale.count = m_scale.count * fixCount * fixInd;
@@ -659,6 +666,10 @@ class MaxT : public MethodManager {
     assert(m_isMaxDecisionVariable[v]);
     int rdm = rand() % 100;
     if (rdm <= m_heuristicMaxRdm) return rdm & 1;
+    if (m_solutionFound && m_heuristicMax == "best") {
+      return 1 - getBit(m_maxCount.valuation, m_redirectionPos[v]);
+    }
+
     return m_hPhaseMax->selectPhase(v);
   }  // selectPhase
 
@@ -681,7 +692,11 @@ class MaxT : public MethodManager {
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-
+#if 0
+      std::cout << "m ";
+      for (auto &l : m_solver->getAssumption()) std::cout << l << ' ';
+      std::cout << "0\n";
+#endif
       result.count = countInd_(connected, unitsLit, freeVar, out);
       m_aggregator.multiplyUnitFree(result.count, unitsLit, freeVar);
       result.valuation = NULL;
@@ -694,6 +709,8 @@ class MaxT : public MethodManager {
     // consider the two value for l
     DataBranch<T> b[2];
     MaxSharpSatResult res[2];
+
+    float startTime = getTimer();
 
     // search max#sat for the first phase.
     assert(!m_solver->isInAssumption(l.var()));
@@ -721,15 +738,22 @@ class MaxT : public MethodManager {
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
+
+    if (m_solver->getAssumption().size() < 10) {
+      std::cout << "Time needed to count: " << getTimer() - startTime << "\n";
+      for (auto &l : m_solver->getAssumption()) std::cout << l << " ";
+      std::cout << '\n';
+      std::cout << "count = " << result.count << '\n';
+    }
   }  // searchMaxSharpSatDecision
 
   /**
    * @brief Count the number of projected models.
    *
-   * @param setOfVar, the current set of considered variables
-   * @param unitsLit, the set of unit literal detected at this level
-   * @param freeVariable, the variables which become free decision node
-   * @param out, the stream we use to print out logs.
+   * @param setOfVar is the current set of considered variables
+   * @param unitsLit is the set of unit literal detected at this level
+   * @param freeVariable is the variables which become free decision node
+   * @param out is the stream we use to print out logs.
    *
    * \return the number of models.
    */
@@ -792,40 +816,41 @@ class MaxT : public MethodManager {
     if (m_stopProcess) return m_aggregator.sumIdentity();
 
     // search the next variable to branch on
-    Var v =
-        m_hVarInd->selectVariable(connected, *m_specs, m_isDecisionVariable);
-
-    if (v == var_Undef) return m_aggregator.mulIdentity();
-
-    // select a variable for decision.
-    Lit l = Lit::makeLit(v, m_hPhaseInd->selectPhase(v));
-    assert(m_problem->getWeightLit(l) && m_problem->getWeightLit(~l));
+    ListLit lits;
+    m_heuristicInd->selectLitSet(connected, lits);
+    if (!lits.size()) return m_aggregator.mulIdentity();
     m_nbDecisionNode++;
 
-    // consider the two value for l
-    DataBranch<T> b[2];
+    T ret = m_aggregator.sumIdentity();
+    DataBranch<T> b;
 
-    assert(!m_solver->isInAssumption(l.var()));
-    m_solver->pushAssumption(l);
-    b[0].d = countInd_(connected, b[0].unitLits, b[0].freeVars, out);
-    m_solver->popAssumption();
+    unsigned sizeAssum = m_solver->sizeAssumption();
+    for (unsigned i = 0; i <= lits.size(); i++) {
+      b.unitLits.resize(0);
+      b.freeVars.resize(0);
 
-    // compute the next lower regarding the already compute information.
-    m_aggregator.multiplyUnitFree(b[0].d, b[0].unitLits, b[0].freeVars);
+      if (i != 0) {
+        m_solver->popAssumption();
+        assert(!m_specs->varIsAssigned(lits[i - 1].var()));
+        m_solver->pushAssumption(~lits[i - 1]);
+        if (lits.size() > 1 && !m_solver->solve(connected)) break;
+      }
 
-    if (m_solver->isInAssumption(l))
-      b[1].d = m_aggregator.sumIdentity();
-    else if (m_solver->isInAssumption(~l))
-      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
-    else {
-      m_solver->pushAssumption(~l);
-      b[1].d = countInd_(connected, b[1].unitLits, b[1].freeVars, out);
-      m_solver->popAssumption();
+      if (i != lits.size()) {
+        assert(!m_specs->varIsAssigned(lits[i].var()));
+        m_solver->pushAssumption(lits[i]);
+      }
+
+      b.d = countInd_(connected, b.unitLits, b.freeVars, out);
+      m_aggregator.multiplyUnitFree(b.d, b.unitLits, b.freeVars);
+      ret = ret + b.d;
     }
 
-    m_aggregator.multiplyUnitFree(b[1].d, b[1].unitLits, b[1].freeVars);
+    // reinit some variables.
+    assert(m_solver->sizeAssumption() > sizeAssum);
+    m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
 
-    return b[0].d + b[1].d;
+    return ret;
   }  // computeIndDecisionNode
 
   /**
