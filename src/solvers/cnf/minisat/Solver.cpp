@@ -100,8 +100,6 @@ Solver::Solver(std::ostream *certif)
       asynch_interrupt(false) {
   limTrailNbSatUns = stampInTheHeap = 0;
   occGtThreeInit = needModel = showDebug = false;
-  phantomMode = false;
-  phantomLit = lit_Undef;
   idxClausesCpt = 0;
 }
 
@@ -136,14 +134,23 @@ Var Solver::newVar(bool sign, bool dvar) {
   decision.push();
   trail.capacity(v + 1);
 
-  occGtThree.push();
-  occGtThree.push();
+  binaryClauses.push();
+  binaryClauses.push();
+
+  Lit l = mkLit(v, false);
+  vec<Lit> ps;
+  ps.push(lit_Undef);
+  ps.push(l);
+
+  CRef cr = ca.alloc(ps, false);
+  binaryReason.push(cr);
+
+  ps[1] = ~ps[1];
+  cr = ca.alloc(ps, false);
+  binaryReason.push(cr);
 
   inTheHeap.push(0);  // must be added before
   setDecisionVar(v, dvar);
-  defined.push(false);
-  litFlags.push(lit_Undef);
-  flags.push(0);
 
   problemVariable.push(v);
   model.push(l_Undef);
@@ -202,11 +209,13 @@ bool Solver::addClause_(vec<Lit> &ps) {
     }
 
     return ok = (ref == CRef_Undef);
+  } else if (ps.size() == 2) {
+    binaryClauses[toInt(ps[0])].push(ps[1]);
+    binaryClauses[toInt(ps[1])].push(ps[0]);
   } else {
     CRef cr = ca.alloc(ps, false);
     clauses.push(cr);
     attachClause(cr);
-    ca[cr].idxReason(idxClausesCpt);
   }
 
   return true;
@@ -371,6 +380,8 @@ void Solver::analyze(CRef confl, vec<Lit> &out_learnt, int &out_btlevel) {
 
       if (!seen[var(q)] && level(var(q)) > 0) {
         varBumpActivity(var(q));
+        scoreActivity[var(q)]++;
+
         // printf("bump %d %lf\n", var(q), activity[var(q)]);
         seen[var(q)] = 1;
         if (level(var(q)) >= decisionLevel())
@@ -381,8 +392,7 @@ void Solver::analyze(CRef confl, vec<Lit> &out_learnt, int &out_btlevel) {
     }
 
     // Select next clause to look at:
-    while (!seen[var(trail[index--])])
-      ;
+    while (!seen[var(trail[index--])]);
     p = trail[index + 1];
     confl = reason(var(p));
     seen[var(p)] = 0;
@@ -660,6 +670,22 @@ CRef Solver::propagate() {
     Watcher *i, *j, *end;
     num_props++;
 
+    // propagate the unit.
+    vec<Lit> &toPropagate = binaryClauses[toInt(~p)];
+    for (int i = 0; i < toPropagate.size(); i++) {
+      if (value(toPropagate[i]) == l_Undef) {
+        uncheckedEnqueue(toPropagate[i], binaryReason[toInt(~p)]);
+      } else if (value(toPropagate[i]) == l_False)  // conflict
+      {
+        qhead = trail.size();
+
+        CRef refBinReason = binaryReason[toInt(~p)];
+        ca[refBinReason][0] = toPropagate[i];
+
+        return refBinReason;
+      }
+    }
+
     for (i = j = (Watcher *)ws, end = i + ws.size(); i != end;) {
       // Try to avoid inspecting the clause:
       Lit blocker = i->blocker;
@@ -857,12 +883,19 @@ lbool Solver::search(int nof_conflicts) {
         cancelUntil(0);
         uncheckedEnqueue(learnt_clause[0]);
       } else {
-        CRef cr = ca.alloc(learnt_clause, true);
-        learnts.push(cr);
-        attachClause(cr);
-        claBumpActivity(ca[cr]);
+        CRef cr = CRef_Undef;
+        if (learnt_clause.size() > 2) {
+          cr = ca.alloc(learnt_clause, true);
+          learnts.push(cr);
+          attachClause(cr);
+          claBumpActivity(ca[cr]);
+        } else {
+          binaryClauses[toInt(learnt_clause[0])].push(learnt_clause[1]);
+          binaryClauses[toInt(learnt_clause[1])].push(learnt_clause[0]);
+          cr = binaryReason[toInt(learnt_clause[1])];
+        }
+
         uncheckedEnqueue(learnt_clause[0], cr);
-        ca[cr].idxReason(idxClausesCpt);
       }
 
       varDecayActivity();
@@ -910,15 +943,12 @@ lbool Solver::search(int nof_conflicts) {
           idxClausesCpt++;
           if (conflict.size() == 1) {
             cancelUntil(0);
-            idxReasonFinal = -1;
             if (decisionLevel()) uncheckedEnqueue(conflict[0]);
           } else {
             CRef cr = ca.alloc(conflict, true);
             learnts.push(cr);
             attachClause(cr);
             claBumpActivity(ca[cr]);
-            ca[cr].idxReason(idxClausesCpt);
-            idxReasonFinal = ca[cr].idxReason();
           }
           return l_False;
         } else {
@@ -968,8 +998,7 @@ static double luby(double y, int x) {
   // Find the finite subsequence that contains index 'x', and the size of that
   // subsequence:
   int size, seq;
-  for (size = 1, seq = 0; size < x + 1; seq++, size = 2 * size + 1)
-    ;
+  for (size = 1, seq = 0; size < x + 1; seq++, size = 2 * size + 1);
 
   while (size - 1 != x) {
     size = (size - 1) >> 1;
@@ -1103,6 +1132,9 @@ void Solver::relocAll(ClauseAllocator &to) {
       for (int j = 0; j < ws.size(); j++) ca.reloc(ws[j].cref, to);
     }
 
+  for (int i = 0; i < binaryReason.size(); i++)  // All binary reason
+    ca.reloc(binaryReason[i], to);
+
   // All reasons:
   //
   for (int i = 0; i < trail.size(); i++) {
@@ -1116,8 +1148,6 @@ void Solver::relocAll(ClauseAllocator &to) {
     ca.reloc(learnts[i], to);  // All learnt:
   for (int i = 0; i < clauses.size(); i++)
     ca.reloc(clauses[i], to);  // All original:
-  for (int i = 0; i < phantoms.size(); i++)
-    ca.reloc(phantoms[i], to);  // All phantoms:
 }
 
 void Solver::garbageCollect() {

@@ -21,6 +21,7 @@
 
 #include <signal.h>
 
+#include <boost/multiprecision/integer.hpp>
 #include <cassert>
 
 #include "ParseOption.hpp"
@@ -109,14 +110,16 @@ void counterDemo(const po::variables_map &vm, ProblemManager *problem) {
   MethodManager::displayInfoVariables(problem, std::cout);
 
   // init the options.
+  if (config.cache.clauseRepresentation == CACHE_INDEX)
+    config.spec.needFastNotSatisfied = true;
   OptionDpllStyleMethod options(config);
 
   // construct and call the counter regarding if it is MC or WMC.
   std::string format = vm["keyword-output-format-solution"].as<std::string>();
   std::string outFormat = vm["output-format"].as<std::string>();
 
-  if (!isFloat)
+  if (!isFloat) {
     countModels<mpz::mpz_int>(options, problem, format, outFormat, false);
-  else
+  } else
     countModels<mpz::mpf_float>(options, problem, format, outFormat, true);
 }  // counterDemo

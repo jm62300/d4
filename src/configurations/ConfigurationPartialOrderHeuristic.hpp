@@ -40,7 +40,7 @@ struct ConfigurationPartialOrderHeuristic {
   unsigned budget = 100;
   unsigned seed = 2911;
   bool verbosity = false;
-  std::vector<unsigned> givenOrder;
+  std::vector<double> givenOrder;
   double scaleFactor = 0;
 };
 }  // namespace d4

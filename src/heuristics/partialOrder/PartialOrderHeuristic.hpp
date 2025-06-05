@@ -76,7 +76,7 @@ class PartialOrderHeuristic {
    *
    * @return the position of the given variable.
    */
-  virtual unsigned getPartialOrder(Var v) { return 1; }
+  virtual double getPartialOrder(Var v) { return 1; }
 
   /**
    * Compute a cutset regarding the subformula built on the set of given
@@ -100,12 +100,5 @@ class PartialOrderHeuristic {
      conducted.
    */
   virtual void displayStat(std::ostream &out) {}
-
-  /**
-   * @brief It is used for scale the partial order heuristic.
-   *
-   * @return double is the scale factor used.
-   */
-  virtual double scaleFactor() { return 0; }
 };
 }  // namespace d4

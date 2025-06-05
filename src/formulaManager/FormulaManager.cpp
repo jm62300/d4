@@ -42,7 +42,7 @@ FormulaManager *FormulaManager::makeFormulaManager(
     case PB_QBF:
       switch (options.specUpdateType) {
         case SPEC_DYNAMIC:
-          return new CnfManagerDyn(p);
+          return new CnfManagerDyn(p, options.needFastNotSatisfied);
         case SPEC_DYNAMIC_BLOCKED_SIMP:
           return new CnfManagerDynBlockedCl(p);
         case SPEC_DYNAMIC_PURE_SIMP:

@@ -140,6 +140,8 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
      construction.
   */
   void createDistribWrTLit(const Lit &l, BucketInConstruction &inConstruction) {
+    if (this->canSkipLit(l)) return;
+
     unsigned currentPos = inConstruction.sizeDistrib;  // where we put l.
     inConstruction.sizeDistrib += 2;  // save memory for l and the size.
 
@@ -204,9 +206,9 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
       inConstruction.nbClauseInDistrib += counter;
     }
 
-    if (currentPos == inConstruction.sizeDistrib - 2)
+    if (currentPos == inConstruction.sizeDistrib - 2) {
       inConstruction.sizeDistrib -= 2;
-    else {
+    } else {
       inConstruction.distrib[currentPos] = l.intern();
       inConstruction.distrib[currentPos + 1] =
           inConstruction.sizeDistrib - currentPos - 2;

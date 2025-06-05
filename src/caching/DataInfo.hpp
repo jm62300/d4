@@ -26,16 +26,19 @@
 #include <cstdint>
 #include <iostream>
 
-#define MASK_SIZE (~((((uint64_t)1 << 21) - 1) << 21))
-
 namespace d4 {
 class DataInfo {
  protected:
-  // we reserve 64 bytes to store information in the cached bucket
-  // We always at least have the following distribution:
-  // info1 => |free(12)|nbBitFormula(5)|nbBitVar(5)|szData(21)|nbVar(21)|
  public:
-  uint64_t info1;
+  union {
+    struct {
+      unsigned nbBitFormula : 5;
+      unsigned nbBitVar : 5;
+      unsigned nbVar : 22;
+      unsigned szData : 32;
+    } info;
+    u_int64_t info1;
+  };
 
   DataInfo();
   DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
@@ -50,15 +53,11 @@ class DataInfo {
 
   virtual ~DataInfo() {}
 
-  inline unsigned szData() {
-    return ((uint64_t)info1 >> 21) & (((uint64_t)1 << 21) - 1);
-  }
-  inline unsigned nbVar() {
-    return (uint64_t)info1 & (((uint64_t)1 << 21) - 1);
-  }
+  inline unsigned szData() { return info.szData; }
+  inline unsigned nbVar() { return info.nbVar; }
 
   inline void szData(unsigned sz) {
-    info1 &= ((uint64_t)sz << 21) | MASK_SIZE;
+    info.szData = sz;
     assert(szData() == sz);
   }
 

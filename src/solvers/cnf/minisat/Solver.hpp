@@ -232,9 +232,9 @@ class Solver {
   // Solver state:
   bool ok;  // If FALSE, the constraints are already unsatisfiable. No part of
             // the solver state may be used!
-  vec<CRef> clauses;   // List of problem clauses.
-  vec<CRef> learnts;   // List of learnt clauses.
-  vec<CRef> phantoms;  // List of learnt clauses.
+  vec<CRef> clauses;       // List of problem clauses.
+  vec<CRef> learnts;       // List of learnt clauses.
+  vec<CRef> binaryReason;  // List of reason for the binary clauses.
 
   // count the number of time a variable occurs in a conflict
   vec<double> scoreActivity;
@@ -284,7 +284,6 @@ class Solver {
   double max_learnts;
   double learntsize_adjust_confl;
   int learntsize_adjust_cnt;
-  int idxReasonFinal;
   int idxClausesCpt;
 
   // Resource contraints:
@@ -386,16 +385,12 @@ class Solver {
   }
 
  private:
-  vec<int> flags;
-  vec<Lit> litFlags;
-  vec<Lit> priorityList;
   vec<Lit> lastUnit;
-  vec<bool> defined;
   vec<bool> insistTruePolarity;
 
+  vec<vec<Lit>> binaryClauses;
+
  public:
-  bool phantomMode;
-  Lit phantomLit;
   bool reversePolarity = false;
 
   // deal with the occurrence list which keep information about the
@@ -423,176 +418,11 @@ class Solver {
   }
   inline bool getInsistTruePolarity(Var v) { return insistTruePolarity[v]; }
 
-  inline void startPhantomMode() {
-    if (phantomMode) return;
-    phantomMode = true;
-    Var v = newVar();
-    phantomLit = mkLit(v, false);
-  }  // startPhantomMode
-
-  inline void refillAssums() {
-    while (decisionLevel() < assumptions.size()) {
-      Lit p = assumptions[decisionLevel()];
-      assert(value(p) != l_False);
-
-      if (value(p) == l_True)
-        newDecisionLevel();
-      else {
-        newDecisionLevel();
-        uncheckedEnqueue(p);
-        [[maybe_unused]] CRef r = propagate();
-        assert(r == CRef_Undef);
-      }
-    }
-  }  // refillAssums
-
   inline void setNeedModel(bool b) { needModel = b; }
 
   /**
-     Create the equivalence classes
-  */
-  inline void createEquivClass(vec<vec<Lit>> &equivSet, vec<vec<Lit>> &classSet,
-                               vec<Lit> &equivLit) {
-    for (int i = 0; i < equivSet.size(); i++) {
-      if (!equivSet[i].size()) continue;
-      Lit l = equivSet[i][0];
-      if (sign(l)) l = ~l;
-      if (var(equivLit[var(l)]) != var(l)) continue;
-
-      classSet.push();
-      vec<Lit> &c = classSet.last();
-
-      vec<Var> stack;
-      stack.push(var(l));
-      while (stack.size()) {
-        Var v = stack.last();
-        c.push(mkLit(v, sign(equivLit[v])));
-        stack.pop();
-
-        for (int j = i; j < equivSet.size(); j++) {
-          if (!equivSet[j].size()) continue;
-          if (v != var(equivSet[j][0]) && v != var(equivSet[j][1])) continue;
-          int pos = v == var(equivSet[j][0]) ? 0 : 1;
-
-          Lit other = equivSet[j][1 - pos], cl = equivSet[j][pos];
-          if (sign(other)) {
-            other = ~other;
-            cl = ~cl;
-          }
-
-          if (var(equivLit[var(other)]) != var(other)) continue;
-          equivLit[var(other)] =
-              (sign(cl)) ? ~equivLit[var(cl)] : equivLit[var(cl)];
-          assert(var(other) != var(l));
-          stack.push(var(other));
-          equivSet[j].clear();
-        }
-      }
-    }
-  }  // createEquivClass
-
-  /**
-     Replace equivalence variables.
-  */
-  inline void replaceEquiv(vec<vec<Lit>> &equivSet) {
-    if (!equivSet.size()) return;
-
-    vec<Lit> equivLit, visited;
-    for (int i = 0; i < nVars(); i++) {
-      equivLit.push(mkLit(i, false));  // l <-> l
-      visited.push(lit_Undef);
-    }
-
-    setNeedModel(true);
-    solve();
-    removeSatisfied(clauses);
-
-    // built equiv
-    for (int i = 0; i < equivSet.size(); i++) {
-      if (model[var(equivSet[i][0])] == l_False)
-        equivSet[i][0] = ~equivSet[i][0];
-      if (model[var(equivSet[i][1])] == l_False)
-        equivSet[i][1] = ~equivSet[i][1];
-    }
-
-    vec<vec<Lit>> classSet;
-    createEquivClass(equivSet, classSet, equivLit);
-
-    // detach all clauses
-    for (int i = 0; i < clauses.size(); i++) detachClause(clauses[i], true);
-
-    // printf("equivLit: "); showListLit(equivLit);
-
-    // replace lit by equiv element
-    int i, j;
-    for (i = j = 0; i < clauses.size(); i++) {
-      Clause &c = ca[clauses[i]];
-
-      for (int k = 0; k < c.size(); k++)
-        if (var(equivLit[var(c[k])]) != var(c[k]))
-          c[k] = (sign(c[k])) ? ~equivLit[var(c[k])] : equivLit[var(c[k])];
-
-      // check if we have to remove or reduce the clause
-      // c.showClause();
-      bool isTaut = false;
-      int ic, jc;
-      for (ic = jc = 0; !isTaut && ic < c.size(); ic++) {
-        if (value(c[ic]) != l_Undef) {
-          isTaut = value(c[ic]) == l_True;
-          continue;
-        }
-        if (visited[var(c[ic])] == lit_Undef) {
-          visited[var(c[ic])] = c[ic];
-          c[jc++] = c[ic];
-        } else
-          isTaut = visited[var(c[ic])] == ~c[ic];
-      }
-
-      for (int k = 0; k < c.size(); k++) visited[var(c[k])] = lit_Undef;
-      if (!isTaut) {
-        c.shrink(ic - jc);
-
-        if (c.size() > 1)
-          clauses[j++] = clauses[i];
-        else {
-          assert(0);
-          if (value(c[0]) == l_Undef) uncheckedEnqueue(c[0]);
-          c.mark(1);
-          ca.free(clauses[i]);
-        }
-
-        // printf("%d: ", isTaut);
-        // c.showClause();
-        // printf("\n");
-      } else {
-        c.mark(1);
-        ca.free(clauses[i]);
-      }
-    }
-    clauses.shrink(i - j);
-
-    // attach all clauses
-    for (int i = 0; i < clauses.size(); i++) attachClause(clauses[i]);
-
-    // add equivalence
-    for (int i = 0; i < classSet.size(); i++) {
-      for (int j = 1; j < classSet[i].size(); j++) {
-        addClause(~classSet[i][0], classSet[i][j]);
-        addClause(classSet[i][0], ~classSet[i][j]);
-      }
-    }
-
-    setNeedModel(false);
-#if 0
-    printf("Print formula\n");
-    for(int i = 0 ; i<clauses.size() ; i++) ca[clauses[i]].showClause();
-    printf("END\n");
-#endif
-  }  // replaceEquiv
-
-  /**
-     Insert a clause and check if we have to propagate something.
-  */
+   Insert a clause and check if we have to propagate something.
+*/
   inline bool insertClauseAndPropagate(vec<Lit> &cl) {
     // printf("clause: "); showListLit(cl);
     if (cert != nullptr) {
@@ -624,7 +454,6 @@ class Solver {
       learnts.push(cr);
       attachClause(cr);
       uncheckedEnqueue(cl[0], cr);
-      ca[cr].idxReason(idxClausesCpt);
     } else {
       cancelUntil(0);
       uncheckedEnqueue(cl[0]);
@@ -704,8 +533,6 @@ class Solver {
 
   vec<int> saveFree;
   vec<lbool> currentModel;
-  void computeBackBone();
-  void computeBackBone(vec<Var> &v);
 
   ////////////////////////// Connected component
   //////////////////////////////////////////////
@@ -752,132 +579,6 @@ class Solver {
   ////////////////////////////////////////
   bool showDebug;
 
-  inline void removePhantomTrace() {
-    removePhantomTrail();
-    removePhantomClausesFromLearnt();
-    removePhantom();
-  }
-
-  inline void removeLearnt() {
-    int i, j;
-    for (i = j = 0; i < learnts.size(); i++) {
-      Clause &c = ca[learnts[i]];
-      if (!locked(c))
-        removeClause(learnts[i], true);
-      else
-        learnts[j++] = learnts[i];
-    }
-
-    learnts.shrink(i - j);
-    checkGarbage();
-  }  // removeLearnt
-
-  inline void removePhantomClausesFromLearnt() {
-    int i, j;
-    for (i = j = 0; i < learnts.size(); i++) {
-      Clause &c = ca[learnts[i]];
-
-      // check if c contains a phantomLit
-      bool phantomClause = false;
-      for (int k = 0; !phantomClause && k < c.size(); k++)
-        phantomClause = c[k] == ~phantomLit;
-
-      if (phantomClause) {
-        assert(!locked(c));
-        removeClause(learnts[i], true);
-      } else
-        learnts[j++] = learnts[i];
-    }
-
-    learnts.shrink(i - j);
-    checkGarbage();
-  }  // removePhantomClausesFromLearnt
-
-  inline void removePhantomTrail() {
-    cancelUntil(0);
-
-    int i, j;
-    for (i = j = 0; i < trail.size(); i++) {
-      Var x = var(trail[i]);
-      if (x == var(phantomLit)) {
-        assigns[x] = l_Undef;
-        insertVarOrder(x);
-      } else
-        trail[j++] = trail[i];
-    }
-
-    trail.shrink(i - j);
-    if (trail_lim.size()) trail_lim[0] = trail.size();
-  }  // removePhantomTrail
-
-  inline void removePhantom() {
-    for (int i = 0; i < phantoms.size(); i++) {
-      assert(!locked(ca[phantoms[i]]));
-      removeClause(phantoms[i], true);
-    }
-
-    phantoms.clear();
-    checkGarbage();
-  }  // removePhantom
-
-  /**
-     Cancel until zero and remove the additional unit literal such
-     that trail[i] with i >= szt
-
-     @param[in] szt, the 'nex' trail size
-  */
-  inline void cancelUntilOldZeroLevelTrail(int szt) {
-    cancelUntil(0);
-    assert(szt <= trail.size());
-
-    for (int c = trail.size() - 1; c >= szt; c--) {
-      Var x = var(trail[c]);
-      assigns[x] = l_Undef;
-      insertVarOrder(x);
-    }
-
-    qhead = szt;
-    trail.shrink(trail.size() - szt);
-
-    if (trail_lim.size()) trail_lim[0] = szt;
-  }  // cancelUntilOldZeroLevelTrail
-
-  /**
-     Add a phantom clause
-
-     @param[in] ps, a set of literals.
-
-     \return true if the clause has been added, false otherwise.
-  */
-  inline bool addPhantomClause(vec<Lit> &ps) {
-    assert(decisionLevel() == 0);
-    ps.push(~phantomLit);
-    assert(ps.size() > 1);
-
-    // Check if clause is satisfied and remove false/duplicate literals:
-    Lit p;
-    int i, j;
-    for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
-      if (value(ps[i]) == l_True || ps[i] == ~p)
-        return true;
-      else if (value(ps[i]) != l_False && ps[i] != p)
-        ps[j++] = p = ps[i];
-    ps.shrink(i - j);
-
-    if (ps.size() == 0)
-      return ok = false;
-    else if (ps.size() == 1) {
-      uncheckedEnqueue(ps[0]);
-      return ok = (propagate() == CRef_Undef);
-    } else {
-      CRef cr = ca.alloc(ps, false);
-      phantoms.push(cr);
-      attachClause(cr);
-    }
-
-    return true;
-  }  // addPhantomClause
-
   inline void showTrail() {
     printf("--> %d: ", decisionLevel());
     for (int i = 0; i < trail.size(); i++) {
@@ -910,14 +611,6 @@ class Solver {
         // printf("%d(%d): ", i, ca[clauses[i]].size());
         showSimplifiedClause(ca[clauses[i]]);
       }
-
-    printf("phantoms: \n");
-    for (int i = 0; i < phantoms.size(); i++)
-      if (ca[phantoms[i]].attached() && !clauseIsSAT(ca[phantoms[i]])) {
-        printf("%d(%d): ", i, ca[phantoms[i]].size());
-        showSimplifiedClause(ca[phantoms[i]]);
-      }
-    printf("---\n");
 
     printf("learnts: \n");
     for (int i = 0; i < learnts.size(); i++)

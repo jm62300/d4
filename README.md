@@ -14,7 +14,7 @@ git pull --recurse-submodules
 git submodule update --remote --merge
 ```
 
-In order to compile the project cmake (version>=3.1) and ninja have to
+In order to compile the project cmake (version>=3.1) has to
 be installed. The following command lines then build and compile the
 project.
 

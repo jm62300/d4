@@ -30,7 +30,7 @@ namespace d4 {
 
 class PartialOrderHeuristicGiven : public PartialOrderHeuristic {
  protected:
-  std::vector<unsigned> m_order;
+  std::vector<double> m_order;
   double m_scaleFactor;
 
  public:
@@ -57,15 +57,8 @@ class PartialOrderHeuristicGiven : public PartialOrderHeuristic {
    *
    * @return the position of v in the order.
    */
-  inline unsigned getPartialOrder(Var v) override {
+  inline double getPartialOrder(Var v) override {
     return m_order[v];
   }  // getPartialOrder
-
-  /**
-   * @brief The scale factor depends the size of the cutset.
-   *
-   * @return the scale factor variable.
-   */
-  inline double scaleFactor() override { return m_scaleFactor; }
 };
 }  // namespace d4

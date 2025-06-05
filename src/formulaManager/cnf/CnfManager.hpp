@@ -44,6 +44,7 @@ class CnfManager : public FormulaManager {
   std::vector<bool> m_inCurrentComponent;
   std::vector<DataOccurrence> m_occurrence;
   int *m_dataOccurrenceMemory;
+  std::vector<unsigned> m_occInitSizeNotBin;
 
   std::vector<InfoCluster> m_infoCluster;
 
@@ -57,6 +58,8 @@ class CnfManager : public FormulaManager {
     for (auto &idx : m_mustUnMark) m_markView[idx] = false;
     m_mustUnMark.resize(0);
   }  // resetUnMark
+
+  Var *m_activeVariables;
 
   /**
    * @brief This function can be used in order to check the validity of the
@@ -100,6 +103,8 @@ class CnfManager : public FormulaManager {
   virtual void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
                                        std::vector<Var> &component) = 0;
 
+  virtual bool canSkipLit(const Lit &l) { return false; }
+
   // inline functions.
   // about the CNF.
   inline int getNbBinaryClause(Var v) {
@@ -124,6 +129,14 @@ class CnfManager : public FormulaManager {
     return !getNbOccurrence(Lit::makeLitFalse(v)) &&
            !getNbOccurrence(Lit::makeLitTrue(v));
   }  // isFreeVariable
+
+  inline unsigned getNbInitNotBinaryClause(Lit l) {
+    return m_occInitSizeNotBin[l.intern()];
+  }
+
+  inline unsigned getNbRemainingInitNotBinaryClause(Lit l) {
+    return m_occurrence[l.intern()].nbNotBin;
+  }  // getNbInitNotBinaryClause
 
   inline unsigned getNbClause() { return m_clauses.size(); }
   inline unsigned getMaxSizeClause() { return m_maxSizeClause; }

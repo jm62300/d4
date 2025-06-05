@@ -101,7 +101,7 @@ void WrapperGlucose::uncheckedEnqueue(Lit l) {
  * @return true if we did not reach a conflict, false otherwise.
  */
 bool WrapperGlucose::propagateAssumption() {
-  return false;
+  return s.propagateAssumption();
 }  // propagateAssumption
 
 /**

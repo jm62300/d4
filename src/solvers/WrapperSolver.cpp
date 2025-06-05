@@ -86,6 +86,11 @@ bool WrapperSolver::warmStart(int iteration, int sizeQuery,
                               std::vector<Var> &setOfVar, std::ostream &out) {
   if (!solve()) return false;
   int nbSAT = 0;
+
+  if (setOfVar.size() > 10000) {
+    sizeQuery *= 100;
+  }
+
   std::vector<Lit> query(sizeQuery);
 
   for (int nbIte = 0; nbIte < iteration; nbIte++) {
