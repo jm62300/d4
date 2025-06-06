@@ -50,6 +50,14 @@ class TreeDecompositionerFlowCutter : public TreeDecompositioner {
 
  public:
   /**
+   * @brief Construct a new Tree Decompositioner Flow Cutter object.
+   *
+   */
+  TreeDecompositionerFlowCutter() {
+    std::cout << "c [TREE DECOMPOSITION] Flow Cutter\n";
+  }
+
+  /**
    * @brief Compute a tree decomposition regarding a given graph using the tool
    * flow-cutter.
    *
