@@ -31,7 +31,7 @@ namespace d4 {
 template <class T>
 class CacheList : public CacheManager<T> {
  private:
-  const unsigned SIZE_HASH = 999331;
+  const unsigned SIZE_HASH = 2000083;
   std::vector<std::vector<CachedBucket<T>>> hashTable;
 
  public:
@@ -84,6 +84,7 @@ class CacheList : public CacheManager<T> {
    */
   CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned hashValue) {
     char *refData = cb.data;
+    assert(hashValue % SIZE_HASH < hashTable.size());
     std::vector<CachedBucket<T>> &listCollision =
         hashTable[hashValue % SIZE_HASH];
 

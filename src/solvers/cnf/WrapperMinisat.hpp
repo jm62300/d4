@@ -29,11 +29,6 @@ class WrapperMinisat : public WrapperSolver {
   minisat::Solver m_solver;
   minisat::vec<minisat::Var> m_setOfVar_m;
 
-  std::vector<Lit> m_assumption;
-  std::vector<lbool> m_model;
-  bool m_activeModel;
-  bool m_needModel;
-
   using WrapperSolver::m_isInAssumption;
 
  public:

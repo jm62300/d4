@@ -53,12 +53,14 @@ class OptionSpecManager {
  public:
   SpecUpdateType specUpdateType;
   bool removeGates;
+  bool needFastNotSatisfied;
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionSpecManager& dt) {
     out << " Option Formula Manager:" << " update mode("
         << SpecUpdateManager::getSpecUpdate(dt.specUpdateType) << ") rm-gates("
-        << dt.removeGates << ") ";
+        << dt.removeGates << ") need-not-satisfied(" << dt.needFastNotSatisfied
+        << ") ";
     return out;
   }  // <<
 };

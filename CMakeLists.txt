@@ -63,7 +63,7 @@ elseif(${BUILD_MODE} EQUAL 3)
   message("Library profil")  
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -pg -O3 ${wnoOption} -D NDEBUG)
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -p -g -O3 ${wnoOption} -D NDEBUG)
   target_link_libraries (d4 -lz -O3 -pg -lgmpxx -lgmp ${libList})
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

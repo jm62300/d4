@@ -72,10 +72,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   bool m_connectedComponent;
   unsigned m_lastNbSplit;
   unsigned m_nbFailedIncreased;
+  unsigned m_limitNbFailedInRaw = 11;
 
   std::vector<unsigned> m_stampVar;
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
+
+  std::vector<u_int8_t> m_signLit;
 
   ProblemManager *m_problem;
   WrapperSolver *m_solver;
@@ -146,6 +149,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
     m_operation = static_cast<Operation<T, U> *>(op);
     m_out << "c\n";
+
+    m_signLit.resize(1 + m_problem->getNbVar(), 0);
   }  // constructor
 
   /**
@@ -154,7 +159,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   ~DpllStyleMethod() {
     delete m_operation;
     delete m_problem;
-
     delete m_solver;
     delete m_specs;
     delete m_heuristic;
@@ -326,7 +330,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   inline int computeConnectedComponent(
       std::vector<Var> &setOfVar, std::vector<std::vector<Var>> &varConnected,
       std::vector<Var> &freeVariable) {
-    if (m_connectedComponent && !(m_nbCallCall % 10000)) {
+    if (m_connectedComponent && !(m_nbCallCall % 100000)) {
       if (m_lastNbSplit == m_nbSplit)
         m_nbFailedIncreased++;
       else {
@@ -334,7 +338,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         m_lastNbSplit = m_nbSplit;
       }
 
-      m_connectedComponent = m_nbFailedIncreased < 11;
+      m_connectedComponent = m_nbFailedIncreased < m_limitNbFailedInRaw;
       if (!m_connectedComponent)
         std::cout << "c [CONNECTED COMPONENT] Stop searching for connected "
                      "component\n";
@@ -348,6 +352,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         std::cout << "c [CONNECTECT COMPONENT] Start for searching for "
                      "connected component\n";
         m_nbFailedIncreased = 0;
+        m_limitNbFailedInRaw++;
         m_connectedComponent = true;
       }
       return ret;
@@ -373,8 +378,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var> &freeVariable, std::ostream &out) {
     showRun(out);
     m_nbCallCall++;
-    if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
 
+    if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
@@ -394,9 +399,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
-        if (cacheActivated && cb.defined)
+        if (cacheActivated && cb.defined) {
           tab[cp] = cb.getValue();
-        else {
+        } else {
           // recursive call
           tab[cp] = computeDecisionNode(connected, out);
           if (cacheActivated) m_cache->addInCache(cb, tab[cp]);
@@ -408,7 +413,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
 
       return m_operation->manageDecomposableAnd(tab, nbComponent);
-    }  // else we have a tautology
+    }
 
     // m_specs->postUpdate(additionalUnit);
     m_specs->postUpdate(unitsLit);
@@ -430,6 +435,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
     if (!lits.size()) return m_operation->manageTop(connected);
+
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
@@ -534,4 +540,5 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    */
   inline Operation<T, U> *getOperation() { return m_operation; }
 };
+
 }  // namespace d4

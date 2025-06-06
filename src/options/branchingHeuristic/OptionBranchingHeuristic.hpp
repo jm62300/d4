@@ -131,7 +131,7 @@ class OptionBranchingHeuristic {
   unsigned freqDecay;
   unsigned limitSizeClause;
 
-    /**
+  /**
    * @brief Construct a new Option Branching Heuristic object with a given
    * configuration.
    *

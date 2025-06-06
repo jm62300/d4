@@ -41,27 +41,17 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
   if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
 
   // get the best variables (in the cut and in general).
-  Var vCut = var_Undef, vBest = var_Undef;
-  double bestScore = -1, bestScoreCut = -1;
+  Var vBest = var_Undef;
+  double bestScore = -1;
 
-  unsigned minLevel = -1;
-  unsigned nbMin = 0;
   for (auto &vTmp : vars) {
     if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
-    if (minLevel > m_partialOrder->getPartialOrder(vTmp)) {
-      minLevel = m_partialOrder->getPartialOrder(vTmp);
-      vCut = var_Undef;
-    }
-    if (minLevel == m_partialOrder->getPartialOrder(vTmp)) nbMin++;
+    double current =
+        m_hVar->computeScore(vTmp) + m_partialOrder->getPartialOrder(vTmp);
 
-    double current = m_hVar->computeScore(vTmp);
-    if (vCut == var_Undef ||
-        (m_partialOrder->getPartialOrder(vTmp) == minLevel &&
-         bestScoreCut < current)) {
-      vCut = vTmp;
-      bestScoreCut = current;
-    }
+    // std::cout << vTmp << " -> " << m_hVar->computeScore(vTmp) << " "
+    //           << m_partialOrder->getPartialOrder(vTmp) << '\n';
 
     if (vBest == var_Undef || bestScore < current) {
       vBest = vTmp;
@@ -69,14 +59,9 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
     }
   }
 
-  Var v = vCut;
-  if (nbMin > WORTH_CUT &&
-      (bestScoreCut * m_partialOrder->scaleFactor() / nbMin) < bestScore)
-    v = vBest;
-
   // return the list of lit (here it contains one literal).
-  if (v != var_Undef) {
-    Lit tmp[] = {Lit::makeLit(v, m_hPhase->selectPhase(v))};
+  if (vBest != var_Undef) {
+    Lit tmp[] = {Lit::makeLit(vBest, m_hPhase->selectPhase(vBest))};
     lits.setListLit(tmp, 1, m_listLitAllocator);
   } else {
     lits.setListLit(NULL, 0, m_listLitAllocator);

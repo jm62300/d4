@@ -31,7 +31,7 @@ namespace d4 {
 class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
  protected:
   double m_scaleFactor;
-  std::vector<unsigned> m_topologicalOrder;
+  std::vector<double> m_topologicalOrder;
   unsigned m_treeWidth;
 
   unsigned m_level;
@@ -60,7 +60,7 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    *
    * @return the position of v in the order.
    */
-  inline unsigned getPartialOrder(Var v) override {
+  inline double getPartialOrder(Var v) override {
     return m_topologicalOrder[v];
   }  // getPartialOrder
 
@@ -70,25 +70,5 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
    * @return The tree width of the current tree decomposition.
    */
   inline unsigned getTreeWidth() { return m_treeWidth; }
-
-  /**
-   * @brief The scale factor depends the size of the cutset.
-   *
-   * @return the scale factor variable.
-   */
-  inline double scaleFactor() override { return m_scaleFactor; }
-
-  /**
-   * @brief This function is called in order to init (or reinit) the partial
-   * order regarding the current information. More precisely, a tree
-   * decomposition is computed and the partial order is upudated according to
-   * this tree decomposition.
-   *
-   * @param options is the list of options used.
-   * @param sm is the formula we want to compute the partial order.
-   * @param out is the stream where are printed out the logs.
-   */
-  void init(const OptionPartialOrderHeuristic &options, FormulaManager &sm,
-            std::ostream &out) override;
 };
 }  // namespace d4

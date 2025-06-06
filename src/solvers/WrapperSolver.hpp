@@ -30,6 +30,11 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
  protected:
   std::vector<char> m_isInAssumption;
 
+  std::vector<Lit> m_assumption;
+  std::vector<lbool> m_model;
+  bool m_activeModel;
+  bool m_needModel;
+
  public:
   /**
    * @brief Wrapper to get a solver able to solve the input problem for the
@@ -73,6 +78,8 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   virtual void whichAreUnits(std::vector<Var> &component,
                              std::vector<Lit> &units) = 0;
 
+  inline bool getActiveModel() { return m_activeModel; }
+  inline bool getNeedModel() { return m_needModel; }
   unsigned sizeAssumption() { return getAssumption().size(); }
 
   bool warmStart(int iteration, int sizeQuery, std::vector<Var> &setOfVar,

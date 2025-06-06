@@ -151,8 +151,8 @@ class Solver {
 
   // Extra results: (read-only member variable)
   //
-  vec<lbool> model;  // If problem is satisfiable, this vector contains the
-                     // model (if any).
+  vec<lbool> model;   // If problem is satisfiable, this vector contains the
+                      // model (if any).
   vec<Lit> conflict;  // If problem is unsatisfiable (possibly under
                       // assumptions), this vector represent the final conflict
                       // clause expressed in the assumptions.
@@ -268,8 +268,8 @@ class Solver {
   vec<VarData> vardata;  // Stores reason and level for each variable.
   int qhead;  // Head of queue (as index into the trail -- no more explicit
               // propagation queue in MiniSat).
-  int simpDB_assigns;  // Number of top-level assignments since last execution
-                       // of 'simplify()'.
+  int simpDB_assigns;    // Number of top-level assignments since last execution
+                         // of 'simplify()'.
   int64_t simpDB_props;  // Remaining number of propagations that must be made
                          // before next execution of 'simplify()'.
   vec<Lit>
@@ -467,7 +467,7 @@ class Solver {
    *
    * @return true if no conflict, false otherwise.
    */
-  inline bool propagateAssumption();
+  bool propagateAssumption();
 
   inline bool isUndef(Lit l) { return value(l) == l_Undef; }
   inline bool isSAT(Lit l) { return value(l) == l_True; }

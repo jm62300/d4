@@ -38,14 +38,11 @@ DataInfo::DataInfo() { info1 = 0; }  // constructor
  */
 DataInfo::DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
                    unsigned nbBitFormula) {
-  info1 = 0;
-  info1 = (uint64_t)nbVar | ((uint64_t)szData << 21) |
-          ((uint64_t)nbBitVar << 42) | ((uint64_t)nbBitFormula << 47);
+  info = {nbBitFormula, nbBitVar, nbVar, szData};
 
   assert(nbBitFormula < (1 << 5));
   assert(nbBitVar < (1 << 5));
-  assert(nbVar < (1 << 21));
-  assert(szData < (1 << 21));
+  assert(nbVar == this->nbVar());
   assert(szData == this->szData());
 }  // constructor
 

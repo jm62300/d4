@@ -98,6 +98,12 @@ CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
   }
 
   m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
+  m_activeVariables = new Var[p.getNbVar() + 1];
+
+  m_occInitSizeNotBin.resize((p.getNbVar() + 1) << 1, 0);
+  assert(m_occInitSizeNotBin.size() == m_occurrence.size());
+  for (unsigned i = 0; i < m_occurrence.size(); i++)
+    m_occInitSizeNotBin[i] = m_occurrence[i].nbNotBin;
 }  // construtor
 
 /**
@@ -120,14 +126,17 @@ CnfManager::~CnfManager() { delete[] m_dataOccurrenceMemory; }  // destructor
 int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
                                           std::vector<Var> &setOfVar,
                                           std::vector<Var> &freeVar) {
+  Var *lastVar = m_activeVariables, *currentVar = m_activeVariables;
   for (auto v : setOfVar) {
     assert(v < m_infoCluster.size());
     m_infoCluster[v].parent = v;
     m_infoCluster[v].size = 1;
+    if (m_currentValue[v] == l_Undef) *lastVar++ = v;
   }
 
-  for (auto const &v : setOfVar) {
-    if (m_currentValue[v] != l_Undef) continue;
+  while (currentVar != lastVar) {
+    Var v = *currentVar++;
+    assert(m_currentValue[v] == l_Undef);
 
     // visit the index clauses
     Var rootV = v;
@@ -174,8 +183,9 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
   std::vector<Var> rootSet;
   freeVar.resize(0);
 
-  for (auto const &v : setOfVar) {
-    if (m_currentValue[v] != l_Undef) continue;
+  for (currentVar = m_activeVariables; currentVar != lastVar; currentVar++) {
+    Var v = *currentVar;
+    assert(m_currentValue[v] == l_Undef);
 
     if (m_infoCluster[v].parent == v && m_infoCluster[v].size == 1) {
       freeVar.push_back(v);

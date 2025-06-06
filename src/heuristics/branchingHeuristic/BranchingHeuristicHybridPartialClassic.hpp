@@ -23,7 +23,7 @@
 namespace d4 {
 class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
  private:
-  const unsigned WORTH_CUT = 11;
+  const unsigned WORTH_CUT = 50;
 
   const OptionPartialOrderHeuristic &m_saveOptionPartialOrderHeuristic;
   PartialOrderHeuristic *m_partialOrder;
@@ -41,7 +41,7 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    *
    * This constructor initializes a hybrid branching heuristic, combining
    * traditional heuristics (e.g., VSADS, VSIDS) with a partial order heuristic
-   * for improved decision-making in SAT solving.
+   * for improved decision-making in model counting (or knowledge compilation).
    *
    * @param[in] options The configuration options for the branching heuristic.
    * @param[in] problem A pointer to the problem manager, which handles

@@ -76,7 +76,7 @@ class PartialOrderHeuristic {
    *
    * @return the position of the given variable.
    */
-  virtual unsigned getPartialOrder(Var v) { return 1; }
+  virtual double getPartialOrder(Var v) { return 1; }
 
   /**
    * Compute a cutset regarding the subformula built on the set of given
@@ -100,23 +100,5 @@ class PartialOrderHeuristic {
      conducted.
    */
   virtual void displayStat(std::ostream &out) {}
-
-  /**
-   * @brief It is used for scale the partial order heuristic.
-   *
-   * @return double is the scale factor used.
-   */
-  virtual double scaleFactor() { return 0; }
-
-  /**
-   * @brief This function is called in order to init (or reinit) the partial
-   * order regarding the current information.
-   *
-   * @param options is the list of options used.
-   * @param sm is the formula we want to compute the partial order.
-   * @param out is the stream where are printed out the logs.
-   */
-  virtual void init(const OptionPartialOrderHeuristic &options,
-                    FormulaManager &sm, std::ostream &out) = 0;
 };
 }  // namespace d4
