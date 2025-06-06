@@ -28,15 +28,5 @@ class PartialOrderHeuristicNone : public PartialOrderHeuristic {
   PartialOrderHeuristicNone() {}
 
   void computeCutSet(std::vector<Var> &component, std::vector<Var> &cutSet);
-
-  /**
-   * @brief This function do nothing.
-   *
-   * @param options is the list of options used.
-   * @param sm is the formula we want to compute the partial order.
-   * @param out is the stream where are printed out the logs.
-   */
-  inline void init(const OptionPartialOrderHeuristic &options,
-                   FormulaManager &sm, std::ostream &out) override {}
 };
 }  // namespace d4

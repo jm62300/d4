@@ -50,9 +50,6 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
     double current =
         m_hVar->computeScore(vTmp) + m_partialOrder->getPartialOrder(vTmp);
 
-    // std::cout << vTmp << " -> " << m_hVar->computeScore(vTmp) << " "
-    //           << m_partialOrder->getPartialOrder(vTmp) << '\n';
-
     if (vBest == var_Undef || bestScore < current) {
       vBest = vTmp;
       bestScore = current;
@@ -67,16 +64,4 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
     lits.setListLit(NULL, 0, m_listLitAllocator);
   }
 }  // selectLitSet
-
-/**
- * @brief BranchingHeuristicHybridPartialClassic::updateHeuristic
- * implementation.
- */
-void BranchingHeuristicHybridPartialClassic::updateHeuristic(
-    std::vector<Var> &vars) {
-  m_partialOrder->init(m_saveOptionPartialOrderHeuristic, *m_specs,
-                       std::cout);  // normally that should print nothing.
-  // std::cout << "coucou\n";
-}  // updateHeuristic
-
 }  // namespace d4

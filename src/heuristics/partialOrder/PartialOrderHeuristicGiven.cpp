@@ -32,7 +32,8 @@ PartialOrderHeuristicGiven::PartialOrderHeuristicGiven(
     std::ostream &out) {
   out << "c [PARTIAL ORDER] Fixed by the user\n";
   assert(om.getNbVariable() < options.givenOrder.size());
-  init(options, om, out);
+  m_order = options.givenOrder;
+  m_scaleFactor = options.scaleFactor;
 }  // constructor
 
 /**
@@ -54,15 +55,4 @@ void PartialOrderHeuristicGiven::computeCutSet(std::vector<Var> &component,
   for (auto &v : component)
     if (m_order[v] == min) cutSet.push_back(v);
 }  // computeCutSet
-
-/**
- * @brief PartialOrderHeuristicGiven::init implementation.
- */
-void PartialOrderHeuristicGiven::init(
-    const OptionPartialOrderHeuristic &options, FormulaManager &sm,
-    std::ostream &out) {
-  m_order = options.givenOrder;
-  m_scaleFactor = options.scaleFactor;
-}  // init
-
 }  // namespace d4
