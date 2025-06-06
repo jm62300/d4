@@ -30,7 +30,8 @@ namespace d4 {
 /**
  * The constructor.
  *
- * @param[in] vm, the options used (solver).
+ * @param[in] nbIteration is the number of iteration we will do.
+ * @param[in] out is the stream where are printed out the logs.
  */
 PreprocSharpEquiv::PreprocSharpEquiv(int nbIteration, std::ostream &out) {
   m_nbIteration = nbIteration;
@@ -215,6 +216,12 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
   std::vector<bipe::Gate> gates;
   std::vector<Lit> units;
   bool isSat = computeBipartition(pcnf, units, input, output, gates, option);
+
+  std::cout << "c [PREPROC] Number of output detected: " << output.size()
+            << '\n';
+  std::cout << "c [PREPROC] ";
+  for (auto &v : output) std::cout << v << ' ';
+  std::cout << '\n';
 
   if (option.ordered)
     fixGatesModuloOrder(gates, input, output, pin->getOrder());

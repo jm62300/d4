@@ -68,4 +68,15 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
   }
 }  // selectLitSet
 
+/**
+ * @brief BranchingHeuristicHybridPartialClassic::updateHeuristic
+ * implementation.
+ */
+void BranchingHeuristicHybridPartialClassic::updateHeuristic(
+    std::vector<Var> &vars) {
+  m_partialOrder->init(m_saveOptionPartialOrderHeuristic, *m_specs,
+                       std::cout);  // normally that should print nothing.
+  // std::cout << "coucou\n";
+}  // updateHeuristic
+
 }  // namespace d4

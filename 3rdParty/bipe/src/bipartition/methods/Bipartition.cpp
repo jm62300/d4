@@ -870,6 +870,10 @@ bool Bipartition::run(Problem &p, std::vector<Var> &input,
   out << "c [BIPARTITION] Time needed to compute the partition: " << getTimer()
       << "\n";
 
+  out << "c [BIPARTITION] Input variables: ";
+  for (auto &v : input) out << v << ' ';
+  out << '\n';
+
   // clean.
   delete heuristic;
   return true;

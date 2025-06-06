@@ -34,6 +34,8 @@ class PartialOrderHeuristicTreeDecomp : public PartialOrderHeuristic {
   std::vector<double> m_topologicalOrder;
   unsigned m_treeWidth;
 
+  unsigned m_level;
+
  public:
   /**
    * @brief Constructor.
