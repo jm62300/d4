@@ -107,5 +107,16 @@ class PartialOrderHeuristic {
    * @return double is the scale factor used.
    */
   virtual double scaleFactor() { return 0; }
+
+  /**
+   * @brief This function is called in order to init (or reinit) the partial
+   * order regarding the current information.
+   *
+   * @param options is the list of options used.
+   * @param sm is the formula we want to compute the partial order.
+   * @param out is the stream where are printed out the logs.
+   */
+  virtual void init(const OptionPartialOrderHeuristic &options,
+                    FormulaManager &sm, std::ostream &out) = 0;
 };
 }  // namespace d4

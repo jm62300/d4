@@ -29,7 +29,7 @@ namespace d4 {
 
    @param[in] inputFile, the input we consider.
  */
-QueryManager::QueryManager(std::string &inputFile) {
+QueryManager::QueryManager(const std::string &inputFile) {
   m_in = fopen(inputFile.c_str(), "r");
 }  // constructor
 

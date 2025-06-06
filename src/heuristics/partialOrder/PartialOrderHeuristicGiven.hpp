@@ -67,5 +67,17 @@ class PartialOrderHeuristicGiven : public PartialOrderHeuristic {
    * @return the scale factor variable.
    */
   inline double scaleFactor() override { return m_scaleFactor; }
+
+  /**
+   * @brief This function is called in order to init (or reinit) the partial
+   * order regarding the current information. More precisely, the partial order
+   * and the scaling factor are set regarding the given options.
+   *
+   * @param options is the list of options used.
+   * @param sm is the formula we want to compute the partial order.
+   * @param out is the stream where are printed out the logs.
+   */
+  void init(const OptionPartialOrderHeuristic &options, FormulaManager &sm,
+            std::ostream &out) override;
 };
 }  // namespace d4

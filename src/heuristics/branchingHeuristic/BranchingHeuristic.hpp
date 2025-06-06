@@ -209,5 +209,13 @@ class BranchingHeuristic {
    * considering.
    */
   virtual void selectLitSet(std::vector<Var> &vars, ListLit &lits) = 0;
+
+  /**
+   * @brief This function is called in order to update the branching heuristic
+   * regarding the current formula and a set of variables.
+   *
+   * @param vars is the set of variables under consideration.
+   */
+  virtual void updateHeuristic(std::vector<Var> &vars) { ; }
 };
 }  // namespace d4

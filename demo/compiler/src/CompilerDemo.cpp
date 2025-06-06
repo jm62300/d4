@@ -35,7 +35,7 @@ using namespace d4;
 
 template <typename T>
 void compiler(const OptionDpllStyleMethod &options, ProblemManager *problem,
-              const std::string &dumpFile) {
+              const std::string &dumpFile, const std::string &queryFile) {
   DpllStyleMethod<T, Node<T> *> *comp =
       new DpllStyleMethod<T, Node<T> *>(options, problem, std::cout);
 
@@ -49,15 +49,12 @@ void compiler(const OptionDpllStyleMethod &options, ProblemManager *problem,
     outFile.open(dumpFile);
     nodeManager->printNNF(result, outFile);
     outFile.close();
-  }
-#if 0
-   else if (vm.count("query")) {
+  } else if (queryFile != "/dev/null") {
     std::vector<Lit> query;
-    std::vector<ValueVar> fixedValue(m_problem->getNbVar() + 1,
+    std::vector<ValueVar> fixedValue(problem->getNbVar() + 1,
                                      ValueVar::isNotAssigned);
 
-    std::string fileName = vm["query"].as<std::string>();
-    QueryManager queryManager(fileName);
+    QueryManager queryManager(queryFile);
     TypeQuery typeQuery = TypeQuery::QueryEnd;
 
     do {
@@ -69,8 +66,7 @@ void compiler(const OptionDpllStyleMethod &options, ProblemManager *problem,
 
       if (typeQuery == TypeQuery::QueryCounting) {
         std::cout << "s " << std::fixed
-                  << nodeManager->computeNbModels(result, fixedValue,
-                                                  *m_problem)
+                  << nodeManager->computeNbModels(result, fixedValue, *problem)
                   << "\n";
       } else if (typeQuery == TypeQuery::QueryDecision) {
         bool res = nodeManager->isSAT(result, fixedValue);
@@ -82,9 +78,7 @@ void compiler(const OptionDpllStyleMethod &options, ProblemManager *problem,
         fixedValue[l.var()] = ValueVar::isNotAssigned;
       }
     } while (typeQuery != TypeQuery::QueryEnd);
-  }
-#endif
-  else {
+  } else {
     std::vector<ValueVar> fixedValue(problem->getNbVar() + 1,
                                      ValueVar::isNotAssigned);
     std::cout << "s " << std::fixed
@@ -131,10 +125,11 @@ void compilerDemo(const po::variables_map &vm, ProblemManager *problem) {
 
   // construct and call the counter regarding if it is MC or WMC.
   std::string dumpFile = vm["dump-file"].as<std::string>();
+  std::string queryFile = vm["query"].as<std::string>();
 
   if (!isFloat)
-    compiler<mpz::mpz_int>(options, problem, dumpFile);
+    compiler<mpz::mpz_int>(options, problem, dumpFile, queryFile);
   else
-    compiler<mpz::mpf_float>(options, problem, dumpFile);
+    compiler<mpz::mpf_float>(options, problem, dumpFile, queryFile);
 
 }  // counterDemo

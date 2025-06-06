@@ -36,7 +36,7 @@ class QueryManager {
 
  public:
   QueryManager() = delete;
-  QueryManager(std::string &inputFile);
+  QueryManager(const std::string &inputFile);
   ~QueryManager();
   TypeQuery next(std::vector<Lit> &query);
 };
