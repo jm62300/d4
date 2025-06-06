@@ -76,7 +76,7 @@ class MaxT : public MethodManager {
   };
 
  private:
-  const unsigned NB_SEP = 170;
+  const unsigned NB_SEP = 195;
 
   bool m_optThreshold = false;
   bool m_solutionFound = false;
@@ -129,6 +129,7 @@ class MaxT : public MethodManager {
 
   MaxSharpSatResult m_scale;
   MaxSharpSatResult m_maxCount;
+  double m_accTime;
 
   A m_aggregator;
   T m_threshold;
@@ -240,6 +241,8 @@ class MaxT : public MethodManager {
       m_threshold = T(options.thresholdList);
       out << "c [MAXT] Set the threshold limit: " << m_threshold << '\n';
     }
+
+    m_accTime = 0;
   }  // constructor
 
   /**
@@ -337,6 +340,7 @@ class MaxT : public MethodManager {
         << std::fixed << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj
         << std::fixed << std::setprecision(2) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_accTime << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheMax->getNbPositiveHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << m_cacheMax->getNbNegativeHit() << "|"
@@ -348,7 +352,7 @@ class MaxT : public MethodManager {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cacheInd->usedMemory() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|"
-        << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << std::scientific << std::setw(WIDTH_PRINT_COLUMN_MC * 2)
         << m_maxCount.count << "|\n";
   }  // showInter
 
@@ -373,6 +377,7 @@ class MaxT : public MethodManager {
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC) << "timeInd" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(m)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#negHit(m)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit(i)" << "|"
@@ -382,7 +387,7 @@ class MaxT : public MethodManager {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "memory" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "mem(MB)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#dec. Node" << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << "max#count" << "|\n";
+        << std::setw(WIDTH_PRINT_COLUMN_MC * 2) << "max#count" << "|\n";
     separator(out);
   }  // showHeader
 
@@ -415,7 +420,8 @@ class MaxT : public MethodManager {
     m_cacheInd->printCacheInformation(out);
     out << "c\n";
     m_cacheMax->printCacheInformation(out);
-    out << "c Final time: " << getTimer() << "\n";
+    out << "c Final time: " << getTimer() << '\n';
+    out << "c Final time Ind: " << m_accTime << '\n';
     out << "c\n";
   }  // printFinalStat
 
@@ -692,13 +698,12 @@ class MaxT : public MethodManager {
     if (v == var_Undef) {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
-#if 0
-      std::cout << "m ";
-      for (auto &l : m_solver->getAssumption()) std::cout << l << ' ';
-      std::cout << "0\n";
-#endif
+
+      float startInd = getTimer();
       result.count = countInd_(connected, unitsLit, freeVar, out);
       m_aggregator.multiplyUnitFree(result.count, unitsLit, freeVar);
+
+      m_accTime += getTimer() - startInd;
       result.valuation = NULL;
       return;
     }
@@ -738,13 +743,6 @@ class MaxT : public MethodManager {
     // aggregation with max.
     result.count = (b[0].d > b[1].d) ? b[0].d : b[1].d;
     result.valuation = (b[0].d > b[1].d) ? res[0].valuation : res[1].valuation;
-
-    if (m_solver->getAssumption().size() < 10) {
-      std::cout << "Time needed to count: " << getTimer() - startTime << "\n";
-      for (auto &l : m_solver->getAssumption()) std::cout << l << " ";
-      std::cout << '\n';
-      std::cout << "count = " << result.count << '\n';
-    }
   }  // searchMaxSharpSatDecision
 
   /**
