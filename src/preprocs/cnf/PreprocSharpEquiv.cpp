@@ -83,6 +83,7 @@ bool PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
       ((bipe::bipartition::Method *)PreprocManager::s_isRunning)->interrupt();
   };
   signal(SIGALRM, handler);
+  alarm(option.timeout);
 
   std::vector<std::vector<bool>> setOfModels;
   formula =
@@ -90,7 +91,6 @@ bool PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
   bool isSAT = !formula->isTriviallyUnsat();
 
   if (isSAT) {
-    alarm(option.timeout);
     if (formula) {
       bipe::Problem *tmp = formula;
       if (option.ordered) b.setOrder(pcnf.getOrder());

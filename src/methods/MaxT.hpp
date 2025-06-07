@@ -699,6 +699,15 @@ class MaxT : public MethodManager {
       std::vector<Lit> unitsLit;
       std::vector<Var> freeVar;
 
+#if 0
+      static int cpt = 0;
+      std::cout << "m ";
+      for (auto &l : m_solver->getAssumption()) std::cout << l << ' ';
+      std::cout << "0\n";
+      cpt++;
+      if (cpt > 100000) exit(0);
+#endif
+
       float startInd = getTimer();
       result.count = countInd_(connected, unitsLit, freeVar, out);
       m_aggregator.multiplyUnitFree(result.count, unitsLit, freeVar);

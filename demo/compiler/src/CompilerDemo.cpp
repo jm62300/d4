@@ -65,9 +65,16 @@ void compiler(const OptionDpllStyleMethod &options, ProblemManager *problem,
       }
 
       if (typeQuery == TypeQuery::QueryCounting) {
+#if 0
+        static unsigned cpt = 0;
+        cpt++;
+        nodeManager->computeNbModels(result, fixedValue, *problem);
+        if (!(cpt % 10000)) std::cout << cpt << '\n';
+#else
         std::cout << "s " << std::fixed
                   << nodeManager->computeNbModels(result, fixedValue, *problem)
                   << "\n";
+#endif
       } else if (typeQuery == TypeQuery::QueryDecision) {
         bool res = nodeManager->isSAT(result, fixedValue);
         std::cout << "s " << ((res) ? "SAT" : "UNS") << "\n";
