@@ -1,57 +1,202 @@
-# d4 project
+# d4 Project
 
-Put some sentences to describe the context.
+**d4** is a tool designed to address a variety of computational problems beyond NP. It supports the following capabilities:
 
-Description of the different methods supported by d4.
+* Compiling a CNF formula into a decision-DNNF (with support for querying the compiled form)
+* Counting (weighted) models of CNF or circuit formulas
+* Projected (weighted) model counting over CNF formulas
+* Model counting for QBF formulas
+* Finding variable instantiations that maximize (possibly weighted or aggregated) model counts
 
+---
 
-# How to Compile
+## 🔧 Building and Using d4 as a Library
 
-First you need to initialize the submodule by using the following command line:
-```console
-git submodule update --init --recursive
-git pull --recurse-submodules
-git submodule update --remote --merge
+To build **d4**, ensure the following dependencies are installed:
+
+* CMake (version ≥ 3.1)
+* A C++ compiler with C++20 support
+* `libgmp` and `libz`
+
+Build the library with:
+
+```bash
+./build.sh
 ```
 
-In order to compile the project cmake (version>=3.1) has to
-be installed. The following command lines then build and compile the
-project.
+Optional flags:
 
-```console
-$ ./build.sh
+* `-d`: Enable debug flags
+* `-p`: Enable profiling flags
+* `-s`: Enable static linking
+
+After compilation, the static library `libd4.a` will be available in the `build/` directory.
+
+---
+
+## 🔍 How to Use d4
+
+**d4** is a library and not a standalone executable. You need to link it with your own project. Check the `demo/` directory for usage examples.
+
+> Note: You do *not* need to build the library separately for the demos, each demo handles its own build process.
+
+---
+
+### 🧮 Counter Mode
+
+To use **d4** for model counting, navigate to:
+
+```bash
+cd demo/counter
+./build.sh
 ```
 
-The executable is called d4 and is in the build repository.
+Example usage with a CNF file:
 
-```console
-$ ./build/d4 -h
+```bash
+./build/counter -i ../../instancesTest/cnfs/cnf5.cnf
+```
+
+To specify circuit input:
+
+```bash
+./build/counter -i ../../instancesTest/circuits/circ1.bc --input-type circuit
+```
+
+To enable the built-in BiPe preprocessor:
+
+```bash
+./build/counter -i ../../instancesTest/cnfs/cnf5.cnf -p sharp-equiv
+```
+
+For a full list of options:
+
+```bash
+./build/counter
+```
+
+> Input format follows the [MC 2024 competition guidelines](https://mccompetition.org/assets/files/mccomp_format_24.pdf)
+
+---
+
+### 🏗️ Compiler Mode
+
+The compiler shares the same command-line interface as the counter. Go to:
+
+```bash
+cd demo/compiler
+./build.sh
+```
+
+#### Querying a Decision-DNNF
+
+You can query the compiled DNNF by passing a query file (or stdin) to `--query`.
+
+* To **count models**: lines start with `m`, followed by literals, ending in `0`
+* To **check satisfiability**: lines start with `d`, followed by literals, ending in `0`
+
+Example:
+
+```bash
+$ ./build/compiler -i ../../instancesTest/cnfs/cnf5.cnf --query /dev/stdin
+...
+m 0
+s 7106560
+m 1 0
+s 2842624
+m -1 0
+s 4263936
+d 1 0
+s SAT
+```
+
+#### Dumping the Decision-DNNF
+
+To dump the compiled formula:
+
+```bash
+./build/compiler -i ../../instancesTest/cnfs/cnf5.cnf --dump-file /dev/stdout
+```
+
+> Format is compatible with [decDNNF reasoner](http://www.cril.univ-artois.fr/kc/d-DNNF-reasoner.html) and [decdnnf\_rs](https://crates.io/crates/decdnnf_rs)
+
+For more options:
+
+```bash
+./build/compiler
+```
+
+---
+
+### 🧠 Max#SAT Mode
+
+In `demo/maxT`, you’ll find examples of d4's Max#SAT capability.
+
+The input format must label variables using:
+
+* `max` for variables to maximize
+* `ind` for variables to count over (others will be forgotten)
+
+Supports both:
+
+* Real weights (as doubles)
+* Complex weights (two doubles, `v1 + i*v2`)
+
+Example (real weights):
+
+```bash
+cat ../../instancesTest/maxT/syn_quantum/ccx_gate_0/fullP_1_quokka_syn.cnf
+```
+
+Example (complex weights):
+
+```bash
+cat ../../instancesTest/maxT/ccx_gate_0/comp_1_quokka_syn.cnf
+```
+
+Run with real weights:
+
+```bash
+./build/maxT -i ../../instancesTest/maxT/syn_quantum/ccx_gate_0/fullP_1_quokka_syn.cnf --complex 0
+```
+
+Run with complex weights:
+
+```bash
+./build/maxT -i ../../instancesTest/maxT/ccx_gate_0/comp_2_quokka_syn.cnf --complex 1
+```
+
+For full options:
+
+```bash
+./build/maxT
+```
+
+---
+
+## 📂 Repository Overview
+
+```
+d4/
+├── build.sh                # Build script
+├── build/                  # Output binaries and libraries
+├── demo/
+│   ├── counter/            # Model counting demo
+│   ├── compiler/           # Compilation and querying demo
+│   └── maxT/               # Max#SAT demo
+├── instancesTest/          # Sample CNF/Circuit instances
 ```
 
 
-# Architecture
+## QBF counter
 
-How to add something to d4.
+TODO
 
-# Methods Implemented
-
-The different methods available.
-
-## Model Counting
-
-
-## Projected Model Counting
-
-
-## Knowledge Compilation
-
-
-## Parallel Model Counting
 
 
 # Input Formats
 
-The different input formats available.
+For the CNF format we use the standard DIMACS format (see https://mccompetition.org/assets/files/mccomp_format_24.pdf)
 
 ## circuit
 
@@ -123,4 +268,4 @@ G g3 := O g1 -g2
 T g3
 ```
 
-# cnf
+
