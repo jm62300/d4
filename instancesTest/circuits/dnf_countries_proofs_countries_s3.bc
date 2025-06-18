@@ -1,0 +1,361 @@
+c BC-S1.0
+T root
+I koceania_europe
+I ksouth_africa_mali
+I kuganda_swaziland
+I ksan_marino_europe
+I krwanda_martinique
+I krr9_locatedIn
+I ksouth_africa_san_marino
+I kwestern_africa_oceania
+I kmali_algeria
+I kuganda_mali
+I krwanda_algeria
+I krr10_neighborOf
+I kalgeria_albania
+I krr6_locatedIn
+I koceania_macedonia
+I ksouth_africa_oceania
+I ksan_marino_algeria
+I ksenegal_algeria
+I krr8_locatedIn
+I kuganda_rwanda
+I kwestern_africa_mali
+I kswaziland_europe
+I keurope_albania
+I kwestern_africa_rwanda
+I krr3_locatedIn
+I kuganda_senegal
+I krr8_neighborOf
+I krwanda_macedonia
+I krr9_neighborOf
+I kuganda_oceania
+I krr3_neighborOf
+I ksouth_africa_rwanda
+I kmali_europe
+I ksenegal_europe
+I kswaziland_macedonia
+I kmali_macedonia
+I krr10_locatedIn
+I ksan_marino_martinique
+I kwestern_africa_senegal
+I kwestern_africa_swaziland
+I ksouth_africa_albania
+I kwestern_africa_san_marino
+I kuganda_albania
+I kmartinique_albania
+I krr5_neighborOf
+I kwestern_africa_albania
+I ksouth_africa_senegal
+I krr5_locatedIn
+I ksenegal_macedonia
+I krr2_locatedIn
+I krr4_locatedIn
+I ksenegal_martinique
+I kswaziland_martinique
+I krr6_neighborOf
+I kswaziland_south_africa
+I kmacedonia_albania
+I krr7_locatedIn
+I ksan_marino_macedonia
+I kuganda_san_marino
+I krwanda_europe
+I kmartinique_mali
+I kswaziland_algeria
+I kneighborOf_locatedIn
+I koceania_algeria
+G o1 := A kmartinique_albania koceania_macedonia kneighborOf_locatedIn
+G o2 := A koceania_algeria kmartinique_mali kneighborOf_locatedIn
+G o3 := A ksenegal_martinique kwestern_africa_oceania
+G o4 := A kuganda_oceania kneighborOf_locatedIn krwanda_martinique
+G o5 := A ksan_marino_martinique koceania_europe
+G o6 := A kswaziland_martinique kneighborOf_locatedIn ksouth_africa_oceania
+G o7 := A koceania_macedonia kmacedonia_albania krr10_neighborOf krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o8 := A koceania_macedonia kalgeria_albania kmali_macedonia krr10_neighborOf krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o9 := A koceania_macedonia kwestern_africa_albania krr8_neighborOf krr10_locatedIn ksenegal_macedonia kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o10 := A koceania_macedonia krr10_neighborOf krwanda_macedonia kuganda_albania krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o11 := A koceania_macedonia ksan_marino_macedonia krr8_neighborOf krr10_locatedIn keurope_albania kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o12 := A koceania_macedonia krr10_neighborOf kswaziland_macedonia ksouth_africa_albania krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o13 := A koceania_algeria kmacedonia_albania kmali_macedonia krr10_neighborOf krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o14 := A koceania_algeria kmali_algeria kmali_macedonia krr10_neighborOf krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o15 := A koceania_algeria kwestern_africa_mali krr8_neighborOf krr10_locatedIn ksenegal_macedonia kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o16 := A koceania_algeria kuganda_mali krr10_neighborOf krwanda_macedonia krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o17 := A koceania_algeria kmali_europe ksan_marino_macedonia krr8_neighborOf krr10_locatedIn kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o18 := A ksouth_africa_mali koceania_algeria krr10_neighborOf kswaziland_macedonia krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o19 := A kmacedonia_albania krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krr8_neighborOf kmartinique_albania ksenegal_macedonia krr7_locatedIn
+G o20 := A krr9_locatedIn ksenegal_algeria kmali_macedonia krr10_neighborOf kwestern_africa_oceania krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o21 := A kwestern_africa_senegal krr9_locatedIn kwestern_africa_oceania krr8_neighborOf krr10_locatedIn kmartinique_albania ksenegal_macedonia krr7_locatedIn
+G o22 := A kuganda_senegal krr9_locatedIn krr10_neighborOf krwanda_macedonia kwestern_africa_oceania krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o23 := A krr9_locatedIn kwestern_africa_oceania ksan_marino_macedonia krr8_neighborOf krr10_locatedIn ksenegal_europe kmartinique_albania krr7_locatedIn
+G o24 := A ksouth_africa_senegal krr9_locatedIn krr10_neighborOf kswaziland_macedonia kwestern_africa_oceania krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o25 := A kmacedonia_albania kuganda_oceania krr10_neighborOf krwanda_macedonia krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o26 := A kmali_macedonia kuganda_oceania krr10_neighborOf krwanda_algeria krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o27 := A kmartinique_albania kuganda_oceania krr8_neighborOf krr10_locatedIn ksenegal_macedonia kwestern_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o28 := A kuganda_oceania krr10_neighborOf krwanda_macedonia kuganda_rwanda krr8_neighborOf kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o29 := A krwanda_europe kuganda_oceania ksan_marino_macedonia krr8_neighborOf krr10_locatedIn kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o30 := A kuganda_oceania krr10_neighborOf kswaziland_macedonia krr8_neighborOf ksouth_africa_rwanda kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o31 := A kmacedonia_albania krr9_locatedIn koceania_europe krr10_neighborOf ksan_marino_macedonia krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o32 := A krr9_locatedIn ksan_marino_algeria koceania_europe kmali_macedonia krr10_neighborOf krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o33 := A krr9_locatedIn koceania_europe krr8_neighborOf krr10_locatedIn kmartinique_albania ksenegal_macedonia kwestern_africa_san_marino krr7_locatedIn
+G o34 := A krr9_locatedIn koceania_europe krr10_neighborOf kuganda_san_marino krwanda_macedonia krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o35 := A krr9_locatedIn koceania_europe ksan_marino_macedonia krr8_neighborOf krr10_locatedIn kmartinique_albania krr7_locatedIn ksan_marino_europe
+G o36 := A krr9_locatedIn koceania_europe ksouth_africa_san_marino krr10_neighborOf kswaziland_macedonia krr8_neighborOf kmartinique_albania krr7_locatedIn
+G o37 := A kmacedonia_albania krr10_neighborOf kswaziland_macedonia krr8_neighborOf ksouth_africa_oceania kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o38 := A kmali_macedonia krr10_neighborOf kswaziland_algeria krr8_neighborOf ksouth_africa_oceania kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o39 := A kwestern_africa_swaziland krr8_neighborOf krr10_locatedIn ksenegal_macedonia ksouth_africa_oceania kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o40 := A krr10_neighborOf krwanda_macedonia krr8_neighborOf kuganda_swaziland ksouth_africa_oceania kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o41 := A kswaziland_europe ksan_marino_macedonia krr8_neighborOf krr10_locatedIn ksouth_africa_oceania kmartinique_albania krr9_neighborOf krr7_locatedIn
+G o42 := A krr10_neighborOf kswaziland_macedonia krr8_neighborOf ksouth_africa_oceania kmartinique_albania krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o43 := A koceania_macedonia kalgeria_albania kmacedonia_albania kmartinique_mali krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o44 := A koceania_macedonia kalgeria_albania kmartinique_mali kmali_algeria krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o45 := A koceania_macedonia kmartinique_mali ksenegal_algeria kwestern_africa_albania krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o46 := A koceania_macedonia kmartinique_mali krr10_neighborOf krwanda_algeria kuganda_albania krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o47 := A koceania_macedonia kmartinique_mali ksan_marino_algeria krr8_neighborOf krr10_locatedIn keurope_albania krr9_neighborOf krr7_locatedIn
+G o48 := A koceania_macedonia kmartinique_mali krr10_neighborOf kswaziland_algeria ksouth_africa_albania krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o49 := A koceania_algeria kalgeria_albania kmartinique_mali kmali_macedonia krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o50 := A koceania_algeria kmartinique_mali kmali_algeria krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o51 := A koceania_algeria kmartinique_mali ksenegal_algeria kwestern_africa_mali krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o52 := A koceania_algeria kmartinique_mali kuganda_mali krr10_neighborOf krwanda_algeria krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o53 := A koceania_algeria kmartinique_mali kmali_europe ksan_marino_algeria krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o54 := A ksouth_africa_mali koceania_algeria kmartinique_mali krr10_neighborOf kswaziland_algeria krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o55 := A kalgeria_albania kmartinique_mali krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krr8_neighborOf ksenegal_macedonia krr7_locatedIn
+G o56 := A kmartinique_mali krr9_locatedIn ksenegal_algeria kmali_algeria krr10_neighborOf kwestern_africa_oceania krr8_neighborOf krr7_locatedIn
+G o57 := A kwestern_africa_senegal kmartinique_mali krr9_locatedIn ksenegal_algeria kwestern_africa_oceania krr8_neighborOf krr10_locatedIn krr7_locatedIn
+G o58 := A kuganda_senegal kmartinique_mali krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krwanda_algeria krr8_neighborOf krr7_locatedIn
+G o59 := A kmartinique_mali krr9_locatedIn ksan_marino_algeria kwestern_africa_oceania krr8_neighborOf krr10_locatedIn ksenegal_europe krr7_locatedIn
+G o60 := A ksouth_africa_senegal kmartinique_mali krr9_locatedIn krr10_neighborOf kswaziland_algeria kwestern_africa_oceania krr8_neighborOf krr7_locatedIn
+G o61 := A kalgeria_albania kmartinique_mali kuganda_oceania krr10_neighborOf krwanda_macedonia krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o62 := A kmartinique_mali kmali_algeria kuganda_oceania krr10_neighborOf krwanda_algeria krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o63 := A kmartinique_mali ksenegal_algeria kuganda_oceania krr8_neighborOf krr10_locatedIn kwestern_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o64 := A kmartinique_mali kuganda_oceania krr10_neighborOf kuganda_rwanda krwanda_algeria krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o65 := A kmartinique_mali krwanda_europe ksan_marino_algeria kuganda_oceania krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o66 := A kmartinique_mali kuganda_oceania krr10_neighborOf kswaziland_algeria krr8_neighborOf ksouth_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o67 := A kalgeria_albania kmartinique_mali krr9_locatedIn koceania_europe krr10_neighborOf ksan_marino_macedonia krr8_neighborOf krr7_locatedIn
+G o68 := A kmartinique_mali krr9_locatedIn ksan_marino_algeria koceania_europe kmali_algeria krr10_neighborOf krr8_neighborOf krr7_locatedIn
+G o69 := A kmartinique_mali krr9_locatedIn ksenegal_algeria koceania_europe krr8_neighborOf krr10_locatedIn kwestern_africa_san_marino krr7_locatedIn
+G o70 := A kmartinique_mali krr9_locatedIn koceania_europe krr10_neighborOf kuganda_san_marino krwanda_algeria krr8_neighborOf krr7_locatedIn
+G o71 := A kmartinique_mali krr9_locatedIn ksan_marino_algeria koceania_europe krr8_neighborOf krr10_locatedIn krr7_locatedIn ksan_marino_europe
+G o72 := A kmartinique_mali krr9_locatedIn koceania_europe ksouth_africa_san_marino krr10_neighborOf kswaziland_algeria krr8_neighborOf krr7_locatedIn
+G o73 := A kalgeria_albania kmartinique_mali krr10_neighborOf kswaziland_macedonia krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o74 := A kmartinique_mali kmali_algeria krr10_neighborOf kswaziland_algeria krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o75 := A kmartinique_mali ksenegal_algeria kwestern_africa_swaziland krr8_neighborOf krr10_locatedIn ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o76 := A kmartinique_mali krr10_neighborOf krwanda_algeria krr8_neighborOf kuganda_swaziland ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o77 := A kmartinique_mali ksan_marino_algeria kswaziland_europe krr8_neighborOf krr10_locatedIn ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o78 := A kmartinique_mali krr10_neighborOf kswaziland_algeria krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o79 := A koceania_macedonia kmacedonia_albania ksenegal_martinique krr10_neighborOf kwestern_africa_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o80 := A koceania_macedonia kalgeria_albania ksenegal_martinique krr10_neighborOf kwestern_africa_mali krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o81 := A koceania_macedonia kwestern_africa_senegal ksenegal_martinique kwestern_africa_albania krr10_locatedIn krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o82 := A koceania_macedonia ksenegal_martinique krr10_neighborOf kuganda_albania kwestern_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o83 := A koceania_macedonia ksenegal_martinique krr10_locatedIn keurope_albania krr8_locatedIn krr9_neighborOf kwestern_africa_san_marino krr7_locatedIn
+G o84 := A koceania_macedonia ksenegal_martinique krr10_neighborOf kwestern_africa_swaziland ksouth_africa_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o85 := A ksenegal_martinique koceania_algeria kmali_macedonia krr10_neighborOf kwestern_africa_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o86 := A ksenegal_martinique koceania_algeria kmali_algeria krr10_neighborOf kwestern_africa_mali krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o87 := A ksenegal_martinique kwestern_africa_senegal koceania_algeria kwestern_africa_mali krr10_locatedIn krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o88 := A ksenegal_martinique koceania_algeria kuganda_mali krr10_neighborOf kwestern_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o89 := A ksenegal_martinique koceania_algeria kmali_europe krr10_locatedIn krr8_locatedIn krr9_neighborOf kwestern_africa_san_marino krr7_locatedIn
+G o90 := A ksenegal_martinique ksouth_africa_mali koceania_algeria krr10_neighborOf kwestern_africa_swaziland krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o91 := A ksenegal_martinique krr9_locatedIn krr10_neighborOf kwestern_africa_oceania kwestern_africa_albania krr8_locatedIn ksenegal_macedonia krr7_locatedIn
+G o92 := A ksenegal_martinique krr9_locatedIn ksenegal_algeria krr10_neighborOf kwestern_africa_mali kwestern_africa_oceania krr8_locatedIn krr7_locatedIn
+G o93 := A ksenegal_martinique kwestern_africa_senegal krr9_locatedIn kwestern_africa_oceania krr10_locatedIn krr8_locatedIn krr7_locatedIn
+G o94 := A kuganda_senegal ksenegal_martinique krr9_locatedIn krr10_neighborOf kwestern_africa_oceania kwestern_africa_rwanda krr8_locatedIn krr7_locatedIn
+G o95 := A ksenegal_martinique krr9_locatedIn kwestern_africa_oceania krr10_locatedIn ksenegal_europe krr8_locatedIn kwestern_africa_san_marino krr7_locatedIn
+G o96 := A ksouth_africa_senegal ksenegal_martinique krr9_locatedIn krr10_neighborOf kwestern_africa_swaziland kwestern_africa_oceania krr8_locatedIn krr7_locatedIn
+G o97 := A ksenegal_martinique kuganda_oceania krr10_neighborOf krwanda_macedonia kwestern_africa_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o98 := A ksenegal_martinique kuganda_oceania krr10_neighborOf kwestern_africa_mali krwanda_algeria krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o99 := A ksenegal_martinique kwestern_africa_senegal kuganda_oceania krr10_locatedIn kwestern_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o100 := A ksenegal_martinique kuganda_oceania krr10_neighborOf kuganda_rwanda kwestern_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o101 := A ksenegal_martinique krwanda_europe kuganda_oceania krr10_locatedIn krr8_locatedIn krr9_neighborOf kwestern_africa_san_marino krr7_locatedIn
+G o102 := A ksenegal_martinique kuganda_oceania krr10_neighborOf kwestern_africa_swaziland ksouth_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o103 := A ksenegal_martinique krr9_locatedIn koceania_europe krr10_neighborOf kwestern_africa_albania ksan_marino_macedonia krr8_locatedIn krr7_locatedIn
+G o104 := A ksenegal_martinique krr9_locatedIn ksan_marino_algeria koceania_europe krr10_neighborOf kwestern_africa_mali krr8_locatedIn krr7_locatedIn
+G o105 := A ksenegal_martinique kwestern_africa_senegal krr9_locatedIn koceania_europe krr10_locatedIn krr8_locatedIn kwestern_africa_san_marino krr7_locatedIn
+G o106 := A ksenegal_martinique krr9_locatedIn koceania_europe krr10_neighborOf kuganda_san_marino kwestern_africa_rwanda krr8_locatedIn krr7_locatedIn
+G o107 := A ksenegal_martinique krr9_locatedIn koceania_europe krr10_locatedIn krr8_locatedIn kwestern_africa_san_marino krr7_locatedIn ksan_marino_europe
+G o108 := A ksenegal_martinique krr9_locatedIn koceania_europe ksouth_africa_san_marino krr10_neighborOf kwestern_africa_swaziland krr8_locatedIn krr7_locatedIn
+G o109 := A ksenegal_martinique krr10_neighborOf kswaziland_macedonia kwestern_africa_albania ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o110 := A ksenegal_martinique krr10_neighborOf kswaziland_algeria kwestern_africa_mali ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o111 := A ksenegal_martinique kwestern_africa_senegal kwestern_africa_swaziland krr10_locatedIn ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o112 := A ksenegal_martinique krr10_neighborOf kuganda_swaziland ksouth_africa_oceania kwestern_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o113 := A ksenegal_martinique kswaziland_europe krr10_locatedIn ksouth_africa_oceania krr8_locatedIn krr9_neighborOf kwestern_africa_san_marino krr7_locatedIn
+G o114 := A ksenegal_martinique krr10_neighborOf kwestern_africa_swaziland ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o115 := A koceania_macedonia kmacedonia_albania krr10_neighborOf kuganda_albania krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o116 := A koceania_macedonia kalgeria_albania kuganda_mali krr10_neighborOf krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o117 := A kuganda_senegal koceania_macedonia krwanda_martinique kwestern_africa_albania krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o118 := A koceania_macedonia krr10_neighborOf kuganda_rwanda kuganda_albania krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o119 := A koceania_macedonia kuganda_san_marino krwanda_martinique krr8_neighborOf krr10_locatedIn keurope_albania krr9_neighborOf krr7_locatedIn
+G o120 := A koceania_macedonia krr10_neighborOf krwanda_martinique ksouth_africa_albania krr8_neighborOf kuganda_swaziland krr9_neighborOf krr7_locatedIn
+G o121 := A koceania_algeria kmali_macedonia krr10_neighborOf kuganda_albania krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o122 := A koceania_algeria kuganda_mali kmali_algeria krr10_neighborOf krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o123 := A kuganda_senegal koceania_algeria kwestern_africa_mali krwanda_martinique krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o124 := A koceania_algeria kuganda_mali krr10_neighborOf kuganda_rwanda krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o125 := A koceania_algeria kmali_europe kuganda_san_marino krwanda_martinique krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o126 := A ksouth_africa_mali koceania_algeria krr10_neighborOf krwanda_martinique krr8_neighborOf kuganda_swaziland krr9_neighborOf krr7_locatedIn
+G o127 := A krr9_locatedIn krr10_neighborOf kwestern_africa_oceania kuganda_albania krwanda_martinique krr8_neighborOf ksenegal_macedonia krr7_locatedIn
+G o128 := A krr9_locatedIn kuganda_mali ksenegal_algeria krr10_neighborOf kwestern_africa_oceania krwanda_martinique krr8_neighborOf krr7_locatedIn
+G o129 := A kuganda_senegal kwestern_africa_senegal krr9_locatedIn kwestern_africa_oceania krwanda_martinique krr8_neighborOf krr10_locatedIn krr7_locatedIn
+G o130 := A kuganda_senegal krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krwanda_martinique krr8_neighborOf kuganda_rwanda krr7_locatedIn
+G o131 := A krr9_locatedIn kuganda_san_marino kwestern_africa_oceania krwanda_martinique krr8_neighborOf krr10_locatedIn ksenegal_europe krr7_locatedIn
+G o132 := A ksouth_africa_senegal krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krwanda_martinique krr8_neighborOf kuganda_swaziland krr7_locatedIn
+G o133 := A kuganda_oceania krr10_neighborOf krwanda_macedonia kuganda_albania krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o134 := A kuganda_mali kuganda_oceania krr10_neighborOf krwanda_algeria krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o135 := A kuganda_senegal kuganda_oceania krwanda_martinique krr8_neighborOf krr10_locatedIn kwestern_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o136 := A kuganda_oceania krr10_neighborOf kuganda_rwanda krwanda_martinique krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o137 := A krwanda_europe kuganda_oceania kuganda_san_marino krwanda_martinique krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o138 := A kuganda_oceania krr10_neighborOf krwanda_martinique krr8_neighborOf ksouth_africa_rwanda kuganda_swaziland krr9_neighborOf krr7_locatedIn
+G o139 := A krr9_locatedIn koceania_europe krr10_neighborOf kuganda_albania ksan_marino_macedonia krwanda_martinique krr8_neighborOf krr7_locatedIn
+G o140 := A krr9_locatedIn kuganda_mali ksan_marino_algeria koceania_europe krr10_neighborOf krwanda_martinique krr8_neighborOf krr7_locatedIn
+G o141 := A kuganda_senegal krr9_locatedIn koceania_europe krwanda_martinique krr8_neighborOf krr10_locatedIn kwestern_africa_san_marino krr7_locatedIn
+G o142 := A krr9_locatedIn koceania_europe krr10_neighborOf kuganda_san_marino krwanda_martinique krr8_neighborOf kuganda_rwanda krr7_locatedIn
+G o143 := A krr9_locatedIn koceania_europe kuganda_san_marino krwanda_martinique krr8_neighborOf krr10_locatedIn krr7_locatedIn ksan_marino_europe
+G o144 := A krr9_locatedIn koceania_europe ksouth_africa_san_marino krr10_neighborOf krwanda_martinique krr8_neighborOf kuganda_swaziland krr7_locatedIn
+G o145 := A krr10_neighborOf kswaziland_macedonia kuganda_albania krwanda_martinique krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o146 := A kuganda_mali krr10_neighborOf kswaziland_algeria krwanda_martinique krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o147 := A kuganda_senegal kwestern_africa_swaziland krwanda_martinique krr8_neighborOf krr10_locatedIn ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o148 := A krr10_neighborOf kuganda_rwanda krwanda_martinique krr8_neighborOf kuganda_swaziland ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o149 := A kuganda_san_marino kswaziland_europe krwanda_martinique krr8_neighborOf krr10_locatedIn ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o150 := A krr10_neighborOf krwanda_martinique krr8_neighborOf kuganda_swaziland ksouth_africa_oceania krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o151 := A koceania_macedonia kmacedonia_albania krr10_neighborOf ksan_marino_martinique keurope_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o152 := A koceania_macedonia kalgeria_albania kmali_europe krr10_neighborOf ksan_marino_martinique krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o153 := A koceania_macedonia ksan_marino_martinique kwestern_africa_albania krr10_locatedIn ksenegal_europe krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o154 := A koceania_macedonia krwanda_europe krr10_neighborOf ksan_marino_martinique kuganda_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o155 := A koceania_macedonia ksan_marino_martinique krr10_locatedIn keurope_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn ksan_marino_europe
+G o156 := A koceania_macedonia krr10_neighborOf kswaziland_europe ksan_marino_martinique ksouth_africa_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o157 := A koceania_algeria kmali_macedonia krr10_neighborOf ksan_marino_martinique keurope_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o158 := A koceania_algeria kmali_europe kmali_algeria krr10_neighborOf ksan_marino_martinique krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o159 := A koceania_algeria kwestern_africa_mali ksan_marino_martinique krr10_locatedIn ksenegal_europe krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o160 := A koceania_algeria kuganda_mali krwanda_europe krr10_neighborOf ksan_marino_martinique krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o161 := A koceania_algeria kmali_europe ksan_marino_martinique krr10_locatedIn krr8_locatedIn krr9_neighborOf krr7_locatedIn ksan_marino_europe
+G o162 := A ksouth_africa_mali koceania_algeria krr10_neighborOf kswaziland_europe ksan_marino_martinique krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o163 := A krr9_locatedIn krr10_neighborOf ksan_marino_martinique kwestern_africa_oceania keurope_albania krr8_locatedIn ksenegal_macedonia krr7_locatedIn
+G o164 := A krr9_locatedIn kmali_europe ksenegal_algeria krr10_neighborOf ksan_marino_martinique kwestern_africa_oceania krr8_locatedIn krr7_locatedIn
+G o165 := A kwestern_africa_senegal krr9_locatedIn ksan_marino_martinique kwestern_africa_oceania krr10_locatedIn ksenegal_europe krr8_locatedIn krr7_locatedIn
+G o166 := A kuganda_senegal krr9_locatedIn krr10_neighborOf ksan_marino_martinique kwestern_africa_oceania krr8_locatedIn krwanda_europe krr7_locatedIn
+G o167 := A krr9_locatedIn ksan_marino_martinique kwestern_africa_oceania krr10_locatedIn ksenegal_europe krr8_locatedIn krr7_locatedIn ksan_marino_europe
+G o168 := A ksouth_africa_senegal krr9_locatedIn krr10_neighborOf kswaziland_europe ksan_marino_martinique kwestern_africa_oceania krr8_locatedIn krr7_locatedIn
+G o169 := A kuganda_oceania krr10_neighborOf krwanda_macedonia ksan_marino_martinique keurope_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o170 := A kmali_europe kuganda_oceania krr10_neighborOf ksan_marino_martinique krwanda_algeria krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o171 := A kuganda_oceania ksan_marino_martinique krr10_locatedIn ksenegal_europe kwestern_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o172 := A krwanda_europe kuganda_oceania krr10_neighborOf kuganda_rwanda ksan_marino_martinique krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o173 := A krwanda_europe kuganda_oceania ksan_marino_martinique krr10_locatedIn krr8_locatedIn krr9_neighborOf krr7_locatedIn ksan_marino_europe
+G o174 := A kuganda_oceania krr10_neighborOf kswaziland_europe ksan_marino_martinique ksouth_africa_rwanda krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o175 := A krr9_locatedIn koceania_europe krr10_neighborOf ksan_marino_martinique ksan_marino_macedonia keurope_albania krr8_locatedIn krr7_locatedIn
+G o176 := A krr9_locatedIn kmali_europe ksan_marino_algeria koceania_europe krr10_neighborOf ksan_marino_martinique krr8_locatedIn krr7_locatedIn
+G o177 := A krr9_locatedIn koceania_europe ksan_marino_martinique krr10_locatedIn ksenegal_europe krr8_locatedIn kwestern_africa_san_marino krr7_locatedIn
+G o178 := A krr9_locatedIn koceania_europe krr10_neighborOf kuganda_san_marino ksan_marino_martinique krr8_locatedIn krwanda_europe krr7_locatedIn
+G o179 := A krr9_locatedIn koceania_europe ksan_marino_martinique krr10_locatedIn krr8_locatedIn krr7_locatedIn ksan_marino_europe
+G o180 := A krr9_locatedIn koceania_europe ksouth_africa_san_marino krr10_neighborOf kswaziland_europe ksan_marino_martinique krr8_locatedIn krr7_locatedIn
+G o181 := A krr10_neighborOf ksouth_africa_oceania ksan_marino_martinique kswaziland_macedonia keurope_albania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o182 := A kmali_europe krr10_neighborOf kswaziland_algeria ksan_marino_martinique ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o183 := A ksouth_africa_oceania kwestern_africa_swaziland ksan_marino_martinique krr10_locatedIn ksenegal_europe krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o184 := A krwanda_europe krr10_neighborOf ksan_marino_martinique kuganda_swaziland ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o185 := A kswaziland_europe ksan_marino_martinique krr10_locatedIn ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn ksan_marino_europe
+G o186 := A krr10_neighborOf kswaziland_europe ksan_marino_martinique ksouth_africa_oceania krr8_locatedIn krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o187 := A koceania_macedonia kmacedonia_albania kswaziland_martinique krr10_neighborOf ksouth_africa_albania krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o188 := A koceania_macedonia kalgeria_albania kswaziland_martinique ksouth_africa_mali krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o189 := A ksouth_africa_senegal koceania_macedonia kswaziland_martinique kwestern_africa_albania krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o190 := A koceania_macedonia kswaziland_martinique krr10_neighborOf kuganda_albania krr8_neighborOf ksouth_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o191 := A koceania_macedonia kswaziland_martinique ksouth_africa_san_marino krr8_neighborOf krr10_locatedIn keurope_albania krr9_neighborOf krr7_locatedIn
+G o192 := A koceania_macedonia kswaziland_martinique krr10_neighborOf ksouth_africa_albania krr8_neighborOf krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o193 := A kswaziland_martinique koceania_algeria kmali_macedonia krr10_neighborOf ksouth_africa_albania krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o194 := A kswaziland_martinique ksouth_africa_mali koceania_algeria kmali_algeria krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o195 := A ksouth_africa_senegal kswaziland_martinique koceania_algeria kwestern_africa_mali krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o196 := A kswaziland_martinique koceania_algeria kuganda_mali krr10_neighborOf krr8_neighborOf ksouth_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o197 := A kswaziland_martinique koceania_algeria kmali_europe ksouth_africa_san_marino krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o198 := A kswaziland_martinique ksouth_africa_mali koceania_algeria krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o199 := A kswaziland_martinique krr9_locatedIn krr10_neighborOf kwestern_africa_oceania ksouth_africa_albania krr8_neighborOf ksenegal_macedonia krr7_locatedIn
+G o200 := A kswaziland_martinique ksouth_africa_mali krr9_locatedIn ksenegal_algeria krr10_neighborOf kwestern_africa_oceania krr8_neighborOf krr7_locatedIn
+G o201 := A ksouth_africa_senegal kswaziland_martinique kwestern_africa_senegal krr9_locatedIn kwestern_africa_oceania krr8_neighborOf krr10_locatedIn krr7_locatedIn
+G o202 := A kuganda_senegal kswaziland_martinique krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krr8_neighborOf ksouth_africa_rwanda krr7_locatedIn
+G o203 := A kswaziland_martinique krr9_locatedIn ksouth_africa_san_marino kwestern_africa_oceania krr8_neighborOf krr10_locatedIn ksenegal_europe krr7_locatedIn
+G o204 := A ksouth_africa_senegal kswaziland_martinique krr9_locatedIn krr10_neighborOf kwestern_africa_oceania krr8_neighborOf krr7_locatedIn kswaziland_south_africa
+G o205 := A kswaziland_martinique kuganda_oceania krr10_neighborOf krwanda_macedonia ksouth_africa_albania krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o206 := A kswaziland_martinique ksouth_africa_mali kuganda_oceania krr10_neighborOf krwanda_algeria krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o207 := A ksouth_africa_senegal kswaziland_martinique kuganda_oceania krr8_neighborOf krr10_locatedIn kwestern_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o208 := A kswaziland_martinique kuganda_oceania krr10_neighborOf kuganda_rwanda krr8_neighborOf ksouth_africa_rwanda krr9_neighborOf krr7_locatedIn
+G o209 := A kswaziland_martinique krwanda_europe ksouth_africa_san_marino kuganda_oceania krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o210 := A kswaziland_martinique kuganda_oceania krr10_neighborOf krr8_neighborOf ksouth_africa_rwanda krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o211 := A kswaziland_martinique krr9_locatedIn koceania_europe krr10_neighborOf ksan_marino_macedonia ksouth_africa_albania krr8_neighborOf krr7_locatedIn
+G o212 := A kswaziland_martinique ksouth_africa_mali krr9_locatedIn ksan_marino_algeria koceania_europe krr10_neighborOf krr8_neighborOf krr7_locatedIn
+G o213 := A ksouth_africa_senegal kswaziland_martinique krr9_locatedIn koceania_europe krr8_neighborOf krr10_locatedIn kwestern_africa_san_marino krr7_locatedIn
+G o214 := A kswaziland_martinique krr9_locatedIn koceania_europe krr10_neighborOf kuganda_san_marino krr8_neighborOf ksouth_africa_rwanda krr7_locatedIn
+G o215 := A kswaziland_martinique krr9_locatedIn koceania_europe ksouth_africa_san_marino krr8_neighborOf krr10_locatedIn krr7_locatedIn ksan_marino_europe
+G o216 := A kswaziland_martinique krr9_locatedIn koceania_europe ksouth_africa_san_marino krr10_neighborOf krr8_neighborOf krr7_locatedIn kswaziland_south_africa
+G o217 := A kswaziland_martinique krr10_neighborOf kswaziland_macedonia ksouth_africa_albania krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o218 := A kswaziland_martinique ksouth_africa_mali krr10_neighborOf kswaziland_algeria krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o219 := A ksouth_africa_senegal kswaziland_martinique kwestern_africa_swaziland krr8_neighborOf krr10_locatedIn ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o220 := A kswaziland_martinique krr10_neighborOf krr8_neighborOf ksouth_africa_rwanda ksouth_africa_oceania kuganda_swaziland krr9_neighborOf krr7_locatedIn
+G o221 := A kswaziland_martinique ksouth_africa_san_marino kswaziland_europe krr8_neighborOf krr10_locatedIn ksouth_africa_oceania krr9_neighborOf krr7_locatedIn
+G o222 := A kswaziland_martinique krr10_neighborOf krr8_neighborOf ksouth_africa_oceania krr9_neighborOf krr7_locatedIn kswaziland_south_africa
+G o223 := A koceania_macedonia kmacedonia_albania kmartinique_albania krr2_locatedIn krr3_neighborOf
+G o224 := A koceania_algeria kmartinique_albania kmali_macedonia krr2_locatedIn krr3_neighborOf
+G o225 := A kmartinique_albania kwestern_africa_oceania krr3_locatedIn krr2_locatedIn ksenegal_macedonia krr3_neighborOf
+G o226 := A kmartinique_albania kuganda_oceania krwanda_macedonia krr2_locatedIn krr3_neighborOf
+G o227 := A kmartinique_albania koceania_europe ksan_marino_macedonia krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o228 := A kmartinique_albania kswaziland_macedonia ksouth_africa_oceania krr2_locatedIn krr3_neighborOf
+G o229 := A koceania_macedonia kalgeria_albania kmartinique_mali krr2_locatedIn krr3_neighborOf
+G o230 := A koceania_algeria kmartinique_mali kmali_algeria krr2_locatedIn krr3_neighborOf
+G o231 := A kmartinique_mali ksenegal_algeria kwestern_africa_oceania krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o232 := A kmartinique_mali kuganda_oceania krwanda_algeria krr2_locatedIn krr3_neighborOf
+G o233 := A kmartinique_mali ksan_marino_algeria koceania_europe krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o234 := A kmartinique_mali kswaziland_algeria ksouth_africa_oceania krr2_locatedIn krr3_neighborOf
+G o235 := A ksenegal_martinique koceania_macedonia kwestern_africa_albania krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o236 := A ksenegal_martinique koceania_algeria kwestern_africa_mali krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o237 := A ksenegal_martinique kwestern_africa_senegal kwestern_africa_oceania krr3_locatedIn krr2_locatedIn
+G o238 := A ksenegal_martinique krr2_locatedIn kuganda_oceania krr3_locatedIn kwestern_africa_rwanda krr3_neighborOf
+G o239 := A ksenegal_martinique koceania_europe krr3_locatedIn krr2_locatedIn kwestern_africa_san_marino
+G o240 := A ksenegal_martinique ksouth_africa_oceania kwestern_africa_swaziland krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o241 := A koceania_macedonia kuganda_albania krwanda_martinique krr2_locatedIn krr3_neighborOf
+G o242 := A koceania_algeria kuganda_mali krwanda_martinique krr2_locatedIn krr3_neighborOf
+G o243 := A kuganda_senegal kwestern_africa_oceania krwanda_martinique krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o244 := A kuganda_oceania krwanda_martinique krr2_locatedIn kuganda_rwanda krr3_neighborOf
+G o245 := A koceania_europe kuganda_san_marino krwanda_martinique krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o246 := A krwanda_martinique ksouth_africa_oceania krr2_locatedIn krr3_neighborOf kuganda_swaziland
+G o247 := A koceania_macedonia ksan_marino_martinique keurope_albania krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o248 := A koceania_algeria kmali_europe ksan_marino_martinique krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o249 := A ksan_marino_martinique kwestern_africa_oceania krr3_locatedIn krr2_locatedIn ksenegal_europe
+G o250 := A kuganda_oceania ksan_marino_martinique krr3_locatedIn krr2_locatedIn krwanda_europe krr3_neighborOf
+G o251 := A koceania_europe ksan_marino_martinique krr3_locatedIn krr2_locatedIn ksan_marino_europe
+G o252 := A ksouth_africa_oceania kswaziland_europe ksan_marino_martinique krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o253 := A koceania_macedonia kswaziland_martinique ksouth_africa_albania krr2_locatedIn krr3_neighborOf
+G o254 := A kswaziland_martinique koceania_algeria ksouth_africa_mali krr2_locatedIn krr3_neighborOf
+G o255 := A ksouth_africa_senegal kswaziland_martinique kwestern_africa_oceania krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o256 := A kswaziland_martinique kuganda_oceania ksouth_africa_rwanda krr2_locatedIn krr3_neighborOf
+G o257 := A kswaziland_martinique koceania_europe ksouth_africa_san_marino krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o258 := A kswaziland_martinique ksouth_africa_oceania krr2_locatedIn krr3_neighborOf kswaziland_south_africa
+G o259 := A koceania_macedonia kmacedonia_albania krr6_neighborOf krr4_locatedIn kmartinique_albania krr5_neighborOf
+G o260 := A koceania_algeria krr6_neighborOf kmali_macedonia krr4_locatedIn kmartinique_albania krr5_neighborOf
+G o261 := A krr6_locatedIn kwestern_africa_oceania krr4_locatedIn kmartinique_albania ksenegal_macedonia krr5_neighborOf
+G o262 := A krr6_neighborOf kuganda_oceania krwanda_macedonia krr4_locatedIn kmartinique_albania krr5_neighborOf
+G o263 := A krr6_locatedIn koceania_europe krr4_locatedIn ksan_marino_macedonia kmartinique_albania krr5_neighborOf
+G o264 := A krr6_neighborOf kswaziland_macedonia krr4_locatedIn ksouth_africa_oceania kmartinique_albania krr5_neighborOf
+G o265 := A koceania_macedonia kalgeria_albania kmartinique_mali krr6_neighborOf krr4_locatedIn krr5_neighborOf
+G o266 := A koceania_algeria kmartinique_mali krr6_neighborOf kmali_algeria krr4_locatedIn krr5_neighborOf
+G o267 := A kmartinique_mali krr6_locatedIn ksenegal_algeria kwestern_africa_oceania krr4_locatedIn krr5_neighborOf
+G o268 := A kmartinique_mali krr6_neighborOf kuganda_oceania krwanda_algeria krr4_locatedIn krr5_neighborOf
+G o269 := A kmartinique_mali krr6_locatedIn ksan_marino_algeria koceania_europe krr4_locatedIn krr5_neighborOf
+G o270 := A kmartinique_mali krr6_neighborOf kswaziland_algeria krr4_locatedIn ksouth_africa_oceania krr5_neighborOf
+G o271 := A ksenegal_martinique koceania_macedonia krr6_neighborOf krr5_locatedIn kwestern_africa_albania krr4_locatedIn
+G o272 := A ksenegal_martinique koceania_algeria krr6_neighborOf kwestern_africa_mali krr5_locatedIn krr4_locatedIn
+G o273 := A ksenegal_martinique kwestern_africa_senegal krr6_locatedIn krr5_locatedIn kwestern_africa_oceania krr4_locatedIn
+G o274 := A ksenegal_martinique krr6_neighborOf kuganda_oceania krr5_locatedIn krr4_locatedIn kwestern_africa_rwanda
+G o275 := A ksenegal_martinique krr6_locatedIn koceania_europe krr5_locatedIn krr4_locatedIn kwestern_africa_san_marino
+G o276 := A ksenegal_martinique krr6_neighborOf krr5_locatedIn kwestern_africa_swaziland krr4_locatedIn ksouth_africa_oceania
+G o277 := A koceania_macedonia krr6_neighborOf kuganda_albania krwanda_martinique krr4_locatedIn krr5_neighborOf
+G o278 := A koceania_algeria krr6_neighborOf kuganda_mali krwanda_martinique krr4_locatedIn krr5_neighborOf
+G o279 := A kuganda_senegal krr6_locatedIn kwestern_africa_oceania krwanda_martinique krr4_locatedIn krr5_neighborOf
+G o280 := A krr6_neighborOf kuganda_oceania krwanda_martinique krr4_locatedIn kuganda_rwanda krr5_neighborOf
+G o281 := A krr6_locatedIn koceania_europe kuganda_san_marino krwanda_martinique krr4_locatedIn krr5_neighborOf
+G o282 := A krr6_neighborOf krwanda_martinique krr4_locatedIn kuganda_swaziland ksouth_africa_oceania krr5_neighborOf
+G o283 := A koceania_macedonia krr6_neighborOf krr5_locatedIn ksan_marino_martinique krr4_locatedIn keurope_albania
+G o284 := A koceania_algeria krr6_neighborOf kmali_europe krr5_locatedIn ksan_marino_martinique krr4_locatedIn
+G o285 := A krr6_locatedIn krr5_locatedIn ksan_marino_martinique kwestern_africa_oceania krr4_locatedIn ksenegal_europe
+G o286 := A krr6_neighborOf kuganda_oceania krr5_locatedIn ksan_marino_martinique krr4_locatedIn krwanda_europe
+G o287 := A krr6_locatedIn koceania_europe krr5_locatedIn ksan_marino_martinique krr4_locatedIn ksan_marino_europe
+G o288 := A krr6_neighborOf krr5_locatedIn kswaziland_europe ksan_marino_martinique krr4_locatedIn ksouth_africa_oceania
+G o289 := A koceania_macedonia kswaziland_martinique krr6_neighborOf ksouth_africa_albania krr4_locatedIn krr5_neighborOf
+G o290 := A kswaziland_martinique ksouth_africa_mali koceania_algeria krr6_neighborOf krr4_locatedIn krr5_neighborOf
+G o291 := A ksouth_africa_senegal kswaziland_martinique krr6_locatedIn kwestern_africa_oceania krr4_locatedIn krr5_neighborOf
+G o292 := A kswaziland_martinique krr6_neighborOf kuganda_oceania krr4_locatedIn ksouth_africa_rwanda krr5_neighborOf
+G o293 := A kswaziland_martinique krr6_locatedIn koceania_europe ksouth_africa_san_marino krr4_locatedIn krr5_neighborOf
+G o294 := A kswaziland_martinique krr6_neighborOf krr4_locatedIn ksouth_africa_oceania krr5_neighborOf kswaziland_south_africa
+G root := O o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 o11 o12 o13 o14 o15 o16 o17 o18 o19 o20 o21 o22 o23 o24 o25 o26 o27 o28 o29 o30 o31 o32 o33 o34 o35 o36 o37 o38 o39 o40 o41 o42 o43 o44 o45 o46 o47 o48 o49 o50 o51 o52 o53 o54 o55 o56 o57 o58 o59 o60 o61 o62 o63 o64 o65 o66 o67 o68 o69 o70 o71 o72 o73 o74 o75 o76 o77 o78 o79 o80 o81 o82 o83 o84 o85 o86 o87 o88 o89 o90 o91 o92 o93 o94 o95 o96 o97 o98 o99 o100 o101 o102 o103 o104 o105 o106 o107 o108 o109 o110 o111 o112 o113 o114 o115 o116 o117 o118 o119 o120 o121 o122 o123 o124 o125 o126 o127 o128 o129 o130 o131 o132 o133 o134 o135 o136 o137 o138 o139 o140 o141 o142 o143 o144 o145 o146 o147 o148 o149 o150 o151 o152 o153 o154 o155 o156 o157 o158 o159 o160 o161 o162 o163 o164 o165 o166 o167 o168 o169 o170 o171 o172 o173 o174 o175 o176 o177 o178 o179 o180 o181 o182 o183 o184 o185 o186 o187 o188 o189 o190 o191 o192 o193 o194 o195 o196 o197 o198 o199 o200 o201 o202 o203 o204 o205 o206 o207 o208 o209 o210 o211 o212 o213 o214 o215 o216 o217 o218 o219 o220 o221 o222 o223 o224 o225 o226 o227 o228 o229 o230 o231 o232 o233 o234 o235 o236 o237 o238 o239 o240 o241 o242 o243 o244 o245 o246 o247 o248 o249 o250 o251 o252 o253 o254 o255 o256 o257 o258 o259 o260 o261 o262 o263 o264 o265 o266 o267 o268 o269 o270 o271 o272 o273 o274 o275 o276 o277 o278 o279 o280 o281 o282 o283 o284 o285 o286 o287 o288 o289 o290 o291 o292 o293 o294

@@ -1,0 +1,234 @@
+c BC-S1.0
+T root
+I kkazakhstan_asia
+I krr9_locatedIn
+I kslovakia_mongolia
+I kkazakhstan_anguilla
+I krr10_neighborOf
+I krr6_locatedIn
+I kkosovo_anguilla
+I kmongolia_asia
+I krr8_locatedIn
+I kpapua_new_guinea_asia
+I kslovakia_austria
+I kslovakia_kazakhstan
+I kkyrgyzstan_kazakhstan
+I kkyrgyzstan_austria
+I kkosovo_indonesia
+I krr3_locatedIn
+I kpapua_new_guinea_anguilla
+I krr8_neighborOf
+I kkosovo_asia
+I krr9_neighborOf
+I kmontenegro_austria
+I kaustria_asia
+I kmontenegro_mongolia
+I krr3_neighborOf
+I kmontenegro_kosovo
+I kkazakhstan_indonesia
+I kkyrgyzstan_kosovo
+I koceania_montenegro
+I kpapua_new_guinea_montenegro
+I krr10_locatedIn
+I kmongolia_anguilla
+I koceania_kyrgyzstan
+I krr5_neighborOf
+I kpapua_new_guinea_indonesia
+I krr5_locatedIn
+I kslovakia_kosovo
+I koceania_indonesia
+I krr4_locatedIn
+I krr2_locatedIn
+I kpapua_new_guinea_kyrgyzstan
+I krr6_neighborOf
+I kslovakia_papua_new_guinea
+I kmongolia_kyrgyzstan
+I krr7_locatedIn
+I kslovakia_oceania
+I kmongolia_indonesia
+I kneighborOf_locatedIn
+I kmontenegro_kazakhstan
+I kindonesia_austria
+I koceania_asia
+I kaustria_anguilla
+G o1 := A koceania_montenegro kneighborOf_locatedIn kkosovo_anguilla
+G o2 := A koceania_kyrgyzstan kkazakhstan_anguilla kneighborOf_locatedIn
+G o3 := A koceania_indonesia kneighborOf_locatedIn kpapua_new_guinea_anguilla
+G o4 := A koceania_asia kmongolia_anguilla
+G o5 := A kslovakia_oceania kaustria_anguilla kneighborOf_locatedIn
+G o6 := A krr6_neighborOf kkosovo_anguilla krr4_locatedIn kmontenegro_kosovo koceania_montenegro krr5_neighborOf
+G o7 := A krr6_neighborOf kmontenegro_kazakhstan kkosovo_anguilla krr4_locatedIn koceania_kyrgyzstan krr5_neighborOf
+G o8 := A krr6_neighborOf koceania_indonesia kkosovo_anguilla krr4_locatedIn kpapua_new_guinea_montenegro krr5_neighborOf
+G o9 := A krr6_locatedIn kkosovo_anguilla krr4_locatedIn koceania_asia kmontenegro_mongolia krr5_neighborOf
+G o10 := A krr6_neighborOf kmontenegro_austria kkosovo_anguilla krr4_locatedIn kslovakia_oceania krr5_neighborOf
+G o11 := A krr6_neighborOf kkyrgyzstan_kosovo koceania_montenegro krr4_locatedIn kkazakhstan_anguilla krr5_neighborOf
+G o12 := A krr6_neighborOf kkyrgyzstan_kazakhstan krr4_locatedIn koceania_kyrgyzstan kkazakhstan_anguilla krr5_neighborOf
+G o13 := A krr6_neighborOf koceania_indonesia kpapua_new_guinea_kyrgyzstan krr4_locatedIn kkazakhstan_anguilla krr5_neighborOf
+G o14 := A krr6_locatedIn kmongolia_kyrgyzstan krr4_locatedIn koceania_asia kkazakhstan_anguilla krr5_neighborOf
+G o15 := A krr6_neighborOf krr4_locatedIn kkyrgyzstan_austria kslovakia_oceania kkazakhstan_anguilla krr5_neighborOf
+G o16 := A krr6_neighborOf kkosovo_indonesia krr4_locatedIn koceania_montenegro krr5_neighborOf kpapua_new_guinea_anguilla
+G o17 := A krr6_neighborOf kkazakhstan_indonesia krr4_locatedIn koceania_kyrgyzstan krr5_neighborOf kpapua_new_guinea_anguilla
+G o18 := A krr6_neighborOf kpapua_new_guinea_indonesia koceania_indonesia krr4_locatedIn krr5_neighborOf kpapua_new_guinea_anguilla
+G o19 := A kmongolia_indonesia krr6_locatedIn krr4_locatedIn koceania_asia krr5_neighborOf kpapua_new_guinea_anguilla
+G o20 := A krr6_neighborOf kindonesia_austria krr4_locatedIn kslovakia_oceania krr5_neighborOf kpapua_new_guinea_anguilla
+G o21 := A kkosovo_asia krr6_neighborOf krr5_locatedIn kmongolia_anguilla krr4_locatedIn koceania_montenegro
+G o22 := A krr6_neighborOf krr5_locatedIn kmongolia_anguilla kkazakhstan_asia krr4_locatedIn koceania_kyrgyzstan
+G o23 := A krr6_neighborOf koceania_indonesia krr5_locatedIn kmongolia_anguilla krr4_locatedIn kpapua_new_guinea_asia
+G o24 := A krr6_locatedIn krr5_locatedIn kmongolia_anguilla krr4_locatedIn kmongolia_asia koceania_asia
+G o25 := A krr6_neighborOf krr5_locatedIn kmongolia_anguilla krr4_locatedIn kaustria_asia kslovakia_oceania
+G o26 := A krr6_neighborOf kslovakia_kosovo kaustria_anguilla krr4_locatedIn koceania_montenegro krr5_neighborOf
+G o27 := A krr6_neighborOf kslovakia_kazakhstan kaustria_anguilla krr4_locatedIn koceania_kyrgyzstan krr5_neighborOf
+G o28 := A krr6_neighborOf koceania_indonesia kaustria_anguilla krr4_locatedIn kslovakia_papua_new_guinea krr5_neighborOf
+G o29 := A krr6_locatedIn kslovakia_mongolia kaustria_anguilla krr4_locatedIn koceania_asia krr5_neighborOf
+G o30 := A krr6_neighborOf kaustria_anguilla krr4_locatedIn kslovakia_oceania kslovakia_austria krr5_neighborOf
+G o31 := A kmontenegro_kosovo kkosovo_anguilla koceania_montenegro krr2_locatedIn krr3_neighborOf
+G o32 := A kmontenegro_kazakhstan kkosovo_anguilla krr2_locatedIn koceania_kyrgyzstan krr3_neighborOf
+G o33 := A koceania_indonesia kkosovo_anguilla kpapua_new_guinea_montenegro krr2_locatedIn krr3_neighborOf
+G o34 := A koceania_asia kkosovo_anguilla krr3_neighborOf krr3_locatedIn krr2_locatedIn kmontenegro_mongolia
+G o35 := A kmontenegro_austria kkosovo_anguilla krr2_locatedIn kslovakia_oceania krr3_neighborOf
+G o36 := A kkyrgyzstan_kosovo koceania_montenegro kkazakhstan_anguilla krr2_locatedIn krr3_neighborOf
+G o37 := A kkyrgyzstan_kazakhstan kkazakhstan_anguilla krr2_locatedIn koceania_kyrgyzstan krr3_neighborOf
+G o38 := A koceania_indonesia kpapua_new_guinea_kyrgyzstan krr3_neighborOf krr2_locatedIn kkazakhstan_anguilla
+G o39 := A koceania_asia kmongolia_kyrgyzstan kkazakhstan_anguilla krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o40 := A kkyrgyzstan_austria kkazakhstan_anguilla krr2_locatedIn kslovakia_oceania krr3_neighborOf
+G o41 := A kkosovo_indonesia krr3_neighborOf krr2_locatedIn koceania_montenegro kpapua_new_guinea_anguilla
+G o42 := A kkazakhstan_indonesia krr2_locatedIn koceania_kyrgyzstan krr3_neighborOf kpapua_new_guinea_anguilla
+G o43 := A kpapua_new_guinea_indonesia koceania_indonesia krr2_locatedIn krr3_neighborOf kpapua_new_guinea_anguilla
+G o44 := A kmongolia_indonesia koceania_asia krr3_locatedIn krr2_locatedIn krr3_neighborOf kpapua_new_guinea_anguilla
+G o45 := A kindonesia_austria krr2_locatedIn kslovakia_oceania krr3_neighborOf kpapua_new_guinea_anguilla
+G o46 := A kkosovo_asia kmongolia_anguilla koceania_montenegro krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o47 := A kmongolia_anguilla kkazakhstan_asia krr3_locatedIn krr2_locatedIn koceania_kyrgyzstan krr3_neighborOf
+G o48 := A koceania_indonesia kmongolia_anguilla kpapua_new_guinea_asia krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o49 := A koceania_asia kmongolia_anguilla kmongolia_asia krr3_locatedIn krr2_locatedIn
+G o50 := A kmongolia_anguilla kaustria_asia krr3_locatedIn krr2_locatedIn kslovakia_oceania krr3_neighborOf
+G o51 := A koceania_montenegro kslovakia_kosovo kaustria_anguilla krr2_locatedIn krr3_neighborOf
+G o52 := A kslovakia_kazakhstan kaustria_anguilla krr2_locatedIn koceania_kyrgyzstan krr3_neighborOf
+G o53 := A koceania_indonesia kaustria_anguilla krr2_locatedIn kslovakia_papua_new_guinea krr3_neighborOf
+G o54 := A koceania_asia kslovakia_mongolia kaustria_anguilla krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o55 := A kaustria_anguilla krr2_locatedIn kslovakia_oceania kslovakia_austria krr3_neighborOf
+G o56 := A krr10_neighborOf kkosovo_anguilla krr8_neighborOf kmontenegro_kosovo krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o57 := A kkyrgyzstan_kosovo kmontenegro_kazakhstan krr10_neighborOf kkosovo_anguilla krr8_neighborOf krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o58 := A krr10_neighborOf kkosovo_anguilla kkosovo_indonesia krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o59 := A kkosovo_asia kmontenegro_mongolia kkosovo_anguilla krr8_neighborOf krr10_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o60 := A krr10_neighborOf kmontenegro_austria kkosovo_anguilla kslovakia_kosovo krr8_neighborOf krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o61 := A kmontenegro_kazakhstan krr10_neighborOf kkosovo_anguilla krr8_neighborOf kmontenegro_kosovo koceania_kyrgyzstan krr9_neighborOf krr7_locatedIn
+G o62 := A kmontenegro_kazakhstan krr10_neighborOf koceania_kyrgyzstan kkyrgyzstan_kazakhstan kkosovo_anguilla krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o63 := A kkazakhstan_indonesia krr10_neighborOf koceania_kyrgyzstan kkosovo_anguilla krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf krr7_locatedIn
+G o64 := A koceania_kyrgyzstan kkosovo_anguilla kkazakhstan_asia krr8_neighborOf krr10_locatedIn krr9_neighborOf kmontenegro_mongolia krr7_locatedIn
+G o65 := A krr10_neighborOf koceania_kyrgyzstan kslovakia_kazakhstan kmontenegro_austria kkosovo_anguilla krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o66 := A kmontenegro_kosovo koceania_indonesia krr10_neighborOf kkosovo_anguilla krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf krr7_locatedIn
+G o67 := A koceania_indonesia kmontenegro_kazakhstan krr10_neighborOf kpapua_new_guinea_kyrgyzstan kkosovo_anguilla krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o68 := A kpapua_new_guinea_indonesia koceania_indonesia krr10_neighborOf kkosovo_anguilla krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf krr7_locatedIn
+G o69 := A koceania_indonesia kkosovo_anguilla krr8_neighborOf krr10_locatedIn kpapua_new_guinea_asia krr9_neighborOf kmontenegro_mongolia krr7_locatedIn
+G o70 := A koceania_indonesia krr10_neighborOf kmontenegro_austria kkosovo_anguilla krr8_neighborOf kslovakia_papua_new_guinea krr9_neighborOf krr7_locatedIn
+G o71 := A krr9_locatedIn kmontenegro_kosovo krr10_neighborOf kkosovo_anguilla krr8_neighborOf koceania_asia kmontenegro_mongolia krr7_locatedIn
+G o72 := A krr9_locatedIn kmongolia_kyrgyzstan kmontenegro_kazakhstan krr10_neighborOf kkosovo_anguilla krr8_neighborOf koceania_asia krr7_locatedIn
+G o73 := A kmongolia_indonesia koceania_asia krr9_locatedIn krr10_neighborOf kkosovo_anguilla krr8_neighborOf kpapua_new_guinea_montenegro krr7_locatedIn
+G o74 := A krr9_locatedIn kkosovo_anguilla krr8_neighborOf krr10_locatedIn kmongolia_asia koceania_asia kmontenegro_mongolia krr7_locatedIn
+G o75 := A krr9_locatedIn krr10_neighborOf kmontenegro_austria kkosovo_anguilla kslovakia_mongolia krr8_neighborOf koceania_asia krr7_locatedIn
+G o76 := A krr10_neighborOf kmontenegro_austria kkosovo_anguilla krr8_neighborOf kmontenegro_kosovo kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o77 := A kmontenegro_kazakhstan krr10_neighborOf kkosovo_anguilla kkyrgyzstan_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o78 := A krr10_neighborOf kindonesia_austria kkosovo_anguilla krr8_neighborOf kpapua_new_guinea_montenegro kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o79 := A kkosovo_anguilla krr8_neighborOf krr10_locatedIn kaustria_asia kslovakia_oceania krr9_neighborOf kmontenegro_mongolia krr7_locatedIn
+G o80 := A krr10_neighborOf kmontenegro_austria kkosovo_anguilla krr8_neighborOf kslovakia_oceania kslovakia_austria krr9_neighborOf krr7_locatedIn
+G o81 := A kkyrgyzstan_kosovo krr10_neighborOf krr8_neighborOf kkazakhstan_anguilla kmontenegro_kosovo krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o82 := A kkyrgyzstan_kosovo krr10_neighborOf kkyrgyzstan_kazakhstan krr8_neighborOf kkazakhstan_anguilla krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o83 := A krr10_neighborOf kpapua_new_guinea_kyrgyzstan kkosovo_indonesia krr8_neighborOf kkazakhstan_anguilla krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o84 := A kkosovo_asia kmongolia_kyrgyzstan krr8_neighborOf krr10_locatedIn kkazakhstan_anguilla krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o85 := A krr10_neighborOf kslovakia_kosovo krr8_neighborOf kkyrgyzstan_austria kkazakhstan_anguilla krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o86 := A kkyrgyzstan_kosovo kmontenegro_kazakhstan krr10_neighborOf krr8_neighborOf kkazakhstan_anguilla koceania_kyrgyzstan krr9_neighborOf krr7_locatedIn
+G o87 := A krr10_neighborOf kkyrgyzstan_kazakhstan krr8_neighborOf kkazakhstan_anguilla koceania_kyrgyzstan krr9_neighborOf krr7_locatedIn
+G o88 := A kkazakhstan_indonesia krr10_neighborOf kpapua_new_guinea_kyrgyzstan krr8_neighborOf kkazakhstan_anguilla koceania_kyrgyzstan krr9_neighborOf krr7_locatedIn
+G o89 := A kmongolia_kyrgyzstan koceania_kyrgyzstan kkazakhstan_asia krr8_neighborOf krr10_locatedIn krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o90 := A krr10_neighborOf koceania_kyrgyzstan kslovakia_kazakhstan krr8_neighborOf kkyrgyzstan_austria krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o91 := A koceania_indonesia kkyrgyzstan_kosovo krr10_neighborOf krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o92 := A koceania_indonesia krr10_neighborOf kpapua_new_guinea_kyrgyzstan kkyrgyzstan_kazakhstan krr8_neighborOf krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o93 := A kpapua_new_guinea_indonesia koceania_indonesia krr10_neighborOf kpapua_new_guinea_kyrgyzstan krr8_neighborOf krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o94 := A koceania_indonesia kmongolia_kyrgyzstan krr8_neighborOf krr10_locatedIn kpapua_new_guinea_asia krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o95 := A koceania_indonesia krr10_neighborOf kkyrgyzstan_austria krr8_neighborOf kslovakia_papua_new_guinea krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o96 := A krr9_locatedIn kkyrgyzstan_kosovo krr10_neighborOf krr8_neighborOf kkazakhstan_anguilla koceania_asia kmontenegro_mongolia krr7_locatedIn
+G o97 := A krr9_locatedIn kmongolia_kyrgyzstan krr10_neighborOf kkyrgyzstan_kazakhstan krr8_neighborOf koceania_asia kkazakhstan_anguilla krr7_locatedIn
+G o98 := A kmongolia_indonesia krr9_locatedIn krr10_neighborOf kpapua_new_guinea_kyrgyzstan krr8_neighborOf koceania_asia kkazakhstan_anguilla krr7_locatedIn
+G o99 := A krr9_locatedIn kmongolia_kyrgyzstan krr8_neighborOf krr10_locatedIn kmongolia_asia koceania_asia kkazakhstan_anguilla krr7_locatedIn
+G o100 := A krr9_locatedIn krr10_neighborOf kslovakia_mongolia krr8_neighborOf kkyrgyzstan_austria koceania_asia kkazakhstan_anguilla krr7_locatedIn
+G o101 := A kkyrgyzstan_kosovo krr10_neighborOf kmontenegro_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o102 := A krr10_neighborOf kkyrgyzstan_kazakhstan kkyrgyzstan_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o103 := A krr10_neighborOf kpapua_new_guinea_kyrgyzstan kindonesia_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o104 := A kmongolia_kyrgyzstan krr8_neighborOf krr10_locatedIn kaustria_asia kslovakia_oceania krr9_neighborOf kkazakhstan_anguilla krr7_locatedIn
+G o105 := A krr10_neighborOf kkyrgyzstan_austria krr8_neighborOf kkazakhstan_anguilla kslovakia_oceania kslovakia_austria krr9_neighborOf krr7_locatedIn
+G o106 := A krr10_neighborOf kkosovo_indonesia krr8_neighborOf kmontenegro_kosovo krr9_neighborOf koceania_montenegro krr7_locatedIn kpapua_new_guinea_anguilla
+G o107 := A kkazakhstan_indonesia kkyrgyzstan_kosovo krr10_neighborOf krr8_neighborOf krr9_neighborOf koceania_montenegro krr7_locatedIn kpapua_new_guinea_anguilla
+G o108 := A kpapua_new_guinea_indonesia krr10_neighborOf kkosovo_indonesia krr8_neighborOf krr9_neighborOf koceania_montenegro krr7_locatedIn kpapua_new_guinea_anguilla
+G o109 := A kmongolia_indonesia kkosovo_asia krr8_neighborOf krr10_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn kpapua_new_guinea_anguilla
+G o110 := A krr10_neighborOf kindonesia_austria kslovakia_kosovo krr8_neighborOf krr9_neighborOf koceania_montenegro krr7_locatedIn kpapua_new_guinea_anguilla
+G o111 := A kmontenegro_kazakhstan krr10_neighborOf koceania_kyrgyzstan kkosovo_indonesia krr8_neighborOf krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o112 := A kkazakhstan_indonesia krr10_neighborOf koceania_kyrgyzstan kkyrgyzstan_kazakhstan krr8_neighborOf krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o113 := A kpapua_new_guinea_indonesia kkazakhstan_indonesia krr10_neighborOf koceania_kyrgyzstan krr8_neighborOf krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o114 := A kmongolia_indonesia koceania_kyrgyzstan kkazakhstan_asia krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o115 := A krr10_neighborOf koceania_kyrgyzstan kslovakia_kazakhstan kindonesia_austria krr8_neighborOf krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o116 := A koceania_indonesia krr10_neighborOf kkosovo_indonesia krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o117 := A kkazakhstan_indonesia koceania_indonesia krr10_neighborOf kpapua_new_guinea_kyrgyzstan krr8_neighborOf krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o118 := A kpapua_new_guinea_indonesia koceania_indonesia krr10_neighborOf krr8_neighborOf krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o119 := A kmongolia_indonesia koceania_indonesia krr8_neighborOf krr10_locatedIn kpapua_new_guinea_asia krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o120 := A koceania_indonesia krr10_neighborOf kindonesia_austria krr8_neighborOf kslovakia_papua_new_guinea krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o121 := A krr9_locatedIn krr10_neighborOf kkosovo_indonesia krr8_neighborOf koceania_asia kmontenegro_mongolia krr7_locatedIn kpapua_new_guinea_anguilla
+G o122 := A krr9_locatedIn kkazakhstan_indonesia kmongolia_kyrgyzstan krr10_neighborOf krr8_neighborOf koceania_asia krr7_locatedIn kpapua_new_guinea_anguilla
+G o123 := A kmongolia_indonesia krr9_locatedIn kpapua_new_guinea_indonesia krr10_neighborOf krr8_neighborOf koceania_asia krr7_locatedIn kpapua_new_guinea_anguilla
+G o124 := A kmongolia_indonesia krr9_locatedIn krr8_neighborOf krr10_locatedIn kmongolia_asia koceania_asia krr7_locatedIn kpapua_new_guinea_anguilla
+G o125 := A krr9_locatedIn krr10_neighborOf kindonesia_austria kslovakia_mongolia krr8_neighborOf koceania_asia krr7_locatedIn kpapua_new_guinea_anguilla
+G o126 := A krr10_neighborOf kmontenegro_austria kkosovo_indonesia krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o127 := A kkazakhstan_indonesia krr10_neighborOf kkyrgyzstan_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o128 := A kpapua_new_guinea_indonesia krr10_neighborOf kindonesia_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o129 := A kmongolia_indonesia krr8_neighborOf krr10_locatedIn kaustria_asia kslovakia_oceania krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o130 := A krr10_neighborOf kindonesia_austria krr8_neighborOf kslovakia_oceania kslovakia_austria krr9_neighborOf krr7_locatedIn kpapua_new_guinea_anguilla
+G o131 := A kkosovo_asia krr10_neighborOf kmongolia_anguilla kmontenegro_kosovo krr8_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o132 := A kkyrgyzstan_kosovo krr10_neighborOf kmongolia_anguilla kkazakhstan_asia krr8_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o133 := A krr10_neighborOf kkosovo_indonesia kmongolia_anguilla kpapua_new_guinea_asia krr8_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o134 := A kkosovo_asia kmongolia_anguilla krr10_locatedIn kmongolia_asia krr8_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o135 := A krr10_neighborOf kmongolia_anguilla kslovakia_kosovo kaustria_asia krr8_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o136 := A kkosovo_asia kmontenegro_kazakhstan krr10_neighborOf koceania_kyrgyzstan kmongolia_anguilla krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o137 := A krr10_neighborOf koceania_kyrgyzstan kkyrgyzstan_kazakhstan kkazakhstan_asia kmongolia_anguilla krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o138 := A kkazakhstan_indonesia krr10_neighborOf kmongolia_anguilla kpapua_new_guinea_asia krr8_locatedIn koceania_kyrgyzstan krr9_neighborOf krr7_locatedIn
+G o139 := A koceania_kyrgyzstan kmongolia_anguilla kkazakhstan_asia krr10_locatedIn kmongolia_asia krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o140 := A krr10_neighborOf koceania_kyrgyzstan kslovakia_kazakhstan kmongolia_anguilla kaustria_asia krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o141 := A kkosovo_asia koceania_indonesia krr10_neighborOf kmongolia_anguilla kpapua_new_guinea_montenegro krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o142 := A koceania_indonesia krr10_neighborOf kpapua_new_guinea_kyrgyzstan kmongolia_anguilla kkazakhstan_asia krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o143 := A kpapua_new_guinea_indonesia koceania_indonesia krr10_neighborOf kmongolia_anguilla kpapua_new_guinea_asia krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o144 := A koceania_indonesia kmongolia_anguilla kpapua_new_guinea_asia krr10_locatedIn kmongolia_asia krr8_locatedIn krr9_neighborOf krr7_locatedIn
+G o145 := A koceania_indonesia krr10_neighborOf krr8_locatedIn kmongolia_anguilla kaustria_asia kslovakia_papua_new_guinea krr9_neighborOf krr7_locatedIn
+G o146 := A kkosovo_asia krr9_locatedIn krr10_neighborOf kmongolia_anguilla koceania_asia krr8_locatedIn kmontenegro_mongolia krr7_locatedIn
+G o147 := A krr9_locatedIn kmongolia_kyrgyzstan krr10_neighborOf kmongolia_anguilla kkazakhstan_asia koceania_asia krr8_locatedIn krr7_locatedIn
+G o148 := A kmongolia_indonesia krr9_locatedIn krr10_neighborOf kmongolia_anguilla kpapua_new_guinea_asia koceania_asia krr8_locatedIn krr7_locatedIn
+G o149 := A krr9_locatedIn kmongolia_anguilla krr10_locatedIn kmongolia_asia koceania_asia krr8_locatedIn krr7_locatedIn
+G o150 := A koceania_asia krr9_locatedIn krr10_neighborOf kmongolia_anguilla kslovakia_mongolia kaustria_asia krr8_locatedIn krr7_locatedIn
+G o151 := A kkosovo_asia krr10_neighborOf krr8_locatedIn kmontenegro_austria kmongolia_anguilla kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o152 := A krr10_neighborOf krr8_locatedIn kmongolia_anguilla kkazakhstan_asia kkyrgyzstan_austria kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o153 := A krr10_neighborOf krr8_locatedIn kindonesia_austria kmongolia_anguilla kpapua_new_guinea_asia kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o154 := A krr8_locatedIn kmongolia_anguilla kmongolia_asia krr10_locatedIn kaustria_asia kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o155 := A krr10_neighborOf krr8_locatedIn kmongolia_anguilla kaustria_asia kslovakia_oceania kslovakia_austria krr9_neighborOf krr7_locatedIn
+G o156 := A krr10_neighborOf kslovakia_kosovo kaustria_anguilla krr8_neighborOf kmontenegro_kosovo krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o157 := A kkyrgyzstan_kosovo krr10_neighborOf kslovakia_kazakhstan kaustria_anguilla krr8_neighborOf krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o158 := A krr10_neighborOf kkosovo_indonesia kaustria_anguilla krr8_neighborOf kslovakia_papua_new_guinea krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o159 := A kkosovo_asia kslovakia_mongolia kaustria_anguilla krr8_neighborOf krr10_locatedIn krr9_neighborOf koceania_montenegro krr7_locatedIn
+G o160 := A krr10_neighborOf koceania_montenegro kslovakia_kosovo kaustria_anguilla krr8_neighborOf kslovakia_austria krr9_neighborOf krr7_locatedIn
+G o161 := A kmontenegro_kazakhstan krr10_neighborOf koceania_kyrgyzstan kslovakia_kosovo kaustria_anguilla krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o162 := A krr10_neighborOf koceania_kyrgyzstan kslovakia_kazakhstan kkyrgyzstan_kazakhstan kaustria_anguilla krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o163 := A kkazakhstan_indonesia krr10_neighborOf koceania_kyrgyzstan kaustria_anguilla krr8_neighborOf kslovakia_papua_new_guinea krr9_neighborOf krr7_locatedIn
+G o164 := A koceania_kyrgyzstan kkazakhstan_asia kslovakia_mongolia kaustria_anguilla krr8_neighborOf krr10_locatedIn krr9_neighborOf krr7_locatedIn
+G o165 := A krr10_neighborOf koceania_kyrgyzstan kslovakia_kazakhstan kaustria_anguilla krr8_neighborOf kslovakia_austria krr9_neighborOf krr7_locatedIn
+G o166 := A koceania_indonesia krr10_neighborOf kslovakia_kosovo kaustria_anguilla krr8_neighborOf kpapua_new_guinea_montenegro krr9_neighborOf krr7_locatedIn
+G o167 := A koceania_indonesia krr10_neighborOf kslovakia_kazakhstan kpapua_new_guinea_kyrgyzstan kaustria_anguilla krr8_neighborOf krr9_neighborOf krr7_locatedIn
+G o168 := A kpapua_new_guinea_indonesia koceania_indonesia krr10_neighborOf kaustria_anguilla krr8_neighborOf kslovakia_papua_new_guinea krr9_neighborOf krr7_locatedIn
+G o169 := A koceania_indonesia kslovakia_mongolia kaustria_anguilla krr8_neighborOf krr10_locatedIn kpapua_new_guinea_asia krr9_neighborOf krr7_locatedIn
+G o170 := A koceania_indonesia krr10_neighborOf kaustria_anguilla krr8_neighborOf kslovakia_papua_new_guinea kslovakia_austria krr9_neighborOf krr7_locatedIn
+G o171 := A krr9_locatedIn krr10_neighborOf kslovakia_kosovo kaustria_anguilla krr8_neighborOf koceania_asia kmontenegro_mongolia krr7_locatedIn
+G o172 := A krr9_locatedIn kmongolia_kyrgyzstan krr10_neighborOf kslovakia_kazakhstan kaustria_anguilla krr8_neighborOf koceania_asia krr7_locatedIn
+G o173 := A kmongolia_indonesia krr9_locatedIn krr10_neighborOf kaustria_anguilla krr8_neighborOf koceania_asia kslovakia_papua_new_guinea krr7_locatedIn
+G o174 := A krr9_locatedIn kslovakia_mongolia kaustria_anguilla krr8_neighborOf krr10_locatedIn kmongolia_asia koceania_asia krr7_locatedIn
+G o175 := A krr9_locatedIn krr10_neighborOf kslovakia_mongolia kaustria_anguilla krr8_neighborOf koceania_asia kslovakia_austria krr7_locatedIn
+G o176 := A krr10_neighborOf kmontenegro_austria kslovakia_kosovo kaustria_anguilla krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o177 := A krr10_neighborOf kslovakia_kazakhstan kaustria_anguilla kkyrgyzstan_austria krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o178 := A krr10_neighborOf kindonesia_austria kslovakia_papua_new_guinea kaustria_anguilla krr8_neighborOf kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o179 := A kslovakia_mongolia kaustria_anguilla krr8_neighborOf krr10_locatedIn kaustria_asia kslovakia_oceania krr9_neighborOf krr7_locatedIn
+G o180 := A krr10_neighborOf kaustria_anguilla krr8_neighborOf kslovakia_oceania kslovakia_austria krr9_neighborOf krr7_locatedIn
+G root := O o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 o11 o12 o13 o14 o15 o16 o17 o18 o19 o20 o21 o22 o23 o24 o25 o26 o27 o28 o29 o30 o31 o32 o33 o34 o35 o36 o37 o38 o39 o40 o41 o42 o43 o44 o45 o46 o47 o48 o49 o50 o51 o52 o53 o54 o55 o56 o57 o58 o59 o60 o61 o62 o63 o64 o65 o66 o67 o68 o69 o70 o71 o72 o73 o74 o75 o76 o77 o78 o79 o80 o81 o82 o83 o84 o85 o86 o87 o88 o89 o90 o91 o92 o93 o94 o95 o96 o97 o98 o99 o100 o101 o102 o103 o104 o105 o106 o107 o108 o109 o110 o111 o112 o113 o114 o115 o116 o117 o118 o119 o120 o121 o122 o123 o124 o125 o126 o127 o128 o129 o130 o131 o132 o133 o134 o135 o136 o137 o138 o139 o140 o141 o142 o143 o144 o145 o146 o147 o148 o149 o150 o151 o152 o153 o154 o155 o156 o157 o158 o159 o160 o161 o162 o163 o164 o165 o166 o167 o168 o169 o170 o171 o172 o173 o174 o175 o176 o177 o178 o179 o180

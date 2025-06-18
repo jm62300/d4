@@ -1,0 +1,12 @@
+c BC-S1.0
+I N2
+I N3
+I N6
+I N1
+I N7
+G N10 := O -N1 -N3
+G N11 := O -N3 -N6
+G N16 := O -N2 -N11
+G N19 := O -N11 -N7
+G N22 := O -N10 -N16
+G N23 := O -N16 -N19

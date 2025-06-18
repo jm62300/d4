@@ -1,0 +1,11 @@
+c BC-S1.2
+T root
+I i1
+I i2
+I i0
+G g0 := A i1 i2 i0
+G g1 := O i1 -g0 -i2
+G g2 := A -g0 i0 i1 i2
+G g3 := O -g1 i2
+G g4 := O -g1 -g2 -i2
+G root := O g4 g3

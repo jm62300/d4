@@ -1,0 +1,33 @@
+c BC-S1.0
+T x
+I a0
+I choice19_0_aux8_8
+I choice19_0_aux3_3
+I choice19_0_aux2_2
+I a7
+I choice19_0_aux4_4
+I choice19_0_aux0_0
+I a2
+I a1
+I a9
+I a4
+I choice19_0_aux5_5
+I a8
+I choice19_0_aux9_9
+I choice19_0_aux7_7
+I choice19_0_aux1_1
+I a5
+I choice19_0_aux6_6
+I a6
+I a3
+G g3 := A a0 choice19_0_aux0_0
+G g6 := A a1 choice19_0_aux1_1
+G g9 := A a2 choice19_0_aux2_2
+G g12 := A a3 choice19_0_aux3_3
+G g15 := A a4 choice19_0_aux4_4
+G g18 := A a5 choice19_0_aux5_5
+G g21 := A a6 choice19_0_aux6_6
+G g24 := A a7 choice19_0_aux7_7
+G g27 := A a8 choice19_0_aux8_8
+G g30 := A a9 choice19_0_aux9_9
+G x := O g3 g6 g9 g12 g15 g18 g21 g24 g27 g30

@@ -1,0 +1,9 @@
+c BC-S1.0
+T x
+I choice11_0_aux1_1
+I a1
+I choice11_0_aux0_0
+I a0
+G g3 := O a0 choice11_0_aux0_0
+G g6 := O a1 choice11_0_aux1_1
+G x := O g3 g6

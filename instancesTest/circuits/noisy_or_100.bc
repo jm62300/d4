@@ -1,0 +1,303 @@
+c BC-S1.0
+T x
+I choice109_0_aux25_25
+I choice109_0_aux35_35
+I choice109_0_aux73_73
+I choice109_0_aux9_9
+I a79
+I a73
+I a20
+I a26
+I choice109_0_aux26_26
+I a36
+I a28
+I a70
+I choice109_0_aux70_70
+I choice109_0_aux95_95
+I choice109_0_aux46_46
+I choice109_0_aux31_31
+I a2
+I a78
+I a34
+I a1
+I choice109_0_aux33_33
+I choice109_0_aux51_51
+I choice109_0_aux14_14
+I a82
+I choice109_0_aux90_90
+I a25
+I choice109_0_aux75_75
+I a23
+I choice109_0_aux63_63
+I choice109_0_aux97_97
+I a46
+I choice109_0_aux28_28
+I choice109_0_aux42_42
+I choice109_0_aux32_32
+I a95
+I choice109_0_aux5_5
+I a58
+I choice109_0_aux7_7
+I choice109_0_aux87_87
+I choice109_0_aux22_22
+I a85
+I a19
+I a93
+I choice109_0_aux99_99
+I choice109_0_aux85_85
+I a90
+I a32
+I choice109_0_aux74_74
+I choice109_0_aux96_96
+I choice109_0_aux48_48
+I a6
+I choice109_0_aux71_71
+I a27
+I choice109_0_aux64_64
+I choice109_0_aux0_0
+I a47
+I choice109_0_aux52_52
+I choice109_0_aux84_84
+I a37
+I choice109_0_aux39_39
+I choice109_0_aux8_8
+I choice109_0_aux94_94
+I choice109_0_aux60_60
+I choice109_0_aux80_80
+I a21
+I a15
+I a51
+I a66
+I a33
+I a48
+I choice109_0_aux13_13
+I choice109_0_aux66_66
+I a11
+I choice109_0_aux41_41
+I a9
+I choice109_0_aux54_54
+I a91
+I a96
+I a80
+I choice109_0_aux61_61
+I choice109_0_aux27_27
+I a4
+I choice109_0_aux43_43
+I a77
+I a86
+I a98
+I a62
+I choice109_0_aux21_21
+I choice109_0_aux23_23
+I a60
+I choice109_0_aux6_6
+I a38
+I choice109_0_aux65_65
+I a92
+I a69
+I a57
+I choice109_0_aux20_20
+I a83
+I a61
+I a5
+I choice109_0_aux59_59
+I a84
+I choice109_0_aux92_92
+I choice109_0_aux10_10
+I choice109_0_aux57_57
+I choice109_0_aux55_55
+I a49
+I a12
+I choice109_0_aux56_56
+I a0
+I a68
+I choice109_0_aux24_24
+I choice109_0_aux45_45
+I a39
+I a50
+I a53
+I a56
+I a71
+I choice109_0_aux78_78
+I a88
+I a89
+I choice109_0_aux4_4
+I a76
+I choice109_0_aux86_86
+I a99
+I choice109_0_aux29_29
+I a41
+I a67
+I choice109_0_aux30_30
+I a45
+I choice109_0_aux68_68
+I a59
+I a97
+I choice109_0_aux15_15
+I a40
+I choice109_0_aux37_37
+I a29
+I choice109_0_aux69_69
+I a13
+I choice109_0_aux81_81
+I a64
+I a14
+I choice109_0_aux16_16
+I a10
+I choice109_0_aux79_79
+I choice109_0_aux89_89
+I choice109_0_aux17_17
+I choice109_0_aux18_18
+I a24
+I a54
+I a72
+I a18
+I choice109_0_aux62_62
+I choice109_0_aux98_98
+I a81
+I choice109_0_aux53_53
+I choice109_0_aux47_47
+I choice109_0_aux11_11
+I a30
+I a44
+I choice109_0_aux67_67
+I choice109_0_aux82_82
+I a16
+I a31
+I a7
+I a55
+I a65
+I a94
+I choice109_0_aux40_40
+I a87
+I choice109_0_aux49_49
+I choice109_0_aux76_76
+I choice109_0_aux58_58
+I choice109_0_aux72_72
+I a75
+I a42
+I a22
+I choice109_0_aux38_38
+I choice109_0_aux88_88
+I choice109_0_aux19_19
+I choice109_0_aux12_12
+I a35
+I a43
+I a8
+I a63
+I a17
+I choice109_0_aux3_3
+I choice109_0_aux1_1
+I choice109_0_aux91_91
+I choice109_0_aux44_44
+I choice109_0_aux93_93
+I choice109_0_aux83_83
+I choice109_0_aux2_2
+I a74
+I choice109_0_aux36_36
+I choice109_0_aux34_34
+I a52
+I choice109_0_aux77_77
+I a3
+I choice109_0_aux50_50
+G g3 := A a0 choice109_0_aux0_0
+G g6 := A a1 choice109_0_aux1_1
+G g9 := A a2 choice109_0_aux2_2
+G g12 := A a3 choice109_0_aux3_3
+G g15 := A a4 choice109_0_aux4_4
+G g18 := A a5 choice109_0_aux5_5
+G g21 := A a6 choice109_0_aux6_6
+G g24 := A a7 choice109_0_aux7_7
+G g27 := A a8 choice109_0_aux8_8
+G g30 := A a9 choice109_0_aux9_9
+G g33 := A a10 choice109_0_aux10_10
+G g36 := A a11 choice109_0_aux11_11
+G g39 := A a12 choice109_0_aux12_12
+G g42 := A a13 choice109_0_aux13_13
+G g45 := A a14 choice109_0_aux14_14
+G g48 := A a15 choice109_0_aux15_15
+G g51 := A a16 choice109_0_aux16_16
+G g54 := A a17 choice109_0_aux17_17
+G g57 := A a18 choice109_0_aux18_18
+G g60 := A a19 choice109_0_aux19_19
+G g63 := A a20 choice109_0_aux20_20
+G g66 := A a21 choice109_0_aux21_21
+G g69 := A a22 choice109_0_aux22_22
+G g72 := A a23 choice109_0_aux23_23
+G g75 := A a24 choice109_0_aux24_24
+G g78 := A a25 choice109_0_aux25_25
+G g81 := A a26 choice109_0_aux26_26
+G g84 := A a27 choice109_0_aux27_27
+G g87 := A a28 choice109_0_aux28_28
+G g90 := A a29 choice109_0_aux29_29
+G g93 := A a30 choice109_0_aux30_30
+G g96 := A a31 choice109_0_aux31_31
+G g99 := A a32 choice109_0_aux32_32
+G g102 := A a33 choice109_0_aux33_33
+G g105 := A a34 choice109_0_aux34_34
+G g108 := A a35 choice109_0_aux35_35
+G g111 := A a36 choice109_0_aux36_36
+G g114 := A a37 choice109_0_aux37_37
+G g117 := A a38 choice109_0_aux38_38
+G g120 := A a39 choice109_0_aux39_39
+G g123 := A a40 choice109_0_aux40_40
+G g126 := A a41 choice109_0_aux41_41
+G g129 := A a42 choice109_0_aux42_42
+G g132 := A a43 choice109_0_aux43_43
+G g135 := A a44 choice109_0_aux44_44
+G g138 := A a45 choice109_0_aux45_45
+G g141 := A a46 choice109_0_aux46_46
+G g144 := A a47 choice109_0_aux47_47
+G g147 := A a48 choice109_0_aux48_48
+G g150 := A a49 choice109_0_aux49_49
+G g153 := A a50 choice109_0_aux50_50
+G g156 := A a51 choice109_0_aux51_51
+G g159 := A a52 choice109_0_aux52_52
+G g162 := A a53 choice109_0_aux53_53
+G g165 := A a54 choice109_0_aux54_54
+G g168 := A a55 choice109_0_aux55_55
+G g171 := A a56 choice109_0_aux56_56
+G g174 := A a57 choice109_0_aux57_57
+G g177 := A a58 choice109_0_aux58_58
+G g180 := A a59 choice109_0_aux59_59
+G g183 := A a60 choice109_0_aux60_60
+G g186 := A a61 choice109_0_aux61_61
+G g189 := A a62 choice109_0_aux62_62
+G g192 := A a63 choice109_0_aux63_63
+G g195 := A a64 choice109_0_aux64_64
+G g198 := A a65 choice109_0_aux65_65
+G g201 := A a66 choice109_0_aux66_66
+G g204 := A a67 choice109_0_aux67_67
+G g207 := A a68 choice109_0_aux68_68
+G g210 := A a69 choice109_0_aux69_69
+G g213 := A a70 choice109_0_aux70_70
+G g216 := A a71 choice109_0_aux71_71
+G g219 := A a72 choice109_0_aux72_72
+G g222 := A a73 choice109_0_aux73_73
+G g225 := A a74 choice109_0_aux74_74
+G g228 := A a75 choice109_0_aux75_75
+G g231 := A a76 choice109_0_aux76_76
+G g234 := A a77 choice109_0_aux77_77
+G g237 := A a78 choice109_0_aux78_78
+G g240 := A a79 choice109_0_aux79_79
+G g243 := A a80 choice109_0_aux80_80
+G g246 := A a81 choice109_0_aux81_81
+G g249 := A a82 choice109_0_aux82_82
+G g252 := A a83 choice109_0_aux83_83
+G g255 := A a84 choice109_0_aux84_84
+G g258 := A a85 choice109_0_aux85_85
+G g261 := A a86 choice109_0_aux86_86
+G g264 := A a87 choice109_0_aux87_87
+G g267 := A a88 choice109_0_aux88_88
+G g270 := A a89 choice109_0_aux89_89
+G g273 := A a90 choice109_0_aux90_90
+G g276 := A a91 choice109_0_aux91_91
+G g279 := A a92 choice109_0_aux92_92
+G g282 := A a93 choice109_0_aux93_93
+G g285 := A a94 choice109_0_aux94_94
+G g288 := A a95 choice109_0_aux95_95
+G g291 := A a96 choice109_0_aux96_96
+G g294 := A a97 choice109_0_aux97_97
+G g297 := A a98 choice109_0_aux98_98
+G g300 := A a99 choice109_0_aux99_99
+G x := O g3 g6 g9 g12 g15 g18 g21 g24 g27 g30 g33 g36 g39 g42 g45 g48 g51 g54 g57 g60 g63 g66 g69 g72 g75 g78 g81 g84 g87 g90 g93 g96 g99 g102 g105 g108 g111 g114 g117 g120 g123 g126 g129 g132 g135 g138 g141 g144 g147 g150 g153 g156 g159 g162 g165 g168 g171 g174 g177 g180 g183 g186 g189 g192 g195 g198 g201 g204 g207 g210 g213 g216 g219 g222 g225 g228 g231 g234 g237 g240 g243 g246 g249 g252 g255 g258 g261 g264 g267 g270 g273 g276 g279 g282 g285 g288 g291 g294 g297 g300
