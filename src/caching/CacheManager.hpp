@@ -35,7 +35,6 @@ namespace d4 {
 
 template <class T>
 class CacheCleaningManager;
-template <class T>
 class BucketManager;
 
 template <class T>
@@ -63,7 +62,7 @@ class CacheManager {
   const unsigned int MAX_NBVAR_CACHED = 100000;
   const unsigned int MIN_NBVAR_NOTCACHED = 100;
 
-  BucketManager<T> *m_bucketManager;
+  BucketManager *m_bucketManager;
   CacheCleaningManager<T> *m_cacheCleaningManager;
 
   /**
@@ -90,7 +89,7 @@ class CacheManager {
     m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(
         options.optionCacheCleaningManager, this, nbVar, out);
 
-    m_bucketManager = BucketManager<T>::makeBucketManager(
+    m_bucketManager = BucketManager::makeBucketManager(
         options.optionBucketManager, *specs, out);
   }  // constructor
 
@@ -153,7 +152,7 @@ class CacheManager {
   inline unsigned long int getNbNegativeHit() { return m_nbNegativeHit; }
   inline unsigned long getNbEntry() { return m_nbEntry; }
   inline void decrementNbEntry() { m_nbEntry--; }
-  inline BucketManager<T> *getBucketManager() { return m_bucketManager; }
+  inline BucketManager *getBucketManager() { return m_bucketManager; }
 
   /**
    * @brief Release memory.

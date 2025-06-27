@@ -32,11 +32,9 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-template <class T>
 class BucketManagerCnf;
 
-template <class T>
-class BucketManagerCnfCl : public BucketManagerCnf<T> {
+class BucketManagerCnfCl : public BucketManagerCnf {
  private:
   struct AllocSizeInfo {
     unsigned nbBitEltVar = 0;
@@ -80,8 +78,8 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
                      unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage,
                      BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf<T>::BucketManagerCnf(
-            occM, mdStore, sizeFirstPage, sizeAdditionalPage, bucketAllocator),
+      : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
+                                           sizeAdditionalPage, bucketAllocator),
         m_inConstruction(occM) {
     m_mapVar.resize(this->m_nbVarCnf + 1, 0);
     m_markIdx.resize(this->m_nbClauseCnf, -1);

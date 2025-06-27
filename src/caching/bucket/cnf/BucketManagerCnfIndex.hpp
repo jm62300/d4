@@ -24,12 +24,8 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-
-template <class T>
 class BucketManagerCnf;
-
-template <class T>
-class BucketManagerCnfIndex : public BucketManagerCnf<T> {
+class BucketManagerCnfIndex : public BucketManagerCnf {
  private:
   std::vector<unsigned> m_idxClauses;
 
@@ -47,7 +43,7 @@ class BucketManagerCnfIndex : public BucketManagerCnf<T> {
       CnfManager &occM, ModeStore mdStore, unsigned long sizeFirstPage,
       unsigned long sizeAdditionalPage,
       BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf<T>::BucketManagerCnf(
+      : BucketManagerCnf::BucketManagerCnf(
             occM, mdStore, sizeFirstPage, sizeAdditionalPage, bucketAllocator) {
   }  // BucketManagerCnfIndex
 

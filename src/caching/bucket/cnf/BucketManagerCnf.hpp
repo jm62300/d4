@@ -29,11 +29,8 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-template <class T>
-class BucketManager;
 
-template <class T>
-class BucketManagerCnf : public BucketManager<T> {
+class BucketManagerCnf : public BucketManager {
  protected:
   CnfManager &m_specManager;
 
@@ -44,30 +41,6 @@ class BucketManagerCnf : public BucketManager<T> {
 
   std::vector<bool> m_varInComponent;
   std::vector<int> m_idxClauses;
-
-  /**
-   * @brief Compute the number of bit needed to encode an unsigned given in
-   * parameter.
-   *
-   * @param v is the value we search for its number of bits.
-   * @return the number of bit needed to encode val (~log2(val)).
-   */
-  inline static unsigned nbBitUnsigned(unsigned v) {
-    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-    const unsigned int S[] = {1, 2, 4, 8, 16};
-    int i;
-
-    unsigned int r = 0;       // result of log2(v) will go here
-    for (i = 4; i >= 0; i--)  // unroll for speed...
-    {
-      if (v & b[i]) {
-        v >>= S[i];
-        r |= S[i];
-      }
-    }
-
-    return r + 1;
-  }  // nbBitUnsigned
 
  public:
   /**
@@ -83,17 +56,17 @@ class BucketManagerCnf : public BucketManager<T> {
   BucketManagerCnf(CnfManager &occM, ModeStore mdStore,
                    unsigned long sizeFirstPage,
                    unsigned long sizeAdditionalPage,
-                   BucketAllocator *bucketAllocator)
-      : m_specManager(occM) {
-    this->m_bucketAllocator = bucketAllocator;
-    m_modeStore = mdStore;
-    m_nbClauseCnf = occM.getNbClause();
-    m_nbVarCnf = occM.getNbVariable();
-    m_maxSizeClause = occM.getMaxSizeClause();
-    m_varInComponent.resize(m_nbVarCnf, false);
+                   BucketAllocator *bucketAllocator);
 
-    this->m_bucketAllocator->init(sizeFirstPage, sizeAdditionalPage);
-  }  // BucketManager
+  /**
+   * @brief Get the clauses that will be used, that are the clause that
+   * respect the modeStore.
+   *
+   * @param[in] component, the variables in the current component.
+   * @param[out] idxClauses, the resulting clauses (index).
+   */
+  void collectIdActiveClauses(std::vector<Var> &component,
+                              std::vector<unsigned> &idxClauses);
 
   virtual ~BucketManagerCnf() { ; }
   virtual void storeFormula(std::vector<Var> &component, DataBucket &b) = 0;
@@ -122,29 +95,5 @@ class BucketManagerCnf : public BucketManager<T> {
         return true;
     }
   }  // isKeptClause
-
-  /**
-   * @brief Get the clauses that will be used, that are the clause that
-   * respect the modeStore.
-   *
-   * @param[in] component, the variables in the current component.
-   * @param[out] idxClauses, the resulting clauses (index).
-   */
-  void collectIdActiveClauses(std::vector<Var> &component,
-                              std::vector<unsigned> &idxClauses) {
-    // collect the clauses
-    idxClauses.resize(0);
-    if (m_modeStore == CACHE_ALL)
-      m_specManager.getCurrentClauses(idxClauses, component);
-    else
-      m_specManager.getCurrentClausesNotBin(idxClauses, component);
-
-    unsigned i, j;
-    for (i = j = 0; i < idxClauses.size(); i++) {
-      if (!isKeptClause(idxClauses[i])) continue;
-      idxClauses[j++] = idxClauses[i];
-    }
-    idxClauses.resize(j);
-  }  // collectIdActiveClauses
 };
 }  // namespace d4

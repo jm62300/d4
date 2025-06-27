@@ -29,15 +29,11 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-template <class T>
 class BucketManagerCnfSym;
-template <class T>
 class BucketManagerCnfCl;
-template <class T>
 class BucketManagerCnfIndex;
 
-template <class T>
-class BucketManagerCnfCombi : public BucketManagerCnf<T> {
+class BucketManagerCnfCombi : public BucketManagerCnf {
  private:
   std::vector<BucketSortInfo> m_vecBucketSortInfo;
   int m_unusedBucket;
@@ -50,10 +46,10 @@ class BucketManagerCnfCombi : public BucketManagerCnf<T> {
   BucketInConstruction m_inConstruction;
   unsigned *m_offsetClauses;
 
-  BucketManagerCnfCl<T> *clBucketManagerBis;
-  BucketManagerCnfCl<T> *clBucketManager;
-  BucketManagerCnfIndex<T> *indexBucketManager;
-  BucketManagerCnfSym<T> *symBucketManager;
+  BucketManagerCnfCl *clBucketManagerBis;
+  BucketManagerCnfCl *clBucketManager;
+  BucketManagerCnfIndex *indexBucketManager;
+  BucketManagerCnfSym *symBucketManager;
 
   unsigned m_limitNbVarSym;
   unsigned m_limitNbVarIndex;
@@ -79,24 +75,24 @@ class BucketManagerCnfCombi : public BucketManagerCnf<T> {
       unsigned long sizeAdditionalPage, unsigned limitNbVarSym,
       unsigned limitNbVarIndex,
       BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf<T>::BucketManagerCnf(
-            occM, mdStore, sizeFirstPage, sizeAdditionalPage, bucketAllocator),
+      : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
+                                           sizeAdditionalPage, bucketAllocator),
         m_inConstruction(occM) {
     clBucketManager =
-        new BucketManagerCnfCl<T>(occM, mdStore, sizeFirstPage,
-                                  sizeAdditionalPage, this->m_bucketAllocator);
+        new BucketManagerCnfCl(occM, mdStore, sizeFirstPage, sizeAdditionalPage,
+                               this->m_bucketAllocator);
 
     clBucketManagerBis =
-        new BucketManagerCnfCl<T>(occM, mdStore, sizeFirstPage,
-                                  sizeAdditionalPage, this->m_bucketAllocator);
+        new BucketManagerCnfCl(occM, mdStore, sizeFirstPage, sizeAdditionalPage,
+                               this->m_bucketAllocator);
 
     symBucketManager =
-        new BucketManagerCnfSym<T>(occM, mdStore, sizeFirstPage,
-                                   sizeAdditionalPage, this->m_bucketAllocator);
+        new BucketManagerCnfSym(occM, mdStore, sizeFirstPage,
+                                sizeAdditionalPage, this->m_bucketAllocator);
 
-    indexBucketManager = new BucketManagerCnfIndex<T>(
-        occM, mdStore, sizeFirstPage, sizeAdditionalPage,
-        this->m_bucketAllocator);
+    indexBucketManager =
+        new BucketManagerCnfIndex(occM, mdStore, sizeFirstPage,
+                                  sizeAdditionalPage, this->m_bucketAllocator);
 
     m_limitNbVarIndex = limitNbVarIndex;
     m_limitNbVarSym = limitNbVarSym;

@@ -27,11 +27,8 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-template <class T>
 class BucketManagerCnf;
-
-template <class T>
-class BucketManagerCnfSym : public BucketManagerCnf<T> {
+class BucketManagerCnfSym : public BucketManagerCnf {
  private:
   std::vector<BucketSortInfo> m_vecBucketSortInfo;
   int m_unusedBucket;
@@ -58,8 +55,8 @@ class BucketManagerCnfSym : public BucketManagerCnf<T> {
                       unsigned long sizeFirstPage,
                       unsigned long sizeAdditionalPage,
                       BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf<T>::BucketManagerCnf(
-            occM, mdStore, sizeFirstPage, sizeAdditionalPage, bucketAllocator),
+      : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
+                                           sizeAdditionalPage, bucketAllocator),
         m_inConstruction(occM) {
     this->m_mapVar.resize(this->m_nbVarCnf + 1, 0);
     this->m_markIdx.resize(this->m_nbClauseCnf, -1);
