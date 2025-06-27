@@ -45,7 +45,6 @@ template <class T>
 class BucketManager {
  protected:
   BucketAllocator *m_bucketAllocator;
-  CachedBucket<T> m_bucket;
 
  public:
   virtual ~BucketManager() {
@@ -139,14 +138,16 @@ class BucketManager {
   }  // nbOctetToEncodeInt
 
   /**
-     Collect the bucket associtated to the set of variable given in
-     parameter.
-     @param[in] component, the variable belonging to the connected component
-     \return a formula put in a bucket
-  */
-  CachedBucket<T> *collectBucket(std::vector<Var> &component) {
-    storeFormula(component, m_bucket);
-    return &m_bucket;
+   * @brief Collect the bucket associtated to the set of variable given in
+   * parameter.
+   *
+   * @param[in] component, the variable belonging to the connected component
+   * @param[in] bucket is the place where are stored the information.
+   *
+   * \return a formula put in a bucket
+   */
+  void collectBucket(std::vector<Var> &component, DataBucket &bucket) {
+    storeFormula(component, bucket);
   }  // collectBuckect
 
   inline unsigned long int usedMemory() {
@@ -168,7 +169,6 @@ class BucketManager {
     return m_bucketAllocator->remainingMemory();
   }  // remainingMemory
 
-  virtual void storeFormula(std::vector<Var> &component,
-                            CachedBucket<T> &b) = 0;
+  virtual void storeFormula(std::vector<Var> &component, DataBucket &b) = 0;
 };
 }  // namespace d4

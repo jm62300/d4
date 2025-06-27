@@ -125,7 +125,7 @@ class CacheManager {
 
   virtual void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
                                T val) = 0;
-  virtual CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb,
+  virtual CachedBucket<T> *bucketAlreadyExist(DataBucket &db,
                                               unsigned hashValue) = 0;
   virtual void initHashTable(unsigned maxVar) = 0;
 
@@ -179,8 +179,8 @@ class CacheManager {
    * @param bucket is the entry we want to compute the hash.
    * @return the value.
    */
-  inline unsigned computeHash(CachedBucket<T> &bucket) {
-    return hashMethod.hash(bucket.data, bucket.szData(), bucket.getInfo());
+  inline unsigned computeHash(DataBucket &dBucket) {
+    return hashMethod.hash(dBucket.data, dBucket.szData(), dBucket.getInfo());
   }  // computeHash
 
   /**
@@ -208,19 +208,17 @@ class CacheManager {
       m_bucketManager->reinitComsumedMemory();
     }
 
-    CachedBucket<T> *formulaBucket =
-        m_bucketManager->collectBucket(varConnected);
-    unsigned hashValue = computeHash(*formulaBucket);
+    DataBucket dataBucket;
+    m_bucketManager->collectBucket(varConnected, dataBucket);
+    unsigned hashValue = computeHash(dataBucket);
 
-    CachedBucket<T> *cacheBucket =
-        bucketAlreadyExist(*formulaBucket, hashValue);
+    CachedBucket<T> *cacheBucket = bucketAlreadyExist(dataBucket, hashValue);
 
     m_cacheCleaningManager->updateCountCachedBucket(cacheBucket,
                                                     varConnected.size());
-    if (!cacheBucket) return TmpEntry<T>(*formulaBucket, hashValue, false);
+    if (!cacheBucket) return TmpEntry<T>(dataBucket, hashValue, false);
 
-    m_bucketManager->releaseMemory(formulaBucket->data,
-                                   formulaBucket->szData());
+    m_bucketManager->releaseMemory(dataBucket.data, dataBucket.szData());
     return TmpEntry<T>(*cacheBucket, hashValue, true);
   }  // searchInCache
 

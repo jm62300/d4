@@ -96,8 +96,7 @@ class BucketManagerCnf : public BucketManager<T> {
   }  // BucketManager
 
   virtual ~BucketManagerCnf() { ; }
-  virtual void storeFormula(std::vector<Var> &component,
-                            CachedBucket<T> &b) = 0;
+  virtual void storeFormula(std::vector<Var> &component, DataBucket &b) = 0;
 
   inline bool canSkipLit(const Lit &l) {
     if (m_modeStore == CACHE_NT)

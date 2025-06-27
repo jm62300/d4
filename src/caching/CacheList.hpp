@@ -69,7 +69,7 @@ class CacheList : public CacheManager<T> {
     CachedBucket<T> &cbIn = (hashTable[hashValue % SIZE_HASH].back());
     cbIn.lockedBucket(val);
     this->m_nbCreationBucket++;
-    this->m_sumDataSize += cb.szData();
+    this->m_sumDataSize += cb.dataBucket.szData();
     this->m_cacheCleaningManager->initCountCachedBucket(&cbIn);
     this->m_nbEntry++;
   }  // pushinhashtable
@@ -82,16 +82,16 @@ class CacheList : public CacheManager<T> {
    * @param hashValue is the hash value computed from the bucket.
    * @return a valid entry if it is in the cache, null otherwise.
    */
-  CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb, unsigned hashValue) {
-    char *refData = cb.data;
+  CachedBucket<T> *bucketAlreadyExist(DataBucket &db, unsigned hashValue) {
+    char *refData = db.data;
     assert(hashValue % SIZE_HASH < hashTable.size());
     std::vector<CachedBucket<T>> &listCollision =
         hashTable[hashValue % SIZE_HASH];
 
     for (auto &cbi : listCollision) {
-      if (!cb.sameHeader(cbi)) continue;
+      if (!db.sameHeader(cbi.dataBucket)) continue;
 
-      if (!memcmp(refData, cbi.data, cbi.szData())) {
+      if (!memcmp(refData, cbi.dataBucket.data, cbi.dataBucket.szData())) {
         this->m_nbPositiveHit++;
         return &cbi;
       }
@@ -143,9 +143,9 @@ class CacheList : public CacheManager<T> {
         CachedBucket<T> &cb = list[i];
 
         if (test(cb)) {
-          assert((int)cb.szData() > 0);
-          this->releaseMemory(cb.data, cb.szData());
-          cb.reset();
+          assert((int)cb.dataBucket.szData() > 0);
+          this->releaseMemory(cb.dataBucket.data, cb.dataBucket.szData());
+          cb.dataBucket.reset();
           nbRemoveEntry++;
         } else
           list[j++] = list[i];

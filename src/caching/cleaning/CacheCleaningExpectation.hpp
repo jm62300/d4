@@ -80,7 +80,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
      @param[out] cb, the cached bucket we want to init.
    */
   void initCountCachedBucket(CachedBucket<T> *cb) {
-    m_statVar[cb->nbVar()].number++;
+    m_statVar[cb->dataBucket.nbVar()].number++;
   }  // initCountCachedBucket
 
   /**
@@ -132,7 +132,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     m_threshold += INC_THRESHOD;
 
     unsigned nbRemoveEntry = m_cache->removeEntry([limit](CachedBucket<T> &c) {
-      return c.nbVar() && c.nbVar() >= limit;
+      return c.dataBucket.nbVar() && c.dataBucket.nbVar() >= limit;
     });
 
     m_nbRemoveEntry += nbRemoveEntry;

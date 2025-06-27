@@ -492,7 +492,7 @@ class BucketManagerCnfCl : public BucketManagerCnf<T> {
      @param[out] tmpFormula, the place where is stored the formula.
      @param[out] szTmpFormula, to collect the size of the stored formula.
   */
-  inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) {
+  inline void storeFormula(std::vector<Var> &component, DataBucket &b) {
     initSortBucket(m_inConstruction);
     collectDistrib(component, m_inConstruction);  // built the sorted formula
 

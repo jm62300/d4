@@ -81,7 +81,7 @@ class BucketManagerCnfIndex : public BucketManagerCnf<T> {
      @param[out] tmpFormula, the place where is stored the formula
      @param[out] szTmpFormula, to collect the size of the stored formula
   */
-  inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) {
+  inline void storeFormula(std::vector<Var> &component, DataBucket &b) {
     this->collectIdActiveClauses(component, m_idxClauses);
 
     // nb bytes we need to store the information.

@@ -121,7 +121,7 @@ class BucketManagerCnfCombi : public BucketManagerCnf<T> {
      @param[out] tmpFormula, the place where is stored the formula.
      @param[out] szTmpFormula, to collect the size of the stored formula.
   */
-  inline void storeFormula(std::vector<Var> &component, CachedBucket<T> &b) {
+  inline void storeFormula(std::vector<Var> &component, DataBucket &b) {
     if (component.size() < m_limitNbVarSym)
       return symBucketManager->storeFormula(component, b);
     if (component.size() > m_limitNbVarIndex)
