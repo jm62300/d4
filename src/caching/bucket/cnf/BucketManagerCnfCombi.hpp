@@ -63,7 +63,6 @@ class BucketManagerCnfCombi : public BucketManagerCnf<T> {
      Function called in order to initialized variables before using
 
      @param[in] occM, the CNF occurrence manager
-     @param[in] cache, the cache the bucket is linked with.
      @param[in] mdStore, the storing mode for the clause
      @param[in] sizeFirstPage, the amount of bytes for the first page.
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
@@ -76,28 +75,27 @@ class BucketManagerCnfCombi : public BucketManagerCnf<T> {
      allocation.
   */
   BucketManagerCnfCombi(
-      CnfManager &occM, CacheManager<T> *cache, ModeStore mdStore,
-      unsigned long sizeFirstPage, unsigned long sizeAdditionalPage,
-      unsigned limitNbVarSym, unsigned limitNbVarIndex,
+      CnfManager &occM, ModeStore mdStore, unsigned long sizeFirstPage,
+      unsigned long sizeAdditionalPage, unsigned limitNbVarSym,
+      unsigned limitNbVarIndex,
       BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
-                                              sizeFirstPage, sizeAdditionalPage,
-                                              bucketAllocator),
+      : BucketManagerCnf<T>::BucketManagerCnf(
+            occM, mdStore, sizeFirstPage, sizeAdditionalPage, bucketAllocator),
         m_inConstruction(occM) {
     clBucketManager =
-        new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
+        new BucketManagerCnfCl<T>(occM, mdStore, sizeFirstPage,
                                   sizeAdditionalPage, this->m_bucketAllocator);
 
     clBucketManagerBis =
-        new BucketManagerCnfCl<T>(occM, cache, mdStore, sizeFirstPage,
+        new BucketManagerCnfCl<T>(occM, mdStore, sizeFirstPage,
                                   sizeAdditionalPage, this->m_bucketAllocator);
 
     symBucketManager =
-        new BucketManagerCnfSym<T>(occM, cache, mdStore, sizeFirstPage,
+        new BucketManagerCnfSym<T>(occM, mdStore, sizeFirstPage,
                                    sizeAdditionalPage, this->m_bucketAllocator);
 
     indexBucketManager = new BucketManagerCnfIndex<T>(
-        occM, cache, mdStore, sizeFirstPage, sizeAdditionalPage,
+        occM, mdStore, sizeFirstPage, sizeAdditionalPage,
         this->m_bucketAllocator);
 
     m_limitNbVarIndex = limitNbVarIndex;

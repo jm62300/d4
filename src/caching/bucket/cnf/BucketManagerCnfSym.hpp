@@ -49,19 +49,17 @@ class BucketManagerCnfSym : public BucketManagerCnf<T> {
      Function called in order to initialized variables before using
 
      @param[in] occM, the CNF occurrence manager
-     @param[in] cache, the cache the bucket is linked with.
      @param[in] mdStore, the storing mode for the clause
      @param[in] sizeFirstPage, the amount of bytes for the first page.
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfSym(CnfManager &occM, CacheManager<T> *cache,
-                      ModeStore mdStore, unsigned long sizeFirstPage,
+  BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
+                      unsigned long sizeFirstPage,
                       unsigned long sizeAdditionalPage,
                       BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf<T>::BucketManagerCnf(occM, cache, mdStore,
-                                              sizeFirstPage, sizeAdditionalPage,
-                                              bucketAllocator),
+      : BucketManagerCnf<T>::BucketManagerCnf(
+            occM, mdStore, sizeFirstPage, sizeAdditionalPage, bucketAllocator),
         m_inConstruction(occM) {
     this->m_mapVar.resize(this->m_nbVarCnf + 1, 0);
     this->m_markIdx.resize(this->m_nbClauseCnf, -1);

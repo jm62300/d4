@@ -31,8 +31,6 @@
 namespace d4 {
 template <class T>
 class BucketManager;
-template <class T>
-class CacheManager;
 
 template <class T>
 class BucketManagerCnf : public BucketManager<T> {
@@ -76,19 +74,17 @@ class BucketManagerCnf : public BucketManager<T> {
      Constructor.
 
      @param[in] occM, the CNF occurrence manager.
-     @param[in] cache, the cache the bucket is linked with.
      @param[in] mdStore, the storing mode for the clause.
      @param[in] sizeFirstPage, the amount of bytes for the first page.
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
      @param[in] bucketAllocator, a bucket allocator.
   */
-  BucketManagerCnf(CnfManager &occM, CacheManager<T> *cache, ModeStore mdStore,
+  BucketManagerCnf(CnfManager &occM, ModeStore mdStore,
                    unsigned long sizeFirstPage,
                    unsigned long sizeAdditionalPage,
                    BucketAllocator *bucketAllocator)
       : m_specManager(occM) {
-    this->m_cache = cache;
     this->m_bucketAllocator = bucketAllocator;
     m_modeStore = mdStore;
     m_nbClauseCnf = occM.getNbClause();

@@ -91,7 +91,7 @@ class CacheManager {
         options.optionCacheCleaningManager, this, nbVar, out);
 
     m_bucketManager = BucketManager<T>::makeBucketManager(
-        options.optionBucketManager, this, *specs, out);
+        options.optionBucketManager, *specs, out);
   }  // constructor
 
   /**

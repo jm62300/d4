@@ -30,7 +30,6 @@
 #include "cnf/BucketManagerCnfCombi.hpp"
 #include "cnf/BucketManagerCnfIndex.hpp"
 #include "cnf/BucketManagerCnfSym.hpp"
-#include "src/caching/CacheManager.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/formulaManager/FormulaManager.hpp"
 #include "src/formulaManager/circuit/CircuitWithCnfManager.hpp"
@@ -47,7 +46,6 @@ class BucketManager {
  protected:
   BucketAllocator *m_bucketAllocator;
   CachedBucket<T> m_bucket;
-  CacheManager<T> *m_cache;  // the cache linked with this BucketManager.
 
  public:
   virtual ~BucketManager() {
@@ -65,24 +63,23 @@ class BucketManager {
    * @return a CNf bucket manager.
    */
   static BucketManager<T> *getBucketMangerCnf(CnfManager &scnf,
-                                              CacheManager<T> *cache,
                                               OptionBucketManager options) {
     switch (options.clauseRepresentation) {
       case CACHE_CLAUSE:
-        return new BucketManagerCnfCl<T>(scnf, cache, options.modeStore,
+        return new BucketManagerCnfCl<T>(scnf, options.modeStore,
                                          options.sizeFirstPage,
                                          options.sizeAdditionalPage);
       case CACHE_SYM:
-        return new BucketManagerCnfSym<T>(scnf, cache, options.modeStore,
+        return new BucketManagerCnfSym<T>(scnf, options.modeStore,
                                           options.sizeFirstPage,
                                           options.sizeAdditionalPage);
       case CACHE_INDEX:
-        return new BucketManagerCnfIndex<T>(scnf, cache, options.modeStore,
+        return new BucketManagerCnfIndex<T>(scnf, options.modeStore,
                                             options.sizeFirstPage,
                                             options.sizeAdditionalPage);
       case CACHE_COMBI:
         return new BucketManagerCnfCombi<T>(
-            scnf, cache, options.modeStore, options.sizeFirstPage,
+            scnf, options.modeStore, options.sizeFirstPage,
             options.sizeAdditionalPage, options.limitNbVarSym,
             options.limitNbVarIndex);
     }
@@ -94,14 +91,11 @@ class BucketManager {
    * @brief Create a bucket manager regarding the given options.
    *
    * @param options are the options.
-   * @param cache is the cache manager which is linked to the bucket
-   * manager.
    * @param s is the spect manager which is linked to the bucket manager.
    * @param out is the stream where is printed out the logs.
    * @return BucketManager<T>*
    */
   static BucketManager<T> *makeBucketManager(OptionBucketManager options,
-                                             CacheManager<T> *cache,
                                              FormulaManager &s,
                                              std::ostream &out) {
     out << "c [BUCKET MANAGER] " << options << "\n";
@@ -111,7 +105,7 @@ class BucketManager {
         try {
           CircuitWithCnfManager &ps = dynamic_cast<CircuitWithCnfManager &>(s);
           return BucketManager<T>::getBucketMangerCnf(*(ps.getCnfManager()),
-                                                      cache, options);
+                                                      options);
         } catch (std::bad_cast &bc) {
           std::cerr << "c bad_cast caught: " << bc.what() << '\n';
           std::cerr << "c A Circuit CNF manager was expeted\n";
@@ -122,7 +116,7 @@ class BucketManager {
       case PB_CNF:
         try {
           CnfManager &scnf = dynamic_cast<CnfManager &>(s);
-          return BucketManager<T>::getBucketMangerCnf(scnf, cache, options);
+          return BucketManager<T>::getBucketMangerCnf(scnf, options);
         } catch (std::bad_cast &bc) {
           std::cerr << "c bad_cast caught: " << bc.what() << '\n';
           std::cerr << "c A CNF formula was expeted\n";
