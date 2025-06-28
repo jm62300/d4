@@ -86,7 +86,7 @@ class BucketManager {
    * @param v is the value we search for its number of bits.
    * @return the number of bit needed to encode val (~log2(val)).
    */
-  inline unsigned nbBitUnsigned(unsigned v) {
+  inline static unsigned nbBitUnsigned(unsigned v) {
     const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
     const unsigned int S[] = {1, 2, 4, 8, 16};
     int i;
