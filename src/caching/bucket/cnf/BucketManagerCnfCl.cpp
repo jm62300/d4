@@ -38,7 +38,7 @@ BucketManagerCnfCl::BucketManagerCnfCl(CnfManager &occM, ModeStore mdStore,
 }  // BucketManagerCnfCl
 
 /**
-   Destructor.
+ * @brief BucketManagerCnfCl::~BucketManagerCnfCl implementation.
  */
 BucketManagerCnfCl::~BucketManagerCnfCl() {
   delete[] m_memoryPosWrtClauseSize;
@@ -46,12 +46,7 @@ BucketManagerCnfCl::~BucketManagerCnfCl() {
 }  // destructor
 
 /**
- * Get an index to store the distribution information.
- *
- * @param[out] inConstruction, place where we store the bucket in
- * construction.
- *
- * \return the index of a reserved bucket.
+ * @brief BucketManagerCnfCl::getIdxBucketSortInfo implementation.
  */
 int BucketManagerCnfCl::getIdxBucketSortInfo(
     BucketInConstruction &inConstruction) {
@@ -68,7 +63,7 @@ int BucketManagerCnfCl::getIdxBucketSortInfo(
 }  // getIdxBucketSortInfo
 
 /**
- * Push sorted, use the natural order.
+ * @brief BucketManagerCnfCl::pushSorted implementation.
  */
 void BucketManagerCnfCl::pushSorted(unsigned *tab, unsigned pos, unsigned val) {
   tab[pos] = val;
@@ -80,12 +75,8 @@ void BucketManagerCnfCl::pushSorted(unsigned *tab, unsigned pos, unsigned val) {
 }  // pushSorted
 
 /**
-   It is used in order to construct a sorted residual formula.
-
-   @param[in] l, we considere the clause containing l
-   @param[out] inConstruction, place where we store the bucket in
-   construction.
-*/
+ * @brief BucketManagerCnfCl::createDistribWrTLit implementation.
+ */
 void BucketManagerCnfCl::createDistribWrTLit(
     const Lit &l, BucketInConstruction &inConstruction) {
   if (this->canSkipLit(l)) return;
@@ -164,16 +155,9 @@ void BucketManagerCnfCl::createDistribWrTLit(
 }  // createDistribWrTLit
 
 /**
-   Collect the clause distribution. The result is stored in distrib.
-
-   @param[in] component, the set of variables we consider.
-   @param[out] inConstruction, place where we store the bucket in
-   construction.
-
-   \return the number of elements we have in the distribution once the
-   redundant clauses have been removed.
-*/
-inline unsigned BucketManagerCnfCl::collectDistrib(
+ * @brief BucketManagerCnfCl::collectDistrib implementation.
+ */
+unsigned BucketManagerCnfCl::collectDistrib(
     std::vector<Var> &component, BucketInConstruction &inConstruction) {
   // sort the set of clauses
   for (auto &v : component) {
@@ -215,10 +199,7 @@ inline unsigned BucketManagerCnfCl::collectDistrib(
 }  // collectDistrib
 
 /**
-   Prepare the data to store a new bucket.
-
-   @param[out] inConstruction, place where we store the bucket in
-   construction.
+ * @brief BucketManagerCnfCl::initSortBucket implementation.
  */
 void BucketManagerCnfCl::initSortBucket(BucketInConstruction &inConstruction) {
   inConstruction.reinit();
@@ -227,10 +208,7 @@ void BucketManagerCnfCl::initSortBucket(BucketInConstruction &inConstruction) {
 }  // initSortBucket
 
 /**
- * @brief Display the bucket in construction (for debugging purpose).
- *
- * @param v
- * @param out
+ * @brief BucketManagerCnfCl::showListBucketSort implementation.
  */
 void BucketManagerCnfCl::showListBucketSort(std::vector<BucketSortInfo> &v,
                                             std::ostream &out) {
@@ -241,16 +219,7 @@ void BucketManagerCnfCl::showListBucketSort(std::vector<BucketSortInfo> &v,
 }  // showListBucketSort
 
 /**
- * @brief Search for the number of bytes needed to store the different element
- * of the bucket.
- *
- * @param component is the set of variables.
- * @param inConstruction is the bucket that has been constructed.
- * @param nBda
- * @param nbD
- * @param nbEltData
- * @param nbEltDist
- * @return an AllocSizeInfo structure with the requiered information.
+ * @brief BucketManagerCnfCl::computeNeededBytes implementation.
  */
 AllocSizeInfo BucketManagerCnfCl::computeNeededBytes(
     std::vector<Var> &component, BucketInConstruction &inConstruction) {
@@ -289,13 +258,7 @@ AllocSizeInfo BucketManagerCnfCl::computeNeededBytes(
 }  // computeNeededBytes
 
 /**
- * @brief
- *
- * @param p
- * @param val
- * @param nbBit
- * @param remainingBit
- * @return char*
+ * @brief BucketManagerCnfCl::addElementInData implementation.
  */
 char *BucketManagerCnfCl::addElementInData(char *p, unsigned val,
                                            unsigned nbBit,
@@ -324,14 +287,7 @@ char *BucketManagerCnfCl::addElementInData(char *p, unsigned val,
 }  // addElementInData
 
 /**
- * @brief Store the variables respecting the information of size concerning
- * the type T to encode each elements and returns the pointer just after the
- * end of the data.
- *
- * @param info gives the information about the way of storing the data.
- * @param data is a pointer to memory where we want to store the data.
- * @param component is the set of variables we want to store.
- * @return the remaining data.
+ * @brief BucketManagerCnfCl::storeVariables implementation.
  */
 char *BucketManagerCnfCl::storeVariables(AllocSizeInfo &info, char *data,
                                          std::vector<Var> &component) {
@@ -354,21 +310,8 @@ char *BucketManagerCnfCl::storeVariables(AllocSizeInfo &info, char *data,
 }  // storeVariables
 
 /**
-   Store the formula representation respecting the information of size
-   concerning the type T to encode each elements and returns the pointer
-   just after the end of the data.
-
-   Information about the formula is store in member variables:
-    - m_sizeDistrib
-    - m_distrib
-
-   @param[in] data, the place where we store the information
-   @param[in] component, is the set of variables.
-   @param[out] inConstruction, place where we store the bucket in
-   construction.
-
-   \return a pointer to the end of the data we added
-*/
+ * @brief BucketManagerCnfCl::storeClauses implementation.
+ */
 char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
                                        std::vector<Var> &component,
                                        BucketInConstruction &inConstruction) {
@@ -436,12 +379,8 @@ char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
 }  // storeClauses
 
 /**
-   Transfer the formula store in distib in a table given in parameter.
-
-   @param[in] component, the input variables.
-   @param[out] tmpFormula, the place where is stored the formula.
-   @param[out] szTmpFormula, to collect the size of the stored formula.
-*/
+ * @brief BucketManagerCnfCl::storeFormula implementation.
+ */
 void BucketManagerCnfCl::storeFormula(std::vector<Var> &component,
                                       DataBucket &b) {
   initSortBucket(m_inConstruction);
