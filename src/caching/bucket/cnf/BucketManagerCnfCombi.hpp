@@ -29,10 +29,6 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-class BucketManagerCnfSym;
-class BucketManagerCnfCl;
-class BucketManagerCnfIndex;
-
 class BucketManagerCnfCombi : public BucketManagerCnf {
  private:
   std::vector<BucketSortInfo> m_vecBucketSortInfo;

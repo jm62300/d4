@@ -32,8 +32,6 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-class BucketManagerCnf;
-
 struct AllocSizeInfo {
   unsigned nbBitEltVar = 0;
   unsigned nbByteStoreVar = 0;
