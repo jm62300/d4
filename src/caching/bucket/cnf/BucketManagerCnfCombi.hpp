@@ -56,73 +56,38 @@ class BucketManagerCnfCombi : public BucketManagerCnf {
 
  public:
   /**
-     Function called in order to initialized variables before using
-
-     @param[in] occM, the CNF occurrence manager
-     @param[in] mdStore, the storing mode for the clause
-     @param[in] sizeFirstPage, the amount of bytes for the first page.
-     @param[in] sizeAdditionalPage, the amount of bytes for the additional
-     pages.
-     @param[in] limitNbVarSym, if we have less than this number we use the sym
-     cache.
-     @param[in] pourcentNbVarIndex, if we have more than some pourcentage of
-                varaibles then we use the index cache representation.
-     @param[in] bucketAllocator, the object used to manage the memory
-     allocation.
-  */
+   * Function called in order to initialized variables before using ...
+   *
+   * @param[in] occM, the CNF occurrence manager
+   * @param[in] mdStore, the storing mode for the clause
+   * @param[in] sizeFirstPage, the amount of bytes for the first page.
+   * @param[in] sizeAdditionalPage, the amount of bytes for the additional
+   * pages.
+   * @param[in] limitNbVarSym, if we have less than this number we use the sym
+   * cache.
+   * @param[in] pourcentNbVarIndex, if we have more than some pourcentage of
+   *            varaibles then we use the index cache representation.
+   * @param[in] bucketAllocator, the object used to manage the memory
+   * allocation.
+   */
   BucketManagerCnfCombi(
       CnfManager &occM, ModeStore mdStore, unsigned long sizeFirstPage,
       unsigned long sizeAdditionalPage, unsigned limitNbVarSym,
       unsigned limitNbVarIndex,
-      BucketAllocator *bucketAllocator = new BucketAllocator())
-      : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
-                                           sizeAdditionalPage, bucketAllocator),
-        m_inConstruction(occM) {
-    clBucketManager =
-        new BucketManagerCnfCl(occM, mdStore, sizeFirstPage, sizeAdditionalPage,
-                               this->m_bucketAllocator);
-
-    clBucketManagerBis =
-        new BucketManagerCnfCl(occM, mdStore, sizeFirstPage, sizeAdditionalPage,
-                               this->m_bucketAllocator);
-
-    symBucketManager =
-        new BucketManagerCnfSym(occM, mdStore, sizeFirstPage,
-                                sizeAdditionalPage, this->m_bucketAllocator);
-
-    indexBucketManager =
-        new BucketManagerCnfIndex(occM, mdStore, sizeFirstPage,
-                                  sizeAdditionalPage, this->m_bucketAllocator);
-
-    m_limitNbVarIndex = limitNbVarIndex;
-    m_limitNbVarSym = limitNbVarSym;
-    this->m_bucketAllocator->deactiveCleanUp();
-  }  // BucketManagerCnfCombi
+      BucketAllocator *bucketAllocator = new BucketAllocator());
 
   /**
-     Destructor.
+   * Destructor.
    */
-  ~BucketManagerCnfCombi() {
-    delete symBucketManager;
-    delete indexBucketManager;
-    delete clBucketManagerBis;
-    delete clBucketManager;
-    this->m_bucketAllocator->activeCleanUp();
-  }  // destructor
+  ~BucketManagerCnfCombi();
 
   /**
-     Transfer the formula store in distib in a table given in parameter.
-
-     @param[in] component, the input variables.
-     @param[out] tmpFormula, the place where is stored the formula.
-     @param[out] szTmpFormula, to collect the size of the stored formula.
-  */
-  inline void storeFormula(std::vector<Var> &component, DataBucket &b) {
-    if (component.size() < m_limitNbVarSym)
-      return symBucketManager->storeFormula(component, b);
-    if (component.size() > m_limitNbVarIndex)
-      return indexBucketManager->storeFormula(component, b);
-    return clBucketManager->storeFormula(component, b);
-  }  // storeFormula
+   * @brief Transfer the formula store in distib in a table given in parameter.
+   *
+   * @param[in] component, the input variables.
+   * @param[out] tmpFormula, the place where is stored the formula.
+   * @param[out] szTmpFormula, to collect the size of the stored formula.
+   */
+  void storeFormula(std::vector<Var> &component, DataBucket &b) override;
 };
 }  // namespace d4
