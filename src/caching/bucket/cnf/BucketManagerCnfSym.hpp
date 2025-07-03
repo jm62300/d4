@@ -93,16 +93,21 @@ class BucketManagerCnfSym : public BucketManagerCnf {
                            const Lit repLit);
 
   /**
-     Collect the clause distribution. The result is stored in distrib.
-
-     @param[in] component, the set of variables we consider.
-     @param[out] inConstruction, place where we store the bucket in
-     construction.
-
-     \return the number of elements we have in the distribution once the
-     redundant clauses have been removed.
-  */
-  unsigned collectDistrib(std::vector<Var> &component,
+   * @brief   Collects the clause distribution based on the given ordered
+   * literals.
+   *
+   * This function analyzes the ordered literals to construct clause buckets,
+   * storing intermediate results in `inConstruction`. Redundant clauses are
+   * identified and removed during the process.
+   *
+   * @param[in]  orderedLiterals   The list of literals in a predefined order.
+   * @param[out] inConstruction    The data structure used to build the clause
+   * distribution.
+   *
+   * @return  The number of elements in the final distribution after removing
+   * redundant clauses.
+   */
+  unsigned collectDistrib(std::vector<Lit> &orderedLiterals,
                           BucketInConstruction &inConstruction);
 
   /**
@@ -176,6 +181,21 @@ class BucketManagerCnfSym : public BucketManagerCnf {
                                unsigned &largestSizeClause,
                                unsigned &nbDiffClauseSize, unsigned &nbLit,
                                BucketInConstruction &inConstruction);
+
+  /**
+   * @brief   Sorts the literals associated with a given set of variables.
+   *
+   * The function processes the input component (a set of variables) by:
+   * - Sorting the variables according to their literal order.
+   * - For each variable, adding the positive literal first, followed by the
+   * negative literal.
+   *
+   * @param[in] component   The set of variables to process.
+   * @param[out] orderedLits   The resulting list of literals, sorted according
+   * to the described order.
+   */
+  void varToSortedLiterals(const std::vector<Var> &component,
+                           std::vector<Lit> &orderedLits);
 
   /**
      Transfer the formula store in distib in a table given in parameter.

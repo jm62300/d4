@@ -177,11 +177,10 @@ void BucketManagerCnfSym::createDistribWrTLit(
    redundant clauses have been removed.
 */
 unsigned BucketManagerCnfSym::collectDistrib(
-    std::vector<Var> &component, BucketInConstruction &inConstruction) {
+    std::vector<Lit> &orderedLit, BucketInConstruction &inConstruction) {
   // sort the set of clauses
-  for (auto &v : component) {
-    if (this->m_specManager.varIsAssigned(v)) continue;
-    Lit l = Lit::makeLitFalse(v);
+  for (auto &l : orderedLit) {
+    if (this->m_specManager.varIsAssigned(l.var())) continue;
     createDistribWrTLit(l, inConstruction, l);
     createDistribWrTLit(~l, inConstruction, ~l);
   }
@@ -387,6 +386,36 @@ void BucketManagerCnfSym::getInfoDistributionSize(
 }  // getInfoDistributionSize
 
 /**
+ * @brief BucketManagerCnfSym::varToSortedLiterals implementation.
+ *
+ */
+void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
+                                              std::vector<Lit> &orderedLits) {
+  // init the vector of literals.
+  orderedLits.clear();
+  orderedLits.reserve(component.size());
+  for (auto v : component) orderedLits.push_back(Lit::makeLitTrue(v));
+
+  // update the phase.
+  for (auto &l : orderedLits)
+    if (m_specManager.getNbClause(l) > m_specManager.getNbClause(~l)) l = ~l;
+
+  // sort the literals.
+  std::sort(
+      orderedLits.begin(), orderedLits.end(), [&](const Lit l1, const Lit l2) {
+        if (m_specManager.getNbClause(l1) != m_specManager.getNbClause(l2)) {
+          return m_specManager.getNbClause(l1) < m_specManager.getNbClause(l2);
+        }
+        if (m_specManager.getNbClause(~l1) != m_specManager.getNbClause(~l2)) {
+          return m_specManager.getNbClause(~l1) <
+                 m_specManager.getNbClause(~l2);
+        }
+        return l1.var() < l2.var();
+      });
+
+}  // varToSortedLiterals
+
+/**
    Transfer the formula store in distib in a table given in parameter.
 
    @param[in] component, the input variables.
@@ -395,8 +424,11 @@ void BucketManagerCnfSym::getInfoDistributionSize(
 */
 void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
                                        DataBucket &b) {
+  std::vector<Lit> literalOrdered;
+  varToSortedLiterals(component, literalOrdered);
+
   initSortBucket(m_inConstruction);
-  collectDistrib(component, m_inConstruction);  // built the sorted formula
+  collectDistrib(literalOrdered, m_inConstruction);  // built the sorted formula
 
   // get information about the clause distribution
   unsigned nbLit = 0, nbVar = component.size(), maxNbSizeClause,
