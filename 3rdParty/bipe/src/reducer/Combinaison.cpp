@@ -79,6 +79,7 @@ void Combinaison::run(Propagator &propagator, int nbIteration, bool verbose) {
       unsigned current = occElimination.getNbRemoveLit();
       occElimination.run(propagator, 1, verbose);
       fixePoint =
+          current == (double)occElimination.getNbRemoveLit() ||
           ((double)current / (double)occElimination.getNbRemoveLit()) > 0.95;
     }
 
@@ -86,6 +87,7 @@ void Combinaison::run(Propagator &propagator, int nbIteration, bool verbose) {
       unsigned current = vivification.getNbRemoveLit();
       vivification.run(propagator, 1, verbose);
       fixePoint =
+          current == vivification.getNbRemoveLit() ||
           ((double)current / (double)vivification.getNbRemoveLit()) > 0.95;
     }
   }
