@@ -88,7 +88,9 @@ bool PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
   std::vector<std::vector<bool>> setOfModels;
   formula =
       b.simplifyBackbone(pb, optionBackbone, gates, std::cout, setOfModels);
-  bool isSAT = !formula->isTriviallyUnsat();
+
+  assert(!b.isInterrupt() || !formula);
+  bool isSAT = b.isInterrupt() || !formula->isTriviallyUnsat();
 
   if (isSAT) {
     if (formula) {
@@ -275,6 +277,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
 
   // print out the eliminated variables.
   unsigned cpt = 0;
+#if 0
   std::cout << "c Removed variables: ";
   for (auto &l : eliminated)
     if (!markedAsUnit[l.var()]) {
@@ -282,6 +285,7 @@ ProblemManager *PreprocSharpEquiv::run(ProblemManager *pin,
       cpt++;
     }
   std::cout << "0\n";
+#endif
   std::cout << "c Number of defined variables removed (not unit): " << cpt
             << '\n';
 

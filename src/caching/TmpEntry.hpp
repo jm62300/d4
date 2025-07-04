@@ -35,6 +35,12 @@ class TmpEntry {
     defined = defined_;
   }
 
+  TmpEntry(DataBucket &db, unsigned int hashValue_, bool defined_) {
+    e.dataBucket = db;
+    hashValue = hashValue_;
+    defined = defined_;
+  }
+
   inline CachedBucket<T> &getCachedBucket() { return e; }
   inline T getValue() { return e.fc; }
 };

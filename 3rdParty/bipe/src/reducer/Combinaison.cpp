@@ -54,6 +54,7 @@ void Combinaison::run(unsigned nbVar, std::vector<std::vector<Lit>> &clauses,
  * @brief run implementation.
  */
 void Combinaison::run(Propagator &propagator, int nbIteration, bool verbose) {
+  verbose = true;
   if (verbose) {
     m_out << "c [REDUCER Combinaison] Number of iterations: " << nbIteration
           << "\n";
@@ -78,13 +79,15 @@ void Combinaison::run(Propagator &propagator, int nbIteration, bool verbose) {
     if (!propagator.getIsUnsat() && !m_isInterrupted) {
       unsigned current = occElimination.getNbRemoveLit();
       occElimination.run(propagator, 1, verbose);
-      fixePoint = current == occElimination.getNbRemoveLit();
+      fixePoint =
+          ((double)current / (double)occElimination.getNbRemoveLit()) > 0.95;
     }
 
     if (!propagator.getIsUnsat() && !m_isInterrupted) {
       unsigned current = vivification.getNbRemoveLit();
       vivification.run(propagator, 1, verbose);
-      fixePoint = current == vivification.getNbRemoveLit();
+      fixePoint =
+          ((double)current / (double)vivification.getNbRemoveLit()) > 0.95;
     }
   }
 

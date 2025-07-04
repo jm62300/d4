@@ -26,11 +26,7 @@
 #include <vector>
 
 #include "../CachedBucket.hpp"
-#include "cnf/BucketManagerCnfCl.hpp"
-#include "cnf/BucketManagerCnfCombi.hpp"
-#include "cnf/BucketManagerCnfIndex.hpp"
-#include "cnf/BucketManagerCnfSym.hpp"
-#include "src/caching/CacheManager.hpp"
+#include "BucketAllocator.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/formulaManager/FormulaManager.hpp"
 #include "src/formulaManager/circuit/CircuitWithCnfManager.hpp"
@@ -42,12 +38,9 @@ namespace d4 {
 // forward declaration
 class BucketAllocator;
 
-template <class T>
 class BucketManager {
  protected:
   BucketAllocator *m_bucketAllocator;
-  CachedBucket<T> m_bucket;
-  CacheManager<T> *m_cache;  // the cache linked with this BucketManager.
 
  public:
   virtual ~BucketManager() {
@@ -64,78 +57,20 @@ class BucketManager {
    *
    * @return a CNf bucket manager.
    */
-  static BucketManager<T> *getBucketMangerCnf(CnfManager &scnf,
-                                              CacheManager<T> *cache,
-                                              OptionBucketManager options) {
-    switch (options.clauseRepresentation) {
-      case CACHE_CLAUSE:
-        return new BucketManagerCnfCl<T>(scnf, cache, options.modeStore,
-                                         options.sizeFirstPage,
-                                         options.sizeAdditionalPage);
-      case CACHE_SYM:
-        return new BucketManagerCnfSym<T>(scnf, cache, options.modeStore,
-                                          options.sizeFirstPage,
-                                          options.sizeAdditionalPage);
-      case CACHE_INDEX:
-        return new BucketManagerCnfIndex<T>(scnf, cache, options.modeStore,
-                                            options.sizeFirstPage,
-                                            options.sizeAdditionalPage);
-      case CACHE_COMBI:
-        return new BucketManagerCnfCombi<T>(
-            scnf, cache, options.modeStore, options.sizeFirstPage,
-            options.sizeAdditionalPage, options.limitNbVarSym,
-            options.limitNbVarIndex);
-    }
-
-    return NULL;
-  }  // getBucketManagerCnf
+  static BucketManager *getBucketMangerCnf(CnfManager &scnf,
+                                           OptionBucketManager options);
 
   /**
    * @brief Create a bucket manager regarding the given options.
    *
    * @param options are the options.
-   * @param cache is the cache manager which is linked to the bucket
-   * manager.
    * @param s is the spect manager which is linked to the bucket manager.
    * @param out is the stream where is printed out the logs.
-   * @return BucketManager<T>*
+   *
+   * @return a bucket manager that fits with given options.
    */
-  static BucketManager<T> *makeBucketManager(OptionBucketManager options,
-                                             CacheManager<T> *cache,
-                                             FormulaManager &s,
-                                             std::ostream &out) {
-    out << "c [BUCKET MANAGER] " << options << "\n";
-
-    switch (s.getProblemInputType()) {
-      case PB_CIRC:
-        try {
-          CircuitWithCnfManager &ps = dynamic_cast<CircuitWithCnfManager &>(s);
-          return BucketManager<T>::getBucketMangerCnf(*(ps.getCnfManager()),
-                                                      cache, options);
-        } catch (std::bad_cast &bc) {
-          std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-          std::cerr << "c A Circuit CNF manager was expeted\n";
-          exit(ERROR_BAD_CAST);
-        }
-      case PB_QBF:
-      case PB_TCNF:
-      case PB_CNF:
-        try {
-          CnfManager &scnf = dynamic_cast<CnfManager &>(s);
-          return BucketManager<T>::getBucketMangerCnf(scnf, cache, options);
-        } catch (std::bad_cast &bc) {
-          std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-          std::cerr << "c A CNF formula was expeted\n";
-          exit(ERROR_BAD_CAST);
-        }
-      case PB_NONE:
-        std::cerr << "c The problem type cannot be none!\n";
-        exit(ERROR_BAD_TYPE_PROBLEM);
-    }
-
-    throw(
-        FactoryException("Cannot create a BucketManager", __FILE__, __LINE__));
-  }  // makeBucketManager
+  static BucketManager *makeBucketManager(OptionBucketManager options,
+                                          FormulaManager &s, std::ostream &out);
 
   inline int nbOctetToEncodeInt(unsigned int v) {
     // we know that we cannot have more than 1<<32 variables
@@ -145,14 +80,40 @@ class BucketManager {
   }  // nbOctetToEncodeInt
 
   /**
-     Collect the bucket associtated to the set of variable given in
-     parameter.
-     @param[in] component, the variable belonging to the connected component
-     \return a formula put in a bucket
-  */
-  CachedBucket<T> *collectBucket(std::vector<Var> &component) {
-    storeFormula(component, m_bucket);
-    return &m_bucket;
+   * @brief Compute the number of bit needed to encode an unsigned given in
+   * parameter.
+   *
+   * @param v is the value we search for its number of bits.
+   * @return the number of bit needed to encode val (~log2(val)).
+   */
+  inline static unsigned nbBitUnsigned(unsigned v) {
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    int i;
+
+    unsigned int r = 0;       // result of log2(v) will go here
+    for (i = 4; i >= 0; i--)  // unroll for speed...
+    {
+      if (v & b[i]) {
+        v >>= S[i];
+        r |= S[i];
+      }
+    }
+
+    return r + 1;
+  }  // nbBitUnsigned
+
+  /**
+   * @brief Collect the bucket associtated to the set of variable given in
+   * parameter.
+   *
+   * @param[in] component, the variable belonging to the connected component
+   * @param[in] bucket is the place where are stored the information.
+   *
+   * \return a formula put in a bucket
+   */
+  inline void collectBucket(std::vector<Var> &component, DataBucket &bucket) {
+    storeFormula(component, bucket);
   }  // collectBuckect
 
   inline unsigned long int usedMemory() {
@@ -174,7 +135,6 @@ class BucketManager {
     return m_bucketAllocator->remainingMemory();
   }  // remainingMemory
 
-  virtual void storeFormula(std::vector<Var> &component,
-                            CachedBucket<T> &b) = 0;
+  virtual void storeFormula(std::vector<Var> &component, DataBucket &b) = 0;
 };
 }  // namespace d4

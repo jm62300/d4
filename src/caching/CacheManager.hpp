@@ -35,7 +35,6 @@ namespace d4 {
 
 template <class T>
 class CacheCleaningManager;
-template <class T>
 class BucketManager;
 
 template <class T>
@@ -63,7 +62,7 @@ class CacheManager {
   const unsigned int MAX_NBVAR_CACHED = 100000;
   const unsigned int MIN_NBVAR_NOTCACHED = 100;
 
-  BucketManager<T> *m_bucketManager;
+  BucketManager *m_bucketManager;
   CacheCleaningManager<T> *m_cacheCleaningManager;
 
   /**
@@ -90,8 +89,8 @@ class CacheManager {
     m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(
         options.optionCacheCleaningManager, this, nbVar, out);
 
-    m_bucketManager = BucketManager<T>::makeBucketManager(
-        options.optionBucketManager, this, *specs, out);
+    m_bucketManager = BucketManager::makeBucketManager(
+        options.optionBucketManager, *specs, out);
   }  // constructor
 
   /**
@@ -109,23 +108,26 @@ class CacheManager {
    * @param nbVar is the number of variables.
    * @param specs gives the information about the input formula.
    * @param out is the stream where are printed out the logs.
+   *
    * @return CacheManager<T>*
    */
   static CacheManager<T> *makeCacheManager(const OptionCacheManager &options,
                                            unsigned nbVar,
                                            FormulaManager *specs,
                                            std::ostream &out) {
-    if (options.cachingMethod == CACHE_NO_COL)
-      return new CacheNoCollision<T>(options, nbVar, specs, out);
-    if (options.cachingMethod == CACHE_LIST)
-      return new CacheList<T>(options, nbVar, specs, out);
+    switch (options.cachingMethod) {
+      case CACHE_NO_COL:
+        return new CacheNoCollision<T>(options, nbVar, specs, out);
+      case CACHE_LIST:
+        return new CacheList<T>(options, nbVar, specs, out);
+    }
 
     throw(FactoryException("Cannot create a CacheManager", __FILE__, __LINE__));
   }  // makeCacheManager
 
   virtual void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
                                T val) = 0;
-  virtual CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb,
+  virtual CachedBucket<T> *bucketAlreadyExist(DataBucket &db,
                                               unsigned hashValue) = 0;
   virtual void initHashTable(unsigned maxVar) = 0;
 
@@ -153,7 +155,7 @@ class CacheManager {
   inline unsigned long int getNbNegativeHit() { return m_nbNegativeHit; }
   inline unsigned long getNbEntry() { return m_nbEntry; }
   inline void decrementNbEntry() { m_nbEntry--; }
-  inline BucketManager<T> *getBucketManager() { return m_bucketManager; }
+  inline BucketManager *getBucketManager() { return m_bucketManager; }
 
   /**
    * @brief Release memory.
@@ -179,8 +181,8 @@ class CacheManager {
    * @param bucket is the entry we want to compute the hash.
    * @return the value.
    */
-  inline unsigned computeHash(CachedBucket<T> &bucket) {
-    return hashMethod.hash(bucket.data, bucket.szData(), bucket.getInfo());
+  inline unsigned computeHash(DataBucket &dBucket) {
+    return hashMethod.hash(dBucket.data, dBucket.szData(), dBucket.getInfo());
   }  // computeHash
 
   /**
@@ -208,19 +210,17 @@ class CacheManager {
       m_bucketManager->reinitComsumedMemory();
     }
 
-    CachedBucket<T> *formulaBucket =
-        m_bucketManager->collectBucket(varConnected);
-    unsigned hashValue = computeHash(*formulaBucket);
+    DataBucket dataBucket;
+    m_bucketManager->collectBucket(varConnected, dataBucket);
+    unsigned hashValue = computeHash(dataBucket);
 
-    CachedBucket<T> *cacheBucket =
-        bucketAlreadyExist(*formulaBucket, hashValue);
+    CachedBucket<T> *cacheBucket = bucketAlreadyExist(dataBucket, hashValue);
 
     m_cacheCleaningManager->updateCountCachedBucket(cacheBucket,
                                                     varConnected.size());
-    if (!cacheBucket) return TmpEntry<T>(*formulaBucket, hashValue, false);
+    if (!cacheBucket) return TmpEntry<T>(dataBucket, hashValue, false);
 
-    m_bucketManager->releaseMemory(formulaBucket->data,
-                                   formulaBucket->szData());
+    m_bucketManager->releaseMemory(dataBucket.data, dataBucket.szData());
     return TmpEntry<T>(*cacheBucket, hashValue, true);
   }  // searchInCache
 

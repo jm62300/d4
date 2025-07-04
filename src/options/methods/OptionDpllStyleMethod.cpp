@@ -40,7 +40,9 @@ OptionDpllStyleMethod::OptionDpllStyleMethod(
 
   // Set the spec manager.
   optionSpecManager = {config.spec.specUpdateType, config.spec.removeGates,
-                       config.spec.needFastNotSatisfied};
+                       config.cache.clauseRepresentation == CACHE_INDEX ||
+                           config.cache.clauseRepresentation == CACHE_COMBI ||
+                           config.spec.needFastNotSatisfied};
 
   // set the use of the model
   exploitModel = config.exploitModel;

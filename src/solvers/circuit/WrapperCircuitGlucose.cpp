@@ -45,7 +45,7 @@ void WrapperCircuitGlucose::initSolver(ProblemManager &p) {
     ProblemManagerCircuit &pcircuit = dynamic_cast<ProblemManagerCircuit &>(p);
 
     // say to the solver we have pcnf.getNbVar() variables.
-    while ((unsigned)s.nVars() <= p.getNbVar()) s.newVar();
+    while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
     m_model.resize(p.getNbVar() + 1, l_Undef);
 
     // load the clauses
@@ -56,7 +56,7 @@ void WrapperCircuitGlucose::initSolver(ProblemManager &p) {
     for (auto &cl : clauses) {
       Glucose::vec<Glucose::Lit> lits;
       for (auto &l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
-      s.addClause(lits);
+      m_solver.addClause(lits);
     }
   } catch (std::bad_cast &bc) {
     std::cerr << "c bad_cast caught: " << bc.what() << '\n';

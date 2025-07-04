@@ -69,14 +69,15 @@ class CacheNoCollision : public CacheManager<T> {
     CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
 
     // remove the previous entry if needed.
-    if (cbi.nbVar()) this->releaseMemory(cbi.data, cbi.szData());
+    if (cbi.dataBucket.nbVar())
+      this->releaseMemory(cbi.dataBucket.data, cbi.dataBucket.szData());
 
     cbi = cb;
     cbi.lockedBucket(val);
     this->m_cacheCleaningManager->initCountCachedBucket(&cbi);
 
     this->m_nbCreationBucket++;
-    this->m_sumDataSize += cb.szData();
+    this->m_sumDataSize += cb.dataBucket.szData();
     this->m_nbEntry++;
   }  // pushInCache
 
@@ -89,13 +90,13 @@ class CacheNoCollision : public CacheManager<T> {
    * @return the index of the identical bucket if this one exists, NULL
    * otherwise
    */
-  CachedBucket<T> *bucketAlreadyExist(CachedBucket<T> &cb,
+  CachedBucket<T> *bucketAlreadyExist(DataBucket &db,
                                       unsigned hashValue) override {
-    char *refData = cb.data;
+    char *refData = db.data;
 
     CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
-    if (cbi.nbVar() && cb.sameHeader(cbi) &&
-        !memcmp(refData, cbi.data, cbi.szData())) {
+    if (cbi.dataBucket.nbVar() && db.sameHeader(cbi.dataBucket) &&
+        !memcmp(refData, cbi.dataBucket.data, cbi.dataBucket.szData())) {
       this->m_nbPositiveHit++;
       return &cbi;
     }
@@ -129,9 +130,9 @@ class CacheNoCollision : public CacheManager<T> {
     unsigned nbRemoveEntry = 0;
     for (auto &cb : hashTable) {
       if (test(cb)) {
-        assert((int)cb.szData() > 0);
-        this->releaseMemory(cb.data, cb.szData());
-        cb.reset();
+        assert((int)cb.dataBucket.szData() > 0);
+        this->releaseMemory(cb.dataBucket.data, cb.dataBucket.szData());
+        cb.dataBucket.reset();
         nbRemoveEntry++;
       }
     }

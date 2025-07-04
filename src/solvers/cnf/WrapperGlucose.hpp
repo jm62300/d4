@@ -26,7 +26,7 @@
 namespace d4 {
 class WrapperGlucose : public WrapperSolver {
  protected:
-  Glucose::Solver s;
+  Glucose::Solver m_solver;
   Glucose::vec<Glucose::Var> m_setOfVar_m;
 
   using WrapperSolver::m_isInAssumption;
@@ -35,6 +35,7 @@ class WrapperGlucose : public WrapperSolver {
   void initSolver(ProblemManager &p) override;
   bool solve(std::vector<Var> &setOfVar) override;
   bool solve() override;
+  bool hasBeenInterrupt() override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
