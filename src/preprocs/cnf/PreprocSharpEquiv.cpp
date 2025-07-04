@@ -88,7 +88,9 @@ bool PreprocSharpEquiv::computeBipartition(ProblemManagerCnf &pcnf,
   std::vector<std::vector<bool>> setOfModels;
   formula =
       b.simplifyBackbone(pb, optionBackbone, gates, std::cout, setOfModels);
-  bool isSAT = !formula->isTriviallyUnsat();
+
+  assert(!b.isInterrupt() || !formula);
+  bool isSAT = b.isInterrupt() || !formula->isTriviallyUnsat();
 
   if (isSAT) {
     if (formula) {

@@ -40,6 +40,7 @@ class WrapperSolver {
   virtual void initSolver(Problem &p) = 0;
   virtual Status solveLimited(int nbConflict) = 0;
   virtual bool solve() = 0;
+  virtual bool hasBeenInterrupt() = 0;
   virtual void uncheckedEnqueue(Lit l) = 0;
   virtual void restart() = 0;
   virtual void setAssumption(std::vector<Lit> &assums) = 0;

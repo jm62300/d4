@@ -84,6 +84,7 @@ class Method {
    * @return false
    */
   inline bool isInterrupt() {
+    if (m_isInterrupted) return true;
     if (!m_timeLimit) return false;
     m_end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = m_end - m_start;

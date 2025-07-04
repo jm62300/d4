@@ -85,6 +85,14 @@ bool WrapperMinisat::solve(std::vector<Var> &setOfVar) {
 }  // solve
 
 /**
+ * @brief WrapperMinisat::hasBeenInterrupt implementation.
+ *
+ */
+bool WrapperMinisat::hasBeenInterrupt() {
+  return m_solver.withinBudget();
+}  // hasBeenInterrupt
+
+/**
    Call the SAT solver and return its result.
 
    \return true if the problem is SAT, false otherwise.

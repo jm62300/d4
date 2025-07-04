@@ -37,6 +37,7 @@ class WrapperMinisat : public WrapperSolver {
   void initSolver(ProblemManager &p) override;
   bool solve(std::vector<Var> &setOfVar) override;
   bool solve() override;
+  bool hasBeenInterrupt() override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
