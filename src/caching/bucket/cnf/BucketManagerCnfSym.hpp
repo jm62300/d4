@@ -42,6 +42,9 @@ class BucketManagerCnfSym : public BucketManagerCnf {
   BucketInConstruction m_inConstruction;
   unsigned *m_offsetClauses;
 
+  std::vector<unsigned> m_storeNbClause;
+  std::vector<unsigned> m_litDegree;
+
  public:
   /**
      Function called in order to initialized variables before using

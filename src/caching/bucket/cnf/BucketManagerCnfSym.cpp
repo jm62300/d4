@@ -39,6 +39,9 @@ BucketManagerCnfSym::BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
   this->m_mapVar.resize(this->m_nbVarCnf + 1, 0);
   this->m_markIdx.resize(this->m_nbClauseCnf, -1);
   this->m_offsetClauses = new unsigned[this->m_nbClauseCnf];
+
+  m_storeNbClause.resize((1 + this->m_nbVarCnf) << 1, 0);
+  m_litDegree.resize((1 + this->m_nbVarCnf) << 1, 0);
 }  // BucketManagerCnfSym
 
 /**
@@ -394,25 +397,40 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
   // init the vector of literals.
   orderedLits.clear();
   orderedLits.reserve(component.size());
-  for (auto v : component) orderedLits.push_back(Lit::makeLitTrue(v));
+  for (auto v : component) {
+    Lit l = Lit::makeLitTrue(v);
+    orderedLits.push_back(l);
+    m_storeNbClause[l.intern()] = m_specManager.getNbClause(l);
+    m_storeNbClause[(~l).intern()] = m_specManager.getNbClause(~l);
+  }
 
   // update the phase.
   for (auto &l : orderedLits)
-    if (m_specManager.getNbClause(l) > m_specManager.getNbClause(~l)) l = ~l;
+    if (m_storeNbClause[l.intern()] > m_storeNbClause[(~l).intern()]) l = ~l;
 
   // sort the literals.
   std::sort(
       orderedLits.begin(), orderedLits.end(), [&](const Lit l1, const Lit l2) {
-        if (m_specManager.getNbClause(l1) != m_specManager.getNbClause(l2)) {
-          return m_specManager.getNbClause(l1) < m_specManager.getNbClause(l2);
+        // consider the number of clauses.
+        if (m_storeNbClause[l1.intern()] != m_storeNbClause[l2.intern()]) {
+          return m_storeNbClause[l1.intern()] < m_storeNbClause[l2.intern()];
         }
-        if (m_specManager.getNbClause(~l1) != m_specManager.getNbClause(~l2)) {
-          return m_specManager.getNbClause(~l1) <
-                 m_specManager.getNbClause(~l2);
+        if (m_storeNbClause[(~l1).intern()] !=
+            m_storeNbClause[(~l2).intern()]) {
+          return m_storeNbClause[(~l1).intern()] <
+                 m_storeNbClause[(~l2).intern()];
         }
+
+        // consider the degree as tie-break
+        if (m_litDegree[l1.intern()] != m_litDegree[l2.intern()]) {
+          return m_litDegree[l1.intern()] < m_litDegree[l2.intern()];
+        }
+        if (m_litDegree[(~l1).intern()] != m_litDegree[(~l2).intern()]) {
+          return m_litDegree[(~l1).intern()] < m_litDegree[(~l2).intern()];
+        }
+
         return l1.var() < l2.var();
       });
-
 }  // varToSortedLiterals
 
 /**
@@ -428,7 +446,8 @@ void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
   varToSortedLiterals(component, literalOrdered);
 
   initSortBucket(m_inConstruction);
-  collectDistrib(literalOrdered, m_inConstruction);  // built the sorted formula
+  collectDistrib(literalOrdered,
+                 m_inConstruction);  // built the sorted formula
 
   // get information about the clause distribution
   unsigned nbLit = 0, nbVar = component.size(), maxNbSizeClause,
