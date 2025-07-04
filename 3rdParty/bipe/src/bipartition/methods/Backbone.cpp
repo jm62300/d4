@@ -72,7 +72,7 @@ bool Backbone::run(Problem &p, std::vector<Gate> &gates,
   unsigned nbFoundUnit = 0;
 
   std::cout << "c [BIPE BACKBONE] Start.\n";
-  if (!m_solver->solve()) return false;
+  if (!m_solver->solve()) return !m_solver->hasBeenInterrupt();
   std::cout << "c First call done\n";
 
   m_solver->setReversePolarity(option.reversePolarity);

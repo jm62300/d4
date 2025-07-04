@@ -78,13 +78,15 @@ void Combinaison::run(Propagator &propagator, int nbIteration, bool verbose) {
     if (!propagator.getIsUnsat() && !m_isInterrupted) {
       unsigned current = occElimination.getNbRemoveLit();
       occElimination.run(propagator, 1, verbose);
-      fixePoint = current == occElimination.getNbRemoveLit();
+      fixePoint =
+          ((double)current / (double)occElimination.getNbRemoveLit()) > 0.95;
     }
 
     if (!propagator.getIsUnsat() && !m_isInterrupted) {
       unsigned current = vivification.getNbRemoveLit();
       vivification.run(propagator, 1, verbose);
-      fixePoint = current == vivification.getNbRemoveLit();
+      fixePoint =
+          ((double)current / (double)vivification.getNbRemoveLit()) > 0.95;
     }
   }
 

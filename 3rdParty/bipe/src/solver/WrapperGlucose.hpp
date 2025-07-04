@@ -47,6 +47,7 @@ class WrapperGlucose : public WrapperSolver {
   void initSolver(Problem &p) override;
   Status solveLimited(int nbConflict) override;
   bool solve() override;
+  bool hasBeenInterrupt() override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
 

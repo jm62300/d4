@@ -108,6 +108,14 @@ bool WrapperGlucose::solve() {
 }  // solve
 
 /**
+ * @brief WrapperGlucose::hasBeenInterrupt implementation.
+ *
+ */
+bool WrapperGlucose::hasBeenInterrupt() {
+  return s.withinBudget();
+}  // hasBeenInterrupt
+
+/**
  * @brief Add a clause in the solver.
  *
  * @param cl is the clause we add.
