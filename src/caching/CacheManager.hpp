@@ -108,16 +108,19 @@ class CacheManager {
    * @param nbVar is the number of variables.
    * @param specs gives the information about the input formula.
    * @param out is the stream where are printed out the logs.
+   *
    * @return CacheManager<T>*
    */
   static CacheManager<T> *makeCacheManager(const OptionCacheManager &options,
                                            unsigned nbVar,
                                            FormulaManager *specs,
                                            std::ostream &out) {
-    if (options.cachingMethod == CACHE_NO_COL)
-      return new CacheNoCollision<T>(options, nbVar, specs, out);
-    if (options.cachingMethod == CACHE_LIST)
-      return new CacheList<T>(options, nbVar, specs, out);
+    switch (options.cachingMethod) {
+      case CACHE_NO_COL:
+        return new CacheNoCollision<T>(options, nbVar, specs, out);
+      case CACHE_LIST:
+        return new CacheList<T>(options, nbVar, specs, out);
+    }
 
     throw(FactoryException("Cannot create a CacheManager", __FILE__, __LINE__));
   }  // makeCacheManager
