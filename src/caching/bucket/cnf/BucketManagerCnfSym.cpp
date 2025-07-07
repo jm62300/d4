@@ -42,6 +42,9 @@ BucketManagerCnfSym::BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
 
   m_storeNbClause.resize((1 + this->m_nbVarCnf) << 1, 0);
   m_litDegree.resize((1 + this->m_nbVarCnf) << 1, 0);
+
+  m_stampDegreeVector.resize((1 + this->m_nbVarCnf), 0);
+  m_stampDegreeIndex = 0;
 }  // BucketManagerCnfSym
 
 /**
@@ -388,6 +391,8 @@ void BucketManagerCnfSym::getInfoDistributionSize(
     }
 }  // getInfoDistributionSize
 
+#define MORE_SYM 0
+
 /**
  * @brief BucketManagerCnfSym::varToSortedLiterals implementation.
  *
@@ -403,6 +408,27 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
     m_storeNbClause[l.intern()] = m_specManager.getNbClause(l);
     m_storeNbClause[(~l).intern()] = m_specManager.getNbClause(~l);
   }
+
+#if MORE_SYM
+  // compute the degree
+  for (auto v : component) {
+    Lit l = Lit::makeLitTrue(v);
+
+    for (auto m : {l, ~l}) {
+      m_stampDegreeIndex++;
+      m_stampDegreeVector[m.var()] = m_stampDegreeIndex;
+
+      IteratorIdxClause listIndex = this->m_specManager.getVecIdxClause(m);
+      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+        for (auto k : this->m_specManager.getClause(*ptr))
+          if (m_stampDegreeVector[k.var()] != m_stampDegreeIndex) {
+            m_stampDegreeVector[k.var()] = m_stampDegreeIndex;
+            m_litDegree[m.intern()]++;
+          }
+      }
+    }
+  }
+#endif
 
   // update the phase.
   for (auto &l : orderedLits)
@@ -421,6 +447,7 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
                  m_storeNbClause[(~l2).intern()];
         }
 
+#if MORE_SYM
         // consider the degree as tie-break
         if (m_litDegree[l1.intern()] != m_litDegree[l2.intern()]) {
           return m_litDegree[l1.intern()] < m_litDegree[l2.intern()];
@@ -428,6 +455,13 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
         if (m_litDegree[(~l1).intern()] != m_litDegree[(~l2).intern()]) {
           return m_litDegree[(~l1).intern()] < m_litDegree[(~l2).intern()];
         }
+
+        unsigned countL1 =
+            m_litDegree[l1.intern()] + m_litDegree[(~l1).intern()];
+        unsigned countL2 =
+            m_litDegree[l2.intern()] + m_litDegree[(~l2).intern()];
+        if (countL1 != countL2) return countL1 < countL2;
+#endif
 
         return l1.var() < l2.var();
       });
@@ -442,6 +476,13 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
 */
 void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
                                        DataBucket &b) {
+#if 0
+  std::vector<bool> presentVar(this->m_specManager.getNbVariable() + 1, false);
+  for (auto &v : component) presentVar[v] = true;
+  this->m_specManager.showCurrentFormula(std::cout, presentVar);
+  std::cout << "--------------------------------------------------\n";
+#endif
+
   std::vector<Lit> literalOrdered;
   varToSortedLiterals(component, literalOrdered);
 

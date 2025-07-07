@@ -45,6 +45,9 @@ class BucketManagerCnfSym : public BucketManagerCnf {
   std::vector<unsigned> m_storeNbClause;
   std::vector<unsigned> m_litDegree;
 
+  std::vector<unsigned long> m_stampDegreeVector;
+  unsigned long m_stampDegreeIndex;
+
  public:
   /**
      Function called in order to initialized variables before using

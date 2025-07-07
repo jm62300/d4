@@ -383,6 +383,13 @@ char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
  */
 void BucketManagerCnfCl::storeFormula(std::vector<Var> &component,
                                       DataBucket &b) {
+#if 0
+  std::vector<bool> presentVar(this->m_specManager.getNbVariable() + 1, false);
+  for (auto &v : component) presentVar[v] = true;
+  this->m_specManager.showCurrentFormula(std::cout, presentVar);
+  std::cout << "--------------------------------------------------\n";
+#endif
+
   initSortBucket(m_inConstruction);
   collectDistrib(component, m_inConstruction);  // built the sorted formula
 
