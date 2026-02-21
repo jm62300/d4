@@ -37,14 +37,14 @@ namespace d4 {
  * @param problemManager, the place where is store the result.
  * @return an integer that gives the problem's number of variables.
  */
-int ParserDimacs::parse_DIMACS_main(BufferRead &in,
-                                    ProblemManagerCnf *problemManager) {
+int ParserDimacs::parse_DIMACS_main(BufferRead& in,
+                                    ProblemManagerCnf* problemManager) {
   std::vector<Lit> lits;
   std::string s;
 
-  std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
-  std::vector<mpz::mpf_float> &weightLitIm = problemManager->getWeightLitIm();
-  std::vector<std::vector<Lit>> &clauses = problemManager->getClauses();
+  std::vector<mpz::mpf_float>& weightLit = problemManager->getWeightLit();
+  std::vector<mpz::mpf_float>& weightLitIm = problemManager->getWeightLitIm();
+  std::vector<std::vector<Lit>>& clauses = problemManager->getClauses();
 
   int nbVars = 0;
   int nbClauses = 0;
@@ -196,13 +196,13 @@ int ParserDimacs::parse_DIMACS_main(BufferRead &in,
   return nbVars;
 }
 
-int ParserDimacs::parse_DIMACS(const std::string &input_stream,
-                               ProblemManagerCnf *problemManager) {
+int ParserDimacs::parse_DIMACS(const std::string& input_stream,
+                               ProblemManagerCnf* problemManager) {
   BufferRead in(input_stream);
   return parse_DIMACS_main(in, problemManager);
 }  // parse_DIMACS
 
-int ParserDimacs::parse_DIMACS(const int fd, ProblemManagerCnf *problemManager,
+int ParserDimacs::parse_DIMACS(const int fd, ProblemManagerCnf* problemManager,
                                bool keepOpen) {
   BufferRead in(fd, keepOpen);
   return parse_DIMACS_main(in, problemManager);

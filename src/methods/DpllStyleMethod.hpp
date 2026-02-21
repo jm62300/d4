@@ -80,16 +80,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
   std::vector<u_int8_t> m_signLit;
 
-  ProblemManager *m_problem;
-  WrapperSolver *m_solver;
-  FormulaManager *m_specs;
+  ProblemManager* m_problem;
+  WrapperSolver* m_solver;
+  FormulaManager* m_specs;
 
-  BranchingHeuristic *m_heuristic;
+  BranchingHeuristic* m_heuristic;
   TmpEntry<U> NULL_CACHE_ENTRY;
-  CacheManager<U> *m_cache;
+  CacheManager<U>* m_cache;
 
   std::ostream m_out;
-  Operation<T, U> *m_operation;
+  Operation<T, U>* m_operation;
 
  public:
   /**
@@ -97,8 +97,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    *
    * @param[in] vm, the list of options.
    */
-  DpllStyleMethod(const OptionDpllStyleMethod &options,
-                  ProblemManager *initProblem, std::ostream &out)
+  DpllStyleMethod(const OptionDpllStyleMethod& options,
+                  ProblemManager* initProblem, std::ostream& out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
@@ -145,9 +145,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
 
-    void *op = Operation<T, U>::makeOperationManager(
+    void* op = Operation<T, U>::makeOperationManager(
         options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
-    m_operation = static_cast<Operation<T, U> *>(op);
+    m_operation = static_cast<Operation<T, U>*>(op);
     m_out << "c\n";
 
     m_signLit.resize(1 + m_problem->getNbVar(), 0);
@@ -174,8 +174,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDecisionVar(std::vector<Var> &vars,
-                          std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionVar(std::vector<Var>& vars,
+                          std::vector<bool>& isDecisionVariable) {
     if (!m_isProjectedMode) return;
 
     unsigned j = 0;
@@ -192,8 +192,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDecisionLit(std::vector<Lit> &lits,
-                          std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionLit(std::vector<Lit>& lits,
+                          std::vector<bool>& isDecisionVariable) {
     if (!m_isProjectedMode) return;
 
     unsigned j = 0;
@@ -209,13 +209,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      @param[in] priorityVar, the current priority variables.
      @param[out] currPriority, the intersection of the two previous sets.
   */
-  inline void computePrioritySubSet(std::vector<Var> &connected,
-                                    std::vector<Var> &priorityVar,
-                                    std::vector<Var> &currPriority) {
+  inline void computePrioritySubSet(std::vector<Var>& connected,
+                                    std::vector<Var>& priorityVar,
+                                    std::vector<Var>& currPriority) {
     currPriority.resize(0);
     m_stampIdx++;
-    for (auto &v : connected) m_stampVar[v] = m_stampIdx;
-    for (auto &v : priorityVar)
+    for (auto& v : connected) m_stampVar[v] = m_stampIdx;
+    for (auto& v : priorityVar)
       if (m_stampVar[v] == m_stampIdx && !m_specs->varIsAssigned(v))
         currPriority.push_back(v);
   }  // computePrioritySet
@@ -225,7 +225,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showInter(std::ostream &out) {
+  inline void showInter(std::ostream& out) {
     if (!m_verbosity) return;
     out << "c " << std::fixed << std::setprecision(2) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
@@ -243,7 +243,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out) {
+  inline void separator(std::ostream& out) {
     out << "c ";
     for (int i = 0; i < NB_SEP_MC; i++) out << "-";
     out << "\n";
@@ -254,7 +254,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out) {
+  inline void showHeader(std::ostream& out) {
     if (!m_verbosity) return;
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
@@ -272,7 +272,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out) {
+  inline void showRun(std::ostream& out) {
     if (!(m_nbCallCall & (MASK_HEADER))) showHeader(out);
     if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) {
       showInter(out);
@@ -284,7 +284,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out) {
+  inline void printFinalStats(std::ostream& out) {
     separator(out);
     out << "c\n";
     out << "c \033[1m\033[31mStatistics \033[0m\n";
@@ -305,7 +305,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] assums, the assumption
   */
-  inline void initAssumption(std::vector<Lit> &assums) {
+  inline void initAssumption(std::vector<Lit>& assums) {
     m_solver->restart();
     m_solver->popAssumption(m_solver->getAssumption().size());
     m_solver->setAssumption(assums);
@@ -314,7 +314,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   /**
      Decide if the cache is realized or not.
    */
-  bool cacheIsActivated(std::vector<Var> &connected) {
+  bool cacheIsActivated(std::vector<Var>& connected) {
     if (!m_optCached) return false;
     return m_cache->isActivated(connected.size());
   }  // cacheIsActivated
@@ -328,8 +328,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    * @return is the number of components.
    */
   inline int computeConnectedComponent(
-      std::vector<Var> &setOfVar, std::vector<std::vector<Var>> &varConnected,
-      std::vector<Var> &freeVariable) {
+      std::vector<Var>& setOfVar, std::vector<std::vector<Var>>& varConnected,
+      std::vector<Var>& freeVariable) {
     if (m_connectedComponent && !(m_nbCallCall % 100000)) {
       if (m_lastNbSplit == m_nbSplit)
         m_nbFailedIncreased++;
@@ -374,8 +374,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    * \return an element of type U that sums up the given CNF sub-formula
    * using a DPLL style algorithm with an operation manager.
    */
-  U compute_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-             std::vector<Var> &freeVariable, std::ostream &out) {
+  U compute_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+             std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
 
@@ -394,7 +394,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       U tab[nbComponent];
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
@@ -430,7 +430,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      \return the compiled formula.
   */
-  U computeDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+  U computeDecisionNode(std::vector<Var>& connected, std::ostream& out) {
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
@@ -473,10 +473,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute(std::vector<Var> &setOfVar, std::ostream &out,
+  U compute(std::vector<Var>& setOfVar, std::ostream& out,
             bool warmStart = true) {
     std::vector<Var> decisionVar;
-    for (auto &v : setOfVar)
+    for (auto& v : setOfVar)
       if (m_isDecisionVariable[v]) decisionVar.push_back(v);
 
     if (m_problem->isUnsat() ||
@@ -501,15 +501,15 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      \return the number of models when the formula is simplified by the
      given assumption.
    */
-  T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
-          std::ostream &out) {
+  T count(std::vector<Var>& setOfVar, std::vector<Lit>& assumption,
+          std::ostream& out) {
     initAssumption(assumption);
 
     // get the unit not in setOfVar.
     std::vector<Lit> shadowUnits;
     m_stampIdx++;
-    for (auto &v : setOfVar) m_stampVar[v] = m_stampIdx;
-    for (auto &l : assumption)
+    for (auto& v : setOfVar) m_stampVar[v] = m_stampIdx;
+    for (auto& l : assumption)
       if (m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
 
     m_specs->preUpdate(shadowUnits);
@@ -538,7 +538,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    *
    * @return the operation object.
    */
-  inline Operation<T, U> *getOperation() { return m_operation; }
+  inline Operation<T, U>* getOperation() { return m_operation; }
 };
 
 }  // namespace d4

@@ -44,11 +44,11 @@ using namespace Glucose;
 //=================================================================================================
 // Options:
 
-static const char *_cat = "CORE";
-static const char *_cr = "CORE -- RESTART";
-static const char *_cred = "CORE -- REDUCE";
-static const char *_cm = "CORE -- MINIMIZE";
-static const char *_certified = "CORE -- CERTIFIED UNSAT";
+static const char* _cat = "CORE";
+static const char* _cr = "CORE -- RESTART";
+static const char* _cred = "CORE -- REDUCE";
+static const char* _cm = "CORE -- MINIMIZE";
+static const char* _certified = "CORE -- CERTIFIED UNSAT";
 
 static BoolOption opt_incremental(_cat, "incremental",
                                   "Use incremental SAT solving", false);
@@ -131,7 +131,7 @@ StringOption opt_certified_file(_certified, "certified-output",
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(std::ostream *certif)
+Solver::Solver(std::ostream* certif)
     : cert(certif),
       // Parameters (user settable):
       //
@@ -271,7 +271,7 @@ Var Solver::newVar(bool sign, bool dvar) {
   return v;
 }
 
-bool Solver::addClause_(vec<Lit> &ps) {
+bool Solver::addClause_(vec<Lit>& ps) {
   assert(decisionLevel() == 0);
   if (!ok) return false;
 
@@ -326,7 +326,7 @@ bool Solver::addClause_(vec<Lit> &ps) {
 }
 
 void Solver::attachClause(CRef cr) {
-  const Clause &c = ca[cr];
+  const Clause& c = ca[cr];
 
   assert(c.size() > 1);
   if (c.size() == 2) {
@@ -343,7 +343,7 @@ void Solver::attachClause(CRef cr) {
 }
 
 void Solver::detachClause(CRef cr, bool strict) {
-  const Clause &c = ca[cr];
+  const Clause& c = ca[cr];
 
   assert(c.size() > 1);
   if (c.size() == 2) {
@@ -374,7 +374,7 @@ void Solver::detachClause(CRef cr, bool strict) {
 }
 
 void Solver::removeClause(CRef cr) {
-  Clause &c = ca[cr];
+  Clause& c = ca[cr];
 
   if (certifiedUNSAT) {
     fprintf(certifiedOutput, "d ");
@@ -390,7 +390,7 @@ void Solver::removeClause(CRef cr) {
   ca.free(cr);
 }
 
-bool Solver::satisfied(const Clause &c) const {
+bool Solver::satisfied(const Clause& c) const {
   // Check clauses with many selectors is too time consuming
   if (incremental && c.size() > 10)
     return (value(c[0]) == l_True) || (value(c[1]) == l_True);
@@ -405,7 +405,7 @@ bool Solver::satisfied(const Clause &c) const {
  * Compute LBD functions
  *************************************************************/
 
-inline unsigned int Solver::computeLBD(const vec<Lit> &lits, int end) {
+inline unsigned int Solver::computeLBD(const vec<Lit>& lits, int end) {
   int nblevels = 0;
   MYFLAG++;
 
@@ -436,7 +436,7 @@ inline unsigned int Solver::computeLBD(const vec<Lit> &lits, int end) {
   return nblevels;
 }
 
-inline unsigned int Solver::computeLBD(const Clause &c) {
+inline unsigned int Solver::computeLBD(const Clause& c) {
   int nblevels = 0;
   MYFLAG++;
 
@@ -468,7 +468,7 @@ inline unsigned int Solver::computeLBD(const Clause &c) {
 /******************************************************************
  * Minimisation with binary reolution
  ******************************************************************/
-void Solver::minimisationWithBinaryResolution(vec<Lit> &out_learnt) {
+void Solver::minimisationWithBinaryResolution(vec<Lit>& out_learnt) {
   // Find the LBD measure
   unsigned int lbd = computeLBD(out_learnt);
   Lit p = ~out_learnt[0];
@@ -480,7 +480,7 @@ void Solver::minimisationWithBinaryResolution(vec<Lit> &out_learnt) {
       permDiff[var(out_learnt[i])] = MYFLAG;
     }
 
-    vec<Watcher> &wbin = watchesBin[p];
+    vec<Watcher>& wbin = watchesBin[p];
     int nb = 0;
     for (int k = 0; k < wbin.size(); k++) {
       Lit imp = wbin[k].blocker;
@@ -571,9 +571,9 @@ level of the |        rest of literals. There may be others from the same level
 though.
 |
 |________________________________________________________________________________________________@*/
-void Solver::analyze(CRef confl, vec<Lit> &out_learnt, vec<Lit> &selectors,
-                     int &out_btlevel, unsigned int &lbd,
-                     unsigned int &szWithoutSelectors) {
+void Solver::analyze(CRef confl, vec<Lit>& out_learnt, vec<Lit>& selectors,
+                     int& out_btlevel, unsigned int& lbd,
+                     unsigned int& szWithoutSelectors) {
   int pathC = 0;
   Lit p = lit_Undef;
 
@@ -584,7 +584,7 @@ void Solver::analyze(CRef confl, vec<Lit> &out_learnt, vec<Lit> &selectors,
 
   do {
     assert(confl != CRef_Undef);  // (otherwise should be UIP)
-    Clause &c = ca[confl];
+    Clause& c = ca[confl];
 
     // Special case for binary clauses
     // The first one has to be SAT
@@ -671,7 +671,7 @@ void Solver::analyze(CRef confl, vec<Lit> &out_learnt, vec<Lit> &selectors,
       if (reason(x) == CRef_Undef)
         out_learnt[j++] = out_learnt[i];
       else {
-        Clause &c = ca[reason(var(out_learnt[i]))];
+        Clause& c = ca[reason(var(out_learnt[i]))];
         // Thanks to Siert Wieringa for this bug fix!
         for (int k = ((c.size() == 2) ? 0 : 1); k < c.size(); k++)
           if (!seen[var(c[k])] && level(var(c[k])) > 0) {
@@ -751,7 +751,7 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels) {
   int top = analyze_toclear.size();
   while (analyze_stack.size() > 0) {
     assert(reason(var(analyze_stack.last())) != CRef_Undef);
-    Clause &c = ca[reason(var(analyze_stack.last()))];
+    Clause& c = ca[reason(var(analyze_stack.last()))];
     analyze_stack.pop();
     if (c.size() == 2 && value(c[0]) == l_False) {
       assert(value(c[1]) == l_True);
@@ -798,8 +798,8 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels) {
    though.
 
 */
-void Solver::analyzeLastUIP(CRef confl, vec<Lit> &out_learnt,
-                            int &out_btlevel) {
+void Solver::analyzeLastUIP(CRef confl, vec<Lit>& out_learnt,
+                            int& out_btlevel) {
   Lit p = lit_Undef;
 
   // Generate conflict clause:
@@ -808,7 +808,7 @@ void Solver::analyzeLastUIP(CRef confl, vec<Lit> &out_learnt,
 
   do {
     assert(confl != CRef_Undef);  // (otherwise should be UIP)
-    Clause &c = ca[confl];
+    Clause& c = ca[confl];
 
     if (c.learnt()) claBumpActivity(c);
 
@@ -861,7 +861,7 @@ void Solver::analyzeLastUIP(CRef confl, vec<Lit> &out_learnt,
       if (reason(x) == CRef_Undef)
         out_learnt[j++] = out_learnt[i];
       else {
-        Clause &c = ca[reason(var(out_learnt[i]))];
+        Clause& c = ca[reason(var(out_learnt[i]))];
         for (int k = 0; k < c.size(); k++)
           if (!seen[var(c[k])] && level(var(c[k])) > 0) {
             out_learnt[j++] = out_learnt[i];
@@ -905,7 +905,7 @@ void Solver::analyzeLastUIP(CRef confl, vec<Lit> &out_learnt,
 assumptions. |    Calculates the (possibly empty) set of assumptions that led to
 the assignment of 'p', and |    stores the result in 'out_conflict'.
 |________________________________________________________________________________________________@*/
-void Solver::analyzeFinal(Lit p, vec<Lit> &out_conflict) {
+void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict) {
   out_conflict.clear();
   out_conflict.push(p);
 
@@ -920,7 +920,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit> &out_conflict) {
         assert(level(x) > 0);
         out_conflict.push(~trail[i]);
       } else {
-        Clause &c = ca[reason(x)];
+        Clause& c = ca[reason(x)];
         //                for (int j = 1; j < c.size(); j++) Minisat
         //                (glucose 2.0) loop
         // Bug in case of assumptions due to special data structures for Binary.
@@ -962,12 +962,12 @@ CRef Solver::propagate() {
   watchesBin.cleanAll();
   while (qhead < trail.size()) {
     Lit p = trail[qhead++];  // 'p' is enqueued fact to propagate.
-    vec<Watcher> &ws = watches[p];
+    vec<Watcher>& ws = watches[p];
     Watcher *i, *j, *end;
     num_props++;
 
     // First, Propagate binary clauses
-    vec<Watcher> &wbin = watchesBin[p];
+    vec<Watcher>& wbin = watchesBin[p];
 
     for (int k = 0; k < wbin.size(); k++) {
       Lit imp = wbin[k].blocker;
@@ -981,7 +981,7 @@ CRef Solver::propagate() {
       }
     }
 
-    for (i = j = (Watcher *)ws, end = i + ws.size(); i != end;) {
+    for (i = j = (Watcher*)ws, end = i + ws.size(); i != end;) {
       // Try to avoid inspecting the clause:
       Lit blocker = i->blocker;
       if (value(blocker) == l_True) {
@@ -991,7 +991,7 @@ CRef Solver::propagate() {
 
       // Make sure the false literal is data[1]:
       CRef cr = i->cref;
-      Clause &c = ca[cr];
+      Clause& c = ca[cr];
       Lit false_lit = ~p;
       if (c[0] == false_lit) c[0] = c[1], c[1] = false_lit;
       assert(c[1] == false_lit);
@@ -1069,8 +1069,8 @@ assignment. Locked |    clauses are clauses that are reason to some assignment.
 Binary clauses are never removed.
 |________________________________________________________________________________________________@*/
 struct reduceDB_lt {
-  ClauseAllocator &ca;
-  reduceDB_lt(ClauseAllocator &ca_) : ca(ca_) {}
+  ClauseAllocator& ca;
+  reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
   bool operator()(CRef x, CRef y) {
     // Main criteria... Like in MiniSat we keep all binary clauses
     if (ca[x].size() > 2 && ca[y].size() == 2) return 1;
@@ -1113,7 +1113,7 @@ void Solver::reduceDB() {
   int limit = learnts.size() / 2;
 
   for (i = j = 0; i < learnts.size(); i++) {
-    Clause &c = ca[learnts[i]];
+    Clause& c = ca[learnts[i]];
     if (c.lbd() > 2 && c.size() > 2 && c.canBeDel() && !locked(c) &&
         (i < limit)) {
       removeClause(learnts[i]);
@@ -1129,10 +1129,10 @@ void Solver::reduceDB() {
   checkGarbage();
 }
 
-void Solver::removeSatisfied(vec<CRef> &cs) {
+void Solver::removeSatisfied(vec<CRef>& cs) {
   int i, j;
   for (i = j = 0; i < cs.size(); i++) {
-    Clause &c = ca[cs[i]];
+    Clause& c = ca[cs[i]];
 
     if (satisfied(c))
       removeClause(cs[i]);
@@ -1278,16 +1278,12 @@ lbool Solver::search(int nof_conflicts) {
 
     } else {
       // Our dynamic restart, see the SAT09 competition compagnion paper
-      if ((lbdQueue.isvalid() &&
+      if (decisionLevel() > assumptions.size() &&
+          (lbdQueue.isvalid() &&
            ((lbdQueue.getavg() * K) > (sumLBD / conflictsRestarts)))) {
         lbdQueue.fastclear();
         progress_estimate = progressEstimate();
-        int bt = 0;
-        // if (incremental) {  // DO NOT BACKTRACK UNTIL 0.. USELESS
-        bt = (decisionLevel() < assumptions.size()) ? decisionLevel()
-                                                    : assumptions.size();
-        // }
-        cancelUntil(bt);
+        cancelUntil(assumptions.size());
         return l_Undef;
       }
 
@@ -1296,7 +1292,8 @@ lbool Solver::search(int nof_conflicts) {
         return l_False;
       }
       // Perform clause database reduction !
-      if (conflicts >= curRestart * nbclausesbeforereduce) {
+      if (conflicts >= curRestart * nbclausesbeforereduce &&
+          decisionLevel() > assumptions.size()) {
         assert(learnts.size() > 0);
         curRestart = (conflicts / nbclausesbeforereduce) + 1;
         reduceDB();
@@ -1513,7 +1510,7 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
 //
 // FIXME: this needs to be rewritten completely.
 
-static Var mapVar(Var x, vec<Var> &map, Var &max) {
+static Var mapVar(Var x, vec<Var>& map, Var& max) {
   if (map.size() <= x || map[x] == -1) {
     map.growTo(x + 1, -1);
     map[x] = max++;
@@ -1521,7 +1518,7 @@ static Var mapVar(Var x, vec<Var> &map, Var &max) {
   return map[x];
 }
 
-void Solver::toDimacs(FILE *f, Clause &c, vec<Var> &map, Var &max) {
+void Solver::toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max) {
   if (satisfied(c)) return;
 
   for (int i = 0; i < c.size(); i++)
@@ -1531,14 +1528,14 @@ void Solver::toDimacs(FILE *f, Clause &c, vec<Var> &map, Var &max) {
   fprintf(f, "0\n");
 }
 
-void Solver::toDimacs(const char *file, const vec<Lit> &assumps) {
-  FILE *f = fopen(file, "wr");
+void Solver::toDimacs(const char* file, const vec<Lit>& assumps) {
+  FILE* f = fopen(file, "wr");
   if (f == NULL) fprintf(stderr, "could not open file %s\n", file), exit(1);
   toDimacs(f, assumps);
   fclose(f);
 }
 
-void Solver::toDimacs(FILE *f, const vec<Lit> &assumps) {
+void Solver::toDimacs(FILE* f, const vec<Lit>& assumps) {
   // Handle case when solver is in contradictory state:
   if (!ok) {
     fprintf(f, "p cnf 1 2\n1 0\n-1 0\n");
@@ -1556,7 +1553,7 @@ void Solver::toDimacs(FILE *f, const vec<Lit> &assumps) {
 
   for (int i = 0; i < clauses.size(); i++)
     if (!satisfied(ca[clauses[i]])) {
-      Clause &c = ca[clauses[i]];
+      Clause& c = ca[clauses[i]];
       for (int j = 0; j < c.size(); j++)
         if (value(c[j]) != l_False) mapVar(var(c[j]), map, max);
     }
@@ -1581,7 +1578,7 @@ void Solver::toDimacs(FILE *f, const vec<Lit> &assumps) {
 //=================================================================================================
 // Garbage Collection methods:
 
-void Solver::relocAll(ClauseAllocator &to) {
+void Solver::relocAll(ClauseAllocator& to) {
   // All watchers:
   //
   // for (int i = 0; i < watches.size(); i++)
@@ -1591,9 +1588,9 @@ void Solver::relocAll(ClauseAllocator &to) {
     for (int s = 0; s < 2; s++) {
       Lit p = mkLit(v, s);
       // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
-      vec<Watcher> &ws = watches[p];
+      vec<Watcher>& ws = watches[p];
       for (int j = 0; j < ws.size(); j++) ca.reloc(ws[j].cref, to);
-      vec<Watcher> &ws2 = watchesBin[p];
+      vec<Watcher>& ws2 = watchesBin[p];
       for (int j = 0; j < ws2.size(); j++) ca.reloc(ws2[j].cref, to);
     }
 
