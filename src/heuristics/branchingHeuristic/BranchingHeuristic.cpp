@@ -80,12 +80,13 @@ BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
   m_problem = problem;
   m_nbCall = 0;
   m_listLitAllocator = new ListLitAllocator();
+  
+  m_isDecisionVariable.resize(
+      problem->getNbVar() + 1,
+      !problem->getNbSelectedVar() && !problem->getIndVar().size());
 
-  m_isDecisionVariable.resize(problem->getNbVar() + 1,
-                              !problem->getNbSelectedVar());
-  for (auto &v : problem->getSelectedVar()) {
-    m_isDecisionVariable[v] = true;
-  }
+  for (auto& v : problem->getSelectedVar()) m_isDecisionVariable[v] = true;
+  for (auto& v : problem->getIndVar()) m_isDecisionVariable[v] = true;
 }  // constructor
 
 /**
