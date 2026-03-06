@@ -38,8 +38,8 @@ ListLit::ListLit() {
 /**
  * @brief ListLit::ListLit implementation.
  */
-void ListLit::setListLit(const Lit *tab, int size,
-                         ListLitAllocator *litListAllocator) {
+void ListLit::setListLit(const Lit* tab, int size,
+                         ListLitAllocator* litListAllocator) {
   if (!size) {
     m_size = 0;
     m_array = NULL;
@@ -63,12 +63,12 @@ ListLit::~ListLit() {
 /**
  * @brief BranchingHeuristic::BranchingHeuristic implementation.
  */
-BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
-                                       ProblemManager *problem,
-                                       FormulaManager *specs,
-                                       ActivityManager &activityManager,
-                                       PolarityManager &polarityManager,
-                                       std::ostream &out) {
+BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic& options,
+                                       ProblemManager* problem,
+                                       FormulaManager* specs,
+                                       ActivityManager& activityManager,
+                                       PolarityManager& polarityManager,
+                                       std::ostream& out) {
   out << "c [BRANCHING HEURISTIC]" << options << "\n";
 
   m_hVar =
@@ -81,11 +81,12 @@ BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic &options,
   m_nbCall = 0;
   m_listLitAllocator = new ListLitAllocator();
 
-  m_isDecisionVariable.resize(problem->getNbVar() + 1,
-                              !problem->getNbSelectedVar());
-  for (auto &v : problem->getSelectedVar()) {
-    m_isDecisionVariable[v] = true;
-  }
+  m_isDecisionVariable.resize(
+      problem->getNbVar() + 1,
+      !problem->getNbSelectedVar() && !problem->getIndVar().size());
+
+  for (auto& v : problem->getSelectedVar()) m_isDecisionVariable[v] = true;
+  for (auto& v : problem->getIndVar()) m_isDecisionVariable[v] = true;
 }  // constructor
 
 /**
@@ -102,10 +103,10 @@ BranchingHeuristic::~BranchingHeuristic() {
  * @brief BranchingHeuristic::makeBranchingHeuristic implementation.
  *
  */
-BranchingHeuristic *BranchingHeuristic::makeBranchingHeuristic(
-    const OptionBranchingHeuristic &options, ProblemManager *problem,
-    FormulaManager *specs, ActivityManager &activityManager,
-    PolarityManager &polarityManager, std::ostream &out) {
+BranchingHeuristic* BranchingHeuristic::makeBranchingHeuristic(
+    const OptionBranchingHeuristic& options, ProblemManager* problem,
+    FormulaManager* specs, ActivityManager& activityManager,
+    PolarityManager& polarityManager, std::ostream& out) {
   if (problem->getNbSelectedVar()) {
     out << "c [MODE] Projected we can only use the classical heuristic\n";
     return new BranchingHeuristicClassic(options, problem, specs,

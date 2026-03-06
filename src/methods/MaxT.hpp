@@ -62,10 +62,10 @@ class MaxT : public MethodManager {
 
   struct MaxSharpSatResult {
     T count;
-    u_int8_t *valuation;
+    u_int8_t* valuation;
 
     MaxSharpSatResult() : count(T()), valuation(NULL) {}
-    MaxSharpSatResult(const T c, u_int8_t *v) : count(c), valuation(v) {}
+    MaxSharpSatResult(const T c, u_int8_t* v) : count(c), valuation(v) {}
 
     void display(unsigned size) {
       assert(valuation);
@@ -102,20 +102,20 @@ class MaxT : public MethodManager {
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 25;
-  std::vector<u_int8_t *> m_memoryPages;
+  std::vector<u_int8_t*> m_memoryPages;
   unsigned m_posInMemoryPages;
   unsigned m_sizeArray;
 
-  ProblemManager *m_problem;
-  WrapperSolver *m_solver;
-  FormulaManager *m_specs;
-  ScoringMethod *m_hVarMax;
-  PhaseHeuristic *m_hPhaseMax;
+  ProblemManager* m_problem;
+  WrapperSolver* m_solver;
+  FormulaManager* m_specs;
+  ScoringMethod* m_hVarMax;
+  PhaseHeuristic* m_hPhaseMax;
 
-  BranchingHeuristic *m_heuristicInd;
+  BranchingHeuristic* m_heuristicInd;
 
-  CacheManager<T> *m_cacheInd;
-  CacheManager<MaxSharpSatResult> *m_cacheMax;
+  CacheManager<T>* m_cacheInd;
+  CacheManager<MaxSharpSatResult>* m_cacheMax;
 
   std::ostream m_out;
   TmpEntry<MaxSharpSatResult> NULL_CACHE_ENTRY;
@@ -142,8 +142,8 @@ class MaxT : public MethodManager {
    * @param initProblem is the problem we deal with.
    * @param out is the stream where are printed out the logs.
    */
-  MaxT(const OptionMaxTMethod &options, ProblemManager *initProblem,
-       std::ostream &out)
+  MaxT(const OptionMaxTMethod& options, ProblemManager* initProblem,
+       std::ostream& out)
       : m_problem(initProblem), m_out(nullptr), m_aggregator(initProblem) {
     // init the output stream
     m_out.copyfmt(out);
@@ -272,7 +272,7 @@ class MaxT : public MethodManager {
    *
    * @param[out] arr Pointer to the array that needs to be zero-initialized.
    */
-  inline void setZeroArray(uint8_t *arr) {
+  inline void setZeroArray(uint8_t* arr) {
     std::memset(arr, 0, m_sizeArray);
   }  // setZeroArray
 
@@ -280,18 +280,18 @@ class MaxT : public MethodManager {
     return 1 + (maxVal >> 3);
   }
 
-  inline u_int8_t getBit(uint8_t *arr, int idx) {
+  inline u_int8_t getBit(uint8_t* arr, int idx) {
     return (arr[idx >> 3] >> (idx & 7)) & 1;
   }  // getBit
 
-  inline void setBit(uint8_t *arr, int idx, u_int8_t val) {
+  inline void setBit(uint8_t* arr, int idx, u_int8_t val) {
     if (val)
       arr[idx >> 3] |= 1 << (idx & 7);
     else
       arr[idx >> 3] &= ~(1 << (idx & 7));
   }  // setBit
 
-  inline void orBit(uint8_t *dst, const uint8_t *src, unsigned idx) {
+  inline void orBit(uint8_t* dst, const uint8_t* src, unsigned idx) {
     dst[idx >> 3] |= src[idx >> 3] & (1 << (idx & 7));
   }  // orBit
 
@@ -304,7 +304,7 @@ class MaxT : public MethodManager {
    * @param[out] dst Pointer to the destination array where data will be copied.
    * @param[in] src Pointer to the source array from which data is copied.
    */
-  inline void setArr(uint8_t *dst, const uint8_t *src) {
+  inline void setArr(uint8_t* dst, const uint8_t* src) {
     std::memcpy(dst, src, m_sizeArray);
   }  // setArr
 
@@ -313,7 +313,7 @@ class MaxT : public MethodManager {
    *
    * @param solution is the maxsharp SAT solution we want to print.
    */
-  void printSolution(MaxSharpSatResult &solution, char status) {
+  void printSolution(MaxSharpSatResult& solution, char status) {
     if (!m_solutionFound) {
       std::cout << "s UNSAT\n";
       exit(0);
@@ -335,7 +335,7 @@ class MaxT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showInter(std::ostream &out) {
+  inline void showInter(std::ostream& out) {
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall
         << std::fixed << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj
         << std::fixed << std::setprecision(2) << "|"
@@ -361,7 +361,7 @@ class MaxT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out) {
+  inline void separator(std::ostream& out) {
     out << "c ";
     for (int i = 0; i < NB_SEP; i++) out << "-";
     out << "\n";
@@ -372,7 +372,7 @@ class MaxT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out) {
+  inline void showHeader(std::ostream& out) {
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)" << "|"
@@ -396,7 +396,7 @@ class MaxT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out) {
+  inline void showRun(std::ostream& out) {
     unsigned nbCall = m_nbCallCall + m_nbCallProj;
     if (!(nbCall & (MASK_HEADER))) showHeader(out);
     if (nbCall && !(nbCall & MASK_SHOWRUN_MC)) showInter(out);
@@ -407,7 +407,7 @@ class MaxT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out) {
+  inline void printFinalStats(std::ostream& out) {
     separator(out);
     out << "c\n"
         << "c \033[1m\033[31mStatistics \033[0m\n"
@@ -431,8 +431,8 @@ class MaxT : public MethodManager {
    *
    * @return a pointer on a u_int8_t array.
    */
-  inline u_int8_t *getArray() {
-    u_int8_t *ret = &(m_memoryPages.back()[m_posInMemoryPages]);
+  inline u_int8_t* getArray() {
+    u_int8_t* ret = &(m_memoryPages.back()[m_posInMemoryPages]);
     m_posInMemoryPages += m_sizeArray;
     if (m_posInMemoryPages > c_sizePage) {
       m_out << "c [MAXT] Allocate memory for valuation: "
@@ -450,7 +450,7 @@ class MaxT : public MethodManager {
    * @param[in] isDecisionvariable, a type decision vector that marks as true
    * decision variables.
    */
-  void expelNoDecisionVar(std::vector<Var> &vars) {
+  void expelNoDecisionVar(std::vector<Var>& vars) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
       if (m_isDecisionVariable[vars[i]]) vars[j++] = vars[i];
@@ -465,7 +465,7 @@ class MaxT : public MethodManager {
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDecisionLit(std::vector<Lit> &lits) {
+  void expelNoDecisionLit(std::vector<Lit>& lits) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
       if (m_isDecisionVariable[lits[i].var()]) lits[j++] = lits[i];
@@ -479,7 +479,7 @@ class MaxT : public MethodManager {
    * @param setOfVar is the considered set of variables.
    * @return T is the resulting number of models (upper bound).
    */
-  T computeUpper(std::vector<Var> &setOfVar) {
+  T computeUpper(std::vector<Var>& setOfVar) {
     T ret = 1;
     for (auto v : setOfVar)
       if (m_isProjectedVariable[v]) ret = ret * 2;
@@ -495,8 +495,8 @@ class MaxT : public MethodManager {
    * result.
    * @param orValuation is another 'boolean' vector used for the OR
    */
-  void orOnMaxVar(std::vector<Var> &vars, u_int8_t *resValuation,
-                  u_int8_t *orValuation) {
+  void orOnMaxVar(std::vector<Var>& vars, u_int8_t* resValuation,
+                  u_int8_t* orValuation) {
     for (auto v : vars) {
       if (m_isMaxDecisionVariable[v])
         orBit(resValuation, orValuation, m_redirectionPos[v]);
@@ -510,7 +510,7 @@ class MaxT : public MethodManager {
    * @param vars is the set of variables of the component that is considered to
    * compute result.
    */
-  void updateBound(MaxSharpSatResult &result, std::vector<Var> &vars) {
+  void updateBound(MaxSharpSatResult& result, std::vector<Var>& vars) {
     if (!m_isUnderAnd &&
         (!m_solutionFound || result.count * m_scale.count > m_maxCount.count)) {
       m_maxCount.count = result.count * m_scale.count;
@@ -553,10 +553,10 @@ class MaxT : public MethodManager {
    * @param out, the stream we use to print out logs.
    * @param result, the structure where is stored the result.
    */
-  void searchMaxValuation(std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit,
-                          std::vector<Var> &freeVariable, std::ostream &out,
-                          MaxSharpSatResult &result) {
+  void searchMaxValuation(std::vector<Var>& setOfVar,
+                          std::vector<Lit>& unitsLit,
+                          std::vector<Var>& freeVariable, std::ostream& out,
+                          MaxSharpSatResult& result) {
     if (m_stopProcess) return;
 
     showRun(out);
@@ -587,7 +587,7 @@ class MaxT : public MethodManager {
 
     // std::cout << "==> " << m_solver->getAssumption().size() << '\n';
 
-    for (auto &v : freeVariable)
+    for (auto& v : freeVariable)
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLitTrue(v);
         if (m_aggregator.isGreaterThan(~l, l)) l = ~l;
@@ -601,7 +601,7 @@ class MaxT : public MethodManager {
       }
 
     // consider the unit literals that belong to max
-    for (auto &l : unitsLit)
+    for (auto& l : unitsLit)
       if (m_isMaxDecisionVariable[l.var()]) {
         fixCount = fixCount * m_aggregator.getWeightLit(l);
         setBit(m_scale.valuation, m_redirectionPos[l.var()], 1 - l.sign());
@@ -626,7 +626,7 @@ class MaxT : public MethodManager {
     if (nbComponent) {
       m_nbSplitMax += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
 
         TmpEntry<MaxSharpSatResult> cb =
             m_cacheMaxActivated ? m_cacheMax->searchInCache(connected)
@@ -687,8 +687,8 @@ class MaxT : public MethodManager {
    * @param[in] out, the stream we use to print out logs.
    * @param[out] result, the best solution found.
    */
-  void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
-                                 MaxSharpSatResult &result) {
+  void searchMaxSharpSatDecision(std::vector<Var>& connected, std::ostream& out,
+                                 MaxSharpSatResult& result) {
     if (m_stopProcess) return;
 
     // search the next variable to branch on
@@ -764,8 +764,8 @@ class MaxT : public MethodManager {
    *
    * \return the number of models.
    */
-  T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out) {
+  T countInd_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+              std::vector<Var>& freeVariable, std::ostream& out) {
     if (m_stopProcess) return m_aggregator.sumIdentity();
 
     showRun(out);
@@ -789,7 +789,7 @@ class MaxT : public MethodManager {
       m_nbSplitInd += (nbComponent > 1) ? nbComponent : 0;
 
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
 
         TmpEntry<T> cb = m_cacheIndActivated
                              ? m_cacheInd->searchInCache(connected)
@@ -819,7 +819,7 @@ class MaxT : public MethodManager {
    * @param out, the stream we use to print out logs.
    * \return the number of computed models.
    */
-  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+  T countIndDecisionNode(std::vector<Var>& connected, std::ostream& out) {
     if (m_stopProcess) return m_aggregator.sumIdentity();
 
     // search the next variable to branch on
@@ -870,8 +870,8 @@ class MaxT : public MethodManager {
    * @param warmStart is an option to activate/deactivate the warm start
    * strategy (by defaut it is deactivate).
    */
-  void compute(std::vector<Var> &setOfVar, std::ostream &out,
-               MaxSharpSatResult &result, bool warmStart = true) {
+  void compute(std::vector<Var>& setOfVar, std::ostream& out,
+               MaxSharpSatResult& result, bool warmStart = true) {
     if (m_problem->isUnsat() ||
         (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out))) {
       result = {m_aggregator.sumIdentity(), NULL};

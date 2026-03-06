@@ -37,7 +37,7 @@
 
 using namespace d4;
 namespace po = boost::program_options;
-MethodManager *methodRun = nullptr;
+MethodManager* methodRun = nullptr;
 
 /**
  * @brief Catch the signal that ask for stopping the method which is running.
@@ -53,7 +53,7 @@ static void signalHandler(int signum) {
 /**
    The main function!
 */
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   auto start = std::chrono::system_clock::now();
   po::options_description desc{"Options"};
   desc.add_options()
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
   try {
     po::notify(vm);
-  } catch (const po::error &ex) {
+  } catch (const po::error& ex) {
     std::cerr << ex.what() << '\n';
     exit(1);
   }
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
   }
 
   // parse the initial problem.
-  d4::ProblemManager *initProblem = d4::ProblemManager::makeProblemManager(
+  d4::ProblemManager* initProblem = d4::ProblemManager::makeProblemManager(
       vm["input"].as<std::string>(),
       d4::ProblemInputTypeManager::getInputType(
           vm["input-type"].as<std::string>()),
@@ -98,31 +98,11 @@ int main(int argc, char **argv) {
   // preproc.
   d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
   configPreproc.inputType = initProblem->getProblemType();
-  ProblemManager *problem =
+  ProblemManager* problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-#if 1
-  for (auto v : initProblem->getMaxVar()) {
-    initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] = 0.3;
-    initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] = 0.7;
-  }
 
-  for (auto v : initProblem->getIndVar()) {
-    if (initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] == 1 &&
-        initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] == 1) {
-      initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] = 1;
-      initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] = 1;
-
-    } else {
-      initProblem->getWeightLit()[d4::Lit::makeLitTrue(v).intern()] = 1;
-      initProblem->getWeightLit()[d4::Lit::makeLitFalse(v).intern()] = 1;
-    }
-  }
-
-  configPreproc.preprocMethod = d4::SHARP_EQUIV;
-  ProblemManager *testproblem =
-      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-#endif
   // count.
+  problem->displayStat(std::cout, "c [AFTER PREPROC] ");
   maxT(vm, problem);
 
   auto end = std::chrono::system_clock::now();
