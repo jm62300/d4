@@ -26,7 +26,7 @@
 #include <iostream>
 #include <vector>
 
-#include "MaxPlusDemo.hpp"
+#include "SemiringDemo.hpp"
 #include "ParseOption.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/MethodManager.hpp"

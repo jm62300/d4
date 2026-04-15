@@ -1,4 +1,4 @@
-EXEC ?= maxplus
+EXEC ?= semiring
 
 BUILD_DIR ?= build
 SRC_DIRS ?= src

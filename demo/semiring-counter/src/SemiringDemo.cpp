@@ -1,0 +1,102 @@
+/*
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+ */
+
+#include "SemiringDemo.hpp"
+
+#include <signal.h>
+
+#include <boost/multiprecision/integer.hpp>
+#include <cassert>
+
+#include "ParseOption.hpp"
+#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
+#include "src/methods/DpllStyleMethod.hpp"
+#include "src/methods/MethodManager.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
+
+#include "MinPlus.hpp"
+#include "MaxPlus.hpp"
+
+extern d4::MethodManager *methodRun;
+
+using namespace d4;
+
+template <typename U, typename T>
+void maxModel(const OptionDpllStyleMethod &options, ProblemManager *problem,
+                 const std::string &format, const std::string &outFormat,
+                 bool isFloat) {
+  std::cout << "c [FORMAT] Input/Output format:" << " output-symbol(" << format
+            << ")" << " output-format(" << outFormat << ")" << " is-float("
+            << isFloat << ")\n";
+
+  DpllStyleMethod<U, T> *counter =
+      new DpllStyleMethod<U, T>(options, problem, std::cout);
+
+  methodRun = counter;
+  T result = counter->run();
+
+  std::cout << format << " ";
+  std::cout << std::fixed << std::setprecision(50) << result << "\n";
+
+  methodRun = nullptr;
+  delete counter;
+}  // count
+
+/**
+ * @brief couterDemo implementation.
+ */
+void maxplusDemo(const po::variables_map &vm, ProblemManager *problem) {
+  // get the configuration.
+  ConfigurationDpllStyleMethod config;
+
+  config.methodName = d4::MethodNameManager::getMethodName("semiring");
+
+  config.inputName = vm["input"].as<std::string>();
+  config.problemInputType = d4::ProblemInputTypeManager::getInputType(
+      vm["input-type"].as<std::string>());
+
+  config.cache = parseCacheConfiguration(vm);
+  config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
+  config.solver.solverName =
+      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+
+  config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+      vm["occurrence-manager"].as<std::string>());
+  config.spec.removeGates = vm["remove-gates"].as<bool>();
+
+  config.exploitModel = vm["exploit-model-activated"].as<bool>();
+  config.operationType = d4::OperationTypeManager::getOperatorType("semiring");
+
+  bool isFloat = problem->isFloat();
+  MethodManager::displayInfoVariables(problem, std::cout);
+
+  // init the options.
+  if (config.cache.clauseRepresentation == CACHE_INDEX)
+    config.spec.needFastNotSatisfied = true;
+  OptionDpllStyleMethod options(config);
+
+  // construct and call the counter regarding if it is MC or WMC.
+  std::string format = vm["keyword-output-format-solution"].as<std::string>();
+  std::string outFormat = vm["output-format"].as<std::string>();
+
+  if (!isFloat) {
+    maxModel<mpz::mpz_int, MinPlus>(options, problem, format, outFormat, false);
+  } else
+    maxModel<mpz::mpf_float, MinPlus>(options, problem, format, outFormat, true);
+}  // maxplusDemo

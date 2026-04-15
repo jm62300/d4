@@ -38,9 +38,11 @@ public:
     }
     MaxPlus& operator*=(const MaxPlus& other) {
       return *this = *this * other;
+
     }
     MaxPlus& operator+=(const MaxPlus& other) {
       return *this = *this + other;
+
     }
 
     // Comparison (optional, useful)
