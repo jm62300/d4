@@ -45,22 +45,10 @@ public:
 
     }
 
-    // Comparison (optional, useful)
-    bool operator<(const MinPlus& other) const {
-      if (is_inf) return true;
-      if (other.is_inf) return is_inf;
-        return value < other.value;
-    }
-
     bool operator==(const MinPlus& other) const {
         if (is_inf && other.is_inf) return true;
         if (is_inf || other.is_inf) return false;
         return value == other.value;
-    }
-
-  bool operator==(const int& other) const {
-        if (is_inf) return false;
-        return value == other;
     }
 
   // Casting

@@ -38,7 +38,7 @@ extern d4::MethodManager *methodRun;
 using namespace d4;
 
 template <typename U, typename T>
-void maxModel(const OptionDpllStyleMethod &options, ProblemManager *problem,
+void semiringModel(const OptionDpllStyleMethod &options, ProblemManager *problem,
                  const std::string &format, const std::string &outFormat,
                  bool isFloat) {
   std::cout << "c [FORMAT] Input/Output format:" << " output-symbol(" << format
@@ -61,7 +61,7 @@ void maxModel(const OptionDpllStyleMethod &options, ProblemManager *problem,
 /**
  * @brief couterDemo implementation.
  */
-void maxplusDemo(const po::variables_map &vm, ProblemManager *problem) {
+void semiringDemo(const po::variables_map &vm, ProblemManager *problem) {
   // get the configuration.
   ConfigurationDpllStyleMethod config;
 
@@ -96,7 +96,7 @@ void maxplusDemo(const po::variables_map &vm, ProblemManager *problem) {
   std::string outFormat = vm["output-format"].as<std::string>();
 
   if (!isFloat) {
-    maxModel<mpz::mpz_int, MinPlus>(options, problem, format, outFormat, false);
+    semiringModel<mpz::mpz_int, MinPlus>(options, problem, format, outFormat, false);
   } else
-    maxModel<mpz::mpf_float, MinPlus>(options, problem, format, outFormat, true);
+    semiringModel<mpz::mpf_float, MinPlus>(options, problem, format, outFormat, true);
 }  // maxplusDemo

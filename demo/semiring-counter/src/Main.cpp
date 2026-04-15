@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
 
   // count.
-  maxplusDemo(vm, problem);
+  semiringDemo(vm, problem);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
