@@ -1,6 +1,6 @@
 # d4 with semirings
 
-This fork of [**d4**](https://github.com/jm62300/d4) adds support for counting over semiring. The main changes can be found in the `demo/semiring` directory. Running `./build.sh` in this directory constructs the `semiring` executable which solves the algebraic model counting over the $(min, +)$-semiring. To change the semiring, one has to implement a new class with methods `one()` and `zero()` returning the identify of $\times$ and $+$ respectively. Moreover, the following operators must be overloaded (see the implementation from `demo/semiring/src/MinPlus.hpp` as an example):
+This fork of [**d4**](https://github.com/jm62300/d4) adds support for counting over semiring. The main changes can be found in the `demo/semiring` directory. Running `./build.sh` in this directory constructs the `semiring` executable which solves the algebraic model counting over the $(min, +)$-semiring. To change the semiring, one has to implement a new class with methods `one()` and `zero()` returning the identity of $\times$ and $+$ respectively. Moreover, the following operators must be overloaded (see the implementation from `demo/semiring/src/MinPlus.hpp` as an example):
 
 - `+` and `+=`,
 - `*` and `*=`,
