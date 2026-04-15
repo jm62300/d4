@@ -25,12 +25,13 @@
 
 namespace d4 {
 
-enum OperationType { OP_COUNTING, OP_CIRC };
+enum OperationType { OP_COUNTING, OP_CIRC, OP_SEMIRING };
 
 class OperationTypeManager {
  public:
   static std::string getOperatorType(const OperationType& m) {
     if (m == OP_COUNTING) return "counting";
+    if (m == OP_SEMIRING) return "counting";
     if (m == OP_CIRC) return "ddnnf-compiler";
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
@@ -38,6 +39,7 @@ class OperationTypeManager {
 
   static OperationType getOperatorType(const std::string& m) {
     if (m == "counting" || m == "counting-global-cache") return OP_COUNTING;
+    if (m == "semiring") return OP_SEMIRING;
     if (m == "ddnnf-compiler") return OP_CIRC;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
@@ -46,6 +48,7 @@ class OperationTypeManager {
   static OperationType getOperatorType(const MethodName& m) {
     if (m == METH_COUNTING || m == METH_COUNTING_GLOBAL_CACHE)
       return OP_COUNTING;
+    if (m == METH_SEMIRING) return OP_SEMIRING;
     if (m == METH_DDNNF) return OP_CIRC;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));

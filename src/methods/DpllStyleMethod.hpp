@@ -47,6 +47,7 @@
 #define MASK_HEADER 33554431
 
 #include "CountingOperation.hpp"
+#include "SemiringOperation.hpp"
 #include "DecisionDNNFOperation.hpp"
 #include "OperationManager.hpp"
 

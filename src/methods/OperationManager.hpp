@@ -20,6 +20,7 @@
 #include <boost/multiprecision/gmp.hpp>
 
 #include "CountingOperation.hpp"
+#include "SemiringOperation.hpp"
 #include "DataBranch.hpp"
 #include "DecisionDNNFOperation.hpp"
 #include "nnf/Branch.hpp"
@@ -54,6 +55,9 @@ class Operation {
 
     if (options.operatorType == OP_CIRC)
       return new DecisionDNNFOperation<T, Node<T> *>(problem, specs, solver);
+
+    if (options.operatorType == OP_SEMIRING)
+      return new SemiringOperation<T, U>(problem);
 
     throw(FactoryException("Cannot create a Operation", __FILE__, __LINE__));
   }  // makeOperationManager

@@ -27,6 +27,7 @@ class Configuration;
 enum MethodName {
   METH_EROSION,
   METH_COUNTING,
+  METH_SEMIRING,
   METH_DDNNF,
   METH_ERE,
   METH_MAX_SHARP,
@@ -45,6 +46,8 @@ class MethodNameManager {
         return "erosion";
       case METH_COUNTING:
         return "counting";
+    case METH_SEMIRING:
+        return "semiring";
       case METH_DDNNF:
         return "ddnnf-compiler";
       case METH_MAX_SHARP:
@@ -69,6 +72,7 @@ class MethodNameManager {
   static MethodName getMethodName(const std::string &m) {
     if (m == "erosion") return METH_EROSION;
     if (m == "counting") return METH_COUNTING;
+    if (m == "semiring") return METH_SEMIRING;
     if (m == "ddnnf-compiler") return METH_DDNNF;
     if (m == "max#sat") return METH_MAX_SHARP;
     if (m == "min#sat") return METH_MIN_SHARP;
