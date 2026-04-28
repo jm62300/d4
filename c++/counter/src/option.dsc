@@ -16,7 +16,7 @@
 ("phase-heuristic,ph",boost::program_options::value<std::string>()->default_value("polarity"),"The way the phase of the next decision is selected (false, true, polarity or occurrence).")
 ("phase-heuristic-reversed,pha", boost::program_options::value<bool>()->default_value(false), "Consider or not the reverse of the current phase.")
 ("partialOrder-heuristic",boost::program_options::value<std::string>()->default_value("tree-decomposition"),"The method used to compute a cut. [none, tree-decomposition]")
-("partialOrder-heuristic-partitioner",boost::program_options::value<std::string>()->default_value("patoh"),"The partitioner we will call (patoh).")
+("partialOrder-heuristic-partitioner",boost::program_options::value<std::string>()->default_value("none"),"The partitioner we will call (none) [Not implemented yet!].")
 ("partialOrder-heuristic-tree-decomposition",boost::program_options::value<std::string>()->default_value("tree-width"),"The tree decomposition technique used (tree-partition, tree-width).")
 ("partialOrder-heuristic-hyper-graph-representation",boost::program_options::value<std::string>()->default_value("dual"),"The hyper graph representation used (dual).")
 ("partialOrder-heuristic-graph-representation",boost::program_options::value<std::string>()->default_value("primal"),"The graph representation used (primal).")

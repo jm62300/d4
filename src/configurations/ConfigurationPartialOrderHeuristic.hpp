@@ -30,7 +30,7 @@ namespace d4 {
 struct ConfigurationPartialOrderHeuristic {
   PartialOrderHeuristicMethod partialOrderMethod =
       PARTIAL_ORDER_TREE_DECOMPOSITION;
-  PartitionerName partitionerName = PARTITIONER_PATOH;
+  PartitionerName partitionerName = PARTITIONER_NONE;
   TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
   TreeDecompositionerMethod treeDecompositionerMethod =
       TREE_DECOMP_TOOL_FLOW_CUTTER;

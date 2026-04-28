@@ -49,7 +49,7 @@ cd $curRep
 mkdir -p build
 cd build
 
-cmake .. -DBUILD_MODE=$opt 
+cmake .. -DBUILD_MODE=$opt ${CMAKE_PIC_FLAG:-}
 make -j
 
 mv libbipe.a libbipetmp.a

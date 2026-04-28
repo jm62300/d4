@@ -25,13 +25,13 @@
 namespace d4 {
 
 struct Strata {
-  TreeDecomp *father;
+  TreeDecomp* father;
   HyperGraph graph;
 };
 
 class TreeDecompositionPartition : public TreeDecomposition {
  private:
-  PartitionerName m_partitionerName = PARTITIONER_PATOH;
+  PartitionerName m_partitionerName = PARTITIONER_NONE;
   HyperGraphExtractorMethod m_hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
 
  public:
@@ -56,6 +56,6 @@ class TreeDecompositionPartition : public TreeDecomposition {
    *
    * @return the computed decomposition.
    */
-  TreeDecomp *computeDecomposition(FormulaManager &om) override;
+  TreeDecomp* computeDecomposition(FormulaManager& om) override;
 };
 }  // namespace d4

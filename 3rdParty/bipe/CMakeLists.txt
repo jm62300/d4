@@ -1,79 +1,47 @@
-cmake_minimum_required(VERSION 3.1)
+file(GLOB GLUCOSE_BIPE_SOURCES
+        3rdParty/glucose-3.0/core/Solver.cc
+        3rdParty/glucose-3.0/utils/System.cc
+        3rdParty/glucose-3.0/utils/Options.cc
+        "3rdParty/glucose-3.0/mtl/*.cc"
+)
+add_library(glucose_bipe STATIC ${GLUCOSE_BIPE_SOURCES})
+target_link_libraries(glucose_bipe PRIVATE ZLIB::ZLIB)
+target_compile_definitions(glucose_bipe PRIVATE __STDC_LIMIT_MACROS __STDC_FORMAT_MACROS)
+target_include_directories(glucose_bipe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glucose-3.0)
 
-# set the project name and version
-project(bipe VERSION 0.1)
+file(GLOB_RECURSE BIPE_SOURCES "src/*.cpp")
+add_library(bipe STATIC ${BIPE_SOURCES})
+target_compile_features(bipe PUBLIC cxx_std_20)
 
-add_custom_target(clean-cmake-files
-   COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
+if(MSVC)
+    target_compile_options(bipe PRIVATE
+        /DNOMAIN
+        /W3        # -Wall
+        /wd4018    # -Wno-sign-compare
+        /wd4706    # -Wno-parentheses
+        /wd4477    # -Wno-format
+        /wd4455    # -Wno-literal-suffix
+    )
+else()
+    target_compile_options(bipe PRIVATE
+        -DNOMAIN
+        -Wall
+        -Wno-class-memaccess
+        -Wno-format
+        -Wno-misleading-indentation
+        -Wno-literal-suffix
+        -Wno-sign-compare
+        -Wno-parentheses
+    )
+endif()
+
+target_include_directories(glucose_bipe BEFORE PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glucose-3.0
 )
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+target_include_directories(bipe BEFORE PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glucose-3.0
+)
 
-# specify the C++ standard
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# source/include files
-file(GLOB_RECURSE SOURCES ./src/**.cpp)
-file(GLOB_RECURSE INCLUDES ./src/**.hpp)
-
-set(SRCS ${SOURCES})
-set(HEADERS ${INCLUDES})
-
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/)
-
-if (NOT DEFINED BUILD_MODE)
-   set(BUILD_MODE 1)
-endif()
-
-
-set(libList ${CMAKE_SOURCE_DIR}/3rdParty/glucose-3.0/core/libglucose.a)
-
-# flags
-if(${BUILD_MODE} EQUAL 1)  
-  message("Debug: Library creation")
-  set(CMAKE_BUILD_TYPE Debug)    
-  add_library(bipe ${SRCS})    
-
-  target_compile_options(bipe PUBLIC -DNOMAIN -std=c++20 -Wall -pg -O2 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
-  target_link_libraries (bipe -lz -O2 ${libList})
-  target_include_directories (bipe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-  install (TARGETS bipe DESTINATION lib)
-  install (FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME})  
-elseif(${BUILD_MODE} EQUAL 2)  
-  message("Static: Library creation")
-  set(CMAKE_BUILD_TYPE Release)
-  add_library(bipe ${SRCS})
-
-  target_compile_options(bipe PUBLIC -DNOMAIN -std=c++20 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses -static)
-  target_link_libraries (bipe -lz -O3 ${libList} -static)
-  target_include_directories (bipe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-  install (TARGETS bipe DESTINATION lib)
-  install (FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME})
-elseif(${BUILD_MODE} EQUAL 0)
-  message("Library creation")
-  add_library(bipe ${SRCS})
-
-  target_compile_options(bipe PUBLIC -DNOMAIN -std=c++20 -Wall -O3 -Wno-class-memaccess -Wno-format -Wno-misleading-indentation -Wno-literal-suffix -Wno-sign-compare -Wno-parentheses)
-  target_link_libraries (bipe -lz -O3 ${libList})
-  target_include_directories (bipe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-  install (TARGETS bipe DESTINATION lib)
-  install (FILES ${HEADER} DESTINATION include/${CMAKE_PROJECT_NAME})
-else()  
-  message("Error!")  
-endif()
-
-
-file(GLOB cmake_generated ${CMAKE_SOURCE_DIR}/srcBipe/*~)
-
-foreach(file ${cmake_generated})
-
-  if (EXISTS ${file})
-     file(REMOVE_RECURSE ${file})
-  endif()
-
-endforeach(file)
+target_link_libraries(bipe PUBLIC ZLIB::ZLIB glucose_bipe)
