@@ -18,7 +18,6 @@
  */
 #include "PartitionerManager.hpp"
 
-#include "PartitionerPatoh.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -26,14 +25,9 @@ namespace d4 {
 /**
  * @brief PartitionerManager::makePartitioner implementation.
  */
-PartitionerManager *PartitionerManager::makePartitioner(
-    PartitionerName partitioner, const InfoHyperGraph &infoHyperGraph,
-    std::ostream &out) {
-  switch (partitioner) {
-    case PARTITIONER_PATOH:
-      return new PartitionerPatoh(infoHyperGraph, out);
-  }
-
+PartitionerManager* PartitionerManager::makePartitioner(
+    PartitionerName partitioner, const InfoHyperGraph& infoHyperGraph,
+    std::ostream& out) {
   throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
 }  // makePartitioner
 }  // namespace d4

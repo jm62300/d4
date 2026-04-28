@@ -31,13 +31,11 @@ enum PartitionerName { PARTITIONER_PATOH };
 
 class PartitionerNameManager {
  public:
-  static std::string getPartitionerName(const PartitionerName &m) {
-    if (m == PARTITIONER_PATOH) return "patoh";
+  static std::string getPartitionerName(const PartitionerName& m) {
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
 
-  static PartitionerName getPartitionerName(const std::string &m) {
-    if (m == "patoh") return PARTITIONER_PATOH;
+  static PartitionerName getPartitionerName(const std::string& m) {
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
 };
@@ -55,13 +53,13 @@ class PartitionerManager {
    *
    * @return a partitioner manager.
    */
-  static PartitionerManager *makePartitioner(
-      PartitionerName partitioner, const InfoHyperGraph &infoHyperGraph,
-      std::ostream &out);
+  static PartitionerManager* makePartitioner(
+      PartitionerName partitioner, const InfoHyperGraph& infoHyperGraph,
+      std::ostream& out);
 
   virtual ~PartitionerManager() {}
 
-  virtual void computePartition(HyperGraph &hypergraph, Level level,
-                                std::vector<int> &partition) = 0;
+  virtual void computePartition(HyperGraph& hypergraph, Level level,
+                                std::vector<int>& partition) = 0;
 };
 }  // namespace d4
