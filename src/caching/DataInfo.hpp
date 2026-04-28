@@ -17,7 +17,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <bits/stdint-uintn.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -37,17 +36,17 @@ class DataInfo {
       unsigned nbVar : 22;
       unsigned szData : 32;
     } info;
-    u_int64_t info1;
+    uint64_t info1;
   };
 
   DataInfo();
   DataInfo(unsigned szData, unsigned nbVar, unsigned nbBitVar,
            unsigned nbBitFormula);
 
-  inline unsigned *getInfo() { return (unsigned *)this; }
+  inline unsigned* getInfo() { return (unsigned*)this; }
   inline unsigned getSizeInfo() { return 3; }
 
-  bool operator==(const DataInfo &d) const {
+  bool operator==(const DataInfo& d) const {
     return info1 == d.info1;
   }  // operator ==
 
@@ -64,8 +63,8 @@ class DataInfo {
   inline void reset() { info1 = 0; }
 
   template <typename U>
-  void printData(void *data, int sz, std::ostream &out) {
-    char *p = (char *)data;
+  void printData(void* data, int sz, std::ostream& out) {
+    char* p = (char*)data;
     for (int i = 0; i < sz; i++) {
       out << std::bitset<8>(p[i]) << " ";
     }

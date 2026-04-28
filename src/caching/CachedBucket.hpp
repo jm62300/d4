@@ -27,7 +27,7 @@ namespace d4 {
 
 class DataBucket {
  public:
-  char *data;
+  char* data;
   DataInfo header;
 
   DataBucket() {
@@ -35,12 +35,12 @@ class DataBucket {
     header.szData(0);
   }
 
-  inline void set(char *d, DataInfo &dnew) {
+  inline void set(char* d, DataInfo& dnew) {
     data = d;
     header = dnew;
   }  // set
 
-  inline u_int64_t getInfo() { return header.info1; }
+  inline uint64_t getInfo() { return header.info1; }
   inline void szData(int s) { header.szData(s); }
   inline unsigned szData() { return header.szData(); }
   inline unsigned nbVar() { return header.nbVar(); }
@@ -53,8 +53,8 @@ class DataBucket {
     std::cout << "\n";
   }
 
-  inline DataInfo &getDataInfo() { return header; }
-  inline bool sameHeader(DataBucket &b) { return header == b.header; }
+  inline DataInfo& getDataInfo() { return header; }
+  inline bool sameHeader(DataBucket& b) { return header == b.header; }
 };
 
 template <class T>
@@ -63,12 +63,12 @@ class CachedBucket {
   T fc;
   DataBucket dataBucket;
 
-  inline void set(char *d, DataInfo &dnew) { dataBucket.set(d, dnew); }  // set
+  inline void set(char* d, DataInfo& dnew) { dataBucket.set(d, dnew); }  // set
   inline void lockedBucket(T v) { fc = v; }
-  inline DataBucket &getDateBucket() { return dataBucket; }
+  inline DataBucket& getDateBucket() { return dataBucket; }
 
 #if 0
-  inline u_int64_t getInfo() { return header.info1; }
+  inline uint64_t getInfo() { return header.info1; }
   inline void szData(int s) { header.szData(s); }
   inline unsigned szData() { return header.szData(); }
   inline unsigned nbVar() { return header.nbVar(); }

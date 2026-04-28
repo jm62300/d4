@@ -30,7 +30,7 @@ struct AndGate {
 
   void display() {
     std::cout << output << " <-> ";
-    for (auto &l : input) std::cout << l << " ";
+    for (auto& l : input) std::cout << l << " ";
     std::cout << "\n";
   }
 };
@@ -38,14 +38,14 @@ struct AndGate {
 class AndGatesExtractor {
  private:
   std::vector<bool> m_markedVar;
-  std::vector<u_int8_t> m_flagVar;
+  std::vector<uint8_t> m_flagVar;
 
  public:
   AndGatesExtractor() { ; }  // empty constructor
   AndGatesExtractor(int nbVar);
   void init(int nbVar);
 
-  void searchAndGates(CnfManager *om, std::vector<Var> &v,
-                      std::vector<AndGate> &gates);
+  void searchAndGates(CnfManager* om, std::vector<Var>& v,
+                      std::vector<AndGate>& gates);
 };
 }  // namespace d4

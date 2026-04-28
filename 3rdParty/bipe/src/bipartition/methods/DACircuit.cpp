@@ -36,9 +36,9 @@ namespace bipartition {
  * @param[out] impliedList is the computed list.
  * @param[out] units is a set of literals that are implied by the formula.
  */
-void DACircuit::constructImpliedList(Problem &p, WrapperSolver *solver,
-                                     std::vector<std::vector<Lit>> &impliedList,
-                                     std::vector<Lit> &units) {
+void DACircuit::constructImpliedList(Problem& p, WrapperSolver* solver,
+                                     std::vector<std::vector<Lit>>& impliedList,
+                                     std::vector<Lit>& units) {
   // init the returned list.
   impliedList.clear();
   impliedList.resize((1 + p.getNbVar()) << 1, std::vector<Lit>());
@@ -46,7 +46,7 @@ void DACircuit::constructImpliedList(Problem &p, WrapperSolver *solver,
   // mark the projected variables.
   std::vector<bool> markedProjected(p.getNbVar() + 1, false);
   std::vector<bool> markedUnit(p.getNbVar() + 1, false);
-  for (auto &l : units) markedUnit[l.var()] = true;
+  for (auto& l : units) markedUnit[l.var()] = true;
 
   // construction.
   for (auto v : p.getProjectedVar()) {
@@ -87,8 +87,8 @@ void DACircuit::constructImpliedList(Problem &p, WrapperSolver *solver,
  * we found.
  */
 void DACircuit::extractEquivClass(
-    Problem &p, std::vector<Gate> &gates,
-    std::vector<std::vector<Lit>> &equivClassList) {
+    Problem& p, std::vector<Gate>& gates,
+    std::vector<std::vector<Lit>>& equivClassList) {
   // should be reinit at each run.
   std::vector<char> markedLit(p.getNbVar() + 1, 0);
   std::vector<bool> markedIn(p.getNbVar() + 1, false);
@@ -139,10 +139,10 @@ void DACircuit::extractEquivClass(
         equivClassList.push_back(inConstruction);
       } else {
         // aggregate in minIdx.
-        std::vector<Lit> &equivMinIdx = equivClassList[minIdx];
+        std::vector<Lit>& equivMinIdx = equivClassList[minIdx];
 
         // adjust equivMinIdx.
-        u_int8_t status = 2;
+        uint8_t status = 2;
         for (auto m : equivMinIdx) {
           if (!markedLit[m.var()]) continue;
           if ((1 + (~m).sign() == markedLit[m.var()]))
@@ -152,10 +152,10 @@ void DACircuit::extractEquivClass(
         }
 
         if (status == 1)
-          for (auto &m : equivMinIdx) m = ~m;
+          for (auto& m : equivMinIdx) m = ~m;
 
         // consider all the literals.
-        for (auto &l : inConstruction) {
+        for (auto& l : inConstruction) {
           if (posEquiv[l.var()] == minIdx)
             continue;
           else if (posEquiv[l.var()] == -1)
@@ -187,7 +187,7 @@ void DACircuit::extractEquivClass(
   }
 
   // remove the units.
-  for (auto &list : equivClassList) {
+  for (auto& list : equivClassList) {
     unsigned j = 0;
     for (unsigned i = 0; i < list.size(); i++)
       if (!markedUnit[list[i].var()]) list[j++] = list[i];
@@ -239,8 +239,8 @@ unsigned DACircuit::getScore(Var v) {
  * identified as an output.
  * @param out is the stream where are printed out the logs.
  */
-void DACircuit::identifyEquiv(Problem &p, std::vector<Gate> &listOfGates,
-                              std::vector<Lit> &units, std::ostream &out) {
+void DACircuit::identifyEquiv(Problem& p, std::vector<Gate>& listOfGates,
+                              std::vector<Lit>& units, std::ostream& out) {
   // compute the equivalence classes.
   unsigned nbEquiv = 0;
   std::vector<std::vector<Lit>> equivClassList;
@@ -254,11 +254,11 @@ void DACircuit::identifyEquiv(Problem &p, std::vector<Gate> &listOfGates,
     }
 
   // select the inputs.
-  for (auto &list : equivClassList) {
+  for (auto& list : equivClassList) {
     Lit e = list[0];
     int score = getScore(e.var());
 
-    for (auto &l : list) {
+    for (auto& l : list) {
       if (m_markedProtected[l.var()]) {
         e = l;
         break;
@@ -271,7 +271,7 @@ void DACircuit::identifyEquiv(Problem &p, std::vector<Gate> &listOfGates,
     }
 
     std::vector<Var> outVar, inVar = {e.var()};
-    for (auto &l : list)
+    for (auto& l : list)
       if (l != e && !m_markedProtected[l.var()] &&
           m_markedAsProjected[l.var()]) {
         m_markedAsOutput[l.var()] = true;
@@ -293,8 +293,8 @@ void DACircuit::identifyEquiv(Problem &p, std::vector<Gate> &listOfGates,
  * @param[out] listOfGates is where are added the gates.
  * @param out is the stream where are printed out the logs.
  */
-void DACircuit::identifyAndGate(Problem &p, std::vector<Gate> &listOfGates,
-                                std::ostream &out) {
+void DACircuit::identifyAndGate(Problem& p, std::vector<Gate>& listOfGates,
+                                std::ostream& out) {
   unsigned nbAndGates = 0;
   std::vector<Var> remainingVar = p.getProjectedVar();
   unsigned j = 0;
@@ -322,7 +322,7 @@ void DACircuit::identifyAndGate(Problem &p, std::vector<Gate> &listOfGates,
       if (m_impliedList[l.intern()].size() < 2) continue;
 
       std::vector<Lit> clauseToTest = {~l};
-      for (auto &m : m_impliedList[l.intern()])
+      for (auto& m : m_impliedList[l.intern()])
         if (m.var() != v) clauseToTest.push_back(m);
 
       std::vector<Lit> core;
@@ -340,7 +340,7 @@ void DACircuit::identifyAndGate(Problem &p, std::vector<Gate> &listOfGates,
           listOfGates.push_back({UNIT, core[0], {}});
         else {
           std::vector<Lit> andImplied;
-          for (auto &m : core)
+          for (auto& m : core)
             if (l != m) andImplied.push_back(~m);
 
           listOfGates.push_back(
@@ -375,9 +375,9 @@ void DACircuit::identifyAndGate(Problem &p, std::vector<Gate> &listOfGates,
  * @param[out] xorClause is the xor you computed (if exists).
  * @return true if a xor can be detected, false otherwise.
  */
-bool DACircuit::canWeBuildXor(std::vector<std::vector<Lit>> &clauses,
-                              std::vector<int> &indices,
-                              std::vector<Lit> &xorClause) {
+bool DACircuit::canWeBuildXor(std::vector<std::vector<Lit>>& clauses,
+                              std::vector<int>& indices,
+                              std::vector<Lit>& xorClause) {
   if (!indices.size()) return false;
   unsigned size = clauses[indices[0]].size();
 
@@ -385,9 +385,9 @@ bool DACircuit::canWeBuildXor(std::vector<std::vector<Lit>> &clauses,
   std::vector<int> odd, even;
 
   for (auto idx : indices) {
-    auto &cl = clauses[idx];
+    auto& cl = clauses[idx];
     unsigned nbNeg = 0;
-    for (auto &l : cl)
+    for (auto& l : cl)
       if (l.sign()) nbNeg++;
 
     if (nbNeg & 1)
@@ -403,37 +403,37 @@ bool DACircuit::canWeBuildXor(std::vector<std::vector<Lit>> &clauses,
   // remove identical clauses.
   unsigned j = 0;
   for (unsigned i = 0; i < odd.size(); i++) {
-    std::vector<Lit> &cl = clauses[odd[i]];
-    for (auto &l : cl) m_marker[l.intern()] = true;
+    std::vector<Lit>& cl = clauses[odd[i]];
+    for (auto& l : cl) m_marker[l.intern()] = true;
 
     bool notAlreadyPresent = false;
     for (unsigned k = i + 1; !notAlreadyPresent && k < odd.size(); k++) {
       notAlreadyPresent = true;
-      for (auto &l : clauses[odd[k]])
+      for (auto& l : clauses[odd[k]])
         if (!(notAlreadyPresent = !m_marker[l.intern()])) break;
     }
 
     if (notAlreadyPresent) odd[j++] = odd[i];
 
-    for (auto &l : cl) m_marker[l.intern()] = false;
+    for (auto& l : cl) m_marker[l.intern()] = false;
   }
   odd.resize(j);
 
   j = 0;
   for (unsigned i = 0; i < even.size(); i++) {
-    std::vector<Lit> &cl = clauses[even[i]];
-    for (auto &l : cl) m_marker[l.intern()] = true;
+    std::vector<Lit>& cl = clauses[even[i]];
+    for (auto& l : cl) m_marker[l.intern()] = true;
 
     bool notAlreadyPresent = false;
     for (unsigned k = i + 1; !notAlreadyPresent && k < even.size(); k++) {
       notAlreadyPresent = true;
-      for (auto &l : clauses[even[k]])
+      for (auto& l : clauses[even[k]])
         if (!(notAlreadyPresent = !m_marker[l.intern()])) break;
     }
 
     if (notAlreadyPresent) even[j++] = even[i];
 
-    for (auto &l : cl) m_marker[l.intern()] = false;
+    for (auto& l : cl) m_marker[l.intern()] = false;
   }
   even.resize(j);
 
@@ -458,8 +458,8 @@ bool DACircuit::canWeBuildXor(std::vector<std::vector<Lit>> &clauses,
  * @param listOfGates is the place where are stored the XOR gates.
  * @param out is the stream where are printed out the logs.
  */
-void DACircuit::identifyXorGate(Problem &p, std::vector<Gate> &listOfGates,
-                                std::ostream &out) {
+void DACircuit::identifyXorGate(Problem& p, std::vector<Gate>& listOfGates,
+                                std::ostream& out) {
   unsigned nbXorGates = 0;
 
   // get the unclassified variables.
@@ -473,7 +473,7 @@ void DACircuit::identifyXorGate(Problem &p, std::vector<Gate> &listOfGates,
 
   // construct the occurrence list.
   std::vector<std::vector<int>> occurrence(p.getNbVar() + 1);
-  auto &clauses = p.getClauses();
+  auto& clauses = p.getClauses();
   for (unsigned i = 0; i < clauses.size(); i++)
     for (auto l : clauses[i]) occurrence[l.var()].push_back(i);
 
@@ -512,13 +512,13 @@ void DACircuit::identifyXorGate(Problem &p, std::vector<Gate> &listOfGates,
     for (unsigned size = 3; !xorOk && size <= MAX_SIZE_XOR; size++) {
       while (!xorOk && indices[size].size()) {
         std::vector<int> subIndices = {indices[size][0]};
-        auto &cl = clauses[indices[size][0]];
-        for (auto &l : cl) m_marker[l.var()] = true;
+        auto& cl = clauses[indices[size][0]];
+        for (auto& l : cl) m_marker[l.var()] = true;
 
         unsigned j = 0;
         for (unsigned i = 1; i < indices[size].size(); i++) {
           bool sameVar = true;
-          for (auto &l : clauses[indices[size][i]])
+          for (auto& l : clauses[indices[size][i]])
             if (!(sameVar = m_marker[l.var()])) break;
 
           if (sameVar)
@@ -528,7 +528,7 @@ void DACircuit::identifyXorGate(Problem &p, std::vector<Gate> &listOfGates,
         }
         indices[size].resize(j);
 
-        for (auto &l : cl) m_marker[l.var()] = false;
+        for (auto& l : cl) m_marker[l.var()] = false;
 
         std::vector<Lit> xorClause;
         if (canWeBuildXor(clauses, subIndices, xorClause)) {
@@ -538,14 +538,14 @@ void DACircuit::identifyXorGate(Problem &p, std::vector<Gate> &listOfGates,
           // add the relation between the input/output variables.
           std::vector<Var> areIn(xorClause.size() - 1), isOut = {v};
           unsigned i = 0;
-          for (auto &l : xorClause)
+          for (auto& l : xorClause)
             if (l.var() != v) areIn[i++] = l.var();
           addRelation(areIn, isOut);
 
           // add the gate.
           Lit l = lit_Undef;
           std::vector<Lit> xorInput;
-          for (auto &m : xorClause)
+          for (auto& m : xorClause)
             if (v != m.var())
               xorInput.push_back(m);
             else
@@ -572,7 +572,7 @@ void DACircuit::identifyXorGate(Problem &p, std::vector<Gate> &listOfGates,
  * @param p is the problem we are search a DAC for.
  * @param[out] units, is the set of units we detected so far.
  */
-void DACircuit::init(Problem &p, std::vector<Lit> &units) {
+void DACircuit::init(Problem& p, std::vector<Lit>& units) {
   m_markedAsOutput.clear();
   m_markedProtected.clear();
   m_edgeIn.clear();
@@ -606,7 +606,7 @@ void DACircuit::init(Problem &p, std::vector<Lit> &units) {
  * @param in are variables that must be added as input of variable of out.
  * @param out are variables that are output of variable in in.
  */
-void DACircuit::addRelation(std::vector<Var> &in, std::vector<Var> &out) {
+void DACircuit::addRelation(std::vector<Var>& in, std::vector<Var>& out) {
   // mark descendants.
   m_mustUnmark.resize(0);
   std::vector<Var> stack = out;
@@ -644,7 +644,7 @@ void DACircuit::addRelation(std::vector<Var> &in, std::vector<Var> &out) {
       Lit l = Lit::makeLit(v, phase);
 
       unsigned j = 0;
-      std::vector<Lit> &listImplied = m_impliedList[l.intern()];
+      std::vector<Lit>& listImplied = m_impliedList[l.intern()];
       for (unsigned i = 0; i < listImplied.size(); i++)
         if (!m_marker[listImplied[i].var()]) listImplied[j++] = listImplied[i];
       listImplied.resize(j);
@@ -682,7 +682,7 @@ void DACircuit::markDescendant(Var v) {
  *
  */
 void DACircuit::unmarkDescendant() {
-  for (auto &v : m_mustUnmarkDescendant) m_markerDescendant[v] = false;
+  for (auto& v : m_mustUnmarkDescendant) m_markerDescendant[v] = false;
   m_mustUnmarkDescendant.resize(0);
 }  // unarkDescendant
 
@@ -696,9 +696,9 @@ void DACircuit::unmarkDescendant() {
  * @param out is the stream where are printed out the logs.
  * @return true if the problem is satisfiable, false otherwise.
  */
-bool DACircuit::run(Problem &p, std::vector<Gate> &listOfGates,
-                    std::vector<std::vector<bool>> &models,
-                    const OptionDac &optDac, std::ostream &out) {
+bool DACircuit::run(Problem& p, std::vector<Gate>& listOfGates,
+                    std::vector<std::vector<bool>>& models,
+                    const OptionDac& optDac, std::ostream& out) {
   std::vector<Lit> units;
 
   // initialization.
@@ -715,11 +715,11 @@ bool DACircuit::run(Problem &p, std::vector<Gate> &listOfGates,
   // consider XOR gates.
   if (!m_interrupted) identifyXorGate(p, listOfGates, out);
 
-  for (auto &l : units)
+  for (auto& l : units)
     if (!m_markedAsOutput[l.var()] && m_markedAsProjected[l.var()])
       listOfGates.push_back({UNIT, {l}, {}});
 
-  WrapperSolver *tmp = m_solver;
+  WrapperSolver* tmp = m_solver;
   m_solver = nullptr;
   delete tmp;
   return true;

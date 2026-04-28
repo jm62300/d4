@@ -53,7 +53,7 @@ class MinSharpSAT : public MethodManager {
 
   struct MinSharpSatResult {
     T count;
-    u_int8_t *valuation;
+    uint8_t* valuation;
   };
 
  private:
@@ -79,20 +79,20 @@ class MinSharpSAT : public MethodManager {
   T m_minCount = T(-1);
 
   const unsigned c_sizePage = 1 << 18;
-  std::vector<u_int8_t *> m_memoryPages;
+  std::vector<uint8_t*> m_memoryPages;
   unsigned m_posInMemoryPages;
   unsigned m_sizeArray;
 
-  ProblemManager *m_problem;
-  WrapperSolver *m_solver;
-  FormulaManager *m_specs;
-  ScoringMethod *m_hVarMin;
-  PhaseHeuristic *m_hPhaseMin;
-  ScoringMethod *m_hVarInd;
-  PhaseHeuristic *m_hPhaseInd;
+  ProblemManager* m_problem;
+  WrapperSolver* m_solver;
+  FormulaManager* m_specs;
+  ScoringMethod* m_hVarMin;
+  PhaseHeuristic* m_hPhaseMin;
+  ScoringMethod* m_hVarInd;
+  PhaseHeuristic* m_hPhaseInd;
 
-  CacheManager<T> *m_cacheInd;
-  CacheManager<MinSharpSatResult> *m_cacheMax;
+  CacheManager<T>* m_cacheInd;
+  CacheManager<MinSharpSatResult>* m_cacheMax;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -103,8 +103,8 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] options, the list of options.
    */
-  MinSharpSAT(const OptionMinSharpSatMethod &options,
-              ProblemManager *initProblem, std::ostream &out)
+  MinSharpSAT(const OptionMinSharpSatMethod& options,
+              ProblemManager* initProblem, std::ostream& out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
@@ -172,7 +172,7 @@ class MinSharpSAT : public MethodManager {
     m_out << "c\n";
 
     // init the memory requierd for storing interpretation.
-    m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+    m_memoryPages.push_back(new uint8_t[c_sizePage]);
     m_posInMemoryPages = 0;
     m_sizeArray = m_problem->getMaxVar().size();
   }  // constructor
@@ -200,7 +200,7 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showInter(std::ostream &out) {
+  inline void showInter(std::ostream& out) {
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall
         << std::fixed << std::setprecision(2) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
@@ -219,7 +219,7 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out) {
+  inline void separator(std::ostream& out) {
     out << "c ";
     for (int i = 0; i < NB_SEP; i++) out << "-";
     out << "\n";
@@ -230,7 +230,7 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out) {
+  inline void showHeader(std::ostream& out) {
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#compile" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
@@ -249,7 +249,7 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out) {
+  inline void showRun(std::ostream& out) {
     if (!(m_nbCallCall & (MASK_HEADER))) showHeader(out);
     if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) showInter(out);
   }  // showRun
@@ -259,7 +259,7 @@ class MinSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out) {
+  inline void printFinalStats(std::ostream& out) {
     separator(out);
     out << "c\n";
     out << "c \033[1m\033[31mStatistics \033[0m\n";
@@ -279,13 +279,13 @@ class MinSharpSAT : public MethodManager {
    * @brief Get a pointer on an allocated array of size m_sizeArray (which is
    * set once in the constructor).
    *
-   * @return a pointer on a u_int8_t array.
+   * @return a pointer on a uint8_t array.
    */
-  u_int8_t *getArray() {
-    u_int8_t *ret = &(m_memoryPages.back()[m_posInMemoryPages]);
+  uint8_t* getArray() {
+    uint8_t* ret = &(m_memoryPages.back()[m_posInMemoryPages]);
     m_posInMemoryPages += m_sizeArray;
     if (m_posInMemoryPages > c_sizePage) {
-      m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+      m_memoryPages.push_back(new uint8_t[c_sizePage]);
       m_posInMemoryPages = 0;
       ret = m_memoryPages.back();
     }
@@ -298,8 +298,8 @@ class MinSharpSAT : public MethodManager {
    * @param[in] isDecisionvariable, a type decision vector that marks as true
    * decision variables.
    */
-  void expelNoDecisionVar(std::vector<Var> &vars,
-                          std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionVar(std::vector<Var>& vars,
+                          std::vector<bool>& isDecisionVariable) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
       if (isDecisionVariable[vars[i]]) vars[j++] = vars[i];
@@ -312,8 +312,8 @@ class MinSharpSAT : public MethodManager {
    * @param[in] isDecisionvariable, a type decision vector that marks as true
    * decision variables.
    */
-  void expelNoDecisionLit(std::vector<Lit> &lits,
-                          std::vector<bool> &isDecisionVariable) {
+  void expelNoDecisionLit(std::vector<Lit>& lits,
+                          std::vector<bool>& isDecisionVariable) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
       if (isDecisionVariable[lits[i].var()]) lits[j++] = lits[i];
@@ -330,10 +330,10 @@ class MinSharpSAT : public MethodManager {
    * @param out, the stream we use to print out logs.
    * @param result, the strucre where is solved the result.
    */
-  void searchMinValuation(std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit,
-                          std::vector<Var> &freeVariable, std::ostream &out,
-                          MinSharpSatResult &result) {
+  void searchMinValuation(std::vector<Var>& setOfVar,
+                          std::vector<Lit>& unitsLit,
+                          std::vector<Var>& freeVariable, std::ostream& out,
+                          MinSharpSatResult& result) {
     showRun(out);
     m_nbCallCall++;
 
@@ -373,7 +373,7 @@ class MinSharpSAT : public MethodManager {
       if (nbComponent) {
         m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
         for (int cp = 0; cp < nbComponent; cp++) {
-          std::vector<Var> &connected = varConnected[cp];
+          std::vector<Var>& connected = varConnected[cp];
           TmpEntry<MinSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
           if (cb.defined) {
@@ -430,8 +430,8 @@ class MinSharpSAT : public MethodManager {
    *
    * \return the compiled formula.
    */
-  void searchMinSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
-                                 MinSharpSatResult &result) {
+  void searchMinSharpSatDecision(std::vector<Var>& connected, std::ostream& out,
+                                 MinSharpSatResult& result) {
     // search the next variable to branch on
     Var v = m_hVarMin->selectVariable(connected, *m_specs, m_isMaxDecisionVar);
 
@@ -502,8 +502,8 @@ class MinSharpSAT : public MethodManager {
    * \return an element of type U that sums up the given CNF sub-formula using
    * a DPLL style algorithm with an operation manager.
    */
-  T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out) {
+  T countInd_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+              std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
 
@@ -524,7 +524,7 @@ class MinSharpSAT : public MethodManager {
     if (nbComponent) {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
         TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
         if (cb.defined)
@@ -549,7 +549,7 @@ class MinSharpSAT : public MethodManager {
    *
    * \return the compiled formula.
    */
-  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+  T countIndDecisionNode(std::vector<Var>& connected, std::ostream& out) {
     // search the next variable to branch on
     Var v = m_hVarInd->selectVariable(connected, *m_specs, m_isDecisionVar);
 
@@ -592,8 +592,8 @@ class MinSharpSAT : public MethodManager {
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  void compute(std::vector<Var> &setOfVar, std::ostream &out,
-               MinSharpSatResult &result, bool warmStart = true) {
+  void compute(std::vector<Var>& setOfVar, std::ostream& out,
+               MinSharpSatResult& result, bool warmStart = true) {
     if (m_problem->isUnsat() || (warmStart && !m_panicMode &&
                                  !m_solver->warmStart(29, 11, setOfVar, m_out)))
       result.count = T(0);

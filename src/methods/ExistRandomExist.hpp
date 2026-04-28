@@ -63,10 +63,10 @@ class ExistRandomExist : public MethodManager {
 
   struct MaxSharpSatResult {
     T count;
-    u_int8_t *valuation;
+    uint8_t* valuation;
 
     MaxSharpSatResult() : count(T(0)), valuation(NULL) {}
-    MaxSharpSatResult(const T c, u_int8_t *v) : count(c), valuation(v) {}
+    MaxSharpSatResult(const T c, uint8_t* v) : count(c), valuation(v) {}
 
     void display(unsigned size) {
       assert(valuation);
@@ -110,20 +110,20 @@ class ExistRandomExist : public MethodManager {
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 18;
-  std::vector<u_int8_t *> m_memoryPages;
+  std::vector<uint8_t*> m_memoryPages;
   unsigned m_posInMemoryPages;
   unsigned m_sizeArray;
 
-  ProblemManager *m_problem;
-  WrapperSolver *m_solver;
-  FormulaManager *m_specs;
-  ScoringMethod *m_hVarExist;
-  ScoringMethod *m_hVarRandom;
-  PhaseHeuristic *m_hPhaseExist;
-  PhaseHeuristic *m_hPhaseRandom;
+  ProblemManager* m_problem;
+  WrapperSolver* m_solver;
+  FormulaManager* m_specs;
+  ScoringMethod* m_hVarExist;
+  ScoringMethod* m_hVarRandom;
+  PhaseHeuristic* m_hPhaseExist;
+  PhaseHeuristic* m_hPhaseRandom;
 
-  CacheManager<T> *m_cacheRandom;
-  CacheManager<MaxSharpSatResult> *m_cacheExist;
+  CacheManager<T>* m_cacheRandom;
+  CacheManager<MaxSharpSatResult>* m_cacheExist;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -145,8 +145,8 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  ExistRandomExist(const OptionEREMethod &options, ProblemManager *initProblem,
-                   std::ostream &out)
+  ExistRandomExist(const OptionEREMethod& options, ProblemManager* initProblem,
+                   std::ostream& out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
@@ -231,7 +231,7 @@ class ExistRandomExist : public MethodManager {
     m_out << "c\n";
 
     // init the memory required for storing interpretation.
-    m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+    m_memoryPages.push_back(new uint8_t[c_sizePage]);
     m_posInMemoryPages = 0;
     m_sizeArray = m_problem->getMaxVar().size();
 
@@ -264,7 +264,7 @@ class ExistRandomExist : public MethodManager {
    *
    * @param solution is the maxsharp SAT solution we want to print.
    */
-  void printSolution(MaxSharpSatResult &solution, char status) {
+  void printSolution(MaxSharpSatResult& solution, char status) {
     if (solution.count == T(0)) {
       std::cout << "s UNSAT\n";
       exit(0);
@@ -287,7 +287,7 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showInter(std::ostream &out) {
+  inline void showInter(std::ostream& out) {
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall
         << std::fixed << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj
         << std::fixed << std::setprecision(2) << "|"
@@ -316,7 +316,7 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out) {
+  inline void separator(std::ostream& out) {
     out << "c ";
     for (int i = 0; i < NB_SEP; i++) out << "-";
     out << "\n";
@@ -327,7 +327,7 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out) {
+  inline void showHeader(std::ostream& out) {
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)" << "|"
@@ -354,7 +354,7 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out) {
+  inline void showRun(std::ostream& out) {
     unsigned nbCall = m_nbCallCall + m_nbCallProj;
     if (!(nbCall & (MASK_HEADER))) showHeader(out);
     if (nbCall && !(nbCall & MASK_SHOWRUN_MC)) showInter(out);
@@ -365,7 +365,7 @@ class ExistRandomExist : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out) {
+  inline void printFinalStats(std::ostream& out) {
     separator(out);
     out << "c\n"
         << "c \033[1m\033[31mStatistics \033[0m\n"
@@ -392,13 +392,13 @@ class ExistRandomExist : public MethodManager {
    * @brief Get a pointer on an allocated array of size m_sizeArray (which is
    * set once in the constructor).
    *
-   * @return a pointer on a u_int8_t array.
+   * @return a pointer on a uint8_t array.
    */
-  u_int8_t *getArray() {
-    u_int8_t *ret = &(m_memoryPages.back()[m_posInMemoryPages]);
+  uint8_t* getArray() {
+    uint8_t* ret = &(m_memoryPages.back()[m_posInMemoryPages]);
     m_posInMemoryPages += m_sizeArray;
     if (m_posInMemoryPages > c_sizePage) {
-      m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+      m_memoryPages.push_back(new uint8_t[c_sizePage]);
       m_posInMemoryPages = 0;
       ret = m_memoryPages.back();
     }
@@ -411,7 +411,7 @@ class ExistRandomExist : public MethodManager {
    * @param[in] isDecisionvariable, a type decision vector that marks as true
    * decision variables.
    */
-  void expelNoDecisionVar(std::vector<Var> &vars) {
+  void expelNoDecisionVar(std::vector<Var>& vars) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
       if (m_isDecisionVariable[vars[i]]) vars[j++] = vars[i];
@@ -426,7 +426,7 @@ class ExistRandomExist : public MethodManager {
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDecisionLit(std::vector<Lit> &lits) {
+  void expelNoDecisionLit(std::vector<Lit>& lits) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
       if (m_isDecisionVariable[lits[i].var()]) lits[j++] = lits[i];
@@ -440,7 +440,7 @@ class ExistRandomExist : public MethodManager {
    * @param setOfVar is the considered set of variables.
    * @return T is the resulting number of models (upper bound).
    */
-  T computeUpper(std::vector<Var> &setOfVar) {
+  T computeUpper(std::vector<Var>& setOfVar) {
     T ret = 1;
     for (auto v : setOfVar)
       if (m_isProjectedVariable[v]) ret = ret * 2;
@@ -456,8 +456,8 @@ class ExistRandomExist : public MethodManager {
    * result.
    * @param orValuation is another 'boolean' vector used for the OR
    */
-  void orOnMaxVar(std::vector<Var> &vars, u_int8_t *resValuation,
-                  u_int8_t *orValuation) {
+  void orOnMaxVar(std::vector<Var>& vars, uint8_t* resValuation,
+                  uint8_t* orValuation) {
     for (auto v : vars) {
       if (m_isExistDecisionVariable[v])
         resValuation[m_redirectionPos[v]] |= orValuation[m_redirectionPos[v]];
@@ -471,7 +471,7 @@ class ExistRandomExist : public MethodManager {
    * @param vars is the set of variables of the component that is considered to
    * compute result.
    */
-  void updateBound(MaxSharpSatResult &result, std::vector<Var> &vars) {
+  void updateBound(MaxSharpSatResult& result, std::vector<Var>& vars) {
     if (!m_isUnderAnd && result.count * m_scale.count > m_maxCount.count) {
       m_maxCount.count = result.count * m_scale.count;
 
@@ -506,9 +506,9 @@ class ExistRandomExist : public MethodManager {
    * @param[out] freeVar is the set of free variables.
    * @return the number of component.
    */
-  int computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
-                                std::vector<Var> &setOfVar,
-                                std::vector<Var> &freeVar) {
+  int computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
+                                std::vector<Var>& setOfVar,
+                                std::vector<Var>& freeVar) {
     if (m_componentOnRandom)
       return m_specs->computeConnectedComponentTargeted(
           varCo, setOfVar, m_isProjectedVariable, freeVar);
@@ -544,10 +544,10 @@ class ExistRandomExist : public MethodManager {
    * @param out, the stream we use to print out logs.
    * @param result, the structure where is stored the result.
    */
-  void searchMaxValuation(std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit,
-                          std::vector<Var> &freeVariable, std::ostream &out,
-                          MaxSharpSatResult &result, T ifTaut) {
+  void searchMaxValuation(std::vector<Var>& setOfVar,
+                          std::vector<Lit>& unitsLit,
+                          std::vector<Var>& freeVariable, std::ostream& out,
+                          MaxSharpSatResult& result, T ifTaut) {
     assert(!m_hasBeenStop);
     if (m_stopProcess) return;
 
@@ -575,7 +575,7 @@ class ExistRandomExist : public MethodManager {
     // set a valuation for fixed variables.
     T saveCount = m_scale.count, fixInd = T(1), mustMultiply = T(1);
 
-    for (auto &v : freeVariable)
+    for (auto& v : freeVariable)
       if (m_isExistDecisionVariable[v]) {
         Lit l = Lit::makeLit(v, m_solver->getModelVar(v) == l_False);
         m_scale.valuation[m_redirectionPos[v]] = 1 - l.sign();
@@ -584,7 +584,7 @@ class ExistRandomExist : public MethodManager {
         fixInd *= T(m_problem->getWeightVar(v));
 
     // consider the unit literals that belong to max
-    for (auto &l : unitsLit)
+    for (auto& l : unitsLit)
       if (m_isExistDecisionVariable[l.var()]) {
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
@@ -624,7 +624,7 @@ class ExistRandomExist : public MethodManager {
     if (nbComponent) {
       m_nbSplitExist += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
         TmpEntry<MaxSharpSatResult> cb = m_cacheExist->searchInCache(connected);
 
         // should divide if we are under an AND and if we manage the option.
@@ -655,7 +655,7 @@ class ExistRandomExist : public MethodManager {
         if (nbComponent > 1 && m_andDig) {
           m_scale.count = m_scale.count * mustMultiply;
 
-          for (auto &v : connected)
+          for (auto& v : connected)
             if (m_isExistDecisionVariable[v])
               m_scale.valuation[m_redirectionPos[v]] =
                   result.valuation[m_redirectionPos[v]];
@@ -683,8 +683,8 @@ class ExistRandomExist : public MethodManager {
    * @param[in] out, the stream we use to print out logs.
    * @param[out] result, the best solution found.
    */
-  void searchExistDecision(std::vector<Var> &connected, std::ostream &out,
-                           MaxSharpSatResult &result, T ifTaut) {
+  void searchExistDecision(std::vector<Var>& connected, std::ostream& out,
+                           MaxSharpSatResult& result, T ifTaut) {
     if (m_stopProcess) return;
 
     // search the next variable to branch on
@@ -699,7 +699,7 @@ class ExistRandomExist : public MethodManager {
       exit(0);
 
       std::cout << "Variables: ";
-      for (auto &v : connected) {
+      for (auto& v : connected) {
         if (m_isProjectedVariable[v]) std::cout << v << " ";
       }
       std::cout << " ---> " << m_maxCount.count / ifTaut << "\n";
@@ -762,8 +762,8 @@ class ExistRandomExist : public MethodManager {
    *
    * \return the number of models.
    */
-  T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out, T targetMin) {
+  T countInd_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+              std::vector<Var>& freeVariable, std::ostream& out, T targetMin) {
     if (m_hasBeenStop) return T(0);
     if (m_stopProcess) return T(0);
 #if TEST
@@ -787,7 +787,7 @@ class ExistRandomExist : public MethodManager {
     m_specs->preUpdate(unitsLit);
 
     T fixInd = T(1);
-    for (auto &l : unitsLit)
+    for (auto& l : unitsLit)
       if (m_isProjectedVariable[l.var()]) {
         if (!m_solver->isInAssumption(l.var()))
           std::cout << "Propagate: " << l.human() << " "
@@ -813,7 +813,7 @@ class ExistRandomExist : public MethodManager {
       m_nbSplitRandom += (nbComponent > 1) ? nbComponent : 0;
 
       for (int cp = 0; !m_hasBeenStop && cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
         TmpEntry<T> cb = m_cacheRandom->searchInCache(connected);
 
         if (cb.defined) {
@@ -840,7 +840,7 @@ class ExistRandomExist : public MethodManager {
     expelNoDecisionLit(unitsLit);
 #if TEST
     std::cout << "result " << result << " ---> ";
-    for (auto &l : m_solver->getAssumption())
+    for (auto& l : m_solver->getAssumption())
       if (m_isProjectedVariable[l.var()]) std::cout << l << " ";
     std::cout << "\n";
 #endif
@@ -855,7 +855,7 @@ class ExistRandomExist : public MethodManager {
    * @param out, the stream we use to print out logs.
    * \return the number of computed models.
    */
-  T countRandomDecisionNode(std::vector<Var> &connected, std::ostream &out,
+  T countRandomDecisionNode(std::vector<Var>& connected, std::ostream& out,
                             T targetMin) {
     if (targetMin >= T(1)) {
       m_hasBeenStop = true;
@@ -931,8 +931,8 @@ class ExistRandomExist : public MethodManager {
    * @param out is the stream where is printed out the logs.
    * @param result is the interpretation and the related number of models.
    */
-  void greedySearch(std::vector<Var> &setOfVar, std::ostream &out,
-                    MaxSharpSatResult &result, bool runOnce = true) {
+  void greedySearch(std::vector<Var>& setOfVar, std::ostream& out,
+                    MaxSharpSatResult& result, bool runOnce = true) {
     assert(!m_hasBeenStop);
 
     // first: search for a model to init the interpretation.
@@ -961,7 +961,7 @@ class ExistRandomExist : public MethodManager {
 
     // explore around the current assumption.
     std::vector<Lit> negTest = unitsAssums;
-    for (auto &l : negTest) l = ~l;
+    for (auto& l : negTest) l = ~l;
 
     std::random_device rd;
     std::mt19937 g(rd());
@@ -973,7 +973,7 @@ class ExistRandomExist : public MethodManager {
       if (!runOnce)
         m_out << "c [ERE] Greedy: " << negTest.size() << " " << result.count
               << " \n";
-      for (auto &l : unitsAssums) m_solver->pushAssumption(l);
+      for (auto& l : unitsAssums) m_solver->pushAssumption(l);
       m_solver->propagateAssumption();
 
       std::vector<Lit> unitsLit;
@@ -988,7 +988,7 @@ class ExistRandomExist : public MethodManager {
 
         if (tmpCount > result.count) {
           result.count = tmpCount;
-          for (auto &l : unitsAssums)
+          for (auto& l : unitsAssums)
             result.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
         }
       }
@@ -1008,7 +1008,7 @@ class ExistRandomExist : public MethodManager {
         isSat = m_solver->solve(setOfVar);
         if (isSat) {
           // get the next assumption.
-          for (auto &l : unitsAssums)
+          for (auto& l : unitsAssums)
             l = Lit::makeLit(l.var(),
                              m_solver->getModelVar(l.var()) == l_False);
 
@@ -1034,8 +1034,8 @@ class ExistRandomExist : public MethodManager {
    * @param warmStart is an option to activate/deactivate the warm start
    * strategy (by defaut it is deactivate).
    */
-  void compute(std::vector<Var> &setOfVar, std::ostream &out,
-               MaxSharpSatResult &result, bool warmStart = true) {
+  void compute(std::vector<Var>& setOfVar, std::ostream& out,
+               MaxSharpSatResult& result, bool warmStart = true) {
     if (m_problem->isUnsat() ||
         (warmStart && !m_panicMode &&
          !m_solver->warmStart(29, 11, setOfVar, m_out))) {

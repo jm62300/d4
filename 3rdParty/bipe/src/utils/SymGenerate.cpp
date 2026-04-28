@@ -18,12 +18,17 @@
 
 #include "SymGenerate.hpp"
 
+#ifdef _MSC_VER
+#define popen _popen
+#define pclose _pclose
+#endif
+
 namespace bipe {
 
-void SymGenerate::getSymmetries(const std::string &path,
-                                const std::string &file, bool verb,
+void SymGenerate::getSymmetries(const std::string& path,
+                                const std::string& file, bool verb,
                                 unsigned nbVar,
-                                std::vector<std::vector<Var>> &symGroup) {
+                                std::vector<std::vector<Var>>& symGroup) {
   if (verb) {
     std::cout << "c [SYMMETRY] Run Saucy to get the symmetries of the input "
                  "file given by "
@@ -31,7 +36,7 @@ void SymGenerate::getSymmetries(const std::string &path,
               << file << "\n";
     std::cout << "c [SYMMETRY] The number of variable is: " << nbVar << "\n";
   }
-  FILE *fp;
+  FILE* fp;
 
   /* Open the command for reading. */
   std::string cmd = path + " " + file;
@@ -41,8 +46,7 @@ void SymGenerate::getSymmetries(const std::string &path,
   int c = 0;
 
   // normally we first shoulw read [
-  while ((c = fgetc(fp)) != EOF && c != '[')
-    ;
+  while ((c = fgetc(fp)) != EOF && c != '[');
 
   // know we read the symmetries/
   std::vector<std::pair<unsigned, unsigned>> couples;
@@ -53,7 +57,7 @@ void SymGenerate::getSymmetries(const std::string &path,
     if (c == ',' || c == ']') {
       if (couples.size()) {
         symGroup.push_back(std::vector<Var>());
-        std::vector<Var> &currentSym = symGroup.back();
+        std::vector<Var>& currentSym = symGroup.back();
 
         for (unsigned i = 0; i <= nbVar; i++) currentSym.push_back(i);
         for (auto c : couples) {

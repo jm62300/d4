@@ -62,10 +62,10 @@ class MaxT : public MethodManager {
 
   struct MaxSharpSatResult {
     T count;
-    u_int8_t* valuation;
+    uint8_t* valuation;
 
     MaxSharpSatResult() : count(T()), valuation(NULL) {}
-    MaxSharpSatResult(const T c, u_int8_t* v) : count(c), valuation(v) {}
+    MaxSharpSatResult(const T c, uint8_t* v) : count(c), valuation(v) {}
 
     void display(unsigned size) {
       assert(valuation);
@@ -102,7 +102,7 @@ class MaxT : public MethodManager {
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 25;
-  std::vector<u_int8_t*> m_memoryPages;
+  std::vector<uint8_t*> m_memoryPages;
   unsigned m_posInMemoryPages;
   unsigned m_sizeArray;
 
@@ -225,7 +225,7 @@ class MaxT : public MethodManager {
     m_out << "c\n";
 
     // init the memory required for storing interpretation.
-    m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+    m_memoryPages.push_back(new uint8_t[c_sizePage]);
     m_posInMemoryPages = 0;
     m_sizeArray = computeSizeArray(m_problem->getMaxVar().size());
 
@@ -280,11 +280,11 @@ class MaxT : public MethodManager {
     return 1 + (maxVal >> 3);
   }
 
-  inline u_int8_t getBit(uint8_t* arr, int idx) {
+  inline uint8_t getBit(uint8_t* arr, int idx) {
     return (arr[idx >> 3] >> (idx & 7)) & 1;
   }  // getBit
 
-  inline void setBit(uint8_t* arr, int idx, u_int8_t val) {
+  inline void setBit(uint8_t* arr, int idx, uint8_t val) {
     if (val)
       arr[idx >> 3] |= 1 << (idx & 7);
     else
@@ -429,15 +429,15 @@ class MaxT : public MethodManager {
    * @brief Get a pointer on an allocated array of size m_sizeArray (which is
    * set once in the constructor).
    *
-   * @return a pointer on a u_int8_t array.
+   * @return a pointer on a uint8_t array.
    */
-  inline u_int8_t* getArray() {
-    u_int8_t* ret = &(m_memoryPages.back()[m_posInMemoryPages]);
+  inline uint8_t* getArray() {
+    uint8_t* ret = &(m_memoryPages.back()[m_posInMemoryPages]);
     m_posInMemoryPages += m_sizeArray;
     if (m_posInMemoryPages > c_sizePage) {
       m_out << "c [MAXT] Allocate memory for valuation: "
             << m_memoryPages.size() * c_sizePage << '\n';
-      m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+      m_memoryPages.push_back(new uint8_t[c_sizePage]);
       m_posInMemoryPages = 0;
       ret = m_memoryPages.back();
     }
@@ -495,8 +495,8 @@ class MaxT : public MethodManager {
    * result.
    * @param orValuation is another 'boolean' vector used for the OR
    */
-  void orOnMaxVar(std::vector<Var>& vars, u_int8_t* resValuation,
-                  u_int8_t* orValuation) {
+  void orOnMaxVar(std::vector<Var>& vars, uint8_t* resValuation,
+                  uint8_t* orValuation) {
     for (auto v : vars) {
       if (m_isMaxDecisionVariable[v])
         orBit(resValuation, orValuation, m_redirectionPos[v]);

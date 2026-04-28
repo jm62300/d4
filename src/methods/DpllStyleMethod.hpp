@@ -78,7 +78,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
 
-  std::vector<u_int8_t> m_signLit;
+  std::vector<uint8_t> m_signLit;
 
   ProblemManager* m_problem;
   WrapperSolver* m_solver;

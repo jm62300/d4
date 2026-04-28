@@ -28,7 +28,7 @@ namespace reducer {
 struct Imply {
   unsigned size;
   Lit lits[0];
-  Lit &operator[](std::size_t idx) { return lits[idx]; }
+  Lit& operator[](std::size_t idx) { return lits[idx]; }
 };
 
 typedef unsigned CRef;
@@ -41,24 +41,24 @@ struct Watch {
 
 class Propagator {
  private:
-  std::ostream &m_out;
+  std::ostream& m_out;
 
-  u_int8_t *m_data;
+  uint8_t* m_data;
 
   unsigned m_nbVar;
   unsigned m_posClauseNotBin;
   bool m_isUnsat;
 
   std::vector<CRef> m_notBinClauseRefs;
-  std::vector<Imply *> m_binListRefs;
-  std::vector<Watch *> m_watchList;
+  std::vector<Imply*> m_binListRefs;
+  std::vector<Watch*> m_watchList;
 
-  Lit *m_trail;
+  Lit* m_trail;
   unsigned m_trailSize;
   unsigned m_trailLimUnit;
   unsigned m_trailPos;
 
-  lbool *m_assign;
+  lbool* m_assign;
   bool m_verbose;
 
   /**
@@ -66,7 +66,7 @@ class Propagator {
    *
    * @param clauses is where is strored the problem.
    */
-  inline void generateUnsat(std::vector<std::vector<Lit>> &clauses) {
+  inline void generateUnsat(std::vector<std::vector<Lit>>& clauses) {
     clauses.clear();
     clauses.push_back({Lit::makeLitTrue(1)});
     clauses.push_back({Lit::makeLitFalse(1)});
@@ -79,13 +79,13 @@ class Propagator {
   Propagator() = delete;
 
  public:
-  inline std::vector<CRef> &getNotBinClauses() { return m_notBinClauseRefs; }
-  inline Clause &getClause(CRef cref) { return *((Clause *)&m_data[cref]); }
+  inline std::vector<CRef>& getNotBinClauses() { return m_notBinClauseRefs; }
+  inline Clause& getClause(CRef cref) { return *((Clause*)&m_data[cref]); }
   inline void setIsUnsat(bool val) { m_isUnsat = val; }
   inline bool getIsUnsat() { return m_isUnsat; }
   inline unsigned getNbVar() { return m_nbVar; }
-  inline Imply *litImplied(Lit l) { return m_binListRefs[l.intern()]; }
-  inline Lit *getTrail() { return m_trail; }
+  inline Imply* litImplied(Lit l) { return m_binListRefs[l.intern()]; }
+  inline Lit* getTrail() { return m_trail; }
   inline unsigned getTrailSize() { return m_trailSize; }
 
   /**
@@ -93,9 +93,9 @@ class Propagator {
    *
    * @param p is the problem we want to load.
    */
-  Propagator(unsigned nbVar, std::vector<std::vector<Lit>> &clauses,
-             std::ostream &out, bool verbose = false);
-  Propagator(unsigned nbVar, std::vector<std::vector<Lit>> &clauses,
+  Propagator(unsigned nbVar, std::vector<std::vector<Lit>>& clauses,
+             std::ostream& out, bool verbose = false);
+  Propagator(unsigned nbVar, std::vector<std::vector<Lit>>& clauses,
              bool verbose = false)
       : Propagator(nbVar, clauses, std::cout, verbose) {}
 
@@ -118,7 +118,7 @@ class Propagator {
    *
    * @param clause is the clause we want to add.
    */
-  void addClause(std::vector<Lit> &clause);
+  void addClause(std::vector<Lit>& clause);
 
   /**
    * @brief Ask for the value.
@@ -127,7 +127,7 @@ class Propagator {
    * @return 0 if SAT, 1 if UNSAT and >1 otherwise.
    */
   inline lbool value(const Lit l) {
-    return ((u_int8_t)l.sign()) ^ m_assign[l.var()];
+    return ((uint8_t)l.sign()) ^ m_assign[l.var()];
   }
 
   /**
@@ -158,7 +158,7 @@ class Propagator {
    * propagator.
    *
    */
-  void display(std::ostream &out);
+  void display(std::ostream& out);
 
   /**
    * @brief Attach a clause regarding its CRef.
@@ -179,7 +179,7 @@ class Propagator {
    *
    * @param clauses is where are stored the clauses.
    */
-  void extractFormula(std::vector<std::vector<Lit>> &clauses);
+  void extractFormula(std::vector<std::vector<Lit>>& clauses);
 
   /**
    * @brief Restart

@@ -62,10 +62,10 @@ class MaxSharpSAT : public MethodManager {
 
   struct MaxSharpSatResult {
     T count;
-    u_int8_t *valuation;
+    uint8_t* valuation;
 
     MaxSharpSatResult() : count(T(0)), valuation(NULL) {}
-    MaxSharpSatResult(const T c, u_int8_t *v) : count(c), valuation(v) {}
+    MaxSharpSatResult(const T c, uint8_t* v) : count(c), valuation(v) {}
 
     void display(unsigned size) {
       assert(valuation);
@@ -102,20 +102,20 @@ class MaxSharpSAT : public MethodManager {
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 18;
-  std::vector<u_int8_t *> m_memoryPages;
+  std::vector<uint8_t*> m_memoryPages;
   unsigned m_posInMemoryPages;
   unsigned m_sizeArray;
 
-  ProblemManager *m_problem;
-  WrapperSolver *m_solver;
-  FormulaManager *m_specs;
-  ScoringMethod *m_hVarMax;
-  PhaseHeuristic *m_hPhaseMax;
-  ScoringMethod *m_hVarInd;
-  PhaseHeuristic *m_hPhaseInd;
+  ProblemManager* m_problem;
+  WrapperSolver* m_solver;
+  FormulaManager* m_specs;
+  ScoringMethod* m_hVarMax;
+  PhaseHeuristic* m_hPhaseMax;
+  ScoringMethod* m_hVarInd;
+  PhaseHeuristic* m_hPhaseInd;
 
-  CacheManager<T> *m_cacheInd;
-  CacheManager<MaxSharpSatResult> *m_cacheMax;
+  CacheManager<T>* m_cacheInd;
+  CacheManager<MaxSharpSatResult>* m_cacheMax;
 
   std::ostream m_out;
   bool m_panicMode;
@@ -137,8 +137,8 @@ class MaxSharpSAT : public MethodManager {
    * @param initProblem is the problem we deal with.
    * @param out is the stream where are printed out the logs.
    */
-  MaxSharpSAT(const OptionMaxSharpSatMethod &options,
-              ProblemManager *initProblem, std::ostream &out)
+  MaxSharpSAT(const OptionMaxSharpSatMethod& options,
+              ProblemManager* initProblem, std::ostream& out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
@@ -216,7 +216,7 @@ class MaxSharpSAT : public MethodManager {
     m_out << "c\n";
 
     // init the memory required for storing interpretation.
-    m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+    m_memoryPages.push_back(new uint8_t[c_sizePage]);
     m_posInMemoryPages = 0;
     m_sizeArray = m_problem->getMaxVar().size();
 
@@ -249,7 +249,7 @@ class MaxSharpSAT : public MethodManager {
    *
    * @param solution is the maxsharp SAT solution we want to print.
    */
-  void printSolution(MaxSharpSatResult &solution, char status) {
+  void printSolution(MaxSharpSatResult& solution, char status) {
     if (solution.count == T(0)) {
       std::cout << "s UNSAT\n";
       exit(0);
@@ -272,7 +272,7 @@ class MaxSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showInter(std::ostream &out) {
+  inline void showInter(std::ostream& out) {
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallCall
         << std::fixed << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbCallProj
         << std::fixed << std::setprecision(2) << "|"
@@ -297,7 +297,7 @@ class MaxSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out) {
+  inline void separator(std::ostream& out) {
     out << "c ";
     for (int i = 0; i < NB_SEP; i++) out << "-";
     out << "\n";
@@ -308,7 +308,7 @@ class MaxSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out) {
+  inline void showHeader(std::ostream& out) {
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(m)" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#call(i)" << "|"
@@ -331,7 +331,7 @@ class MaxSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out) {
+  inline void showRun(std::ostream& out) {
     unsigned nbCall = m_nbCallCall + m_nbCallProj;
     if (!(nbCall & (MASK_HEADER))) showHeader(out);
     if (nbCall && !(nbCall & MASK_SHOWRUN_MC)) showInter(out);
@@ -342,7 +342,7 @@ class MaxSharpSAT : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out) {
+  inline void printFinalStats(std::ostream& out) {
     separator(out);
     out << "c\n"
         << "c \033[1m\033[31mStatistics \033[0m\n"
@@ -363,13 +363,13 @@ class MaxSharpSAT : public MethodManager {
    * @brief Get a pointer on an allocated array of size m_sizeArray (which is
    * set once in the constructor).
    *
-   * @return a pointer on a u_int8_t array.
+   * @return a pointer on a uint8_t array.
    */
-  u_int8_t *getArray() {
-    u_int8_t *ret = &(m_memoryPages.back()[m_posInMemoryPages]);
+  uint8_t* getArray() {
+    uint8_t* ret = &(m_memoryPages.back()[m_posInMemoryPages]);
     m_posInMemoryPages += m_sizeArray;
     if (m_posInMemoryPages > c_sizePage) {
-      m_memoryPages.push_back(new u_int8_t[c_sizePage]);
+      m_memoryPages.push_back(new uint8_t[c_sizePage]);
       m_posInMemoryPages = 0;
       ret = m_memoryPages.back();
     }
@@ -382,7 +382,7 @@ class MaxSharpSAT : public MethodManager {
    * @param[in] isDecisionvariable, a type decision vector that marks as true
    * decision variables.
    */
-  void expelNoDecisionVar(std::vector<Var> &vars) {
+  void expelNoDecisionVar(std::vector<Var>& vars) {
     unsigned j = 0;
     for (unsigned i = 0; i < vars.size(); i++)
       if (m_isDecisionVariable[vars[i]]) vars[j++] = vars[i];
@@ -397,7 +397,7 @@ class MaxSharpSAT : public MethodManager {
      @param[in] isDecisionvariable, a boolean vector that marks as true decision
      variables.
    */
-  void expelNoDecisionLit(std::vector<Lit> &lits) {
+  void expelNoDecisionLit(std::vector<Lit>& lits) {
     unsigned j = 0;
     for (unsigned i = 0; i < lits.size(); i++)
       if (m_isDecisionVariable[lits[i].var()]) lits[j++] = lits[i];
@@ -411,7 +411,7 @@ class MaxSharpSAT : public MethodManager {
    * @param setOfVar is the considered set of variables.
    * @return T is the resulting number of models (upper bound).
    */
-  T computeUpper(std::vector<Var> &setOfVar) {
+  T computeUpper(std::vector<Var>& setOfVar) {
     T ret = 1;
     for (auto v : setOfVar)
       if (m_isProjectedVariable[v]) ret = ret * 2;
@@ -427,8 +427,8 @@ class MaxSharpSAT : public MethodManager {
    * result.
    * @param orValuation is another 'boolean' vector used for the OR
    */
-  void orOnMaxVar(std::vector<Var> &vars, u_int8_t *resValuation,
-                  u_int8_t *orValuation) {
+  void orOnMaxVar(std::vector<Var>& vars, uint8_t* resValuation,
+                  uint8_t* orValuation) {
     for (auto v : vars) {
       if (m_isMaxDecisionVariable[v])
         resValuation[m_redirectionPos[v]] |= orValuation[m_redirectionPos[v]];
@@ -442,7 +442,7 @@ class MaxSharpSAT : public MethodManager {
    * @param vars is the set of variables of the component that is considered to
    * compute result.
    */
-  void updateBound(MaxSharpSatResult &result, std::vector<Var> &vars) {
+  void updateBound(MaxSharpSatResult& result, std::vector<Var>& vars) {
     if (!m_isUnderAnd && result.count * m_scale.count > m_maxCount.count) {
       m_maxCount.count = result.count * m_scale.count;
 
@@ -480,10 +480,10 @@ class MaxSharpSAT : public MethodManager {
    * @param out, the stream we use to print out logs.
    * @param result, the structure where is stored the result.
    */
-  void searchMaxValuation(std::vector<Var> &setOfVar,
-                          std::vector<Lit> &unitsLit,
-                          std::vector<Var> &freeVariable, std::ostream &out,
-                          MaxSharpSatResult &result) {
+  void searchMaxValuation(std::vector<Var>& setOfVar,
+                          std::vector<Lit>& unitsLit,
+                          std::vector<Var>& freeVariable, std::ostream& out,
+                          MaxSharpSatResult& result) {
     if (m_stopProcess) return;
 
     showRun(out);
@@ -511,7 +511,7 @@ class MaxSharpSAT : public MethodManager {
     T saveCount = m_scale.count;
     T fixCount = T(1), fixInd = T(1);
 
-    for (auto &v : freeVariable)
+    for (auto& v : freeVariable)
       if (m_isMaxDecisionVariable[v]) {
         Lit l = Lit::makeLitTrue(v);
         if (m_problem->getWeightLit(l) < m_problem->getWeightLit(~l)) l = ~l;
@@ -523,7 +523,7 @@ class MaxSharpSAT : public MethodManager {
         fixInd *= T(m_problem->getWeightVar(v));
 
     // consider the unit literals that belong to max
-    for (auto &l : unitsLit)
+    for (auto& l : unitsLit)
       if (m_isMaxDecisionVariable[l.var()]) {
         fixCount *= T(m_problem->getWeightLit(l));
         m_scale.valuation[m_redirectionPos[l.var()]] = 1 - l.sign();
@@ -556,7 +556,7 @@ class MaxSharpSAT : public MethodManager {
     if (nbComponent) {
       m_nbSplitMax += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
         TmpEntry<MaxSharpSatResult> cb = m_cacheMax->searchInCache(connected);
 
         // should divide if we are under an AND and if we manage the option.
@@ -582,7 +582,7 @@ class MaxSharpSAT : public MethodManager {
         if (nbComponent > 1 && m_andDig) {
           m_scale.count = m_scale.count * mustMultiply;
 
-          for (auto &v : connected)
+          for (auto& v : connected)
             if (m_isMaxDecisionVariable[v])
               m_scale.valuation[m_redirectionPos[v]] =
                   result.valuation[m_redirectionPos[v]];
@@ -630,8 +630,8 @@ class MaxSharpSAT : public MethodManager {
    * @param[in] out, the stream we use to print out logs.
    * @param[out] result, the best solution found.
    */
-  void searchMaxSharpSatDecision(std::vector<Var> &connected, std::ostream &out,
-                                 MaxSharpSatResult &result) {
+  void searchMaxSharpSatDecision(std::vector<Var>& connected, std::ostream& out,
+                                 MaxSharpSatResult& result) {
     if (m_stopProcess) return;
 
     // search the next variable to branch on
@@ -692,8 +692,8 @@ class MaxSharpSAT : public MethodManager {
    *
    * \return the number of models.
    */
-  T countInd_(std::vector<Var> &setOfVar, std::vector<Lit> &unitsLit,
-              std::vector<Var> &freeVariable, std::ostream &out) {
+  T countInd_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+              std::vector<Var>& freeVariable, std::ostream& out) {
     if (m_stopProcess) return T(0);
 
     showRun(out);
@@ -717,7 +717,7 @@ class MaxSharpSAT : public MethodManager {
       m_nbSplitInd += (nbComponent > 1) ? nbComponent : 0;
 
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
         TmpEntry<T> cb = m_cacheInd->searchInCache(connected);
 
         if (cb.defined)
@@ -744,7 +744,7 @@ class MaxSharpSAT : public MethodManager {
    * @param out, the stream we use to print out logs.
    * \return the number of computed models.
    */
-  T countIndDecisionNode(std::vector<Var> &connected, std::ostream &out) {
+  T countIndDecisionNode(std::vector<Var>& connected, std::ostream& out) {
     if (m_stopProcess) return T(0);
 
     // search the next variable to branch on
@@ -792,8 +792,8 @@ class MaxSharpSAT : public MethodManager {
    * @param out is the stream where is printed out the logs.
    * @param result is the interpretation and the related number of models.
    */
-  void greedySearch(std::vector<Var> &setOfVar, std::ostream &out,
-                    MaxSharpSatResult &result) {
+  void greedySearch(std::vector<Var>& setOfVar, std::ostream& out,
+                    MaxSharpSatResult& result) {
     // first: search for a model to init the interpretation.
     if (!m_solver->solve(setOfVar)) {
       result.count = T(0);
@@ -850,8 +850,8 @@ class MaxSharpSAT : public MethodManager {
    * @param warmStart is an option to activate/deactivate the warm start
    * strategy (by defaut it is deactivate).
    */
-  void compute(std::vector<Var> &setOfVar, std::ostream &out,
-               MaxSharpSatResult &result, bool warmStart = true) {
+  void compute(std::vector<Var>& setOfVar, std::ostream& out,
+               MaxSharpSatResult& result, bool warmStart = true) {
     if (m_problem->isUnsat() ||
         (warmStart && !m_panicMode &&
          !m_solver->warmStart(29, 11, setOfVar, m_out))) {

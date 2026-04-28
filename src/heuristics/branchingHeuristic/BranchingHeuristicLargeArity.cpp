@@ -29,15 +29,15 @@ namespace d4 {
  * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
  */
 BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
-    const OptionBranchingHeuristic &options, ProblemManager *problem,
-    FormulaManager *specs, ActivityManager &activityManager,
-    PolarityManager &polarityManager, std::ostream &out)
+    const OptionBranchingHeuristic& options, ProblemManager* problem,
+    FormulaManager* specs, ActivityManager& activityManager,
+    PolarityManager& polarityManager, std::ostream& out)
     : BranchingHeuristic(options, problem, specs, activityManager,
                          polarityManager, out) {
   m_limitClause = options.limitSizeClause;
 
-  std::vector<std::vector<Lit>> &clauses =
-      static_cast<CnfManager *>(specs)->getClauses();
+  std::vector<std::vector<Lit>>& clauses =
+      static_cast<CnfManager*>(specs)->getClauses();
   for (unsigned i = 0; i < clauses.size(); i++) {
     if (clauses[i].size() >= m_limitClause) m_indexOfLargeClause.push_back(i);
   }
@@ -50,18 +50,18 @@ BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
 /**
  * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
  */
-void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
-                                                ListLit &lits) {
+void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var>& vars,
+                                                ListLit& lits) {
   m_nbCall++;
   // decay the variable weights.
   if (m_freqDecay && !(m_nbCall % m_freqDecay)) m_hVar->decayCountConflict();
 
-  for (auto &v : vars) m_markedVar[v] = true;
+  for (auto& v : vars) m_markedVar[v] = true;
 
   // check if we still have a large enough clause.
-  CnfManager *specs = static_cast<CnfManager *>(m_specs);
+  CnfManager* specs = static_cast<CnfManager*>(m_specs);
   unsigned larger = 0, lIdx = 0;
-  for (auto &idx : m_indexOfLargeClause) {
+  for (auto& idx : m_indexOfLargeClause) {
     if (specs->getSize(idx) >= m_limitClause &&
         specs->isNotSatisfiedClauseAndInComponent(idx, m_markedVar)) {
       if (specs->getClause(idx).size() > larger) {
@@ -73,28 +73,29 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
 
   if (larger) {
     // get the lits.
-    Lit tmp[larger];
-    unsigned size = 0;
-    for (auto &l : specs->getClause(lIdx)) {
+    std::vector<Lit> tmp;
+    tmp.reserve(larger);
+
+    for (auto& l : specs->getClause(lIdx)) {
       assert(l.var() < m_markedVar.size());
       if (m_markedVar[l.var()]) {
         assert(l.var() >= 0);
-        tmp[size++] = l;
+        tmp.push_back(l);
       }
     }
 
     // sort the lits.
-    std::sort(tmp, &tmp[size], [&](Lit a, Lit b) {
+    std::sort(tmp.begin(), tmp.end(), [&](Lit a, Lit b) {
       return m_hVar->computeScore(a.var()) > m_hVar->computeScore(b.var());
     });
 
     // fill the given structure.
-    lits.setListLit(tmp, size, m_listLitAllocator);
+    lits.setListLit(tmp.data(), tmp.size(), m_listLitAllocator);
   } else {
     Var v = var_Undef;
     double bestScore = -1;
 
-    for (auto &vTmp : vars) {
+    for (auto& vTmp : vars) {
       if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
       double current = m_hVar->computeScore(vTmp);
@@ -113,7 +114,7 @@ void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var> &vars,
   }
 
   // reinit the marker.
-  for (auto &v : vars) m_markedVar[v] = false;
+  for (auto& v : vars) m_markedVar[v] = false;
 }  // selectLitSet
 
 }  // namespace d4

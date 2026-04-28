@@ -86,10 +86,10 @@ class HashString {
   }
 
  public:
-  inline unsigned hash(char* key, unsigned len, u_int64_t info) {
+  inline unsigned hash(char* key, unsigned len, uint64_t info) {
     unsigned dataHash = 0x9e3779b9 * hash_bytes(key, len, 29111983);
     unsigned infoHash =
-        0xc6a4a793 * hash_bytes(&info, sizeof(u_int64_t), 30011989);
+        0xc6a4a793 * hash_bytes(&info, sizeof(uint64_t), 30011989);
     return fmix32(dataHash ^ infoHash);
   }  // hash
 };
