@@ -1,5 +1,6 @@
 #include "greedy_order.h"
 
+#include <iterator>
 #include <vector>
 
 #include "array_id_func.h"
@@ -40,7 +41,7 @@ struct CountOutputIterator {
 
   NullAssign<T> operator*() const { return {}; }
 
-  CountOutputIterator(int& n) : n(&n){};
+  CountOutputIterator(int& n) : n(&n) {};
 
   CountOutputIterator& operator++() {
     ++*n;
@@ -169,4 +170,4 @@ ArrayIDIDFunc compute_greedy_min_shortcut_order(const ArrayIDIDFunc& tail,
 
   return order;  // NVRO
 }
-}
+}  // namespace flowCutter
