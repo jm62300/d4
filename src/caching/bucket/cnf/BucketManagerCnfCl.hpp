@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <bits/stdint-uintn.h>
 #include <sys/types.h>
 
 #include <algorithm>
@@ -59,8 +58,8 @@ class BucketManagerCnfCl : public BucketManagerCnf {
   std::vector<unsigned> m_idInVecBucket;
 
   BucketInConstruction m_inConstruction;
-  unsigned *m_memoryPosWrtClauseSize;
-  unsigned *m_offsetClauses;
+  unsigned* m_memoryPosWrtClauseSize;
+  unsigned* m_offsetClauses;
 
  protected:
   /**
@@ -71,12 +70,12 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    *
    * \return the index of a reserved bucket.
    */
-  int getIdxBucketSortInfo(BucketInConstruction &inConstruction);
+  int getIdxBucketSortInfo(BucketInConstruction& inConstruction);
 
   /**
    * Push sorted, use the natural order.
    */
-  void pushSorted(unsigned *tab, unsigned pos, unsigned val);
+  void pushSorted(unsigned* tab, unsigned pos, unsigned val);
 
   /**
    *  It is used in order to construct a sorted residual formula.
@@ -85,7 +84,7 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    *  @param[out] inConstruction, place where we store the bucket in
    *  construction.
    */
-  void createDistribWrTLit(const Lit &l, BucketInConstruction &inConstruction);
+  void createDistribWrTLit(const Lit& l, BucketInConstruction& inConstruction);
 
   /**
    * Collect the clause distribution. The result is stored in distrib.
@@ -97,8 +96,8 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * \return the number of elements we have in the distribution once the
    * redundant clauses have been removed.
    */
-  unsigned collectDistrib(std::vector<Var> &component,
-                          BucketInConstruction &inConstruction);
+  unsigned collectDistrib(std::vector<Var>& component,
+                          BucketInConstruction& inConstruction);
 
   /**
    * Prepare the data to store a new bucket.
@@ -106,7 +105,7 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @param[out] inConstruction, place where we store the bucket in
    * construction.
    */
-  void initSortBucket(BucketInConstruction &inConstruction);
+  void initSortBucket(BucketInConstruction& inConstruction);
 
   /**
    * @brief Display the bucket in construction (for debugging purpose).
@@ -114,7 +113,7 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @param v
    * @param out
    */
-  void showListBucketSort(std::vector<BucketSortInfo> &v, std::ostream &out);
+  void showListBucketSort(std::vector<BucketSortInfo>& v, std::ostream& out);
 
   /**
    * @brief Add nbBit from val in the data vector regarding the number of
@@ -126,8 +125,8 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @param[out] remainingBit gives the number of remaining bit in p[0].
    * @return the character in p we reach after adding the bits.
    */
-  char *addElementInData(char *p, unsigned val, unsigned nbBit,
-                         unsigned &remainingBit);
+  char* addElementInData(char* p, unsigned val, unsigned nbBit,
+                         unsigned& remainingBit);
 
   /**
    * @brief Store the variables respecting the information of size concerning
@@ -139,8 +138,8 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @param component is the set of variables we want to store.
    * @return the remaining data.
    */
-  char *storeVariables(AllocSizeInfo &info, char *data,
-                       std::vector<Var> &component);
+  char* storeVariables(AllocSizeInfo& info, char* data,
+                       std::vector<Var>& component);
 
   /**
    * @brief Search for the number of bytes needed to store the different element
@@ -154,8 +153,8 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @param nbEltDist
    * @return an AllocSizeInfo structure with the requiered information.
    */
-  AllocSizeInfo computeNeededBytes(std::vector<Var> &component,
-                                   BucketInConstruction &inConstruction);
+  AllocSizeInfo computeNeededBytes(std::vector<Var>& component,
+                                   BucketInConstruction& inConstruction);
 
   /**
      Store the formula representation respecting the information of size
@@ -173,9 +172,9 @@ class BucketManagerCnfCl : public BucketManagerCnf {
 
      \return a pointer to the end of the data we added
   */
-  char *storeClauses(AllocSizeInfo &info, char *data,
-                     std::vector<Var> &component,
-                     BucketInConstruction &inConstruction);
+  char* storeClauses(AllocSizeInfo& info, char* data,
+                     std::vector<Var>& component,
+                     BucketInConstruction& inConstruction);
 
  public:
   /**
@@ -188,10 +187,10 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @param[in] sizeAdditionalPage, the amount of bytes for the additional
    * pages.
    */
-  BucketManagerCnfCl(CnfManager &occM, ModeStore mdStore,
+  BucketManagerCnfCl(CnfManager& occM, ModeStore mdStore,
                      unsigned long sizeFirstPage,
                      unsigned long sizeAdditionalPage,
-                     BucketAllocator *bucketAllocator = new BucketAllocator());
+                     BucketAllocator* bucketAllocator = new BucketAllocator());
 
   /**
    * Destructor.
@@ -205,6 +204,6 @@ class BucketManagerCnfCl : public BucketManagerCnf {
      @param[out] tmpFormula, the place where is stored the formula.
      @param[out] szTmpFormula, to collect the size of the stored formula.
   */
-  void storeFormula(std::vector<Var> &component, DataBucket &b) override;
+  void storeFormula(std::vector<Var>& component, DataBucket& b) override;
 };
 }  // namespace d4

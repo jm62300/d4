@@ -19,8 +19,6 @@
 
 #include "WrapperCircuitGlucose.hpp"
 
-#include <bits/stdint-uintn.h>
-
 #include <iostream>
 #include <typeinfo>
 #include <vector>
@@ -38,11 +36,11 @@ namespace d4 {
 /**
  * @brief WrapperCircuitGlucose::initSolver implementation.
  */
-void WrapperCircuitGlucose::initSolver(ProblemManager &p) {
+void WrapperCircuitGlucose::initSolver(ProblemManager& p) {
   std::cout << "c [GLUCOSE CIRCUIT SOLVER] Init phase\n";
 
   try {
-    ProblemManagerCircuit &pcircuit = dynamic_cast<ProblemManagerCircuit &>(p);
+    ProblemManagerCircuit& pcircuit = dynamic_cast<ProblemManagerCircuit&>(p);
 
     // say to the solver we have pcnf.getNbVar() variables.
     while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
@@ -53,12 +51,12 @@ void WrapperCircuitGlucose::initSolver(ProblemManager &p) {
     std::vector<std::vector<Lit>> clauses;
     pcircuit.tseitinEncoding(clauses);
 
-    for (auto &cl : clauses) {
+    for (auto& cl : clauses) {
       Glucose::vec<Glucose::Lit> lits;
-      for (auto &l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
+      for (auto& l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
       m_solver.addClause(lits);
     }
-  } catch (std::bad_cast &bc) {
+  } catch (std::bad_cast& bc) {
     std::cerr << "c bad_cast caught: " << bc.what() << '\n';
     std::cerr << "c A CNF formula was expeted\n";
     exit(ERROR_BAD_CAST);

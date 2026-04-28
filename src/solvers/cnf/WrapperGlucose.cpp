@@ -19,8 +19,6 @@
 
 #include "WrapperGlucose.hpp"
 
-#include <bits/stdint-uintn.h>
-
 #include <iostream>
 #include <typeinfo>
 #include <vector>
@@ -40,23 +38,23 @@ namespace d4 {
 
    @param[in] p, the problem we want to link with the SAT solver.
  */
-void WrapperGlucose::initSolver(ProblemManager &p) {
+void WrapperGlucose::initSolver(ProblemManager& p) {
   std::cout << "c [GLUCOSE SOLVER] Init phase\n";
   try {
-    CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
+    CnfMatrix& pcnf = dynamic_cast<CnfMatrix&>(p);
 
     // say to the solver we have pcnf.getNbVar() variables.
     while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
     m_model.resize(p.getNbVar() + 1, l_Undef);
 
     // load the clauses
-    std::vector<std::vector<Lit>> &clauses = pcnf.getClauses();
-    for (auto &cl : clauses) {
+    std::vector<std::vector<Lit>>& clauses = pcnf.getClauses();
+    for (auto& cl : clauses) {
       Glucose::vec<Glucose::Lit> lits;
-      for (auto &l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
+      for (auto& l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
       m_solver.addClause(lits);
     }
-  } catch (std::bad_cast &bc) {
+  } catch (std::bad_cast& bc) {
     std::cerr << "c bad_cast caught: " << bc.what() << '\n';
     std::cerr << "c A CNF formula was expeted\n";
     exit(ERROR_BAD_CAST);
@@ -75,11 +73,11 @@ void WrapperGlucose::initSolver(ProblemManager &p) {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperGlucose::solve(std::vector<Var> &setOfVar) {
+bool WrapperGlucose::solve(std::vector<Var>& setOfVar) {
   if (m_activeModel && m_needModel) return true;
 
   m_setOfVar_m.setSize(0);
-  for (auto &v : setOfVar) m_setOfVar_m.push(v);
+  for (auto& v : setOfVar) m_setOfVar_m.push(v);
   m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
 
   m_activeModel = m_solver.solveWithAssumptions();
@@ -195,7 +193,7 @@ void WrapperGlucose::setReversePolarity(bool value) {
    \return true if assign l and propagate does not give a conflict, false
    otherwise.
  */
-bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit> &units) {
+bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit>& units) {
   Glucose::Lit ml = Glucose::mkLit(l.var(), l.sign());
   if (varIsAssigned(l.var())) {
     if (m_solver.litAssigned(l.var()) != ml) return false;
@@ -253,9 +251,9 @@ bool WrapperGlucose::failedLiteralProbing(Lit l) {
    @param[in] component, the set of variables we search for.
    @param[out] units, the place where we store the literals found.
  */
-void WrapperGlucose::whichAreUnits(std::vector<Var> &component,
-                                   std::vector<Lit> &units) {
-  for (auto &v : component) {
+void WrapperGlucose::whichAreUnits(std::vector<Var>& component,
+                                   std::vector<Lit>& units) {
+  for (auto& v : component) {
     if (!m_solver.isAssigned(v)) continue;
     Glucose::Lit l = m_solver.litAssigned(v);
     units.push_back(Lit::makeLit(var(l), sign(l)));
@@ -268,7 +266,7 @@ void WrapperGlucose::whichAreUnits(std::vector<Var> &component,
  *
  * @param[out] units is the list of unit literals.
  */
-void WrapperGlucose::getUnits(std::vector<Lit> &units) {
+void WrapperGlucose::getUnits(std::vector<Lit>& units) {
   for (int i = 0; i < m_solver.trail.size(); i++) {
     Glucose::Lit l = m_solver.trail[i];
     units.push_back(Lit::makeLit(var(l), sign(l)));
@@ -297,12 +295,12 @@ void WrapperGlucose::restart() { m_solver.cancelUntil(0); }  // restart
 
    @param[in] assums, the set of assumptions
  */
-void WrapperGlucose::setAssumption(std::vector<Lit> &assums) {
+void WrapperGlucose::setAssumption(std::vector<Lit>& assums) {
   popAssumption(m_assumption.size());
-  Glucose::vec<Glucose::Lit> &assumptions = m_solver.assumptions;
+  Glucose::vec<Glucose::Lit>& assumptions = m_solver.assumptions;
   assumptions.clear();
   m_assumption.clear();
-  for (auto &l : assums) pushAssumption(l);
+  for (auto& l : assums) pushAssumption(l);
 }  // setAssumption
 
 /**
@@ -310,7 +308,7 @@ void WrapperGlucose::setAssumption(std::vector<Lit> &assums) {
 
    @param[in] assums, the set of assumptions
  */
-std::vector<Lit> &WrapperGlucose::getAssumption() {
+std::vector<Lit>& WrapperGlucose::getAssumption() {
   return m_assumption;
 }  // getAssumption
 
@@ -319,8 +317,8 @@ std::vector<Lit> &WrapperGlucose::getAssumption() {
 
    @param[in] out, the stream where is print the assumption.
  */
-void WrapperGlucose::displayAssumption(std::ostream &out) {
-  Glucose::vec<Glucose::Lit> &assumptions = m_solver.assumptions;
+void WrapperGlucose::displayAssumption(std::ostream& out) {
+  Glucose::vec<Glucose::Lit>& assumptions = m_solver.assumptions;
   for (int i = 0; i < assumptions.size(); i++) {
     Glucose::Lit l = assumptions[i];
     std::cout << (Glucose::sign(l) ? "-" : "") << Glucose::var(l) << " ";
@@ -343,7 +341,7 @@ void WrapperGlucose::setNeedModel(bool b) {
  *
  * @return the model's value (lbool).
  */
-std::vector<lbool> &WrapperGlucose::getModel() {
+std::vector<lbool>& WrapperGlucose::getModel() {
   for (int i = 0; i < m_solver.model.size(); i++) {
     if (Glucose::toInt(m_solver.model[i]) == 0)
       m_model[i] = l_True;

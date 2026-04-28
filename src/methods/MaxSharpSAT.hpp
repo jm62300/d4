@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include <bits/stdint-uintn.h>
 #include <sys/types.h>
 
 #include <cstddef>

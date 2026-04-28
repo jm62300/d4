@@ -18,8 +18,6 @@
  */
 #include "DataInfo.hpp"
 
-#include <bits/stdint-uintn.h>
-
 #include <bitset>
 
 namespace d4 {
