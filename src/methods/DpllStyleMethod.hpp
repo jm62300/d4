@@ -385,13 +385,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     // compute the connected composant
     std::vector<std::vector<Var>> varConnected;
-    int nbComponent =
+    const int nbComponent =
         computeConnectedComponent(setOfVar, varConnected, freeVariable);
     expelNoDecisionVar(freeVariable, m_isDecisionVariable);
 
     // consider each connected component.
     if (nbComponent) {
-      U tab[nbComponent];
+      std::vector<U> tab(nbComponent);
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var>& connected = varConnected[cp];
@@ -412,7 +412,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       m_specs->postUpdate(unitsLit);
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
 
-      return m_operation->manageDecomposableAnd(tab, nbComponent);
+      return m_operation->manageDecomposableAnd(tab.data(), nbComponent);
     }
 
     // m_specs->postUpdate(additionalUnit);

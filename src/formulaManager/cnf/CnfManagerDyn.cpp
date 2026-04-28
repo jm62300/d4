@@ -24,7 +24,7 @@ namespace d4 {
 /**
  * @brief CnfManagerDyn::CnfManagerDyn implementation.
  */
-CnfManagerDyn::CnfManagerDyn(ProblemManager &p,
+CnfManagerDyn::CnfManagerDyn(ProblemManager& p,
                              bool keepListNotSatisfiedClauses)
     : CnfManager(p),
       m_keepListNotSatisfiedClauses(keepListNotSatisfiedClauses) {
@@ -58,25 +58,25 @@ CnfManagerDyn::~CnfManagerDyn() {
 /**
  * @brief CnfManagerDyn::getCurrentClauses implementation.
  */
-void CnfManagerDyn::getCurrentClauses(std::vector<unsigned> &idxClauses,
-                                      std::vector<Var> &component) {
+void CnfManagerDyn::getCurrentClauses(std::vector<unsigned>& idxClauses,
+                                      std::vector<Var>& component) {
   idxClauses.resize(0);
-  for (auto &v : component) m_inCurrentComponent[v] = true;
+  for (auto& v : component) m_inCurrentComponent[v] = true;
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
       idxClauses.push_back(i);
   }
-  for (auto &v : component) m_inCurrentComponent[v] = false;
+  for (auto& v : component) m_inCurrentComponent[v] = false;
 }  // getCurrentclauses
 
 /**
  * @brief CnfManagerDyn::getCurrentClausesNotBin implementation.
  */
-void CnfManagerDyn::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
-                                            std::vector<Var> &component) {
+void CnfManagerDyn::getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
+                                            std::vector<Var>& component) {
   assert(m_keepListNotSatisfiedClauses);
   idxClauses.resize(0);
-  for (auto &v : component) m_inCurrentComponent[v] = true;
+  for (auto& v : component) m_inCurrentComponent[v] = true;
   for (unsigned i = 0; i < m_sizeNotSatifiedClauses; i++) {
     unsigned idx = m_notSatifiedClauses[i];
     if (m_clauses[idx].size() > 2 &&
@@ -85,21 +85,21 @@ void CnfManagerDyn::getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
   }
 
   std::sort(idxClauses.begin(), idxClauses.end());
-  for (auto &v : component) m_inCurrentComponent[v] = false;
+  for (auto& v : component) m_inCurrentComponent[v] = false;
 }  // getCurrentclauses
 
 /**
  * @brief CnfManagerDynPure::propagateFalseInNotBin implementation.
  */
-void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
+void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit>& lits) {
   m_reviewWatcher.resize(0);
-  for (auto &l : lits) {
+  for (auto& l : lits) {
     for (unsigned i = 0; i < m_occurrence[(~l).intern()].nbNotBin; i++) {
       int idxCl = m_occurrence[(~l).intern()].notBin[i];
       if (!m_markedClauseIdx[idxCl]) {
         m_markedClauseIdx[idxCl] = true;
-        m_savedStateClauses.push_back((SavedStateClause){
-            idxCl, m_infoClauses[idxCl].isSat, m_infoClauses[idxCl].nbUnsat});
+        m_savedStateClauses.push_back(
+            {idxCl, m_infoClauses[idxCl].isSat, m_infoClauses[idxCl].nbUnsat});
       }
       m_infoClauses[idxCl].nbUnsat++;
       if (m_clauses[idxCl][0] == ~l) m_reviewWatcher.push_back(idxCl);
@@ -107,7 +107,7 @@ void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
   }
 
   // we search another non assigned literal if requiered
-  for (auto &idxCl : m_reviewWatcher) {
+  for (auto& idxCl : m_reviewWatcher) {
     if (m_infoClauses[idxCl].isSat) continue;
 
     for (unsigned i = 1; i < m_clauses[idxCl].size(); i++) {
@@ -123,15 +123,14 @@ void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit> &lits) {
  * @brief CnfManagerDyn::removeSatisfiedClauses implementation.
  */
 void CnfManagerDyn::removeSatisfiedClauses(
-    const std::vector<unsigned> &idxClauses) {
+    const std::vector<unsigned>& idxClauses) {
   m_currentMarkedLitRemoveIndex++;
 
   for (auto idxCl : idxClauses) {
-    for (auto &ll : m_clauses[idxCl]) {
+    for (auto& ll : m_clauses[idxCl]) {
       if (m_markedLitStack[ll.intern()] != m_currentMarkedLitStackIndex) {
-        m_savedStateOccs.push_back(
-            (SavedStateOcc){ll, m_occurrence[ll.intern()].nbBin,
-                            m_occurrence[ll.intern()].nbNotBin});
+        m_savedStateOccs.push_back({ll, m_occurrence[ll.intern()].nbBin,
+                                    m_occurrence[ll.intern()].nbNotBin});
         m_markedLitStack[ll.intern()] = m_currentMarkedLitStackIndex;
       }
 
@@ -165,10 +164,10 @@ void CnfManagerDyn::removeSatisfiedClauses(
 /**
  * @brief CnfManagerDyn::propagateTrue implementation.
  */
-void CnfManagerDyn::propagateTrue(const std::vector<Lit> &lits) {
+void CnfManagerDyn::propagateTrue(const std::vector<Lit>& lits) {
   m_indexSatClauses.resize(0);
 
-  for (auto &l : lits) {
+  for (auto& l : lits) {
     // mark all the clauses containing l as SAT.
     for (IteratorIdxClause ite = m_occurrence[l.intern()].getClauses();
          ite.end != ite.start; ite.start++) {
@@ -178,15 +177,14 @@ void CnfManagerDyn::propagateTrue(const std::vector<Lit> &lits) {
 
       if (m_markedClauseIdx[*(ite.start)]) continue;
       m_markedClauseIdx[*(ite.start)] = true;
-      m_savedStateClauses.push_back((SavedStateClause){
-          *(ite.start), false, m_infoClauses[*(ite.start)].nbUnsat});
+      m_savedStateClauses.push_back(
+          {*(ite.start), false, m_infoClauses[*(ite.start)].nbUnsat});
     }
 
     // remove the occurrence list.
     if (m_markedLitStack[l.intern()] != m_currentMarkedLitStackIndex) {
-      m_savedStateOccs.push_back(
-          (SavedStateOcc){l, m_occurrence[l.intern()].nbBin,
-                          m_occurrence[l.intern()].nbNotBin});
+      m_savedStateOccs.push_back({l, m_occurrence[l.intern()].nbBin,
+                                  m_occurrence[l.intern()].nbNotBin});
       m_markedLitStack[l.intern()] = m_currentMarkedLitStackIndex;
     }
     m_occurrence[l.intern()].clean();
@@ -198,7 +196,7 @@ void CnfManagerDyn::propagateTrue(const std::vector<Lit> &lits) {
 /**
  * @brief CnfManagerDyn::preUpdate implementation.
  */
-void CnfManagerDyn::preUpdate(const std::vector<Lit> &lits) {
+void CnfManagerDyn::preUpdate(const std::vector<Lit>& lits) {
   pushStacks();
   assignListLit(lits);
 
@@ -216,7 +214,7 @@ void CnfManagerDyn::preUpdate(const std::vector<Lit> &lits) {
 /**
  * @brief CnfManagerDyn::postUpdate implementation.
  */
-void CnfManagerDyn::postUpdate(const std::vector<Lit> &lits) {
+void CnfManagerDyn::postUpdate(const std::vector<Lit>& lits) {
   // manage the literal information.
   unsigned previousOcc = m_stackPosOcc.back();
   m_stackPosOcc.pop_back();
@@ -243,7 +241,7 @@ void CnfManagerDyn::postUpdate(const std::vector<Lit> &lits) {
   m_savedStateClauses.resize(previousClause);
 
   // reset the unit literals.
-  for (auto &l : lits) m_currentValue[l.var()] = l_Undef;
+  for (auto& l : lits) m_currentValue[l.var()] = l_Undef;
 
   if (m_keepListNotSatisfiedClauses) {
     assert(m_stackSizeListNotSatisfiedClauses.size());

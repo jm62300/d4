@@ -24,7 +24,7 @@ namespace d4 {
 /**
  * @brief CnfManagerDynBlockedCl::CnfManagerDynBlockedCl implementation.
  */
-CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
+CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager& p)
     : CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with blocked clause elimination\n";
 
@@ -43,7 +43,7 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
     bool isSAT = false;
 
     // mark the literals for the current clause.
-    for (auto &l : m_clauses[i]) {
+    for (auto& l : m_clauses[i]) {
       m_isPresentLit[l.intern()] = true;
       if (litIsAssignedToTrue(l)) isSAT = true;
     }
@@ -54,7 +54,7 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
       bool isBlocked = false;
       unsigned startIdx = m_clauseBlockedIndex.size();
 
-      for (auto &l : m_clauses[i]) {
+      for (auto& l : m_clauses[i]) {
         if (m_currentValue[l.var()] != l_Undef) continue;
         if (m_isDecisionVariable[l.var()]) continue;
 
@@ -65,7 +65,7 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
           if (m_infoClauses[*(ite.start)].isSat) continue;
 
           bool isTaut = false;
-          for (auto &m : m_clauses[*(ite.start)]) {
+          for (auto& m : m_clauses[*(ite.start)]) {
             if (m != ~l && m_isPresentLit[(~m).intern()]) {
               isTaut = true;
               break;
@@ -94,14 +94,14 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
       }
     }
 
-    for (auto &l : m_clauses[i]) m_isPresentLit[l.intern()] = false;
+    for (auto& l : m_clauses[i]) m_isPresentLit[l.intern()] = false;
   }
 
   // count the number of dectected.
   m_nbBlockedClauseRemoved += m_indexSatClauses.size();
 
   // remove the satisfied clauses.
-  for (auto &idx : m_indexSatClauses) m_infoClauses[idx].isSat = true;
+  for (auto& idx : m_indexSatClauses) m_infoClauses[idx].isSat = true;
   pushStacks();
   removeSatisfiedClauses(m_indexSatClauses);
 
@@ -111,7 +111,7 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
             << m_nbBlockedClauseRemoved << '\n';
 
   // remove all the satisfied clause (because at 'level 0').
-  for (auto &wlist : m_watchedList) {
+  for (auto& wlist : m_watchedList) {
     unsigned j = 0;
     for (unsigned i = 0; i < wlist.size(); i++)
       if (!m_infoClauses[m_clauseBlockedIndex[wlist[i]].idxCl].isSat)
@@ -124,7 +124,7 @@ CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager &p)
  * @brief CnfManagerDynBlockedCl::searchTautNotResolution implementation.
  */
 unsigned CnfManagerDynBlockedCl::searchTautNotResolution(
-    std::vector<bool> &isPresentLit, Lit l) {
+    std::vector<bool>& isPresentLit, Lit l) {
   // do not consider l in the resolution.
   m_isPresentLit[l.intern()] = false;
 
@@ -135,7 +135,7 @@ unsigned CnfManagerDynBlockedCl::searchTautNotResolution(
     if (m_infoClauses[*(ite.start)].isSat) continue;
 
     isBlocked = false;
-    for (auto &ll : m_clauses[*(ite.start)]) {
+    for (auto& ll : m_clauses[*(ite.start)]) {
       if (m_isPresentLit[(~ll).intern()]) {
         isBlocked = true;
         break;
@@ -157,17 +157,17 @@ unsigned CnfManagerDynBlockedCl::searchTautNotResolution(
  * @brief CnfManagerDynBlockedCl::getBlockedClauses implementation.
  */
 void CnfManagerDynBlockedCl::getBlockedClauses(
-    std::vector<unsigned> &idxClauses) {
+    std::vector<unsigned>& idxClauses) {
   idxClauses.clear();
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_infoClauses[i].isSat) continue;
 
     // mark the literals for the current clause.
-    for (auto &l : m_clauses[i]) m_isPresentLit[l.intern()] = true;
+    for (auto& l : m_clauses[i]) m_isPresentLit[l.intern()] = true;
 
     // search for a non tautological clause.
     bool isBlocked = false;
-    for (auto &l : m_clauses[i]) {
+    for (auto& l : m_clauses[i]) {
       if (m_currentValue[l.var()] != l_Undef) continue;
       if (m_isDecisionVariable[l.var()]) continue;
 
@@ -177,7 +177,7 @@ void CnfManagerDynBlockedCl::getBlockedClauses(
     }
 
     // unmark the literals for the current clause.
-    for (auto &l : m_clauses[i]) m_isPresentLit[l.intern()] = false;
+    for (auto& l : m_clauses[i]) m_isPresentLit[l.intern()] = false;
 
     // if the clause is blocked we add it.
     if (isBlocked) idxClauses.push_back(i);
@@ -198,10 +198,10 @@ void CnfManagerDynBlockedCl::inprocessing() {
     m_indexSatClauses.pop_back();
 
     unsigned j = 0;
-    std::vector<unsigned> &wlist = m_watchedList[idx];
+    std::vector<unsigned>& wlist = m_watchedList[idx];
     for (unsigned i = 0; i < wlist.size(); i++) {
       // the related clause.
-      BlockedInfo &bi = m_clauseBlockedIndex[wlist[i]];
+      BlockedInfo& bi = m_clauseBlockedIndex[wlist[i]];
 
       if (m_infoClauses[bi.idxCl].isSat ||
           m_currentValue[bi.l.var()] != l_Undef)
@@ -224,7 +224,7 @@ void CnfManagerDynBlockedCl::inprocessing() {
           if (!m_markedClauseIdx[id]) {
             m_markedClauseIdx[id] = true;
             m_savedStateClauses.push_back(
-                (SavedStateClause){(int)id, false, m_infoClauses[id].nbUnsat});
+                {(int)id, false, m_infoClauses[id].nbUnsat});
           }
 
           wlist[j++] = wlist[i];

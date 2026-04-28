@@ -35,24 +35,26 @@ HyperGraphExtractorCnfDual::~HyperGraphExtractorCnfDual() {
  * @brief HyperGraphExtractorCnfDual::constructHyperGraph implementation.
  */
 InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
-    FormulaManager &om, std::vector<Var> &component, HyperGraph &hypergraph) {
+    FormulaManager& om, std::vector<Var>& component, HyperGraph& hypergraph) {
   // cast into a CNF spec manager
-  CnfManager &tmp = static_cast<CnfManager &>(om);
+  CnfManager& tmp = static_cast<CnfManager&>(om);
 
   // allocate memory.
   unsigned pos = 0;
   m_data = new char[component.size() * sizeof(HyperEdge) +
                     sizeof(unsigned) * tmp.getSumSizeClauses()];
 
+  unsigned* edgeData =
+      new unsigned[dynamic_cast<CnfManager&>(om).getNbClause()];
+
   // create the graph.
-  for (auto &v : component) {
+  for (auto& v : component) {
     // collect the edge.
-    unsigned edgeData[tmp.getNbClause(v)];
     unsigned size = 0;
 
-    for (auto &l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)}) {
+    for (auto& l : {Lit::makeLitFalse(v), Lit::makeLitTrue(v)}) {
       IteratorIdxClause listIdx = tmp.getVecIdxClause(l);
-      for (int *ptr = listIdx.start; ptr != listIdx.end; ptr++)
+      for (int* ptr = listIdx.start; ptr != listIdx.end; ptr++)
         edgeData[size++] = *ptr;
     }
 
@@ -62,19 +64,20 @@ InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     pos += sizeof(HyperEdge) + size * sizeof(unsigned);
   }
 
-  return {dynamic_cast<CnfManager &>(om).getNbVariable(),
-          dynamic_cast<CnfManager &>(om).getNbClause(),
-          dynamic_cast<CnfManager &>(om).getSumSizeClauses()};
+  delete[] edgeData;
+  return {dynamic_cast<CnfManager&>(om).getNbVariable(),
+          dynamic_cast<CnfManager&>(om).getNbClause(),
+          dynamic_cast<CnfManager&>(om).getSumSizeClauses()};
 }  // constructHyperGraph
 
 /**
  * @brief HyperGraphExtractorCnfDual::split implementation.
  */
-void HyperGraphExtractorCnfDual::split(HyperGraph &graph,
-                                       std::vector<int> &partition,
-                                       std::vector<Var> &cut,
-                                       HyperGraph &firstGraph,
-                                       HyperGraph &secondGraph) {
+void HyperGraphExtractorCnfDual::split(HyperGraph& graph,
+                                       std::vector<int>& partition,
+                                       std::vector<Var>& cut,
+                                       HyperGraph& firstGraph,
+                                       HyperGraph& secondGraph) {
   if (graph.getNbEdges() < 10) {
     for (unsigned i = 0; i < graph.getNbEdges(); i++)
       cut.push_back(graph[i].getId());
@@ -82,7 +85,7 @@ void HyperGraphExtractorCnfDual::split(HyperGraph &graph,
   }
 
   for (unsigned i = 0; i < graph.getNbEdges(); i++) {
-    HyperEdge &e = graph[i];
+    HyperEdge& e = graph[i];
     if (!e.getSize()) continue;
 
     int part = partition[e[0]];
