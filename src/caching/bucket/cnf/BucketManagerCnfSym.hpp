@@ -40,13 +40,14 @@ class BucketManagerCnfSym : public BucketManagerCnf {
   std::vector<unsigned> m_idInVecBucket;
 
   BucketInConstruction m_inConstruction;
-  unsigned *m_offsetClauses;
+  unsigned* m_offsetClauses;
 
   std::vector<unsigned> m_storeNbClause;
   std::vector<unsigned> m_litDegree;
 
   std::vector<unsigned long> m_stampDegreeVector;
   unsigned long m_stampDegreeIndex;
+  unsigned* m_memoryPlaceWrtSizeClause;
 
  public:
   /**
@@ -58,10 +59,10 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[in] sizeAdditionalPage, the amount of bytes for the additional
      pages.
   */
-  BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
+  BucketManagerCnfSym(CnfManager& occM, ModeStore mdStore,
                       unsigned long sizeFirstPage,
                       unsigned long sizeAdditionalPage,
-                      BucketAllocator *bucketAllocator = new BucketAllocator());
+                      BucketAllocator* bucketAllocator = new BucketAllocator());
 
   /**
      Destructor.
@@ -76,15 +77,15 @@ class BucketManagerCnfSym : public BucketManagerCnf {
 
      \return the index of a reserved bucket.
    */
-  int getIdxBucketSortInfo(BucketInConstruction &inConstruction);
+  int getIdxBucketSortInfo(BucketInConstruction& inConstruction);
 
-  void showListBucketSort(std::vector<BucketSortInfo> &v, std::ostream &out);
+  void showListBucketSort(std::vector<BucketSortInfo>& v, std::ostream& out);
 
   /**
      Push sorted, use the natural order.
 
    */
-  void pushSorted(unsigned *tab, unsigned pos, unsigned val);
+  void pushSorted(unsigned* tab, unsigned pos, unsigned val);
 
   /**
      It is used in order to construct a sorted residual formula.
@@ -95,7 +96,7 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[in] repLit, the representation of the literal l in the formula in
      construction.
   */
-  void createDistribWrTLit(const Lit &l, BucketInConstruction &inConstruction,
+  void createDistribWrTLit(const Lit& l, BucketInConstruction& inConstruction,
                            const Lit repLit);
 
   /**
@@ -113,8 +114,8 @@ class BucketManagerCnfSym : public BucketManagerCnf {
    * @return  The number of elements in the final distribution after removing
    * redundant clauses.
    */
-  unsigned collectDistrib(std::vector<Lit> &orderedLiterals,
-                          BucketInConstruction &inConstruction);
+  unsigned collectDistrib(std::vector<Lit>& orderedLiterals,
+                          BucketInConstruction& inConstruction);
 
   /**
      Prepare the data to store a new bucket.
@@ -122,7 +123,7 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[out] inConstruction, place where we store the bucket in
      construction.
    */
-  void initSortBucket(BucketInConstruction &inConstruction);
+  void initSortBucket(BucketInConstruction& inConstruction);
 
   /**
      Compute the number of bytes requiered to store the data.
@@ -139,7 +140,7 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[in] component, the set of variables.
    */
   template <typename U>
-  void *storeVariables(void *data, std::vector<Var> &component);
+  void* storeVariables(void* data, std::vector<Var>& component);
 
   /**
    Store the variables respecting the information of size concerning the type T
@@ -150,7 +151,7 @@ class BucketManagerCnfSym : public BucketManagerCnf {
    @param[out] inConstruction, place where we store the bucket in construction.
  */
   template <typename U>
-  void *storeDistribInfo(void *data, BucketInConstruction &inConstruction);
+  void* storeDistribInfo(void* data, BucketInConstruction& inConstruction);
 
   /**
      Store the formula representation respecting the information of size
@@ -169,8 +170,8 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      \return a pointer to the end of the data we added
   */
   template <typename U>
-  void *storeClauses(void *data, std::vector<Var> &component,
-                     BucketInConstruction &inConstruction);
+  void* storeClauses(void* data, std::vector<Var>& component,
+                     BucketInConstruction& inConstruction);
   /**
      Compute from the m_distribDiffSize the number of different size and the
      maximum size.
@@ -183,10 +184,10 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[out] inConstruction, place where we store the bucket in
      construction.
    */
-  void getInfoDistributionSize(unsigned &maxNbSizeClause,
-                               unsigned &largestSizeClause,
-                               unsigned &nbDiffClauseSize, unsigned &nbLit,
-                               BucketInConstruction &inConstruction);
+  void getInfoDistributionSize(unsigned& maxNbSizeClause,
+                               unsigned& largestSizeClause,
+                               unsigned& nbDiffClauseSize, unsigned& nbLit,
+                               BucketInConstruction& inConstruction);
 
   /**
    * @brief   Sorts the literals associated with a given set of variables.
@@ -200,8 +201,8 @@ class BucketManagerCnfSym : public BucketManagerCnf {
    * @param[out] orderedLits   The resulting list of literals, sorted according
    * to the described order.
    */
-  void varToSortedLiterals(const std::vector<Var> &component,
-                           std::vector<Lit> &orderedLits);
+  void varToSortedLiterals(const std::vector<Var>& component,
+                           std::vector<Lit>& orderedLits);
 
   /**
      Transfer the formula store in distib in a table given in parameter.
@@ -210,6 +211,6 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[out] tmpFormula, the place where is stored the formula.
      @param[out] szTmpFormula, to collect the size of the stored formula.
   */
-  void storeFormula(std::vector<Var> &component, DataBucket &b);
+  void storeFormula(std::vector<Var>& component, DataBucket& b);
 };
 }  // namespace d4

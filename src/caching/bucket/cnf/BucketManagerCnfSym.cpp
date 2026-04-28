@@ -29,10 +29,10 @@ namespace d4 {
  @param[in] sizeAdditionalPage, the amount of bytes for the additional
  pages.
 */
-BucketManagerCnfSym::BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
+BucketManagerCnfSym::BucketManagerCnfSym(CnfManager& occM, ModeStore mdStore,
                                          unsigned long sizeFirstPage,
                                          unsigned long sizeAdditionalPage,
-                                         BucketAllocator *bucketAllocator)
+                                         BucketAllocator* bucketAllocator)
     : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
                                          sizeAdditionalPage, bucketAllocator),
       m_inConstruction(occM) {
@@ -45,6 +45,7 @@ BucketManagerCnfSym::BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
 
   m_stampDegreeVector.resize((1 + this->m_nbVarCnf), 0);
   m_stampDegreeIndex = 0;
+  m_memoryPlaceWrtSizeClause = new unsigned[this->m_maxSizeClause + 1];
 }  // BucketManagerCnfSym
 
 /**
@@ -52,6 +53,7 @@ BucketManagerCnfSym::BucketManagerCnfSym(CnfManager &occM, ModeStore mdStore,
  */
 BucketManagerCnfSym::~BucketManagerCnfSym() {
   delete[] m_offsetClauses;
+  delete[] m_memoryPlaceWrtSizeClause;
 }  // destructor
 
 /**
@@ -63,7 +65,7 @@ BucketManagerCnfSym::~BucketManagerCnfSym() {
    \return the index of a reserved bucket.
  */
 int BucketManagerCnfSym::getIdxBucketSortInfo(
-    BucketInConstruction &inConstruction) {
+    BucketInConstruction& inConstruction) {
   int ret = m_unusedBucket;
 
   if (m_unusedBucket == -1) {
@@ -80,7 +82,7 @@ int BucketManagerCnfSym::getIdxBucketSortInfo(
    Push sorted, use the natural order.
 
  */
-void BucketManagerCnfSym::pushSorted(unsigned *tab, unsigned pos,
+void BucketManagerCnfSym::pushSorted(unsigned* tab, unsigned pos,
                                      unsigned val) {
   tab[pos] = val;
   for (unsigned i = pos; i > 0; i--)
@@ -100,14 +102,14 @@ void BucketManagerCnfSym::pushSorted(unsigned *tab, unsigned pos,
    construction.
 */
 void BucketManagerCnfSym::createDistribWrTLit(
-    const Lit &l, BucketInConstruction &inConstruction, const Lit repLit) {
+    const Lit& l, BucketInConstruction& inConstruction, const Lit repLit) {
   unsigned currentPos =
       inConstruction.sizeDistrib;   // the place where we put l.
   inConstruction.sizeDistrib += 2;  // save memory for l and the size.
 
   // associate a bucket to the literal.
   unsigned counter = 0, nbElt = 0;
-  unsigned *tab = &inConstruction.distrib[inConstruction.sizeDistrib];
+  unsigned* tab = &inConstruction.distrib[inConstruction.sizeDistrib];
   int ownBucket = getIdxBucketSortInfo(inConstruction);
 
   // visit each clause
@@ -115,7 +117,7 @@ void BucketManagerCnfSym::createDistribWrTLit(
   unsigned nextBucket = m_vecBucketSortInfo.size();
 
   IteratorIdxClause listIndex = this->m_specManager.getVecIdxClause(l);
-  for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+  for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
     int idx = *ptr;
     assert((unsigned)idx < m_markIdx.size());
     if (m_markIdx[idx] == -1) {
@@ -126,7 +128,7 @@ void BucketManagerCnfSym::createDistribWrTLit(
       counter++;
     } else {
       inConstruction.sizeClauses[idx]++;
-      BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+      BucketSortInfo& b = m_vecBucketSortInfo[m_markIdx[idx]];
       if (!b.counter) {
         assert(nextBucket ==
                m_vecBucketSortInfo.size() + m_idInVecBucket.size());
@@ -144,8 +146,8 @@ void BucketManagerCnfSym::createDistribWrTLit(
 
   m_vecBucketSortInfo.resize(m_vecBucketSortInfo.size() +
                              m_idInVecBucket.size());
-  for (auto &bid : m_idInVecBucket) {
-    BucketSortInfo &b = m_vecBucketSortInfo[bid];
+  for (auto& bid : m_idInVecBucket) {
+    BucketSortInfo& b = m_vecBucketSortInfo[bid];
     assert(b.counter);
 
     // we split out the bucket.
@@ -183,9 +185,9 @@ void BucketManagerCnfSym::createDistribWrTLit(
    redundant clauses have been removed.
 */
 unsigned BucketManagerCnfSym::collectDistrib(
-    std::vector<Lit> &orderedLit, BucketInConstruction &inConstruction) {
+    std::vector<Lit>& orderedLit, BucketInConstruction& inConstruction) {
   // sort the set of clauses
-  for (auto &l : orderedLit) {
+  for (auto& l : orderedLit) {
     if (this->m_specManager.varIsAssigned(l.var())) continue;
     createDistribWrTLit(l, inConstruction, l);
     createDistribWrTLit(~l, inConstruction, ~l);
@@ -193,8 +195,8 @@ unsigned BucketManagerCnfSym::collectDistrib(
 
   // mark the clause we do not keep.
   unsigned realSizeDistrib = inConstruction.sizeDistrib;
-  for (auto &idx : m_mustUnMark) {
-    BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+  for (auto& idx : m_mustUnMark) {
+    BucketSortInfo& b = m_vecBucketSortInfo[m_markIdx[idx]];
     m_markIdx[idx] = -1;
     inConstruction.shiftedSizeClause[b.start] = inConstruction.sizeClauses[idx];
     if (b.end != b.start + 1) {
@@ -230,16 +232,16 @@ unsigned BucketManagerCnfSym::collectDistrib(
    @param[out] inConstruction, place where we store the bucket in
    construction.
  */
-void BucketManagerCnfSym::initSortBucket(BucketInConstruction &inConstruction) {
+void BucketManagerCnfSym::initSortBucket(BucketInConstruction& inConstruction) {
   inConstruction.reinit();
   m_unusedBucket = -1;
   m_vecBucketSortInfo.resize(0);
 }  // initSortBucket
 
-void BucketManagerCnfSym::showListBucketSort(std::vector<BucketSortInfo> &v,
-                                             std::ostream &out) {
+void BucketManagerCnfSym::showListBucketSort(std::vector<BucketSortInfo>& v,
+                                             std::ostream& out) {
   out << "size = " << v.size() << "\n";
-  for (auto &e : v)
+  for (auto& e : v)
     out << "[" << e.start << " " << e.end << " " << e.counter << " "
         << e.redirected << "]";
   out << "\n";
@@ -263,9 +265,9 @@ unsigned BucketManagerCnfSym::computeNeededBytes(unsigned nBda, unsigned nbD,
    @param[in] component, the set of variables.
  */
 template <typename U>
-void *storeVariables(void *data, std::vector<Var> &component) {
-  U *p = static_cast<U *>(data);
-  for (auto &v : component) {
+void* storeVariables(void* data, std::vector<Var>& component) {
+  U* p = static_cast<U*>(data);
+  for (auto& v : component) {
     *p = static_cast<U>(v);
     p++;
   }
@@ -282,9 +284,9 @@ void *storeVariables(void *data, std::vector<Var> &component) {
  @param[out] inConstruction, place where we store the bucket in construction.
 */
 template <typename U>
-void *BucketManagerCnfSym::storeDistribInfo(
-    void *data, BucketInConstruction &inConstruction) {
-  U *p = static_cast<U *>(data);
+void* BucketManagerCnfSym::storeDistribInfo(
+    void* data, BucketInConstruction& inConstruction) {
+  U* p = static_cast<U*>(data);
   for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
     if (!inConstruction.distribDiffSize[i]) continue;
     *p = static_cast<U>(i);
@@ -313,8 +315,8 @@ void *BucketManagerCnfSym::storeDistribInfo(
    \return a pointer to the end of the data we added
 */
 template <typename U>
-void *BucketManagerCnfSym::storeClauses(void *data, std::vector<Var> &component,
-                                        BucketInConstruction &inConstruction) {
+void* BucketManagerCnfSym::storeClauses(void* data, std::vector<Var>& component,
+                                        BucketInConstruction& inConstruction) {
   // we map the variable to another index regarding their poistion in
   // component.
   for (unsigned i = 0; i < component.size(); i++) m_mapVar[component[i]] = i;
@@ -322,9 +324,8 @@ void *BucketManagerCnfSym::storeClauses(void *data, std::vector<Var> &component,
   // get the information about the starting offset for the different clause
   // size.
   unsigned offSet = 0;
-  unsigned memoryPlaceWrtSizeClause[this->m_maxSizeClause + 1];
   for (unsigned i = 0; i <= this->m_maxSizeClause; i++) {
-    memoryPlaceWrtSizeClause[i] = offSet;
+    m_memoryPlaceWrtSizeClause[i] = offSet;
     offSet += inConstruction.distribDiffSize[i] * i;
   }
 
@@ -333,13 +334,13 @@ void *BucketManagerCnfSym::storeClauses(void *data, std::vector<Var> &component,
     unsigned szClause = inConstruction.shiftedSizeClause[i];
     if (!szClause) continue;
 
-    m_offsetClauses[i] = memoryPlaceWrtSizeClause[szClause];
-    memoryPlaceWrtSizeClause[szClause] += szClause;
+    m_offsetClauses[i] = m_memoryPlaceWrtSizeClause[szClause];
+    m_memoryPlaceWrtSizeClause[szClause] += szClause;
     inConstruction.shiftedSizeClause[i] = 0;
   }
 
   // we store the data.
-  U *p = static_cast<U *>(data);
+  U* p = static_cast<U*>(data);
   unsigned i = 0;
   while (i < inConstruction.sizeDistrib) {
     unsigned lit = inConstruction.distrib[i++];
@@ -375,9 +376,9 @@ void *BucketManagerCnfSym::storeClauses(void *data, std::vector<Var> &component,
    construction.
  */
 void BucketManagerCnfSym::getInfoDistributionSize(
-    unsigned &maxNbSizeClause, unsigned &largestSizeClause,
-    unsigned &nbDiffClauseSize, unsigned &nbLit,
-    BucketInConstruction &inConstruction) {
+    unsigned& maxNbSizeClause, unsigned& largestSizeClause,
+    unsigned& nbDiffClauseSize, unsigned& nbLit,
+    BucketInConstruction& inConstruction) {
   largestSizeClause = 0;
   maxNbSizeClause = 0;
   nbDiffClauseSize = 0;
@@ -397,8 +398,8 @@ void BucketManagerCnfSym::getInfoDistributionSize(
  * @brief BucketManagerCnfSym::varToSortedLiterals implementation.
  *
  */
-void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
-                                              std::vector<Lit> &orderedLits) {
+void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var>& component,
+                                              std::vector<Lit>& orderedLits) {
   // init the vector of literals.
   orderedLits.clear();
   orderedLits.reserve(component.size());
@@ -419,7 +420,7 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
       m_stampDegreeVector[m.var()] = m_stampDegreeIndex;
 
       IteratorIdxClause listIndex = this->m_specManager.getVecIdxClause(m);
-      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+      for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         for (auto k : this->m_specManager.getClause(*ptr))
           if (m_stampDegreeVector[k.var()] != m_stampDegreeIndex) {
             m_stampDegreeVector[k.var()] = m_stampDegreeIndex;
@@ -431,7 +432,7 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
 #endif
 
   // update the phase.
-  for (auto &l : orderedLits)
+  for (auto& l : orderedLits)
     if (m_storeNbClause[l.intern()] > m_storeNbClause[(~l).intern()]) l = ~l;
 
   // sort the literals.
@@ -474,8 +475,8 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var> &component,
    @param[out] tmpFormula, the place where is stored the formula.
    @param[out] szTmpFormula, to collect the size of the stored formula.
 */
-void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
-                                       DataBucket &b) {
+void BucketManagerCnfSym::storeFormula(std::vector<Var>& component,
+                                       DataBucket& b) {
 #if 0
   std::vector<bool> presentVar(this->m_specManager.getNbVariable() + 1, false);
   for (auto &v : component) presentVar[v] = true;
@@ -503,8 +504,8 @@ void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
   // ask for memory
   unsigned szData =
       computeNeededBytes(nbOLit, nbODistrib, nbLit, nbDiffClauseSize);
-  char *data = this->m_bucketAllocator->getArray(szData);
-  void *p = data;
+  char* data = this->m_bucketAllocator->getArray(szData);
+  void* p = data;
 
   // store the clause distribution of the size.
   switch (nbODistrib) {
@@ -520,7 +521,7 @@ void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
     default:
       throw(BucketException("Bad number of bytes", __FILE__, __LINE__));
   }
-  assert(static_cast<char *>(p) == &data[nbODistrib * (nbDiffClauseSize << 1)]);
+  assert(static_cast<char*>(p) == &data[nbODistrib * (nbDiffClauseSize << 1)]);
 
   // store the clauses.
   switch (nbOLit) {
@@ -536,7 +537,7 @@ void BucketManagerCnfSym::storeFormula(std::vector<Var> &component,
     default:
       throw(BucketException("Bad number of bytes", __FILE__, __LINE__));
   }
-  assert(static_cast<char *>(p) == &data[szData]);
+  assert(static_cast<char*>(p) == &data[szData]);
 
   DataInfo di(szData, component.size(), 0,
               this->nbBitUnsigned(2 + (component.size() << 1)));
