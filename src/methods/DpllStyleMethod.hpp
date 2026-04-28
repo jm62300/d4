@@ -88,26 +88,24 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   TmpEntry<U> NULL_CACHE_ENTRY;
   CacheManager<U>* m_cache;
 
-  std::ostream m_out;
+  std::ostream& m_out;
   Operation<T, U>* m_operation;
 
  public:
   /**
-   * Constructor.
+   * @brief Constructs the DPLL-style solver method.
    *
-   * @param[in] vm, the list of options.
+   * @param[in] options     The configuration options for the DPLL method.
+   * @param[in] initProblem Pointer to the problem manager instance.
+   * @param[in] out         The output stream to be used for logging or results.
    */
   DpllStyleMethod(const OptionDpllStyleMethod& options,
                   ProblemManager* initProblem, std::ostream& out)
-      : m_problem(initProblem), m_out(nullptr) {
-    // init the output stream
-    m_out.copyfmt(out);
-    m_out.clear(out.rdstate());
-    m_out.basic_ios<char>::rdbuf(out.rdbuf());
-    m_out.setstate(out.rdstate());
-
+      : m_problem(initProblem), m_out(out) {
     m_out << "c [DPLL STYLE METHOD]" << options << "\n";
     m_verbosity = options.verbosity;
+
+    static_cast<Quantification*>(m_problem)->display(m_out);
 
     // we create and init the solver.
     m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,

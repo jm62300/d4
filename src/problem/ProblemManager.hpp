@@ -22,6 +22,7 @@
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/multiprecision/gmp.hpp>
 
+#include "quantification/Quantification.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/methods/DataBranch.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -42,7 +43,7 @@ class ProblemInputTypeManager {
    * @param m is the enum type option.
    * @return the string associate with this type.
    */
-  static std::string getInputType(const ProblemInputType &m) {
+  static std::string getInputType(const ProblemInputType& m) {
     if (m == PB_CNF) return "cnf";
     if (m == PB_CIRC) return "circuit";
     if (m == PB_TCNF) return "cnf+theory";
@@ -56,7 +57,7 @@ class ProblemInputTypeManager {
    *
    * @param out is the output stream where write the information.
    */
-  static void displayPossibleOptions(std::ostream &out) {
+  static void displayPossibleOptions(std::ostream& out) {
     out << "\033[1m\033[31mProblem types handling by d4: \033[0m\n";
     out << "\t- CNF formula following the Dimacs format -> cnf\n";
     out << "\t- Circuit formula -> circuit\n";
@@ -70,7 +71,7 @@ class ProblemInputTypeManager {
    *
    * @param[in] m is the string representing the option.
    */
-  static ProblemInputType getInputType(const std::string &m) {
+  static ProblemInputType getInputType(const std::string& m) {
     if (m == "cnf") return PB_CNF;
     if (m == "circuit") return PB_CIRC;
     if (m == "tcnf") return PB_TCNF;
@@ -94,7 +95,7 @@ class ProblemTranslateTypeManager {
    * @param m is the enum type option.
    * @return the string associate with this type.
    */
-  static std::string getInputType(const ProblemTranslateType &m) {
+  static std::string getInputType(const ProblemTranslateType& m) {
     if (m == TRANSLATE_CNF) return "cnf";
     if (m == TRANSLATE_PCNF) return "pcnf";
     if (m == TRANSLATE_NONE) return "none";
@@ -106,7 +107,7 @@ class ProblemTranslateTypeManager {
    *
    * @param out is the output stream where write the information.
    */
-  static void displayPossibleOptions(std::ostream &out) {
+  static void displayPossibleOptions(std::ostream& out) {
     out << "\033[1m\033[31mTranslation type handling by d4: \033[0m\n";
     out << "\t- Do not translate the formula -> none\n";
     out << "\t- Translate the formula into a CNF formula -> cnf\n";
@@ -118,7 +119,7 @@ class ProblemTranslateTypeManager {
    *
    * @param[in] m is the string representing the option.
    */
-  static ProblemTranslateType getInputType(const std::string &m) {
+  static ProblemTranslateType getInputType(const std::string& m) {
     if (m == "cnf") return TRANSLATE_CNF;
     if (m == "pcnf") return TRANSLATE_PCNF;
     if (m == "none") return TRANSLATE_NONE;
@@ -128,7 +129,7 @@ class ProblemTranslateTypeManager {
   }  // getOperatorType
 };
 
-class ProblemManager {
+class ProblemManager : public Quantification {
  protected:
   unsigned m_nbVar;
   std::vector<mpz::mpf_float> m_weightLit;
@@ -141,27 +142,27 @@ class ProblemManager {
   bool m_isUnsat = false;
 
  public:
-  static ProblemManager *makeProblemManager(const std::string &in,
+  static ProblemManager* makeProblemManager(const std::string& in,
                                             ProblemInputType pbType,
-                                            std::ostream &out);
+                                            std::ostream& out);
 
   virtual ~ProblemManager() { ; }
-  virtual void display(std::ostream &out) = 0;
-  virtual void displayStat(std::ostream &out, std::string startLine) = 0;
-  virtual ProblemManager *getUnsatProblem() = 0;
-  virtual ProblemManager *getConditionedFormula(std::vector<Lit> &units) = 0;
-  virtual ProblemManager *translate(const ProblemTranslateType &t) = 0;
+  virtual void display(std::ostream& out) = 0;
+  virtual void displayStat(std::ostream& out, std::string startLine) = 0;
+  virtual ProblemManager* getUnsatProblem() = 0;
+  virtual ProblemManager* getConditionedFormula(std::vector<Lit>& units) = 0;
+  virtual ProblemManager* translate(const ProblemTranslateType& t) = 0;
 
   unsigned getNbVar() { return m_nbVar; }
   void setNbVar(int n) { m_nbVar = n; }
 
-  inline std::vector<Var> &getSelectedVar() { return m_selected; }
-  inline std::vector<Var> &getMaxVar() { return m_maxVar; }
-  inline std::vector<Var> &getIndVar() { return m_indVar; }
-  inline std::vector<mpz::mpf_float> &getWeightLit() { return m_weightLit; }
-  inline std::vector<mpz::mpf_float> &getWeightLitIm() { return m_weightLitIm; }
-  inline std::vector<mpz::mpf_float> &getWeightVar() { return m_weightVar; }
-  inline std::vector<unsigned> &getOrder() { return m_order; }
+  inline std::vector<Var>& getSelectedVar() { return m_selected; }
+  inline std::vector<Var>& getMaxVar() { return m_maxVar; }
+  inline std::vector<Var>& getIndVar() { return m_indVar; }
+  inline std::vector<mpz::mpf_float>& getWeightLit() { return m_weightLit; }
+  inline std::vector<mpz::mpf_float>& getWeightLitIm() { return m_weightLitIm; }
+  inline std::vector<mpz::mpf_float>& getWeightVar() { return m_weightVar; }
+  inline std::vector<unsigned>& getOrder() { return m_order; }
 
   inline mpz::mpf_float getWeightLit(Lit l) { return m_weightLit[l.intern()]; }
   inline mpz::mpf_float getWeightVar(Var v) { return m_weightVar[v]; }
@@ -206,14 +207,14 @@ class ProblemManager {
    * \return the right value.
    */
   template <typename T>
-  inline T computeWeightUnitFree(std::vector<Lit> &units,
-                                 std::vector<Var> &frees) {
+  inline T computeWeightUnitFree(std::vector<Lit>& units,
+                                 std::vector<Var>& frees) {
     T tmp = 1;
-    for (auto &l : units) {
+    for (auto& l : units) {
       assert(l.intern() < m_weightLit.size());
       tmp *= T(m_weightLit[l.intern()]);
     }
-    for (auto &v : frees) {
+    for (auto& v : frees) {
       assert(v < (int)m_weightVar.size());
       tmp *= T(m_weightVar[v]);
     }
@@ -229,7 +230,7 @@ class ProblemManager {
    * \return the right value
    */
   template <typename T>
-  inline T computeWeightUnitFree(DataBranch<T> &b) {
+  inline T computeWeightUnitFree(DataBranch<T>& b) {
     return computeWeightUnitFree<T>(b.unitLits, b.freeVars);
   }  // computeWeightUnitFree
 };

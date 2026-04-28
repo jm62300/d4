@@ -53,6 +53,8 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in,
   char previousChar = '\0';
   bool weightedProblem = false;
 
+  std::vector<Var> showedVars, maxVars, indVars;
+
   for (;;) {
     in.skipSpace();
     if (in.eof()) break;
@@ -115,8 +117,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in,
       in.consumeChar();
       assert(in.currentChar() == 'p');
       in.consumeChar();
-      Parsing::readListIntTerminatedByZero(in,
-                                           problemManager->getSelectedVar());
+      Parsing::readListIntTerminatedByZero(in, showedVars);
     } else if (in.currentChar() == 'w') {
       in.consumeChar();
       in.skipSpace();
@@ -133,9 +134,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in,
                   << "Model Counting problem\n";
       } else if (in.currentChar() != 'p') {
         if (in.canConsume("max")) {
-          Parsing::readListIntTerminatedByZero(in, problemManager->getMaxVar());
+          Parsing::readListIntTerminatedByZero(in, maxVars);
         } else if (in.canConsume("ind"))
-          Parsing::readListIntTerminatedByZero(in, problemManager->getIndVar());
+          Parsing::readListIntTerminatedByZero(in, indVars);
         else
           in.skipLine();
       } else {
@@ -153,8 +154,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in,
           [[maybe_unused]] int endLine = in.nextInt();
           assert(!endLine);
         } else if (in.canConsume("show"))
-          Parsing::readListIntTerminatedByZero(
-              in, problemManager->getSelectedVar());
+          Parsing::readListIntTerminatedByZero(in, showedVars);
         else
           in.skipLine();
       }
@@ -193,6 +193,15 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in,
     }
   }
 
+  if (maxVars.size()) {
+    problemManager->addLevel(maxVars);
+    problemManager->addLevel(indVars);
+  }
+  problemManager->addLevel(showedVars);
+
+  problemManager->getMaxVar() = maxVars;
+  problemManager->getIndVar() = indVars;
+  problemManager->getSelectedVar() = showedVars;
   return nbVars;
 }
 
