@@ -60,8 +60,7 @@ static inline int memReadPeak(void) {
   // Find the correct line, beginning with "VmPeak:":
   int peak_kb = 0;
   while (!feof(in) && fscanf(in, "VmPeak: %d kB", &peak_kb) != 1)
-    while (!feof(in) && fgetc(in) != '\n')
-      ;
+    while (!feof(in) && fgetc(in) != '\n');
   fclose(in);
 
   return peak_kb;
@@ -77,7 +76,7 @@ double bipe::Glucose::memUsedPeak() {
 
 #elif defined(__FreeBSD__)
 
-double Glucose_bipe::memUsed(void) {
+double bipe::Glucose::memUsed(void) {
   struct rusage ru;
   getrusage(RUSAGE_SELF, &ru);
   return (double)ru.ru_maxrss / 1024;
@@ -87,12 +86,12 @@ double MiniSat::memUsedPeak(void) { return memUsed(); }
 #elif defined(__APPLE__)
 #include <malloc/malloc.h>
 
-double Glucose_bipe::memUsed(void) {
+double bipe::Glucose::memUsed(void) {
   malloc_statistics_t t;
   malloc_zone_statistics(NULL, &t);
   return (double)t.max_size_in_use / (1024 * 1024);
 }
 
 #else
-double Glucose_bipe::memUsed() { return 0; }
+double bipe::Glucose::memUsed() { return 0; }
 #endif

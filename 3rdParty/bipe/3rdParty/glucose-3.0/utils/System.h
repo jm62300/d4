@@ -48,7 +48,7 @@ extern double memUsedPeak();  // Peak-memory in mega bytes (returns 0 for
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <time.h>
 
-static inline double Glucose_bipe::cpuTime(void) {
+inline double bipe::Glucose::cpuTime(void) {
   return (double)clock() / CLOCKS_PER_SEC;
 }
 
