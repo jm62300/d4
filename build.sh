@@ -8,7 +8,9 @@ set -o pipefail
 
 opt=0
 
-while getopts 'dsp' OPTION
+NB_CORE=4
+
+while getopts 'cdsp' OPTION
 do
     case "$OPTION" in
         d)
@@ -19,12 +21,14 @@ do
             ;;
         p)
             opt=3
-            ;;
+            ;;    
+        c)
+            NB_CORE=""
     esac
 done
 
 cd $SCRIPT_DIR/3rdParty/flowCutter
-make -j DEBUG=$opt
+make -j $NB_CORE DEBUG=$opt
 
 cd $SCRIPT_DIR/3rdParty/glucose-3.0/core/
 make libst       
@@ -37,7 +41,7 @@ cd $SCRIPT_DIR
 mkdir -p build
 cd build
 cmake .. -DBUILD_MODE=$opt 
-make -j
+make -j $NB_CORE
 
 # make a library of everything
 mv libd4.a libd4tmp.a
