@@ -30,14 +30,12 @@
 #include "ParseOption.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/MethodManager.hpp"
-#include "src/options/preprocs/OptionPreprocManager.hpp"
-#include "src/preprocs/PreprocManager.hpp"
 
 #ifndef NOMAIN
 
 using namespace d4;
 namespace po = boost::program_options;
-MethodManager *methodRun = nullptr;
+MethodManager* methodRun = nullptr;
 
 /**
  * @brief Catch the signal that ask for stopping the method which is running.
@@ -53,7 +51,7 @@ static void signalHandler(int signum) {
 /**
    The main function!
 */
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   auto start = std::chrono::system_clock::now();
   po::options_description desc{"Options"};
   desc.add_options()
@@ -66,7 +64,7 @@ int main(int argc, char **argv) {
 
   try {
     po::notify(vm);
-  } catch (const po::error &ex) {
+  } catch (const po::error& ex) {
     std::cerr << ex.what() << '\n';
     exit(1);
   }
@@ -81,7 +79,7 @@ int main(int argc, char **argv) {
   }
 
   // parse the initial problem.
-  d4::ProblemManager *initProblem = d4::ProblemManager::makeProblemManager(
+  d4::ProblemManager* initProblem = d4::ProblemManager::makeProblemManager(
       vm["input"].as<std::string>(),
       d4::ProblemInputTypeManager::getInputType(
           vm["input-type"].as<std::string>()),
@@ -96,7 +94,7 @@ int main(int argc, char **argv) {
     std::cout << "c [TRANSLATION] Translate the input formula: "
               << vm["input-type"].as<std::string>() << " -> "
               << vm["translate"].as<std::string>() << '\n';
-    d4::ProblemManager *tmp =
+    d4::ProblemManager* tmp =
         initProblem->translate(d4::ProblemTranslateTypeManager::getInputType(
             vm["translate"].as<std::string>()));
     delete initProblem;
@@ -106,14 +104,16 @@ int main(int argc, char **argv) {
   // run the method asked.
   d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
 
-  // preproc.
+// preproc.
+#if 0
   d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
   configPreproc.inputType = initProblem->getProblemType();
-  ProblemManager *problem =
+  ProblemManager* problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+#endif
 
   // count.
-  counterDemo(vm, problem);
+  counterDemo(vm, initProblem);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;

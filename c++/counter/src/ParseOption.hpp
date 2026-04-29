@@ -36,17 +36,7 @@ namespace po = boost::program_options;
  *
  * @return the preproc configuration.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm);
-
-/**
- * @brief Parse the configuration for the preprocessing.
- *
- * @param vm are the options.
- * @param prefix is a string put in front in order to select the method.
- *
- * @return the preproc configuration.
- */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm);
+d4::ConfigurationCache parseCacheConfiguration(const po::variables_map& vm);
 
 /**
  * @brief Parse the configuration for the branching heuristic.
@@ -57,7 +47,7 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm);
  * @return the branching heuristic configuration.
  */
 d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
-    const po::variables_map &vm);
+    const po::variables_map& vm);
 
 /**
  * @brief Parse the configuration for the paritioning heuristic.
@@ -67,4 +57,4 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  * @return the partitioning heuristic configuration.
  */
 d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
-    const po::variables_map &vm);
+    const po::variables_map& vm);

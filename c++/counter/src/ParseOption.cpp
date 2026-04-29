@@ -20,25 +20,9 @@
 #include "ParseOption.hpp"
 
 /**
- * @brief parsePreprocConfiguration implementation.
- */
-d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
-  d4::ConfigurationPeproc config;
-  config.inputType = d4::ProblemInputTypeManager::getInputType(
-      vm["input-type"].as<std::string>());
-  config.nbIteration = vm["preproc-reducer-iteration"].as<int>();
-  config.preprocMethod = d4::PreprocMethodManager::getPreprocMethod(
-      vm["preproc"].as<std::string>());
-  config.timeout = vm["preproc-timeout"].as<int>();
-  config.strongElim = vm["preproc-strong-elim"].as<bool>();
-
-  return config;
-}  // parsePreprocConfiguration
-
-/**
  * @brief parseCacheConfiguration implementation.
  */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
+d4::ConfigurationCache parseCacheConfiguration(const po::variables_map& vm) {
   d4::ConfigurationCache cache;
 
   cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
@@ -75,7 +59,7 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
  * @brief parseBranchingHeuristicConfiguration implementation.
  */
 d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
-    const po::variables_map &vm) {
+    const po::variables_map& vm) {
   d4::ConfigurationBranchingHeuristic branchingHeuristic;
 
   branchingHeuristic.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
@@ -107,7 +91,7 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
  * @brief parsePartitioningHeuristicConfiguration implementation.
  */
 d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
-    const po::variables_map &vm) {
+    const po::variables_map& vm) {
   d4::ConfigurationPartialOrderHeuristic partialOrderHeuristic;
   partialOrderHeuristic.partialOrderMethod =
       d4::PartialOrderMethodManager::getPartialOrderMethod(
