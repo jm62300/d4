@@ -20,7 +20,6 @@
 
 #include <string>
 
-#include "ConfigurationPreproc.hpp"
 #include "src/methods/MethodManager.hpp"
 
 namespace d4 {
@@ -32,8 +31,6 @@ class Configuration {
   bool isFloat;
   std::string inputName;
   ProblemInputType problemInputType;
-
-  ConfigurationPeproc configurationPreproc;
 
   friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {
     out << "c Configuration:\n"

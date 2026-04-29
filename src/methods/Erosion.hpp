@@ -21,7 +21,6 @@
 #include "MethodManager.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/Counter.hpp"
-#include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/cnf/ProblemManagerCnf.hpp"
 #include "src/problem/cnf/ProblemManagerErosionCnf.hpp"
@@ -38,19 +37,19 @@ class Erosion : public MethodManager {
    * are sorted).
    * @return true if the problem is not trivially SAT, false otherwise.
    */
-  bool erode(std::vector<std::vector<Lit>> &clauses, int nbVar) {
+  bool erode(std::vector<std::vector<Lit>>& clauses, int nbVar) {
     std::vector<std::vector<Lit>> tmpClauses = clauses;
     std::vector<unsigned long> hashValue;
     clauses.clear();
 
     // generate.
-    for (auto &c : tmpClauses) {
+    for (auto& c : tmpClauses) {
       if (c.size() == 1) return false;
 
       // generate the clauses.
       for (unsigned i = 0; i < c.size(); i++) {
         clauses.push_back(std::vector<Lit>());
-        std::vector<Lit> &cl = clauses.back();
+        std::vector<Lit>& cl = clauses.back();
         cl.reserve(c.size());
         unsigned long currentHash = 0;
 
@@ -66,16 +65,16 @@ class Erosion : public MethodManager {
     // reduce.
     std::vector<bool> marked(2 * (nbVar + 1), false);
     for (unsigned i = 0; i < clauses.size(); i++) {
-      std::vector<Lit> &c = clauses[i];
-      for (auto &l : c) marked[l.intern()] = true;
+      std::vector<Lit>& c = clauses[i];
+      for (auto& l : c) marked[l.intern()] = true;
 
       // check if the clause is already subsume.
       bool isSubsume = false;
       for (unsigned j = 0; j < i; j++) {
-        std::vector<Lit> &d = clauses[j];
+        std::vector<Lit>& d = clauses[j];
         if (!d.size()) continue;
         isSubsume = true;
-        for (auto &l : d) {
+        for (auto& l : d) {
           isSubsume = marked[l.intern()];
           if (!isSubsume) break;
         }
@@ -83,7 +82,7 @@ class Erosion : public MethodManager {
       }
 
       // restore mark.
-      for (auto &l : c) marked[l.intern()] = false;
+      for (auto& l : c) marked[l.intern()] = false;
       if (isSubsume) c.clear();
     }
 
@@ -101,8 +100,8 @@ class Erosion : public MethodManager {
    *
    * @param vm is the options.
    */
-  void run(ProblemManagerErosionCnf *problem, int depth,
-           ConfigurationDpllStyleMethod configCounter, std::ostream &out) {
+  void run(ProblemManagerErosionCnf* problem, int depth,
+           ConfigurationDpllStyleMethod configCounter, std::ostream& out) {
     // preprare the stream.
     std::ostream outCounter(nullptr);
     outCounter.setstate(std::ios_base::badbit);
@@ -130,20 +129,20 @@ class Erosion : public MethodManager {
       }
 
       // prepare the counter.
-      ProblemManagerCnf *p = new ProblemManagerCnf(
+      ProblemManagerCnf* p = new ProblemManagerCnf(
           problem->getNbVar(), problem->getWeightLit(), problem->getWeightVar(),
           problem->getSelectedVar());
       std::vector<std::vector<Lit>> tmpClauses = softClauses;
 
       // add the theory clauses.
-      for (auto &cl : hardClauses) tmpClauses.push_back(cl);
+      for (auto& cl : hardClauses) tmpClauses.push_back(cl);
 
       p->setClauses(tmpClauses);
 
       // create the counter.
       outCounter << "c [CONSTRUCTOR] Create an external counter: counting\n";
 
-      DpllStyleMethod<T, T> *counter = new DpllStyleMethod<T, T>(
+      DpllStyleMethod<T, T>* counter = new DpllStyleMethod<T, T>(
           OptionDpllStyleMethod(configCounter), p, std::cout);
 
       // count to test.

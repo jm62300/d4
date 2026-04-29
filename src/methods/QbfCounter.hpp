@@ -36,7 +36,6 @@
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionQbfCounter.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
-#include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/problem/qbf/ProblemManagerQbf.hpp"
@@ -73,13 +72,13 @@ class QbfCounter : public MethodManager {
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<bool> m_isDecisionVariable;
 
-  ProblemManagerQbf *m_problem;
-  WrapperSolver *m_solver;
-  FormulaManager *m_specs;
+  ProblemManagerQbf* m_problem;
+  WrapperSolver* m_solver;
+  FormulaManager* m_specs;
 
-  BranchingHeuristic *m_heuristic;
+  BranchingHeuristic* m_heuristic;
   TmpEntry<mpz::mpz_int> NULL_CACHE_ENTRY;
-  CacheManager<mpz::mpz_int> *m_cache;
+  CacheManager<mpz::mpz_int>* m_cache;
 
   std::ostream m_out;
 
@@ -96,8 +95,8 @@ class QbfCounter : public MethodManager {
 
      @param[in] vm, the list of options.
    */
-  QbfCounter(const OptionQbfCounter &options, ProblemManagerQbf *initProblem,
-             std::ostream &out)
+  QbfCounter(const OptionQbfCounter& options, ProblemManagerQbf* initProblem,
+             std::ostream& out)
       : m_problem(initProblem), m_out(nullptr) {
     // init the output stream
     m_out.copyfmt(out);
@@ -144,7 +143,7 @@ class QbfCounter : public MethodManager {
     m_unassignedUnivVarBlock.resize(m_qblocks.size(), 0);
 
     for (unsigned i = 0; i < m_qblocks.size(); i++) {
-      for (auto &v : m_qblocks[i].variables) {
+      for (auto& v : m_qblocks[i].variables) {
         m_isUniversalVar[v] = m_qblocks[i].isUniversal;
         m_varBlockLevel[v] = i;
       }
@@ -173,7 +172,7 @@ class QbfCounter : public MethodManager {
    *
    * @param[in] out, the stream we use to print out information.
    */
-  inline void showInter(std::ostream &out) {
+  inline void showInter(std::ostream& out) {
     out << "c " << std::fixed << std::setprecision(2) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << getTimer() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbPositiveHit()
@@ -190,7 +189,7 @@ class QbfCounter : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void separator(std::ostream &out) {
+  inline void separator(std::ostream& out) {
     out << "c ";
     for (int i = 0; i < NB_SEP_QBF_MC; i++) out << "-";
     out << "\n";
@@ -201,7 +200,7 @@ class QbfCounter : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
   */
-  inline void showHeader(std::ostream &out) {
+  inline void showHeader(std::ostream& out) {
     separator(out);
     out << "c " << "|" << std::setw(WIDTH_PRINT_COLUMN_MC) << "time" << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << "#posHit" << "|"
@@ -218,7 +217,7 @@ class QbfCounter : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void showRun(std::ostream &out) {
+  inline void showRun(std::ostream& out) {
     if (!(m_nbCallCall & (MASK_HEADER))) showHeader(out);
     if (m_nbCallCall && !(m_nbCallCall & MASK_SHOWRUN_MC)) showInter(out);
   }  // showRun
@@ -228,7 +227,7 @@ class QbfCounter : public MethodManager {
 
      @param[in] out, the stream we use to print out information.
    */
-  inline void printFinalStats(std::ostream &out) {
+  inline void printFinalStats(std::ostream& out) {
     separator(out);
     out << "c\n";
     out << "c \033[1m\033[31mStatistics \033[0m\n";
@@ -248,7 +247,7 @@ class QbfCounter : public MethodManager {
 
      @param[in] assums, the assumption
   */
-  inline void initAssumption(std::vector<Lit> &assums) {
+  inline void initAssumption(std::vector<Lit>& assums) {
     m_solver->restart();
     m_solver->popAssumption(m_solver->getAssumption().size());
     m_solver->setAssumption(assums);
@@ -257,7 +256,7 @@ class QbfCounter : public MethodManager {
   /**
      Decide if the cache is realized or not.
    */
-  bool cacheIsActivated(std::vector<Var> &connected) {
+  bool cacheIsActivated(std::vector<Var>& connected) {
     if (!m_optCached) return false;
     return m_cache->isActivated(connected.size());
   }  // cacheIsActivated
@@ -269,12 +268,12 @@ class QbfCounter : public MethodManager {
    * @param[out] candidate is the set of variables with the smaller index in the
    * quantification block.
    */
-  void getLowestLevelVariables(std::vector<Var> &vars,
-                               std::vector<Var> &candidate) {
+  void getLowestLevelVariables(std::vector<Var>& vars,
+                               std::vector<Var>& candidate) {
     assert(vars.size());
     unsigned level = m_varBlockLevel[vars[0]];
     candidate = {vars[0]};
-    for (auto &v : vars)
+    for (auto& v : vars)
       if (m_varBlockLevel[v] == level)
         candidate.push_back(v);
       else if (m_varBlockLevel[v] < level) {
@@ -291,9 +290,9 @@ class QbfCounter : public MethodManager {
    * @param[in] vars is the set of variables under consideration.
    * @return the lowest level.
    */
-  int getLowestLevel(std::vector<Var> &vars) {
+  int getLowestLevel(std::vector<Var>& vars) {
     int level = -1;
-    for (auto &v : vars)
+    for (auto& v : vars)
       if (!m_specs->varIsAssigned(v) && level > m_varBlockLevel[v])
         level = m_varBlockLevel[v];
     return level;
@@ -308,7 +307,7 @@ class QbfCounter : public MethodManager {
    * \return an element of type U that sums up the given CNF sub-formula
    * using a DPLL style algorithm with an operation manager.
    */
-  mpz::mpz_int compute_(std::vector<Var> &setOfVar, std::ostream &out) {
+  mpz::mpz_int compute_(std::vector<Var>& setOfVar, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
     if (!m_solver->solve(setOfVar)) return 0;
@@ -317,7 +316,7 @@ class QbfCounter : public MethodManager {
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
 
     // the universal part cannot propagate unit literals (UNSAT).
-    for (auto &l : unitsLit)
+    for (auto& l : unitsLit)
       if (!m_solver->isInAssumption(l.var()) && m_isUniversalVar[l.var()])
         return 0;
 
@@ -340,7 +339,7 @@ class QbfCounter : public MethodManager {
       // get the free univ variables from the current level
       if (m_qblocks[level].isUniversal) {
         nbFreeUniv += m_unassignedUnivVarBlock[level];
-        for (auto &v : setOfVar)
+        for (auto& v : setOfVar)
           if (m_varBlockLevel[v] == level) nbFreeUniv--;
       }
 
@@ -357,7 +356,7 @@ class QbfCounter : public MethodManager {
     // catch the free variables.
     mpz::mpz_int scaleExist = 1;
     unsigned count[m_nbBlock] = {0};
-    for (auto &v : freeVariable) {
+    for (auto& v : freeVariable) {
       if (m_varBlockLevel[v] == level) {
         if (m_isUniversalVar[v])
           nbFreeUniv++;
@@ -389,7 +388,7 @@ class QbfCounter : public MethodManager {
       mpz::mpz_int tmpCount;
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       for (int cp = 0; cp < nbComponent && result != 0; cp++) {
-        std::vector<Var> &connected = varConnected[cp];
+        std::vector<Var>& connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<mpz::mpz_int> cb = cacheActivated
@@ -407,7 +406,7 @@ class QbfCounter : public MethodManager {
         if (m_qblocks[m_levelQuantification].isUniversal) {
           for (unsigned i = 0; i < nbComponent; i++)
             if (i != cp) {
-              for (auto &v : varConnected[i])
+              for (auto& v : varConnected[i])
                 if (m_varBlockLevel[v] == m_levelQuantification)
                   tmpCount *= tmpCount;
             }
@@ -435,8 +434,8 @@ class QbfCounter : public MethodManager {
    *
    * \return the compiled formula.
    */
-  mpz::mpz_int computeDecisionNode(std::vector<Var> &connected,
-                                   std::ostream &out) {
+  mpz::mpz_int computeDecisionNode(std::vector<Var>& connected,
+                                   std::ostream& out) {
     std::vector<Var> candidateVar;
     getLowestLevelVariables(connected, candidateVar);
 
@@ -482,7 +481,7 @@ class QbfCounter : public MethodManager {
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  mpz::mpz_int compute(std::vector<Var> &setOfVar, std::ostream &out,
+  mpz::mpz_int compute(std::vector<Var>& setOfVar, std::ostream& out,
                        bool warmStart = true) {
     if (m_problem->isUnsat() ||
         (warmStart && !m_solver->warmStart(29, 11, setOfVar, m_out))) {

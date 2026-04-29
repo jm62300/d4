@@ -18,7 +18,6 @@
  */
 #pragma once
 
-#include "src/preprocs/PreprocManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
@@ -39,7 +38,7 @@ enum MethodName {
 
 class MethodNameManager {
  public:
-  static std::string getMethodName(const MethodName &m) {
+  static std::string getMethodName(const MethodName& m) {
     switch (m) {
       case METH_EROSION:
         return "erosion";
@@ -66,7 +65,7 @@ class MethodNameManager {
     throw(FactoryException("Method name unknown", __FILE__, __LINE__));
   }  // getOperatorType
 
-  static MethodName getMethodName(const std::string &m) {
+  static MethodName getMethodName(const std::string& m) {
     if (m == "erosion") return METH_EROSION;
     if (m == "counting") return METH_COUNTING;
     if (m == "ddnnf-compiler") return METH_DDNNF;
@@ -89,11 +88,7 @@ class MethodManager {
  public:
   virtual ~MethodManager() {}
 
-  static void displayInfoVariables(ProblemManager *problem, std::ostream &out);
-
-  static ProblemManager *runPreproc(const OptionPreprocManager &optionPreproc,
-                                    ProblemManager *initProblem,
-                                    std::ostream &out);
+  static void displayInfoVariables(ProblemManager* problem, std::ostream& out);
 
   virtual void interrupt() {}
 

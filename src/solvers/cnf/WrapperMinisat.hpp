@@ -34,39 +34,40 @@ class WrapperMinisat : public WrapperSolver {
  public:
   ~WrapperMinisat() override {}
 
-  void initSolver(ProblemManager &p) override;
-  bool solve(std::vector<Var> &setOfVar) override;
+  void initSolver(ProblemManager& p) override;
+  bool solve(std::vector<Var>& setOfVar) override;
   bool solve() override;
   bool hasBeenInterrupt() override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
-  bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) override;
+  bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) override;
   bool failedLiteralProbing(Lit l) override;
-  void whichAreUnits(std::vector<Var> &component,
-                     std::vector<Lit> &units) override;
+  void whichAreUnits(std::vector<Var>& component,
+                     std::vector<Lit>& units) override;
   void restart() override;
-  void setAssumption(std::vector<Lit> &assums) override;
-  std::vector<Lit> &getAssumption() override;
+  void setAssumption(std::vector<Lit>& assums) override;
+  std::vector<Lit>& getAssumption() override;
   void pushAssumption(Lit l) override;
   void popAssumption(unsigned count) override;
-  void displayAssumption(std::ostream &out) override;
+  void displayAssumption(std::ostream& out) override;
   void setNeedModel(bool b) override;
   void showTrail() override;
-  std::vector<lbool> &getModel() override;
+  std::vector<lbool>& getModel() override;
   lbool getModelVar(Var v) override;
-  void getUnits(std::vector<Lit> &units) override;
+  void getUnits(std::vector<Lit>& units) override;
   bool propagateAssumption() override;
 
   double getActivity(Var v) override;
   double getCountConflict(Var v) override;
   void setCountConflict(Var v, double count) override;
-  unsigned getNbConflict() override;
   void setReversePolarity(bool value) override;
   void decayCountConflict() override;
-  bool isUnsat() override;
 
   void getCore() override;
   void getLastIUP(Lit l) override;
+
+  inline unsigned getNbConflict() override { return m_solver.conflicts; }
+  inline bool isUnsat() override { return !m_solver.okay(); }
 };
 }  // namespace d4

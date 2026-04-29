@@ -407,7 +407,4 @@ void WrapperGlucose::popAssumption(unsigned count) {
   (m_solver.assumptions).shrink_(count);
   (m_solver.cancelUntil)((m_solver.assumptions).size());
 }  // popAssumption
-
-inline unsigned WrapperGlucose::getNbConflict() { return m_solver.conflicts; }
-inline bool WrapperGlucose::isUnsat() { return !m_solver.okay(); }
 }  // namespace d4
