@@ -53,12 +53,10 @@ find_path(GMP_INCLUDE_DIR NAMES gmp.h REQUIRED)
 
 add_subdirectory(3rdParty/glucose-3.0)
 add_subdirectory(3rdParty/flowCutter)
-add_subdirectory(3rdParty/bipe)
 
 set(libList
         ${Boost_LIBRARIES}
         flowCutter
-        bipe
         glucose
 )
 
@@ -88,7 +86,6 @@ target_include_directories(d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 if (MSVC)
 
     target_link_libraries(d4 PUBLIC
-            bipe
             flowCutter
             glucose
             ZLIB::ZLIB   # Au lieu de 'z'
@@ -101,7 +98,6 @@ else ()
             gmp
             glucose
             flowCutter
-            bipe    
             ${Boost_LIBRARIES}
     )
 endif ()

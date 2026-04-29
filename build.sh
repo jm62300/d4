@@ -46,6 +46,6 @@ make -j $NB_CORE
 # make a library of everything
 mv libd4.a libd4tmp.a
 
-ar cqT libd4.a libd4tmp.a 3rdParty/flowCutter/libflowCutter.a 3rdParty/glucose-3.0/libglucose.a 3rdParty/bipe/libbipe.a 3rdParty/bipe/libglucose_bipe.a && echo -e 'create libd4.a\naddlib libd4.a\nsave\nend' | ar -M
+ar cqT libd4.a libd4tmp.a 3rdParty/flowCutter/libflowCutter.a 3rdParty/glucose-3.0/libglucose.a && echo -e 'create libd4.a\naddlib libd4.a\nsave\nend' | ar -M
 
 rm libd4tmp.a
