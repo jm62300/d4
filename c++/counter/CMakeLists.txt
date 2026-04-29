@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # --- MOVE OPTIONS HERE ---
-# 1. Custom Build Options 
+# Custom Build Options 
 option(BUILD_STATIC "Build with full static linking" OFF)
 option(BUILD_PROFILE "Build with profiling (-p/-pg)" OFF)
 
@@ -25,17 +25,27 @@ if(BUILD_STATIC)
 endif()
 # -------------------------
 
-# 2. Gather Sources
+
+# Get the absolute path to the parser directory safely
+get_filename_component(PARSER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parser" ABSOLUTE)
+
+# Gather Sources
 file(GLOB_RECURSE SRCS "src/*.cpp")
+# Grab the parser source files (ParserDimacs.cpp)
+file(GLOB_RECURSE PARSER_SRCS "${PARSER_DIR}/*.cpp") 
 
-# 3. Define the Executable
-add_executable(counter ${SRCS})
+# Define the Executable (Now includes the parser sources!)
+add_executable(counter ${SRCS} ${PARSER_SRCS})
 
-# 4. Include Directories
+# Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
-target_include_directories(counter PRIVATE ${ROOT_INCLUDES})
 
-# 5. Find Dependencies
+target_include_directories(counter PRIVATE 
+    ${ROOT_INCLUDES}
+    ${PARSER_DIR}  # <-- This allows you to #include just the filename directly
+)
+
+# Find Dependencies
 # ZLIB
 find_package(ZLIB REQUIRED)
 

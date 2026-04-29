@@ -37,6 +37,8 @@ using namespace d4;
 namespace po = boost::program_options;
 MethodManager* methodRun = nullptr;
 
+#include "ParserDimacs.hpp"
+
 /**
  * @brief Catch the signal that ask for stopping the method which is running.
  *
@@ -77,6 +79,12 @@ int main(int argc, char** argv) {
     std::cout << desc << '\n';
     exit(!vm.count("help"));
   }
+
+  parser::Formula formula;
+  parser::ParserDimacs parserDimacs;
+  parserDimacs.parse_DIMACS(vm["input"].as<std::string>(), formula);
+  std::cout << formula;
+  exit(0);
 
   // parse the initial problem.
   d4::ProblemManager* initProblem = d4::ProblemManager::makeProblemManager(
