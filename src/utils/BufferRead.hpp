@@ -21,6 +21,7 @@
 #include <fcntl.h>
 
 #ifdef _MSC_VER
+#include <io.h>
 #define open _open
 #define read _read
 #define close _close
