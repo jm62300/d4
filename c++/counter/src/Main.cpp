@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
   std::cout << "c [COUNTER] Elapsed time: " << elapsed_seconds.count()
             << " seconds\n";
 
-  delete initProblem;
+  // delete initProblem;
   return EXIT_SUCCESS;
 }  // main
 #endif

@@ -46,10 +46,13 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
 find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
 
-# D4 Library (from ../../build/)
+# Resolve the absolute path to the parent build directory
+get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" ABSOLUTE)
+
+# D4 Library
 find_library(D4_LIB 
     NAMES d4 libd4
-    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../build"
+    PATHS "${D4_BUILD_DIR}"
     NO_DEFAULT_PATH
     REQUIRED
 )
