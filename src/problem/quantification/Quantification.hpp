@@ -59,7 +59,6 @@ class Quantification {
    * level.
    */
   inline void addLevel(const std::vector<Var>& vars) {
-    for (auto v : vars) std::cout << "=> " << v << '\n';
     m_quantification.push_back(vars);
   }  // addLevel
 

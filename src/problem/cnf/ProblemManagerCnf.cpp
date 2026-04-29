@@ -28,7 +28,7 @@ namespace d4 {
 
    @param[in] nameFile, parse the instance from a file
  */
-ProblemManagerCnf::ProblemManagerCnf(const std::string &nameFile) {
+ProblemManagerCnf::ProblemManagerCnf(const std::string& nameFile) {
   ParserDimacs parser;
   m_nbVar = parser.parse_DIMACS(nameFile, this);
 
@@ -68,7 +68,7 @@ ProblemManagerCnf::ProblemManagerCnf() { m_nbVar = 0; }  // constructor
  *
  * @param problem, a problem manager object.
  */
-ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
+ProblemManagerCnf::ProblemManagerCnf(ProblemManager* problem) {
   m_nbVar = problem->getNbVar();
   m_weightLit = problem->getWeightLit();
   m_weightLitIm = problem->getWeightLitIm();
@@ -78,6 +78,7 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
   m_indVar = problem->getIndVar();
   m_order = problem->getOrder();
   m_isUnsat = false;
+  setQuantification(problem->getQuantification());
 }  // constructor
 
 /**
@@ -92,11 +93,11 @@ ProblemManagerCnf::ProblemManagerCnf(ProblemManager *problem) {
  * @param indVar is the set of randomized variables.
  */
 ProblemManagerCnf::ProblemManagerCnf(int nbVar,
-                                     std::vector<mpz::mpf_float> &weightLit,
-                                     std::vector<mpz::mpf_float> &weightVar,
-                                     std::vector<Var> &selected,
-                                     std::vector<Var> &maxVar,
-                                     std::vector<Var> &indVar) {
+                                     std::vector<mpz::mpf_float>& weightLit,
+                                     std::vector<mpz::mpf_float>& weightVar,
+                                     std::vector<Var>& selected,
+                                     std::vector<Var>& maxVar,
+                                     std::vector<Var>& indVar) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
@@ -116,9 +117,9 @@ ProblemManagerCnf::ProblemManagerCnf(int nbVar,
  * @param selected, the projected variables.
  */
 ProblemManagerCnf::ProblemManagerCnf(int nbVar,
-                                     std::vector<mpz::mpf_float> &weightLit,
-                                     std::vector<mpz::mpf_float> &weightVar,
-                                     const std::vector<Var> &selected) {
+                                     std::vector<mpz::mpf_float>& weightLit,
+                                     std::vector<mpz::mpf_float>& weightVar,
+                                     const std::vector<Var>& selected) {
   m_nbVar = nbVar;
   m_weightLit = weightLit;
   m_weightVar = weightVar;
@@ -139,8 +140,8 @@ ProblemManagerCnf::~ProblemManagerCnf() {
  *
  * @return an unsatisfiable problem.
  */
-ProblemManager *ProblemManagerCnf::getUnsatProblem() {
-  ProblemManagerCnf *ret = new ProblemManagerCnf(this);
+ProblemManager* ProblemManagerCnf::getUnsatProblem() {
+  ProblemManagerCnf* ret = new ProblemManagerCnf(this);
   ret->m_isUnsat = true;
 
   std::vector<Lit> cl;
@@ -162,9 +163,9 @@ ProblemManager *ProblemManagerCnf::getUnsatProblem() {
  * @param units is the set of unit literals we want to condition with.
  * @return the simplified formula.
  */
-ProblemManager *ProblemManagerCnf::getConditionedFormula(
-    std::vector<Lit> &units) {
-  ProblemManagerCnf *ret = new ProblemManagerCnf(this);
+ProblemManager* ProblemManagerCnf::getConditionedFormula(
+    std::vector<Lit>& units) {
+  ProblemManagerCnf* ret = new ProblemManagerCnf(this);
 
   std::vector<char> value(m_nbVar + 1, 0);
   for (auto l : units) {
@@ -195,7 +196,7 @@ ProblemManager *ProblemManagerCnf::getConditionedFormula(
 
    @param[out] out, the stream where the messages are redirected.
  */
-void ProblemManagerCnf::display(std::ostream &out) {
+void ProblemManagerCnf::display(std::ostream& out) {
   out << "weight list: ";
   for (unsigned i = 1; i <= m_nbVar; i++) {
     Lit l = Lit::makeLit(i, false);
@@ -211,7 +212,7 @@ void ProblemManagerCnf::display(std::ostream &out) {
 
   out << "p cnf " << m_nbVar << " " << m_clauses.size() << "\n";
   for (auto cl : m_clauses) {
-    for (auto &l : cl) out << l << " ";
+    for (auto& l : cl) out << l << " ";
     out << "0\n";
   }
 }  // diplay
@@ -219,14 +220,14 @@ void ProblemManagerCnf::display(std::ostream &out) {
 /**
  * @brief
  */
-void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
+void ProblemManagerCnf::displayStat(std::ostream& out, std::string startLine) {
   unsigned nbLits = 0;
   unsigned nbBin = 0;
   unsigned nbTer = 0;
   unsigned nbUnit = 0;
   unsigned nbMoreThree = 0;
 
-  for (auto &c : m_clauses) {
+  for (auto& c : m_clauses) {
     nbLits += c.size();
     if (c.size() == 1) nbUnit++;
     if (c.size() == 2) nbBin++;
@@ -247,8 +248,8 @@ void ProblemManagerCnf::displayStat(std::ostream &out, std::string startLine) {
 /**
  * @brief ProblemManagerCnf::translate implementation.
  */
-inline ProblemManager *ProblemManagerCnf::translate(
-    const ProblemTranslateType &t) {
+inline ProblemManager* ProblemManagerCnf::translate(
+    const ProblemTranslateType& t) {
   assert(t == TRANSLATE_NONE);
   return this;
 }  // translate
