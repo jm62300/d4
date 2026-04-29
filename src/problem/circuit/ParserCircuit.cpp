@@ -47,14 +47,14 @@ class LitNameMap {
  public:
   Var nextVar = 1;
 
-  Lit get_lit(std::string &name) {
+  Lit get_lit(std::string& name) {
     // TODO: QoL can we change/pass a constructor to name_map, to replace this
     // if-check?
     if (!name_map.contains(name)) name_map[name] = Lit::makeLitTrue(nextVar++);
     return name_map[name];
   }
 
-  Lit add_new(std::string &name) {
+  Lit add_new(std::string& name) {
     if (name_map.contains(name))
       throw std::invalid_argument("Key " + name + " already defined.");
     name_map[name] = Lit::makeLitTrue(nextVar++);
@@ -72,9 +72,9 @@ class LitNameMap {
  * @param gates The vector of gates to add the new gate to.
  * @param litname_map A map from varname to the assigned literal.
  */
-inline void process_gate_definition(std::string &line, std::string &nextWord,
-                                    std::vector<BcGate> &gates,
-                                    LitNameMap &litname_map) {
+inline void process_gate_definition(std::string& line, std::string& nextWord,
+                                    std::vector<BcGate>& gates,
+                                    LitNameMap& litname_map) {
   // expected line format: G name := (A|O) name1 name2 ... namen
   assert(line[0] == 'G');
   std::stringstream linestream(line);
@@ -82,7 +82,7 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
 
   // prepare gate
   gates.emplace_back();
-  BcGate &gate = gates.back();
+  BcGate& gate = gates.back();
 
   // - gate_name and output
   linestream >> nextWord;  // eat gate name
@@ -95,7 +95,7 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
   // - gate_type
   linestream >> nextWord;  // eat 'A' or 'O'
   assert(nextWord[0] == 'A' || nextWord[0] == 'O' || nextWord[0] == 'I');
-  switch(nextWord[0]) {
+  switch (nextWord[0]) {
     case 'A':
       gate.gate_type = BcGateType::AND;
       break;
@@ -110,7 +110,7 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
   // - gate_inputs
   //      fill input by converting names to literals
   //      line format: "name1 name2 ... namen\n"
-  std::vector<Lit> &lits = gate.input;
+  std::vector<Lit>& lits = gate.input;
   while (linestream >> nextWord) {
     bool sign = nextWord[0] == '-';
     if (sign) {
@@ -121,7 +121,8 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
       lits.push_back(litname_map.get_lit(nextWord));
     }
   }
-  assert(lits.size() >= 2 || (gate.gate_type == BcGateType::IDENTITY && lits.size() == 1));
+  assert(lits.size() >= 2 ||
+         (gate.gate_type == BcGateType::IDENTITY && lits.size() == 1));
   std::sort(lits.begin(), lits.end());
   // TODO: QoL check for redundant gate? (e.g., l v -l,  l ^ -l,   l v l,  or l
   // ^ l)
@@ -138,9 +139,9 @@ inline void process_gate_definition(std::string &line, std::string &nextWord,
  * @param true_lits A vector of literals that must be true to satisfy the
  * formula. These literals may both be gate output literals, or input literals.
  */
-inline void process_true_statement(std::string &line, std::string &nextWord,
-                                   LitNameMap &litname_map,
-                                   std::vector<Lit> &true_lits) {
+inline void process_true_statement(std::string& line, std::string& nextWord,
+                                   LitNameMap& litname_map,
+                                   std::vector<Lit>& true_lits) {
   // expected line format: T var
   assert(line[0] == 'T');
   std::stringstream linestream(line);
@@ -166,9 +167,9 @@ inline void process_true_statement(std::string &line, std::string &nextWord,
  * @param litname_map A map from literal name to the assigned literal.
  * @param weightLit A vector to store the weights of each literal.
  */
-inline void process_weight_comment(std::string &line, std::string &nextWord,
-                                   LitNameMap &litname_map,
-                                   std::vector<mpz::mpf_float> &weightLit) {
+inline void process_weight_comment(std::string& line, std::string& nextWord,
+                                   LitNameMap& litname_map,
+                                   std::vector<mpz::mpf_float>& weightLit) {
   // expected line format: c w litname weight
   assert(line.starts_with("c w "));
   std::stringstream linestream(line);
@@ -221,15 +222,15 @@ inline void process_weight_comment(std::string &line, std::string &nextWord,
  * @param problemManager the place where is store the result.
  * @return an integer that gives the problem's number of variables.
  */
-int ParserCircuit::parse_circuit_main(std::ifstream &in,
-                                      ProblemManagerCircuit *problemManager) {
+int ParserCircuit::parse_circuit_main(std::ifstream& in,
+                                      ProblemManagerCircuit* problemManager) {
   LitNameMap litname_map;  // TODO: Should this be part of problemManager? We
                            // later need those names? Only for input vars?
-  Var &nextVar = litname_map.nextVar;
+  Var& nextVar = litname_map.nextVar;
 
-  std::vector<Lit> &true_lits = problemManager->getTrueLiterals();
-  std::vector<BcGate> &gates = problemManager->getGates();
-  std::vector<mpz::mpf_float> &weightLit = problemManager->getWeightLit();
+  std::vector<Lit>& true_lits = problemManager->getTrueLiterals();
+  std::vector<BcGate>& gates = problemManager->getGates();
+  std::vector<mpz::mpf_float>& weightLit = problemManager->getWeightLit();
   std::string line;
   std::string nextWord;
   unsigned int lineNb = 0;
@@ -259,8 +260,8 @@ int ParserCircuit::parse_circuit_main(std::ifstream &in,
   return nextVar - 1;
 }  // parse_circuit_main
 
-int ParserCircuit::parse_circuit(const std::string &input_stream,
-                                 ProblemManagerCircuit *problemManager) {
+int ParserCircuit::parse_circuit(const std::string& input_stream,
+                                 ProblemManagerCircuit* problemManager) {
   std::cout << "c [PARSING CIRCUIT] Start:\n";
   std::ifstream istrm(input_stream, std::ios::in);
   if (!istrm.is_open())

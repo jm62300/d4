@@ -20,19 +20,28 @@
 
 #include <fcntl.h>
 
-#ifdef _MSC_VER
-#include <io.h>
-#define open _open
-#define read _read
-#define close _close
-#endif
-
 #include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
 
 #define BUFFER_SIZE 65536
+#ifdef _MSC_VER
+#include <fcntl.h>
+#include <io.h>
+inline int open(const char* filename, int oflag) {
+  return _open(filename, oflag);
+}
 
+inline int open(const char* filename, int oflag, int pmode) {
+  return _open(filename, oflag, pmode);
+}
+
+inline int read(int fd, void* buffer, unsigned int count) {
+  return _read(fd, buffer, count);
+}
+
+inline int close(int fd) { return _close(fd); }
+#endif
 namespace d4 {
 
 class BufferRead {
