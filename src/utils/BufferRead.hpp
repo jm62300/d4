@@ -20,6 +20,12 @@
 
 #include <fcntl.h>
 
+#ifdef _MSC_VER
+#define open _open
+#define read _read
+#define close _close
+#endif
+
 #include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
@@ -36,7 +42,7 @@ class BufferRead {
   int m_keepOpen;
 
  public:
-  BufferRead(const std::string &name, bool keepOpen = false) {
+  BufferRead(const std::string& name, bool keepOpen = false) {
     pos = 0;
     size = 0;
     m_keepOpen = keepOpen;
