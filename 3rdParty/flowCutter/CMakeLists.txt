@@ -1,10 +1,4 @@
 file(GLOB_RECURSE FLOWCUTTER_SOURCES "src/*.cpp")
-if(MSVC)
- list(REMOVE_ITEM FLOWCUTTER_SOURCES
-         "${CMAKE_CURRENT_SOURCE_DIR}/src/pace.cpp"
- )
-endif()
-
 add_library(flowCutter OBJECT ${FLOWCUTTER_SOURCES})
 
 if(MSVC)
