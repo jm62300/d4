@@ -5,8 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <unistd.h>
 
+#if defined(_WIN32)
+#include <io.h>
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+// Wrapper to map POSIX write to Windows _write safely
+inline int write(int fd, const void* buffer, unsigned int count) {
+  return _write(fd, buffer, count);
+}
+#else
+#include <unistd.h>
+#endif
 #include <chrono>
 #include <ctime>
 #include <iostream>
