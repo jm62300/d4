@@ -54,10 +54,15 @@ int tle = 0;
 void ignore_return_value(long long) {}
 
 unsigned long long get_milli_time() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (unsigned long long)(tv.tv_sec) * 1000 +
-         (unsigned long long)(tv.tv_usec) / 1000;
+  // Get the current time
+  auto now = std::chrono::system_clock::now();
+
+  // Convert it to milliseconds since the epoch
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now.time_since_epoch());
+
+  // Return the integer value
+  return ms.count();
 }
 
 // This hack is actually standard compilant
