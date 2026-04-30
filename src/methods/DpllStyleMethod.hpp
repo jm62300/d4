@@ -436,7 +436,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
-    DataBranch<U> b[lits.size() + 1];
+    DataBranch<U>* b = new DataBranch<U>[lits.size() + 1];
 
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
     for (unsigned i = 0; i <= lits.size(); i++) {
@@ -456,7 +456,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
 
-    return m_operation->manageDeterministOr(b, nb);
+    U ret = m_operation->manageDeterministOr(b, nb);
+    delete[] b;
+    return ret;
   }  // computeDecisionNode
 
   /**
