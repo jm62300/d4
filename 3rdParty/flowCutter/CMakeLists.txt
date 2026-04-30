@@ -5,7 +5,7 @@ if(MSVC)
  )
 endif()
 
-add_library(flowCutter STATIC ${FLOWCUTTER_SOURCES})
+add_library(flowCutter OBJECT ${FLOWCUTTER_SOURCES})
 
 if(MSVC)
     target_compile_options(flowCutter PRIVATE /W3 /wd4018)

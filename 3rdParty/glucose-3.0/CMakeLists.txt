@@ -5,7 +5,7 @@ file(GLOB GLUCOSE_SOURCES
         "mtl/*.cc"
 )
 
-add_library(glucose STATIC ${GLUCOSE_SOURCES})
+add_library(glucose OBJECT ${GLUCOSE_SOURCES})
 
 target_link_libraries(glucose PRIVATE ZLIB::ZLIB)
 
