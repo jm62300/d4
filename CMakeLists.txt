@@ -60,7 +60,7 @@ endif()
 # WIN : D4 find glucose bip before glucose
 target_include_directories(d4 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glucose-3.0") 
 
-# Link dependencies (Note: glucose and flowcutter are now natively inside d4, so we don't link them here!)
+# Link dependencies
 if (MSVC)
     target_link_libraries(d4 PUBLIC ZLIB::ZLIB ${GMP_LIBRARY})
 else ()
