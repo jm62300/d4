@@ -25,6 +25,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <vector>
 
 #include "BufferRead.hpp"
