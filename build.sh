@@ -47,11 +47,9 @@ mkdir -p build
 cd build
 
 echo "c [BUILD] Configuring CMake..."
-# Word splitting is intentional here so CMAKE_FLAGS expands properly
 cmake .. $CMAKE_FLAGS 
 
 echo "c [BUILD] Compiling..."
-# The modern, cross-platform replacement for 'make'
 cmake --build . $PARALLEL_FLAGS
 
 echo "c [BUILD] Build complete! A monolithic libd4.a has been created natively."
