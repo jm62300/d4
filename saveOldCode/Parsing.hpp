@@ -18,19 +18,33 @@
  */
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <limits>
 #include <vector>
 
 #include "src/problem/ProblemTypes.hpp"
+#include "src/utils/BufferRead.hpp"
 
 namespace d4 {
-class CnfMatrix {
- protected:
-  std::vector<std::vector<Lit>> m_clauses;
-
+class Parsing {
  public:
-  inline std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
-  inline void setClauses(std::vector<std::vector<Lit>> &clauses) {
-    m_clauses = clauses;
-  }
+  static void readListIntTerminatedByZero(BufferRead& in,
+                                          std::vector<int>& list);
+
+  static void parseNextWeightedLits(BufferRead& in,
+                                    std::vector<mpz::mpf_float>& weightLit);
+
+  static void parseNextComplexLits(BufferRead& in,
+                                   std::vector<mpz::mpf_float>& weightLitR,
+                                   std::vector<mpz::mpf_float>& weightLitI);
+
+  static void parseRandonVars(BufferRead& in,
+                              std::vector<mpz::mpf_float>& weightLit,
+                              std::vector<Var>& vars);
 };
 }  // namespace d4

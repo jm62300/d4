@@ -45,15 +45,16 @@
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 33554431
 
-#include "CountingOperation.hpp"
-#include "DecisionDNNFOperation.hpp"
-#include "OperationManager.hpp"
+// #include "CountingOperation.hpp"
+//  #include "DecisionDNNFOperation.hpp"
+//  #include "OperationManager.hpp"
+#include "SemiringConcept.hpp"
 
 namespace d4 {
 template <class T>
 class Counter;
 
-template <class T, class U>
+template <NumberType T, SemiringPolicy<T> O>
 class DpllStyleMethod : public MethodManager, public Counter<T> {
  private:
   bool optDomConst;
@@ -79,16 +80,15 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
   std::vector<uint8_t> m_signLit;
 
-  ProblemManager* m_problem;
   WrapperSolver* m_solver;
   FormulaManager* m_specs;
 
   BranchingHeuristic* m_heuristic;
-  TmpEntry<U> NULL_CACHE_ENTRY;
-  CacheManager<U>* m_cache;
+  TmpEntry<T> NULL_CACHE_ENTRY;
+  CacheManager<T>* m_cache;
 
   std::ostream& m_out;
-  Operation<T, U>* m_operation;
+  O m_semiringOps;
 
  public:
   /**
@@ -99,40 +99,40 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    * @param[in] out         The output stream to be used for logging or results.
    */
   DpllStyleMethod(const OptionDpllStyleMethod& options,
-                  ProblemManager* initProblem, std::ostream& out)
-      : m_problem(initProblem), m_out(out) {
+                  const ProblemManager& problem, std::ostream& out)
+      : m_out(out) {
     m_out << "c [DPLL STYLE METHOD]" << options << "\n";
     m_verbosity = options.verbosity;
 
-    static_cast<Quantification*>(m_problem)->display(m_out);
-
     // we create and init the solver.
-    m_solver = WrapperSolver::makeWrapperSolver(options.optionSolver,
-                                                *m_problem, m_out);
-    m_solver->initSolver(*m_problem);
+    m_solver =
+        WrapperSolver::makeWrapperSolver(options.optionSolver, problem, m_out);
+    m_solver->initSolver(problem);
     m_solver->setNeedModel(true);
 
-    m_isProjectedMode = m_problem->getNbSelectedVar() > 0;
+    assert(problem.getQuantification().size() == 1);
+    m_isProjectedMode = problem.getQuantification()[0].size() > 0;
     m_connectedComponent = true;
     m_nbFailedIncreased = m_lastNbSplit = 0;
 
     // we initialize the object that will give info about the problem.
     m_specs = FormulaManager::makeFormulaManager(options.optionSpecManager,
-                                                 *m_problem, m_out);
+                                                 problem, m_out);
 
     // we initialize the object used to compute score and partition.
     m_heuristic = BranchingHeuristic::makeBranchingHeuristic(
-        options.optionBranchingHeuristic, m_problem, m_specs, *m_solver,
+        options.optionBranchingHeuristic, problem, m_specs, *m_solver,
         *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
-    m_isDecisionVariable.resize(m_problem->getNbVar() + 1,
-                                !m_problem->getNbSelectedVar());
-    for (auto v : m_problem->getSelectedVar()) m_isDecisionVariable[v] = true;
+    m_isDecisionVariable.resize(problem.getNbVar() + 1,
+                                !problem.getQuantification()[0].size());
+    for (auto v : problem.getQuantification()[0])
+      m_isDecisionVariable[v] = true;
 
-    m_cache = CacheManager<U>::makeCacheManager(
-        options.optionCacheManager, m_problem->getNbVar(), m_specs, m_out);
+    m_cache = CacheManager<T>::makeCacheManager(
+        options.optionCacheManager, problem.getNbVar(), m_specs, m_out);
 
     // init the clock time.
     initTimer();
@@ -142,20 +142,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_stampIdx = 0;
     m_stampVar.resize(m_specs->getNbVariable() + 1, 0);
 
-    void* op = Operation<T, U>::makeOperationManager(
-        options.optionOperationManager, m_problem, m_specs, m_solver, m_out);
-    m_operation = static_cast<Operation<T, U>*>(op);
-    m_out << "c\n";
-
-    m_signLit.resize(1 + m_problem->getNbVar(), 0);
+    m_signLit.resize(1 + problem.getNbVar(), 0);
   }  // constructor
 
   /**
      Destructor.
    */
   ~DpllStyleMethod() {
-    delete m_operation;
-    delete m_problem;
     delete m_solver;
     delete m_specs;
     delete m_heuristic;
@@ -371,12 +364,12 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    * \return an element of type U that sums up the given CNF sub-formula
    * using a DPLL style algorithm with an operation manager.
    */
-  U compute_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+  T compute_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
              std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
 
-    if (!m_solver->solve(setOfVar)) return m_operation->manageBottom();
+    if (!m_solver->solve(setOfVar)) return m_semiringOps.zero();
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
@@ -388,34 +381,32 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     // consider each connected component.
     if (nbComponent) {
-      std::vector<U> tab(nbComponent);
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
+      T ret = m_semiringOps.presetMul(nbComponent);
       for (int cp = 0; cp < nbComponent; cp++) {
         std::vector<Var>& connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
-        TmpEntry<U> cb = cacheActivated ? m_cache->searchInCache(connected)
+        TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
         if (cacheActivated && cb.defined) {
-          tab[cp] = cb.getValue();
+          m_semiringOps.mul(ret, cb.getValue());
         } else {
           // recursive call
-          tab[cp] = computeDecisionNode(connected, out);
-          if (cacheActivated) m_cache->addInCache(cb, tab[cp]);
+          T tmp = computeDecisionNode(connected, out);
+          if (cacheActivated) m_cache->addInCache(cb, tmp);
+          m_semiringOps.mul(ret, tmp);
         }
       }
 
-      // m_specs->postUpdate(additionalUnit);
       m_specs->postUpdate(unitsLit);
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-
-      return m_operation->manageDecomposableAnd(tab.data(), nbComponent);
+      return ret;
     }
 
-    // m_specs->postUpdate(additionalUnit);
     m_specs->postUpdate(unitsLit);
     expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-    return m_operation->createTop();
+    return m_semiringOps.one();
   }  // compute_
 
   /**
@@ -427,17 +418,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      \return the compiled formula.
   */
-  U computeDecisionNode(std::vector<Var>& connected, std::ostream& out) {
+  T computeDecisionNode(std::vector<Var>& connected, std::ostream& out) {
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
-    if (!lits.size()) return m_operation->manageTop(connected);
+    if (!lits.size()) return m_semiringOps.one(connected);
 
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
-    DataBranch<U>* b = new DataBranch<U>[lits.size() + 1];
-
+    T ret = m_semiringOps.presetSum(lits.size() + 1);
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
     for (unsigned i = 0; i <= lits.size(); i++) {
       if (i != 0) {
@@ -448,16 +438,16 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       if (i != lits.size()) m_solver->pushAssumption(lits[i]);
 
-      b[nb].d = compute_(connected, b[nb].unitLits, b[nb].freeVars, out);
-      nb++;
+      std::vector<Lit> units;
+      std::vector<Var> free;
+      T tmp = compute_(connected, units, free, out);
+      m_semiringOps.add(ret, tmp, units, free);
     }
 
     // reinit some variables.
     assert(m_solver->sizeAssumption() > sizeAssum);
     m_solver->popAssumption(m_solver->sizeAssumption() - sizeAssum);
 
-    U ret = m_operation->manageDeterministOr(b, nb);
-    delete[] b;
     return ret;
   }  // computeDecisionNode
 
@@ -472,19 +462,19 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
      \return an element of type U that sums up the given CNF formula using a
      DPLL style algorithm with an operation manager.
   */
-  U compute(std::vector<Var>& setOfVar, std::ostream& out,
+  T compute(std::vector<Var>& setOfVar, std::ostream& out,
             bool warmStart = true) {
     std::vector<Var> decisionVar;
     for (auto& v : setOfVar)
       if (m_isDecisionVariable[v]) decisionVar.push_back(v);
 
-    if (m_problem->isUnsat() ||
-        (warmStart && !m_solver->warmStart(29, 11, decisionVar, m_out)))
-      return m_operation->manageBottom();
-    DataBranch<U> b;
+    if (warmStart && !m_solver->warmStart(29, 11, decisionVar, m_out))
+      return m_semiringOps.zero();
 
-    b.d = compute_(setOfVar, b.unitLits, b.freeVars, out);
-    return m_operation->manageBranch(b);
+    std::vector<Lit> units;
+    std::vector<Var> free;
+    T tmp = compute_(setOfVar, units, free, out);
+    return m_semiringOps.add(tmp, units, free);
   }  // compute
 
  public:
@@ -512,10 +502,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       if (m_stampVar[l.var()] != m_stampIdx) shadowUnits.push_back(l);
 
     m_specs->preUpdate(shadowUnits);
-    U result = compute(setOfVar, out, false);
+    T result = compute(setOfVar, out, false);
     m_specs->postUpdate(shadowUnits);
 
-    return m_operation->count(result);
+    return result;
   }  // count
 
   /**
@@ -523,21 +513,14 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      @param[in] vm, the set of options.
    */
-  U run() {
+  T run() {
     std::vector<Var> setOfVar;
     for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
 
-    U result = compute(setOfVar, m_out);
+    T result = compute(setOfVar, m_out);
     printFinalStats(m_out);
     return result;
   }  // run
-
-  /**
-   * @brief Get the Operation object
-   *
-   * @return the operation object.
-   */
-  inline Operation<T, U>* getOperation() { return m_operation; }
 };
 
 }  // namespace d4

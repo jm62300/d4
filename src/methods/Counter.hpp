@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "DpllStyleMethod.hpp"
+#include "SemiringConcept.hpp"
 #include "nnf/Node.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
@@ -29,7 +30,7 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-template <class T, class U>
+template <NumberType T, SemiringPolicy<T> O>
 class DpllStyleMethod;
 
 template <class T>
@@ -37,8 +38,8 @@ class Counter {
  public:
   virtual ~Counter() {}
 
-  virtual T count(std::vector<Var> &setOfVar, std::vector<Lit> &assumption,
-                  std::ostream &out) = 0;
+  virtual T count(std::vector<Var>& setOfVar, std::vector<Lit>& assumption,
+                  std::ostream& out) = 0;
 
   /**
      Count the number of model on the problem.
@@ -49,7 +50,7 @@ class Counter {
 
      \return the number of models.
    */
-  T count(std::vector<Var> &setOfVar, std::ostream &out) {
+  T count(std::vector<Var>& setOfVar, std::ostream& out) {
     std::vector<Lit> assum;
     return count(setOfVar, assum, out);
   }

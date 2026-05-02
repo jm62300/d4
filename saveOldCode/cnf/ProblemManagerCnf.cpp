@@ -23,43 +23,9 @@
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
-/**
-   Constructor.
-
-   @param[in] nameFile, parse the instance from a file
- */
-ProblemManagerCnf::ProblemManagerCnf(const std::string& nameFile) {
-  ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(nameFile, this);
-
-  m_weightVar.resize(m_nbVar + 1, 0);
-  for (unsigned i = 0; i <= m_nbVar; i++)
-    m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
-
-  m_order.resize(m_nbVar + 1);
-  for (unsigned i = 0; i < m_order.size(); i++) m_order[i] = i;
-}  // constructor
 
 /**
-   Constructor.
-
-   @param[in] fd, parse the instance from the file descriptor.
- */
-ProblemManagerCnf::ProblemManagerCnf(const int fd, bool keepOpen) {
-  ParserDimacs parser;
-  m_nbVar = parser.parse_DIMACS(fd, this, keepOpen);
-
-  m_weightVar.resize(m_nbVar + 1, 0);
-  for (unsigned i = 0; i <= m_nbVar; i++)
-    m_weightVar[i] = m_weightLit[i << 1] + m_weightLit[(i << 1) + 1];
-
-  m_order.resize(m_nbVar + 1);
-  for (unsigned i = 0; i < m_order.size(); i++) m_order[i] = i;
-}  // constructor
-
-/**
-   Constructor.
-   Construct an empty formula.
+ * Construct an empty formula.
  */
 ProblemManagerCnf::ProblemManagerCnf() { m_nbVar = 0; }  // constructor
 

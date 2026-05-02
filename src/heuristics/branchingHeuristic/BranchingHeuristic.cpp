@@ -64,7 +64,7 @@ ListLit::~ListLit() {
  * @brief BranchingHeuristic::BranchingHeuristic implementation.
  */
 BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic& options,
-                                       ProblemManager* problem,
+                                       const ProblemManager& problem,
                                        FormulaManager* specs,
                                        ActivityManager& activityManager,
                                        PolarityManager& polarityManager,
@@ -77,16 +77,16 @@ BranchingHeuristic::BranchingHeuristic(const OptionBranchingHeuristic& options,
       PhaseHeuristic::makePhaseHeuristic(options, *specs, polarityManager, out);
   m_freqDecay = options.freqDecay;
   m_specs = specs;
-  m_problem = problem;
   m_nbCall = 0;
   m_listLitAllocator = new ListLitAllocator();
 
-  m_isDecisionVariable.resize(
-      problem->getNbVar() + 1,
-      !problem->getNbSelectedVar() && !problem->getIndVar().size());
+  // the last quantification level give the set of decision variables
+  assert(problem.getQuantification().size());
+  m_isDecisionVariable.resize(problem.getNbVar() + 1,
+                              !problem.getQuantification()[0].size());
 
-  for (auto& v : problem->getSelectedVar()) m_isDecisionVariable[v] = true;
-  for (auto& v : problem->getIndVar()) m_isDecisionVariable[v] = true;
+  for (auto& v : problem.getQuantification().back())
+    m_isDecisionVariable[v] = true;
 }  // constructor
 
 /**
@@ -104,10 +104,10 @@ BranchingHeuristic::~BranchingHeuristic() {
  *
  */
 BranchingHeuristic* BranchingHeuristic::makeBranchingHeuristic(
-    const OptionBranchingHeuristic& options, ProblemManager* problem,
+    const OptionBranchingHeuristic& options, const ProblemManager& problem,
     FormulaManager* specs, ActivityManager& activityManager,
     PolarityManager& polarityManager, std::ostream& out) {
-  if (problem->getNbSelectedVar()) {
+  if (problem.getQuantification()[0].size()) {
     out << "c [MODE] Projected we can only use the classical heuristic\n";
     return new BranchingHeuristicClassic(options, problem, specs,
                                          activityManager, polarityManager, out);

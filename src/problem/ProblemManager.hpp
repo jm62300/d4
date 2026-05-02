@@ -21,8 +21,8 @@
 
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/multiprecision/gmp.hpp>
+#include <map>
 
-#include "quantification/Quantification.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/methods/DataBranch.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -129,109 +129,108 @@ class ProblemTranslateTypeManager {
   }  // getOperatorType
 };
 
-class ProblemManager : public Quantification {
+class ProblemManager {
  protected:
-  unsigned m_nbVar;
-  std::vector<mpz::mpf_float> m_weightLit;
-  std::vector<mpz::mpf_float> m_weightLitIm;
-  std::vector<mpz::mpf_float> m_weightVar;
-  std::vector<Var> m_selected;
-  std::vector<Var> m_maxVar;
-  std::vector<Var> m_indVar;
+  unsigned m_nbVar = 0;
+  std::vector<std::vector<Var>> m_quantification;
   std::vector<unsigned> m_order;
+  ProblemInputType m_problemInputType;
+  std::vector<BcGate> m_gates;
+  std::map<Lit, std::string> m_weightMap;
   bool m_isUnsat = false;
 
  public:
-  static ProblemManager* makeProblemManager(const std::string& in,
-                                            ProblemInputType pbType,
-                                            std::ostream& out);
-
-  virtual ~ProblemManager() { ; }
-  virtual void display(std::ostream& out) = 0;
-  virtual void displayStat(std::ostream& out, std::string startLine) = 0;
-  virtual ProblemManager* getUnsatProblem() = 0;
-  virtual ProblemManager* getConditionedFormula(std::vector<Lit>& units) = 0;
-  virtual ProblemManager* translate(const ProblemTranslateType& t) = 0;
-
-  unsigned getNbVar() { return m_nbVar; }
-  void setNbVar(int n) { m_nbVar = n; }
-
-  inline std::vector<Var>& getSelectedVar() { return m_selected; }
-  inline std::vector<Var>& getMaxVar() { return m_maxVar; }
-  inline std::vector<Var>& getIndVar() { return m_indVar; }
-  inline std::vector<mpz::mpf_float>& getWeightLit() { return m_weightLit; }
-  inline std::vector<mpz::mpf_float>& getWeightLitIm() { return m_weightLitIm; }
-  inline std::vector<mpz::mpf_float>& getWeightVar() { return m_weightVar; }
-  inline std::vector<unsigned>& getOrder() { return m_order; }
-
-  inline mpz::mpf_float getWeightLit(Lit l) { return m_weightLit[l.intern()]; }
-  inline mpz::mpf_float getWeightVar(Var v) { return m_weightVar[v]; }
-
-  inline unsigned getNbSelectedVar() { return m_selected.size(); }
-  inline bool isUnsat() { return m_isUnsat; }
-  inline void isUnsat(bool b) { m_isUnsat = b; }
-
-  inline bool isFloat() {
-    for (unsigned i = 0; i < getNbVar(); i++) {
-      Lit l = Lit::makeLitTrue(i);
-      if (getWeightLit(l) != 1 || getWeightLit(~l) != 1) return true;
-    }
-
-    return false;
-  }  // isFloat
-
-  virtual ProblemInputType getProblemType() const { return PB_NONE; }
-
   /**
-   * @brief Get the weight for a variable.
+   * @brief Default constructor.
+   * Automatically calls the default constructor of Quantification.
    */
-  template <typename T>
-  inline T getWeightVar(Var v) {
-    return T(m_weightVar[v]);
-  }  // getWeightLar
+  ProblemManager() = default;
 
   /**
-   * @brief Get the weight for a literal.
-   */
-  template <typename T>
-  inline T getWeightLit(Lit l) {
-    return T(m_weightLit[l.intern()]);
-  }  // getWeightLit
-
-  /**
-   * @brief Compute the value for free and unit variables.
+   * @brief Constructs the ProblemManager and initializes the SAT problem
+   * structures.
    *
-   * @param[in] units are the units literals.
-   * @param[in] frees are the free variables.
-   *
-   * \return the right value.
+   * @param type            The string identifier for the problem type (e.g.,
+   * "cnf").
+   * @param nbVar           The total number of variables in the problem.
+   * @param quantifications 2D vector representing the quantified variable
+   * blocks.
+   * @param weightMap       Map associating integer literals to their
+   * string-represented weights.
+   * @param gates           2D vector of raw integers representing logical
+   * gates/clauses.
+   * @param out             Output stream for logging (Note: currently unused in
+   * this scope).
    */
-  template <typename T>
-  inline T computeWeightUnitFree(std::vector<Lit>& units,
-                                 std::vector<Var>& frees) {
-    T tmp = 1;
-    for (auto& l : units) {
-      assert(l.intern() < m_weightLit.size());
-      tmp *= T(m_weightLit[l.intern()]);
-    }
-    for (auto& v : frees) {
-      assert(v < (int)m_weightVar.size());
-      tmp *= T(m_weightVar[v]);
-    }
+  ProblemManager(const std::string& type, unsigned nbVar,
+                 const std::vector<std::vector<int>>& quantifications,
+                 const std::map<int, std::string>& weightMap,
+                 const std::vector<BcGate>& gates, std::ostream& out)
+      : m_nbVar(nbVar),
+        m_quantification(quantifications),
+        m_problemInputType(ProblemInputTypeManager::getInputType(type)),
+        m_gates(gates) {
+    // transform the map.
+    for (const auto& [lit, weight] : weightMap)
+      m_weightMap[Lit::makeLit(std::abs(lit), lit < 0)] = weight;
+  }
 
-    return tmp;
-  }  // computeWeightUnitFree
+ public:
+  /**
+   * @brief Gets the weight map associating literals to their string weights.
+   *
+   * @return A constant reference to the weight map to prevent unnecessary
+   * copying.
+   */
+  const std::map<Lit, std::string>& getWeightMap() const { return m_weightMap; }
 
   /**
-   * @brief Compute the value for a branch regarding its unit literals and the
-   * free variables.
+   * @brief Gets the quantified variable blocks.
    *
-   * @param[in] b, the branch we want to compute the weight.
-   * \return the right value
+   * @return A constant reference to the 2D vector of quantifications.
    */
-  template <typename T>
-  inline T computeWeightUnitFree(DataBranch<T>& b) {
-    return computeWeightUnitFree<T>(b.unitLits, b.freeVars);
-  }  // computeWeightUnitFree
+  const std::vector<std::vector<Var>>& getQuantification() const {
+    return m_quantification;
+  }
+
+  /**
+   * @brief Gets the variable ordering sequence.
+   *
+   * @return A constant reference to the vector containing the order of
+   * variables.
+   */
+  const std::vector<unsigned>& getOrder() const { return m_order; }
+
+  /**
+   * @brief Gets the designated problem input type (e.g., CNF, wCNF).
+   *
+   * @return The ProblemInputType enum value. Returned by value as it is
+   * lightweight.
+   */
+  ProblemInputType getProblemInputType() const { return m_problemInputType; }
+
+  /**
+   * @brief Gets the logical gates / clauses of the problem.
+   *
+   * @return A constant reference to the 2D vector of literals representing the
+   * gates.
+   */
+  const std::vector<BcGate>& getGates() const { return m_gates; }
+
+  /**
+   * @brief Gets the total number of variables in the problem.
+   *
+   * @return The number of variables (unsigned integer). Returned by value.
+   */
+  unsigned getNbVar() const { return m_nbVar; }
+
+  /**
+   * @brief Checks if the problem has already been determined to be
+   * unsatisfiable.
+   *
+   * @return True if the problem is definitively UNSAT, false otherwise.
+   * Returned by value.
+   */
+  bool isUnsat() const { return m_isUnsat; }
 };
 }  // namespace d4

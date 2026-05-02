@@ -30,13 +30,13 @@ namespace d4 {
 /**
  * @brief WrapperSolver::makeWrapperSolver implementation.
  */
-WrapperSolver *WrapperSolver::makeWrapperSolver(const OptionSolver &options,
-                                                ProblemManager &p,
-                                                std::ostream &out) {
+WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
+                                                const ProblemManager& p,
+                                                std::ostream& out) {
   out << "c [WRAPPER SOLVER]" << options << "\n";
-  WrapperSolver *ret = nullptr;
+  WrapperSolver* ret = nullptr;
 
-  switch (p.getProblemType()) {
+  switch (p.getProblemInputType()) {
     case PB_CIRC:
       switch (options.solverName) {
         case MINISAT_CNF: {
@@ -83,7 +83,7 @@ WrapperSolver *WrapperSolver::makeWrapperSolver(const OptionSolver &options,
    \return true if the problem is SAT, false otherwise.
  */
 bool WrapperSolver::warmStart(int iteration, int sizeQuery,
-                              std::vector<Var> &setOfVar, std::ostream &out) {
+                              std::vector<Var>& setOfVar, std::ostream& out) {
   if (!solve()) return false;
   int nbSAT = 0;
 

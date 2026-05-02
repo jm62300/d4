@@ -25,8 +25,8 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
  private:
   const unsigned WORTH_CUT = 50;
 
-  const OptionPartialOrderHeuristic &m_saveOptionPartialOrderHeuristic;
-  PartialOrderHeuristic *m_partialOrder;
+  const OptionPartialOrderHeuristic& m_saveOptionPartialOrderHeuristic;
+  PartialOrderHeuristic* m_partialOrder;
 
  public:
   /**
@@ -44,26 +44,21 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    * for improved decision-making in model counting (or knowledge compilation).
    *
    * @param[in] options The configuration options for the branching heuristic.
-   *
-   * @param[in] problem A pointer to the problem manager, which handles
+   * @param[in] problem A reference to the problem manager, which handles
    * problem-specific data and operations.
-   *
    * @param[in] specs A pointer to the formula manager, providing real-time
    * information about the CNF formula.
-   *
    * @param[in] activityManager A reference to the activity manager, which
    * tracks variable activity levels.
-   *
    * @param[in] polarityManager A reference to the polarity manager, which
    * handles polarity selection strategies.
-   *
    * @param[in] out The output stream where debugging or status information is
    * printed.
    */
   BranchingHeuristicHybridPartialClassic(
-      const OptionBranchingHeuristic &options, ProblemManager *problem,
-      FormulaManager *specs, ActivityManager &activityManager,
-      PolarityManager &polarityManager, std::ostream &out)
+      const OptionBranchingHeuristic& options, const ProblemManager& problem,
+      FormulaManager* specs, ActivityManager& activityManager,
+      PolarityManager& polarityManager, std::ostream& out)
       : BranchingHeuristic(options, problem, specs, activityManager,
                            polarityManager, out),
         m_saveOptionPartialOrderHeuristic(options.optionPartialOrderHeuristic) {
@@ -89,6 +84,6 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  void selectLitSet(std::vector<Var> &vars, ListLit &lits) override;
+  void selectLitSet(std::vector<Var>& vars, ListLit& lits) override;
 };
 }  // namespace d4

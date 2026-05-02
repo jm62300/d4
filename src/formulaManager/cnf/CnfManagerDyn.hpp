@@ -43,7 +43,7 @@ class CnfManagerDyn : public CnfManager {
   std::vector<unsigned> m_stackSizeListNotSatisfiedClauses;
   std::vector<unsigned> m_markedNotSatClauses;
   unsigned m_stampNotSatClauses;
-  unsigned *m_notSatifiedClauses;
+  unsigned* m_notSatifiedClauses;
   unsigned m_sizeNotSatifiedClauses;
 
  protected:
@@ -67,7 +67,7 @@ class CnfManagerDyn : public CnfManager {
    *
    * @param idxClauses is the list of indexes.
    */
-  void removeSatisfiedClauses(const std::vector<unsigned> &idxClauses);
+  void removeSatisfiedClauses(const std::vector<unsigned>& idxClauses);
 
   /**
    * @brief Call an inprocessing method for simplifying the formula.
@@ -78,12 +78,13 @@ class CnfManagerDyn : public CnfManager {
   /**
    * @brief Construct a new Cnf Manager Dyn object.
    *
-   * @param[in] p is the proble we want to model (it is a CNF formula).
+   * @param[in] p is the problem we want to model (it is a CNF formula).
    * @param[in] keepListNotSatisfiedClauses is a boolean set to true if we want
    * to keep in memory the list of clauses that are not yet satisfied by the
    * current assignation.
    */
-  CnfManagerDyn(ProblemManager &p, bool keepListNotSatisfiedClauses = false);
+  CnfManagerDyn(const ProblemManager& p,
+                bool keepListNotSatisfiedClauses = false);
 
   /**
    * @brief Destroy the Cnf Manager Dyn object
@@ -99,7 +100,7 @@ class CnfManagerDyn : public CnfManager {
    *
    * @param lits is the set of literals we want to 'assign'.
    */
-  void propagateTrue(const std::vector<Lit> &lits);
+  void propagateTrue(const std::vector<Lit>& lits);
 
   /**
    * @brief Suppose that the literal in lits are false (even if it is not really
@@ -110,7 +111,7 @@ class CnfManagerDyn : public CnfManager {
    *
    * @param lits is the set of literals we want to 'assign'.
    */
-  void propagateFalseInNotBin(const std::vector<Lit> &lits);
+  void propagateFalseInNotBin(const std::vector<Lit>& lits);
 
   /**
    * @brief This function prepares the stacks.
@@ -137,8 +138,8 @@ class CnfManagerDyn : public CnfManager {
    * @param[out] idxClauses is the set of clause indices.
    * @param[in] component is the connected component under consideration.
    */
-  void getCurrentClauses(std::vector<unsigned> &idxClauses,
-                         std::vector<Var> &component) override;
+  void getCurrentClauses(std::vector<unsigned>& idxClauses,
+                         std::vector<Var>& component) override;
 
   /**
    * @brief Get the set of not satisfied clauses with a size larger than 2 (here
@@ -148,8 +149,8 @@ class CnfManagerDyn : public CnfManager {
    * @param[out] idxClauses is the set of clause indices.
    * @param[in] component is the connected component under consideration.
    */
-  void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
-                               std::vector<Var> &component) override;
+  void getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
+                               std::vector<Var>& component) override;
 
   /**
    * @brief Update the occurrence list w.r.t. a new set of assigned variables.
@@ -158,7 +159,7 @@ class CnfManagerDyn : public CnfManager {
    *
    * @param[in] lits is the set of literals they are assigned to true.
    */
-  void preUpdate(const std::vector<Lit> &lits) override;
+  void preUpdate(const std::vector<Lit>& lits) override;
 
   /**
    * @brief We want to come to the situation before the mirror preUpdate.
@@ -166,14 +167,14 @@ class CnfManagerDyn : public CnfManager {
    * @param lits is the set of unit literals assigned to true in the mirror
    * preUpdate.
    */
-  void postUpdate(const std::vector<Lit> &lits) override;
+  void postUpdate(const std::vector<Lit>& lits) override;
 
   /**
    * Return true if no clauses containing this literal have been touched.
    *
    * @param l is the literal we are looking to check the property.
    */
-  inline bool canSkipLit(const Lit &l) override {
+  inline bool canSkipLit(const Lit& l) override {
     return m_occurrence[l.intern()].nbNotBin == 0;
   }  // canSkipLit
 };

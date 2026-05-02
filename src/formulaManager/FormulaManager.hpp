@@ -49,9 +49,9 @@ class FormulaManager {
    * @param out is the stream where are printed out the logs.
    * @return a spec manager.
    */
-  static FormulaManager *makeFormulaManager(const OptionSpecManager &options,
-                                            ProblemManager &p,
-                                            std::ostream &out);
+  static FormulaManager* makeFormulaManager(const OptionSpecManager& options,
+                                            const ProblemManager& p,
+                                            std::ostream& out);
 
   /**
    * @brief Get the number of variables.
@@ -71,8 +71,8 @@ class FormulaManager {
    * @param[in] lits is the list of literal we search to assigned.
    *
    */
-  inline void assignListLit(const std::vector<Lit> &lits) {
-    for (auto &l : lits) {
+  inline void assignListLit(const std::vector<Lit>& lits) {
+    for (auto& l : lits) {
       assert(m_currentValue[l.var()] == l_Undef);
       m_currentValue[l.var()] = l.sign();
     }
@@ -84,7 +84,7 @@ class FormulaManager {
    * @param v is the variable we want to assign.
    * @param val is the value given to v.
    */
-  inline void assignLit(Var &v, lbool val) {
+  inline void assignLit(Var& v, lbool val) {
     m_currentValue[v] = val;
   }  // assignLit
 
@@ -134,7 +134,7 @@ class FormulaManager {
    *
    * @param[out] out is the stream used.
    */
-  void showTrail(std::ostream &out);
+  void showTrail(std::ostream& out);
 
   /**
    * @brief Compute a trivial partition of the formula by considering only one
@@ -148,8 +148,8 @@ class FormulaManager {
    * @return the number of connected component.
    */
   virtual int computeTrivialConnectedComponent(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<Var> &freeVar);
+      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<Var>& freeVar);
 
   /**
    * @brief Search for the connected component of the formula.
@@ -162,8 +162,8 @@ class FormulaManager {
    * @return the number of connected component.
    */
   virtual int computeConnectedComponent(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<Var> &freeVar) = 0;
+      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<Var>& freeVar) = 0;
 
   /**
    * @brief Search for the connected component of the formula regarding a subset
@@ -179,8 +179,8 @@ class FormulaManager {
    * @return the number of connected component.
    */
   virtual int computeConnectedComponentTargeted(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<bool> &isTargeted, std::vector<Var> &freeVar) = 0;
+      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<bool>& isTargeted, std::vector<Var>& freeVar) = 0;
 
   /**
    * @brief This function is called to update the formula regarding a set of
@@ -188,7 +188,7 @@ class FormulaManager {
    *
    * @param[in] lits is the set of literal under consideration.
    */
-  virtual void preUpdate(const std::vector<Lit> &lits) = 0;
+  virtual void preUpdate(const std::vector<Lit>& lits) = 0;
 
   /**
    * @brief This function is called to undo the modification done by the
@@ -196,29 +196,29 @@ class FormulaManager {
    *
    * @param lits are the literals updated.
    */
-  virtual void postUpdate(const std::vector<Lit> &lits) = 0;
+  virtual void postUpdate(const std::vector<Lit>& lits) = 0;
 
   /**
    * @brief Display the initial formula.
    *
    * @param[out] out is the stream used.
    */
-  virtual void showFormula(std::ostream &out) = 0;
+  virtual void showFormula(std::ostream& out) = 0;
 
   /**
    * @brief Display the current formula.
    *
    * @param[out] out is the stream used.
    */
-  virtual void showCurrentFormula(std::ostream &out) = 0;
+  virtual void showCurrentFormula(std::ostream& out) = 0;
 
   /**
    * @brief Display the current formula.
    *
    * @param[out] out is the stream used.
    */
-  virtual void showCurrentFormula(std::ostream &out,
-                                  std::vector<bool> &isInComponent) = 0;
+  virtual void showCurrentFormula(std::ostream& out,
+                                  std::vector<bool>& isInComponent) = 0;
 
   /**
    * @brief Get the problem input type.
@@ -232,7 +232,7 @@ class FormulaManager {
    *
    * @param[out] out is the stream used.
    */
-  virtual void printInformation(std::ostream &out) {}
+  virtual void printInformation(std::ostream& out) {}
 
   /**
    * @brief Ask if the given variable is free in the current formula.

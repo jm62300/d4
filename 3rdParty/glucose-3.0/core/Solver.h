@@ -50,11 +50,11 @@ namespace Glucose {
 
 class Solver {
  public:
-  std::ostream *cert;
+  std::ostream* cert;
 
   // Constructor/Destructor:
   //
-  Solver(std::ostream *certif = NULL);
+  Solver(std::ostream* certif = NULL);
   virtual ~Solver();
 
   // Problem specification:
@@ -63,23 +63,23 @@ class Solver {
              bool dvar = true);  // Add a new variable with parameters
                                  // specifying variable mode.
 
-  bool addClause(const vec<Lit> &ps);  // Add a clause to the solver.
+  bool addClause(const vec<Lit>& ps);  // Add a clause to the solver.
   bool
   addEmptyClause();  // Add the empty clause, making the solver contradictory.
   bool addClause(Lit p);                // Add a unit clause to the solver.
   bool addClause(Lit p, Lit q);         // Add a binary clause to the solver.
   bool addClause(Lit p, Lit q, Lit r);  // Add a ternary clause to the solver.
   bool addClause_(
-      vec<Lit> &ps);  // Add a clause to the solver without making superflous
+      vec<Lit>& ps);  // Add a clause to the solver without making superflous
                       // internal copy. Will change the passed vector 'ps'.
 
   // Solving:
   //
   bool simplify();                      // Removes already satisfied clauses.
-  bool solve(const vec<Lit> &assumps);  // Search for a model that respects a
+  bool solve(const vec<Lit>& assumps);  // Search for a model that respects a
                                         // given set of assumptions.
   lbool solveLimited(
-      const vec<Lit> &assumps);  // Search for a model that respects a given set
+      const vec<Lit>& assumps);  // Search for a model that respects a given set
                                  // of assumptions (With resource constraints).
   bool solve();                  // Search without assumptions.
   bool solve(Lit p);  // Search for a model that respects a single assumption.
@@ -90,18 +90,18 @@ class Solver {
   bool okay() const;  // FALSE means solver is in a conflicting state
 
   void toDimacs(
-      FILE *f,
-      const vec<Lit> &assumps);  // Write CNF to file in DIMACS-format.
-  void toDimacs(const char *file, const vec<Lit> &assumps);
-  void toDimacs(FILE *f, Clause &c, vec<Var> &map, Var &max);
+      FILE* f,
+      const vec<Lit>& assumps);  // Write CNF to file in DIMACS-format.
+  void toDimacs(const char* file, const vec<Lit>& assumps);
+  void toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max);
   void printLit(Lit l);
   void printClause(CRef c);
   void printInitialClause(CRef c);
   // Convenience versions of 'toDimacs()':
-  void toDimacs(const char *file);
-  void toDimacs(const char *file, Lit p);
-  void toDimacs(const char *file, Lit p, Lit q);
-  void toDimacs(const char *file, Lit p, Lit q, Lit r);
+  void toDimacs(const char* file);
+  void toDimacs(const char* file, Lit p);
+  void toDimacs(const char* file, Lit p, Lit q);
+  void toDimacs(const char* file, Lit p, Lit q, Lit r);
 
   // Variable mode:
   //
@@ -193,7 +193,7 @@ class Solver {
                         // garbage collection is triggered.
 
   // Certified UNSAT ( Thanks to Marijn Heule)
-  FILE *certifiedOutput;
+  FILE* certifiedOutput;
   bool certifiedUNSAT;
 
   // Statistics: (read-only member variable)
@@ -222,20 +222,20 @@ class Solver {
     CRef cref;
     Lit blocker;
     Watcher(CRef cr, Lit p) : cref(cr), blocker(p) {}
-    bool operator==(const Watcher &w) const { return cref == w.cref; }
-    bool operator!=(const Watcher &w) const { return cref != w.cref; }
+    bool operator==(const Watcher& w) const { return cref == w.cref; }
+    bool operator!=(const Watcher& w) const { return cref != w.cref; }
   };
 
   struct WatcherDeleted {
-    const ClauseAllocator &ca;
-    WatcherDeleted(const ClauseAllocator &_ca) : ca(_ca) {}
-    bool operator()(const Watcher &w) const { return ca[w.cref].mark() == 1; }
+    const ClauseAllocator& ca;
+    WatcherDeleted(const ClauseAllocator& _ca) : ca(_ca) {}
+    bool operator()(const Watcher& w) const { return ca[w.cref].mark() == 1; }
   };
 
   struct VarOrderLt {
-    const vec<double> &activity;
+    const vec<double>& activity;
     bool operator()(Var x, Var y) const { return activity[x] > activity[y]; }
-    VarOrderLt(const vec<double> &act) : activity(act) {}
+    VarOrderLt(const vec<double>& act) : activity(act) {}
   };
 
   // Solver state:
@@ -341,12 +341,12 @@ class Solver {
   CRef propagate();  // Perform unit propagation. Returns possibly conflicting
                      // clause.
   void cancelUntil(int level);  // Backtrack until a certain level.
-  void analyze(CRef confl, vec<Lit> &out_learnt, vec<Lit> &selectors,
-               int &out_btlevel, unsigned int &nblevels,
-               unsigned int &szWithoutSelectors);  // (bt = backtrack)
+  void analyze(CRef confl, vec<Lit>& out_learnt, vec<Lit>& selectors,
+               int& out_btlevel, unsigned int& nblevels,
+               unsigned int& szWithoutSelectors);  // (bt = backtrack)
   void analyzeFinal(
       Lit p,
-      vec<Lit> &out_conflict);  // COULD THIS BE IMPLEMENTED BY THE ORDINARIY
+      vec<Lit>& out_conflict);  // COULD THIS BE IMPLEMENTED BY THE ORDINARIY
                                 // "analyze" BY SOME REASONABLE GENERALIZATION?
   bool
   // (helper method for 'analyze()')
@@ -362,7 +362,7 @@ class Solver {
   void reduceDB();
 
   // Shrink 'cs' to contain only non-satisfied clauses.
-  void removeSatisfied(vec<CRef> &cs);
+  void removeSatisfied(vec<CRef>& cs);
 
   void rebuildOrderHeap();
 
@@ -379,7 +379,7 @@ class Solver {
   claDecayActivity();  // Decay all clauses with the specified factor.
                        // Implemented by increasing the 'bump' value instead.
   void claBumpActivity(
-      Clause &c);  // Increase a clause with the current 'bump' value.
+      Clause& c);  // Increase a clause with the current 'bump' value.
 
   // Operations on clauses:
   //
@@ -388,16 +388,16 @@ class Solver {
                     bool strict = false);  // Detach a clause to watcher lists.
   void removeClause(CRef cr);              // Detach and free a clause.
   bool locked(
-      const Clause &c) const;  // Returns TRUE if a clause is a reason for
+      const Clause& c) const;  // Returns TRUE if a clause is a reason for
                                // some implication in the current state.
-  bool satisfied(const Clause &c)
+  bool satisfied(const Clause& c)
       const;  // Returns TRUE if a clause is satisfied in the current state.
 
-  unsigned int computeLBD(const vec<Lit> &lits, int end = -1);
-  unsigned int computeLBD(const Clause &c);
-  void minimisationWithBinaryResolution(vec<Lit> &out_learnt);
+  unsigned int computeLBD(const vec<Lit>& lits, int end = -1);
+  unsigned int computeLBD(const Clause& c);
+  void minimisationWithBinaryResolution(vec<Lit>& out_learnt);
 
-  void relocAll(ClauseAllocator &to);
+  void relocAll(ClauseAllocator& to);
 
   // Misc:
   //
@@ -416,7 +416,7 @@ class Solver {
   //
 
   // Returns a random float 0 <= x < 1. Seed must never be 0.
-  static inline double drand(double &seed) {
+  static inline double drand(double& seed) {
     seed *= 1389796;
     int q = (int)(seed / 2147483647);
     seed -= (double)q * 2147483647;
@@ -424,7 +424,7 @@ class Solver {
   }
 
   // Returns a random integer 0 <= x < size. Seed must never be 0.
-  static inline int irand(double &seed, int size) {
+  static inline int irand(double& seed, int size) {
     return (int)(drand(seed) * size);
   }
 
@@ -437,7 +437,7 @@ class Solver {
   int stampInTheHeap;
   inline bool isInTheHeap(Var v) { return inTheHeap[v] == stampInTheHeap; }
 
-  inline void rebuildWithConnectedComponent(vec<Var> &v) {
+  inline void rebuildWithConnectedComponent(vec<Var>& v) {
     v.copyTo(problemVariable);
     stampInTheHeap++;
     for (int j = 0; j < v.size(); j++)
@@ -486,8 +486,8 @@ class Solver {
     return mkLit(v, value(v) == l_False);
   }
 
-  void analyzeLastUIP(CRef confl, vec<Lit> &out_learnt,
-                      int &out_btlevel);  // (bt = backtrack)
+  void analyzeLastUIP(CRef confl, vec<Lit>& out_learnt,
+                      int& out_btlevel);  // (bt = backtrack)
 
   bool needModel = false;
   inline void setNeedModel(bool b) { needModel = b; }
@@ -500,10 +500,10 @@ class Solver {
    * @brief Insert a clause and check if we have to propagate something.
    *
    */
-  inline void insertClauseAndPropagate(vec<Lit> &cl) {
+  inline void insertClauseAndPropagate(vec<Lit>& cl) {
     // printf("clause: "); showListLit(cl);
     if (cert != nullptr) {
-      std::ostream &cval = *cert;
+      std::ostream& cval = *cert;
       for (int i = 0; i < cl.size(); i++)
         cval << (var(cl[i]) + 1) * (-2 * sign(cl[i]) + 1) << " ";
       cval << "0\n";
@@ -566,7 +566,7 @@ inline void Solver::varBumpActivity(Var v, double inc) {
 }
 
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
-inline void Solver::claBumpActivity(Clause &c) {
+inline void Solver::claBumpActivity(Clause& c) {
   if ((c.activity() += cla_inc) > 1e20) {
     // Rescale:
     for (int i = 0; i < learnts.size(); i++) ca[learnts[i]].activity() *= 1e-20;
@@ -584,7 +584,7 @@ inline bool Solver::enqueue(Lit p, CRef from) {
   return value(p) != l_Undef ? value(p) != l_False
                              : (uncheckedEnqueue(p, from), true);
 }
-inline bool Solver::addClause(const vec<Lit> &ps) {
+inline bool Solver::addClause(const vec<Lit>& ps) {
   ps.copyTo(add_tmp);
   return addClause_(add_tmp);
 }
@@ -610,7 +610,7 @@ inline bool Solver::addClause(Lit p, Lit q, Lit r) {
   add_tmp.push(r);
   return addClause_(add_tmp);
 }
-inline bool Solver::locked(const Clause &c) const {
+inline bool Solver::locked(const Clause& c) const {
   if (c.size() > 2)
     return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef &&
            ca.lea(reason(var(c[0]))) == &c;
@@ -692,33 +692,33 @@ inline bool Solver::solve(Lit p, Lit q, Lit r) {
   assumptions.push(r);
   return solve_() == l_True;
 }
-inline bool Solver::solve(const vec<Lit> &assumps) {
+inline bool Solver::solve(const vec<Lit>& assumps) {
   budgetOff();
   assumps.copyTo(assumptions);
   return solve_() == l_True;
 }
-inline lbool Solver::solveLimited(const vec<Lit> &assumps) {
+inline lbool Solver::solveLimited(const vec<Lit>& assumps) {
   assumps.copyTo(assumptions);
   return solve_();
 }
 inline bool Solver::okay() const { return ok; }
 
-inline void Solver::toDimacs(const char *file) {
+inline void Solver::toDimacs(const char* file) {
   vec<Lit> as;
   toDimacs(file, as);
 }
-inline void Solver::toDimacs(const char *file, Lit p) {
+inline void Solver::toDimacs(const char* file, Lit p) {
   vec<Lit> as;
   as.push(p);
   toDimacs(file, as);
 }
-inline void Solver::toDimacs(const char *file, Lit p, Lit q) {
+inline void Solver::toDimacs(const char* file, Lit p, Lit q) {
   vec<Lit> as;
   as.push(p);
   as.push(q);
   toDimacs(file, as);
 }
-inline void Solver::toDimacs(const char *file, Lit p, Lit q, Lit r) {
+inline void Solver::toDimacs(const char* file, Lit p, Lit q, Lit r) {
   vec<Lit> as;
   as.push(p);
   as.push(q);
@@ -735,7 +735,7 @@ inline void Solver::printLit(Lit l) {
 }
 
 inline void Solver::printClause(CRef cr) {
-  Clause &c = ca[cr];
+  Clause& c = ca[cr];
   for (int i = 0; i < c.size(); i++) {
     printLit(c[i]);
     printf(" ");
@@ -743,7 +743,7 @@ inline void Solver::printClause(CRef cr) {
 }
 
 inline void Solver::printInitialClause(CRef cr) {
-  Clause &c = ca[cr];
+  Clause& c = ca[cr];
   for (int i = 0; i < c.size(); i++) {
     if (!isSelector(var(c[i]))) {
       printLit(c[i]);

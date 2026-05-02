@@ -92,18 +92,18 @@ inline void process_gate_definition(std::string& line, std::string& nextWord,
   linestream >> nextWord;  // eat ':='
   assert(nextWord.compare(":=") == 0);
 
-  // - gate_type
+  // - gateType
   linestream >> nextWord;  // eat 'A' or 'O'
   assert(nextWord[0] == 'A' || nextWord[0] == 'O' || nextWord[0] == 'I');
   switch (nextWord[0]) {
     case 'A':
-      gate.gate_type = BcGateType::AND;
+      gate.gateType = BcGateType::AND;
       break;
     case 'O':
-      gate.gate_type = BcGateType::OR;
+      gate.gateType = BcGateType::OR;
       break;
     case 'I':
-      gate.gate_type = BcGateType::IDENTITY;
+      gate.gateType = BcGateType::IDENTITY;
       break;
   }
 
@@ -122,7 +122,7 @@ inline void process_gate_definition(std::string& line, std::string& nextWord,
     }
   }
   assert(lits.size() >= 2 ||
-         (gate.gate_type == BcGateType::IDENTITY && lits.size() == 1));
+         (gate.gateType == BcGateType::IDENTITY && lits.size() == 1));
   std::sort(lits.begin(), lits.end());
   // TODO: QoL check for redundant gate? (e.g., l v -l,  l ^ -l,   l v l,  or l
   // ^ l)

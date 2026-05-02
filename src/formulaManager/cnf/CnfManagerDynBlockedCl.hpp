@@ -53,7 +53,7 @@ class CnfManagerDynBlockedCl : public CnfManagerDyn {
    * @param l is the literal use for the resolution.
    * @return the index of the clause found, or m_clauses.size() otherwise.
    */
-  unsigned searchTautNotResolution(std::vector<bool> &isPresentLit, Lit l);
+  unsigned searchTautNotResolution(std::vector<bool>& isPresentLit, Lit l);
 
   /**
    * @brief Check all the clauses and put in idxClauses the one they are
@@ -62,7 +62,7 @@ class CnfManagerDynBlockedCl : public CnfManagerDyn {
    *
    * @param idxClauses
    */
-  void getBlockedClauses(std::vector<unsigned> &idxClauses);
+  void getBlockedClauses(std::vector<unsigned>& idxClauses);
 
   /**
    * @brief Remove the blocked clauses that are supported by non selected
@@ -71,9 +71,9 @@ class CnfManagerDynBlockedCl : public CnfManagerDyn {
   void inprocessing();
 
  public:
-  CnfManagerDynBlockedCl(ProblemManager &p);
+  CnfManagerDynBlockedCl(const ProblemManager& p);
 
-  inline void printSpecInformation(std::ostream &out) {
+  inline void printSpecInformation(std::ostream& out) {
     std::cout << "c Number of blocked clause removed: "
               << m_nbBlockedClauseRemoved << "\n";
   }

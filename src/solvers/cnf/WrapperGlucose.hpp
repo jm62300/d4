@@ -32,7 +32,7 @@ class WrapperGlucose : public WrapperSolver {
   using WrapperSolver::m_isInAssumption;
 
  public:
-  void initSolver(ProblemManager& p) override;
+  void initSolver(const ProblemManager& p) override;
   bool solve(std::vector<Var>& setOfVar) override;
   bool solve() override;
   bool hasBeenInterrupt() override;

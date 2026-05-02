@@ -21,7 +21,6 @@
 #include <algorithm>
 
 #include "src/problem/ProblemManager.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 
@@ -32,8 +31,8 @@ namespace d4 {
  * @param in, the stream.
  * @param list, the list of integer we parsed.
  */
-void Parsing::readListIntTerminatedByZero(BufferRead &in,
-                                          std::vector<int> &list) {
+void Parsing::readListIntTerminatedByZero(BufferRead& in,
+                                          std::vector<int>& list) {
   int v = -1;
   do {
     v = in.nextInt();
@@ -48,8 +47,8 @@ void Parsing::readListIntTerminatedByZero(BufferRead &in,
  * @param in, the stream buffer where we get the information.
  * @param weightLit, the place where is stored the data.
  */
-void Parsing::parseNextWeightedLits(BufferRead &in,
-                                    std::vector<mpz::mpf_float> &weightLit) {
+void Parsing::parseNextWeightedLits(BufferRead& in,
+                                    std::vector<mpz::mpf_float>& weightLit) {
   int lit = in.nextInt();
   mpz::mpf_float w = in.nextMpf_float();
 
@@ -66,9 +65,9 @@ void Parsing::parseNextWeightedLits(BufferRead &in,
  * @param in, the stream buffer where we get the information.
  * @param weightLit, the place where is stored the data.
  */
-void Parsing::parseNextComplexLits(BufferRead &in,
-                                   std::vector<mpz::mpf_float> &weightLitR,
-                                   std::vector<mpz::mpf_float> &weightLitI) {
+void Parsing::parseNextComplexLits(BufferRead& in,
+                                   std::vector<mpz::mpf_float>& weightLitR,
+                                   std::vector<mpz::mpf_float>& weightLitI) {
   int lit = in.nextInt();
   mpz::mpf_float r = in.nextMpf_float();
   mpz::mpf_float i = in.nextMpf_float();
@@ -89,9 +88,9 @@ void Parsing::parseNextComplexLits(BufferRead &in,
  * @param in, the stream buffer where we get the information.
  * @param weightLit, the place where is stored the data.
  */
-void Parsing::parseRandonVars(BufferRead &in,
-                              std::vector<mpz::mpf_float> &weightLit,
-                              std::vector<Var> &vars) {
+void Parsing::parseRandonVars(BufferRead& in,
+                              std::vector<mpz::mpf_float>& weightLit,
+                              std::vector<Var>& vars) {
   double currentWeight = -1;
   double w = 0;
 

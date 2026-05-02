@@ -30,11 +30,12 @@ namespace d4 {
 /**
  * @brief FormulaManager::makeFormulaManager implementation.
  */
-FormulaManager *FormulaManager::makeFormulaManager(
-    const OptionSpecManager &options, ProblemManager &p, std::ostream &out) {
+FormulaManager* FormulaManager::makeFormulaManager(
+    const OptionSpecManager& options, const ProblemManager& p,
+    std::ostream& out) {
   out << "c [SPEC MANAGER]" << options << "\n";
 
-  switch (p.getProblemType()) {
+  switch (p.getProblemInputType()) {
     case PB_CIRC:
       return new CircuitWithCnfManager(p, options.removeGates);
     case PB_TCNF:
@@ -60,7 +61,7 @@ FormulaManager *FormulaManager::makeFormulaManager(
 /**
  * @brief FormulaManager::showTrail implementation.
  */
-void FormulaManager::showTrail(std::ostream &out) {
+void FormulaManager::showTrail(std::ostream& out) {
   for (int i = 1; i <= getNbVariable(); i++) {
     if (!varIsAssigned(i)) continue;
     Lit l = Lit::makeLit(i, false);
@@ -76,10 +77,10 @@ void FormulaManager::showTrail(std::ostream &out) {
  * @brief FormulaManager::computeTrivialConnectedComponent implementation.
  */
 int FormulaManager::computeTrivialConnectedComponent(
-    std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-    std::vector<Var> &freeVar) {
+    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<Var>& freeVar) {
   varConnected.push_back(std::vector<Var>());
-  for (auto &v : setOfVar) {
+  for (auto& v : setOfVar) {
     if (varIsAssigned(v)) continue;
     if (isFreeVariable(v))
       freeVar.push_back(v);

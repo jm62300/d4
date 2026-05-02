@@ -38,7 +38,7 @@ class BranchingHeuristicClassic : public BranchingHeuristic {
    * VSADS and VSIDS.
    *
    * @param[in] options The configuration options for the branching heuristic.
-   * @param[in] problem A pointer to the problem manager, which handles
+   * @param[in] problem A reference to the problem manager, which handles
    * problem-specific data and operations.
    * @param[in] specs A pointer to the formula manager, providing real-time
    * information about the CNF formula.
@@ -49,10 +49,11 @@ class BranchingHeuristicClassic : public BranchingHeuristic {
    * @param[in] out The output stream where debugging or status information is
    * printed.
    */
-  BranchingHeuristicClassic(const OptionBranchingHeuristic &options,
-                            ProblemManager *problem, FormulaManager *specs,
-                            ActivityManager &activityManager,
-                            PolarityManager &polarityManager, std::ostream &out)
+  BranchingHeuristicClassic(const OptionBranchingHeuristic& options,
+                            const ProblemManager& problem,
+                            FormulaManager* specs,
+                            ActivityManager& activityManager,
+                            PolarityManager& polarityManager, std::ostream& out)
       : BranchingHeuristic(options, problem, specs, activityManager,
                            polarityManager, out) {}
 
@@ -64,6 +65,6 @@ class BranchingHeuristicClassic : public BranchingHeuristic {
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  void selectLitSet(std::vector<Var> &vars, ListLit &lits) override;
+  void selectLitSet(std::vector<Var>& vars, ListLit& lits) override;
 };
 }  // namespace d4

@@ -21,7 +21,7 @@
 
 #include <algorithm>
 
-#include "src/utils/Parsing.hpp"
+// #include "src/utils/Parsing.hpp"
 
 namespace parser {
 
@@ -159,6 +159,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
     formula.quantifications.push_back(indVars);
   }
   formula.quantifications.push_back(showedVars);
+  formula.nbVar = nbVars;
   return nbVars;
 }
 

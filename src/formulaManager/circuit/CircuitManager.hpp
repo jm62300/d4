@@ -21,7 +21,6 @@
 #include "../FormulaManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/problem/circuit/ProblemManagerCircuit.hpp"
 
 namespace d4 {
 
@@ -30,13 +29,13 @@ class CircuitManager : public FormulaManager {
   std::vector<BcGate> m_gates;
   std::vector<Lit> m_true_lits;
 
-  CircuitManager(ProblemManager &p);
+  CircuitManager(const ProblemManager& p);
 
  public:
   virtual ~CircuitManager() {}
 
-  inline std::vector<BcGate> &getGates() { return m_gates; }
+  inline std::vector<BcGate>& getGates() { return m_gates; }
   inline ProblemInputType getProblemInputType() override { return PB_CIRC; }
-  virtual bool isActiveGates(BcGate &g) = 0;
+  virtual bool isActiveGates(BcGate& g) = 0;
 };
 }  // namespace d4

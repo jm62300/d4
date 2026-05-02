@@ -34,7 +34,7 @@ class WrapperMinisat : public WrapperSolver {
  public:
   ~WrapperMinisat() override {}
 
-  void initSolver(ProblemManager& p) override;
+  void initSolver(const ProblemManager& p) override;
   bool solve(std::vector<Var>& setOfVar) override;
   bool solve() override;
   bool hasBeenInterrupt() override;

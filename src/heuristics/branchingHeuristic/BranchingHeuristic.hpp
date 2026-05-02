@@ -35,9 +35,9 @@ const unsigned SIZE_PAGE_LIST_LIT = 1 << 10;
 class ListLitAllocator {
  private:
   unsigned m_posPage = 0;  ///< Current position within the active memory page.
-  Lit *m_currentPage = NULL;   ///< Pointer to the active memory page.
-  std::vector<Lit *> m_pages;  ///< Stores all allocated pages for cleanup.
-  std::vector<std::vector<Lit *>> m_availaible;  ///< Reusable memory blocks.
+  Lit* m_currentPage = NULL;  ///< Pointer to the active memory page.
+  std::vector<Lit*> m_pages;  ///< Stores all allocated pages for cleanup.
+  std::vector<std::vector<Lit*>> m_availaible;  ///< Reusable memory blocks.
 
  public:
   /**
@@ -61,9 +61,9 @@ class ListLitAllocator {
    * @param array Pointer to the memory block being freed.
    * @param size The size of the memory block.
    */
-  inline void freeMemory(Lit *array, unsigned size) {
+  inline void freeMemory(Lit* array, unsigned size) {
     while (m_availaible.size() <= size)
-      m_availaible.push_back(std::vector<Lit *>());
+      m_availaible.push_back(std::vector<Lit*>());
     m_availaible[size].push_back(array);
   }
 
@@ -77,9 +77,9 @@ class ListLitAllocator {
    * @param size The number of literals needed.
    * @return A pointer to the allocated memory.
    */
-  inline Lit *askMemory(unsigned size) {
+  inline Lit* askMemory(unsigned size) {
     assert(size < SIZE_PAGE_LIST_LIT);
-    Lit *ret = NULL;
+    Lit* ret = NULL;
 
     // Check if there's an available reusable block
     if (size < m_availaible.size() && !m_availaible[size].empty()) {
@@ -107,18 +107,18 @@ class ListLitAllocator {
 class ListLit {
  private:
   int m_size = 0;
-  Lit *m_array = NULL;
-  ListLitAllocator *m_listLitAllocator;
+  Lit* m_array = NULL;
+  ListLitAllocator* m_listLitAllocator;
 
  public:
   ListLit();
-  void setListLit(const Lit *tab, int size, ListLitAllocator *litListAllocator);
+  void setListLit(const Lit* tab, int size, ListLitAllocator* litListAllocator);
   virtual ~ListLit();
 
   inline unsigned size() { return m_size; }
   inline void setSize(int size) { m_size = size; };
-  inline void setArray(Lit *array) { m_array = array; }
-  inline Lit &operator[](int index) {
+  inline void setArray(Lit* array) { m_array = array; }
+  inline Lit& operator[](int index) {
     assert(index < m_size);
     return m_array[index];
   }
@@ -126,14 +126,13 @@ class ListLit {
 
 class BranchingHeuristic {
  protected:
-  ScoringMethod *m_hVar;
-  PhaseHeuristic *m_hPhase;
-  FormulaManager *m_specs;
-  ProblemManager *m_problem;
+  ScoringMethod* m_hVar;
+  PhaseHeuristic* m_hPhase;
+  FormulaManager* m_specs;
   std::vector<bool> m_isDecisionVariable;
   unsigned m_freqDecay;
   unsigned m_nbCall;
-  ListLitAllocator *m_listLitAllocator = NULL;
+  ListLitAllocator* m_listLitAllocator = NULL;
 
  public:
   /**
@@ -151,8 +150,8 @@ class BranchingHeuristic {
    * real-time formula information, activity levels, and polarity management.
    *
    * @param[in] options The configuration options for the branching heuristic.
-   * @param[in] problem A pointer to the problem manager, which handles
-   * problem-specific data and operations.
+   * @param[in] problem A problem manager, which handles problem-specific data
+   * and operations.
    * @param[in] specs A pointer to the formula manager, providing real-time
    * information about the CNF formula.
    * @param[in] activityManager A reference to the activity manager, which
@@ -162,10 +161,10 @@ class BranchingHeuristic {
    * @param[in] out The output stream where debugging or status information is
    * printed.
    */
-  BranchingHeuristic(const OptionBranchingHeuristic &options,
-                     ProblemManager *problem, FormulaManager *specs,
-                     ActivityManager &activityManager,
-                     PolarityManager &polarityManager, std::ostream &out);
+  BranchingHeuristic(const OptionBranchingHeuristic& options,
+                     const ProblemManager& problem, FormulaManager* specs,
+                     ActivityManager& activityManager,
+                     PolarityManager& polarityManager, std::ostream& out);
 
   /**
    * @brief Destroy the Branching Heuristic object.
@@ -182,7 +181,7 @@ class BranchingHeuristic {
    *
    * @param[in] options The configuration options specifying the type of
    * branching heuristic to use.
-   * @param[in] problem A pointer to the problem manager, which handles
+   * @param[in] problem A reference to the problem manager, which handles
    * problem-specific data and operations.
    * @param[in] specs A pointer to the formula manager, providing real-time
    * information about the CNF formula.
@@ -195,10 +194,10 @@ class BranchingHeuristic {
    * @return A pointer to a newly created branching heuristic that matches the
    * specified options.
    */
-  static BranchingHeuristic *makeBranchingHeuristic(
-      const OptionBranchingHeuristic &options, ProblemManager *problem,
-      FormulaManager *specs, ActivityManager &activityManager,
-      PolarityManager &polarityManager, std::ostream &out);
+  static BranchingHeuristic* makeBranchingHeuristic(
+      const OptionBranchingHeuristic& options, const ProblemManager& problem,
+      FormulaManager* specs, ActivityManager& activityManager,
+      PolarityManager& polarityManager, std::ostream& out);
 
   /**
    * @brief Select a list of literals we want to branch on it in a
@@ -208,7 +207,7 @@ class BranchingHeuristic {
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  virtual void selectLitSet(std::vector<Var> &vars, ListLit &lits) = 0;
+  virtual void selectLitSet(std::vector<Var>& vars, ListLit& lits) = 0;
 
   /**
    * @brief This function is called in order to update the branching heuristic
@@ -216,6 +215,6 @@ class BranchingHeuristic {
    *
    * @param vars is the set of variables under consideration.
    */
-  virtual void updateHeuristic(std::vector<Var> &vars) { ; }
+  virtual void updateHeuristic(std::vector<Var>& vars) { ; }
 };
 }  // namespace d4

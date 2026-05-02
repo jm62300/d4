@@ -43,7 +43,7 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
    * selection strategies to improve search efficiency.
    *
    * @param[in] options The configuration options for the branching heuristic.
-   * @param[in] problem A pointer to the problem manager, responsible for
+   * @param[in] problem A reference to the problem manager, responsible for
    * handling problem-specific data and operations.
    * @param[in] specs A pointer to the formula manager, which provides real-time
    * information about the CNF formula.
@@ -53,11 +53,12 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
    * handles polarity selection strategies.
    * @param[in] out The output stream used for logging or debugging information.
    */
-  BranchingHeuristicLargeArity(const OptionBranchingHeuristic &options,
-                               ProblemManager *problem, FormulaManager *specs,
-                               ActivityManager &activityManager,
-                               PolarityManager &polarityManager,
-                               std::ostream &out);
+  BranchingHeuristicLargeArity(const OptionBranchingHeuristic& options,
+                               const ProblemManager& problem,
+                               FormulaManager* specs,
+                               ActivityManager& activityManager,
+                               PolarityManager& polarityManager,
+                               std::ostream& out);
 
   /**
    * @brief If a large constraint exists (that is constraint with more than
@@ -70,6 +71,6 @@ class BranchingHeuristicLargeArity : public BranchingHeuristic {
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  void selectLitSet(std::vector<Var> &vars, ListLit &lits) override;
+  void selectLitSet(std::vector<Var>& vars, ListLit& lits) override;
 };
 }  // namespace d4

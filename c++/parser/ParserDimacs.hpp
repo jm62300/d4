@@ -37,6 +37,7 @@ struct Formula {
   std::vector<std::vector<int>> quantifications;
   std::map<int, std::string> weightMap;
   std::vector<std::vector<int>> clauses;
+  unsigned nbVar;
 };
 
 // Overload the << operator for the Formula struct

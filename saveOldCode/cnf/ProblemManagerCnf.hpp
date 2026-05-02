@@ -28,22 +28,22 @@ class ProblemManagerCnf : public ProblemManager, public CnfMatrix {
  public:
   ProblemManagerCnf();
 
-  ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
-                    std::vector<mpz::mpf_float> &weightVar,
-                    const std::vector<Var> &selected = std::vector<Var>());
+  ProblemManagerCnf(unsigned nbVar,
+                    const std::vector<std::vector<int>>& clauses);
 
-  ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float> &weightLit,
-                    std::vector<mpz::mpf_float> &weightVar,
-                    std::vector<Var> &selected, std::vector<Var> &maxVar,
-                    std::vector<Var> &indVar);
+  ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float>& weightLit,
+                    std::vector<mpz::mpf_float>& weightVar,
+                    const std::vector<Var>& selected = std::vector<Var>());
 
-  ProblemManagerCnf(ProblemManager *problem);
+  ProblemManagerCnf(int nbVar, std::vector<mpz::mpf_float>& weightLit,
+                    std::vector<mpz::mpf_float>& weightVar,
+                    std::vector<Var>& selected, std::vector<Var>& maxVar,
+                    std::vector<Var>& indVar);
 
-  ProblemManagerCnf(const std::string &nameFile);
-  ProblemManagerCnf(const int fd, bool keepOpen = false);
+  ProblemManagerCnf(ProblemManager* problem);
 
   ~ProblemManagerCnf();
-  void display(std::ostream &out) override;
+  void display(std::ostream& out) override;
 
   /**
    * @brief Print out some statistic about the problem. Each line will start
@@ -52,12 +52,12 @@ class ProblemManagerCnf : public ProblemManager, public CnfMatrix {
    * @param[in] out, the stream where the messages are redirected.
    * @param[in] startLine, each line will start with this string.
    */
-  void displayStat(std::ostream &out, std::string startLine) override;
+  void displayStat(std::ostream& out, std::string startLine) override;
 
-  ProblemManager *getUnsatProblem() override;
-  ProblemManager *getConditionedFormula(std::vector<Lit> &units) override;
+  ProblemManager* getUnsatProblem() override;
+  ProblemManager* getConditionedFormula(std::vector<Lit>& units) override;
 
   inline ProblemInputType getProblemType() const override { return PB_CNF; }
-  inline ProblemManager *translate(const ProblemTranslateType &t) override;
+  inline ProblemManager* translate(const ProblemTranslateType& t) override;
 };
 }  // namespace d4

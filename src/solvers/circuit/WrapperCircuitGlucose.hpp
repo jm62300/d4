@@ -25,6 +25,6 @@
 namespace d4 {
 class WrapperCircuitGlucose : public WrapperGlucose {
  public:
-  void initSolver(ProblemManager &p) override;
+  void initSolver(const ProblemManager& p) override;
 };
 }  // namespace d4

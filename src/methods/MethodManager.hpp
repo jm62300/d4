@@ -88,7 +88,8 @@ class MethodManager {
  public:
   virtual ~MethodManager() {}
 
-  static void displayInfoVariables(ProblemManager* problem, std::ostream& out);
+  static void displayInfoVariables(const ProblemManager& problem,
+                                   std::ostream& out);
 
   virtual void interrupt() {}
 

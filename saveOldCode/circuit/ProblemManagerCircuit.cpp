@@ -227,7 +227,7 @@ void ProblemManagerCircuit::tseitinEncoding(
     std::vector<std::vector<Lit>> &clauses) {
   std::vector<Lit> cl;
   for (auto &g : m_gates) {
-    switch (g.gate_type) {
+    switch (g.gateType) {
       case BcGateType::AND:
         cl.clear();
         cl.push_back(g.output);

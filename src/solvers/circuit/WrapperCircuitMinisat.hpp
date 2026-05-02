@@ -25,6 +25,6 @@
 namespace d4 {
 class WrapperCircuitMinisat : public WrapperMinisat {
  public:
-  void initSolver(ProblemManager &p) override;
+  void initSolver(const ProblemManager& p) override;
 };
 }  // namespace d4

@@ -24,7 +24,7 @@ namespace d4 {
 /**
  * @brief CnfManagerDyn::CnfManagerDyn implementation.
  */
-CnfManagerDyn::CnfManagerDyn(ProblemManager& p,
+CnfManagerDyn::CnfManagerDyn(const ProblemManager& p,
                              bool keepListNotSatisfiedClauses)
     : CnfManager(p),
       m_keepListNotSatisfiedClauses(keepListNotSatisfiedClauses) {

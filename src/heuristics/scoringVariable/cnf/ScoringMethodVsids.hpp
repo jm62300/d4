@@ -17,7 +17,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
-#include <src/problem/cnf/ProblemManagerCnf.hpp>
 #include <src/solvers/ActivityManager.hpp>
 
 #include "../ScoringMethod.hpp"
@@ -25,10 +24,10 @@
 namespace d4 {
 class ScoringMethodVsids : public ScoringMethod {
  private:
-  ActivityManager &activity;
+  ActivityManager& activity;
 
  public:
-  ScoringMethodVsids(ActivityManager &a);
+  ScoringMethodVsids(ActivityManager& a);
   double computeScore(Var v);
 };
 }  // namespace d4

@@ -22,15 +22,12 @@
 #include "CircuitManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "src/problem/circuit/ProblemManagerCircuit.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 
 class CircuitWithCnfManager : public CircuitManager {
  private:
-  CnfManagerDyn *m_cnfManager;
-  ProblemManagerCnf *m_problemCnf;
+  CnfManagerDyn* m_cnfManager;
 
   unsigned m_propagatedFree;
   unsigned m_lastIndex;
@@ -49,20 +46,20 @@ class CircuitWithCnfManager : public CircuitManager {
   void debugFunction();
 
  public:
-  CircuitWithCnfManager(ProblemManager &p, bool optRmGates);
+  CircuitWithCnfManager(const ProblemManager& p, bool optRmGates);
   ~CircuitWithCnfManager();
 
-  inline CnfManager *getCnfManager() { return m_cnfManager; };
-  inline bool isActiveGates(BcGate &g) override {
+  inline CnfManager* getCnfManager() { return m_cnfManager; };
+  inline bool isActiveGates(BcGate& g) override {
     return m_isStillAlive[g.output.var()];
   }
 
-  bool stillActive(BcGate &g);
-  void propagate(std::vector<Var> &vars, std::vector<Var> &pVars);
+  bool stillActive(BcGate& g);
+  void propagate(std::vector<Var>& vars, std::vector<Var>& pVars);
 
   int computeTrivialConnectedComponent(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<Var> &freeVar) override;
+      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<Var>& freeVar) override;
 
   /**
    * @brief Search for the connected component of the formula.
@@ -74,9 +71,9 @@ class CircuitWithCnfManager : public CircuitManager {
    *
    * @return the number of connected component.
    */
-  int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
-                                std::vector<Var> &setOfVar,
-                                std::vector<Var> &freeVar) override;
+  int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
+                                std::vector<Var>& setOfVar,
+                                std::vector<Var>& freeVar) override;
 
   /**
    * @brief Search for the connected component of the formula regarding a subset
@@ -92,8 +89,8 @@ class CircuitWithCnfManager : public CircuitManager {
    * @return the number of connected component.
    */
   int computeConnectedComponentTargeted(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<bool> &isTargeted, std::vector<Var> &freeVar) override;
+      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<bool>& isTargeted, std::vector<Var>& freeVar) override;
 
   /**
    * @brief This function is called to update the formula regarding a set of
@@ -101,7 +98,7 @@ class CircuitWithCnfManager : public CircuitManager {
    *
    * @param[in] lits is the set of literal under consideration.
    */
-  void preUpdate(const std::vector<Lit> &lits) override;
+  void preUpdate(const std::vector<Lit>& lits) override;
 
   /**
    * @brief This function is called to undo the modification done by the
@@ -109,29 +106,29 @@ class CircuitWithCnfManager : public CircuitManager {
    *
    * @param lits are the literals updated.
    */
-  void postUpdate(const std::vector<Lit> &lits) override;
+  void postUpdate(const std::vector<Lit>& lits) override;
 
   /**
    * @brief Display the initial formula.
    *
    * @param[out] out is the stream used.
    */
-  void showFormula(std::ostream &out) override;
+  void showFormula(std::ostream& out) override;
 
   /**
    * @brief Display the current formula.
    *
    * @param[out] out is the stream used.
    */
-  void showCurrentFormula(std::ostream &out) override;
+  void showCurrentFormula(std::ostream& out) override;
 
   /**
    * @brief Display the current formula.
    *
    * @param[out] out is the stream used.
    */
-  void showCurrentFormula(std::ostream &out,
-                          std::vector<bool> &isInComponent) override;
+  void showCurrentFormula(std::ostream& out,
+                          std::vector<bool>& isInComponent) override;
 
   /**
    * @brief Get the problem input type.
@@ -145,7 +142,7 @@ class CircuitWithCnfManager : public CircuitManager {
    *
    * @param[out] out is the stream used.
    */
-  void printInformation(std::ostream &out) override;
+  void printInformation(std::ostream& out) override;
 
   /**
    * @brief Ask if the given variable is free in the current formula.

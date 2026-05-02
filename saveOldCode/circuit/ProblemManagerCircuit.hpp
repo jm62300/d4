@@ -35,7 +35,7 @@ enum class BcGateType { AND, OR, IDENTITY };
 struct BcGate {
   std::vector<Lit> input;
   Lit output;
-  BcGateType gate_type;
+  BcGateType gateType;
 
   /**
    * @brief Print out the circuit.
@@ -44,7 +44,7 @@ struct BcGate {
    */
   void display(std::ostream &out) {
     out << output;
-    switch (gate_type) {
+    switch (gateType) {
       case BcGateType::AND:
         out << " =(AND): ";
         break;

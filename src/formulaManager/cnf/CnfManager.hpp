@@ -25,7 +25,6 @@
 #include "DataOccurrence.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemManager.hpp"
-#include "src/problem/cnf/ProblemManagerCnf.hpp"
 
 namespace d4 {
 struct InfoCluster {
@@ -43,7 +42,7 @@ class CnfManager : public FormulaManager {
 
   std::vector<bool> m_inCurrentComponent;
   std::vector<DataOccurrence> m_occurrence;
-  int *m_dataOccurrenceMemory;
+  int* m_dataOccurrenceMemory;
   std::vector<unsigned> m_occInitSizeNotBin;
 
   std::vector<InfoCluster> m_infoCluster;
@@ -55,11 +54,11 @@ class CnfManager : public FormulaManager {
   std::vector<bool> m_markView;
 
   inline void resetUnMark() {
-    for (auto &idx : m_mustUnMark) m_markView[idx] = false;
+    for (auto& idx : m_mustUnMark) m_markView[idx] = false;
     m_mustUnMark.resize(0);
   }  // resetUnMark
 
-  Var *m_activeVariables;
+  Var* m_activeVariables;
 
   /**
    * @brief This function can be used in order to check the validity of the
@@ -68,24 +67,24 @@ class CnfManager : public FormulaManager {
   void debugFunction();
 
  public:
-  CnfManager(ProblemManager &p);
+  CnfManager(const ProblemManager& p);
   ~CnfManager();
 
-  int computeConnectedComponent(std::vector<std::vector<Var>> &varConnected,
-                                std::vector<Var> &setOfVar,
-                                std::vector<Var> &freeVar) override;
+  int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
+                                std::vector<Var>& setOfVar,
+                                std::vector<Var>& freeVar) override;
 
-  void connectedToLit(Lit l, std::vector<int> &v,
-                      std::vector<Var> &varComponent, int nbComponent);
+  void connectedToLit(Lit l, std::vector<int>& v,
+                      std::vector<Var>& varComponent, int nbComponent);
 
   int computeConnectedComponentTargeted(
-      std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-      std::vector<bool> &isProjected, std::vector<Var> &freeVar) override;
+      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<bool>& isProjected, std::vector<Var>& freeVar) override;
 
-  void showFormula(std::ostream &out) override;
-  void showCurrentFormula(std::ostream &out) override;
-  void showCurrentFormula(std::ostream &out,
-                          std::vector<bool> &isInComponent) override;
+  void showFormula(std::ostream& out) override;
+  void showCurrentFormula(std::ostream& out) override;
+  void showCurrentFormula(std::ostream& out,
+                          std::vector<bool>& isInComponent) override;
 
   int getInitSize(int i) { return m_clauses[i].size(); }
   int getCurrentSize(int i) {
@@ -93,17 +92,17 @@ class CnfManager : public FormulaManager {
   }
 
   bool isSatisfiedClause(unsigned idx);
-  bool isSatisfiedClause(std::vector<Lit> &c);
+  bool isSatisfiedClause(std::vector<Lit>& c);
   bool isNotSatisfiedClauseAndInComponent(
-      int idx, std::vector<bool> &m_inCurrentComponent);
+      int idx, std::vector<bool>& m_inCurrentComponent);
 
-  virtual void getCurrentClauses(std::vector<unsigned> &idxClauses,
-                                 std::vector<Var> &component) = 0;
+  virtual void getCurrentClauses(std::vector<unsigned>& idxClauses,
+                                 std::vector<Var>& component) = 0;
 
-  virtual void getCurrentClausesNotBin(std::vector<unsigned> &idxClauses,
-                                       std::vector<Var> &component) = 0;
+  virtual void getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
+                                       std::vector<Var>& component) = 0;
 
-  virtual bool canSkipLit(const Lit &l) { return false; }
+  virtual bool canSkipLit(const Lit& l) { return false; }
 
   // inline functions.
   // about the CNF.
@@ -143,7 +142,7 @@ class CnfManager : public FormulaManager {
 
   virtual inline unsigned getSumSizeClauses() {
     unsigned sum = 0;
-    for (auto &cl : m_clauses) sum += cl.size();
+    for (auto& cl : m_clauses) sum += cl.size();
     return sum;
   }  // getSumSizeClauses
 
@@ -160,9 +159,9 @@ class CnfManager : public FormulaManager {
     return m_clauses[idx].size() - m_infoClauses[idx].nbUnsat;
   }
 
-  inline std::vector<std::vector<Lit>> &getClauses() { return m_clauses; }
+  inline std::vector<std::vector<Lit>>& getClauses() { return m_clauses; }
 
-  inline std::vector<Lit> &getClause(int idx) {
+  inline std::vector<Lit>& getClause(int idx) {
     assert((unsigned)idx < m_clauses.size());
     return m_clauses[idx];
   }
@@ -191,7 +190,7 @@ class CnfManager : public FormulaManager {
     return m_occurrence[l.intern()].getBinClauses();
   }
 
-  inline void showOccurenceList(std::ostream &out) {
+  inline void showOccurenceList(std::ostream& out) {
     printf("Occurence list\n");
     for (unsigned i = 0; i < m_occurrence.size(); i++) {
       if (m_currentValue[i >> 1] != l_Undef) continue;

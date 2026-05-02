@@ -29,7 +29,7 @@ namespace d4 {
  * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
  */
 BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
-    const OptionBranchingHeuristic& options, ProblemManager* problem,
+    const OptionBranchingHeuristic& options, const ProblemManager& problem,
     FormulaManager* specs, ActivityManager& activityManager,
     PolarityManager& polarityManager, std::ostream& out)
     : BranchingHeuristic(options, problem, specs, activityManager,

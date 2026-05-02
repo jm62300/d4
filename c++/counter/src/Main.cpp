@@ -88,10 +88,8 @@ int main(int argc, char** argv) {
 
   // parse the initial problem.
   d4::ProblemManager* initProblem = d4::ProblemManager::makeProblemManager(
-      vm["input"].as<std::string>(),
-      d4::ProblemInputTypeManager::getInputType(
-          vm["input-type"].as<std::string>()),
-      std::cout);
+      formula.type, formula.nbVar, formula.quantifications, formula.weightMap,
+      formula.clauses, std::cout);
   assert(initProblem);
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
                "formula\033[0m\n";

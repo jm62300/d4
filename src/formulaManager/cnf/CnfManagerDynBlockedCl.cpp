@@ -24,13 +24,15 @@ namespace d4 {
 /**
  * @brief CnfManagerDynBlockedCl::CnfManagerDynBlockedCl implementation.
  */
-CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(ProblemManager& p)
+CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(const ProblemManager& p)
     : CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with blocked clause elimination\n";
 
+  assert(p.getQuantification().size() == 1);
   m_nbBlockedClauseRemoved = 0;
-  m_isDecisionVariable.resize(p.getNbVar() + 1, !p.getNbSelectedVar());
-  for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
+  m_isDecisionVariable.resize(p.getNbVar() + 1,
+                              !p.getQuantification()[0].size());
+  for (auto v : p.getQuantification()[0]) m_isDecisionVariable[v] = true;
   m_isPresentLit.resize((p.getNbVar() + 1) << 1, false);
 
   // init the watch list.

@@ -24,15 +24,18 @@ namespace d4 {
 /**
  * @brief CnfManagerDynPure::CnfManagerDynPure implementation.
  */
-CnfManagerDynPure::CnfManagerDynPure(ProblemManager &p) : CnfManagerDyn(p) {
+CnfManagerDynPure::CnfManagerDynPure(const ProblemManager& p)
+    : CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with pure literal elimination\n";
   m_nbPureSimplification = 0;
 
   m_markedPureLiteral.resize(1 + p.getNbVar(), false);
   m_pureDetected.reserve(1 + p.getNbVar());
 
-  m_isDecisionVariable.resize(p.getNbVar() + 1, !p.getNbSelectedVar());
-  for (auto v : p.getSelectedVar()) m_isDecisionVariable[v] = true;
+  assert(p.getQuantification().size() == 1);
+  m_isDecisionVariable.resize(p.getNbVar() + 1,
+                              !p.getQuantification()[0].size());
+  for (auto v : p.getQuantification()[0]) m_isDecisionVariable[v] = true;
 
   affectInitPureLit();
 }  // CnfManagerDynPure
@@ -52,7 +55,7 @@ void CnfManagerDynPure::affectInitPureLit() {
 /**
  * @brief CnfManagerDynPure::getPureLiterals implementation.
  */
-void CnfManagerDynPure::getPureLiterals(std::vector<Lit> &pureLits) {
+void CnfManagerDynPure::getPureLiterals(std::vector<Lit>& pureLits) {
   for (unsigned i = 1; i < m_isDecisionVariable.size(); i++)
     if (m_isDecisionVariable[i] || m_currentValue[i] != l_Undef)
       continue;
@@ -75,7 +78,7 @@ void CnfManagerDynPure::inprocessing() {
   do {
     m_pureDetected.resize(0);
     for (unsigned i = m_stackPosOcc.back(); i < m_savedStateOccs.size(); i++) {
-      Lit &l = m_savedStateOccs[i].l;
+      Lit& l = m_savedStateOccs[i].l;
       if (m_isDecisionVariable[l.var()] || m_currentValue[l.var()] != l_Undef)
         continue;
 

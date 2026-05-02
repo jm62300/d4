@@ -24,18 +24,9 @@ namespace d4 {
 /**
  * @brief CircuitManager::CircuitManager implementation.
  */
-CircuitManager::CircuitManager(ProblemManager &p)
+CircuitManager::CircuitManager(const ProblemManager& p)
     : FormulaManager(p.getNbVar()) {
   std::cout << "c [CIRCUIT MANAGER] Constructor called\n";
-
-  try {
-    ProblemManagerCircuit &pcirc = dynamic_cast<ProblemManagerCircuit &>(p);
-    m_gates = pcirc.getGates();
-    m_true_lits = pcirc.getTrueLiterals();
-  } catch (std::bad_cast &bc) {
-    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "c A boolean circuit was expected\n";
-    assert(0);
-  }
+  m_gates = p.getGates();
 }  // constructor
 }  // namespace d4

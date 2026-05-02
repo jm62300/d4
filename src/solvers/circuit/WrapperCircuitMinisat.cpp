@@ -24,8 +24,7 @@
 #include <typeinfo>
 
 #include "src/problem/ProblemManager.hpp"
-#include "src/problem/circuit/ProblemManagerCircuit.hpp"
-#include "src/utils/ErrorCode.hpp"
+#include "src/utils/Translator.hpp"
 
 namespace d4 {
 using minisat::toInt;
@@ -33,30 +32,24 @@ using minisat::toInt;
 /**
  * @brief WrapperCircuitMinisat::initSolver implementation.
  */
-void WrapperCircuitMinisat::initSolver(ProblemManager &p) {
+void WrapperCircuitMinisat::initSolver(const ProblemManager& p) {
   std::cout << "c [MINISAT CIRCUIT SOLVER] Init phase\n";
 
-  try {
-    ProblemManagerCircuit &pcircuit = dynamic_cast<ProblemManagerCircuit &>(p);
+  if (p.getProblemInputType() != PB_CIRC)
+    std::runtime_error("A circuit was expected here!");
 
-    // say to the solver we have pcnf.getNbVar() variables.
-    while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
-    m_model.resize(p.getNbVar() + 1, l_Undef);
+  // say to the solver we have pcnf.getNbVar() variables.
+  while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
+  m_model.resize(p.getNbVar() + 1, l_Undef);
 
-    // load the clauses
+  std::vector<std::vector<Lit>> clauses;
 
-    std::vector<std::vector<Lit>> clauses;
-    pcircuit.tseitinEncoding(clauses);
+  Translator::tseitinEncoding(p.getGates(), clauses);
 
-    for (auto &cl : clauses) {
-      minisat::vec<minisat::Lit> lits;
-      for (auto &l : cl) lits.push(minisat::mkLit(l.var(), l.sign()));
-      m_solver.addClause(lits);
-    }
-  } catch (std::bad_cast &bc) {
-    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "c A CNF formula was expeted\n";
-    exit(ERROR_BAD_CAST);
+  for (auto& cl : clauses) {
+    minisat::vec<minisat::Lit> lits;
+    for (auto& l : cl) lits.push(minisat::mkLit(l.var(), l.sign()));
+    m_solver.addClause(lits);
   }
 
   m_activeModel = false;

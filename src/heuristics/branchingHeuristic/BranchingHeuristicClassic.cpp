@@ -23,8 +23,8 @@ namespace d4 {
 /**
  * @brief BranchingHeuristic::selectLitSet implementation.
  */
-void BranchingHeuristicClassic::selectLitSet(std::vector<Var> &vars,
-                                             ListLit &lits) {
+void BranchingHeuristicClassic::selectLitSet(std::vector<Var>& vars,
+                                             ListLit& lits) {
   m_nbCall++;
 
   // decay the variable weights.
@@ -34,7 +34,7 @@ void BranchingHeuristicClassic::selectLitSet(std::vector<Var> &vars,
   Var v = var_Undef;
   double bestScore = -1;
 
-  for (auto &vTmp : vars) {
+  for (auto& vTmp : vars) {
     if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
     double current = m_hVar->computeScore(vTmp);

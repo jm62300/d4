@@ -46,45 +46,46 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
    *
    * \return a solver.
    */
-  static WrapperSolver *makeWrapperSolver(const OptionSolver &name,
-                                          ProblemManager &p, std::ostream &out);
+  static WrapperSolver* makeWrapperSolver(const OptionSolver& name,
+                                          const ProblemManager& p,
+                                          std::ostream& out);
 
   virtual ~WrapperSolver() {}
-  virtual void initSolver(ProblemManager &p) = 0;
-  virtual bool solve(std::vector<Var> &setOfVar) = 0;
+  virtual void initSolver(const ProblemManager& p) = 0;
+  virtual bool solve(std::vector<Var>& setOfVar) = 0;
   virtual bool solve() = 0;
   virtual bool hasBeenInterrupt() = 0;
   virtual void uncheckedEnqueue(Lit l) = 0;
   virtual void restart() = 0;
-  virtual void setAssumption(std::vector<Lit> &assums) = 0;
-  virtual std::vector<Lit> &getAssumption() = 0;
+  virtual void setAssumption(std::vector<Lit>& assums) = 0;
+  virtual std::vector<Lit>& getAssumption() = 0;
   virtual void pushAssumption(Lit l) = 0;
   virtual void popAssumption(unsigned count = 1) = 0;
-  virtual void displayAssumption(std::ostream &out) = 0;
+  virtual void displayAssumption(std::ostream& out) = 0;
   virtual bool varIsAssigned(Var v) = 0;
   virtual void setNeedModel(bool b) = 0;
   virtual void showTrail() = 0;
-  virtual std::vector<lbool> &getModel() = 0;
+  virtual std::vector<lbool>& getModel() = 0;
   virtual lbool getModelVar(Var v) = 0;
-  virtual void getUnits(std::vector<Lit> &units) = 0;
+  virtual void getUnits(std::vector<Lit>& units) = 0;
   virtual unsigned getNbConflict() = 0;
   virtual void setReversePolarity(bool value) = 0;
   virtual bool propagateAssumption() = 0;
   virtual bool isUnsat() = 0;
 
   // this function returns false if the propagation gives a conflict.
-  virtual bool decideAndComputeUnit(Lit l, std::vector<Lit> &units) = 0;
+  virtual bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) = 0;
   virtual bool failedLiteralProbing(Lit l) = 0;
 
-  virtual void whichAreUnits(std::vector<Var> &component,
-                             std::vector<Lit> &units) = 0;
+  virtual void whichAreUnits(std::vector<Var>& component,
+                             std::vector<Lit>& units) = 0;
 
   inline bool getActiveModel() { return m_activeModel; }
   inline bool getNeedModel() { return m_needModel; }
   unsigned sizeAssumption() { return getAssumption().size(); }
 
-  bool warmStart(int iteration, int sizeQuery, std::vector<Var> &setOfVar,
-                 std::ostream &out);
+  bool warmStart(int iteration, int sizeQuery, std::vector<Var>& setOfVar,
+                 std::ostream& out);
 
   virtual void getCore() = 0;
   virtual void getLastIUP(Lit l) = 0;

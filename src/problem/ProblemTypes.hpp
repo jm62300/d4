@@ -48,35 +48,35 @@ struct Lit {
   }  // '<' makes p, ~p adjacent in the ordering.
 
   friend Lit operator~(Lit p);
-  friend std::ostream &operator<<(std::ostream &os, Lit l);
+  friend std::ostream& operator<<(std::ostream& os, Lit l);
 
   static inline Lit makeLit(Var v, bool sign) { return {(v << 1) + sign}; }
   static inline Lit makeLitFalse(Var v) { return {(v << 1) + 1}; }
   static inline Lit makeLitTrue(Var v) { return {v << 1}; }
 
   template <class T>
-  inline static void rewrite(std::vector<std::vector<Lit>> &clauses,
-                             std::vector<Lit> &units,
-                             std::vector<std::vector<T>> &res,
+  inline static void rewrite(std::vector<std::vector<Lit>>& clauses,
+                             std::vector<Lit>& units,
+                             std::vector<std::vector<T>>& res,
                              T (*createLit)(unsigned var, bool sign)) {
     res.clear();
-    for (auto &l : units) res.push_back({createLit(l.var(), l.sign())});
+    for (auto& l : units) res.push_back({createLit(l.var(), l.sign())});
 
-    for (auto &cl : clauses) {
+    for (auto& cl : clauses) {
       if (cl.size() == 0) continue;
       res.push_back(std::vector<T>());
-      for (auto &l : cl) res.back().push_back(createLit(l.var(), l.sign()));
+      for (auto& l : cl) res.back().push_back(createLit(l.var(), l.sign()));
     }
   }  // rewrite
 
   template <class T1, class T2>
-  inline static void rewrite(std::vector<std::vector<T1>> &clauses,
-                             std::vector<std::vector<T2>> &res,
+  inline static void rewrite(std::vector<std::vector<T1>>& clauses,
+                             std::vector<std::vector<T2>>& res,
                              T2 (*createLit)(T1)) {
-    for (auto &cl : clauses) {
+    for (auto& cl : clauses) {
       if (cl.size() == 0) continue;
       res.push_back(std::vector<T2>());
-      for (auto &l : cl) res.back().push_back(createLit(l));
+      for (auto& l : cl) res.back().push_back(createLit(l));
     }
   }  // rewrite
 };
@@ -84,9 +84,49 @@ struct Lit {
 const Lit lit_Undef = {-2};  // }- Useful special constants.
 const Lit lit_Error = {-1};  // }
 
-inline void showListLit(std::ostream &out, std::vector<Lit> &v) {
-  for (auto &l : v) out << l << " ";
+inline void showListLit(std::ostream& out, std::vector<Lit>& v) {
+  for (auto& l : v) out << l << " ";
 }  // showListLit
 
 inline Lit operator~(Lit p) { return {p.m_x ^ 1}; }
+
+/**
+ * @brief Different gate types.
+ *
+ * The IDENTITY gate has one input and simply passes
+ * on the information. This could be used to represent
+ * gates `x := y` or `x := -y`
+ */
+enum class BcGateType { AND, OR, IDENTITY, CLAUSE, TERM };
+
+struct BcGate {
+  std::vector<Lit> input;
+  Lit output;
+  BcGateType gateType;
+
+  /**
+   * @brief Print out the circuit.
+   *
+   * @param[out] out is the stream where the messages are redirected.
+   */
+  void display(std::ostream& out) {
+    out << output;
+    switch (gateType) {
+      case BcGateType::AND:
+        out << " =(AND): ";
+        break;
+      case BcGateType::OR:
+        out << " =(OR): ";
+        break;
+      case BcGateType::IDENTITY:
+        out << " =(I): ";
+        break;
+      default:
+        out << " =(UNKNOWN): ";
+        break;
+    }
+    for (auto& l : input) out << l << " ";
+  }
+};
+
 }  // namespace d4

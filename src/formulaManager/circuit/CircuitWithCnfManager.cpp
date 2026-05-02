@@ -28,23 +28,14 @@ namespace d4 {
 /**
  * @brief CircuitWithCnfManager::CircuitWithCnfManager implementation.
  */
-CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
+CircuitWithCnfManager::CircuitWithCnfManager(const ProblemManager& p,
+                                             bool optRmGates)
     : CircuitManager(p) {
   std::cout << "c [CIRCUIT WITH CNF MANAGER] Constructor called\n";
 
-  try {
-    ProblemManagerCircuit &pcirc = dynamic_cast<ProblemManagerCircuit &>(p);
-    m_problemCnf = static_cast<ProblemManagerCnf *>(
-        pcirc.translate(ProblemTranslateType::TRANSLATE_CNF));
-  } catch (std::bad_cast &bc) {
-    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "c A boolean circuit was expected\n";
-    assert(0);
-  }
-
   m_optionRemoveGates = optRmGates;
   m_propagatedFree = 0;
-  m_cnfManager = new CnfManagerDyn(*m_problemCnf);
+  m_cnfManager = new CnfManagerDyn(p);
 
   // assign variable with their definition, and for each variable v store the
   // gates where v is part of the input.
@@ -57,7 +48,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
 
   for (unsigned i = 0; i < m_gates.size(); i++) {
     for (auto l : m_gates[i].input) {
-      if (m_gates[i].gate_type == BcGateType::AND) l = ~l;
+      if (m_gates[i].gateType == BcGateType::AND) l = ~l;
       m_litThatInactiveVar[l.intern()].push_back(m_gates[i].output.var());
     }
 
@@ -65,12 +56,12 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
     m_varToGate[m_gates[i].output.var()] = i;
     m_gateToVar[i] = m_gates[i].output.var();
 
-    for (auto &l : m_gates[i].input)
+    for (auto& l : m_gates[i].input)
       m_varInputInGates[l.var()].push_back(m_gates[i].output.var());
   }
 
   std::vector<bool> isUnit(p.getNbVar() + 1, false);
-  for (auto &l : m_true_lits) isUnit[l.var()] = true;
+  for (auto& l : m_true_lits) isUnit[l.var()] = true;
 
   // set the watch list.
   if (m_optionRemoveGates) {
@@ -83,7 +74,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
 
       for (unsigned i = 1; i <= p.getNbVar(); i++) {
         if (!m_isStillAlive[i] || m_varToGate[i] == m_lastIndex || isUnit[i] ||
-            m_gates[m_varToGate[i]].gate_type == BcGateType::IDENTITY)
+            m_gates[m_varToGate[i]].gateType == BcGateType::IDENTITY)
           continue;
 
         if (!m_varInputInGates[i].size()) {
@@ -91,7 +82,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
           shouldBePropagated.push_back(i);
           m_isStillAlive[i] = false;
 
-          for (auto &l : m_gates[m_varToGate[i]].input) {
+          for (auto& l : m_gates[m_varToGate[i]].input) {
             // remove i from m_varInputInGate[l.var()]
             for (unsigned j = 0; j < m_varInputInGates[l.var()].size(); j++) {
               if (m_varInputInGates[l.var()][j] == i) {
@@ -109,7 +100,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
     m_watchList.resize(p.getNbVar() + 1);
     for (unsigned i = 1; i <= p.getNbVar(); i++) {
       if (m_varToGate[i] == m_lastIndex ||
-          m_gates[m_varToGate[i]].gate_type == BcGateType::IDENTITY)
+          m_gates[m_varToGate[i]].gateType == BcGateType::IDENTITY)
         continue;  // input var.
 
       if (m_varInputInGates[i].size())
@@ -118,7 +109,7 @@ CircuitWithCnfManager::CircuitWithCnfManager(ProblemManager &p, bool optRmGates)
 
     if (shouldBePropagated.size()) {
       std::vector<Lit> litsTrue;
-      for (auto &v : shouldBePropagated) {
+      for (auto& v : shouldBePropagated) {
         litsTrue.push_back(Lit::makeLitTrue(v));
         litsTrue.push_back(Lit::makeLitFalse(v));
       }
@@ -144,22 +135,22 @@ CircuitWithCnfManager::~CircuitWithCnfManager() {
 /**
  * @brief CircuitWithCnfManager::stillActive implementation.
  */
-bool CircuitWithCnfManager::stillActive(BcGate &g) {
+bool CircuitWithCnfManager::stillActive(BcGate& g) {
   assert(g.output.var() <= getNbVariable());
 
   if (!varIsAssigned(g.output.var())) {
     return true;
   }
-  Lit &l = g.output;
-  switch (g.gate_type) {
+  Lit& l = g.output;
+  switch (g.gateType) {
     case BcGateType::OR:
       if (litIsAssignedToTrue(~l)) return false;
-      for (auto &m : g.input)
+      for (auto& m : g.input)
         if (litIsAssignedToTrue(m)) return false;
       return true;
     case BcGateType::AND:
       if (litIsAssignedToTrue(l)) return false;
-      for (auto &m : g.input)
+      for (auto& m : g.input)
         if (litIsAssignedToTrue(~m)) return false;
       return true;
     default:
@@ -170,8 +161,8 @@ bool CircuitWithCnfManager::stillActive(BcGate &g) {
 /**
  * @brief CircuitWithCnfManager::propagate implementation.
  */
-void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
-                                      std::vector<Var> &pVars) {
+void CircuitWithCnfManager::propagate(std::vector<Var>& vars,
+                                      std::vector<Var>& pVars) {
   while (vars.size()) {
     Var v = vars.back();
     assert(!m_isStillAlive[v]);
@@ -186,7 +177,7 @@ void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
       else {
         // search another watch for w.
         int next = var_Undef;
-        for (auto &x : m_varInputInGates[w]) {
+        for (auto& x : m_varInputInGates[w]) {
           if (m_isStillAlive[x]) {
             next = x;
             break;
@@ -215,10 +206,10 @@ void CircuitWithCnfManager::propagate(std::vector<Var> &vars,
  * implementation.
  */
 int CircuitWithCnfManager::computeTrivialConnectedComponent(
-    std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-    std::vector<Var> &freeVar) {
+    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<Var>& freeVar) {
   varConnected.push_back(std::vector<Var>());
-  for (auto &v : setOfVar) {
+  for (auto& v : setOfVar) {
     if (varIsAssigned(v) || !m_isStillAlive[v]) continue;
     if (isFreeVariable(v))
       freeVar.push_back(v);
@@ -234,8 +225,8 @@ int CircuitWithCnfManager::computeTrivialConnectedComponent(
  * @brief CircuitWithCnfManager::computeConnectedComponent implementation.
  */
 int CircuitWithCnfManager::computeConnectedComponent(
-    std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-    std::vector<Var> &freeVar) {
+    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<Var>& freeVar) {
   int ret =
       m_cnfManager->computeConnectedComponent(varConnected, setOfVar, freeVar);
 
@@ -253,8 +244,8 @@ int CircuitWithCnfManager::computeConnectedComponent(
  * implementation.
  */
 int CircuitWithCnfManager::computeConnectedComponentTargeted(
-    std::vector<std::vector<Var>> &varConnected, std::vector<Var> &setOfVar,
-    std::vector<bool> &isTargeted, std::vector<Var> &freeVar) {
+    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<bool>& isTargeted, std::vector<Var>& freeVar) {
   // compute the connected component on the cnfManager
   int ret = m_cnfManager->computeConnectedComponentTargeted(
       varConnected, setOfVar, isTargeted, freeVar);
@@ -277,7 +268,7 @@ void CircuitWithCnfManager::debugFunction() {
     if (varIsAssigned(i) || m_varToGate[i] == m_lastIndex) continue;
 
     bool shouldBeDead = true;
-    for (auto &v : m_varInputInGates[i]) {
+    for (auto& v : m_varInputInGates[i]) {
       shouldBeDead = !m_isStillAlive[v];
       if (!shouldBeDead) break;
     }
@@ -291,7 +282,7 @@ void CircuitWithCnfManager::debugFunction() {
 /**
  * @brief CircuitWithCnfManager::preUpdate implementation.
  */
-void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
+void CircuitWithCnfManager::preUpdate(const std::vector<Lit>& lits) {
   m_stackGatesNotAliveSize.push_back(m_stackGatesNotAlive.size());
   m_cnfManager->pushStacks();
   assignListLit(lits);
@@ -300,8 +291,8 @@ void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
   std::vector<Lit> litsTrue = lits;
   if (m_optionRemoveGates) {
     std::vector<Var> toPu, puVars;
-    for (auto &l : lits) {
-      for (auto &v : m_litThatInactiveVar[l.intern()]) {
+    for (auto& l : lits) {
+      for (auto& v : m_litThatInactiveVar[l.intern()]) {
         if (m_isStillAlive[v]) {
           m_isStillAlive[v] = false;
           m_stackGatesNotAlive.push_back(v);
@@ -325,7 +316,7 @@ void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
     }
 
     // debugFunction();
-    for (auto &v : puVars) {
+    for (auto& v : puVars) {
       litsTrue.push_back(Lit::makeLitTrue(v));
       litsTrue.push_back(Lit::makeLitFalse(v));
     }
@@ -341,8 +332,8 @@ void CircuitWithCnfManager::preUpdate(const std::vector<Lit> &lits) {
 /**
  * @brief CircuitWithCnfManager::postUpdate implementation.
  */
-void CircuitWithCnfManager::postUpdate(const std::vector<Lit> &lits) {
-  for (auto &l : lits) m_currentValue[l.var()] = l_Undef;
+void CircuitWithCnfManager::postUpdate(const std::vector<Lit>& lits) {
+  for (auto& l : lits) m_currentValue[l.var()] = l_Undef;
 
   // backtrack.
   assert(m_stackGatesNotAliveSize.size());
@@ -358,14 +349,14 @@ void CircuitWithCnfManager::postUpdate(const std::vector<Lit> &lits) {
 /**
  * @brief CircuitWithCnfManager::showFormula implementation.
  */
-void CircuitWithCnfManager::showFormula(std::ostream &out) {
+void CircuitWithCnfManager::showFormula(std::ostream& out) {
   m_cnfManager->showFormula(out);
 }  // showFormula
 
 /**
  * @brief CircuitWithCnfManager::showCurrentFormula implementation.
  */
-void CircuitWithCnfManager::showCurrentFormula(std::ostream &out) {
+void CircuitWithCnfManager::showCurrentFormula(std::ostream& out) {
   m_cnfManager->showCurrentFormula(out);
 }  // showCurrentFormula
 
@@ -373,7 +364,7 @@ void CircuitWithCnfManager::showCurrentFormula(std::ostream &out) {
  * @brief CircuitWithCnfManager::showCurrentFormula implementation.
  */
 void CircuitWithCnfManager::showCurrentFormula(
-    std::ostream &out, std::vector<bool> &isInComponent) {
+    std::ostream& out, std::vector<bool>& isInComponent) {
   m_cnfManager->showCurrentFormula(out, isInComponent);
 }  // showCurrentFormula
 
@@ -387,7 +378,7 @@ ProblemInputType CircuitWithCnfManager::getProblemInputType() {
 /**
  * @brief CircuitWithCnfManager::printInformation implementation.
  */
-void CircuitWithCnfManager::printInformation(std::ostream &out) {
+void CircuitWithCnfManager::printInformation(std::ostream& out) {
   out << "c \033[1m\033[36mFormula Manager Information\033[0m\n";
   m_cnfManager->printInformation(out);
   out << "c Number of variable eliminated: " << m_propagatedFree << '\n';

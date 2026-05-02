@@ -42,7 +42,7 @@ class CnfManagerDynPure : public CnfManagerDyn {
    *
    * @param[out] pureLits is the computed pure literals.
    */
-  void getPureLiterals(std::vector<Lit> &pureLits);
+  void getPureLiterals(std::vector<Lit>& pureLits);
 
   /**
    * @brief Compute the set of pure literals present in the formula and fix them
@@ -60,9 +60,9 @@ class CnfManagerDynPure : public CnfManagerDyn {
   void inprocessing() override;
 
  public:
-  CnfManagerDynPure(ProblemManager &p);
+  CnfManagerDynPure(const ProblemManager& p);
 
-  inline void printSpecInformation(std::ostream &out) {
+  inline void printSpecInformation(std::ostream& out) {
     std::cout << "c Number of pure literal simplication: "
               << m_nbPureSimplification << "\n";
   }

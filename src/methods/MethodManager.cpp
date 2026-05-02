@@ -23,12 +23,10 @@
 #include <boost/multiprecision/gmp.hpp>
 
 #include "DpllStyleMethod.hpp"
-#include "Erosion.hpp"
-#include "ExistRandomExist.hpp"
-#include "MaxSharpSAT.hpp"
-#include "MinSharpSAT.hpp"
-#include "OperationManager.hpp"
-#include "ProjMCMethod.hpp"
+// #include "ExistRandomExist.hpp"
+// #include "MaxSharpSAT.hpp"
+// #include "MinSharpSAT.hpp"
+// #include "OperationManager.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
@@ -45,30 +43,14 @@ namespace mpz = boost::multiprecision;
  * @param[in] selected The list of projected variables.
  * @param[in] out The stream where is printed out the information.
  */
-void MethodManager::displayInfoVariables(ProblemManager* problem,
+void MethodManager::displayInfoVariables(const ProblemManager& problem,
                                          std::ostream& out) {
-  std::vector<Var>& selected = problem->getSelectedVar();
-  if (selected.size()) {
-    out << "c\nc [PROJECTED VARIABLES] list: ";
-    std::sort(selected.begin(), selected.end());
-    for (auto v : selected) out << v << " ";
-    out << "\nc\n";
-  }
-
-  std::vector<Var>& maxVar = problem->getMaxVar();
-  if (maxVar.size()) {
-    out << "c\nc [MAX VARIABLES] list: ";
-    std::sort(maxVar.begin(), maxVar.end());
-    for (auto v : maxVar) out << v << " ";
-    out << "\nc\n";
-  }
-
-  std::vector<Var>& indVar = problem->getIndVar();
-  if (indVar.size()) {
-    out << "c\nc [IND VARIABLES] list: ";
-    std::sort(indVar.begin(), indVar.end());
-    for (auto v : indVar) out << v << " ";
-    out << "\nc\n";
+  std::cout << "c Display the quantification problem:\n";
+  unsigned i = 0;
+  for (auto& level : problem.getQuantification()) {
+    std::cout << "c level " << i++ << '\n';
+    for (auto& v : level) std::cout << v << ' ';
+    std::cout << '\n';
   }
 }  // displayInfoProjected
 

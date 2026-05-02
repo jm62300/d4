@@ -31,15 +31,13 @@ namespace d4 {
 /**
    Constructor.
 */
-CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
+CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
   // get the clauses.
-  try {
-    CnfMatrix &pcnf = dynamic_cast<CnfMatrix &>(p);
-    m_clauses = pcnf.getClauses();
-  } catch (std::bad_cast &bc) {
-    std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-    std::cerr << "c A CNF formula was expeted\n";
-    assert(0);
+  const auto& gates = p.getGates();
+  m_clauses.reserve(gates.size());
+  for (const auto& g : gates) {
+    assert(g.gateType == BcGateType::CLAUSE);
+    m_clauses.push_back(g.input);
   }
 
   // store the not binary clauses.
@@ -49,7 +47,7 @@ CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_clauses[i].size() > 2) m_clausesNotBin.push_back(i);
 
-    for (auto &l : m_clauses[i]) occurrence[l.intern()].push_back(i);
+    for (auto& l : m_clauses[i]) occurrence[l.intern()].push_back(i);
     count += m_clauses[i].size();
 
     if (m_clauses[i].size() > m_maxSizeClause)
@@ -61,12 +59,12 @@ CnfManager::CnfManager(ProblemManager &p) : FormulaManager(p.getNbVar()) {
   m_dataOccurrenceMemory = new int[count];
 
   // construct the occurrence list.
-  int *ptr = m_dataOccurrenceMemory;
+  int* ptr = m_dataOccurrenceMemory;
   for (unsigned i = 0; i < occurrence.size(); i++) {
-    std::vector<int> &occList = occurrence[i];
+    std::vector<int>& occList = occurrence[i];
 
     unsigned posNotBin = occList.size() - 1;
-    for (auto const &idx : occList) {
+    for (auto const& idx : occList) {
       if (m_clauses[idx].size() == 2)
         ptr[m_occurrence[i].nbBin++] = idx;
       else
@@ -123,9 +121,9 @@ CnfManager::~CnfManager() { delete[] m_dataOccurrenceMemory; }  // destructor
 
    \return the number of component found
 */
-int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
-                                          std::vector<Var> &setOfVar,
-                                          std::vector<Var> &freeVar) {
+int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
+                                          std::vector<Var>& setOfVar,
+                                          std::vector<Var>& freeVar) {
   Var *lastVar = m_activeVariables, *currentVar = m_activeVariables;
   for (auto v : setOfVar) {
     assert(v < m_infoCluster.size());
@@ -144,7 +142,7 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
 
     for (unsigned i = 0; i < 2; i++) {  // both literals.
       IteratorIdxClause listIndex = getVecIdxClause(l);
-      for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+      for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         int idx = *ptr;
         if (!m_markView[idx]) {
           m_markView[idx] = true;
@@ -214,7 +212,7 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
 
   // restore for the next run.
   resetUnMark();
-  for (auto &v : rootSet) m_infoCluster[v].pos = -1;
+  for (auto& v : rootSet) m_infoCluster[v].pos = -1;
 
   return varCo.size();
 }  // computeConnectedComponent
@@ -229,14 +227,14 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>> &varCo,
    @param[in] varComponent, the set of varaible connected to l.
    @param[in] nbComponent, the component label.
 */
-void CnfManager::connectedToLit(Lit l, std::vector<int> &v,
-                                std::vector<Var> &varComponent,
+void CnfManager::connectedToLit(Lit l, std::vector<int>& v,
+                                std::vector<Var>& varComponent,
                                 int nbComponent) {
   for (unsigned i = 0; i < 2; i++) {
     IteratorIdxClause listIndex =
         i ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
 
-    for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+    for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
       int idx = *ptr;
 
       if (m_markView[idx]) continue;
@@ -244,7 +242,7 @@ void CnfManager::connectedToLit(Lit l, std::vector<int> &v,
       m_mustUnMark.push_back(idx);
 
       // compute component
-      for (auto &l : m_clauses[idx]) {
+      for (auto& l : m_clauses[idx]) {
         if (m_currentValue[l.var()] != l_Undef || v[l.var()]) continue;
 
         varComponent.push_back(l.var());
@@ -268,8 +266,8 @@ void CnfManager::connectedToLit(Lit l, std::vector<int> &v,
    \return the number of component found
 */
 int CnfManager::computeConnectedComponentTargeted(
-    std::vector<std::vector<Var>> &varCo, std::vector<Var> &setOfVar,
-    std::vector<bool> &isProjected, std::vector<Var> &freeVar) {
+    std::vector<std::vector<Var>>& varCo, std::vector<Var>& setOfVar,
+    std::vector<bool>& isProjected, std::vector<Var>& freeVar) {
   freeVar.resize(0);
 
   int nbComponent = 0;
@@ -342,8 +340,8 @@ bool CnfManager::isSatisfiedClause(unsigned idx) {
 
    \return true if the clause is satisfied, false otherwise.
 */
-bool CnfManager::isSatisfiedClause(std::vector<Lit> &c) {
-  for (auto &l : c) {
+bool CnfManager::isSatisfiedClause(std::vector<Lit>& c) {
+  for (auto& l : c) {
     if (!litIsAssigned(l)) continue;
     if (l.sign() && m_currentValue[l.var()] == l_False) return true;
     if (!l.sign() && m_currentValue[l.var()] == l_True) return true;
@@ -365,15 +363,15 @@ bool CnfManager::isSatisfiedClause(std::vector<Lit> &c) {
    \return false if the clause is satisfied, true otherwise.
 */
 bool CnfManager::isNotSatisfiedClauseAndInComponent(
-    int idx, std::vector<bool> &inCurrentComponent) {
+    int idx, std::vector<bool>& inCurrentComponent) {
   if (m_infoClauses[idx].isSat) return false;
   assert(!litIsAssigned(m_clauses[idx][0]));
   return inCurrentComponent[m_clauses[idx][0].var()];
 }  // isSatisfiedClause
 
-void CnfManager::showFormula(std::ostream &out) {
+void CnfManager::showFormula(std::ostream& out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
-  for (auto &cl : m_clauses) {
+  for (auto& cl : m_clauses) {
     showListLit(out, cl);
     out << "0\n";
   }
@@ -382,12 +380,12 @@ void CnfManager::showFormula(std::ostream &out) {
 /**
  * @brief CnfManager::showCurrentFormula implementation.
  */
-void CnfManager::showCurrentFormula(std::ostream &out) {
+void CnfManager::showCurrentFormula(std::ostream& out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_infoClauses[i].isSat) continue;
     out << "[" << i << "] ";
-    for (auto &l : m_clauses[i])
+    for (auto& l : m_clauses[i])
       if (!litIsAssigned(l)) out << l << " ";
     out << "0\n";
   }
@@ -396,13 +394,13 @@ void CnfManager::showCurrentFormula(std::ostream &out) {
 /**
  * @brief CnfManager::showCurrentFormula implementation.
  */
-void CnfManager::showCurrentFormula(std::ostream &out,
-                                    std::vector<bool> &isInComponent) {
+void CnfManager::showCurrentFormula(std::ostream& out,
+                                    std::vector<bool>& isInComponent) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (!isNotSatisfiedClauseAndInComponent(i, isInComponent)) continue;
     if (m_infoClauses[i].isSat) continue;
-    for (auto &l : m_clauses[i])
+    for (auto& l : m_clauses[i])
       if (!litIsAssigned(l)) out << l << " ";
     out << "0\n";
   }
@@ -414,7 +412,7 @@ void CnfManager::showCurrentFormula(std::ostream &out,
 void CnfManager::debugFunction() {
   for (unsigned i = 0; i < m_clauses.size(); i++) {
     if (m_infoClauses[i].isSat) continue;
-    for (auto &l : m_clauses[i])
+    for (auto& l : m_clauses[i])
       if (!litIsAssigned(l)) {
         unsigned nbOcc = 0;
         for (unsigned j = 0; j < m_occurrence[l.intern()].nbBin; j++)

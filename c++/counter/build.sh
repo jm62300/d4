@@ -16,8 +16,9 @@ if [ ! -f "$D4_LIB_FILE" ]; then
     CURRENT_DIR="$PWD"
     cd "$D4_ROOT_DIR"
     
-
-    if [ $# -eq 1 ]; then ./build.sh $1; else ./build.sh; fi
+    # Pass ALL arguments (e.g., -s -j) down to the parent script
+    ./build.sh "$@"
+    
     cd "$CURRENT_DIR"
     echo "c [BUILD] d4 built successfully. Resuming counter configuration..."
 fi
@@ -26,9 +27,10 @@ fi
 BUILD_TYPE="Release"
 STATIC_FLAG="OFF"
 PROFILE_FLAG="OFF"
+PARALLEL_FLAG=""
 
 # Parse command-line options
-while getopts 'cdsp' OPTION
+while getopts 'cdspj' OPTION
 do
     echo "c [BUILD] Option Selected: -$OPTION"
     case "$OPTION" in
@@ -52,8 +54,12 @@ do
             STATIC_FLAG="OFF"
             PROFILE_FLAG="ON"
             ;;
+        j)
+            # Enable parallel compilation
+            PARALLEL_FLAG="--parallel"
+            ;;
         *)
-            echo "Usage: $0 [-c (release) | -d (debug) | -s (static) | -p (profile)]"
+            echo "Usage: $0 [-c (release) | -d (debug) | -s (static) | -p (profile) | -j (parallel)]"
             exit 1
             ;;
     esac
@@ -71,6 +77,8 @@ cmake .. \
     -DBUILD_PROFILE="$PROFILE_FLAG"
 
 echo "c [BUILD] Compiling executable using Make..."
-cmake --build . --parallel 
+
+# Unquoted $PARALLEL_FLAG so it expands to nothing if empty, or --parallel if set
+cmake --build . $PARALLEL_FLAG
 
 echo "c [BUILD] Build complete! The 'counter' executable is ready."
