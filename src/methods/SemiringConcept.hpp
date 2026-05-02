@@ -33,18 +33,21 @@ concept NumberType = std::regular<T> && requires(T a, const T b) {
 
 template <typename O, typename T>
 concept SemiringPolicy =
-    // 1. NEW CONSTRAINT: The semiring MUST be constructible with these specific
-    // parameters
-    std::constructible_from<O, const std::vector<Var>&,
-                            const std::map<Lit, std::string>&>
+    // Must be default constructible (e.g., O my_semiring;)
+    std::default_initializable<O>
 
-    // 2. AND it must satisfy all the method signatures
+    // Must be constructible with your specific parsed variables
+    && std::constructible_from<O, const std::vector<Var>&,
+                               const std::map<Lit, std::string>&>
+
+    // The method signatures
     && requires(O& ops, T a, T b, int preset_val, const std::vector<Lit>& units,
                 const std::vector<Var>& free_vars) {
          { ops.add(a, b) } -> std::convertible_to<T>;
          { ops.add(a, b, units) } -> std::convertible_to<T>;
          { ops.add(a, b, free_vars) } -> std::convertible_to<T>;
          { ops.add(a, b, units, free_vars) } -> std::convertible_to<T>;
+         { ops.add(b, units, free_vars) } -> std::convertible_to<T>;
 
          { ops.mul(a, b) } -> std::convertible_to<T>;
 
