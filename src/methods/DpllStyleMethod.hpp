@@ -126,8 +126,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     // specify which variables are decisions, and which are not.
     m_isDecisionVariable.clear();
-    m_isDecisionVariable.resize(problem.getNbVar() + 1,
-                                !problem.getQuantification()[0].size());
+    m_isDecisionVariable.resize(problem.getNbVar() + 1, !m_isProjectedMode);
     for (auto v : problem.getQuantification()[0])
       m_isDecisionVariable[v] = true;
 
@@ -371,7 +370,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     if (!m_solver->solve(setOfVar)) return m_semiringOps.zero();
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
-
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -424,8 +422,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);
-    if (!lits.size()) return m_semiringOps.one(connected);
-
+    if (!lits.size()) return m_semiringOps.one();
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true

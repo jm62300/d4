@@ -93,7 +93,7 @@ debugRoutine(){
     while [ true ]
     do
         printf "number of instances tested %d\r" "$cpt"
-	    nameFileCNF=$(generateSatisfiableCNFLimited 200)
+	    nameFileCNF=$(generateSatisfiableCNFLimited 100)
         timeout 2 $1 $nameFileCNF > /dev/null 2>/dev/null
         code=$?
 
