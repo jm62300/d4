@@ -142,7 +142,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       bool isSat = false;
       for (unsigned i = 1; !isSat && i < lits.size(); i++) {
         if (lits[i] == lits[j - 1]) continue;
-        isSat = lits[i] == ~lits[j - 1];
+        isSat = lits[i] == -lits[j - 1];
         lits[j++] = lits[i];
       }
 

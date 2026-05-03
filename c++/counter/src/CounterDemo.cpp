@@ -25,6 +25,7 @@
 #include <boost/multiprecision/integer.hpp>
 #include <cassert>
 
+#include "../semirings/MpzIntSemiring.hpp"
 #include "ParseOption.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
@@ -35,94 +36,6 @@ extern d4::MethodManager* methodRun;
 
 using namespace d4;
 
-#include <boost/multiprecision/gmp.hpp>
-#include <map>
-#include <string>
-#include <vector>
-
-// Your namespace alias
-namespace mpz = boost::multiprecision;
-
-class BoostMpzSemiring {
- public:
-  // Required by std::default_initializable
-  BoostMpzSemiring() = default;
-
-  // Required by your SemiringPolicy constructor constraint
-  BoostMpzSemiring(unsigned nbVar,
-                   const std::map<Lit, std::string>& literalWeights) {}
-
-  // --- In-Place Multiplication ---
-  mpz::mpz_int& mul(mpz::mpz_int& a, const mpz::mpz_int& b) const {
-    a *= b;
-    return a;
-  }
-
-  // --- In-Place Standard Binary Add ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b) const {
-    a += b;
-    return a;
-  }
-
-  // --- In-Place Binary Add with Smoothing ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<Lit>& units) const {
-    a += b;
-    return mul(a, one(units));  // mul modifies 'a' in place and returns it!
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<Var>& free_vars) const {
-    a += b;
-    return mul(a, one(free_vars));
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<Lit>& units,
-                    const std::vector<Var>& free_vars) const {
-    a += b;
-    return mul(a, one(units, free_vars));
-  }
-
-  // --- In-Place Unary Adds (Smoothing a single branch) ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<Lit>& units) const {
-    return mul(a, one(units));
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<Var>& free_vars) const {
-    return mul(a, one(free_vars));
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<Lit>& units,
-                    const std::vector<Var>& free_vars) const {
-    return mul(a, one(units, free_vars));
-  }
-
-  // Identities& Context - Aware Leaf Evaluation-- -
-
-  mpz::mpz_int zero() const { return mpz::mpz_int(0); }
-
-  mpz::mpz_int one() const { return mpz::mpz_int(1); }
-
-  mpz::mpz_int one(const std::vector<Lit>& units) const {
-    return mpz::mpz_int(1);
-  }
-
-  mpz::mpz_int one(const std::vector<Var>& free_vars) const {
-    return mpz::mpz_int(1) << free_vars.size();
-  }
-
-  mpz::mpz_int one(const std::vector<Lit>& units,
-                   const std::vector<Var>& free_vars) const {
-    return mpz::mpz_int(1) << free_vars.size();
-  }
-
-  // --- 5. Presets (Required by Policy) ---
-  mpz::mpz_int presetSum(int /* gate_id */) const { return mpz::mpz_int(0); }
-
-  mpz::mpz_int presetMul(int /* gate_id */) const { return mpz::mpz_int(1); }
-};
-
 template <typename T>
 void countModels(const OptionDpllStyleMethod& options,
                  const ProblemManager& problem, const std::string& format,
@@ -131,8 +44,8 @@ void countModels(const OptionDpllStyleMethod& options,
             << ")" << " output-format(" << outFormat << ")" << " is-float("
             << isFloat << ")\n";
 
-  DpllStyleMethod<T, BoostMpzSemiring>* counter =
-      new DpllStyleMethod<T, BoostMpzSemiring>(options, problem, std::cout);
+  auto counter = new DpllStyleMethod<T, semiring::MpzIntSemiring>(
+      options, problem, std::cout);
 
   methodRun = counter;
   T result = counter->run();

@@ -371,6 +371,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     if (!m_solver->solve(setOfVar)) return m_semiringOps.zero();
     m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
+
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -401,6 +402,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       m_specs->postUpdate(unitsLit);
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+
       return ret;
     }
 
@@ -440,6 +442,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       std::vector<Lit> units;
       std::vector<Var> free;
+
       T tmp = compute_(connected, units, free, out);
       m_semiringOps.add(ret, tmp, units, free);
     }
