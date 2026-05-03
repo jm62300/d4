@@ -163,17 +163,14 @@ class ProblemManager {
    * this scope).
    */
   ProblemManager(const std::string& type, unsigned nbVar,
-                 const std::vector<std::vector<int>>& quantifications,
-                 const std::map<int, std::string>& weightMap,
+                 const std::vector<std::vector<Var>>& quantifications,
+                 const std::map<Lit, std::string>& weightMap,
                  const std::vector<BcGate>& gates, std::ostream& out)
       : m_nbVar(nbVar),
         m_quantification(quantifications),
         m_problemInputType(ProblemInputTypeManager::getInputType(type)),
-        m_gates(gates) {
-    // transform the map.
-    for (const auto& [lit, weight] : weightMap)
-      m_weightMap[Lit::makeLit(std::abs(lit), lit < 0)] = weight;
-  }
+        m_gates(gates),
+        m_weightMap(weightMap) {}
 
  public:
   /**

@@ -83,14 +83,30 @@ int main(int argc, char** argv) {
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(vm["input"].as<std::string>(), formula);
-  std::cout << formula;
-  exit(0);
+
+  // get the clauses.
+  std::vector<d4::BcGate> gates;
+  gates.reserve(formula.clauses.size());
+  for (auto& cl : formula.clauses) {
+    std::vector<d4::Lit> d4Clause;
+    for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
+
+    gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
+  }
+
+  // get the weights.
+  std::map<d4::Lit, std::string> weightMap;
+  // transform the map.
+  for (const auto& [lit, weight] : formula.weightMap)
+    weightMap[d4::Lit::makeLit(std::abs(lit), lit < 0)] = weight;
 
   // parse the initial problem.
-  d4::ProblemManager* initProblem = d4::ProblemManager::makeProblemManager(
-      formula.type, formula.nbVar, formula.quantifications, formula.weightMap,
-      formula.clauses, std::cout);
-  assert(initProblem);
+  formula.type = "cnf";
+  d4::ProblemManager initProblem(formula.type, formula.nbVar,
+                                 formula.quantifications, weightMap, gates,
+                                 std::cout);
+
+#if 0
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
                "formula\033[0m\n";
   initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
@@ -109,6 +125,7 @@ int main(int argc, char** argv) {
 
   // run the method asked.
   d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
+#endif
 
 // preproc.
 #if 0

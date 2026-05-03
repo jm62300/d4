@@ -44,102 +44,77 @@ using namespace d4;
 namespace mpz = boost::multiprecision;
 
 class BoostMpzSemiring {
- private:
-  std::vector<Var> m_decisionVars;
-
-  // Storing the parsed weights as native Boost multiprecision integers
-  std::map<Lit, mpz::mpz_int> m_weights;
-
-  /**
-   * @brief Safely fetches a literal's weight, defaulting to 1 (identity).
-   */
-  mpz::mpz_int getWeight(Lit l) const {
-    auto it = m_weights.find(l);
-    if (it != m_weights.end()) {
-      return it->second;
-    }
-    return mpz::mpz_int(1);
-  }
-
-  /**
-   * @brief Calculates the smoothed weight for a free variable: W(v) + W(-v)
-   */
-  mpz::mpz_int getFreeVarWeight(Var v) const {
-    // Assuming Lit::makeLit(var, sign) where false = positive lit, true =
-    // negative lit
-    mpz::mpz_int pos_weight = getWeight(Lit::makeLit(v, false));
-    mpz::mpz_int neg_weight = getWeight(Lit::makeLit(v, true));
-    return pos_weight + neg_weight;
-  }
-
  public:
+  // Required by std::default_initializable
   BoostMpzSemiring() = default;
 
-  // --- 1. The Concept-Mandated Constructor ---
-  BoostMpzSemiring(const std::vector<Var>& decisionVars,
-                   const std::map<Lit, std::string>& literalWeights)
-      : m_decisionVars(decisionVars) {
-    // Boost's mpz_int parses strings instantly in its constructor
-    for (const auto& [lit, str_weight] : literalWeights) {
-      m_weights[lit] = mpz::mpz_int(str_weight);
-    }
+  // Required by your SemiringPolicy constructor constraint
+  BoostMpzSemiring(unsigned nbVar,
+                   const std::map<Lit, std::string>& literalWeights) {}
+
+  // --- In-Place Multiplication ---
+  mpz::mpz_int& mul(mpz::mpz_int& a, const mpz::mpz_int& b) const {
+    a *= b;
+    return a;
   }
 
-  // --- 2. Addition (OR Nodes) ---
-  mpz::mpz_int add(const mpz::mpz_int& a, const mpz::mpz_int& b) const {
-    return a + b;
+  // --- In-Place Standard Binary Add ---
+  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b) const {
+    a += b;
+    return a;
   }
 
-  mpz::mpz_int add(const mpz::mpz_int& a, const mpz::mpz_int& b,
-                   const std::vector<Lit>& units) const {
-    return mul(add(a, b), one(units));
+  // --- In-Place Binary Add with Smoothing ---
+  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
+                    const std::vector<Lit>& units) const {
+    a += b;
+    return mul(a, one(units));  // mul modifies 'a' in place and returns it!
   }
 
-  mpz::mpz_int add(const mpz::mpz_int& b, const std::vector<Lit>& units,
-                   const std::vector<Var>& free_vars) const {
-    return b;
+  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
+                    const std::vector<Var>& free_vars) const {
+    a += b;
+    return mul(a, one(free_vars));
   }
 
-  mpz::mpz_int add(const mpz::mpz_int& a, const mpz::mpz_int& b,
-                   const std::vector<Var>& free_vars) const {
-    return mul(add(a, b), one(free_vars));
+  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
+                    const std::vector<Lit>& units,
+                    const std::vector<Var>& free_vars) const {
+    a += b;
+    return mul(a, one(units, free_vars));
   }
 
-  mpz::mpz_int add(const mpz::mpz_int& a, const mpz::mpz_int& b,
-                   const std::vector<Lit>& units,
-                   const std::vector<Var>& free_vars) const {
-    return mul(add(a, b), one(units, free_vars));
+  // --- In-Place Unary Adds (Smoothing a single branch) ---
+  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<Lit>& units) const {
+    return mul(a, one(units));
   }
 
-  // --- 3. Multiplication (AND Nodes) ---
-  mpz::mpz_int mul(const mpz::mpz_int& a, const mpz::mpz_int& b) const {
-    return a * b;
+  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<Var>& free_vars) const {
+    return mul(a, one(free_vars));
   }
 
-  // --- 4. Identities & Context-Aware Leaf Evaluation ---
+  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<Lit>& units,
+                    const std::vector<Var>& free_vars) const {
+    return mul(a, one(units, free_vars));
+  }
+
+  // Identities& Context - Aware Leaf Evaluation-- -
+
   mpz::mpz_int zero() const { return mpz::mpz_int(0); }
 
   mpz::mpz_int one() const { return mpz::mpz_int(1); }
 
   mpz::mpz_int one(const std::vector<Lit>& units) const {
-    mpz::mpz_int res(1);
-    for (Lit l : units) {
-      res *= getWeight(l);
-    }
-    return res;
+    return mpz::mpz_int(1);
   }
 
   mpz::mpz_int one(const std::vector<Var>& free_vars) const {
-    mpz::mpz_int res(1);
-    for (Var v : free_vars) {
-      res *= getFreeVarWeight(v);
-    }
-    return res;
+    return mpz::mpz_int(1) << free_vars.size();
   }
 
   mpz::mpz_int one(const std::vector<Lit>& units,
                    const std::vector<Var>& free_vars) const {
-    return mul(one(units), one(free_vars));
+    return mpz::mpz_int(1) << free_vars.size();
   }
 
   // --- 5. Presets (Required by Policy) ---
