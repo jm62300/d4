@@ -111,6 +111,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->setNeedModel(true);
 
     assert(problem.getQuantification().size() == 1);
+    m_semiringOps = O(problem.getNbVar(), problem.getWeightMap());
     m_isProjectedMode = problem.getQuantification()[0].size() > 0;
     m_connectedComponent = true;
     m_nbFailedIncreased = m_lastNbSplit = 0;

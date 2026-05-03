@@ -46,7 +46,8 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
 
   int cpt = 0;
   char previousChar = '\0';
-  bool weightedProblem = false;
+  formula.weighted = formula.projected = false;
+  formula.type = "cnf";
 
   std::vector<int> showedVars, maxVars, indVars;
 
@@ -87,22 +88,14 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       if (in.currentChar() == 't') {
         in.consumeChar();
         in.skipSimpleSpace();
-
-        formula.type = in.nextWord();
         in.skipLine();
-      } else if (in.currentChar() != 'p') {
-        if (in.canConsume("max")) {
-          in.readListIntTerminatedByZero(maxVars);
-        } else if (in.canConsume("ind"))
-          in.readListIntTerminatedByZero(indVars);
-        else
-          in.skipLine();
       } else {
         in.consumeChar();
         if (in.canConsume("weight")) {
           int lit = in.nextInt();
           std::string w = in.nextWord();
           formula.weightMap[lit] = w;
+          formula.weighted = true;
 
           // in this format we have an end line we have to consume.
           [[maybe_unused]] int endLine = in.nextInt();
@@ -160,6 +153,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
   }
   formula.quantifications.push_back(showedVars);
   formula.nbVar = nbVars;
+  formula.projected = showedVars.size() > 0;
   return nbVars;
 }
 

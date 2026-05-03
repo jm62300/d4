@@ -38,6 +38,8 @@ struct Formula {
   std::map<int, std::string> weightMap;
   std::vector<std::vector<int>> clauses;
   unsigned nbVar;
+  bool weighted;
+  bool projected;
 };
 
 // Overload the << operator for the Formula struct

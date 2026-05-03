@@ -28,27 +28,24 @@
 
 #include "CounterDemo.hpp"
 #include "ParseOption.hpp"
+#include "ParserDimacs.hpp"
 #include "src/configurations/Configuration.hpp"
 #include "src/methods/MethodManager.hpp"
-
-#ifndef NOMAIN
 
 using namespace d4;
 namespace po = boost::program_options;
 MethodManager* methodRun = nullptr;
 
-#include "ParserDimacs.hpp"
+inline std::string getTypeInstance(const parser::Formula& formula) {
+  assert(formula.quantifications.size());
 
-/**
- * @brief Catch the signal that ask for stopping the method which is running.
- *
- * @param signum is the signal.
- */
-static void signalHandler(int signum) {
-  std::cout << "c [MAIN] Method stop\n";
-  if (methodRun != nullptr) methodRun->interrupt();
-  exit(signum);
-}  // signalHandler
+  std::string left = "";
+  std::string right = "mc";
+  if (formula.quantifications[0].size()) left = "p";
+  if (formula.weightMap.size()) right = "w" + right;
+
+  return left + right;
+}  // getTypeInstance
 
 /**
    The main function!
@@ -60,7 +57,6 @@ int main(int argc, char** argv) {
 #include "option.dsc"
       ;
 
-  signal(SIGINT, signalHandler);
   po::variables_map vm;
   po::store(parse_command_line(argc, argv, desc), vm);
 
@@ -84,27 +80,7 @@ int main(int argc, char** argv) {
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(vm["input"].as<std::string>(), formula);
 
-  // get the clauses.
-  std::vector<d4::BcGate> gates;
-  gates.reserve(formula.clauses.size());
-  for (auto& cl : formula.clauses) {
-    std::vector<d4::Lit> d4Clause;
-    for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
-
-    gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
-  }
-
-  // get the weights.
-  std::map<d4::Lit, std::string> weightMap;
-  // transform the map.
-  for (const auto& [lit, weight] : formula.weightMap)
-    weightMap[d4::Lit::makeLit(std::abs(lit), lit < 0)] = weight;
-
   // parse the initial problem.
-  formula.type = "cnf";
-  d4::ProblemManager initProblem(formula.type, formula.nbVar,
-                                 formula.quantifications, weightMap, gates,
-                                 std::cout);
 
 #if 0
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
@@ -136,7 +112,7 @@ int main(int argc, char** argv) {
 #endif
 
   // count.
-  counterDemo(vm, initProblem);
+  counterDemo(vm, formula);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
@@ -146,4 +122,3 @@ int main(int argc, char** argv) {
   // delete initProblem;
   return EXIT_SUCCESS;
 }  // main
-#endif

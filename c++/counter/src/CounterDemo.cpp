@@ -25,6 +25,7 @@
 #include <boost/multiprecision/integer.hpp>
 #include <cassert>
 
+#include "../semirings/MpzFloatSemiring.hpp"
 #include "../semirings/MpzIntSemiring.hpp"
 #include "ParseOption.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
@@ -36,7 +37,7 @@ extern d4::MethodManager* methodRun;
 
 using namespace d4;
 
-template <typename T>
+template <typename T, typename O>
 void countModels(const OptionDpllStyleMethod& options,
                  const ProblemManager& problem, const std::string& format,
                  const std::string& outFormat, bool isFloat) {
@@ -44,8 +45,7 @@ void countModels(const OptionDpllStyleMethod& options,
             << ")" << " output-format(" << outFormat << ")" << " is-float("
             << isFloat << ")\n";
 
-  auto counter = new DpllStyleMethod<T, semiring::MpzIntSemiring>(
-      options, problem, std::cout);
+  auto counter = new DpllStyleMethod<T, O>(options, problem, std::cout);
 
   methodRun = counter;
   T result = counter->run();
@@ -86,7 +86,7 @@ void countModels(const OptionDpllStyleMethod& options,
 /**
  * @brief couterDemo implementation.
  */
-void counterDemo(const po::variables_map& vm, const ProblemManager& problem) {
+void counterDemo(const po::variables_map& vm, const parser::Formula& formula) {
   // get the configuration.
   ConfigurationDpllStyleMethod config;
 
@@ -117,7 +117,30 @@ void counterDemo(const po::variables_map& vm, const ProblemManager& problem) {
   std::string format = vm["keyword-output-format-solution"].as<std::string>();
   std::string outFormat = vm["output-format"].as<std::string>();
 
-  countModels<mpz::mpz_int>(options, problem, format, outFormat, false);
-  //  } else
-  //    countModels<mpz::mpf_float>(options, problem, format, outFormat, true);
+  // get the clauses.
+  std::vector<d4::BcGate> gates;
+  gates.reserve(formula.clauses.size());
+  for (auto& cl : formula.clauses) {
+    std::vector<d4::Lit> d4Clause;
+    for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
+
+    gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
+  }
+
+  // get the weights.
+  std::map<d4::Lit, std::string> weightMap;
+  // transform the map.
+  for (const auto& [lit, weight] : formula.weightMap)
+    weightMap[d4::Lit::makeLit(std::abs(lit), lit < 0)] = weight;
+
+  d4::ProblemManager problem(formula.type, formula.nbVar,
+                             formula.quantifications, weightMap, gates,
+                             std::cout);
+
+  if (!formula.weighted)
+    countModels<mpz::mpz_int, semiring::MpzIntSemiring>(
+        options, problem, format, outFormat, false);
+  else
+    countModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
+        options, problem, format, outFormat, false);
 }  // counterDemo

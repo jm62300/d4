@@ -20,7 +20,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "src/problem/ProblemManager.hpp"
+#include "ParserDimacs.hpp"
 
 namespace po = boost::program_options;
 
@@ -30,5 +30,4 @@ namespace po = boost::program_options;
  * @param vm are the options.
  * @param problem is the problem we deal with.
  */
-void counterDemo(const po::variables_map& vm,
-                 const d4::ProblemManager& problem);
+void counterDemo(const po::variables_map& vm, const parser::Formula& formula);
