@@ -25,6 +25,7 @@
 #include <boost/multiprecision/integer.hpp>
 #include <cassert>
 
+#include "../semirings/MpzComplexSemiring.hpp"
 #include "../semirings/MpzFloatSemiring.hpp"
 #include "../semirings/MpzIntSemiring.hpp"
 #include "ParseOption.hpp"
@@ -55,7 +56,7 @@ void countModels(const OptionDpllStyleMethod& options,
     std::cout.precision(
         std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
 
-    if (result == 0) {
+    if (result == T(0)) {
       std::cout << "s UNSATISFIABLE\n";
       std::cout << "c " << format << "\n";
       std::cout << "c s log10-estimate -inf\n";
@@ -63,10 +64,7 @@ void countModels(const OptionDpllStyleMethod& options,
     } else {
       std::cout << "s SATISFIABLE\n";
       std::cout << "c " << format << "\n";
-      std::cout << "c s log10-estimate "
-                << boost::multiprecision::log10(
-                       boost::multiprecision::cpp_dec_float_100(result))
-                << "\n";
+      std::cout << "c s log10-estimate " << result << "\n";
       if (isFloat)
         std::cout << "c s exact quadruple int " << result << "\n";
       else
@@ -137,10 +135,18 @@ void counterDemo(const po::variables_map& vm, const parser::Formula& formula) {
                              formula.quantifications, weightMap, gates,
                              std::cout);
 
-  if (!formula.weighted)
-    countModels<mpz::mpz_int, semiring::MpzIntSemiring>(
-        options, problem, format, outFormat, false);
-  else
-    countModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
-        options, problem, format, outFormat, false);
+  switch (formula.weightType) {
+    case parser::WeightType::INT:
+      countModels<mpz::mpz_int, semiring::MpzIntSemiring>(
+          options, problem, format, outFormat, false);
+      break;
+    case parser::WeightType::FLOAT:
+      countModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
+          options, problem, format, outFormat, false);
+      break;
+    case parser::WeightType::COMPLEX:
+      countModels<semiring::Complex, semiring::MpzComplexSemiring>(
+          options, problem, format, outFormat, false);
+      break;
+  }
 }  // counterDemo

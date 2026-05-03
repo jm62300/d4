@@ -80,8 +80,6 @@ int main(int argc, char** argv) {
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(vm["input"].as<std::string>(), formula);
 
-  // parse the initial problem.
-
 #if 0
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
                "formula\033[0m\n";

@@ -46,7 +46,8 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
 
   int cpt = 0;
   char previousChar = '\0';
-  formula.weighted = formula.projected = false;
+  formula.projected = false;
+  formula.weightType = WeightType::INT;
   formula.type = "cnf";
 
   std::vector<int> showedVars, maxVars, indVars;
@@ -93,13 +94,24 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
         in.consumeChar();
         if (in.canConsume("weight")) {
           int lit = in.nextInt();
-          std::string w = in.nextWord();
-          formula.weightMap[lit] = w;
-          formula.weighted = true;
+          std::vector<std::string> elements;
+          std::istringstream iss(in.lineWord());
+          std::string current_word;
 
-          // in this format we have an end line we have to consume.
-          [[maybe_unused]] int endLine = in.nextInt();
-          assert(!endLine);
+          while (iss >> current_word) {
+            elements.push_back(current_word);
+          }
+
+          assert(elements.back() == "0");
+
+          if (elements.size() == 2) {
+            formula.weightMap[lit] = elements[0];
+            if (formula.weightType == WeightType::INT)
+              formula.weightType = WeightType::FLOAT;
+          } else {
+            formula.weightMap[lit] = elements[0] + " " + elements[1];
+            formula.weightType = WeightType::COMPLEX;
+          }
         } else if (in.canConsume("complex")) {
           int lit = in.nextInt();
           std::string wr = in.nextWord();

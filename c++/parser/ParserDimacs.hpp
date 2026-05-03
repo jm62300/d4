@@ -32,13 +32,15 @@
 
 namespace parser {
 
+enum WeightType { INT, FLOAT, COMPLEX };
+
 struct Formula {
   std::string type = "";
   std::vector<std::vector<int>> quantifications;
   std::map<int, std::string> weightMap;
   std::vector<std::vector<int>> clauses;
   unsigned nbVar;
-  bool weighted;
+  WeightType weightType;
   bool projected;
 };
 

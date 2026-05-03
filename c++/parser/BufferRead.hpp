@@ -204,5 +204,24 @@ class BufferRead {
 
     return cur;
   }
+
+  /**
+   * @brief Read on the buffer until the end of the line.
+   *
+   * @return an std::string we read.
+   */
+  inline std::string lineWord() {
+    skipSpace();
+    bool sign = currentChar() == '-';
+    if (sign) consumeChar();
+
+    std::string cur = "";
+    while (!eof() && currentChar() != '\n') {
+      cur += currentChar();
+      nextChar();
+    }
+
+    return cur;
+  }
 };
 }  // namespace parser
