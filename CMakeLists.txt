@@ -10,6 +10,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if (NOT DEFINED BUILD_MODE)
+    if (CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
+        set(BUILD_MODE 1)
+    else ()
+        set(BUILD_MODE 0)
+    endif ()
+endif ()
+
+if (${BUILD_MODE} EQUAL 2)
+    # This tells CMake: "When searching for libraries, look for .a BEFORE .so"
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
+
+
 # --- 1. Gather Sources ---
 file(GLOB_RECURSE SRCS "./src/*.cpp")
 file(GLOB_RECURSE HEADERS "./src/*.hpp")

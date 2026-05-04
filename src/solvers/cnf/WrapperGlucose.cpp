@@ -69,7 +69,6 @@ bool WrapperGlucose::solve(std::vector<Var>& setOfVar) {
   m_setOfVar_m.setSize(0);
   for (auto& v : setOfVar) m_setOfVar_m.push(v);
   m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
-
   m_activeModel = m_solver.solveWithAssumptions();
   return m_activeModel;
 }  // solve
