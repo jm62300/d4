@@ -65,6 +65,7 @@ void countModels(const OptionDpllStyleMethod& options,
       std::cout << "s SATISFIABLE\n";
       std::cout << "c " << format << "\n";
       std::cout << "c s log10-estimate " << result << "\n";
+
       if (isFloat)
         std::cout << "c s exact quadruple int " << result << "\n";
       else
@@ -74,7 +75,7 @@ void countModels(const OptionDpllStyleMethod& options,
   } else {
     assert(outFormat == "classic");
     std::cout << format << " ";
-    std::cout << std::fixed << std::setprecision(50) << result << "\n";
+    std::cout << result << "\n";
   }
 
   methodRun = nullptr;

@@ -93,10 +93,9 @@ class Complex {
   bool operator>=(Complex const& obj) const { return norm() >= obj.norm(); }
 
   friend std::ostream& operator<<(std::ostream& os, const Complex& dt) {
-    if (dt.im < 0)
-      os << dt.real << dt.im << 'i';
-    else
-      os << dt.real << "+" << dt.im << 'i';
+    os << std::scientific << std::setprecision(8);
+    os << dt.real << " + " << dt.im << 'i';
+    os << std::defaultfloat;
     return os;
   }
 };
