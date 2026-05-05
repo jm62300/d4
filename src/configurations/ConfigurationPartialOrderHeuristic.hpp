@@ -28,14 +28,20 @@
 namespace d4 {
 
 struct ConfigurationPartialOrderHeuristic {
-  PartialOrderHeuristicMethod partialOrderMethod =
-      PARTIAL_ORDER_TREE_DECOMPOSITION;
+  /** @brief The method used to compute a cut. [none, tree-decomposition] */
+  PartialOrderHeuristicMethod partialOrderMethod = PARTIAL_ORDER_NONE;
+  /** @brief The partitioner we will call (patoh). */
   PartitionerName partitionerName = PARTITIONER_NONE;
+  /** @brief The tree decomposition technique used (tree-partition, tree-width). */
   TreeDecompositionMethod treeDecompositionMethod = TREE_DECOMP_PARTITION;
+  /** @brief The tool used for computing the tree decomposition (flow-cutter). */
   TreeDecompositionerMethod treeDecompositionerMethod =
       TREE_DECOMP_TOOL_FLOW_CUTTER;
+  /** @brief The hyper graph representation used (dual). */
   HyperGraphExtractorMethod hyperGraphExtractorMethod = HYPER_GRAPH_DUAL;
+  /** @brief The graph representation used (primal). */
   GraphExtractorMethod graphExtractorMethod = GRAPH_PRIMAL;
+  /** @brief Set to true if the graph extractor use some simplification. */
   bool useSimpGraphExtractor = true;
   unsigned budget = 100;
   unsigned seed = 2911;

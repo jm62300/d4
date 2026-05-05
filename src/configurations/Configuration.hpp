@@ -26,10 +26,15 @@ namespace d4 {
 
 class Configuration {
  public:
+  /** @brief The method we run (counting for model counting, ddnnf-compiler for decision DNNF compilation, projMC for a dedicated projected model counting, max#SAT for running a max#sat solver, erosion for running the erosion process). */
   MethodName methodName;
+  /** @brief The precision for the float. */
   int precision;
+  /** @brief If the count is computed as a float or not. */
   bool isFloat;
+  /** @brief (required) Path to get the input file */
   std::string inputName;
+  /** @brief The input type */
   ProblemInputType problemInputType;
 
   friend std::ostream& operator<<(std::ostream& out, const Configuration& dt) {

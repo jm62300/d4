@@ -35,7 +35,9 @@ class ConfigurationDpllStyleMethod : public Configuration {
   ConfigurationSolver solver;
   ConfigurationSpec spec;
   ConfigurationBranchingHeuristic branchingHeuristic;
+  /** @brief Activate or not the exploitation of the computed models. */
   bool exploitModel = true;
+  /** @brief Specify the verbosity level. */
   bool verbosity = true;
 };
 }  // namespace d4

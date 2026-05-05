@@ -66,11 +66,17 @@ class ClauseRepresentationManager {
 
 class OptionBucketManager {
  public:
+  /** @brief The strategy used to store the clause in a bucket (all, not-binary and not-touched). */
   ModeStore modeStore;
+  /** @brief The way the clause are represented in the cache (combi, sym, clause and index). */
   ClauseRepresentation clauseRepresentation;
+  /** @brief The block size of memory allocated for the first page of the cache structure. */
   unsigned long sizeFirstPage;
+  /** @brief The block size of memory allocated for the next page of the cache structure. */
   unsigned long sizeAdditionalPage;
+  /** @brief In the mixed strategy, if we have less than a given number of variable then we use the symmetry caching representation. */
   unsigned limitNbVarSym = 0;
+  /** @brief In the mixed strategy, if we have more than a given number of variable then we use the index caching representation. */
   unsigned limitNbVarIndex = 0;
 
   friend std::ostream& operator<<(std::ostream& out,

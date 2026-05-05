@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
+#include <ostream>
 
 namespace d4 {
 
@@ -111,11 +112,53 @@ namespace d4 {
         nlohmann::json base_j = default_obj;
         
         nlohmann::json manual_schema = SchemaProvider<ConfigStruct>::get();
-        
         nlohmann::json schema = _generate_schema_recursive(base_j, manual_schema);
         schema["$schema"] = "http://json-schema.org/draft-07/schema#";
-        
         return schema;
+    }
+
+    /**
+     * @brief Formats a JSON Schema into a human-readable tree.
+     */
+    inline void to_pretty_tree(const nlohmann::json& schema, std::ostream& out, const std::string& prefix = "") {
+        if (!schema.contains("properties")) return;
+
+        auto& props = schema["properties"];
+        size_t count = 0;
+        for (auto it = props.begin(); it != props.end(); ++it, ++count) {
+            bool is_last = (count == props.size() - 1);
+            std::string name = it.key();
+            auto& prop = it.value();
+
+            out << prefix << (is_last ? "└── " : "├── ") << "\033[1;34m" << name << "\033[0m";
+
+            if (prop.contains("type")) {
+                auto& type = prop["type"];
+                if (type.is_array()) {
+                    out << " (";
+                    for (size_t i = 0; i < type.size(); ++i) {
+                        out << type[i].get<std::string>() << (i == type.size() - 1 ? "" : "|");
+                    }
+                    out << ")";
+                } else if (type.is_string()) {
+                    out << " (" << type.get<std::string>() << ")";
+                }
+            }
+
+            if (prop.contains("default")) {
+                out << " [default: \033[1;32m" << prop["default"].dump() << "\033[0m]";
+            }
+
+            if (prop.contains("description")) {
+                out << " : " << prop["description"].get<std::string>();
+            }
+
+            out << "\n";
+
+            if (prop.contains("properties")) {
+                to_pretty_tree(prop, out, prefix + (is_last ? "    " : "│   "));
+            }
+        }
     }
 
 } // namespace d4

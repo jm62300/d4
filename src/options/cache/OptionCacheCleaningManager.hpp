@@ -44,6 +44,7 @@ class CacheCleaningStrategyManager {
 
 class OptionCacheCleaningManager {
  public:
+  /** @brief The strategy used to reduce the cache structure [none, expectation, cache or sharpSAT]. */
   CacheCleaningStrategy cacheCleaningStrategy;
 
   friend std::ostream& operator<<(std::ostream& out,
