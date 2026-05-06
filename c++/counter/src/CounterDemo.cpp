@@ -24,12 +24,12 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/integer.hpp>
 #include <cassert>
+#include <iomanip>
 
 #include "../semirings/MpzComplexSemiring.hpp"
 #include "../semirings/MpzFloatSemiring.hpp"
 #include "../semirings/MpzIntSemiring.hpp"
-#include "ParseOption.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
+#include "src/binding/json/Binding.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
@@ -83,52 +83,39 @@ void countModels(const OptionDpllStyleMethod& options,
 }  // count
 
 /**
- * @brief couterDemo implementation.
+ * @brief counterDemo implementation.
+ *
+ * Runs the counter using the provided configuration.
  */
-void counterDemo(const po::variables_map& vm, const parser::Formula& formula) {
-  // get the configuration.
-  ConfigurationDpllStyleMethod config;
+void counterDemo(const d4::ConfigurationDpllStyleMethod& inputConfig,
+                 const parser::Formula& formula) {
+  // Use the provided configuration.
+  d4::ConfigurationDpllStyleMethod config = inputConfig;
 
-  config.methodName = d4::MethodNameManager::getMethodName("counting");
-
-  config.inputName = vm["input"].as<std::string>();
-  config.problemInputType = d4::ProblemInputTypeManager::getInputType(
-      vm["input-type"].as<std::string>());
-
-  config.cache = parseCacheConfiguration(vm);
-  config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
-  config.solver.solverName =
-      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-
-  config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
-      vm["occurrence-manager"].as<std::string>());
-  config.spec.removeGates = vm["remove-gates"].as<bool>();
-
-  config.exploitModel = vm["exploit-model-activated"].as<bool>();
+  // Force counting operation.
+  config.methodName    = d4::MethodNameManager::getMethodName("counting");
   config.operationType = d4::OperationTypeManager::getOperatorType("counting");
 
-  // init the options.
-  if (config.cache.clauseRepresentation == CACHE_INDEX)
-    config.spec.needFastNotSatisfied = true;
-  OptionDpllStyleMethod options(config);
+  ConfigurationDpllStyleMethod finalConfig = config;
+  if (finalConfig.cache.clauseRepresentation == CACHE_INDEX)
+    finalConfig.spec.needFastNotSatisfied = true;
 
-  // construct and call the counter regarding if it is MC or WMC.
-  std::string format = vm["keyword-output-format-solution"].as<std::string>();
-  std::string outFormat = vm["output-format"].as<std::string>();
+  OptionDpllStyleMethod options(finalConfig);
 
-  // get the clauses.
+  // TODO : In Config ? In arg ? Or just remove it.
+  const std::string format = "s";
+  const std::string outFormat = "classic";
+
+  // Build the problem from the parsed formula.
   std::vector<d4::BcGate> gates;
   gates.reserve(formula.clauses.size());
   for (auto& cl : formula.clauses) {
     std::vector<d4::Lit> d4Clause;
     for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
-
     gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
   }
 
-  // get the weights.
   std::map<d4::Lit, std::string> weightMap;
-  // transform the map.
   for (const auto& [lit, weight] : formula.weightMap)
     weightMap[d4::Lit::makeLit(std::abs(lit), lit < 0)] = weight;
 

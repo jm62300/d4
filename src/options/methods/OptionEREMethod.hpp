@@ -28,18 +28,25 @@
 namespace d4 {
 class OptionEREMethod {
  public:
+  /** @brief Search for a first interpretation greedily. */
   bool greedyInitActivated;
+  /** @brief When a decomposable AND node occurs we search for an instantiation to be able to get a bound. */
   bool digOnAnd;
+  /** @brief Search if we can find an assignment such that the number of weighted models is greater than a given threshold. */
   double threshold;
   OptionSolver optionSolver;
   OptionSpecManager optionSpecManager;
 
+  /** @brief Activate the cutting process on the max variables regarding an upper bound. */
   bool cutExist;
+  /** @brief Try to look if the best solution found so far is a good phase heuristic. */
   bool phaseHeuristicBestExist;
+  /** @brief That is the percentage of random choice for the phase selection on the exist variables. */
   unsigned randomPhaseHeuristicExist;
   OptionBranchingHeuristic optionBranchingHeuristicExist;
   OptionCacheManager optionCacheManagerExist;
 
+  /** @brief Compute the connected component focusing or not the set of random variables. */
   bool computeComponentOnRandom;
   OptionBranchingHeuristic optionBranchingHeuristicRandom;
   OptionCacheManager optionCacheManagerRandom;

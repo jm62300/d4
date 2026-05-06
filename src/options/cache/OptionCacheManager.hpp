@@ -47,9 +47,11 @@ class CachingMehodManager {
 
 class OptionCacheManager {
  public:
+  /** @brief The way the collision are handled (no-collision or list). */
   CachingMethod cachingMethod;
   OptionBucketManager optionBucketManager;
   OptionCacheCleaningManager optionCacheCleaningManager;
+  /** @brief Activate or not the cache. */
   bool isActivated;
 
   /**

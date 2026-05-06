@@ -55,7 +55,7 @@ class BufferRead {
     m_keepOpen = keepOpen;
 
     m_fd = open(name.c_str(), O_RDONLY);
-    if (!m_fd)
+    if (m_fd < 0)
       std::cerr << "ERROR! Could not open file: " << name << "\n", exit(1);
 
     // fill the buffer

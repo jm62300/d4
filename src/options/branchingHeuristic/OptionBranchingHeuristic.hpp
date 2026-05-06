@@ -123,12 +123,18 @@ class OptionBranchingHeuristic {
 
  public:
   OptionPartialOrderHeuristic optionPartialOrderHeuristic;
+  /** @brief The scoring method used for selecting the next variable. [mom, dlcs, vsids, vsads, jwts] */
   ScoringMethodType scoringMethodType;
+  /** @brief The way the phase of the next decision is selected (false, true, polarity or occurrence). */
   PhaseHeuristicType phaseHeuristicType;
+  /** @brief The branching heuristic used (classic or large-clause if d4 selects first literals in large clauses.) */
   BranchingHeuristicType branchingHeuristicType;
 
+  /** @brief Consider or not the reverse of the current phase. */
   bool reversePhase;
+  /** @brief Gives the decay frequency */
   unsigned freqDecay;
+  /** @brief The size limit for the branching heuristic based on large clauses. */
   unsigned limitSizeClause;
 
   /**
