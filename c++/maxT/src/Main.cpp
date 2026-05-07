@@ -28,7 +28,7 @@
 
 #include "MaxTSolver.hpp"
 #include "ParseOption.hpp"
-#include "src/configurations/Configuration.hpp"
+#include "src/options/Option.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
@@ -96,10 +96,13 @@ int main(int argc, char** argv) {
   d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
 
   // preproc.
+  /*
   d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
   configPreproc.inputType = initProblem->getProblemType();
   ProblemManager* problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+  */
+  ProblemManager* problem = initProblem;
 
   // count.
   problem->displayStat(std::cout, "c [AFTER PREPROC] ");

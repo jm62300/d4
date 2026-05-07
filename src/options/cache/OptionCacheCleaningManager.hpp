@@ -1,24 +1,13 @@
-/*
- * d4
- * Copyright (C) 2020  Univ. Artois & CNRS
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
- */
 #pragma once
 
+#include <string>
+#include <map>
+#include <vector>
+
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionGroup.hpp"
+#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
 
@@ -32,30 +21,45 @@ class CacheCleaningStrategyManager {
 
     throw(
         FactoryException("CacheCleaningStrategy unknown", __FILE__, __LINE__));
-  }  // getModeStoreName
+  }
 
   static CacheCleaningStrategy getCacheCleaningStrategy(const std::string& m) {
     if (m == "expectation") return CACHE_EXPECTATION;
     if (m == "none") return CACHE_NONE;
     throw(
         FactoryException("CacheCleaningStrategy unknown", __FILE__, __LINE__));
-  }  // getModeStoreName
+  }
+
+  static std::map<int, std::string> getMapping() {
+    return {{CACHE_EXPECTATION, "expectation"}, {CACHE_NONE, "none"}};
+  }
 };
 
-class OptionCacheCleaningManager {
- public:
-  /** @brief The strategy used to reduce the cache structure [none, expectation, cache or sharpSAT]. */
-  CacheCleaningStrategy cacheCleaningStrategy;
+template <>
+struct EnumMetadata<CacheCleaningStrategy> {
+  static std::string name() { return "CacheCleaningStrategy"; }
+  static std::map<int, std::string> mapping() { return CacheCleaningStrategyManager::getMapping(); }
+};
 
-  friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionCacheCleaningManager& dt) {
+class OptionCacheCleaningManager : public OptionGroup {
+ public:
+  OptionCacheCleaningManager(const std::string& name = "cleaning", const std::string& description = "Cache cleaning options")
+      : OptionGroup(name, description) {}
+
+  /** @brief The strategy used to reduce the cache structure [none, expectation]. */
+  Option<CacheCleaningStrategy> cacheCleaningStrategy{"strategy", "The strategy used to reduce the cache structure", CACHE_EXPECTATION};
+
+  std::vector<OptionBase*> getAllOptions() override {
+    return {(OptionBase*)&cacheCleaningStrategy};
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, const OptionCacheCleaningManager& dt) {
     out << " Option CacheCleaningManager:"
         << " cleaning strategy("
-        << CacheCleaningStrategyManager::getCacheCleaningStrategy(
-               dt.cacheCleaningStrategy)
+        << CacheCleaningStrategyManager::getCacheCleaningStrategy(dt.cacheCleaningStrategy.get())
         << ") ";
 
     return out;
-  }  // <<
+  }
 };
 }  // namespace d4

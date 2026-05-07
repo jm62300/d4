@@ -18,45 +18,56 @@
  */
 #pragma once
 
-#include "src/configurations/ConfigurationMaxTMethod.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
 
 namespace d4 {
-class OptionMaxTMethod {
+class OptionMaxTMethod : public OptionRoot {
  public:
-  bool greedyInitActivated;
+  OptionMaxTMethod(const std::string& name = "", const std::string& description = "MaxT options")
+      : OptionRoot() {
+    m_name = name;
+    m_description = description;
+  }
+
+  /** @brief Search for a first interpretation greedily. */
+  Option<bool> greedyInitActivated{"greedyInitActivated", "Search for a first interpretation greedily", false};
+  /** @brief Specify a threshold value as a list of string. */
   std::vector<std::string> thresholdList;
-  OptionSolver optionSolver;
-  OptionSpecManager optionSpecManager;
+  OptionSolver optionSolver{"solver", "Solver options"};
+  OptionSpecManager optionSpecManager{"spec", "Formula manager options"};
 
-  std::string phaseHeuristicMax;
-  unsigned randomPhaseHeuristicMax;
-  OptionBranchingHeuristic optionBranchingHeuristicMax;
-  OptionCacheManager optionCacheManagerMax;
+  /** @brief The heuristic used to select the phase of the MAX variables. */
+  Option<std::string> phaseHeuristicMax{"phaseHeuristicMax", "The heuristic used to select the phase of the MAX variables", "best"};
+  Option<unsigned> randomPhaseHeuristicMax{"randomPhaseHeuristicMax", "Random phase heuristic percentage for MAX variables", 100};
+  OptionBranchingHeuristic optionBranchingHeuristicMax{"branchingMax", "Branching options for MAX variables"};
+  OptionCacheManager optionCacheManagerMax{"cacheMax", "Cache options for MAX variables"};
 
-  OptionBranchingHeuristic optionBranchingHeuristicInd;
-  OptionCacheManager optionCacheManagerInd;
+  OptionBranchingHeuristic optionBranchingHeuristicInd{"branchingInd", "Branching options for IND variables"};
+  OptionCacheManager optionCacheManagerInd{"cacheInd", "Cache options for IND variables"};
 
-  /**
-   * @brief Construct a new object with the default parameters.
-   *
-   */
-  OptionMaxTMethod() : OptionMaxTMethod(ConfigurationMaxTMethod()) {}
-
-  /**
-   * @brief Construct a OptionMaxSharpSatMethod object from a configuration.
-   *
-   * @param config is the configuration we want to use.
-   */
-  OptionMaxTMethod(const ConfigurationMaxTMethod& config);
+  std::vector<OptionBase*> getAllOptions() override {
+    auto options = OptionRoot::getAllOptions();
+    options.push_back((OptionBase*)&greedyInitActivated);
+    options.push_back((OptionBase*)&optionSolver);
+    options.push_back((OptionBase*)&optionSpecManager);
+    options.push_back((OptionBase*)&phaseHeuristicMax);
+    options.push_back((OptionBase*)&randomPhaseHeuristicMax);
+    options.push_back((OptionBase*)&optionBranchingHeuristicMax);
+    options.push_back((OptionBase*)&optionCacheManagerMax);
+    options.push_back((OptionBase*)&optionBranchingHeuristicInd);
+    options.push_back((OptionBase*)&optionCacheManagerInd);
+    return options;
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionMaxTMethod& dt) {
     out << " Option MaxSharpSAT Method:" << " greedyInitActivated("
-        << dt.greedyInitActivated << ")" << " threshold("
+        << dt.greedyInitActivated.get() << ")" << " threshold("
         << (dt.thresholdList.size() > 0) << ")";
     return out;
   }  // <<

@@ -87,20 +87,17 @@ void countModels(const OptionDpllStyleMethod& options,
  *
  * Runs the counter using the provided configuration.
  */
-void counterDemo(const d4::ConfigurationDpllStyleMethod& inputConfig,
+void counterDemo(const d4::OptionDpllStyleMethod& inputConfig,
                  const parser::Formula& formula) {
   // Use the provided configuration.
-  d4::ConfigurationDpllStyleMethod config = inputConfig;
+  d4::OptionDpllStyleMethod options = inputConfig;
 
   // Force counting operation.
-  config.methodName    = d4::MethodNameManager::getMethodName("counting");
-  config.operationType = d4::OperationTypeManager::getOperatorType("counting");
+  options.methodName    = d4::MethodNameManager::getMethodName("counting");
+  options.operationType = d4::OperationTypeManager::getOperatorType("counting");
 
-  ConfigurationDpllStyleMethod finalConfig = config;
-  if (finalConfig.cache.clauseRepresentation == CACHE_INDEX)
-    finalConfig.spec.needFastNotSatisfied = true;
-
-  OptionDpllStyleMethod options(finalConfig);
+  if (options.optionCacheManager.optionBucketManager.clauseRepresentation == CACHE_INDEX)
+    options.optionSpecManager.needFastNotSatisfied = true;
 
   // TODO : In Config ? In arg ? Or just remove it.
   const std::string format = "s";

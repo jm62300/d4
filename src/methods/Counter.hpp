@@ -24,7 +24,6 @@
 #include "DpllStyleMethod.hpp"
 #include "SemiringConcept.hpp"
 #include "nnf/Node.hpp"
-#include "src/configurations/Configuration.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/problem/ProblemTypes.hpp"

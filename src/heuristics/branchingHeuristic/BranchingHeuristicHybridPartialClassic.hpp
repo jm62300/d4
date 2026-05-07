@@ -19,6 +19,7 @@
 #pragma once
 
 #include "BranchingHeuristic.hpp"
+#include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 
 namespace d4 {
 class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {

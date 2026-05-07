@@ -19,13 +19,15 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
+#include "src/options/EnumMetadata.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace d4 {
-class ConfigurationBranchingHeuristic;
-class ConfigurationPartialOrderHeuristic;
 
 enum ScoringMethodType {
   SCORE_MOM,
@@ -56,6 +58,15 @@ class ScoringMethodTypeManager {
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getScoringMethodType
+
+  static std::map<int, std::string> getMapping() {
+    return {
+        {SCORE_MOM, "mom"},
+        {SCORE_DLCS, "dlcs"},
+        {SCORE_VSIDS, "vsids"},
+        {SCORE_VSADS, "vsads"},
+        {SCORE_JWTS, "jwts"}};
+  }
 };
 
 enum PhaseHeuristicType {
@@ -84,6 +95,14 @@ class PhaseHeuristicTypeManager {
 
     throw(FactoryException("Phase heuristic type unknown", __FILE__, __LINE__));
   }  // getPhaseHeuristicType
+
+  static std::map<int, std::string> getMapping() {
+    return {
+        {PHASE_FALSE, "false"},
+        {PHASE_TRUE, "true"},
+        {PHASE_POLARITY, "polarity"},
+        {PHASE_OCCURRENCE, "occurrence"}};
+  }
 };
 
 enum BranchingHeuristicType {
@@ -111,58 +130,81 @@ class BranchingHeuristicTypeManager {
     throw(FactoryException("Branching heuristic type unknown", __FILE__,
                            __LINE__));
   }  // getBranchingHeuristicType
+
+  static std::map<int, std::string> getMapping() {
+    return {
+        {BRANCHING_CLASSIC, "classic"},
+        {BRANCHING_HYBRID_PARTIAL_CLASSIC, "hybrid-partial-classic"},
+        {BRANCHING_LARGE_ARITY, "large-arity"}};
+  }
 };
 
-class OptionBranchingHeuristic {
-  /**
-   * @brief Construct a new Option Branching Heuristic object with the default
-   * configuration.
-   *
-   */
-  OptionBranchingHeuristic();
+template <>
+struct EnumMetadata<ScoringMethodType> {
+  static std::string name() { return "ScoringMethodType"; }
+  static std::map<int, std::string> mapping() { return ScoringMethodTypeManager::getMapping(); }
+};
 
+template <>
+struct EnumMetadata<PhaseHeuristicType> {
+  static std::string name() { return "PhaseHeuristicType"; }
+  static std::map<int, std::string> mapping() { return PhaseHeuristicTypeManager::getMapping(); }
+};
+
+template <>
+struct EnumMetadata<BranchingHeuristicType> {
+  static std::string name() { return "BranchingHeuristicType"; }
+  static std::map<int, std::string> mapping() { return BranchingHeuristicTypeManager::getMapping(); }
+};
+
+class OptionBranchingHeuristic : public OptionGroup {
  public:
-  OptionPartialOrderHeuristic optionPartialOrderHeuristic;
-  /** @brief The scoring method used for selecting the next variable. [mom, dlcs, vsids, vsads, jwts] */
-  ScoringMethodType scoringMethodType;
-  /** @brief The way the phase of the next decision is selected (false, true, polarity or occurrence). */
-  PhaseHeuristicType phaseHeuristicType;
-  /** @brief The branching heuristic used (classic or large-clause if d4 selects first literals in large clauses.) */
-  BranchingHeuristicType branchingHeuristicType;
+  OptionBranchingHeuristic(const std::string& name = "branching", const std::string& description = "Branching options")
+      : OptionGroup(name, description) {}
+
+  OptionPartialOrderHeuristic optionPartialOrderHeuristic{"partialOrder", "Partial order settings"};
+  /** @brief The scoring method used for selecting the next variable. */
+  Option<ScoringMethodType> scoringMethodType{"scoringMethodType", "The scoring method used", SCORE_VSADS};
+  /** @brief The way the phase of the next decision is selected. */
+  Option<PhaseHeuristicType> phaseHeuristicType{"phaseHeuristicType", "The way the phase is selected", PHASE_POLARITY};
+  /** @brief The branching heuristic used. */
+  Option<BranchingHeuristicType> branchingHeuristicType{"branchingHeuristicType", "The branching heuristic used", BRANCHING_CLASSIC};
 
   /** @brief Consider or not the reverse of the current phase. */
-  bool reversePhase;
+  Option<bool> reversePhase{"reversePhase", "Consider or not the reverse of the current phase", false};
   /** @brief Gives the decay frequency */
-  unsigned freqDecay;
+  Option<unsigned> freqDecay{"freqDecay", "Gives the decay frequency", 95};
   /** @brief The size limit for the branching heuristic based on large clauses. */
-  unsigned limitSizeClause;
+  Option<unsigned> limitSizeClause{"limitSizeClause", "The size limit for large clauses", 100};
 
-  /**
-   * @brief Construct a new Option Branching Heuristic object with a given
-   * configuration.
-   *
-   * @param config
-   */
-  OptionBranchingHeuristic(const ConfigurationBranchingHeuristic& config);
+  std::vector<OptionBase*> getAllOptions() override {
+    return {(OptionBase*)&optionPartialOrderHeuristic,
+            (OptionBase*)&scoringMethodType,
+            (OptionBase*)&phaseHeuristicType,
+            (OptionBase*)&branchingHeuristicType,
+            (OptionBase*)&reversePhase,
+            (OptionBase*)&freqDecay,
+            (OptionBase*)&limitSizeClause};
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionBranchingHeuristic& dt) {
+                                   const OptionBranchingHeuristic& dt) {
     out << " Option Branching Heuristic:"
         << " scoring method("
-        << ScoringMethodTypeManager::getScoringMethodType(dt.scoringMethodType)
+        << ScoringMethodTypeManager::getScoringMethodType(dt.scoringMethodType.get())
         << ")"
         << " phase heuristic("
         << PhaseHeuristicTypeManager::getPhaseHeuristicType(
-               dt.phaseHeuristicType)
+               dt.phaseHeuristicType.get())
         << ")"
-        << " reverse phase (" << dt.reversePhase << ")"
-        << " freq-decay (" << dt.freqDecay << ")"
+        << " reverse phase (" << dt.reversePhase.get() << ")"
+        << " freq-decay (" << dt.freqDecay.get() << ")"
         << " branching heuristic ("
         << BranchingHeuristicTypeManager::getBranchingHeuristicType(
-               dt.branchingHeuristicType);
+               dt.branchingHeuristicType.get());
 
-    if (dt.branchingHeuristicType == BRANCHING_LARGE_ARITY) {
-      out << ", " << dt.limitSizeClause;
+    if (dt.branchingHeuristicType.get() == BRANCHING_LARGE_ARITY) {
+      out << ", " << dt.limitSizeClause.get();
     }
 
     out << ")";

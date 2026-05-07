@@ -28,7 +28,6 @@
 #include <sstream>
 
 #include "ParseOption.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
@@ -62,30 +61,28 @@ void countModels(const OptionDpllStyleMethod &options, ProblemManager *problem,
 void serverCounter(const po::variables_map &vm, ProblemManager *problem,
                    int fd) {
   // get the configuration.
-  ConfigurationDpllStyleMethod config;
+  OptionDpllStyleMethod options;
 
-  config.methodName = d4::MethodNameManager::getMethodName("counting");
+  options.methodName = d4::MethodNameManager::getMethodName("counting");
 
-  config.inputName = "server cnf";
-  config.problemInputType = d4::ProblemInputTypeManager::getInputType("cnf");
+  options.inputName = "server cnf";
+  options.problemInputType = d4::ProblemInputTypeManager::getInputType("cnf");
 
-  config.cache = parseCacheConfiguration(vm);
-  config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
-  config.partitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
+  options.optionCacheManager = parseCacheConfiguration(vm);
+  options.optionBranchingHeuristic = parseBranchingHeuristicConfiguration(vm);
+  options.optionBranchingHeuristic.optionPartialOrderHeuristic =
+      parsePartitioningHeuristicConfiguration(vm);
 
-  config.solver.solverName =
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
-  config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  options.optionSpecManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
 
-  config.operationType = d4::OperationTypeManager::getOperatorType("counting");
+  options.operationType = d4::OperationTypeManager::getOperatorType("counting");
 
   bool isFloat = problem->isFloat();
-  MethodManager::displayInfoVariables(problem, std::cout);
-
-  // init the options.
-  OptionDpllStyleMethod options(config);
+  MethodManager::displayInfoVariables(*problem, std::cout);
 
   if (!isFloat)
     countModels<mpz::mpz_int>(options, problem, fd);

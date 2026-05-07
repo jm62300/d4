@@ -27,7 +27,6 @@
 // #include "MaxSharpSAT.hpp"
 // #include "MinSharpSAT.hpp"
 // #include "OperationManager.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/exceptions/BadBehaviourException.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"

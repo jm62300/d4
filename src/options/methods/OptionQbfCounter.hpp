@@ -21,31 +21,38 @@
 #include <iostream>
 #include <string>
 
-#include "src/configurations/ConfigurationQbfCounter.hpp"
-#include "src/exceptions/FactoryException.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
+#include "src/options/solvers/OptionSolver.hpp"
 
 namespace d4 {
-class OptionQbfCounter {
+class OptionQbfCounter : public OptionRoot {
  public:
-  OptionCacheManager optionCacheManager;
-  OptionSolver optionSolver;
-  OptionSpecManager optionSpecManager;
-  OptionBranchingHeuristic optionBranchingHeuristic;
+  OptionQbfCounter(const std::string& name = "", const std::string& description = "QBF counter options")
+      : OptionRoot() {
+    m_name = name;
+    m_description = description;
+  }
 
-  /**
-   * @brief Construct a new object with the default parameter.
-   */
-  OptionQbfCounter() : OptionQbfCounter(ConfigurationQbfCounter()) {}
+  OptionCacheManager optionCacheManager{"cache", "Cache options"};
+  OptionSolver optionSolver{"solver", "Solver options"};
+  OptionSpecManager optionSpecManager{"spec", "Formula manager options"};
+  OptionBranchingHeuristic optionBranchingHeuristic{"branching", "Branching options"};
+  OptionPartialOrderHeuristic optionPartitioningHeuristic{"partitioning", "Partitioning options"};
 
-  /**
-   * @brief Construct a new Option Dpll Style Method object.
-   *
-   * @param config gives the method configuration.
-   */
-  OptionQbfCounter(const ConfigurationQbfCounter& config);
+  std::vector<OptionBase*> getAllOptions() override {
+    auto options = OptionRoot::getAllOptions();
+    options.push_back((OptionBase*)&optionCacheManager);
+    options.push_back((OptionBase*)&optionSolver);
+    options.push_back((OptionBase*)&optionSpecManager);
+    options.push_back((OptionBase*)&optionBranchingHeuristic);
+    options.push_back((OptionBase*)&optionPartitioningHeuristic);
+    return options;
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionQbfCounter& dt) {

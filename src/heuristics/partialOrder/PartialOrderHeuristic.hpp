@@ -29,36 +29,6 @@ class WrapperSolver;
 class FormulaManager;
 class EquivExtractor;
 
-enum PartialOrderHeuristicMethod : char {
-  PARTIAL_ORDER_TREE_DECOMPOSITION,
-  PARTIAL_ORDER_GIVEN,
-  PARTIAL_ORDER_NONE
-};
-
-class OptionPartialOrderHeuristic;
-
-class PartialOrderMethodManager {
- public:
-  static std::string getPartialOrderMethod(
-      const PartialOrderHeuristicMethod &m) {
-    if (m == PARTIAL_ORDER_TREE_DECOMPOSITION) return "tree-decomposition";
-    if (m == PARTIAL_ORDER_GIVEN) return "given";
-    if (m == PARTIAL_ORDER_NONE) return "none";
-
-    throw(FactoryException("Paritioning method type unknown", __FILE__,
-                           __LINE__));
-  }  // getPartialOrderMethod
-
-  static PartialOrderHeuristicMethod getPartialOrderMethod(
-      const std::string &m) {
-    if (m == "tree-decomposition") return PARTIAL_ORDER_TREE_DECOMPOSITION;
-    if (m == "given") return PARTIAL_ORDER_GIVEN;
-    if (m == "none") return PARTIAL_ORDER_NONE;
-
-    throw(FactoryException("Paritioning method unknown", __FILE__, __LINE__));
-  }  // getPartialOrderMethod
-};
-
 class PartialOrderHeuristic {
  protected:
   unsigned m_nbVar;

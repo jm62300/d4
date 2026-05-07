@@ -25,8 +25,7 @@
 #include "CounterDemo.hpp"
 #include "ParserDimacs.hpp"
 #include "src/binding/json/Binding.hpp"
-#include "src/binding/json/SchemaProviders.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 
 namespace fs = std::filesystem;
@@ -65,13 +64,13 @@ int main(int argc, char** argv) {
 
     std::cout << "USAGE: " << argv[0] << " -i INPUT [Overrides...]\n"
               << "  -i, --input   Path to the input DIMACS file (required)\n"
-              << "  -h, --help    Show this help screen\n"
-              << "\n\033[1mConfiguration Help:\033[0m\n"
-              << "The configuration follows this schema. Use --key=value to "
-                 "override fields.\n";
-    d4::to_pretty_tree(d4::generate_schema<d4::ConfigurationDpllStyleMethod>(),
-                       std::cout);
-    std::cout << std::endl;
+              << "  -h, --help    Show this help screen\n";
+
+    d4::OptionDpllStyleMethod config;
+    d4::OptionRegistry registry;
+    config.registerTo(registry);
+    registry.displayHelp(std::cout);
+
     return showHelp ? 0 : 1;
   }
 
@@ -85,38 +84,25 @@ int main(int argc, char** argv) {
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
 
-#if 0
-  std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
-               "formula\033[0m\n";
-  initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
-  std::cout << "c\n";
 
-  if (vm["translate"].as<std::string>() != "none") {
-    std::cout << "c [TRANSLATION] Translate the input formula: "
-              << vm["input-type"].as<std::string>() << " -> "
-              << vm["translate"].as<std::string>() << '\n';
-    d4::ProblemManager* tmp =
-        initProblem->translate(d4::ProblemTranslateTypeManager::getInputType(
-            vm["translate"].as<std::string>()));
-    delete initProblem;
-    initProblem = tmp;
-  }
+  // 1. Initialize configuration and registry
+  d4::OptionDpllStyleMethod config;
+  d4::OptionRegistry registry;
+  config.registerTo(registry);
 
-  // run the method asked.
-  d4::MethodName methodName = d4::MethodNameManager::getMethodName("counting");
-#endif
+  // 2. Overrides from command line
+  registry.parseArgv(argc, argv);
 
-// preproc.
-#if 0
-  d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
-  configPreproc.inputType = initProblem->getProblemType();
-  ProblemManager* problem =
-      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-#endif
+  // Overrides from config.json if present
+  // std::ifstream configFile("config.json");
+  // if (configFile.is_open()) {
+  //  std::cout << "c [JSON] Loading configuration from config.json\n";
+  //  std::stringstream buffer;
+  //  buffer << configFile.rdbuf();
+  //  d4::parse_json_to_registry(registry, buffer.str());
+  // }
 
-  // Build the final configuration using command line arguments.
-  auto config = d4::from_json_string_and_argv<d4::ConfigurationDpllStyleMethod>(
-      "{}", argc, argv);
+  // The configuration is already updated via registry.parseArgv/parseJson.
 
   // count.
   counterDemo(config, formula);

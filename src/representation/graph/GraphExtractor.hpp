@@ -18,9 +18,13 @@
  */
 #pragma once
 
+#include <string>
+#include <map>
 #include "Graph.hpp"
 #include "src/formulaManager/FormulaManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/options/EnumMetadata.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 enum GraphExtractorMethod { GRAPH_PRIMAL };
@@ -42,6 +46,16 @@ class GraphExtractorMethodManager {
     throw(
         FactoryException("Graph extractor method unknown", __FILE__, __LINE__));
   }  // getGraphExtractorMethodManager
+
+  static std::map<int, std::string> getMapping() {
+    return {{GRAPH_PRIMAL, "primal"}};
+  }
+};
+
+template <>
+struct EnumMetadata<GraphExtractorMethod> {
+  static std::string name() { return "GraphExtractorMethod"; }
+  static std::map<int, std::string> mapping() { return GraphExtractorMethodManager::getMapping(); }
 };
 
 class GraphExtractor {

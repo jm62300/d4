@@ -19,45 +19,112 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <map>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
-#include "src/options/treeDecomposition/OptionTreeDecomposition.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
+#include "src/options/EnumMetadata.hpp"
+
+#include "src/partitioner/PartitionerManager.hpp"
+#include "src/representation/graph/GraphExtractor.hpp"
+#include "src/representation/hypergraph/HyperGraphExtractor.hpp"
+#include "src/treeDecomposition/TreeDecomposition.hpp"
+#include "src/treeDecompositioner/TreeDecompositioner.hpp"
 
 namespace d4 {
 
-class ConfigurationPartialOrderHeuristic;
-enum PartialOrderHeuristicMethod : char;
+enum PartialOrderHeuristicMethod : char {
+  PARTIAL_ORDER_TREE_DECOMPOSITION,
+  PARTIAL_ORDER_GIVEN,
+  PARTIAL_ORDER_NONE
+};
 
-class OptionPartialOrderHeuristic {
-  /**
-   * @brief Construct a new Option Partitioning Heuristic object with the
-   * default configuration.
-   *
-   */
-  OptionPartialOrderHeuristic();
-
+class PartialOrderMethodManager {
  public:
-  PartialOrderHeuristicMethod partialOrderMethod;
-  OptionTreeDecomposition* optionTreeDecomposition = NULL;
-  // is set if partialOrderMethod is PARTIAL_ORDER_GIVEN
+  static std::string getPartialOrderMethod(
+      const PartialOrderHeuristicMethod &m) {
+    if (m == PARTIAL_ORDER_TREE_DECOMPOSITION) return "tree-decomposition";
+    if (m == PARTIAL_ORDER_GIVEN) return "given";
+    if (m == PARTIAL_ORDER_NONE) return "none";
+
+    throw(FactoryException("Paritioning method type unknown", __FILE__,
+                           __LINE__));
+  }  // getPartialOrderMethod
+
+  static PartialOrderHeuristicMethod getPartialOrderMethod(
+      const std::string &m) {
+    if (m == "tree-decomposition") return PARTIAL_ORDER_TREE_DECOMPOSITION;
+    if (m == "given") return PARTIAL_ORDER_GIVEN;
+    if (m == "none") return PARTIAL_ORDER_NONE;
+
+    throw(FactoryException("Paritioning method unknown", __FILE__, __LINE__));
+  }  // getPartialOrderMethod
+
+  static std::map<int, std::string> getMapping() {
+    return {
+        {PARTIAL_ORDER_TREE_DECOMPOSITION, "tree-decomposition"},
+        {PARTIAL_ORDER_GIVEN, "given"},
+        {PARTIAL_ORDER_NONE, "none"}};
+  }
+};
+
+template <>
+struct EnumMetadata<PartialOrderHeuristicMethod> {
+  static std::string name() { return "PartialOrderHeuristicMethod"; }
+  static std::map<int, std::string> mapping() { return PartialOrderMethodManager::getMapping(); }
+};
+
+class OptionPartialOrderHeuristic : public OptionGroup {
+ public:
+  OptionPartialOrderHeuristic(const std::string& name = "partialOrder", const std::string& description = "Partial order options")
+      : OptionGroup(name, description) {}
+
+  /** @brief The method used to compute a cut. [none, tree-decomposition] */
+  Option<PartialOrderHeuristicMethod> partialOrderMethod{"partialOrderMethod", "The method used to compute a cut", PARTIAL_ORDER_NONE};
+  /** @brief The partitioner we will call (patoh). */
+  Option<PartitionerName> partitionerName{"partitionerName", "The partitioner we will call", PARTITIONER_NONE};
+  /** @brief The tree decomposition technique used. */
+  Option<TreeDecompositionMethod> treeDecompositionMethod{"treeDecompositionMethod", "The tree decomposition technique used", TREE_DECOMP_PARTITION};
+  /** @brief The tool used for computing the tree decomposition. */
+  Option<TreeDecompositionerMethod> treeDecompositionerMethod{"treeDecompositionerMethod", "The tool used for computing the tree decomposition", TREE_DECOMP_TOOL_FLOW_CUTTER};
+  /** @brief The hyper graph representation used. */
+  Option<HyperGraphExtractorMethod> hyperGraphExtractorMethod{"hyperGraphExtractorMethod", "The hyper graph representation used", HYPER_GRAPH_DUAL};
+  /** @brief The graph representation used. */
+  Option<GraphExtractorMethod> graphExtractorMethod{"graphExtractorMethod", "The graph representation used", GRAPH_PRIMAL};
+  /** @brief Set to true if the graph extractor use some simplification. */
+  Option<bool> useSimpGraphExtractor{"useSimpGraphExtractor", "If the graph extractor use some simplification", true};
+  Option<unsigned> budget{"budget", "The budget for partitioning", 100};
+  Option<unsigned> seed{"seed", "The seed for random number generator", 2911};
+  Option<bool> verbosity{"verbosity", "The verbosity level", false};
+  
+  // vector is harder to handle in Option<T> with setFromString.
+  // We keep it as is for now or use a specialization.
   std::vector<double> givenOrder;
-  double scaleFactor;
+  Option<double> scaleFactor{"scaleFactor", "The scale factor", 0};
 
-  /**
-   * @brief Destroy the object.
-   */
-  ~OptionPartialOrderHeuristic();
-
-  /**
-   * @brief Construct a new Option Partitioning Heuristic object with the given
-   * configuration.
-   *
-   * @param config is the configuration we want to use.
-   */
-  OptionPartialOrderHeuristic(const ConfigurationPartialOrderHeuristic& config);
+  std::vector<OptionBase*> getAllOptions() override {
+    return {(OptionBase*)&partialOrderMethod,
+            (OptionBase*)&partitionerName,
+            (OptionBase*)&treeDecompositionMethod,
+            (OptionBase*)&treeDecompositionerMethod,
+            (OptionBase*)&hyperGraphExtractorMethod,
+            (OptionBase*)&graphExtractorMethod,
+            (OptionBase*)&useSimpGraphExtractor,
+            (OptionBase*)&budget,
+            (OptionBase*)&seed,
+            (OptionBase*)&verbosity,
+            (OptionBase*)&scaleFactor};
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionPartialOrderHeuristic& dt);
+                                   const OptionPartialOrderHeuristic& dt) {
+    out << " Option Partitioning Heuristic:"
+        << " method("
+        << PartialOrderMethodManager::getPartialOrderMethod(dt.partialOrderMethod.get())
+        << ") ";
+    return out;
+  }
 };
 }  // namespace d4

@@ -49,20 +49,16 @@ class OperationTypeManager {
     if (m == METH_DDNNF) return OP_CIRC;
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
-  }  // getOperatorType
+  }
+  static std::map<int, std::string> getMapping() {
+    return {{OP_COUNTING, "counting"}, {OP_CIRC, "ddnnf-compiler"}};
+  }
 };
 
-class OptionOperationManager {
- public:
-  OperationType operatorType;
-
-  friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionOperationManager& dt) {
-    out << " Operator option:"
-        << " operator type("
-        << OperationTypeManager::getOperatorType(dt.operatorType) << ")";
-    return out;
-  }  // <<
+template <>
+struct EnumMetadata<OperationType> {
+  static std::string name() { return "OperationType"; }
+  static std::map<int, std::string> mapping() { return OperationTypeManager::getMapping(); }
 };
 
 }  // namespace d4

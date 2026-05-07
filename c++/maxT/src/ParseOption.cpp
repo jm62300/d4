@@ -20,58 +20,36 @@
 #include "ParseOption.hpp"
 
 /**
- * @brief parsePreprocConfiguration implementation.
- */
-d4::ConfigurationPeproc parsePreprocConfiguration(const po::variables_map &vm) {
-  d4::ConfigurationPeproc config;
-  config.inputType = d4::ProblemInputTypeManager::getInputType(
-      vm["input-type"].as<std::string>());
-  config.nbIteration = vm["preproc-reducer-iteration"].as<int>();
-  config.preprocMethod = d4::PreprocMethodManager::getPreprocMethod(
-      vm["preproc"].as<std::string>());
-
-  if (config.preprocMethod == d4::SHARP_EQUIV) {
-    throw std::runtime_error(
-        "Sharp-Equiv Preprocessing is not available for maxT tasks");
-  }
-
-  config.timeout = vm["preproc-timeout"].as<int>();
-  config.strongElim = false;
-
-  return config;
-}  // parsePreprocConfiguration
-
-/**
  * @brief parseCacheConfiguration implementation.
  */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
-  d4::ConfigurationCache cache;
+d4::OptionCacheManager parseCacheConfiguration(const po::variables_map &vm) {
+  d4::OptionCacheManager cache;
 
-  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
+  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod(
       vm["cache-method"].as<std::string>());
 
-  cache.cacheCleaningStrategy =
+  cache.optionCacheCleaningManager.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy(
           vm["cache-reduction-strategy"].as<std::string>());
 
-  cache.modeStore = d4::ModeStoreManager::getModeStore(
+  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore(
       vm["cache-store-strategy"].as<std::string>());
-
-  cache.clauseRepresentation =
+ 
+  cache.optionBucketManager.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation(
           vm["cache-clause-representation"].as<std::string>());
-
-  cache.sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
-
-  cache.sizeAdditionalPage =
+ 
+  cache.optionBucketManager.sizeFirstPage = vm["cache-size-first-page"].as<unsigned long>();
+ 
+  cache.optionBucketManager.sizeAdditionalPage =
       vm["cache-size-additional-page"].as<unsigned long>();
-
-  cache.limitVarSym =
+ 
+  cache.optionBucketManager.limitVarSym =
       vm["cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
-
+ 
   cache.isActivated = vm["cache-activated"].as<bool>();
 
-  cache.limitVarIndex =
+  cache.optionBucketManager.limitVarIndex =
       vm["cache-clause-representation-combi-limitVar-index"].as<unsigned>();
 
   return cache;
@@ -80,9 +58,9 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm) {
 /**
  * @brief parseBranchingHeuristicConfiguration implementation.
  */
-d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
+d4::OptionBranchingHeuristic parseBranchingHeuristicConfiguration(
     const po::variables_map &vm) {
-  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  d4::OptionBranchingHeuristic branchingHeuristic;
 
   branchingHeuristic.freqDecay = vm["scoring-method-freq-decay"].as<unsigned>();
 
@@ -103,7 +81,7 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
   branchingHeuristic.limitSizeClause =
       vm["branching-heuristic-limit-clause"].as<unsigned>();
 
-  branchingHeuristic.configurationPartialOrderHeuristic =
+  branchingHeuristic.optionPartialOrderHeuristic =
       parsePartitioningHeuristicConfiguration(vm);
 
   return branchingHeuristic;
@@ -112,9 +90,9 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
 /**
  * @brief parsePartitioningHeuristicConfiguration implementation.
  */
-d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
+d4::OptionPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
     const po::variables_map &vm) {
-  d4::ConfigurationPartialOrderHeuristic partialOrderHeuristic;
+  d4::OptionPartialOrderHeuristic partialOrderHeuristic;
   partialOrderHeuristic.partialOrderMethod =
       d4::PartialOrderMethodManager::getPartialOrderMethod(
           vm["partialOrder-heuristic"].as<std::string>());

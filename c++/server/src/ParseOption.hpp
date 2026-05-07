@@ -21,53 +21,42 @@
 #include <boost/program_options.hpp>
 #include <cstring>
 
-#include "src/configurations/Configuration.hpp"
-#include "src/configurations/ConfigurationBranchingHeuristic.hpp"
-#include "src/configurations/ConfigurationCache.hpp"
-#include "src/configurations/ConfigurationPartitioningHeuristic.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
+#include "src/options/cache/OptionCacheManager.hpp"
+#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace po = boost::program_options;
 
 /**
- * @brief Parse the configuration for the preprocessing.
+ * @brief Parse the options for the cache.
  *
  * @param vm are the options.
  * @param prefix is a string put in front in order to select the method.
  *
- * @return the preproc configuration.
+ * @return the cache options.
  */
-d4::ConfigurationPeproc parsePreprocConfiguration(
-    const po::variables_map &vm, const std::string &prefix = "");
-
-/**
- * @brief Parse the configuration for the preprocessing.
- *
- * @param vm are the options.
- * @param prefix is a string put in front in order to select the method.
- *
- * @return the preproc configuration.
- */
-d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
+d4::OptionCacheManager parseCacheConfiguration(const po::variables_map &vm,
                                                const std::string &prefix = "");
 
 /**
- * @brief Parse the configuration for the branching heuristic.
+ * @brief Parse the options for the branching heuristic.
  *
  * @param vm are the options.
  * @param prefix is a string put in front in order to select the method.
  *
- * @return the branching heuristic configuration.
+ * @return the branching heuristic options.
  */
-d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
+d4::OptionBranchingHeuristic parseBranchingHeuristicConfiguration(
     const po::variables_map &vm, const std::string &prefix = "");
 
 /**
- * @brief Parse the configuration for the paritioning heuristic.
+ * @brief Parse the options for the partitioning heuristic.
  *
  * @param vm are the options.
  * @param prefix is a string put in front in order to select the method.
  *
- * @return the partitioning heuristic configuration.
+ * @return the partitioning heuristic options.
  */
-d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
+d4::OptionPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
     const po::variables_map &vm, const std::string &prefix = "");

@@ -25,8 +25,7 @@
 #include <iostream>
 #include <vector>
 
-#include "src/configurations/Configuration.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
+#include "src/options/Option.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
@@ -53,34 +52,25 @@ static void signalHandler(int signum) {
 void wmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the weigted model counter\n";
 
-  // preproc.
-  d4::ConfigurationPeproc configPreproc;
-  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
-  configPreproc.preprocMethod =
-      d4::PreprocMethodManager::getPreprocMethod("sharp-equiv");
-  configPreproc.nbIteration = 5;
-  configPreproc.timeout = 60;
-
-  ProblemManager *problem =
-      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-  MethodManager::displayInfoVariables(problem, std::cout);
+  ProblemManager *problem = initProblem;
+  MethodManager::displayInfoVariables(*problem, std::cout);
 
   // count.
 
   // cache.
-  d4::ConfigurationCache cache;
+  d4::OptionCacheManager cache;
   cache.isActivated = true;
-  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod("list");
-  cache.cacheCleaningStrategy =
+  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod("list");
+  cache.optionCacheCleaningManager.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy("none");
-  cache.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
-  cache.clauseRepresentation =
+  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
+  cache.optionBucketManager.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation("clause");
-  cache.sizeFirstPage = 1UL << 32;
-  cache.sizeAdditionalPage = 1UL << 29;
+  cache.optionBucketManager.sizeFirstPage = 1UL << 32;
+  cache.optionBucketManager.sizeAdditionalPage = 1UL << 29;
 
   // branching heuristic.
-  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  d4::OptionBranchingHeuristic branchingHeuristic;
   branchingHeuristic.freqDecay = 2048;
   branchingHeuristic.scoringMethodType =
       d4::ScoringMethodTypeManager::getScoringMethodType("vsads");
@@ -90,37 +80,36 @@ void wmc(d4::ProblemManager *initProblem) {
   branchingHeuristic.phaseHeuristicType =
       d4::PhaseHeuristicTypeManager::getPhaseHeuristicType("polarity");
   branchingHeuristic.reversePhase = false;
-  branchingHeuristic.configurationPartialOrderHeuristic.partialOrderMethod =
+  branchingHeuristic.optionPartialOrderHeuristic.partialOrderMethod =
       d4::PartialOrderMethodManager::getPartialOrderMethod(
           "tree-decomposition");
-  branchingHeuristic.configurationPartialOrderHeuristic
+  branchingHeuristic.optionPartialOrderHeuristic
       .treeDecompositionMethod =
       d4::TreeDecompositionMethodManager::getTreeDecompositionMethod(
           "tree-width");
-  branchingHeuristic.configurationPartialOrderHeuristic.graphExtractorMethod =
+  branchingHeuristic.optionPartialOrderHeuristic.graphExtractorMethod =
       d4::GraphExtractorMethodManager::getGraphExtractorMethodManager("primal");
-  branchingHeuristic.configurationPartialOrderHeuristic
+  branchingHeuristic.optionPartialOrderHeuristic
       .treeDecompositionerMethod =
       d4::TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
           "flow-cutter");
-  branchingHeuristic.configurationPartialOrderHeuristic.useSimpGraphExtractor =
+  branchingHeuristic.optionPartialOrderHeuristic.useSimpGraphExtractor =
       true;
 
   // configuration of the dpll counter.
-  d4::ConfigurationDpllStyleMethod configCounter;
-  configCounter.methodName = d4::MethodNameManager::getMethodName("counting");
-  configCounter.problemInputType =
+  d4::OptionDpllStyleMethod options;
+  options.methodName = d4::MethodNameManager::getMethodName("counting");
+  options.problemInputType =
       d4::ProblemInputTypeManager::getInputType("cnf");
-  configCounter.cache = cache;
-  configCounter.branchingHeuristic = branchingHeuristic;
-  configCounter.solver.solverName =
+  options.optionCacheManager = cache;
+  options.optionBranchingHeuristic = branchingHeuristic;
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(SOLVER);
-  configCounter.spec.specUpdateType =
+  options.optionSpecManager.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamic");
-  configCounter.operationType =
+  options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::OptionDpllStyleMethod options(configCounter);
   d4::DpllStyleMethod<mpz::mpf_float, mpz::mpf_float> *counter =
       new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(options, problem,
                                                           std::cout);
@@ -150,8 +139,9 @@ void pwmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the weighted projected model counter\n";
 
   // preproc.
+  /*
   d4::ConfigurationPeproc configPreproc;
-  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.inputType = d4::ProblemInputTypeManager::getInputType("cnf");
   configPreproc.preprocMethod =
       d4::PreprocMethodManager::getPreprocMethod("basic");
   configPreproc.nbIteration = 5;
@@ -159,24 +149,26 @@ void pwmc(d4::ProblemManager *initProblem) {
 
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-  MethodManager::displayInfoVariables(problem, std::cout);
+  */
+  ProblemManager *problem = initProblem;
+  MethodManager::displayInfoVariables(*problem, std::cout);
 
   // count.
 
   // cache.
-  d4::ConfigurationCache cache;
+  d4::OptionCacheManager cache;
   cache.isActivated = true;
-  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod("list");
-  cache.cacheCleaningStrategy =
+  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod("list");
+  cache.optionCacheCleaningManager.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy("none");
-  cache.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
-  cache.clauseRepresentation =
+  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
+  cache.optionBucketManager.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation("clause");
-  cache.sizeFirstPage = 1UL << 32;
-  cache.sizeAdditionalPage = 1UL << 29;
+  cache.optionBucketManager.sizeFirstPage = 1UL << 32;
+  cache.optionBucketManager.sizeAdditionalPage = 1UL << 29;
 
   // branching heuristic.
-  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  d4::OptionBranchingHeuristic branchingHeuristic;
   branchingHeuristic.freqDecay = 2048;
   branchingHeuristic.scoringMethodType =
       d4::ScoringMethodTypeManager::getScoringMethodType("vsads");
@@ -187,20 +179,19 @@ void pwmc(d4::ProblemManager *initProblem) {
   branchingHeuristic.reversePhase = false;
 
   // configuration of the dpll counter.
-  d4::ConfigurationDpllStyleMethod configCounter;
-  configCounter.methodName = d4::MethodNameManager::getMethodName("counting");
-  configCounter.problemInputType =
+  d4::OptionDpllStyleMethod options;
+  options.methodName = d4::MethodNameManager::getMethodName("counting");
+  options.problemInputType =
       d4::ProblemInputTypeManager::getInputType("cnf");
-  configCounter.cache = cache;
-  configCounter.branchingHeuristic = branchingHeuristic;
-  configCounter.solver.solverName =
+  options.optionCacheManager = cache;
+  options.optionBranchingHeuristic = branchingHeuristic;
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(SOLVER);
-  configCounter.spec.specUpdateType =
+  options.optionSpecManager.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamicBlockedSimp");
-  configCounter.operationType =
+  options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::OptionDpllStyleMethod options(configCounter);
   d4::DpllStyleMethod<mpz::mpf_float, mpz::mpf_float> *counter =
       new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(options, problem,
                                                           std::cout);
@@ -230,8 +221,9 @@ void pmc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the projected model counter\n";
 
   // preproc.
+  /*
   d4::ConfigurationPeproc configPreproc;
-  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.inputType = d4::ProblemInputTypeManager::getInputType("cnf");
   configPreproc.preprocMethod =
       d4::PreprocMethodManager::getPreprocMethod("basic");
   configPreproc.nbIteration = 5;
@@ -239,24 +231,26 @@ void pmc(d4::ProblemManager *initProblem) {
 
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-  MethodManager::displayInfoVariables(problem, std::cout);
+  */
+  ProblemManager *problem = initProblem;
+  MethodManager::displayInfoVariables(*problem, std::cout);
 
   // count.
 
   // cache.
-  d4::ConfigurationCache cache;
+  d4::OptionCacheManager cache;
   cache.isActivated = true;
-  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod("list");
-  cache.cacheCleaningStrategy =
+  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod("list");
+  cache.optionCacheCleaningManager.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy("none");
-  cache.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
-  cache.clauseRepresentation =
+  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
+  cache.optionBucketManager.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation("clause");
-  cache.sizeFirstPage = 1UL << 32;
-  cache.sizeAdditionalPage = 1UL << 29;
+  cache.optionBucketManager.sizeFirstPage = 1UL << 32;
+  cache.optionBucketManager.sizeAdditionalPage = 1UL << 29;
 
   // branching heuristic.
-  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  d4::OptionBranchingHeuristic branchingHeuristic;
   branchingHeuristic.freqDecay = 2048;
   branchingHeuristic.scoringMethodType =
       d4::ScoringMethodTypeManager::getScoringMethodType("vsads");
@@ -267,20 +261,19 @@ void pmc(d4::ProblemManager *initProblem) {
   branchingHeuristic.reversePhase = false;
 
   // configuration of the dpll counter.
-  d4::ConfigurationDpllStyleMethod configCounter;
-  configCounter.methodName = d4::MethodNameManager::getMethodName("counting");
-  configCounter.problemInputType =
+  d4::OptionDpllStyleMethod options;
+  options.methodName = d4::MethodNameManager::getMethodName("counting");
+  options.problemInputType =
       d4::ProblemInputTypeManager::getInputType("cnf");
-  configCounter.cache = cache;
-  configCounter.branchingHeuristic = branchingHeuristic;
-  configCounter.solver.solverName =
+  options.optionCacheManager = cache;
+  options.optionBranchingHeuristic = branchingHeuristic;
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(SOLVER);
-  configCounter.spec.specUpdateType =
+  options.optionSpecManager.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamicBlockedSimp");
-  configCounter.operationType =
+  options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::OptionDpllStyleMethod options(configCounter);
   d4::DpllStyleMethod<mpz::mpz_int, mpz::mpz_int> *counter =
       new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(options, problem,
                                                       std::cout);
@@ -310,8 +303,9 @@ void mc(d4::ProblemManager *initProblem) {
   std::cout << "c [D4] Run the model counter\n";
 
   // preproc.
+  /*
   d4::ConfigurationPeproc configPreproc;
-  configPreproc.inputType = d4::InputTypeManager::getInputType("cnf");
+  configPreproc.inputType = d4::ProblemInputTypeManager::getInputType("cnf");
   configPreproc.preprocMethod =
       d4::PreprocMethodManager::getPreprocMethod("sharp-equiv");
   configPreproc.nbIteration = 5;
@@ -319,24 +313,26 @@ void mc(d4::ProblemManager *initProblem) {
 
   ProblemManager *problem =
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-  MethodManager::displayInfoVariables(problem, std::cout);
+  */
+  ProblemManager *problem = initProblem;
+  MethodManager::displayInfoVariables(*problem, std::cout);
 
   // count.
 
   // cache.
-  d4::ConfigurationCache cache;
+  d4::OptionCacheManager cache;
   cache.isActivated = true;
-  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod("list");
-  cache.cacheCleaningStrategy =
+  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod("list");
+  cache.optionCacheCleaningManager.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy("none");
-  cache.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
-  cache.clauseRepresentation =
+  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore("not-touched");
+  cache.optionBucketManager.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation("clause");
-  cache.sizeFirstPage = 1UL << 32;
-  cache.sizeAdditionalPage = 1UL << 29;
+  cache.optionBucketManager.sizeFirstPage = 1UL << 32;
+  cache.optionBucketManager.sizeAdditionalPage = 1UL << 29;
 
   // branching heuristic.
-  d4::ConfigurationBranchingHeuristic branchingHeuristic;
+  d4::OptionBranchingHeuristic branchingHeuristic;
   branchingHeuristic.freqDecay = 2048;
   branchingHeuristic.scoringMethodType =
       d4::ScoringMethodTypeManager::getScoringMethodType("vsads");
@@ -346,37 +342,36 @@ void mc(d4::ProblemManager *initProblem) {
   branchingHeuristic.phaseHeuristicType =
       d4::PhaseHeuristicTypeManager::getPhaseHeuristicType("polarity");
   branchingHeuristic.reversePhase = false;
-  branchingHeuristic.configurationPartialOrderHeuristic.partialOrderMethod =
+  branchingHeuristic.optionPartialOrderHeuristic.partialOrderMethod =
       d4::PartialOrderMethodManager::getPartialOrderMethod(
           "tree-decomposition");
-  branchingHeuristic.configurationPartialOrderHeuristic
+  branchingHeuristic.optionPartialOrderHeuristic
       .treeDecompositionMethod =
       d4::TreeDecompositionMethodManager::getTreeDecompositionMethod(
           "tree-width");
-  branchingHeuristic.configurationPartialOrderHeuristic.graphExtractorMethod =
+  branchingHeuristic.optionPartialOrderHeuristic.graphExtractorMethod =
       d4::GraphExtractorMethodManager::getGraphExtractorMethodManager("primal");
-  branchingHeuristic.configurationPartialOrderHeuristic
+  branchingHeuristic.optionPartialOrderHeuristic
       .treeDecompositionerMethod =
       d4::TreeDecompositionerMethodManager::getTreeDecompositionerMethodManager(
           "flow-cutter");
-  branchingHeuristic.configurationPartialOrderHeuristic.useSimpGraphExtractor =
+  branchingHeuristic.optionPartialOrderHeuristic.useSimpGraphExtractor =
       true;
 
   // configuration of the dpll counter.
-  d4::ConfigurationDpllStyleMethod configCounter;
-  configCounter.methodName = d4::MethodNameManager::getMethodName("counting");
-  configCounter.problemInputType =
+  d4::OptionDpllStyleMethod options;
+  options.methodName = d4::MethodNameManager::getMethodName("counting");
+  options.problemInputType =
       d4::ProblemInputTypeManager::getInputType("cnf");
-  configCounter.cache = cache;
-  configCounter.branchingHeuristic = branchingHeuristic;
-  configCounter.solver.solverName =
+  options.optionCacheManager = cache;
+  options.optionBranchingHeuristic = branchingHeuristic;
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(SOLVER);
-  configCounter.spec.specUpdateType =
+  options.optionSpecManager.specUpdateType =
       d4::SpecUpdateManager::getSpecUpdate("dynamic");
-  configCounter.operationType =
+  options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::OptionDpllStyleMethod options(configCounter);
   d4::DpllStyleMethod<mpz::mpz_int, mpz::mpz_int> *counter =
       new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(options, problem,
                                                       std::cout);
@@ -425,7 +420,7 @@ int main(int argc, char **argv) {
       inputFile, d4::ProblemInputTypeManager::getInputType("cnf"), std::cout);
   assert(initProblem);
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
-               "formula\033[0m\n";
+                "formula\033[0m\n";
   initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
   std::cout << "c\n";
 

@@ -24,7 +24,6 @@
 #include <cassert>
 
 #include "ParseOption.hpp"
-#include "src/configurations/ConfigurationQbfCounter.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/methods/QbfCounter.hpp"
 #include "src/options/methods/OptionQbfCounter.hpp"
@@ -38,27 +37,24 @@ using namespace d4;
  */
 void qbfCounterDemo(const po::variables_map &vm, ProblemManagerQbf *problem) {
   // get the configuration.
-  ConfigurationQbfCounter config;
+  OptionQbfCounter options;
 
-  config.methodName = d4::MethodNameManager::getMethodName("qbf-counter");
+  options.methodName = d4::MethodNameManager::getMethodName("qbf-counter");
 
-  config.inputName = vm["input"].as<std::string>();
-  config.problemInputType = d4::ProblemInputTypeManager::getInputType("qbf");
+  options.inputName = vm["input"].as<std::string>();
+  options.problemInputType = d4::ProblemInputTypeManager::getInputType("qbf");
 
-  config.cache = parseCacheConfiguration(vm);
-  config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
-  config.partitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
+  options.optionCacheManager = parseCacheConfiguration(vm);
+  options.optionBranchingHeuristic = parseBranchingHeuristicConfiguration(vm);
+  options.optionPartitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
 
-  config.solver.solverName =
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
-  config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  options.optionSpecManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
 
   MethodManager::displayInfoVariables(problem, std::cout);
-
-  // init the options.
-  OptionQbfCounter options(config);
 
   // construct and call the counter regarding if it is MC or WMC.
   std::string outFormat = vm["output-format"].as<std::string>();

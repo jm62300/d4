@@ -26,7 +26,7 @@
 namespace d4 {
 class OptionMethodManager {
  public:
-  OptionOperationManager optionOperationManager;
+  OperationType operationType = OP_COUNTING;
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionMethodManager& dt) {
