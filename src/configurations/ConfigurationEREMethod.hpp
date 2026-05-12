@@ -29,20 +29,27 @@
 namespace d4 {
 class ConfigurationEREMethod : public Configuration {
  public:
+  /** @brief Search for a first interpretation greedily. */
   bool greedyInitActivated = false;
+  /** @brief When a decomposable AND node occurs we search for an instantiation to be able to get a bound. */
   bool digOnAnd = true;
+  /** @brief Search if we can find an assignment such that the number of weighted models is greater than a given threshold. */
   double threshold = 1.0;
   ConfigurationSolver solver;
   ConfigurationSpec specManager;
 
+  /** @brief Activate the cutting process on the max variables regarding an upper bound. */
   bool cutExist = true;
+  /** @brief That is the percentage of random choice for the phase selection on the exist variables. */
   unsigned randomPhaseHeuristicExist = 6;
+  /** @brief Try to look if the best solution found so far is a good phase heuristic. */
   bool phaseHeuristicBestExist = true;
   ConfigurationBranchingHeuristic branchingHeuristicExist;
   ConfigurationCache cacheManagerExist;
 
   ConfigurationBranchingHeuristic branchingHeuristicRandom;
   ConfigurationCache cacheManagerRandom;
+  /** @brief Compute the connected component focusing or not the set of random variables. */
   bool computeComponentOnRandom = true;
 };
 }  // namespace d4

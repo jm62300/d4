@@ -16,69 +16,76 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include <signal.h>
-
-#include <boost/multiprecision/gmp.hpp>
-#include <boost/program_options.hpp>
-#include <cassert>
 #include <chrono>
-#include <ctime>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
-#include <vector>
+#include <string>
 
 #include "CounterDemo.hpp"
-#include "ParseOption.hpp"
 #include "ParserDimacs.hpp"
-#include "src/configurations/Configuration.hpp"
 #include "src/methods/MethodManager.hpp"
+#include "src/binding/json/Binding.hpp"
+#include "src/binding/json/SchemaProviders.hpp"
+#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 
-using namespace d4;
-namespace po = boost::program_options;
-MethodManager* methodRun = nullptr;
 
-inline std::string getTypeInstance(const parser::Formula& formula) {
-  assert(formula.quantifications.size());
+namespace fs = std::filesystem;
+d4::MethodManager* methodRun = nullptr;
 
-  std::string left = "";
-  std::string right = "mc";
-  if (formula.quantifications[0].size()) left = "p";
-  if (formula.weightMap.size()) right = "w" + right;
-
-  return left + right;
-}  // getTypeInstance
 
 /**
-   The main function!
+   The main function.
+
+   Usage: counter -i INPUT [-h]
+
+   -i INPUT   Path to the input DIMACS file (required).
+
+   Examples:
+     counter -i formula.cnf
+     counter -i formula.cnf --solver.solverName 1
 */
 int main(int argc, char** argv) {
   auto start = std::chrono::system_clock::now();
-  po::options_description desc{"Options"};
-  desc.add_options()
-#include "option.dsc"
-      ;
 
-  po::variables_map vm;
-  po::store(parse_command_line(argc, argv, desc), vm);
+  std::string inputPath;
+  bool showHelp = false;
 
-  try {
-    po::notify(vm);
-  } catch (const po::error& ex) {
-    std::cerr << ex.what() << '\n';
-    exit(1);
+  // Simple manual scan for launcher options
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "-h" || arg == "--help") {
+      showHelp = true;
+    } else if ((arg == "-i" || arg == "--input") && i + 1 < argc) {
+      inputPath = argv[++i];
+    }
   }
 
-  // help or problem with the command line
-  if (vm.count("help") || !vm.count("input")) {
-    if (!vm.count("help"))
-      std::cout << "Some parameters are missing, please read the README\n";
-    std::cout << "USAGE: " << argv[0] << " -i INPUT -m METH [OPTIONS]\n";
-    std::cout << desc << '\n';
-    exit(!vm.count("help"));
+  if (showHelp || inputPath.empty()) {
+    if (!showHelp && inputPath.empty())
+      std::cerr << "Missing required argument: -i INPUT\n";
+
+    std::cout << "USAGE: " << argv[0] << " -i INPUT [Overrides...]\n"
+              << "  -i, --input   Path to the input DIMACS file (required)\n"
+              << "  -h, --help    Show this help screen\n"
+              << "\n\033[1mConfiguration Help:\033[0m\n"
+              << "The configuration follows this schema. Use --key=value to override fields.\n";
+    d4::to_pretty_tree(d4::generate_schema<d4::ConfigurationDpllStyleMethod>(), std::cout);
+    std::cout << std::endl;
+    return showHelp ? 0 : 1;
+  }
+
+
+  // Check if input file exists
+  if (!fs::exists(inputPath)) {
+    std::cerr << "ERROR! Input file does not exist: " << inputPath << "\n";
+    return 1;
   }
 
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
-  parserDimacs.parse_DIMACS(vm["input"].as<std::string>(), formula);
+  parserDimacs.parse_DIMACS(inputPath, formula);
+
 
 #if 0
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
@@ -109,14 +116,16 @@ int main(int argc, char** argv) {
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
 #endif
 
+  // Build the final configuration using command line arguments.
+  auto config = d4::from_json_string_and_argv<d4::ConfigurationDpllStyleMethod>(
+      "{}", argc, argv);
+
   // count.
-  counterDemo(vm, formula);
+  counterDemo(config, formula);
 
   auto end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end - start;
-  std::cout << "c [COUNTER] Elapsed time: " << elapsed_seconds.count()
-            << " seconds\n";
+  std::chrono::duration<double> elapsed = end - start;
+  std::cout << "c [COUNTER] Elapsed time: " << elapsed.count() << " seconds\n";
 
-  // delete initProblem;
   return EXIT_SUCCESS;
 }  // main

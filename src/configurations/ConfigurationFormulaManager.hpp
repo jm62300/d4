@@ -22,7 +22,9 @@
 
 namespace d4 {
 struct ConfigurationSpec {
+  /** @brief The occurrence manager used (dynamic, dynamicBlockedSimp or dynamicPureSimp).  */
   SpecUpdateType specUpdateType = SPEC_DYNAMIC;
+  /** @brief If this option is activated and if the problem is a circuit, then some gates can be removed during the search if those ones are not active. */
   bool removeGates = false;
   bool needFastNotSatisfied = false;
 };

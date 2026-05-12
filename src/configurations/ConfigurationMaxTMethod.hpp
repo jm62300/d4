@@ -29,10 +29,12 @@
 namespace d4 {
 class ConfigurationMaxTMethod : public Configuration {
  public:
+  /** @brief Search for a first interpretation greedily. */
   bool greedyInitActivated = false;
   ConfigurationSolver solver;
   ConfigurationSpec specManager;
 
+  /** @brief The heuristic used to select the phase of the MAX variables. */
   std::string phaseHeuristicMax = "best";
   unsigned randomPhaseHeuristicMax = 100;
   ConfigurationBranchingHeuristic branchingHeuristicMax;
@@ -41,6 +43,7 @@ class ConfigurationMaxTMethod : public Configuration {
   ConfigurationBranchingHeuristic branchingHeuristicInd;
   ConfigurationCache cacheManagerInd;
 
+  /** @brief Specify a threshold value as a list of string (e.g. for a complex 12 3 is equivalent to 12 + 3i). */
   std::vector<std::string> thresholdList;
 };
 }  // namespace d4

@@ -16,7 +16,6 @@ option(BUILD_PROFILE "Build with profiling (-p/-pg)" OFF)
 if(BUILD_STATIC)
     # Tell CMake's find_package to strictly look for static libraries
     set(ZLIB_USE_STATIC_LIBS ON)
-    set(Boost_USE_STATIC_LIBS ON)
     
     # Tell CMake's find_library to look for .a files instead of .so files
     if(NOT MSVC)
@@ -42,15 +41,15 @@ get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLU
 
 target_include_directories(counter PRIVATE 
     ${ROOT_INCLUDES}
-    ${PARSER_DIR}  # <-- This allows you to #include just the filename directly
+    ${ROOT_INCLUDES}/src/include
+    ${PARSER_DIR}
 )
 
 # Find Dependencies
 # ZLIB
 find_package(ZLIB REQUIRED)
 
-# Boost (Program Options)
-find_package(Boost REQUIRED COMPONENTS program_options)
+
 
 # GMP & GMPXX
 find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
@@ -82,7 +81,6 @@ target_link_libraries(counter PRIVATE
     ${BIPE_LIB}
     ${GMPXX_LIB}
     ${GMP_LIB}
-    Boost::program_options
     ZLIB::ZLIB
 )
 

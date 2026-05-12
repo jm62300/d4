@@ -44,6 +44,7 @@ class SolverNameManager {
 
 class OptionSolver {
  public:
+  /** @brief The solver we will use */
   SolverName solverName;
 
   friend std::ostream& operator<<(std::ostream& out, const OptionSolver& dt) {

@@ -18,16 +18,14 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
 #include "ParserDimacs.hpp"
-
-namespace po = boost::program_options;
+#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 
 /**
- * @brief Run a counter.
+ * @brief Run a counter using a configuration object.
  *
- * @param vm are the options.
- * @param problem is the problem we deal with.
+ * @param config      The configuration object.
+ * @param formula     The parsed input formula.
  */
-void counterDemo(const po::variables_map& vm, const parser::Formula& formula);
+void counterDemo(const d4::ConfigurationDpllStyleMethod& config,
+                 const parser::Formula& formula);
