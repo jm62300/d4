@@ -24,15 +24,13 @@
 
 #include "CounterDemo.hpp"
 #include "ParserDimacs.hpp"
-#include "src/methods/MethodManager.hpp"
 #include "src/binding/json/Binding.hpp"
 #include "src/binding/json/SchemaProviders.hpp"
 #include "src/configurations/ConfigurationDpllStyleMethod.hpp"
-
+#include "src/methods/MethodManager.hpp"
 
 namespace fs = std::filesystem;
 d4::MethodManager* methodRun = nullptr;
-
 
 /**
    The main function.
@@ -69,12 +67,13 @@ int main(int argc, char** argv) {
               << "  -i, --input   Path to the input DIMACS file (required)\n"
               << "  -h, --help    Show this help screen\n"
               << "\n\033[1mConfiguration Help:\033[0m\n"
-              << "The configuration follows this schema. Use --key=value to override fields.\n";
-    d4::to_pretty_tree(d4::generate_schema<d4::ConfigurationDpllStyleMethod>(), std::cout);
+              << "The configuration follows this schema. Use --key=value to "
+                 "override fields.\n";
+    d4::to_pretty_tree(d4::generate_schema<d4::ConfigurationDpllStyleMethod>(),
+                       std::cout);
     std::cout << std::endl;
     return showHelp ? 0 : 1;
   }
-
 
   // Check if input file exists
   if (!fs::exists(inputPath)) {
@@ -85,7 +84,6 @@ int main(int argc, char** argv) {
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
-
 
 #if 0
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
