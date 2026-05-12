@@ -56,10 +56,9 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
 find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
 
-# Resolve the absolute path to the parent build directory
-get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" ABSOLUTE)
 
 # D4 Library
+get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" ABSOLUTE)
 find_library(D4_LIB 
     NAMES d4 libd4
     PATHS "${D4_BUILD_DIR}"
@@ -67,16 +66,27 @@ find_library(D4_LIB
     REQUIRED
 )
 
-# 6. Link Dependencies
+# Bipe Library
+get_filename_component(BIPE_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../preproc/bipe/build/" ABSOLUTE)
+find_library(BIPE_LIB 
+    NAMES bipe libbipe
+    PATHS "${BIPE_BUILD_DIR}"
+    NO_DEFAULT_PATH
+    REQUIRED
+)
+
+
+# Link Dependencies
 target_link_libraries(counter PRIVATE 
     ${D4_LIB}
+    ${BIPE_LIB}
     ${GMPXX_LIB}
     ${GMP_LIB}
     Boost::program_options
     ZLIB::ZLIB
 )
 
-# 7. Apply Target-Specific Flags
+# Apply Target-Specific Flags
 if(BUILD_STATIC)
     target_compile_definitions(counter PRIVATE NDEBUG)
     if(NOT MSVC)
