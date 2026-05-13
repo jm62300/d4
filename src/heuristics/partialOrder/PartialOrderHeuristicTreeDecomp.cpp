@@ -28,38 +28,39 @@ namespace d4 {
  * implementation.
  */
 PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
-    const OptionPartialOrderHeuristic &options, FormulaManager &om,
-    std::ostream &out) {
-  TreeDecomposition *decomp = TreeDecomposition::makeTreeDecomposition(
+    const OptionPartialOrderHeuristic& options, FormulaManager& om,
+    std::ostream& out) {
+  std::cout << "c [PARTIAL ORDER HEURISTIC TREE DECOMP] Factory\n";
+  TreeDecomposition* decomp = TreeDecomposition::makeTreeDecomposition(
       options, om.getProblemInputType(), out);
 
-  TreeDecomp *tree = decomp->computeDecomposition(om);
+  TreeDecomp* tree = decomp->computeDecomposition(om);
   assert(tree);
   std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed size("
             << tree->getSizeLargestBag() << ") first size("
             << tree->getNode().size() << ")\n";
 
   // construct the topological order.
-  std::vector<TreeDecomp *> stack;
+  std::vector<TreeDecomp*> stack;
   stack.push_back(tree);
 
   m_topologicalOrder.resize(om.getNbVariable() + 1, 0);
-  for (auto &v : m_topologicalOrder) v = 0;
+  for (auto& v : m_topologicalOrder) v = 0;
 
   unsigned level = 1, largestBag = 0;
   while (stack.size()) {
-    std::vector<TreeDecomp *> saveStack = stack;
+    std::vector<TreeDecomp*> saveStack = stack;
     stack.clear();
 
-    for (auto *tree : saveStack) {
+    for (auto* tree : saveStack) {
       if (tree->getNode().size() > largestBag)
         largestBag = tree->getNode().size();
-      for (auto &v : tree->getNode()) {
+      for (auto& v : tree->getNode()) {
         assert(v < m_topologicalOrder.size());
         if (!m_topologicalOrder[v]) m_topologicalOrder[v] = level;
       }
 
-      for (auto *t : tree->getSons()) stack.push_back(t);
+      for (auto* t : tree->getSons()) stack.push_back(t);
     }
 
     level++;
@@ -76,7 +77,7 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
   } else
     m_scaleFactor = options.scaleFactor;
 
-  for (auto &w : m_topologicalOrder) {
+  for (auto& w : m_topologicalOrder) {
     w = m_scaleFactor * ((double)(level - w + 1)) / (double)level;
   }
 
@@ -93,15 +94,15 @@ PartialOrderHeuristicTreeDecomp::~PartialOrderHeuristicTreeDecomp() {
 /**
  * @brief PartialOrderHeuristicTreeDecomp::computeCutSet implementation.
  */
-void PartialOrderHeuristicTreeDecomp::computeCutSet(std::vector<Var> &component,
-                                                    std::vector<Var> &cutSet) {
+void PartialOrderHeuristicTreeDecomp::computeCutSet(std::vector<Var>& component,
+                                                    std::vector<Var>& cutSet) {
   if (!component.size()) return;
 
   unsigned min = m_topologicalOrder[component[0]];
-  for (auto &v : component)
+  for (auto& v : component)
     if (m_topologicalOrder[v] < min) min = m_topologicalOrder[v];
 
-  for (auto &v : component)
+  for (auto& v : component)
     if (m_topologicalOrder[v] == min) cutSet.push_back(v);
 }  // computeCutSet
 

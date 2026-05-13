@@ -95,7 +95,7 @@ class OptionPartialOrderHeuristic : public OptionGroup {
   /** @brief The tree decomposition technique used. */
   Option<TreeDecompositionMethod> treeDecompositionMethod{
       "treeDecompositionMethod", "The tree decomposition technique used",
-      TREE_DECOMP_PARTITION};
+      TREE_DECOMP_TREE_WIDTH};
 
   /** @brief The tool used for computing the tree decomposition. */
   Option<TreeDecompositionerMethod> treeDecompositionerMethod{
