@@ -19,8 +19,12 @@
 
 #pragma once
 
+#include <string>
+#include <map>
 #include "src/representation/graph/Graph.hpp"
 #include "src/treeDecomposition/TreeDecomposition.hpp"
+#include "src/options/EnumMetadata.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -43,6 +47,16 @@ class TreeDecompositionerMethodManager {
     throw(FactoryException("Tree Decomposition method unknown", __FILE__,
                            __LINE__));
   }  // getTreeDecompositionerMethodManager
+
+  static std::map<int, std::string> getMapping() {
+    return {{TREE_DECOMP_TOOL_FLOW_CUTTER, "flow-cutter"}};
+  }
+};
+
+template <>
+struct EnumMetadata<TreeDecompositionerMethod> {
+  static std::string name() { return "TreeDecompositionerMethod"; }
+  static std::map<int, std::string> mapping() { return TreeDecompositionerMethodManager::getMapping(); }
 };
 
 class TreeDecompositioner {

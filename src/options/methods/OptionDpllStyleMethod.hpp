@@ -21,40 +21,54 @@
 #include <iostream>
 #include <string>
 
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
-#include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
+#include "src/options/methods/OptionOperationManager.hpp"
+#include "src/options/solvers/OptionSolver.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 
 namespace d4 {
-class OptionDpllStyleMethod {
+class OptionDpllStyleMethod : public OptionRoot {
  public:
-  OptionOperationManager optionOperationManager;
-  OptionCacheManager optionCacheManager;
-  OptionSolver optionSolver;
-  OptionSpecManager optionSpecManager;
-  OptionBranchingHeuristic optionBranchingHeuristic;
-  bool exploitModel;
-  bool verbosity;
+  OptionDpllStyleMethod(const std::string& name = "counter", const std::string& description = "DPLL-style counter options")
+      : OptionRoot() {
+    m_name = name;
+    m_description = description;
+  }
 
-  /**
-   * @brief Construct a new object with the default parameter.
-   */
-  OptionDpllStyleMethod()
-      : OptionDpllStyleMethod(ConfigurationDpllStyleMethod()) {}
+  Option<OperationType> operationType{"operationType", "The operation type", OP_COUNTING};
+  OptionCacheManager optionCacheManager{"cache", "Cache options"};
+  OptionSolver optionSolver{"solver", "Solver options"};
+  OptionSpecManager optionSpecManager{"spec", "Formula manager options"};
+  OptionBranchingHeuristic optionBranchingHeuristic{"branching", "Branching options"};
+  Option<bool> exploitModel{"exploitModel", "If we exploit model during search", true};
+  Option<bool> verbosity{"verbosity", "The verbosity level", true};
 
-  /**
-   * @brief Construct a new Option Dpll Style Method object.
-   *
-   * @param config gives the method configuration.
-   */
-  OptionDpllStyleMethod(const ConfigurationDpllStyleMethod& config);
+  std::vector<OptionBase*> getAllOptions() override {
+    auto options = OptionRoot::getAllOptions();
+    options.push_back((OptionBase*)&operationType);
+    options.push_back((OptionBase*)&optionCacheManager);
+    options.push_back((OptionBase*)&optionSolver);
+    options.push_back((OptionBase*)&optionSpecManager);
+    options.push_back((OptionBase*)&optionBranchingHeuristic);
+    options.push_back((OptionBase*)&exploitModel);
+    options.push_back((OptionBase*)&verbosity);
+    return options;
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionDpllStyleMethod& dt) {
-    out << " Option DPLL-style Method: exploit-model(" << dt.exploitModel
-        << ") ";
+    out << static_cast<const OptionRoot&>(dt);
+    out << " Option DPLL-style Method: exploit-model(" << dt.exploitModel.get()
+        << ") verbosity(" << dt.verbosity.get() << ")\n";
+    out << " Operation: " << OperationTypeManager::getOperatorType(dt.operationType.get()) << "\n";
+    out << dt.optionCacheManager << "\n";
+    out << dt.optionSolver << "\n";
+    out << dt.optionSpecManager << "\n";
+    out << dt.optionBranchingHeuristic << "\n";
     return out;
   }  // <<
 };

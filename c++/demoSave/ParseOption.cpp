@@ -42,35 +42,33 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
                                                const std::string &prefix) {
   d4::ConfigurationCache cache;
 
-  cache.cachingMethod = d4::CachingMehodManager::getCachingMethod(
+  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod(
       vm[prefix + "cache-method"].as<std::string>());
 
-  cache.cacheCleaningStrategy =
+  cache.optionCacheCleaningManager.cacheCleaningStrategy =
       d4::CacheCleaningStrategyManager::getCacheCleaningStrategy(
           vm[prefix + "cache-reduction-strategy"].as<std::string>());
-
-  cache.modeStore = d4::ModeStoreManager::getModeStore(
+ 
+  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore(
       vm[prefix + "cache-store-strategy"].as<std::string>());
-
-  cache.clauseRepresentation =
+ 
+  cache.optionBucketManager.clauseRepresentation =
       d4::ClauseRepresentationManager::getClauseRepresentation(
           vm[prefix + "cache-clause-representation"].as<std::string>());
-
-  cache.sizeFirstPage =
+ 
+  cache.optionBucketManager.sizeFirstPage =
       vm[prefix + "cache-size-first-page"].as<unsigned long>();
-
-  cache.sizeAdditionalPage =
+ 
+  cache.optionBucketManager.sizeAdditionalPage =
       vm[prefix + "cache-size-additional-page"].as<unsigned long>();
-
-  cache.limitVarSym =
-      vm[prefix + "cache-clause-representation-combi-limitVar-sym"]
-          .as<unsigned>();
-
-  cache.isActivated = vm[prefix + "cache-activated"].as<bool>();
-
-  cache.limitVarIndex =
-      vm[prefix + "cache-clause-representation-combi-limitVar-index"]
-          .as<unsigned>();
+ 
+  cache.optionBucketManager.limitVarSym =
+      vm[prefix + "cache-clause-representation-combi-limitVar-sym"].as<unsigned>();
+ 
+  cache.isActivated = vm["cache-activated"].as<bool>();
+ 
+  cache.optionBucketManager.limitVarIndex =
+      vm[prefix + "cache-clause-representation-combi-limitVar-index"].as<unsigned>();
 
   return cache;
 }  // parseCacheConfiguration

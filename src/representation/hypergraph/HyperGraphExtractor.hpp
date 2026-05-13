@@ -21,10 +21,14 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include <string>
 
 #include "HyperGraph.hpp"
 #include "src/formulaManager/cnf/CnfManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
+#include "src/options/EnumMetadata.hpp"
+#include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
 
@@ -48,6 +52,16 @@ class HyperGraphExtractorMethodManager {
 
     throw(FactoryException("Hyper Graph method unknown", __FILE__, __LINE__));
   }  // getHyperGraphExtractorMethodManager
+
+  static std::map<int, std::string> getMapping() {
+    return {{HYPER_GRAPH_DUAL, "dual"}};
+  }
+};
+
+template <>
+struct EnumMetadata<HyperGraphExtractorMethod> {
+  static std::string name() { return "HyperGraphExtractorMethod"; }
+  static std::map<int, std::string> mapping() { return HyperGraphExtractorMethodManager::getMapping(); }
 };
 
 struct InfoHyperGraph {

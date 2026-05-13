@@ -26,11 +26,11 @@
 
 #include "CompilerDemo.hpp"
 #include "ParseOption.hpp"
-#include "src/configurations/Configuration.hpp"
+#include "src/options/Option.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
-#include "src/problem/circuit/ProblemManagerCircuit.hpp"
+#include "src/problem/ProblemManager.hpp"
 
 #ifndef NOMAIN
 
@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
               << vm["input-type"].as<std::string>() << " -> "
               << vm["translate"].as<std::string>() << '\n';
 
+    /*
     static_cast<d4::ProblemManagerCircuit *>(initProblem)
         ->getInputVar(projectedVar);
 
@@ -105,6 +106,7 @@ int main(int argc, char **argv) {
             vm["translate"].as<std::string>()));
     delete initProblem;
     initProblem = tmp;
+    */
   }
 
   // run the method asked.
@@ -112,6 +114,7 @@ int main(int argc, char **argv) {
       d4::MethodNameManager::getMethodName("ddnnf-compiler");
 
   // preproc.
+  /*
   d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
 
   bool rewind = false;
@@ -128,6 +131,8 @@ int main(int argc, char **argv) {
       d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
 
   if (rewind) problem->getSelectedVar().clear();
+  */
+  ProblemManager *problem = initProblem;
 
   // compile.
   compilerDemo(vm, problem);

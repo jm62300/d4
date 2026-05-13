@@ -24,7 +24,6 @@
 #include <cassert>
 
 #include "ParseOption.hpp"
-#include "src/configurations/ConfigurationMaxTMethod.hpp"
 #include "src/methods/MaxT.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionMaxTMethod.hpp"
@@ -201,25 +200,25 @@ class AggregateMpfFloat {
  */
 void maxT(const po::variables_map &vm, ProblemManager *problem) {
   // get the configuration.
-  ConfigurationMaxTMethod config;
+  OptionMaxTMethod options;
 
-  config.solver.solverName = MINISAT_CNF;
+  options.optionSolver.solverName = MINISAT_CNF;
 
-  config.cacheManagerMax.isActivated = true;
-  config.cacheManagerMax.sizeFirstPage = 1UL << 30;
+  options.optionCacheManagerMax.isActivated = true;
+  options.optionCacheManagerMax.optionBucketManager.sizeFirstPage = 1UL << 30;
 
-  config.cacheManagerInd.isActivated = true;
-  config.cacheManagerInd.sizeFirstPage = 1UL << 30;
+  options.optionCacheManagerInd.isActivated = true;
+  options.optionCacheManagerInd.optionBucketManager.sizeFirstPage = 1UL << 30;
 
-  config.branchingHeuristicMax.branchingHeuristicType = BRANCHING_CLASSIC;
-  config.branchingHeuristicInd.branchingHeuristicType = BRANCHING_CLASSIC;
-  config.branchingHeuristicInd.configurationPartialOrderHeuristic.verbosity =
+  options.optionBranchingHeuristicMax.branchingHeuristicType = BRANCHING_CLASSIC;
+  options.optionBranchingHeuristicInd.branchingHeuristicType = BRANCHING_CLASSIC;
+  options.optionBranchingHeuristicInd.optionPartialOrderHeuristic.verbosity =
       false;
 
-  config.branchingHeuristicMax.scoringMethodType = SCORE_VSADS;
-  config.branchingHeuristicInd.scoringMethodType = SCORE_VSADS;
+  options.optionBranchingHeuristicMax.scoringMethodType = SCORE_VSADS;
+  options.optionBranchingHeuristicInd.scoringMethodType = SCORE_VSADS;
 
-  config.phaseHeuristicMax = vm["phaseHeuristicMax"].as<std::string>();
+  options.phaseHeuristicMax = vm["phaseHeuristicMax"].as<std::string>();
 
   std::string s = vm["threshold"].as<std::string>();
   std::stringstream ss(s);
@@ -227,13 +226,10 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
 
   // Splitting the str string by delimiter
   while (getline(ss, t, ' '))
-    if (t.size()) config.thresholdList.push_back(t);
+    if (t.size()) options.thresholdList.push_back(t);
 
   bool isFloat = problem->isFloat();
-  MethodManager::displayInfoVariables(problem, std::cout);
-
-  // init the options.
-  OptionMaxTMethod options(config);
+  MethodManager::displayInfoVariables(*problem, std::cout);
 
   if (vm["complex"].as<bool>()) {
     std::cout << "c Run with the complex mode\n";

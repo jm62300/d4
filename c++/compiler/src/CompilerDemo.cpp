@@ -24,7 +24,6 @@
 #include <cassert>
 
 #include "ParseOption.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
@@ -104,31 +103,28 @@ void compiler(const OptionDpllStyleMethod &options, ProblemManager *problem,
  */
 void compilerDemo(const po::variables_map &vm, ProblemManager *problem) {
   // get the configuration.
-  ConfigurationDpllStyleMethod config;
+  OptionDpllStyleMethod options;
 
-  config.methodName = d4::MethodNameManager::getMethodName("ddnnf-compiler");
+  options.methodName = d4::MethodNameManager::getMethodName("ddnnf-compiler");
 
-  config.inputName = vm["input"].as<std::string>();
-  config.problemInputType = d4::ProblemInputTypeManager::getInputType(
+  options.inputName = vm["input"].as<std::string>();
+  options.problemInputType = d4::ProblemInputTypeManager::getInputType(
       vm["input-type"].as<std::string>());
 
-  config.cache = parseCacheConfiguration(vm);
-  config.branchingHeuristic = parseBranchingHeuristicConfiguration(vm);
-  config.solver.solverName =
+  options.optionCacheManager = parseCacheConfiguration(vm);
+  options.optionBranchingHeuristic = parseBranchingHeuristicConfiguration(vm);
+  options.optionSolver.solverName =
       d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
 
-  config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  options.optionSpecManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
       vm["occurrence-manager"].as<std::string>());
-  config.spec.removeGates = vm["remove-gates"].as<bool>();
+  options.optionSpecManager.removeGates = vm["remove-gates"].as<bool>();
 
-  config.operationType =
+  options.operationType =
       d4::OperationTypeManager::getOperatorType("ddnnf-compiler");
 
   bool isFloat = problem->isFloat();
   MethodManager::displayInfoVariables(problem, std::cout);
-
-  // init the options.
-  OptionDpllStyleMethod options(config);
 
   // construct and call the counter regarding if it is MC or WMC.
   std::string dumpFile = vm["dump-file"].as<std::string>();

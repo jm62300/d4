@@ -47,8 +47,8 @@ BucketManager *BucketManager::getBucketMangerCnf(CnfManager &scnf,
     case CACHE_COMBI:
       return new BucketManagerCnfCombi(
           scnf, options.modeStore, options.sizeFirstPage,
-          options.sizeAdditionalPage, options.limitNbVarSym,
-          options.limitNbVarIndex);
+          options.sizeAdditionalPage, options.limitVarSym,
+          options.limitVarIndex);
   }
 
   return NULL;

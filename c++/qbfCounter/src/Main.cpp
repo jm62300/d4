@@ -26,10 +26,8 @@
 
 #include "ParseOption.hpp"
 #include "QbfCounterDemo.hpp"
-#include "src/configurations/Configuration.hpp"
+#include "src/options/Option.hpp"
 #include "src/methods/MethodManager.hpp"
-#include "src/options/preprocs/OptionPreprocManager.hpp"
-#include "src/preprocs/PreprocManager.hpp"
 
 #ifndef NOMAIN
 

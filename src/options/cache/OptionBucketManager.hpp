@@ -1,26 +1,13 @@
-/*
- * d4
- * Copyright (C) 2020  Univ. Artois & CNRS
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
- */
 #pragma once
 
 #include <string>
+#include <map>
+#include <vector>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionGroup.hpp"
+#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
 
@@ -35,14 +22,18 @@ class ModeStoreManager {
     if (m == CACHE_NT) return "not-touched";
 
     throw(FactoryException("ModeStore unknown", __FILE__, __LINE__));
-  }  // getModeStoreName
+  }
 
   static ModeStore getModeStore(const std::string& m) {
     if (m == "all") return CACHE_ALL;
     if (m == "not-touched") return CACHE_NT;
     if (m == "not-binary") return CACHE_NB;
     throw(FactoryException("ModeStore unknown", __FILE__, __LINE__));
-  }  // getModeStoreName
+  }
+
+  static std::map<int, std::string> getMapping() {
+    return {{CACHE_ALL, "all"}, {CACHE_NB, "not-binary"}, {CACHE_NT, "not-touched"}};
+  }
 };
 
 class ClauseRepresentationManager {
@@ -53,7 +44,7 @@ class ClauseRepresentationManager {
     if (c == CACHE_SYM) return "sym";
     if (c == CACHE_COMBI) return "combi";
     throw(FactoryException("ClauseRepresentation unknown", __FILE__, __LINE__));
-  }  // getClauseRepresentationName
+  }
 
   static ClauseRepresentation getClauseRepresentation(const std::string& c) {
     if (c == "clause") return CACHE_CLAUSE;
@@ -61,41 +52,62 @@ class ClauseRepresentationManager {
     if (c == "sym") return CACHE_SYM;
     if (c == "combi") return CACHE_COMBI;
     throw(FactoryException("ClauseRepresentation unknown", __FILE__, __LINE__));
-  }  // getClauseRepresentationName
+  }
+
+  static std::map<int, std::string> getMapping() {
+    return {{CACHE_CLAUSE, "clause"}, {CACHE_INDEX, "index"}, {CACHE_SYM, "sym"}, {CACHE_COMBI, "combi"}};
+  }
 };
 
-class OptionBucketManager {
+template <>
+struct EnumMetadata<ModeStore> {
+  static std::string name() { return "ModeStore"; }
+  static std::map<int, std::string> mapping() { return ModeStoreManager::getMapping(); }
+};
+
+template <>
+struct EnumMetadata<ClauseRepresentation> {
+  static std::string name() { return "ClauseRepresentation"; }
+  static std::map<int, std::string> mapping() { return ClauseRepresentationManager::getMapping(); }
+};
+
+class OptionBucketManager : public OptionGroup {
  public:
+  OptionBucketManager(const std::string& name = "bucket", const std::string& description = "Bucket manager options")
+      : OptionGroup(name, description) {}
+
   /** @brief The strategy used to store the clause in a bucket (all, not-binary and not-touched). */
-  ModeStore modeStore;
+  Option<ModeStore> modeStore{"modeStore", "The strategy used to store the clause in a bucket", CACHE_NT};
   /** @brief The way the clause are represented in the cache (combi, sym, clause and index). */
-  ClauseRepresentation clauseRepresentation;
-  /** @brief The block size of memory allocated for the first page of the cache structure. */
-  unsigned long sizeFirstPage;
-  /** @brief The block size of memory allocated for the next page of the cache structure. */
-  unsigned long sizeAdditionalPage;
-  /** @brief In the mixed strategy, if we have less than a given number of variable then we use the symmetry caching representation. */
-  unsigned limitNbVarSym = 0;
-  /** @brief In the mixed strategy, if we have more than a given number of variable then we use the index caching representation. */
-  unsigned limitNbVarIndex = 0;
+  Option<ClauseRepresentation> clauseRepresentation{"clauseRepresentation", "The way the clause are represented in the cache", CACHE_CLAUSE};
+  /** @brief The block size of memory allocated for the first page. */
+  Option<unsigned long> sizeFirstPage{"sizeFirstPage", "The block size of memory allocated for the first page", 1UL << 32};
+  /** @brief The block size of memory allocated for the next page. */
+  Option<unsigned long> sizeAdditionalPage{"sizeAdditionalPage", "The block size of memory allocated for the next page", 1UL << 29};
+  /** @brief Limit for symmetry caching. */
+  Option<unsigned> limitVarSym{"limitVarSym", "Limit for symmetry caching", 20};
+  /** @brief Limit for index caching. */
+  Option<unsigned> limitVarIndex{"limitVarIndex", "Limit for index caching", 2000};
 
-  friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionBucketManager& dt) {
+  std::vector<OptionBase*> getAllOptions() override {
+    return {(OptionBase*)&modeStore, (OptionBase*)&clauseRepresentation,
+            (OptionBase*)&sizeFirstPage, (OptionBase*)&sizeAdditionalPage,
+            (OptionBase*)&limitVarSym, (OptionBase*)&limitVarIndex};
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, const OptionBucketManager& dt) {
     out << " Option BucketManager:"
-        << " storage(" << ModeStoreManager::getModeStore(dt.modeStore) << ") "
-        << " representation("
-        << ClauseRepresentationManager::getClauseRepresentation(
-               dt.clauseRepresentation)
-        << ") "
-        << " size_first_page(" << dt.sizeFirstPage << ")"
-        << " size_additional_page(" << dt.sizeAdditionalPage << ")";
+        << " storage(" << ModeStoreManager::getModeStore(dt.modeStore.get()) << ") "
+        << " representation(" << ClauseRepresentationManager::getClauseRepresentation(dt.clauseRepresentation.get()) << ") "
+        << " size_first_page(" << dt.sizeFirstPage.get() << ")"
+        << " size_additional_page(" << dt.sizeAdditionalPage.get() << ")";
 
-    if (dt.clauseRepresentation == CACHE_COMBI)
-      out << " limit #var sym(" << dt.limitNbVarSym << ")"
-          << " limit #var index (" << dt.limitNbVarIndex << ")";
+    if (dt.clauseRepresentation.get() == CACHE_COMBI)
+      out << " limit #var sym(" << dt.limitVarSym.get() << ")"
+          << " limit #var index (" << dt.limitVarIndex.get() << ")";
 
     return out;
-  }  // <<
+  }
 };
 
 }  // namespace d4

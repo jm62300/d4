@@ -18,42 +18,51 @@
  */
 #pragma once
 
-#include "src/configurations/ConfigurationMinSharpSatMethod.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
 
 namespace d4 {
-class OptionMinSharpSatMethod {
+class OptionMinSharpSatMethod : public OptionRoot {
  public:
-  bool greedyInitActivated;
-  bool digOnAnd;
-  double threshold;
-  OptionSolver optionSolver;
-  OptionSpecManager optionSpecManager;
+  OptionMinSharpSatMethod(const std::string& name = "", const std::string& description = "MinSharpSAT options")
+      : OptionRoot() {
+    m_name = name;
+    m_description = description;
+  }
 
-  std::string phaseHeuristicMin;
-  unsigned randomPhaseHeuristicMin;
-  OptionBranchingHeuristic optionBranchingHeuristicMin;
-  OptionCacheManager optionCacheManagerMin;
+  Option<bool> greedyInitActivated{"greedyInitActivated", "Search for a first interpretation greedily", false};
+  Option<bool> digOnAnd{"digOnAnd", "Search for an instantiation to get a bound", true};
+  Option<double> threshold{"threshold", "Weighted models threshold", 1.0};
+  OptionSolver optionSolver{"solver", "Solver options"};
+  OptionSpecManager optionSpecManager{"spec", "Formula manager options"};
 
-  OptionBranchingHeuristic optionBranchingHeuristicInd;
-  OptionCacheManager optionCacheManagerInd;
+  Option<std::string> phaseHeuristicMin{"phaseHeuristicMin", "The heuristic used to select the phase of the MIN variables", "best"};
+  Option<unsigned> randomPhaseHeuristicMin{"randomPhaseHeuristicMin", "Random phase heuristic percentage for MIN variables", 6};
+  OptionBranchingHeuristic optionBranchingHeuristicMin{"branchingMin", "Branching options for MIN variables"};
+  OptionCacheManager optionCacheManagerMin{"cacheMin", "Cache options for MIN variables"};
 
-  /**
-   * @brief Construct a new object with the default parameters.
-   *
-   */
-  OptionMinSharpSatMethod()
-      : OptionMinSharpSatMethod(ConfigurationMinSharpSatMathod()) {}
+  OptionBranchingHeuristic optionBranchingHeuristicInd{"branchingInd", "Branching options for IND variables"};
+  OptionCacheManager optionCacheManagerInd{"cacheInd", "Cache options for IND variables"};
 
-  /**
-   * @brief Construct a OptionMinSharpSatMethod object from a configuration.
-   *
-   * @param config is the configuration we want to use.
-   */
-  OptionMinSharpSatMethod(const ConfigurationMinSharpSatMathod& config);
+  std::vector<OptionBase*> getAllOptions() override {
+    auto options = OptionRoot::getAllOptions();
+    options.push_back((OptionBase*)&greedyInitActivated);
+    options.push_back((OptionBase*)&digOnAnd);
+    options.push_back((OptionBase*)&threshold);
+    options.push_back((OptionBase*)&optionSolver);
+    options.push_back((OptionBase*)&optionSpecManager);
+    options.push_back((OptionBase*)&phaseHeuristicMin);
+    options.push_back((OptionBase*)&randomPhaseHeuristicMin);
+    options.push_back((OptionBase*)&optionBranchingHeuristicMin);
+    options.push_back((OptionBase*)&optionCacheManagerMin);
+    options.push_back((OptionBase*)&optionBranchingHeuristicInd);
+    options.push_back((OptionBase*)&optionCacheManagerInd);
+    return options;
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionMinSharpSatMethod& dt) {

@@ -22,32 +22,42 @@
 #include <iostream>
 #include <string>
 
-#include "src/configurations/ConfigurationProjMcMethod.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
 
 namespace d4 {
-class OptionProjMcMethod {
+class OptionProjMcMethod : public OptionRoot {
  public:
-  bool refinement;
-  OptionCacheManager optionCache;
-  OptionSolver optionSolver;
-  OptionSpecManager optionSpecs;
-  OptionDpllStyleMethod optionCounter;
+  OptionProjMcMethod(const std::string& name = "", const std::string& description = "ProjMC options")
+      : OptionRoot() {
+    m_name = name;
+    m_description = description;
+  }
 
-  /**
-   * @brief Construct a new Option Proj Mc Method object regarding a given
-   * configuration.
-   *
-   * @param config is the configuration we use for setting the option.
-   */
-  OptionProjMcMethod(const ConfigurationProjMcMethod& config);
+  Option<bool> refinement{"refinement", "Refinement activated or not", true};
+  OptionCacheManager optionCache{"cache", "Cache options"};
+  OptionSolver optionSolver{"solver", "Solver options"};
+  OptionSpecManager optionSpecs{"spec", "Formula manager options"};
+  OptionDpllStyleMethod optionCounter{"counter", "Counter options"};
+
+  std::vector<OptionBase*> getAllOptions() override {
+    auto options = OptionRoot::getAllOptions();
+    options.push_back((OptionBase*)&refinement);
+    options.push_back((OptionBase*)&optionCache);
+    options.push_back((OptionBase*)&optionSolver);
+    options.push_back((OptionBase*)&optionSpecs);
+    options.push_back((OptionBase*)&optionCounter);
+    return options;
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionProjMcMethod& dt) {
     out << " Option ProjMC Method:"
-        << " refinement(" << dt.refinement << ")"
+        << " refinement(" << dt.refinement.get() << ")"
         << " cache(" << dt.optionCache << ")"
         << " solver(" << dt.optionSolver << ")"
         << " spec(" << dt.optionSpecs << ")"

@@ -24,6 +24,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/representation/hypergraph/HyperGraph.hpp"
 #include "src/representation/hypergraph/HyperGraphExtractor.hpp"
+#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
 
@@ -40,11 +41,25 @@ class PartitionerNameManager {
     if (m == "none") return PARTITIONER_NONE;
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
+
+  static std::map<int, std::string> getMapping() {
+    return {{PARTITIONER_NONE, "none"}};
+  }
+};
+
+template <>
+struct EnumMetadata<PartitionerName> {
+  static std::string name() { return "PartitionerName"; }
+  static std::map<int, std::string> mapping() { return PartitionerNameManager::getMapping(); }
 };
 
 class PartitionerManager {
  public:
   enum Level { NORMAL, SPEED, QUALITY };
+
+  static std::map<int, std::string> getLevelMapping() {
+    return {{NORMAL, "normal"}, {SPEED, "speed"}, {QUALITY, "quality"}};
+  }
 
   /**
    * @brief Fatory for creating a partitioner.
@@ -63,5 +78,11 @@ class PartitionerManager {
 
   virtual void computePartition(HyperGraph& hypergraph, Level level,
                                 std::vector<int>& partition) = 0;
+};
+
+template <>
+struct EnumMetadata<PartitionerManager::Level> {
+  static std::string name() { return "PartitionerManager::Level"; }
+  static std::map<int, std::string> mapping() { return PartitionerManager::getLevelMapping(); }
 };
 }  // namespace d4

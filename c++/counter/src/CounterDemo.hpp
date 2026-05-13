@@ -19,7 +19,7 @@
 #pragma once
 
 #include "ParserDimacs.hpp"
-#include "src/configurations/ConfigurationDpllStyleMethod.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
 
 /**
  * @brief Run a counter using a configuration object.
@@ -27,5 +27,5 @@
  * @param config      The configuration object.
  * @param formula     The parsed input formula.
  */
-void counterDemo(const d4::ConfigurationDpllStyleMethod& config,
+void counterDemo(const d4::OptionDpllStyleMethod& config,
                  const parser::Formula& formula);

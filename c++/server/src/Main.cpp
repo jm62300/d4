@@ -36,7 +36,7 @@
 
 #include "ParseOption.hpp"
 #include "ServerCounter.hpp"
-#include "src/configurations/Configuration.hpp"
+#include "src/options/Option.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/preprocs/OptionPreprocManager.hpp"
 #include "src/preprocs/PreprocManager.hpp"
@@ -175,8 +175,11 @@ int main(int argc, char **argv) {
         d4::MethodNameManager::getMethodName("counting");
 
     // preproc.
+    /*
     ProblemManager *problem = d4::MethodManager::runPreproc(
         parsePreprocConfiguration(vm), initProblem, std::cout);
+    */
+    ProblemManager *problem = initProblem;
 
     // count.
     serverCounter(vm, problem, csocket);

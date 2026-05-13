@@ -19,8 +19,12 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionRegistry.hpp"
+#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
 enum SpecUpdateType {
@@ -47,23 +51,40 @@ class SpecUpdateManager {
 
     throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
   }  // getSpectUpdate
+
+  static std::map<int, std::string> getMapping() {
+    return {
+        {SPEC_DYNAMIC, "dynamic"},
+        {SPEC_DYNAMIC_BLOCKED_SIMP, "dynamicBlockedSimp"},
+        {SPEC_DYNAMIC_PURE_SIMP, "dynamicPureSimp"}};
+  }
 };
 
-class OptionSpecManager {
- public:
-  /** @brief The occurrence manager used (dynamic, dynamicBlockedSimp or dynamicPureSimp).  */
-  SpecUpdateType specUpdateType;
-  /** @brief If this option is activated and if the problem is a circuit, then some gates can be removed during the search if those ones are not active. */
-  bool removeGates;
-  bool needFastNotSatisfied;
+template <>
+struct EnumMetadata<SpecUpdateType> {
+  static std::string name() { return "SpecUpdateType"; }
+  static std::map<int, std::string> mapping() { return SpecUpdateManager::getMapping(); }
+};
 
-  friend std::ostream& operator<<(std::ostream& out,
-                                  const OptionSpecManager& dt) {
+class OptionSpecManager : public OptionGroup {
+ public:
+  OptionSpecManager(const std::string& name = "spec", const std::string& description = "Formula manager options")
+      : OptionGroup(name, description) {}
+
+  Option<SpecUpdateType> specUpdateType{"specUpdateType", "The occurrence manager used", SPEC_DYNAMIC};
+  Option<bool> removeGates{"removeGates", "If some gates can be removed during the search", false};
+  Option<bool> needFastNotSatisfied{"needFastNotSatisfied", "If we need fast not satisfied", false};
+
+  std::vector<OptionBase*> getAllOptions() override {
+    return {(OptionBase*)&specUpdateType, (OptionBase*)&removeGates, (OptionBase*)&needFastNotSatisfied};
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, const OptionSpecManager& dt) {
     out << " Option Formula Manager:" << " update mode("
-        << SpecUpdateManager::getSpecUpdate(dt.specUpdateType) << ") rm-gates("
-        << dt.removeGates << ") need-not-satisfied(" << dt.needFastNotSatisfied
+        << SpecUpdateManager::getSpecUpdate(dt.specUpdateType.get()) << ") rm-gates("
+        << dt.removeGates.get() << ") need-not-satisfied(" << dt.needFastNotSatisfied.get()
         << ") ";
     return out;
-  }  // <<
+  }
 };
 }  // namespace d4

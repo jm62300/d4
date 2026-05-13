@@ -19,9 +19,9 @@
 #pragma once
 
 #include "src/problem/ProblemManager.hpp"
+#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
-class Configuration;
 
 enum MethodName {
   METH_EROSION,
@@ -79,6 +79,26 @@ class MethodNameManager {
 
     throw(FactoryException("Method name unknown", __FILE__, __LINE__));
   }  // getOperatorType
+
+  static std::map<int, std::string> getMapping() {
+    return {
+        {METH_EROSION, "erosion"},
+        {METH_COUNTING, "counting"},
+        {METH_DDNNF, "ddnnf-compiler"},
+        {METH_MAX_SHARP, "max#sat"},
+        {METH_MIN_SHARP, "min#sat"},
+        {METH_ERE, "ere"},
+        {METH_PROJ_MC, "projMC"},
+        {METH_COUNTING_GLOBAL_CACHE, "counting-global-cache"},
+        {METH_QBF_COUNTER, "qbf-counter"},
+        {METH_NONE, "none"}};
+  }
+};
+
+template <>
+struct EnumMetadata<MethodName> {
+  static std::string name() { return "MethodName"; }
+  static std::map<int, std::string> mapping() { return MethodNameManager::getMapping(); }
 };
 
 class MethodManager {
