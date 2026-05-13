@@ -21,30 +21,35 @@
 #include <iostream>
 #include <string>
 
+#include "src/exceptions/FactoryException.hpp"
 #include "src/options/Option.hpp"
 #include "src/options/OptionRegistry.hpp"
-#include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
+#include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/methods/OptionOperationManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
-#include "src/options/formulaManager/OptionFormulaManager.hpp"
 
 namespace d4 {
 class OptionDpllStyleMethod : public OptionRoot {
  public:
-  OptionDpllStyleMethod(const std::string& name = "counter", const std::string& description = "DPLL-style counter options")
+  OptionDpllStyleMethod(
+      const std::string& name = "counter",
+      const std::string& description = "DPLL-style counter options")
       : OptionRoot() {
     m_name = name;
     m_description = description;
   }
 
-  Option<OperationType> operationType{"operationType", "The operation type", OP_COUNTING};
+  Option<OperationType> operationType{"operationType", "The operation type",
+                                      OP_COUNTING};
   OptionCacheManager optionCacheManager{"cache", "Cache options"};
   OptionSolver optionSolver{"solver", "Solver options"};
   OptionSpecManager optionSpecManager{"spec", "Formula manager options"};
-  OptionBranchingHeuristic optionBranchingHeuristic{"branching", "Branching options"};
-  Option<bool> exploitModel{"exploitModel", "If we exploit model during search", true};
+  OptionBranchingHeuristic optionBranchingHeuristic{"branching",
+                                                    "Branching options"};
+  Option<bool> exploitModel{"exploitModel", "If we exploit model during search",
+                            true};
   Option<bool> verbosity{"verbosity", "The verbosity level", true};
 
   std::vector<OptionBase*> getAllOptions() override {
@@ -64,7 +69,9 @@ class OptionDpllStyleMethod : public OptionRoot {
     out << static_cast<const OptionRoot&>(dt);
     out << " Option DPLL-style Method: exploit-model(" << dt.exploitModel.get()
         << ") verbosity(" << dt.verbosity.get() << ")\n";
-    out << " Operation: " << OperationTypeManager::getOperatorType(dt.operationType.get()) << "\n";
+    out << " Operation: "
+        << OperationTypeManager::getOperatorType(dt.operationType.get())
+        << "\n";
     out << dt.optionCacheManager << "\n";
     out << dt.optionSolver << "\n";
     out << dt.optionSpecManager << "\n";
