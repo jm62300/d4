@@ -24,14 +24,13 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
-
 namespace d4 {
 
 /**
  * @brief TreeDecomp::TreeDecomp implementation.
  */
-TreeDecomp::TreeDecomp(const std::vector<Var> &node,
-                       const std::vector<TreeDecomp *> &sons)
+TreeDecomp::TreeDecomp(const std::vector<Var>& node,
+                       const std::vector<TreeDecomp*>& sons)
     : m_node(node), m_sons(sons) {}  // constructor
 
 /**
@@ -43,7 +42,7 @@ TreeDecomp::TreeDecomp() {}  // constructor
  * @brief TreeDecomp::~TreeDecomp implementation.
  */
 TreeDecomp::~TreeDecomp() {
-  for (auto &t : m_sons) delete t;
+  for (auto& t : m_sons) delete t;
 }  // destructor
 
 /**
@@ -51,7 +50,7 @@ TreeDecomp::~TreeDecomp() {
  */
 unsigned TreeDecomp::getSizeLargestBag() {
   unsigned sizeChildren = 0;
-  for (auto &c : m_sons) {
+  for (auto& c : m_sons) {
     unsigned tmp = c->getSizeLargestBag();
     if (tmp > sizeChildren) sizeChildren = tmp;
   }
@@ -63,26 +62,27 @@ unsigned TreeDecomp::getSizeLargestBag() {
 /**
  * @brief TreeDecomp::getNode implementation.
  */
-std::vector<Var> &TreeDecomp::getNode() { return m_node; }  // getNode
+std::vector<Var>& TreeDecomp::getNode() { return m_node; }  // getNode
 
 /**
  * @brief TreeDecomp::getSons implementation.
  */
-std::vector<TreeDecomp *> &TreeDecomp::getSons() { return m_sons; }  // getSons
+std::vector<TreeDecomp*>& TreeDecomp::getSons() { return m_sons; }  // getSons
 
 /**
  * @brief TreeDecomposition::makeTreeDecomposition implementation.
  */
 
-TreeDecomposition *TreeDecomposition::makeTreeDecomposition(
-    const OptionPartialOrderHeuristic &options, const ProblemInputType &inType,
-    std::ostream &out) {
+TreeDecomposition* TreeDecomposition::makeTreeDecomposition(
+    const OptionPartialOrderHeuristic& options, const ProblemInputType& inType,
+    std::ostream& out) {
   switch (options.treeDecompositionMethod) {
     case TREE_DECOMP_PARTITION:
-      return new TreeDecompositionPartition(options.partitionerName,
-                                            options.hyperGraphExtractorMethod,
-                                            inType);
+      if (options.verbosity) out << "c [TREE DECOMPOSITION] Partition\n";
+      return new TreeDecompositionPartition(
+          options.partitionerName, options.hyperGraphExtractorMethod, inType);
     case TREE_DECOMP_TREE_WIDTH:
+      if (options.verbosity) out << "c [TREE DECOMPOSITION] Tree-Width\n";
       return new TreeDecompositionTreeWidth(
           options.treeDecompositionerMethod, options.graphExtractorMethod,
           inType, options.useSimpGraphExtractor, options.budget, options.seed,

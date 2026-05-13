@@ -18,15 +18,14 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/EnumMetadata.hpp"
 #include "src/options/Option.hpp"
 #include "src/options/OptionRegistry.hpp"
-#include "src/options/EnumMetadata.hpp"
-
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/representation/graph/GraphExtractor.hpp"
 #include "src/representation/hypergraph/HyperGraphExtractor.hpp"
@@ -44,7 +43,7 @@ enum PartialOrderHeuristicMethod : char {
 class PartialOrderMethodManager {
  public:
   static std::string getPartialOrderMethod(
-      const PartialOrderHeuristicMethod &m) {
+      const PartialOrderHeuristicMethod& m) {
     if (m == PARTIAL_ORDER_TREE_DECOMPOSITION) return "tree-decomposition";
     if (m == PARTIAL_ORDER_GIVEN) return "given";
     if (m == PARTIAL_ORDER_NONE) return "none";
@@ -54,7 +53,7 @@ class PartialOrderMethodManager {
   }  // getPartialOrderMethod
 
   static PartialOrderHeuristicMethod getPartialOrderMethod(
-      const std::string &m) {
+      const std::string& m) {
     if (m == "tree-decomposition") return PARTIAL_ORDER_TREE_DECOMPOSITION;
     if (m == "given") return PARTIAL_ORDER_GIVEN;
     if (m == "none") return PARTIAL_ORDER_NONE;
@@ -63,42 +62,67 @@ class PartialOrderMethodManager {
   }  // getPartialOrderMethod
 
   static std::map<int, std::string> getMapping() {
-    return {
-        {PARTIAL_ORDER_TREE_DECOMPOSITION, "tree-decomposition"},
-        {PARTIAL_ORDER_GIVEN, "given"},
-        {PARTIAL_ORDER_NONE, "none"}};
+    return {{PARTIAL_ORDER_TREE_DECOMPOSITION, "tree-decomposition"},
+            {PARTIAL_ORDER_GIVEN, "given"},
+            {PARTIAL_ORDER_NONE, "none"}};
   }
 };
 
 template <>
 struct EnumMetadata<PartialOrderHeuristicMethod> {
   static std::string name() { return "PartialOrderHeuristicMethod"; }
-  static std::map<int, std::string> mapping() { return PartialOrderMethodManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return PartialOrderMethodManager::getMapping();
+  }
 };
 
 class OptionPartialOrderHeuristic : public OptionGroup {
  public:
-  OptionPartialOrderHeuristic(const std::string& name = "partialOrder", const std::string& description = "Partial order options")
+  OptionPartialOrderHeuristic(
+      const std::string& name = "partialOrder",
+      const std::string& description = "Partial order options")
       : OptionGroup(name, description) {}
 
   /** @brief The method used to compute a cut. [none, tree-decomposition] */
-  Option<PartialOrderHeuristicMethod> partialOrderMethod{"partialOrderMethod", "The method used to compute a cut", PARTIAL_ORDER_NONE};
+  Option<PartialOrderHeuristicMethod> partialOrderMethod{
+      "partialOrderMethod", "The method used to compute a cut",
+      PARTIAL_ORDER_TREE_DECOMPOSITION};
+
   /** @brief The partitioner we will call (patoh). */
-  Option<PartitionerName> partitionerName{"partitionerName", "The partitioner we will call", PARTITIONER_NONE};
+  Option<PartitionerName> partitionerName{
+      "partitionerName", "The partitioner we will call", PARTITIONER_NONE};
+
   /** @brief The tree decomposition technique used. */
-  Option<TreeDecompositionMethod> treeDecompositionMethod{"treeDecompositionMethod", "The tree decomposition technique used", TREE_DECOMP_PARTITION};
+  Option<TreeDecompositionMethod> treeDecompositionMethod{
+      "treeDecompositionMethod", "The tree decomposition technique used",
+      TREE_DECOMP_PARTITION};
+
   /** @brief The tool used for computing the tree decomposition. */
-  Option<TreeDecompositionerMethod> treeDecompositionerMethod{"treeDecompositionerMethod", "The tool used for computing the tree decomposition", TREE_DECOMP_TOOL_FLOW_CUTTER};
+  Option<TreeDecompositionerMethod> treeDecompositionerMethod{
+      "treeDecompositionerMethod",
+      "The tool used for computing the tree decomposition",
+      TREE_DECOMP_TOOL_FLOW_CUTTER};
+
   /** @brief The hyper graph representation used. */
-  Option<HyperGraphExtractorMethod> hyperGraphExtractorMethod{"hyperGraphExtractorMethod", "The hyper graph representation used", HYPER_GRAPH_DUAL};
+  Option<HyperGraphExtractorMethod> hyperGraphExtractorMethod{
+      "hyperGraphExtractorMethod", "The hyper graph representation used",
+      HYPER_GRAPH_DUAL};
+
   /** @brief The graph representation used. */
-  Option<GraphExtractorMethod> graphExtractorMethod{"graphExtractorMethod", "The graph representation used", GRAPH_PRIMAL};
+  Option<GraphExtractorMethod> graphExtractorMethod{
+      "graphExtractorMethod", "The graph representation used", GRAPH_PRIMAL};
+
   /** @brief Set to true if the graph extractor use some simplification. */
-  Option<bool> useSimpGraphExtractor{"useSimpGraphExtractor", "If the graph extractor use some simplification", true};
+  Option<bool> useSimpGraphExtractor{
+      "useSimpGraphExtractor", "If the graph extractor use some simplification",
+      true};
+
   Option<unsigned> budget{"budget", "The budget for partitioning", 100};
+
   Option<unsigned> seed{"seed", "The seed for random number generator", 2911};
+
   Option<bool> verbosity{"verbosity", "The verbosity level", false};
-  
+
   // vector is harder to handle in Option<T> with setFromString.
   // We keep it as is for now or use a specialization.
   std::vector<double> givenOrder;
@@ -119,10 +143,11 @@ class OptionPartialOrderHeuristic : public OptionGroup {
   }
 
   friend std::ostream& operator<<(std::ostream& out,
-                                   const OptionPartialOrderHeuristic& dt) {
+                                  const OptionPartialOrderHeuristic& dt) {
     out << " Option Partitioning Heuristic:"
         << " method("
-        << PartialOrderMethodManager::getPartialOrderMethod(dt.partialOrderMethod.get())
+        << PartialOrderMethodManager::getPartialOrderMethod(
+               dt.partialOrderMethod.get())
         << ") ";
     return out;
   }

@@ -28,17 +28,18 @@ namespace d4 {
 /**
  * @brief PartialOrderHeuristic::makePartialOrderingHeuristic implementation.
  */
-PartialOrderHeuristic *PartialOrderHeuristic::makePartialOrderingHeuristic(
-    const OptionPartialOrderHeuristic &options, FormulaManager &s,
-    std::ostream &out) {
-  out << "c [PARTIAL ORDER HEURISTIC]" << options << "\n";
-
+PartialOrderHeuristic* PartialOrderHeuristic::makePartialOrderingHeuristic(
+    const OptionPartialOrderHeuristic& options, FormulaManager& s,
+    std::ostream& out) {
   switch (options.partialOrderMethod) {
     case PARTIAL_ORDER_NONE:
+      out << "c [PARTIAL ORDER HEURISTIC] None\n";
       return new PartialOrderHeuristicNone();
     case PARTIAL_ORDER_TREE_DECOMPOSITION:
+      out << "c [PARTIAL ORDER HEURISTIC] Tree decomposition\n";
       return new PartialOrderHeuristicTreeDecomp(options, s, out);
     case PARTIAL_ORDER_GIVEN:
+      out << "c [PARTIAL ORDER HEURISTIC] Given\n";
       return new PartialOrderHeuristicGiven(options, s, out);
   }
 

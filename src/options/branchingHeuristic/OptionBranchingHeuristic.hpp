@@ -18,13 +18,13 @@
  */
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/EnumMetadata.hpp"
 #include "src/options/Option.hpp"
 #include "src/options/OptionRegistry.hpp"
-#include "src/options/EnumMetadata.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 
 namespace d4 {
@@ -60,12 +60,11 @@ class ScoringMethodTypeManager {
   }  // getScoringMethodType
 
   static std::map<int, std::string> getMapping() {
-    return {
-        {SCORE_MOM, "mom"},
-        {SCORE_DLCS, "dlcs"},
-        {SCORE_VSIDS, "vsids"},
-        {SCORE_VSADS, "vsads"},
-        {SCORE_JWTS, "jwts"}};
+    return {{SCORE_MOM, "mom"},
+            {SCORE_DLCS, "dlcs"},
+            {SCORE_VSIDS, "vsids"},
+            {SCORE_VSADS, "vsads"},
+            {SCORE_JWTS, "jwts"}};
   }
 };
 
@@ -97,11 +96,10 @@ class PhaseHeuristicTypeManager {
   }  // getPhaseHeuristicType
 
   static std::map<int, std::string> getMapping() {
-    return {
-        {PHASE_FALSE, "false"},
-        {PHASE_TRUE, "true"},
-        {PHASE_POLARITY, "polarity"},
-        {PHASE_OCCURRENCE, "occurrence"}};
+    return {{PHASE_FALSE, "false"},
+            {PHASE_TRUE, "true"},
+            {PHASE_POLARITY, "polarity"},
+            {PHASE_OCCURRENCE, "occurrence"}};
   }
 };
 
@@ -132,50 +130,68 @@ class BranchingHeuristicTypeManager {
   }  // getBranchingHeuristicType
 
   static std::map<int, std::string> getMapping() {
-    return {
-        {BRANCHING_CLASSIC, "classic"},
-        {BRANCHING_HYBRID_PARTIAL_CLASSIC, "hybrid-partial-classic"},
-        {BRANCHING_LARGE_ARITY, "large-arity"}};
+    return {{BRANCHING_CLASSIC, "classic"},
+            {BRANCHING_HYBRID_PARTIAL_CLASSIC, "hybrid-partial-classic"},
+            {BRANCHING_LARGE_ARITY, "large-arity"}};
   }
 };
 
 template <>
 struct EnumMetadata<ScoringMethodType> {
   static std::string name() { return "ScoringMethodType"; }
-  static std::map<int, std::string> mapping() { return ScoringMethodTypeManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return ScoringMethodTypeManager::getMapping();
+  }
 };
 
 template <>
 struct EnumMetadata<PhaseHeuristicType> {
   static std::string name() { return "PhaseHeuristicType"; }
-  static std::map<int, std::string> mapping() { return PhaseHeuristicTypeManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return PhaseHeuristicTypeManager::getMapping();
+  }
 };
 
 template <>
 struct EnumMetadata<BranchingHeuristicType> {
   static std::string name() { return "BranchingHeuristicType"; }
-  static std::map<int, std::string> mapping() { return BranchingHeuristicTypeManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return BranchingHeuristicTypeManager::getMapping();
+  }
 };
 
 class OptionBranchingHeuristic : public OptionGroup {
  public:
-  OptionBranchingHeuristic(const std::string& name = "branching", const std::string& description = "Branching options")
+  OptionBranchingHeuristic(const std::string& name = "branching",
+                           const std::string& description = "Branching options")
       : OptionGroup(name, description) {}
 
-  OptionPartialOrderHeuristic optionPartialOrderHeuristic{"partialOrder", "Partial order settings"};
+  OptionPartialOrderHeuristic optionPartialOrderHeuristic{
+      "partialOrder", "Partial order settings"};
+
   /** @brief The scoring method used for selecting the next variable. */
-  Option<ScoringMethodType> scoringMethodType{"scoringMethodType", "The scoring method used", SCORE_VSADS};
+  Option<ScoringMethodType> scoringMethodType{
+      "scoringMethodType", "The scoring method used", SCORE_VSADS};
+
   /** @brief The way the phase of the next decision is selected. */
-  Option<PhaseHeuristicType> phaseHeuristicType{"phaseHeuristicType", "The way the phase is selected", PHASE_POLARITY};
+  Option<PhaseHeuristicType> phaseHeuristicType{
+      "phaseHeuristicType", "The way the phase is selected", PHASE_POLARITY};
+
   /** @brief The branching heuristic used. */
-  Option<BranchingHeuristicType> branchingHeuristicType{"branchingHeuristicType", "The branching heuristic used", BRANCHING_CLASSIC};
+  Option<BranchingHeuristicType> branchingHeuristicType{
+      "branchingHeuristicType", "The branching heuristic used",
+      BRANCHING_HYBRID_PARTIAL_CLASSIC};
 
   /** @brief Consider or not the reverse of the current phase. */
-  Option<bool> reversePhase{"reversePhase", "Consider or not the reverse of the current phase", false};
+  Option<bool> reversePhase{"reversePhase",
+                            "Consider or not the reverse of the current phase",
+                            false};
   /** @brief Gives the decay frequency */
   Option<unsigned> freqDecay{"freqDecay", "Gives the decay frequency", 95};
-  /** @brief The size limit for the branching heuristic based on large clauses. */
-  Option<unsigned> limitSizeClause{"limitSizeClause", "The size limit for large clauses", 100};
+  /** @brief The size limit for the branching heuristic based on large clauses.
+   */
+  Option<unsigned> limitSizeClause{"limitSizeClause",
+                                   "The size limit for large clauses", 100};
 
   std::vector<OptionBase*> getAllOptions() override {
     return {(OptionBase*)&optionPartialOrderHeuristic,
@@ -188,10 +204,11 @@ class OptionBranchingHeuristic : public OptionGroup {
   }
 
   friend std::ostream& operator<<(std::ostream& out,
-                                   const OptionBranchingHeuristic& dt) {
+                                  const OptionBranchingHeuristic& dt) {
     out << " Option Branching Heuristic:"
         << " scoring method("
-        << ScoringMethodTypeManager::getScoringMethodType(dt.scoringMethodType.get())
+        << ScoringMethodTypeManager::getScoringMethodType(
+               dt.scoringMethodType.get())
         << ")"
         << " phase heuristic("
         << PhaseHeuristicTypeManager::getPhaseHeuristicType(

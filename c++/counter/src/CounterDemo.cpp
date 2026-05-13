@@ -29,7 +29,6 @@
 #include "../semirings/MpzComplexSemiring.hpp"
 #include "../semirings/MpzFloatSemiring.hpp"
 #include "../semirings/MpzIntSemiring.hpp"
-#include "src/binding/json/Binding.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
@@ -93,10 +92,10 @@ void counterDemo(const d4::OptionDpllStyleMethod& inputConfig,
   d4::OptionDpllStyleMethod options = inputConfig;
 
   // Force counting operation.
-  options.methodName    = d4::MethodNameManager::getMethodName("counting");
   options.operationType = d4::OperationTypeManager::getOperatorType("counting");
 
-  if (options.optionCacheManager.optionBucketManager.clauseRepresentation == CACHE_INDEX)
+  if (options.optionCacheManager.optionBucketManager.clauseRepresentation ==
+      CACHE_INDEX)
     options.optionSpecManager.needFastNotSatisfied = true;
 
   // TODO : In Config ? In arg ? Or just remove it.

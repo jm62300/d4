@@ -1,15 +1,15 @@
 #pragma once
 
-#include <string>
-#include <sstream>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <type_traits>
 
+#include "src/methods/MethodManager.hpp"
+#include "src/options/EnumMetadata.hpp"
 #include "src/options/OptionBase.hpp"
 #include "src/options/OptionGroup.hpp"
 #include "src/options/OptionRegistry.hpp"
-#include "src/options/EnumMetadata.hpp"
-#include "src/methods/MethodManager.hpp"
 
 namespace d4 {
 
@@ -21,7 +21,8 @@ class Option : public OptionBase {
  public:
   Option() : m_name(""), m_description(""), m_value(T()) {}
 
-  Option(const std::string& name, const std::string& description, T defaultValue)
+  Option(const std::string& name, const std::string& description,
+         T defaultValue)
       : m_name(name), m_description(description), m_value(defaultValue) {}
 
   std::string getName() const override { return m_name; }
@@ -46,12 +47,14 @@ class Option : public OptionBase {
     if constexpr (std::is_same_v<T, std::string>) {
       m_value = value;
     } else if constexpr (std::is_same_v<T, bool>) {
-      m_value = (value == "true" || value == "1" || value == "yes" || value == "on");
+      m_value =
+          (value == "true" || value == "1" || value == "yes" || value == "on");
     } else if constexpr (std::is_enum_v<T>) {
       try {
         m_value = static_cast<T>(std::stoi(value));
       } catch (...) {
-        // Enums need specific managers for string conversion, handled externally
+        // Enums need specific managers for string conversion, handled
+        // externally
       }
     } else {
       std::stringstream ss(value);
@@ -72,7 +75,7 @@ class Option : public OptionBase {
 
   std::string getPossibleValues() const override {
     if constexpr (std::is_enum_v<T>) {
-        return get_enum_doc<T>();
+      return get_enum_doc<T>();
     }
     return "";
   }
@@ -89,7 +92,8 @@ class Option : public OptionBase {
     return *this;
   }
 
-  void registerTo(OptionRegistry& registry, const std::string& prefix = "") override {
+  void registerTo(OptionRegistry& registry,
+                  const std::string& prefix = "") override {
     registry.registerOption(prefix + getName(), this);
   }
 
@@ -106,28 +110,27 @@ class OptionRoot : public OptionGroup {
  public:
   OptionRoot() : OptionGroup("", "") {}
 
-  Option<MethodName> methodName{"methodName", "The method we run", METH_COUNTING};
   Option<int> precision{"precision", "The precision for the float", 15};
-  Option<bool> isFloat{"isFloat", "If the count is computed as a float or not", false};
+  Option<bool> isFloat{"isFloat", "If the count is computed as a float or not",
+                       false};
   Option<std::string> inputName{"inputName", "Path to get the input file", ""};
-  Option<ProblemInputType> problemInputType{"problemInputType", "The input type", PB_CNF};
+  Option<ProblemInputType> problemInputType{"problemInputType",
+                                            "The input type", PB_CNF};
 
   virtual ~OptionRoot() = default;
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {(OptionBase*)&methodName, (OptionBase*)&precision, (OptionBase*)&isFloat,
+    return {(OptionBase*)&precision, (OptionBase*)&isFloat,
             (OptionBase*)&inputName, (OptionBase*)&problemInputType};
   }
 
   friend std::ostream& operator<<(std::ostream& out, const OptionRoot& dt) {
-    out << "c Options:\n"
-        << "c Method used:" << MethodNameManager::getMethodName(dt.methodName.get())
-        << "\n";
     return out;
   }
 };
 
-// For backward compatibility if needed, but we should aim to use OptionRoot or specific subclasses.
+// For backward compatibility if needed, but we should aim to use OptionRoot or
+// specific subclasses.
 using LegacyOption = OptionRoot;
 
 }  // namespace d4

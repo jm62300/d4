@@ -24,9 +24,8 @@
 
 #include "CounterDemo.hpp"
 #include "ParserDimacs.hpp"
-#include "src/binding/json/Binding.hpp"
-#include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
 
 namespace fs = std::filesystem;
 d4::MethodManager* methodRun = nullptr;
@@ -83,7 +82,6 @@ int main(int argc, char** argv) {
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
-
 
   // 1. Initialize configuration and registry
   d4::OptionDpllStyleMethod config;
