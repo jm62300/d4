@@ -77,7 +77,8 @@
         "c++/counter",
         ".",
         "3rdParty/glucose-3.0/",
-        "src/include"
+        "src/include",
+        "preproc/bipe"
     ],
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_fallbackStyle": "Google"

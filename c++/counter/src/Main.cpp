@@ -24,6 +24,7 @@
 
 #include "CounterDemo.hpp"
 #include "ParserDimacs.hpp"
+#include "preproc/bipe/src/preproc/PreprocManager.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 
@@ -84,26 +85,20 @@ int main(int argc, char** argv) {
   parserDimacs.parse_DIMACS(inputPath, formula);
 
   // 1. Initialize configuration and registry
-  d4::OptionDpllStyleMethod config;
+  d4::OptionDpllStyleMethod options;
   d4::OptionRegistry registry;
-  config.registerTo(registry);
-
-  // 2. Overrides from command line
+  options.registerTo(registry);
   registry.parseArgv(argc, argv);
 
-  // Overrides from config.json if present
-  // std::ifstream configFile("config.json");
-  // if (configFile.is_open()) {
-  //  std::cout << "c [JSON] Loading configuration from config.json\n";
-  //  std::stringstream buffer;
-  //  buffer << configFile.rdbuf();
-  //  d4::parse_json_to_registry(registry, buffer.str());
-  // }
-
-  // The configuration is already updated via registry.parseArgv/parseJson.
+  // preproc.
+  bipe::OptionPreproc optionPreproc;
+  bipe::PreprocMethod preprocMethod = bipe::EQUIV_LIGHT;
+  bipe::PreprocManager preprocManager;
+  preprocManager.run(formula.nbVar, formula.clauses, formula.quantifications[0],
+                     std::vector<int>(), preprocMethod, optionPreproc);
 
   // count.
-  counterDemo(config, formula);
+  counterDemo(options, formula);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed = end - start;

@@ -1,12 +1,13 @@
 #pragma once
+#include <algorithm>
+#include <iostream>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <algorithm>
-#include <set>
-#include "src/options/OptionBase.hpp"
+
 #include "src/options/EnumMetadata.hpp"
+#include "src/options/OptionBase.hpp"
 
 namespace d4 {
 
@@ -28,10 +29,8 @@ class OptionRegistry {
   /** @brief Set an option from a string value. */
   void setOption(const std::string& path, const std::string& value) {
     auto it = m_options.find(path);
-    if (it != m_options.end()) {
-      it->second->setFromString(value);
-    }
-  }
+    if (it != m_options.end()) it->second->setFromString(value);
+  }  // setOption
 
   /** @brief Parse command line arguments and update registered options. */
   void parseArgv(int argc, char* argv[]) {
@@ -56,25 +55,32 @@ class OptionRegistry {
           key = arg.substr(2);
           value = "true";
         }
+
         setOption(key, value);
       }
     }
-  }
+  }  // parseArgv
 
   /** @brief Display a pretty tree of all registered options. */
   void displayHelp(std::ostream& out) const {
-    out << "\n\033[1;36mAvailable Options (use --path.to.option=value):\033[0m\n";
+    out << "\n\033[1;36mAvailable Options (use "
+           "--path.to.option=value):\033[0m\n";
     std::set<std::string> displayed_nodes;
     renderTree(out, "", "", displayed_nodes);
     out << std::endl;
   }
 
-  void renderTree(std::ostream& out, const std::string& prefix, const std::string& currentPath, std::set<std::string>& displayed) const {
+  void renderTree(std::ostream& out, const std::string& prefix,
+                  const std::string& currentPath,
+                  std::set<std::string>& displayed) const {
     // Collect immediate children (next segment in dot notation)
-    std::map<std::string, bool> children; // name -> isLeaf
+    std::map<std::string, bool> children;  // name -> isLeaf
     for (const auto& [path, opt] : m_options) {
-      if (currentPath.empty() || (path.size() > currentPath.size() && path.substr(0, currentPath.size()) == currentPath)) {
-        std::string relative = currentPath.empty() ? path : path.substr(currentPath.size() + 1);
+      if (currentPath.empty() ||
+          (path.size() > currentPath.size() &&
+           path.substr(0, currentPath.size()) == currentPath)) {
+        std::string relative =
+            currentPath.empty() ? path : path.substr(currentPath.size() + 1);
         auto dotPos = relative.find('.');
         if (dotPos == std::string::npos) {
           children[relative] = true;
@@ -89,37 +95,42 @@ class OptionRegistry {
       bool isLast = (count == children.size() - 1);
       std::string name = it->first;
       bool isLeaf = it->second;
-      std::string fullPath = currentPath.empty() ? name : currentPath + "." + name;
+      std::string fullPath =
+          currentPath.empty() ? name : currentPath + "." + name;
 
-      out << prefix << (isLast ? "└── " : "├── ") << "\033[1;34m" << name << "\033[0m";
+      out << prefix << (isLast ? "└── " : "├── ") << "\033[1;34m" << name
+          << "\033[0m";
 
       if (isLeaf) {
         OptionBase* opt = m_options.at(fullPath);
         out << " [" << opt->getTypeName() << "]"
             << " (default: \033[1;32m" << opt->getValueAsString() << "\033[0m)"
             << " : " << opt->getDescription();
-        
+
         std::string possible = opt->getPossibleValues();
         if (!possible.empty()) {
-            out << " \033[1;33m{" << possible << "}\033[0m";
+          out << " \033[1;33m{" << possible << "}\033[0m";
         }
       }
-      
+
       if (!isLeaf) {
         if (m_groups.count(fullPath)) {
-            out << " : " << m_groups.at(fullPath)->getDescription();
+          out << " : " << m_groups.at(fullPath)->getDescription();
         }
       }
       out << "\n";
 
       if (!isLeaf) {
-        renderTree(out, prefix + (isLast ? "    " : "│   "), fullPath, displayed);
+        renderTree(out, prefix + (isLast ? "    " : "│   "), fullPath,
+                   displayed);
       }
     }
   }
 
   /** @brief Get access to all registered options. */
-  const std::map<std::string, OptionBase*>& getOptions() const { return m_options; }
+  const std::map<std::string, OptionBase*>& getOptions() const {
+    return m_options;
+  }
 
   /** @brief Register a group for its description. */
   void registerGroup(const std::string& path, OptionBase* group) {
