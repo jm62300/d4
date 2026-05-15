@@ -31,6 +31,9 @@ class OptionBase {
 
   /** @brief Register the option to a registry with a prefix. */
   virtual void registerTo(OptionRegistry& registry, const std::string& prefix = "") = 0;
+
+  /** @brief Try to set an option by name within this object or its children. */
+  virtual void setPropagation(const std::string& name, const std::string& value) = 0;
 };
 
 }  // namespace d4

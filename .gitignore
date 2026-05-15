@@ -21,3 +21,4 @@ python/pytest/__pycache__/
 docs/
 pytest/
 xml/
+.clang-uml

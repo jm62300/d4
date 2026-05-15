@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-#include "src/options/Option.hpp"
+#include "src/options/OptionRoot.hpp"
 #include "src/options/OptionRegistry.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"

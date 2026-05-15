@@ -90,6 +90,8 @@ int main(int argc, char** argv) {
   options.registerTo(registry);
   registry.parseArgv(argc, argv);
 
+  registry.displayHelp(std::cout);
+
   // preproc.
   bipe::OptionPreproc optionPreproc;
   bipe::PreprocMethod preprocMethod = bipe::EQUIV_LIGHT;

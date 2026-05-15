@@ -24,6 +24,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/Option.hpp"
 #include "src/options/OptionRegistry.hpp"
+#include "src/options/OptionRoot.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
@@ -50,7 +51,6 @@ class OptionDpllStyleMethod : public OptionRoot {
                                                     "Branching options"};
   Option<bool> exploitModel{"exploitModel", "If we exploit model during search",
                             true};
-  Option<bool> verbosity{"verbosity", "The verbosity level", true};
 
   std::vector<OptionBase*> getAllOptions() override {
     auto options = OptionRoot::getAllOptions();
@@ -60,7 +60,6 @@ class OptionDpllStyleMethod : public OptionRoot {
     options.push_back((OptionBase*)&optionSpecManager);
     options.push_back((OptionBase*)&optionBranchingHeuristic);
     options.push_back((OptionBase*)&exploitModel);
-    options.push_back((OptionBase*)&verbosity);
     return options;
   }
 

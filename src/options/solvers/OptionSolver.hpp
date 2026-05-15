@@ -22,6 +22,7 @@
 
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/Option.hpp"
+#include "src/options/OptionGroup.hpp"
 #include "src/options/OptionRegistry.hpp"
 #include "src/options/EnumMetadata.hpp"
 

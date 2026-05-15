@@ -6,6 +6,7 @@
 #include <string>
 
 #include "src/options/Option.hpp"
+#include "src/options/OptionRoot.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/branchingHeuristic/OptionPartialOrderHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"

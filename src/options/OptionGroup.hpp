@@ -4,6 +4,7 @@
 #include <vector>
 #include "src/options/OptionBase.hpp"
 #include "src/options/OptionRegistry.hpp"
+#include "src/options/Option.hpp"
 
 namespace d4 {
 
@@ -16,6 +17,9 @@ class OptionGroup : public OptionBase {
       : m_name(name), m_description(description) {}
 
   virtual ~OptionGroup() = default;
+
+  /** @brief Verbosity level for this group. */
+  Option<int> verbosity{"verbosity", "Verbosity level", 0};
 
   /** @brief Get the name of the group. */
   std::string getName() const override { return m_name; }
@@ -45,10 +49,29 @@ class OptionGroup : public OptionBase {
       newPrefix += m_name;
       registry.registerGroup(newPrefix, this);
       newPrefix += ".";
+    } else {
+      std::string groupPath = prefix;
+      if (!groupPath.empty() && groupPath.back() == '.') {
+        groupPath.pop_back();
+      }
+      registry.registerGroup(groupPath, this);
     }
+    
+    // Always register verbosity for the group
+    verbosity.registerTo(registry, newPrefix);
+
     for (auto* opt : getAllOptions()) {
       if (opt) {
         opt->registerTo(registry, newPrefix);
+      }
+    }
+  }
+
+  void setPropagation(const std::string& name, const std::string& value) override {
+    verbosity.setPropagation(name, value); 
+    for (auto* opt : getAllOptions()) {
+      if (opt) {
+        opt->setPropagation(name, value);
       }
     }
   }
