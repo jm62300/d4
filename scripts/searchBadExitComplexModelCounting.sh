@@ -7,7 +7,7 @@ ROOT_PATH="."
 CNF_GENERATOR="$ROOT_PATH/cnfuzz"
 SOLVER="$ROOT_PATH/minisat"
 
-LIMIT_SIZE=50
+LIMIT_SIZE=200
 TIMEOUT=2
 
 isExecutableReady()

@@ -10,7 +10,7 @@ $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
 MODEL_COUNTER="./d4_static -m counting -i"
-TESTED_METHOD="../c++/counter/build/counter --branching-heuristic classic -i"
+TESTED_METHOD="../c++/counter/build/counter -i"
 # TESTED_METHOD="../demo/counter/build/counter_debug -i"
 #TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
 

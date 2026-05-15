@@ -25,50 +25,65 @@ $MODEL_COUNTER $1 2>/dev/null | grep "^c s exact" | cut -d ' ' -f6-  > /tmp/sol2
 compare_complex_files() {
     local file1="$1"
     local file2="$2"
-    local tol="${3:-1e-8}" # Default to 1e-8, which easily covers your 4.7e-11 difference
+    local tol="${3:-1e-8}" 
 
-    # Notice the LC_ALL=C right before awk! This forces it to understand the '.' as a decimal.
-    LC_ALL=C awk -v tol="$tol" '
+    LC_ALL=C awk -v tol="$tol" -v f1="$file1" -v f2="$file2" '
     function abs(x) { return x < 0 ? -x : x }
-    {
-        real = $1 + 0  
-        sign = $2
+    
+    BEGIN {
+        # CRITICAL FOR UBUNTU/MAWK: Force tol to be a number!
+        # This prevents "9.4e-07" > "1e-6" alphabetical string comparison bugs.
+        tol = tol + 0 
         
-        imag_str = $3
-        sub(/i$/, "", imag_str)
-        imag = imag_str + 0 
-        
-        if (sign == "-") { imag = -imag }
-
-        if (NR == 1) { r1 = real; i1 = imag } 
-        else if (NR == 2) { r2 = real; i2 = imag }
+        # Initialize flags so we know if a file was unexpectedly empty
+        file1_seen = 0; file2_seen = 0
     }
+
+    NF == 0 { next } 
+
+    {
+        # Strip hidden \r characters just in case the parser outputs DOS line endings
+        sub(/\r$/, "", $NF)
+
+        real = $1 + 0; sign = $2; imag_str = $3
+        sub(/i$/, "", imag_str); imag = imag_str + 0 
+        if (sign == "-") { imag = -imag }
+        
+        # Explicitly check filename, avoiding the NR==FNR empty-file trap
+        if (FILENAME == f1) { 
+            r1 = real; i1 = imag; file1_seen = 1 
+        } 
+        if (FILENAME == f2) { 
+            r2 = real; i2 = imag; file2_seen = 1 
+        }
+    }
+    
     END {
+        # Failsafe: Did grep actually output data to both files?
+        if (!file1_seen || !file2_seen) {
+            printf "Mismatch Debug -> Error: One or both files are empty!\n" > "/dev/stderr"
+            exit 1
+        }
+
         diff_r = abs(r1 - r2)
         diff_i = abs(i1 - i2)
 
         if (diff_r <= tol && diff_i <= tol) {
             exit 0
         } else {
-            # This will print EXACTLY what awk sees, so we can debug it!
             printf "Mismatch Debug -> Real diff: %e | Imag diff: %e (Tolerance: %e)\n", diff_r, diff_i, tol > "/dev/stderr"
             exit 1
         }
     }' "$file1" "$file2"
 }
 
-# ==============================================================================
-# Example Usage inside your script
-# ==============================================================================
 
 F1="/tmp/sol1.txt"
 F2="/tmp/sol2.txt"
 
-# You can call the function directly inside an if-statement!
-if compare_complex_files "$F1" "$F2" "1e-6"; then
+if compare_complex_files "$F1" "$F2" "1e-9"; then
     echo "✅ Success: The parser outputs match exactly."
     exit 0
-    # Do your next steps here
 else
     echo "❌ Error: The solutions are mathematically different."
     exit 1
