@@ -178,9 +178,10 @@ int main(int argc, char** argv) {
   } else
     std::cout << "c [BIPE] No timeout\n";
 
-  if (vm["method"].as<std::string>() == "equiv-light") {
+  if (vm["method"].as<std::string>() == "equiv-light")
     preprocMethod = bipe::EQUIV_LIGHT;
-  }
+  else if (vm["method"].as<std::string>() == "equiv-full")
+    preprocMethod = bipe::EQUIV_FULL;
 
   bipe::PreprocManager preprocManager;
   preprocManager.run(parsedProblem.nbVar, parsedProblem.clauses,

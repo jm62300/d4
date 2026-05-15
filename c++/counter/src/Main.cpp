@@ -92,9 +92,15 @@ int main(int argc, char** argv) {
 
   // preproc.
   bipe::OptionPreproc optionPreproc;
-  bipe::PreprocMethod preprocMethod = bipe::EQUIV_LIGHT;
+  bipe::PreprocMethod preprocMethod = bipe::EQUIV_FULL;
   bipe::PreprocManager preprocManager;
-  preprocManager.run(formula.nbVar, formula.clauses, formula.quantifications[0],
+  std::vector<int> projected;
+  if (formula.quantifications[0].size())
+    projected = formula.quantifications[0];
+  else
+    for (unsigned i = 1; i <= formula.nbVar; i++) projected.push_back(i);
+
+  preprocManager.run(formula.nbVar, formula.clauses, projected,
                      std::vector<int>(), preprocMethod, optionPreproc);
 
   // count.

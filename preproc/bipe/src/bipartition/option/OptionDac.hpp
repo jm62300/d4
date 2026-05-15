@@ -27,10 +27,18 @@ namespace bipartition {
 class OptionDac : public Option {
  public:
   std::string nameSolver = "glucose";
+  bool computeEquiv = true;
+  bool computeOr = true;
+  bool computeXor = true;
 
   OptionDac() {}
-  OptionDac(bool verb, const std::string& nameS)
-      : Option(verb), nameSolver(nameS) {}
+  OptionDac(bool verb, const std::string& nameS, bool equiv = true,
+            bool org = true, bool xorg = true)
+      : Option(verb),
+        nameSolver(nameS),
+        computeEquiv(equiv),
+        computeOr(org),
+        computeXor(xorg) {}
 
   /**
    * @brief Overloading << operator.

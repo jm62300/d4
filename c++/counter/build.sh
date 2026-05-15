@@ -54,39 +54,35 @@ done
 
 # Check d4
 D4_ROOT_DIR="../../"
-if [ ! -f "$D4_ROOT_DIR/build/libd4.a" ] && [ ! -f "$D4_ROOT_DIR/build/libd4.so" ]; then
-    echo "c [BUILD] Parent library d4 is missing! Building d4 first..."
-    
-    CURRENT_DIR="$PWD"
-    cd "$D4_ROOT_DIR"
-    
-    # Pass ALL arguments (e.g., -s -j) down to the parent script
-    ./build.sh "$@"
-    
-    cd "$CURRENT_DIR"
-    echo "c [BUILD] d4 built successfully."
-fi
+echo "c [BUILD] Parent library d4 is missing! Building d4 first..."
+
+CURRENT_DIR="$PWD"
+cd "$D4_ROOT_DIR"
+
+# Pass ALL arguments (e.g., -s -j) down to the parent script
+./build.sh "$@"
+
+cd "$CURRENT_DIR"
+echo "c [BUILD] d4 built successfully."
 
 # Check bipe
 BIPE_ROOT_DIR="../../preproc/bipe"
-if [ ! -f "$BIPE_ROOT_DIR/build/libbipe.a" ] && [ ! -f "$BIPE_ROOT_DIR/build/libbipe.so" ]; then
-    echo "c [BUILD] bipe library is missing! Building bipe first..."
-    
-    CURRENT_DIR="$PWD"
-    mkdir -p "$BIPE_ROOT_DIR/build"
-    cd "$BIPE_ROOT_DIR/build"
-    
-    # Configure and build bipe using the same build type and parallel flag
-    cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-    
-    # Unquoted $PARALLEL_FLAG so it expands to nothing if empty
-    cmake --build . $PARALLEL_FLAG
-    
-    cd "$CURRENT_DIR"
-    echo "c [BUILD] bipe built successfully."
-fi
+echo "c [BUILD] bipe library is missing! Building bipe first..."
 
-# ==============================================================================
+CURRENT_DIR="$PWD"
+mkdir -p "$BIPE_ROOT_DIR/build"
+cd "$BIPE_ROOT_DIR/build"
+
+# Configure and build bipe using the same build type and parallel flag
+cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+
+# Unquoted $PARALLEL_FLAG so it expands to nothing if empty
+cmake --build . $PARALLEL_FLAG
+
+cd "$CURRENT_DIR"
+echo "c [BUILD] bipe built successfully."
+
+#  =============================================================================
 # Configure and build 'counter'
 # ==============================================================================
 

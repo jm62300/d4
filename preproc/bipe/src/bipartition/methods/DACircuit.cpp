@@ -641,13 +641,16 @@ bool DACircuit::run(Problem& p, std::vector<Gate>& listOfGates,
   init(p, units);
 
   // consider the equivalences first.
-  if (!timer.isTimeout()) identifyEquiv(p, listOfGates, units, out);
+  if (!timer.isTimeout() && optDac.computeEquiv)
+    identifyEquiv(p, listOfGates, units, out);
 
   // consider OR gates.
-  if (!timer.isTimeout()) identifyAndGate(p, listOfGates, out, timer);
+  if (!timer.isTimeout() && optDac.computeOr)
+    identifyAndGate(p, listOfGates, out, timer);
 
   // consider XOR gates.
-  if (!timer.isTimeout()) identifyXorGate(p, listOfGates, out, timer);
+  if (!timer.isTimeout() && optDac.computeXor)
+    identifyXorGate(p, listOfGates, out, timer);
 
   for (auto& l : units)
     if (!m_markedAsOutput[l.var()] && m_markedAsProjected[l.var()])

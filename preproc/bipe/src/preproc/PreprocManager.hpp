@@ -38,7 +38,15 @@ enum PreprocMethod {
    * Reduces the formula using vivification, occurrence elimination,
    * or a combination of both techniques.
    */
-  EQUIV_LIGHT
+  EQUIV_LIGHT,
+
+  /**
+   * @brief Equivalence preprocessing.
+   * Compute the backbone and equivalences.
+   * Reduces the formula using vivification, occurrence elimination,
+   * or a combination of both techniques.
+   */
+  EQUIV_FULL
 };
 
 /**

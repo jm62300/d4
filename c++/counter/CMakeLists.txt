@@ -38,11 +38,13 @@ add_executable(counter ${SRCS} ${PARSER_SRCS})
 
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
+get_filename_component(BIPE_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../preproc/bipe/" ABSOLUTE)
 
 target_include_directories(counter PRIVATE 
     ${ROOT_INCLUDES}
     ${ROOT_INCLUDES}/src/include
     ${PARSER_DIR}
+    ${BIPE_INCLUDE_DIR}
 )
 
 # Find Dependencies

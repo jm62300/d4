@@ -75,20 +75,6 @@ class DACircuit : public Method {
                             std::vector<Lit>& units);
 
   /**
-   * @brief Constructs a list of disjoint equivalence classes.
-   *
-   * Groups variables that strictly imply each other into equivalence classes
-   * to simplify the formula structure.
-   *
-   * @param p The problem containing the variables.
-   * @param gates The set of initially detected equivalence gates.
-   * @param[out] equivClassList The resulting collection of disjoint equivalence
-   * classes.
-   */
-  void extractEquivClass(Problem& p, std::vector<Gate>& gates,
-                         std::vector<std::vector<Lit>>& equivClassList);
-
-  /**
    * @brief Calculates a heuristic score for a variable based on its implication
    * power.
    *
@@ -187,6 +173,20 @@ class DACircuit : public Method {
   void unmarkDescendant();
 
  public:
+  /**
+   * @brief Constructs a list of disjoint equivalence classes.
+   *
+   * Groups variables that strictly imply each other into equivalence classes
+   * to simplify the formula structure.
+   *
+   * @param p The problem containing the variables.
+   * @param gates The set of initially detected equivalence gates.
+   * @param[out] equivClassList The resulting collection of disjoint equivalence
+   * classes.
+   */
+  void extractEquivClass(Problem& p, std::vector<Gate>& gates,
+                         std::vector<std::vector<Lit>>& equivClassList);
+
   /**
    * @brief Executes the full Directed Acyclic Circuit (DAC) extraction process.
    *

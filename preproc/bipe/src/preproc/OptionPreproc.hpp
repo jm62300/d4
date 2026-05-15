@@ -20,6 +20,9 @@
 
 #include <iostream>
 
+#include "src/bipartition/methods/Backbone.hpp"
+#include "src/bipartition/methods/DACircuit.hpp"
+
 namespace bipe {
 struct OptionReducer {
   std::string reducerName = "combinaison";
@@ -30,5 +33,7 @@ struct OptionPreproc {
   unsigned timeout = 0;
   bool verbose = true;
   OptionReducer optionReducer;
+  bipartition::OptionBackbone optionBackone;
+  bipartition::OptionDac optionDac;
 };
 }  // namespace bipe

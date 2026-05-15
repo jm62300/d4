@@ -41,6 +41,9 @@ else
     fi
 fi
 
+cd preproc/bipe
+./clean.sh
+
 # Return to the starting directory
 cd "$CURRENT_DIR"
 
