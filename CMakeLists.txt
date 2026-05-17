@@ -41,6 +41,28 @@ if(NOT MSVC)
     find_library(GMPXX_LIBRARY NAMES gmpxx libgmpxx REQUIRED)
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "Linux detected: Enabling Patoh support.")
+    
+    set(PATOH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/patoh")
+
+    find_path(PATOH_INCLUDE_DIR 
+        NAMES patoh.h 
+        PATHS ${PATOH_DIR} 
+        NO_DEFAULT_PATH 
+        REQUIRED
+    )
+
+    find_library(PATOH_LIBRARY 
+        NAMES patoh libpatoh 
+        PATHS ${PATOH_DIR} 
+        NO_DEFAULT_PATH 
+        REQUIRED
+    )
+else()
+    message(STATUS "Non-Linux OS detected: Disabling Patoh support.")
+endif()
+
 # --- 3. Subdirectories ---
 add_subdirectory(3rdParty/glucose-3.0)
 add_subdirectory(3rdParty/flowCutter)
@@ -81,6 +103,14 @@ if (MSVC)
 else ()
     target_link_libraries(d4 PUBLIC ZLIB::ZLIB ${GMPXX_LIBRARY} ${GMP_LIBRARY})
 endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_include_directories(d4 PUBLIC ${PATOH_INCLUDE_DIR})
+    target_link_libraries(d4 PUBLIC ${PATOH_LIBRARY})
+    
+    # This creates a #define USE_PATOH in your C++ code!
+    target_compile_definitions(d4 PUBLIC USE_PATOH)
+endif()
 
 # --- 7. Compiler Options ---
 if (MSVC)
