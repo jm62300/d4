@@ -7,6 +7,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/Option.hpp"
 #include "src/options/OptionGroup.hpp"
+#include "src/options/OptionGroup.hpp"
 #include "src/options/EnumMetadata.hpp"
 
 namespace d4 {

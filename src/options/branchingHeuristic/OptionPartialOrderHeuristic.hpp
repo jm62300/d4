@@ -25,6 +25,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/options/EnumMetadata.hpp"
 #include "src/options/Option.hpp"
+#include "src/options/OptionGroup.hpp"
 #include "src/options/OptionRegistry.hpp"
 #include "src/partitioner/PartitionerManager.hpp"
 #include "src/representation/graph/GraphExtractor.hpp"
@@ -121,8 +122,6 @@ class OptionPartialOrderHeuristic : public OptionGroup {
 
   Option<unsigned> seed{"seed", "The seed for random number generator", 2911};
 
-  Option<bool> verbosity{"verbosity", "The verbosity level", false};
-
   // vector is harder to handle in Option<T> with setFromString.
   // We keep it as is for now or use a specialization.
   std::vector<double> givenOrder;
@@ -138,7 +137,6 @@ class OptionPartialOrderHeuristic : public OptionGroup {
             (OptionBase*)&useSimpGraphExtractor,
             (OptionBase*)&budget,
             (OptionBase*)&seed,
-            (OptionBase*)&verbosity,
             (OptionBase*)&scaleFactor};
   }
 
