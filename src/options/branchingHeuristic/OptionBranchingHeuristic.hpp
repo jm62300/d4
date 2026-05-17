@@ -219,13 +219,14 @@ class OptionBranchingHeuristic : public OptionGroup {
         << " freq-decay (" << dt.freqDecay.get() << ")"
         << " branching heuristic ("
         << BranchingHeuristicTypeManager::getBranchingHeuristicType(
-               dt.branchingHeuristicType.get());
+               dt.branchingHeuristicType.get())
+        << ')';
 
+    out << '\n' << dt.optionPartialOrderHeuristic;
     if (dt.branchingHeuristicType.get() == BRANCHING_LARGE_ARITY) {
       out << ", " << dt.limitSizeClause.get();
     }
 
-    out << ")";
     return out;
   }  // <<
 };

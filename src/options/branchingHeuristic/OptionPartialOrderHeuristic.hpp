@@ -91,7 +91,7 @@ class OptionPartialOrderHeuristic : public OptionGroup {
 
   /** @brief The partitioner we will call (patoh). */
   Option<PartitionerName> partitionerName{
-      "partitionerName", "The partitioner we will call", PARTITIONER_NONE};
+      "partitionerName", "The partitioner we will call", PARTITIONER_PATOH};
 
   /** @brief The tree decomposition technique used. */
   Option<TreeDecompositionMethod> treeDecompositionMethod{
@@ -146,7 +146,9 @@ class OptionPartialOrderHeuristic : public OptionGroup {
         << " method("
         << PartialOrderMethodManager::getPartialOrderMethod(
                dt.partialOrderMethod.get())
-        << ") ";
+        << ") partioner name(" << dt.partitionerName.get()
+        << ") treeDecomposition Method(" << dt.treeDecompositionMethod.get()
+        << ")";
     return out;
   }
 };

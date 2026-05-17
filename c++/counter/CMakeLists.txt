@@ -51,11 +51,23 @@ target_include_directories(counter PRIVATE
 # ZLIB
 find_package(ZLIB REQUIRED)
 
-
-
 # GMP & GMPXX
 find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
 find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Adjust this path to point accurately to the 3rdParty/patoh folder from the counter directory
+    # Based on your previous paths, it should look something like this:
+    set(PATOH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty/patoh")
+
+    find_library(PATOH_LIBRARY 
+        NAMES patoh libpatoh 
+        PATHS ${PATOH_DIR} 
+        NO_DEFAULT_PATH 
+        REQUIRED
+    )
+endif()
+
 
 
 # D4 Library
@@ -85,6 +97,10 @@ target_link_libraries(counter PRIVATE
     ${GMP_LIB}
     ZLIB::ZLIB
 )
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(counter PRIVATE ${PATOH_LIBRARY})
+endif()
 
 # Apply Target-Specific Flags
 if(BUILD_STATIC)

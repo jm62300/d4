@@ -22,35 +22,45 @@
 #include <vector>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/EnumMetadata.hpp"
 #include "src/representation/hypergraph/HyperGraph.hpp"
 #include "src/representation/hypergraph/HyperGraphExtractor.hpp"
-#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
 
-enum PartitionerName { PARTITIONER_NONE };
+enum PartitionerName { PARTITIONER_NONE, PARTITIONER_PATOH };
 
 class PartitionerNameManager {
  public:
   static std::string getPartitionerName(const PartitionerName& m) {
-    return "none";
+    switch (m) {
+      case PARTITIONER_NONE:
+        return "none";
+
+      case PARTITIONER_PATOH:
+        return "patoh";
+    }
+
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
 
   static PartitionerName getPartitionerName(const std::string& m) {
     if (m == "none") return PARTITIONER_NONE;
+    if (m == "patoh") return PARTITIONER_PATOH;
     throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }  // getPartitionerName
 
   static std::map<int, std::string> getMapping() {
-    return {{PARTITIONER_NONE, "none"}};
+    return {{PARTITIONER_NONE, "none"}, {PARTITIONER_PATOH, "patoh"}};
   }
 };
 
 template <>
 struct EnumMetadata<PartitionerName> {
   static std::string name() { return "PartitionerName"; }
-  static std::map<int, std::string> mapping() { return PartitionerNameManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return PartitionerNameManager::getMapping();
+  }
 };
 
 class PartitionerManager {
@@ -83,6 +93,8 @@ class PartitionerManager {
 template <>
 struct EnumMetadata<PartitionerManager::Level> {
   static std::string name() { return "PartitionerManager::Level"; }
-  static std::map<int, std::string> mapping() { return PartitionerManager::getLevelMapping(); }
+  static std::map<int, std::string> mapping() {
+    return PartitionerManager::getLevelMapping();
+  }
 };
 }  // namespace d4
