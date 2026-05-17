@@ -83,8 +83,8 @@ CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
 
   // clauses:
   unsigned nbClause = m_clauses.size();
-  m_mustUnMark.reserve(nbClause);
-  m_markView.resize(nbClause, false);
+  m_markView.resize(nbClause, 0);
+  m_stampMarkView = 0;
 
   m_infoClauses.resize(nbClause);
 
@@ -124,6 +124,8 @@ CnfManager::~CnfManager() { delete[] m_dataOccurrenceMemory; }  // destructor
 int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
                                           std::vector<Var>& setOfVar,
                                           std::vector<Var>& freeVar) {
+  incrementStampMarkView();
+
   Var *lastVar = m_activeVariables, *currentVar = m_activeVariables;
   for (auto v : setOfVar) {
     assert(v < m_infoCluster.size());
@@ -144,11 +146,10 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
       IteratorIdxClause listIndex = getVecIdxClause(l);
       for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
         int idx = *ptr;
-        if (!m_markView[idx]) {
-          m_markView[idx] = true;
+        if (m_markView[idx] != m_stampMarkView) {
+          m_markView[idx] = m_stampMarkView;
           m_infoCluster[idx + m_nbVar + 1].parent = rootV;
           m_infoCluster[rootV].size++;
-          m_mustUnMark.push_back(idx);
         } else {
           // search for the root.
           Var rootW = m_infoCluster[idx + m_nbVar + 1].parent;
@@ -211,7 +212,6 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
   }
 
   // restore for the next run.
-  resetUnMark();
   for (auto& v : rootSet) m_infoCluster[v].pos = -1;
 
   return varCo.size();
@@ -238,8 +238,7 @@ void CnfManager::connectedToLit(Lit l, std::vector<int>& v,
       int idx = *ptr;
 
       if (m_markView[idx]) continue;
-      m_markView[idx] = true;
-      m_mustUnMark.push_back(idx);
+      m_markView[idx] = m_stampMarkView;
 
       // compute component
       for (auto& l : m_clauses[idx]) {
@@ -268,6 +267,7 @@ void CnfManager::connectedToLit(Lit l, std::vector<int>& v,
 int CnfManager::computeConnectedComponentTargeted(
     std::vector<std::vector<Var>>& varCo, std::vector<Var>& setOfVar,
     std::vector<bool>& isProjected, std::vector<Var>& freeVar) {
+  incrementStampMarkView();
   freeVar.resize(0);
 
   int nbComponent = 0;
@@ -301,8 +301,6 @@ int CnfManager::computeConnectedComponentTargeted(
       nbComponent--;  // it is alone ...
     }
   }
-
-  resetUnMark();
 
   varCo.resize(nbComponent);
   for (const auto v : setOfVar) {

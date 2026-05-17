@@ -48,17 +48,21 @@ class CnfManager : public FormulaManager {
   std::vector<InfoCluster> m_infoCluster;
 
   // to manage the connected component
-  std::vector<int> m_mustUnMark;
   std::vector<Var> m_tmpVecVar;
   std::vector<int> m_idxComponent;
-  std::vector<bool> m_markView;
-
-  inline void resetUnMark() {
-    for (auto& idx : m_mustUnMark) m_markView[idx] = false;
-    m_mustUnMark.resize(0);
-  }  // resetUnMark
+  uint32_t m_stampMarkView;
+  std::vector<uint32_t> m_markView;
 
   Var* m_activeVariables;
+
+  inline void incrementStampMarkView() {
+    if (m_stampMarkView == std::numeric_limits<uint32_t>::max()) {
+      std::fill(m_markView.begin(), m_markView.end(), 0);
+      m_stampMarkView = 1;
+    } else {
+      m_stampMarkView++;
+    }
+  }  // incrementStampMarkView
 
   /**
    * @brief This function can be used in order to check the validity of the
