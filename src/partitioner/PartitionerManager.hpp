@@ -30,46 +30,17 @@ namespace d4 {
 
 enum PartitionerName { PARTITIONER_NONE, PARTITIONER_PATOH };
 
-class PartitionerNameManager {
- public:
-  static std::string getPartitionerName(const PartitionerName& m) {
-    switch (m) {
-      case PARTITIONER_NONE:
-        return "none";
-
-      case PARTITIONER_PATOH:
-        return "patoh";
-    }
-
-    throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
-  }  // getPartitionerName
-
-  static PartitionerName getPartitionerName(const std::string& m) {
-    if (m == "none") return PARTITIONER_NONE;
-    if (m == "patoh") return PARTITIONER_PATOH;
-    throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
-  }  // getPartitionerName
-
-  static std::map<int, std::string> getMapping() {
-    return {{PARTITIONER_NONE, "none"}, {PARTITIONER_PATOH, "patoh"}};
-  }
-};
-
 template <>
 struct EnumMetadata<PartitionerName> {
   static std::string name() { return "PartitionerName"; }
   static std::map<int, std::string> mapping() {
-    return PartitionerNameManager::getMapping();
+    return {{PARTITIONER_NONE, "none"}, {PARTITIONER_PATOH, "patoh"}};
   }
 };
 
 class PartitionerManager {
  public:
   enum Level { NORMAL, SPEED, QUALITY };
-
-  static std::map<int, std::string> getLevelMapping() {
-    return {{NORMAL, "normal"}, {SPEED, "speed"}, {QUALITY, "quality"}};
-  }
 
   /**
    * @brief Fatory for creating a partitioner.
@@ -94,7 +65,9 @@ template <>
 struct EnumMetadata<PartitionerManager::Level> {
   static std::string name() { return "PartitionerManager::Level"; }
   static std::map<int, std::string> mapping() {
-    return PartitionerManager::getLevelMapping();
+    return {{PartitionerManager::NORMAL, "normal"},
+            {PartitionerManager::SPEED, "speed"},
+            {PartitionerManager::QUALITY, "quality"}};
   }
 };
 }  // namespace d4

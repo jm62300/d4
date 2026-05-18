@@ -95,7 +95,7 @@ void dDnnfCompilerDemo(const po::variables_map &vm, ProblemManager *problem) {
   ConfigurationDpllStyleMethod config;
 
   config.methodName =
-      d4::MethodNameManager::getMethodName(vm["method"].as<std::string>());
+      d4::resolve_enum<d4::MethodName>(vm["method"].as<std::string>());
 
   config.inputName = vm["input"].as<std::string>();
   config.problemInputType = d4::ProblemInputTypeManager::getInputType(
@@ -107,9 +107,9 @@ void dDnnfCompilerDemo(const po::variables_map &vm, ProblemManager *problem) {
   config.partitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
 
   config.solver.solverName =
-      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+      d4::resolve_enum<d4::SolverName>(vm["solver"].as<std::string>());
 
-  config.spec.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  config.spec.specUpdateType = d4::resolve_enum<d4::SpecUpdateType>(
       vm["occurrence-manager"].as<std::string>());
 
   config.operationType =

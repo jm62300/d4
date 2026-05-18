@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
 
     // run the method asked.
     d4::MethodName methodName =
-        d4::MethodNameManager::getMethodName("counting");
+        d4::resolve_enum<d4::MethodName>("counting");
 
     // preproc.
     /*

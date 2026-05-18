@@ -34,37 +34,15 @@ enum SpecUpdateType {
   SPEC_DYNAMIC_PURE_SIMP
 };
 
-class SpecUpdateManager {
- public:
-  static std::string getSpecUpdate(const SpecUpdateType& m) {
-    if (m == SPEC_DYNAMIC) return "dynamic";
-    if (m == SPEC_DYNAMIC_BLOCKED_SIMP) return "dynamicBlockedSimp";
-    if (m == SPEC_DYNAMIC_PURE_SIMP) return "dynamicPureSimp";
-
-    throw(
-        FactoryException("FormulaManager Update unknown", __FILE__, __LINE__));
-  }  // getOperatorType
-
-  static SpecUpdateType getSpecUpdate(const std::string& m) {
-    if (m == "dynamic") return SPEC_DYNAMIC;
-    if (m == "dynamicBlockedSimp") return SPEC_DYNAMIC_BLOCKED_SIMP;
-    if (m == "dynamicPureSimp") return SPEC_DYNAMIC_PURE_SIMP;
-
-    throw(FactoryException("Operator Type unknown", __FILE__, __LINE__));
-  }  // getSpectUpdate
-
-  static std::map<int, std::string> getMapping() {
+template <>
+struct EnumMetadata<SpecUpdateType> {
+  static std::string name() { return "SpecUpdateType"; }
+  static std::map<int, std::string> mapping() {
     return {
         {SPEC_DYNAMIC, "dynamic"},
         {SPEC_DYNAMIC_BLOCKED_SIMP, "dynamicBlockedSimp"},
         {SPEC_DYNAMIC_PURE_SIMP, "dynamicPureSimp"}};
   }
-};
-
-template <>
-struct EnumMetadata<SpecUpdateType> {
-  static std::string name() { return "SpecUpdateType"; }
-  static std::map<int, std::string> mapping() { return SpecUpdateManager::getMapping(); }
 };
 
 class OptionSpecManager : public OptionGroup {
@@ -82,7 +60,7 @@ class OptionSpecManager : public OptionGroup {
 
   friend std::ostream& operator<<(std::ostream& out, const OptionSpecManager& dt) {
     out << " Option Formula Manager:" << " update mode("
-        << SpecUpdateManager::getSpecUpdate(dt.specUpdateType.get()) << ") rm-gates("
+        << dt.specUpdateType.getValueAsString() << ") rm-gates("
         << dt.removeGates.get() << ") need-not-satisfied(" << dt.needFastNotSatisfied.get()
         << ") ";
     return out;

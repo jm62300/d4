@@ -13,32 +13,12 @@ namespace d4 {
 
 enum CacheCleaningStrategy { CACHE_EXPECTATION, CACHE_NONE };
 
-class CacheCleaningStrategyManager {
- public:
-  static std::string getCacheCleaningStrategy(const CacheCleaningStrategy& m) {
-    if (m == CACHE_EXPECTATION) return "expectation";
-    if (m == CACHE_NONE) return "none";
-
-    throw(
-        FactoryException("CacheCleaningStrategy unknown", __FILE__, __LINE__));
-  }
-
-  static CacheCleaningStrategy getCacheCleaningStrategy(const std::string& m) {
-    if (m == "expectation") return CACHE_EXPECTATION;
-    if (m == "none") return CACHE_NONE;
-    throw(
-        FactoryException("CacheCleaningStrategy unknown", __FILE__, __LINE__));
-  }
-
-  static std::map<int, std::string> getMapping() {
-    return {{CACHE_EXPECTATION, "expectation"}, {CACHE_NONE, "none"}};
-  }
-};
-
 template <>
 struct EnumMetadata<CacheCleaningStrategy> {
   static std::string name() { return "CacheCleaningStrategy"; }
-  static std::map<int, std::string> mapping() { return CacheCleaningStrategyManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{CACHE_EXPECTATION, "expectation"}, {CACHE_NONE, "none"}};
+  }
 };
 
 class OptionCacheCleaningManager : public OptionGroup {
@@ -56,7 +36,7 @@ class OptionCacheCleaningManager : public OptionGroup {
   friend std::ostream& operator<<(std::ostream& out, const OptionCacheCleaningManager& dt) {
     out << " Option CacheCleaningManager:"
         << " cleaning strategy("
-        << CacheCleaningStrategyManager::getCacheCleaningStrategy(dt.cacheCleaningStrategy.get())
+        << dt.cacheCleaningStrategy.getValueAsString()
         << ") ";
 
     return out;

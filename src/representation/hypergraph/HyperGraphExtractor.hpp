@@ -36,32 +36,12 @@ class OptionPartialOrderHeuristic;
 
 enum HyperGraphExtractorMethod { HYPER_GRAPH_DUAL };
 
-class HyperGraphExtractorMethodManager {
- public:
-  static std::string getHyperGraphExtractorMethodManager(
-      const HyperGraphExtractorMethod &m) {
-    if (m == HYPER_GRAPH_DUAL) return "dual";
-
-    throw(FactoryException("Paritioning method type unknown", __FILE__,
-                           __LINE__));
-  }  // getHyperGraphExtractorMethodManager
-
-  static HyperGraphExtractorMethod getHyperGraphExtractorMethodManager(
-      const std::string &m) {
-    if (m == "dual") return HYPER_GRAPH_DUAL;
-
-    throw(FactoryException("Hyper Graph method unknown", __FILE__, __LINE__));
-  }  // getHyperGraphExtractorMethodManager
-
-  static std::map<int, std::string> getMapping() {
-    return {{HYPER_GRAPH_DUAL, "dual"}};
-  }
-};
-
 template <>
 struct EnumMetadata<HyperGraphExtractorMethod> {
   static std::string name() { return "HyperGraphExtractorMethod"; }
-  static std::map<int, std::string> mapping() { return HyperGraphExtractorMethodManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{HYPER_GRAPH_DUAL, "dual"}};
+  }
 };
 
 struct InfoHyperGraph {

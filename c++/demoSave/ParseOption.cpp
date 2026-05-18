@@ -42,18 +42,18 @@ d4::ConfigurationCache parseCacheConfiguration(const po::variables_map &vm,
                                                const std::string &prefix) {
   d4::ConfigurationCache cache;
 
-  cache.cachingMethod = d4::CachingMethodManager::getCachingMethod(
+  cache.cachingMethod = d4::resolve_enum<d4::CachingMethod>(
       vm[prefix + "cache-method"].as<std::string>());
 
   cache.optionCacheCleaningManager.cacheCleaningStrategy =
-      d4::CacheCleaningStrategyManager::getCacheCleaningStrategy(
+      d4::resolve_enum<d4::CacheCleaningStrategy>(
           vm[prefix + "cache-reduction-strategy"].as<std::string>());
  
-  cache.optionBucketManager.modeStore = d4::ModeStoreManager::getModeStore(
+  cache.optionBucketManager.modeStore = d4::resolve_enum<d4::ModeStore>(
       vm[prefix + "cache-store-strategy"].as<std::string>());
  
   cache.optionBucketManager.clauseRepresentation =
-      d4::ClauseRepresentationManager::getClauseRepresentation(
+      d4::resolve_enum<d4::ClauseRepresentation>(
           vm[prefix + "cache-clause-representation"].as<std::string>());
  
   cache.optionBucketManager.sizeFirstPage =
@@ -84,11 +84,11 @@ d4::ConfigurationBranchingHeuristic parseBranchingHeuristicConfiguration(
       vm[prefix + "scoring-method-freq-decay"].as<unsigned>();
 
   branchingHeuristic.scoringMethodType =
-      d4::ScoringMethodTypeManager::getScoringMethodType(
+      d4::resolve_enum<d4::ScoringMethodType>(
           vm[prefix + "scoring-method"].as<std::string>());
 
   branchingHeuristic.phaseHeuristicType =
-      d4::PhaseHeuristicTypeManager::getPhaseHeuristicType(
+      d4::resolve_enum<d4::PhaseHeuristicType>(
           vm[prefix + "phase-heuristic"].as<std::string>());
 
   branchingHeuristic.reversePhase =
@@ -104,11 +104,11 @@ d4::ConfigurationPartialOrderHeuristic parsePartitioningHeuristicConfiguration(
     const po::variables_map &vm, const std::string &prefix) {
   d4::ConfigurationPartialOrderHeuristic partitioningHeuristic;
   partitioningHeuristic.partitioningMethod =
-      d4::PartialOrderMethodManager::getPartitioningMethod(
+      d4::resolve_enum<d4::PartialOrderHeuristicMethod>(
           vm[prefix + "partitioning-heuristic"].as<std::string>());
 
   partitioningHeuristic.partitionerName =
-      d4::PartitionerNameManager::getPartitionerName(
+      d4::resolve_enum<d4::PartitionerName>(
           vm[prefix + "partitioning-heuristic-partitioner"].as<std::string>());
 
   partitioningHeuristic.reduceFormula =

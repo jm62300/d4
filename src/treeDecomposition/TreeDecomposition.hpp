@@ -33,35 +33,12 @@ class OptionPartialOrderHeuristic;
 
 enum TreeDecompositionMethod { TREE_DECOMP_PARTITION, TREE_DECOMP_TREE_WIDTH };
 
-class TreeDecompositionMethodManager {
- public:
-  static std::string getTreeDecompositionMethod(
-      const TreeDecompositionMethod &m) {
-    if (m == TREE_DECOMP_PARTITION) return "tree-partition";
-    if (m == TREE_DECOMP_TREE_WIDTH) return "tree-width";
-
-    throw(FactoryException("Paritioning method type unknown", __FILE__,
-                           __LINE__));
-  }  // getTreeDecompositionMethod
-
-  static TreeDecompositionMethod getTreeDecompositionMethod(
-      const std::string &m) {
-    if (m == "tree-partition") return TREE_DECOMP_PARTITION;
-    if (m == "tree-width") return TREE_DECOMP_TREE_WIDTH;
-
-    throw(FactoryException("Tree Decomposition method unknown", __FILE__,
-                           __LINE__));
-  }  // getTreeDecompositionMethod
-
-  static std::map<int, std::string> getMapping() {
-    return {{TREE_DECOMP_PARTITION, "tree-partition"}, {TREE_DECOMP_TREE_WIDTH, "tree-width"}};
-  }
-};
-
 template <>
 struct EnumMetadata<TreeDecompositionMethod> {
   static std::string name() { return "TreeDecompositionMethod"; }
-  static std::map<int, std::string> mapping() { return TreeDecompositionMethodManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{TREE_DECOMP_PARTITION, "tree-partition"}, {TREE_DECOMP_TREE_WIDTH, "tree-width"}};
+  }
 };
 
 class TreeDecomp {

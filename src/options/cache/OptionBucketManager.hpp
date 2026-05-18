@@ -15,61 +15,20 @@ namespace d4 {
 enum ModeStore { CACHE_ALL, CACHE_NB, CACHE_NT };
 enum ClauseRepresentation { CACHE_CLAUSE, CACHE_INDEX, CACHE_SYM, CACHE_COMBI };
 
-class ModeStoreManager {
- public:
-  static std::string getModeStore(const ModeStore& m) {
-    if (m == CACHE_ALL) return "all";
-    if (m == CACHE_NB) return "not-binary";
-    if (m == CACHE_NT) return "not-touched";
-
-    throw(FactoryException("ModeStore unknown", __FILE__, __LINE__));
-  }
-
-  static ModeStore getModeStore(const std::string& m) {
-    if (m == "all") return CACHE_ALL;
-    if (m == "not-touched") return CACHE_NT;
-    if (m == "not-binary") return CACHE_NB;
-    throw(FactoryException("ModeStore unknown", __FILE__, __LINE__));
-  }
-
-  static std::map<int, std::string> getMapping() {
-    return {{CACHE_ALL, "all"}, {CACHE_NB, "not-binary"}, {CACHE_NT, "not-touched"}};
-  }
-};
-
-class ClauseRepresentationManager {
- public:
-  static std::string getClauseRepresentation(const ClauseRepresentation& c) {
-    if (c == CACHE_CLAUSE) return "clause";
-    if (c == CACHE_INDEX) return "index";
-    if (c == CACHE_SYM) return "sym";
-    if (c == CACHE_COMBI) return "combi";
-    throw(FactoryException("ClauseRepresentation unknown", __FILE__, __LINE__));
-  }
-
-  static ClauseRepresentation getClauseRepresentation(const std::string& c) {
-    if (c == "clause") return CACHE_CLAUSE;
-    if (c == "index") return CACHE_INDEX;
-    if (c == "sym") return CACHE_SYM;
-    if (c == "combi") return CACHE_COMBI;
-    throw(FactoryException("ClauseRepresentation unknown", __FILE__, __LINE__));
-  }
-
-  static std::map<int, std::string> getMapping() {
-    return {{CACHE_CLAUSE, "clause"}, {CACHE_INDEX, "index"}, {CACHE_SYM, "sym"}, {CACHE_COMBI, "combi"}};
-  }
-};
-
 template <>
 struct EnumMetadata<ModeStore> {
   static std::string name() { return "ModeStore"; }
-  static std::map<int, std::string> mapping() { return ModeStoreManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{CACHE_ALL, "all"}, {CACHE_NB, "not-binary"}, {CACHE_NT, "not-touched"}};
+  }
 };
 
 template <>
 struct EnumMetadata<ClauseRepresentation> {
   static std::string name() { return "ClauseRepresentation"; }
-  static std::map<int, std::string> mapping() { return ClauseRepresentationManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{CACHE_CLAUSE, "clause"}, {CACHE_INDEX, "index"}, {CACHE_SYM, "sym"}, {CACHE_COMBI, "combi"}};
+  }
 };
 
 class OptionBucketManager : public OptionGroup {
@@ -98,8 +57,8 @@ class OptionBucketManager : public OptionGroup {
 
   friend std::ostream& operator<<(std::ostream& out, const OptionBucketManager& dt) {
     out << " Option BucketManager:"
-        << " storage(" << ModeStoreManager::getModeStore(dt.modeStore.get()) << ") "
-        << " representation(" << ClauseRepresentationManager::getClauseRepresentation(dt.clauseRepresentation.get()) << ") "
+        << " storage(" << dt.modeStore.getValueAsString() << ") "
+        << " representation(" << dt.clauseRepresentation.getValueAsString() << ") "
         << " size_first_page(" << dt.sizeFirstPage.get() << ")"
         << " size_additional_page(" << dt.sizeAdditionalPage.get() << ")";
 

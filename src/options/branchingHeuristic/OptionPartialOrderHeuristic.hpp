@@ -41,39 +41,13 @@ enum PartialOrderHeuristicMethod : char {
   PARTIAL_ORDER_NONE
 };
 
-class PartialOrderMethodManager {
- public:
-  static std::string getPartialOrderMethod(
-      const PartialOrderHeuristicMethod& m) {
-    if (m == PARTIAL_ORDER_TREE_DECOMPOSITION) return "tree-decomposition";
-    if (m == PARTIAL_ORDER_GIVEN) return "given";
-    if (m == PARTIAL_ORDER_NONE) return "none";
-
-    throw(FactoryException("Paritioning method type unknown", __FILE__,
-                           __LINE__));
-  }  // getPartialOrderMethod
-
-  static PartialOrderHeuristicMethod getPartialOrderMethod(
-      const std::string& m) {
-    if (m == "tree-decomposition") return PARTIAL_ORDER_TREE_DECOMPOSITION;
-    if (m == "given") return PARTIAL_ORDER_GIVEN;
-    if (m == "none") return PARTIAL_ORDER_NONE;
-
-    throw(FactoryException("Paritioning method unknown", __FILE__, __LINE__));
-  }  // getPartialOrderMethod
-
-  static std::map<int, std::string> getMapping() {
-    return {{PARTIAL_ORDER_TREE_DECOMPOSITION, "tree-decomposition"},
-            {PARTIAL_ORDER_GIVEN, "given"},
-            {PARTIAL_ORDER_NONE, "none"}};
-  }
-};
-
 template <>
 struct EnumMetadata<PartialOrderHeuristicMethod> {
   static std::string name() { return "PartialOrderHeuristicMethod"; }
   static std::map<int, std::string> mapping() {
-    return PartialOrderMethodManager::getMapping();
+    return {{PARTIAL_ORDER_TREE_DECOMPOSITION, "tree-decomposition"},
+            {PARTIAL_ORDER_GIVEN, "given"},
+            {PARTIAL_ORDER_NONE, "none"}};
   }
 };
 
@@ -143,11 +117,9 @@ class OptionPartialOrderHeuristic : public OptionGroup {
   friend std::ostream& operator<<(std::ostream& out,
                                   const OptionPartialOrderHeuristic& dt) {
     out << " Option Partitioning Heuristic:"
-        << " method("
-        << PartialOrderMethodManager::getPartialOrderMethod(
-               dt.partialOrderMethod.get())
-        << ") partioner name(" << dt.partitionerName.get()
-        << ") treeDecomposition Method(" << dt.treeDecompositionMethod.get()
+        << " method(" << dt.partialOrderMethod.getValueAsString()
+        << ") partioner name(" << dt.partitionerName.getValueAsString()
+        << ") treeDecomposition Method(" << dt.treeDecompositionMethod.getValueAsString()
         << ")";
     return out;
   }
