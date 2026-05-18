@@ -93,6 +93,22 @@ namespace d4
       for (int i = 1; i < argc; ++i)
       {
         std::string arg = argv[i];
+        
+        if (arg == "--dump-options")
+        {
+          std::set<std::string> opts;
+          for (const auto &[path, opt] : m_options)
+          {
+            opts.insert("--" + path);
+          }
+          opts.insert("-i");
+          for (const auto &o : opts)
+          {
+            std::cout << o << "\n";
+          }
+          exit(0);
+        }
+
         if (arg.size() > 2 && arg.substr(0, 2) == "--")
         {
           std::string key, value;

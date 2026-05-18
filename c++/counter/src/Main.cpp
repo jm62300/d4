@@ -58,6 +58,12 @@ int main(int argc, char** argv) {
     }
   }
 
+  // 1. Initialize configuration and registry
+  d4::OptionDpllStyleMethod options;
+  d4::OptionRegistry registry;
+  options.registerTo(registry);
+  registry.parseArgv(argc, argv);
+
   if (showHelp || inputPath.empty()) {
     if (!showHelp && inputPath.empty())
       std::cerr << "Missing required argument: -i INPUT\n";
@@ -66,9 +72,6 @@ int main(int argc, char** argv) {
               << "  -i, --input   Path to the input DIMACS file (required)\n"
               << "  -h, --help    Show this help screen\n";
 
-    d4::OptionDpllStyleMethod config;
-    d4::OptionRegistry registry;
-    config.registerTo(registry);
     registry.displayHelp(std::cout);
 
     return showHelp ? 0 : 1;
@@ -83,12 +86,6 @@ int main(int argc, char** argv) {
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
-
-  // 1. Initialize configuration and registry
-  d4::OptionDpllStyleMethod options;
-  d4::OptionRegistry registry;
-  options.registerTo(registry);
-  registry.parseArgv(argc, argv);
 
   // preproc.
   bipe::OptionPreproc optionPreproc;
