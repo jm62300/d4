@@ -31,127 +31,155 @@ namespace d4 {
 template <class T>
 class CacheList : public CacheManager<T> {
  private:
-  const uint64_t SIZE_HASH = 2000083;
-  std::vector<std::vector<CachedBucket<T>>> hashTable;
+  static constexpr uint64_t SIZE_HASH = 2097152;
+  static constexpr uint32_t END_OF_LIST = 0xFFFFFFFF;  // "null" index
+
+  struct CollisionNode {
+    CachedBucket<T> bucket;
+    uint32_t next;
+  };
+
+  std::vector<uint32_t> hashTable;
+  std::vector<CollisionNode> nodePool;
+  uint32_t freeListHead;
 
  public:
   /**
    * @brief Construct a new Cache List object
-   *
-   * @param options are the selected options.
-   * @param nbVar is the number of variables.
-   * @param specs is a structure to get data about the formula.
-   * @param out is the stream where are printed out the logs.
    */
   CacheList(const OptionCacheManager& options, unsigned nbVar,
             FormulaManager* specs, std::ostream& out)
       : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE LIST CONSTRUCTOR]\n";
     initHashTable(nbVar);
-  }  // constructor
+  }
 
   /**
    * @brief Destroy the Cache List object
    */
-  ~CacheList() { hashTable.clear(); }  // destructor
+  ~CacheList() {
+    hashTable.clear();
+    nodePool.clear();
+  }
 
   /**
    * @brief Add an entry in the cache.
-   *
-   * @param cb is the bucket we want to add.
-   * @param hashValue is the hash value of the bucket.
-   * @param val is the value we associate with the bucket.
    */
   inline void pushInHashTable(CachedBucket<T>& cb, uint64_t hashValue, T val) {
-    hashTable[hashValue % SIZE_HASH].push_back(cb);
+    uint64_t index = hashValue & (SIZE_HASH - 1);
+    uint32_t newNodeIdx;
 
-    CachedBucket<T>& cbIn = (hashTable[hashValue % SIZE_HASH].back());
+    // Reuse a deleted slot if available, otherwise grow the pool
+    if (freeListHead != END_OF_LIST) {
+      newNodeIdx = freeListHead;
+      freeListHead = nodePool[freeListHead].next;
+      nodePool[newNodeIdx].bucket = cb;
+    } else {
+      newNodeIdx = nodePool.size();
+      nodePool.push_back({cb, END_OF_LIST});
+    }
+
+    // Insert at the head of the collision list
+    nodePool[newNodeIdx].next = hashTable[index];
+    hashTable[index] = newNodeIdx;
+
+    // Update statistics and lock bucket
+    CachedBucket<T>& cbIn = nodePool[newNodeIdx].bucket;
     cbIn.lockedBucket(val);
+
     this->m_nbCreationBucket++;
-    this->m_sumDataSize += cb.dataBucket.szData();
+    this->m_sumDataSize += cbIn.dataBucket.szData();
     this->m_cacheCleaningManager->initCountCachedBucket(cbIn);
     this->m_nbEntry++;
-  }  // pushinhashtable
+  }
 
   /**
-   * @brief Research in the set of buckets if the bucket pointed by i already
-   * exist.
-   *
-   * @param cb is the bucket we are looking for.
-   * @param hashValue is the hash value computed from the bucket.
-   * @return a valid entry if it is in the cache, null otherwise.
+   * @brief Research in the set of buckets if the bucket already exists.
    */
-  CachedBucket<T>* bucketAlreadyExist(DataBucket& db, uint64_t hashValue) {
+  CachedBucket<T>* bucketAlreadyExist(DataBucket& db,
+                                      uint64_t hashValue) override {
     char* refData = db.data;
-    assert(hashValue % SIZE_HASH < hashTable.size());
-    std::vector<CachedBucket<T>>& listCollision =
-        hashTable[hashValue % SIZE_HASH];
+    uint64_t index = hashValue & (SIZE_HASH - 1);  // Fast bitwise modulo
 
-    for (auto& cbi : listCollision) {
-      if (!db.sameHeader(cbi.dataBucket)) continue;
+    uint32_t curr = hashTable[index];
 
-      if (!memcmp(refData, cbi.dataBucket.data, cbi.dataBucket.szData())) {
+    // Traverse the index-based linked list
+    while (curr != END_OF_LIST) {
+      CachedBucket<T>& cbi = nodePool[curr].bucket;
+
+      if (db.sameHeader(cbi.dataBucket) &&
+          !memcmp(refData, cbi.dataBucket.data, cbi.dataBucket.szData())) {
         this->m_nbPositiveHit++;
         return &cbi;
       }
+      curr = nodePool[curr].next;  // Move to next node
     }
 
     this->m_nbNegativeHit++;
     return NULL;
-  }  // bucketAlreadyExist
+  }
 
   /**
    * Create a bucket and store it in the cache.
-   *
-   * @param varConnected is the set of variable.
-   * @param c is the value we want to store.
    */
   inline void createAndStoreBucket(std::vector<Var>& varConnected, T& c) {
     CachedBucket<T>* formulaBucket =
         this->m_bucketManager->collectBuckect(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
     pushInHashTable(*formulaBucket, hashValue, c);
-  }  // createBucket
+  }
 
   /**
    * @brief Init the hashTable.
-   *
-   * @param maxVar is the number of variable.
    */
   void initHashTable(unsigned maxVar) override {
     this->setInfoFormula(maxVar);
 
-    // init hash tables
-    hashTable.clear();
-    hashTable.resize(SIZE_HASH, std::vector<CachedBucket<T>>());
-  }  // initHashTable
+    // Init the flat structures
+    hashTable.assign(SIZE_HASH, END_OF_LIST);
+    nodePool.clear();
+    freeListHead = END_OF_LIST;
+
+    // Pre-allocate chunk to avoid mid-solve resizing (saves memory reallocation
+    // overhead)
+    nodePool.reserve(SIZE_HASH);
+  }
 
   /**
    * @brief Clean up the cache.
-   *
-   * @param test is a function that is used to decide if an entry must be
-   * removed.
-   *
-   * @return the number of entry we removed.
    */
   unsigned removeEntry(std::function<bool(CachedBucket<T>& c)> test) {
     unsigned nbRemoveEntry = 0;
-    for (auto& list : hashTable) {
-      unsigned j = 0;
-      for (unsigned i = 0; i < list.size(); i++) {
-        CachedBucket<T>& cb = list[i];
 
-        if (test(cb)) {
-          assert((int)cb.dataBucket.szData() > 0);
-          this->releaseMemory(cb.dataBucket.data, cb.dataBucket.szData());
-          cb.dataBucket.reset();
+    for (uint64_t i = 0; i < SIZE_HASH; i++) {
+      uint32_t* currPtr = &hashTable[i];
+
+      while (*currPtr != END_OF_LIST) {
+        uint32_t currIdx = *currPtr;
+        CollisionNode& node = nodePool[currIdx];
+
+        if (test(node.bucket)) {
+          assert((int)node.bucket.dataBucket.szData() > 0);
+
+          // Free the underlying DPLL memory
+          this->releaseMemory(node.bucket.dataBucket.data,
+                              node.bucket.dataBucket.szData());
+          node.bucket.dataBucket.reset();
           nbRemoveEntry++;
-        } else
-          list[j++] = list[i];
+
+          // Unlink from the hash table list
+          *currPtr = node.next;
+
+          // Push this slot to the Free List so pushInHashTable can reuse it
+          node.next = freeListHead;
+          freeListHead = currIdx;
+        } else {
+          // If not removed, advance our pointer tracker to the next node
+          currPtr = &node.next;
+        }
       }
-      list.resize(j);
     }
     return nbRemoveEntry;
-  }  // removeEntry
+  }
 };
 }  // namespace d4
