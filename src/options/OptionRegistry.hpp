@@ -149,6 +149,8 @@ namespace d4
     {
       out << "\n\033[1;36mAvailable Options (use "
              "--path.to.option=value):\033[0m\n";
+      out << "\033[90mNote: Modifying an argument without its exact path (e.g. --verbosity=1)\n"
+             "      will automatically propagate the value to all matching child options.\033[0m\n";
       std::set<std::string> displayed_nodes;
       renderTree(out, "", "", displayed_nodes);
       out << std::endl;
