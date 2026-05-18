@@ -80,6 +80,8 @@ int main(int argc, char** argv) {
     return showHelp ? 0 : 1;
   }
 
+
+
   // Check if input file exists
   if (!fs::exists(inputPath)) {
     std::cerr << "ERROR! Input file does not exist: " << inputPath << "\n";

@@ -186,7 +186,7 @@ namespace d4
         {
           OptionBase *opt = m_options.at(fullPath);
           out << " \033[90m(" << opt->getTypeName() << ")\033[0m : "
-              << opt->getDescription() << " \033[33m[default: "
+              << opt->getDescription() << " \033[33m[current value: "
               << opt->getValueAsString() << "]\033[0m";
           std::string possible = opt->getPossibleValues();
           if (!possible.empty())

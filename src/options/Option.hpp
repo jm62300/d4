@@ -32,7 +32,11 @@ class Option : public OptionBase {
     } else if constexpr (std::is_same_v<T, bool>) {
       return m_value ? "true" : "false";
     } else if constexpr (std::is_enum_v<T>) {
-      // Fallback to int for enums if no manager is used
+      auto m = EnumMetadata<T>::mapping();
+      auto it = m.find(static_cast<int>(m_value));
+      if (it != m.end()) {
+        return it->second;
+      }
       return std::to_string(static_cast<int>(m_value));
     } else {
       std::stringstream ss;
@@ -48,11 +52,22 @@ class Option : public OptionBase {
       m_value =
           (value == "true" || value == "1" || value == "yes" || value == "on");
     } else if constexpr (std::is_enum_v<T>) {
-      try {
-        m_value = static_cast<T>(std::stoi(value));
-      } catch (...) {
-        // Enums need specific managers for string conversion, handled
-        // externally
+      auto m = EnumMetadata<T>::mapping();
+      bool found = false;
+      for (const auto& [val, label] : m) {
+        if (label == value) {
+          m_value = static_cast<T>(val);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        try {
+          m_value = static_cast<T>(std::stoi(value));
+        } catch (...) {
+          // Enums need specific managers for string conversion, handled
+          // externally
+        }
       }
     } else {
       std::stringstream ss(value);
