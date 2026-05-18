@@ -31,7 +31,7 @@ class CachedBucket;
 template <class T>
 class CacheCleaningManager {
  protected:
-  CacheManager<T> *m_cache;
+  CacheManager<T>* m_cache;
 
  public:
   virtual ~CacheCleaningManager() {}
@@ -44,9 +44,9 @@ class CacheCleaningManager {
      @param[in] nbVar, the number of variables in the problem.
      @param[in] out, the stream where are print out the information.
    */
-  static CacheCleaningManager<T> *makeCacheCleaningManager(
-      const OptionCacheCleaningManager &options, CacheManager<T> *cache,
-      int nbVar, std::ostream &out) {
+  static CacheCleaningManager<T>* makeCacheCleaningManager(
+      const OptionCacheCleaningManager& options, CacheManager<T>* cache,
+      int nbVar, std::ostream& out) {
     out << "c [CACHE CLEANING MANAGER] " << options << '\n';
 
     if (options.cacheCleaningStrategy == CACHE_EXPECTATION)
@@ -58,10 +58,10 @@ class CacheCleaningManager {
                            __LINE__));
   }  // makeCacheCleaningManager
 
-  virtual void initCountCachedBucket(CachedBucket<T> *cb) = 0;
-  virtual void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) = 0;
+  virtual void initCountCachedBucket(CachedBucket<T>& cb) = 0;
+  virtual void updateCountCachedBucket(bool hit, int nbVar) = 0;
   virtual void reduceCache() = 0;
-  virtual void printCleaningInfo(std::ostream &out) = 0;
+  virtual void printCleaningInfo(std::ostream& out) = 0;
 
   /**
      Ask to the bucket manager to release some memory block.
@@ -72,7 +72,7 @@ class CacheCleaningManager {
      @param[in] smudge, control if we want to directly remove the entry or not.
 
    */
-  void releaseMemory(char *data, int size) {
+  void releaseMemory(char* data, int size) {
     m_cache->getBucketManager()->releaseMemory(data, size);
   }  // releaseMemory
 };

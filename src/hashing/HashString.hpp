@@ -27,70 +27,67 @@
 namespace d4 {
 class HashString {
  private:
-  // A simple 32-bit mix function (similar to MurmurHash3 finalizer)
-  static inline uint32_t fmix32(uint32_t h) {
-    h ^= h >> 16;
-    h *= 0x85ebca6b;
-    h ^= h >> 13;
-    h *= 0xc2b2ae35;
-    h ^= h >> 16;
-    return h;
-  }
+  static inline uint64_t MurmurHash64A(const void* key, int len,
+                                       uint64_t seed) {
+    const uint64_t m = 0xc6a4a7935bd1e995ULL;
+    const int r = 47;
 
-  unsigned int hash_bytes(const void* key, size_t len, uint32_t seed) {
-    const uint8_t* data = (const uint8_t*)key;
-    const int nblocks = len / 4;
-    uint32_t h = seed;
+    uint64_t h = seed ^ (len * m);
 
-    const uint32_t c1 = 0xcc9e2d51;
-    const uint32_t c2 = 0x1b873593;
+    const uint64_t* data = (const uint64_t*)key;
+    const uint64_t* end = data + (len / 8);
 
-    // Body
-    const uint32_t* blocks = (const uint32_t*)(data + nblocks * 4);
-    for (int i = -nblocks; i; i++) {
-      uint32_t k = blocks[i];
-      k *= c1;
-      k = (k << 15) | (k >> (32 - 15));
-      k *= c2;
+    while (data != end) {
+      uint64_t k = *data++;
+
+      k *= m;
+      k ^= k >> r;
+      k *= m;
 
       h ^= k;
-      h = (h << 13) | (h >> (32 - 13));
-      h = h * 5 + 0xe6546b64;
+      h *= m;
     }
 
-    // Tail
-    const uint8_t* tail = (const uint8_t*)(data + nblocks * 4);
-    uint32_t k1 = 0;
-    switch (len & 3) {
+    const uint8_t* data2 = (const uint8_t*)data;
+
+    switch (len & 7) {
+      case 7:
+        h ^= uint64_t(data2[6]) << 48;
+      case 6:
+        h ^= uint64_t(data2[5]) << 40;
+      case 5:
+        h ^= uint64_t(data2[4]) << 32;
+      case 4:
+        h ^= uint64_t(data2[3]) << 24;
       case 3:
-        k1 ^= tail[2] << 16;
+        h ^= uint64_t(data2[2]) << 16;
       case 2:
-        k1 ^= tail[1] << 8;
+        h ^= uint64_t(data2[1]) << 8;
       case 1:
-        k1 ^= tail[0];
-        k1 *= c1;
-        k1 = (k1 << 15) | (k1 >> (32 - 15));
-        k1 *= c2;
-        h ^= k1;
-    }
+        h ^= uint64_t(data2[0]);
+        h *= m;
+    };
 
-    // Finalization (avalanche)
-    h ^= len;
-    h ^= h >> 16;
-    h *= 0x85ebca6b;
-    h ^= h >> 13;
-    h *= 0xc2b2ae35;
-    h ^= h >> 16;
+    h ^= h >> r;
+    h *= m;
+    h ^= h >> r;
 
     return h;
   }
 
  public:
-  inline unsigned hash(char* key, unsigned len, uint64_t info) {
-    unsigned dataHash = 0x9e3779b9 * hash_bytes(key, len, 29111983);
-    unsigned infoHash =
-        0xc6a4a793 * hash_bytes(&info, sizeof(uint64_t), 30011989);
-    return fmix32(dataHash ^ infoHash);
+  inline uint64_t hash(char* key, unsigned len, uint64_t info) {
+    uint64_t dataHash = MurmurHash64A(key, len, 29111983ULL);
+    uint64_t infoHash = MurmurHash64A(&info, sizeof(uint64_t), 30011989ULL);
+
+    uint64_t h = dataHash ^ infoHash;
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+
+    return h;
   }  // hash
 };
 }  // namespace d4

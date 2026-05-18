@@ -31,7 +31,7 @@ namespace d4 {
 template <class T>
 class CacheList : public CacheManager<T> {
  private:
-  const unsigned SIZE_HASH = 2000083;
+  const uint64_t SIZE_HASH = 2000083;
   std::vector<std::vector<CachedBucket<T>>> hashTable;
 
  public:
@@ -43,8 +43,8 @@ class CacheList : public CacheManager<T> {
    * @param specs is a structure to get data about the formula.
    * @param out is the stream where are printed out the logs.
    */
-  CacheList(const OptionCacheManager &options, unsigned nbVar,
-            FormulaManager *specs, std::ostream &out)
+  CacheList(const OptionCacheManager& options, unsigned nbVar,
+            FormulaManager* specs, std::ostream& out)
       : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE LIST CONSTRUCTOR]\n";
     initHashTable(nbVar);
@@ -62,15 +62,14 @@ class CacheList : public CacheManager<T> {
    * @param hashValue is the hash value of the bucket.
    * @param val is the value we associate with the bucket.
    */
-  inline void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
-                              T val) {
+  inline void pushInHashTable(CachedBucket<T>& cb, uint64_t hashValue, T val) {
     hashTable[hashValue % SIZE_HASH].push_back(cb);
 
-    CachedBucket<T> &cbIn = (hashTable[hashValue % SIZE_HASH].back());
+    CachedBucket<T>& cbIn = (hashTable[hashValue % SIZE_HASH].back());
     cbIn.lockedBucket(val);
     this->m_nbCreationBucket++;
     this->m_sumDataSize += cb.dataBucket.szData();
-    this->m_cacheCleaningManager->initCountCachedBucket(&cbIn);
+    this->m_cacheCleaningManager->initCountCachedBucket(cbIn);
     this->m_nbEntry++;
   }  // pushinhashtable
 
@@ -82,13 +81,13 @@ class CacheList : public CacheManager<T> {
    * @param hashValue is the hash value computed from the bucket.
    * @return a valid entry if it is in the cache, null otherwise.
    */
-  CachedBucket<T> *bucketAlreadyExist(DataBucket &db, unsigned hashValue) {
-    char *refData = db.data;
+  CachedBucket<T>* bucketAlreadyExist(DataBucket& db, uint64_t hashValue) {
+    char* refData = db.data;
     assert(hashValue % SIZE_HASH < hashTable.size());
-    std::vector<CachedBucket<T>> &listCollision =
+    std::vector<CachedBucket<T>>& listCollision =
         hashTable[hashValue % SIZE_HASH];
 
-    for (auto &cbi : listCollision) {
+    for (auto& cbi : listCollision) {
       if (!db.sameHeader(cbi.dataBucket)) continue;
 
       if (!memcmp(refData, cbi.dataBucket.data, cbi.dataBucket.szData())) {
@@ -107,8 +106,8 @@ class CacheList : public CacheManager<T> {
    * @param varConnected is the set of variable.
    * @param c is the value we want to store.
    */
-  inline void createAndStoreBucket(std::vector<Var> &varConnected, T &c) {
-    CachedBucket<T> *formulaBucket =
+  inline void createAndStoreBucket(std::vector<Var>& varConnected, T& c) {
+    CachedBucket<T>* formulaBucket =
         this->m_bucketManager->collectBuckect(varConnected);
     unsigned int hashValue = computeHash(*formulaBucket);
     pushInHashTable(*formulaBucket, hashValue, c);
@@ -135,12 +134,12 @@ class CacheList : public CacheManager<T> {
    *
    * @return the number of entry we removed.
    */
-  unsigned removeEntry(std::function<bool(CachedBucket<T> &c)> test) {
+  unsigned removeEntry(std::function<bool(CachedBucket<T>& c)> test) {
     unsigned nbRemoveEntry = 0;
-    for (auto &list : hashTable) {
+    for (auto& list : hashTable) {
       unsigned j = 0;
       for (unsigned i = 0; i < list.size(); i++) {
-        CachedBucket<T> &cb = list[i];
+        CachedBucket<T>& cb = list[i];
 
         if (test(cb)) {
           assert((int)cb.dataBucket.szData() > 0);

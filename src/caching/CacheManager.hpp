@@ -125,10 +125,10 @@ class CacheManager {
     throw(FactoryException("Cannot create a CacheManager", __FILE__, __LINE__));
   }  // makeCacheManager
 
-  virtual void pushInHashTable(CachedBucket<T>& cb, unsigned int hashValue,
+  virtual void pushInHashTable(CachedBucket<T>& cb, uint64_t hashValue,
                                T val) = 0;
   virtual CachedBucket<T>* bucketAlreadyExist(DataBucket& db,
-                                              unsigned hashValue) = 0;
+                                              uint64_t hashValue) = 0;
   virtual void initHashTable(unsigned maxVar) = 0;
 
   virtual unsigned removeEntry(
@@ -181,7 +181,7 @@ class CacheManager {
    * @param bucket is the entry we want to compute the hash.
    * @return the value.
    */
-  inline unsigned computeHash(DataBucket& dBucket) {
+  inline uint64_t computeHash(DataBucket& dBucket) {
     return hashMethod.hash(dBucket.data, dBucket.szData(), dBucket.getInfo());
   }  // computeHash
 
@@ -212,7 +212,7 @@ class CacheManager {
 
     DataBucket dataBucket;
     m_bucketManager->collectBucket(varConnected, dataBucket);
-    unsigned hashValue = computeHash(dataBucket);
+    uint64_t hashValue = computeHash(dataBucket);
 
     CachedBucket<T>* cacheBucket = bucketAlreadyExist(dataBucket, hashValue);
 

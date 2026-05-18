@@ -30,7 +30,7 @@ namespace d4 {
 template <class T>
 class CacheNoCollision : public CacheManager<T> {
  private:
-  const unsigned SIZE_HASH = 22041997;
+  const uint64_t SIZE_HASH = 22041997;
 
  protected:
   std::vector<CachedBucket<T>> hashTable;
@@ -44,8 +44,8 @@ class CacheNoCollision : public CacheManager<T> {
    * @param specs is a structure to get data about the formula.
    * @param out is the stream where are printed out the logs.
    */
-  CacheNoCollision(const OptionCacheManager &options, unsigned nbVar,
-                   FormulaManager *specs, std::ostream &out)
+  CacheNoCollision(const OptionCacheManager& options, unsigned nbVar,
+                   FormulaManager* specs, std::ostream& out)
       : CacheManager<T>(options, nbVar, specs, out) {
     out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
     initHashTable(nbVar);
@@ -64,9 +64,9 @@ class CacheNoCollision : public CacheManager<T> {
    * @param hashValue is the hash value of the bucket.
    * @param val is the value we associate with the bucket.
    */
-  void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
+  void pushInHashTable(CachedBucket<T>& cb, uint64_t hashValue,
                        T val) override {
-    CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
+    CachedBucket<T>& cbi = hashTable[hashValue % SIZE_HASH];
 
     // remove the previous entry if needed.
     if (cbi.dataBucket.nbVar())
@@ -74,7 +74,7 @@ class CacheNoCollision : public CacheManager<T> {
 
     cbi = cb;
     cbi.lockedBucket(val);
-    this->m_cacheCleaningManager->initCountCachedBucket(&cbi);
+    this->m_cacheCleaningManager->initCountCachedBucket(cbi);
 
     this->m_nbCreationBucket++;
     this->m_sumDataSize += cb.dataBucket.szData();
@@ -90,11 +90,11 @@ class CacheNoCollision : public CacheManager<T> {
    * @return the index of the identical bucket if this one exists, NULL
    * otherwise
    */
-  CachedBucket<T> *bucketAlreadyExist(DataBucket &db,
-                                      unsigned hashValue) override {
-    char *refData = db.data;
+  CachedBucket<T>* bucketAlreadyExist(DataBucket& db,
+                                      uint64_t hashValue) override {
+    char* refData = db.data;
 
-    CachedBucket<T> &cbi = hashTable[hashValue % SIZE_HASH];
+    CachedBucket<T>& cbi = hashTable[hashValue % SIZE_HASH];
     if (cbi.dataBucket.nbVar() && db.sameHeader(cbi.dataBucket) &&
         !memcmp(refData, cbi.dataBucket.data, cbi.dataBucket.szData())) {
       this->m_nbPositiveHit++;
@@ -126,9 +126,9 @@ class CacheNoCollision : public CacheManager<T> {
    *
    * @return the number of entry we removed.
    */
-  unsigned removeEntry(std::function<bool(CachedBucket<T> &c)> test) {
+  unsigned removeEntry(std::function<bool(CachedBucket<T>& c)> test) {
     unsigned nbRemoveEntry = 0;
-    for (auto &cb : hashTable) {
+    for (auto& cb : hashTable) {
       if (test(cb)) {
         assert((int)cb.dataBucket.szData() > 0);
         this->releaseMemory(cb.dataBucket.data, cb.dataBucket.szData());

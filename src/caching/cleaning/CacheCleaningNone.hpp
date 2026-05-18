@@ -35,15 +35,14 @@ class CacheCleaningNone : public CacheCleaningManager<T> {
 
      @param[in] cache, the cache where is applied the cleaning process.
    */
-  CacheCleaningNone(CacheManager<T> *cache) {
+  CacheCleaningNone(CacheManager<T>* cache) {
     this->m_cache = cache;
   }  // constructor
 
-  void initCountCachedBucket(CachedBucket<T> *cb) {}  // nothing to do.
-  void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
-  }                                             // nothing to do.
-  void reduceCache() {}                         // nothing to do.
-  void printCleaningInfo(std::ostream &out) {}  // nothing to do.
+  void initCountCachedBucket(CachedBucket<T>& cb) {}    // nothing to do.
+  void updateCountCachedBucket(bool hit, int nbVar) {}  // nothing to do.
+  void reduceCache() {}                                 // nothing to do.
+  void printCleaningInfo(std::ostream& out) {}          // nothing to do.
 };
 
 }  // namespace d4

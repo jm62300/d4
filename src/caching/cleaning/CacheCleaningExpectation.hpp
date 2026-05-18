@@ -61,7 +61,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
      reduction.
      @param[in] ratio, the limit ratio.
    */
-  CacheCleaningExpectation(CacheManager<T> *cache, int nbVar) {
+  CacheCleaningExpectation(CacheManager<T>* cache, int nbVar) {
     m_nbVar = nbVar;
     m_nbNegativeHit = 0;
     m_nbPositiveHit = 0;
@@ -79,19 +79,19 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
 
      @param[out] cb, the cached bucket we want to init.
    */
-  void initCountCachedBucket(CachedBucket<T> *cb) {
-    m_statVar[cb->dataBucket.nbVar()].number++;
+  void initCountCachedBucket(CachedBucket<T>& cb) {
+    m_statVar[cb.dataBucket.nbVar()].number++;
   }  // initCountCachedBucket
 
   /**
    * @brief Update the information about the bucket.
    *
-   * @param cb is the cached bucket we want to init.
+   * @param hit is true if we have a positive hit, false otherwise.
    * @param nbVar a number of variables (because cb can be NULL the number of
    * variables cannot be related to cb).
    */
-  void updateCountCachedBucket(CachedBucket<T> *cb, int nbVar) {
-    if (cb) {
+  void updateCountCachedBucket(bool hit, int nbVar) {
+    if (hit) {
       m_statVar[nbVar].positive++;
       m_nbPositiveHit++;
     } else {
@@ -131,7 +131,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
     // limit = m_cache->getLimitVarCached();
     m_threshold += INC_THRESHOD;
 
-    unsigned nbRemoveEntry = m_cache->removeEntry([limit](CachedBucket<T> &c) {
+    unsigned nbRemoveEntry = m_cache->removeEntry([limit](CachedBucket<T>& c) {
       return c.dataBucket.nbVar() && c.dataBucket.nbVar() >= limit;
     });
 
@@ -146,7 +146,7 @@ class CacheCleaningExpectation : public CacheCleaningManager<T> {
 
      @param[in] out, the stream where are print out the information.
    */
-  void printCleaningInfo(std::ostream &out) {
+  void printCleaningInfo(std::ostream& out) {
     out << "c Number of reduce calls: " << m_nbReduceCall << "\n";
     out << "c Number of entry removedreduce: " << m_nbRemoveEntry << "\n";
   }

@@ -24,24 +24,24 @@ template <class T>
 class TmpEntry {
  public:
   CachedBucket<T> e;
-  unsigned int hashValue;
+  uint64_t hashValue;
   bool defined;
 
   TmpEntry() { defined = false; }
 
-  TmpEntry(CachedBucket<T> e_, unsigned int hashValue_, bool defined_) {
+  TmpEntry(CachedBucket<T> e_, uint64_t hashValue_, bool defined_) {
     e = e_;
     hashValue = hashValue_;
     defined = defined_;
   }
 
-  TmpEntry(DataBucket &db, unsigned int hashValue_, bool defined_) {
+  TmpEntry(DataBucket& db, uint64_t hashValue_, bool defined_) {
     e.dataBucket = db;
     hashValue = hashValue_;
     defined = defined_;
   }
 
-  inline CachedBucket<T> &getCachedBucket() { return e; }
+  inline CachedBucket<T>& getCachedBucket() { return e; }
   inline T getValue() { return e.fc; }
 };
 }  // namespace d4

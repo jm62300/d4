@@ -66,23 +66,5 @@ class CachedBucket {
   inline void set(char* d, DataInfo& dnew) { dataBucket.set(d, dnew); }  // set
   inline void lockedBucket(T v) { fc = v; }
   inline DataBucket& getDateBucket() { return dataBucket; }
-
-#if 0
-  inline uint64_t getInfo() { return header.info1; }
-  inline void szData(int s) { header.szData(s); }
-  inline unsigned szData() { return header.szData(); }
-  inline unsigned nbVar() { return header.nbVar(); }
-  inline void reset() { header.reset(); }
-
-  inline void display() {
-    std::cout << std::bitset<64>(header.info1) << " <<<<<<\n";
-    for (unsigned i = 0; i < header.szData(); i++)
-      std::cout << std::bitset<8>(data[i]) << " ";
-    std::cout << "\n";
-  }
-
-  inline DataInfo &getDataInfo() { return header; }
-  inline bool sameHeader(CachedBucket<T> &b) { return header == b.header; }
-#endif
 };
 }  // namespace d4
