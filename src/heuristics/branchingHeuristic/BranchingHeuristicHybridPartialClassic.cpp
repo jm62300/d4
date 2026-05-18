@@ -34,7 +34,7 @@ BranchingHeuristicHybridPartialClassic::
  * @brief BranchingHeuristicHybridPartialClassic::selectLitSet implementation.
  */
 void BranchingHeuristicHybridPartialClassic::selectLitSet(
-    std::vector<Var> &vars, ListLit &lits) {
+    std::span<const Var> vars, ListLit& lits) {
   m_nbCall++;
 
   // decay the variable weights.
@@ -44,7 +44,7 @@ void BranchingHeuristicHybridPartialClassic::selectLitSet(
   Var vBest = var_Undef;
   double bestScore = -1;
 
-  for (auto &vTmp : vars) {
+  for (auto& vTmp : vars) {
     if (m_specs->varIsAssigned(vTmp) || !m_isDecisionVariable[vTmp]) continue;
 
     double current =

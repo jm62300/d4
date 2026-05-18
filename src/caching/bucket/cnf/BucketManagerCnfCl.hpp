@@ -96,7 +96,7 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * \return the number of elements we have in the distribution once the
    * redundant clauses have been removed.
    */
-  unsigned collectDistrib(std::vector<Var>& component,
+  unsigned collectDistrib(std::span<const Var> component,
                           BucketInConstruction& inConstruction);
 
   /**
@@ -139,7 +139,7 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    * @return the remaining data.
    */
   char* storeVariables(AllocSizeInfo& info, char* data,
-                       std::vector<Var>& component);
+                       std::span<const Var> component);
 
   /**
    * @brief Search for the number of bytes needed to store the different element
@@ -147,13 +147,9 @@ class BucketManagerCnfCl : public BucketManagerCnf {
    *
    * @param component is the set of variables.
    * @param inConstruction is the bucket that has been constructed.
-   * @param nBda
-   * @param nbD
-   * @param nbEltData
-   * @param nbEltDist
    * @return an AllocSizeInfo structure with the requiered information.
    */
-  AllocSizeInfo computeNeededBytes(std::vector<Var>& component,
+  AllocSizeInfo computeNeededBytes(std::span<const Var> component,
                                    BucketInConstruction& inConstruction);
 
   /**
@@ -173,7 +169,7 @@ class BucketManagerCnfCl : public BucketManagerCnf {
      \return a pointer to the end of the data we added
   */
   char* storeClauses(AllocSizeInfo& info, char* data,
-                     std::vector<Var>& component,
+                     std::span<const Var> component,
                      BucketInConstruction& inConstruction);
 
  public:
@@ -204,6 +200,6 @@ class BucketManagerCnfCl : public BucketManagerCnf {
      @param[out] tmpFormula, the place where is stored the formula.
      @param[out] szTmpFormula, to collect the size of the stored formula.
   */
-  void storeFormula(std::vector<Var>& component, DataBucket& b) override;
+  void storeFormula(std::span<const Var> component, DataBucket& b) override;
 };
 }  // namespace d4

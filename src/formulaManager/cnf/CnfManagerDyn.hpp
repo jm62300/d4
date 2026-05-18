@@ -18,6 +18,7 @@
  */
 #pragma once
 #include <cassert>
+#include <span>
 #include <src/problem/ProblemManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
@@ -139,7 +140,7 @@ class CnfManagerDyn : public CnfManager {
    * @param[in] component is the connected component under consideration.
    */
   void getCurrentClauses(std::vector<unsigned>& idxClauses,
-                         std::vector<Var>& component) override;
+                         std::span<const Var> component) override;
 
   /**
    * @brief Get the set of not satisfied clauses with a size larger than 2 (here
@@ -150,7 +151,7 @@ class CnfManagerDyn : public CnfManager {
    * @param[in] component is the connected component under consideration.
    */
   void getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
-                               std::vector<Var>& component) override;
+                               std::span<const Var> component) override;
 
   /**
    * @brief Update the occurrence list w.r.t. a new set of assigned variables.

@@ -65,6 +65,6 @@ class BranchingHeuristicClassic : public BranchingHeuristic {
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  void selectLitSet(std::vector<Var>& vars, ListLit& lits) override;
+  void selectLitSet(std::span<const Var> vars, ListLit& lits) override;
 };
 }  // namespace d4

@@ -38,7 +38,7 @@ class BucketManagerCnfIndex : public BucketManagerCnf {
        @param[]
     */
   template <typename U, typename W>
-  void *storeData(void *data, std::vector<W> &value);
+  void* storeData(void* data, std::span<const W> value);
 
  public:
   /**
@@ -51,9 +51,9 @@ class BucketManagerCnfIndex : public BucketManagerCnf {
      pages.
   */
   BucketManagerCnfIndex(
-      CnfManager &occM, ModeStore mdStore, unsigned long sizeFirstPage,
+      CnfManager& occM, ModeStore mdStore, unsigned long sizeFirstPage,
       unsigned long sizeAdditionalPage,
-      BucketAllocator *bucketAllocator = new BucketAllocator());
+      BucketAllocator* bucketAllocator = new BucketAllocator());
 
   /**
      Destructor.
@@ -67,6 +67,6 @@ class BucketManagerCnfIndex : public BucketManagerCnf {
      @param[out] tmpFormula, the place where is stored the formula
      @param[out] szTmpFormula, to collect the size of the stored formula
   */
-  void storeFormula(std::vector<Var> &component, DataBucket &b) override;
+  void storeFormula(std::span<const Var> component, DataBucket& b) override;
 };
 }  // namespace d4

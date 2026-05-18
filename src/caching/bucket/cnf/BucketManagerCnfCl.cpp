@@ -24,10 +24,10 @@ namespace d4 {
 /**
  * @brief BucketManagerCnfCl::BucketManagerCnfCl implementation.
  */
-BucketManagerCnfCl::BucketManagerCnfCl(CnfManager &occM, ModeStore mdStore,
+BucketManagerCnfCl::BucketManagerCnfCl(CnfManager& occM, ModeStore mdStore,
                                        unsigned long sizeFirstPage,
                                        unsigned long sizeAdditionalPage,
-                                       BucketAllocator *bucketAllocator)
+                                       BucketAllocator* bucketAllocator)
     : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
                                          sizeAdditionalPage, bucketAllocator),
       m_inConstruction(occM) {
@@ -49,7 +49,7 @@ BucketManagerCnfCl::~BucketManagerCnfCl() {
  * @brief BucketManagerCnfCl::getIdxBucketSortInfo implementation.
  */
 int BucketManagerCnfCl::getIdxBucketSortInfo(
-    BucketInConstruction &inConstruction) {
+    BucketInConstruction& inConstruction) {
   int ret = m_unusedBucket;
 
   if (m_unusedBucket == -1) {
@@ -65,7 +65,7 @@ int BucketManagerCnfCl::getIdxBucketSortInfo(
 /**
  * @brief BucketManagerCnfCl::pushSorted implementation.
  */
-void BucketManagerCnfCl::pushSorted(unsigned *tab, unsigned pos, unsigned val) {
+void BucketManagerCnfCl::pushSorted(unsigned* tab, unsigned pos, unsigned val) {
   tab[pos] = val;
   for (unsigned i = pos; i > 0; i--)
     if (tab[i] < tab[i - 1])
@@ -78,7 +78,7 @@ void BucketManagerCnfCl::pushSorted(unsigned *tab, unsigned pos, unsigned val) {
  * @brief BucketManagerCnfCl::createDistribWrTLit implementation.
  */
 void BucketManagerCnfCl::createDistribWrTLit(
-    const Lit &l, BucketInConstruction &inConstruction) {
+    const Lit& l, BucketInConstruction& inConstruction) {
   if (this->canSkipLit(l)) return;
 
   unsigned currentPos = inConstruction.sizeDistrib;  // where we put l.
@@ -86,7 +86,7 @@ void BucketManagerCnfCl::createDistribWrTLit(
 
   // associate a bucket to the literal.
   unsigned counter = 0, nbElt = 0;
-  unsigned *tab = &inConstruction.distrib[inConstruction.sizeDistrib];
+  unsigned* tab = &inConstruction.distrib[inConstruction.sizeDistrib];
   int ownBucket = getIdxBucketSortInfo(inConstruction);
 
   // visit each clause
@@ -95,7 +95,7 @@ void BucketManagerCnfCl::createDistribWrTLit(
 
   IteratorIdxClause listIndex =
       this->m_specManager.getVecIdxClause(l, this->m_modeStore);
-  for (int *ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+  for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
     int idx = *ptr;
     if (!this->isKeptClause(idx)) continue;
 
@@ -108,7 +108,7 @@ void BucketManagerCnfCl::createDistribWrTLit(
       counter++;
     } else {
       inConstruction.sizeClauses[idx]++;
-      BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+      BucketSortInfo& b = m_vecBucketSortInfo[m_markIdx[idx]];
       if (!b.counter) {
         assert(nextBucket ==
                m_vecBucketSortInfo.size() + m_idInVecBucket.size());
@@ -126,8 +126,8 @@ void BucketManagerCnfCl::createDistribWrTLit(
 
   m_vecBucketSortInfo.resize(m_vecBucketSortInfo.size() +
                              m_idInVecBucket.size());
-  for (auto &bid : m_idInVecBucket) {
-    BucketSortInfo &b = m_vecBucketSortInfo[bid];
+  for (auto& bid : m_idInVecBucket) {
+    BucketSortInfo& b = m_vecBucketSortInfo[bid];
     assert(b.counter);
 
     // we split out the bucket.
@@ -158,9 +158,9 @@ void BucketManagerCnfCl::createDistribWrTLit(
  * @brief BucketManagerCnfCl::collectDistrib implementation.
  */
 unsigned BucketManagerCnfCl::collectDistrib(
-    std::vector<Var> &component, BucketInConstruction &inConstruction) {
+    std::span<const Var> component, BucketInConstruction& inConstruction) {
   // sort the set of clauses
-  for (auto &v : component) {
+  for (auto& v : component) {
     if (this->m_specManager.varIsAssigned(v)) continue;
     createDistribWrTLit(Lit::makeLitFalse(v), inConstruction);
     createDistribWrTLit(Lit::makeLitTrue(v), inConstruction);
@@ -168,8 +168,8 @@ unsigned BucketManagerCnfCl::collectDistrib(
 
   // mark the clause we do not keep.
   unsigned realSizeDistrib = inConstruction.sizeDistrib;
-  for (auto &idx : m_mustUnMark) {
-    BucketSortInfo &b = m_vecBucketSortInfo[m_markIdx[idx]];
+  for (auto& idx : m_mustUnMark) {
+    BucketSortInfo& b = m_vecBucketSortInfo[m_markIdx[idx]];
     m_markIdx[idx] = -1;
     inConstruction.shiftedSizeClause[b.start] = inConstruction.sizeClauses[idx];
     if (b.end != b.start + 1) {
@@ -201,7 +201,7 @@ unsigned BucketManagerCnfCl::collectDistrib(
 /**
  * @brief BucketManagerCnfCl::initSortBucket implementation.
  */
-void BucketManagerCnfCl::initSortBucket(BucketInConstruction &inConstruction) {
+void BucketManagerCnfCl::initSortBucket(BucketInConstruction& inConstruction) {
   inConstruction.reinit();
   m_unusedBucket = -1;
   m_vecBucketSortInfo.resize(0);
@@ -210,10 +210,10 @@ void BucketManagerCnfCl::initSortBucket(BucketInConstruction &inConstruction) {
 /**
  * @brief BucketManagerCnfCl::showListBucketSort implementation.
  */
-void BucketManagerCnfCl::showListBucketSort(std::vector<BucketSortInfo> &v,
-                                            std::ostream &out) {
+void BucketManagerCnfCl::showListBucketSort(std::vector<BucketSortInfo>& v,
+                                            std::ostream& out) {
   out << "size = " << v.size() << "\n";
-  for (auto &e : v)
+  for (auto& e : v)
     out << "[" << e.start << " " << e.end << " " << e.counter << " "
         << e.redirected << "]\n";
 }  // showListBucketSort
@@ -222,7 +222,7 @@ void BucketManagerCnfCl::showListBucketSort(std::vector<BucketSortInfo> &v,
  * @brief BucketManagerCnfCl::computeNeededBytes implementation.
  */
 AllocSizeInfo BucketManagerCnfCl::computeNeededBytes(
-    std::vector<Var> &component, BucketInConstruction &inConstruction) {
+    std::span<const Var> component, BucketInConstruction& inConstruction) {
   AllocSizeInfo ret;
 
   // info about the variables.
@@ -260,9 +260,9 @@ AllocSizeInfo BucketManagerCnfCl::computeNeededBytes(
 /**
  * @brief BucketManagerCnfCl::addElementInData implementation.
  */
-char *BucketManagerCnfCl::addElementInData(char *p, unsigned val,
+char* BucketManagerCnfCl::addElementInData(char* p, unsigned val,
                                            unsigned nbBit,
-                                           unsigned &remainingBit) {
+                                           unsigned& remainingBit) {
   if (!remainingBit) {
     remainingBit = 8;
     p++;
@@ -289,10 +289,10 @@ char *BucketManagerCnfCl::addElementInData(char *p, unsigned val,
 /**
  * @brief BucketManagerCnfCl::storeVariables implementation.
  */
-char *BucketManagerCnfCl::storeVariables(AllocSizeInfo &info, char *data,
-                                         std::vector<Var> &component) {
+char* BucketManagerCnfCl::storeVariables(AllocSizeInfo& info, char* data,
+                                         std::span<const Var> component) {
   // init the array.
-  char *p = data;
+  char* p = data;
   memset(p, 0, info.nbByteStoreVar);
 
   // fill the array.
@@ -312,11 +312,11 @@ char *BucketManagerCnfCl::storeVariables(AllocSizeInfo &info, char *data,
 /**
  * @brief BucketManagerCnfCl::storeClauses implementation.
  */
-char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
-                                       std::vector<Var> &component,
-                                       BucketInConstruction &inConstruction) {
+char* BucketManagerCnfCl::storeClauses(AllocSizeInfo& info, char* data,
+                                       std::span<const Var> component,
+                                       BucketInConstruction& inConstruction) {
   unsigned remaining = 8;
-  char *p = data;
+  char* p = data;
   memset(p, 0, info.nbByteStoreFormula);
 
   // map the variables to their position.
@@ -342,7 +342,7 @@ char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
 
   // allocate an offset for each clauses.
   for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {
-    unsigned &szClause = inConstruction.shiftedSizeClause[i];
+    unsigned& szClause = inConstruction.shiftedSizeClause[i];
     if (!szClause) continue;
 
     m_offsetClauses[i] = m_memoryPosWrtClauseSize[szClause];
@@ -365,8 +365,8 @@ char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
       if (idx >= inConstruction.nbClauseInDistrib) continue;
 
       // compute the position in the array.
-      unsigned &offSet = m_offsetClauses[idx];
-      char *q = &p[offSet >> 3];  // divided by 8
+      unsigned& offSet = m_offsetClauses[idx];
+      char* q = &p[offSet >> 3];  // divided by 8
       remaining = 8 - (offSet & 7);
 
       // add the element and move the offset for the next lit.
@@ -381,21 +381,14 @@ char *BucketManagerCnfCl::storeClauses(AllocSizeInfo &info, char *data,
 /**
  * @brief BucketManagerCnfCl::storeFormula implementation.
  */
-void BucketManagerCnfCl::storeFormula(std::vector<Var> &component,
-                                      DataBucket &b) {
-#if 0
-  std::vector<bool> presentVar(this->m_specManager.getNbVariable() + 1, false);
-  for (auto &v : component) presentVar[v] = true;
-  this->m_specManager.showCurrentFormula(std::cout, presentVar);
-  std::cout << "--------------------------------------------------\n";
-#endif
-
+void BucketManagerCnfCl::storeFormula(std::span<const Var> component,
+                                      DataBucket& b) {
   initSortBucket(m_inConstruction);
   collectDistrib(component, m_inConstruction);  // built the sorted formula
 
   // ask for memory
   AllocSizeInfo sizeInfo = computeNeededBytes(component, m_inConstruction);
-  char *data = this->m_bucketAllocator->getArray(sizeInfo.totalByte);
+  char* data = this->m_bucketAllocator->getArray(sizeInfo.totalByte);
 
   // store the information about the formula.
   storeVariables(sizeInfo, data, component);

@@ -62,8 +62,8 @@ class CacheManager {
   const unsigned int MAX_NBVAR_CACHED = 100000;
   const unsigned int MIN_NBVAR_NOTCACHED = 100;
 
-  BucketManager *m_bucketManager;
-  CacheCleaningManager<T> *m_cacheCleaningManager;
+  BucketManager* m_bucketManager;
+  CacheCleaningManager<T>* m_cacheCleaningManager;
 
   /**
    * @brief Construct a new Cache Manager object
@@ -73,8 +73,8 @@ class CacheManager {
    * @param specs is a structure to get data about the formula.
    * @param out is the stream where are printed out the logs.
    */
-  CacheManager(const OptionCacheManager &options, unsigned nbVar,
-               FormulaManager *specs, std::ostream &out)
+  CacheManager(const OptionCacheManager& options, unsigned nbVar,
+               FormulaManager* specs, std::ostream& out)
       : m_out(nullptr) {
     m_out.copyfmt(out);
     m_out.clear(out.rdstate());
@@ -111,10 +111,10 @@ class CacheManager {
    *
    * @return CacheManager<T>*
    */
-  static CacheManager<T> *makeCacheManager(const OptionCacheManager &options,
+  static CacheManager<T>* makeCacheManager(const OptionCacheManager& options,
                                            unsigned nbVar,
-                                           FormulaManager *specs,
-                                           std::ostream &out) {
+                                           FormulaManager* specs,
+                                           std::ostream& out) {
     switch (options.cachingMethod) {
       case CACHE_NO_COL:
         return new CacheNoCollision<T>(options, nbVar, specs, out);
@@ -125,14 +125,14 @@ class CacheManager {
     throw(FactoryException("Cannot create a CacheManager", __FILE__, __LINE__));
   }  // makeCacheManager
 
-  virtual void pushInHashTable(CachedBucket<T> &cb, unsigned int hashValue,
+  virtual void pushInHashTable(CachedBucket<T>& cb, unsigned int hashValue,
                                T val) = 0;
-  virtual CachedBucket<T> *bucketAlreadyExist(DataBucket &db,
+  virtual CachedBucket<T>* bucketAlreadyExist(DataBucket& db,
                                               unsigned hashValue) = 0;
   virtual void initHashTable(unsigned maxVar) = 0;
 
   virtual unsigned removeEntry(
-      std::function<bool(CachedBucket<T> &c)> test) = 0;
+      std::function<bool(CachedBucket<T>& c)> test) = 0;
 
   /**
    * @brief Get the memory used by the cache (to store the ).
@@ -155,7 +155,7 @@ class CacheManager {
   inline unsigned long int getNbNegativeHit() { return m_nbNegativeHit; }
   inline unsigned long getNbEntry() { return m_nbEntry; }
   inline void decrementNbEntry() { m_nbEntry--; }
-  inline BucketManager *getBucketManager() { return m_bucketManager; }
+  inline BucketManager* getBucketManager() { return m_bucketManager; }
 
   /**
    * @brief Release memory.
@@ -163,11 +163,11 @@ class CacheManager {
    * @param data is the data we want to free.
    * @param size is the number of bytes.
    */
-  inline void releaseMemory(char *data, int size) {
+  inline void releaseMemory(char* data, int size) {
     this->m_bucketManager->releaseMemory(data, size);
   }  // releaseMemory
 
-  inline void printCacheInformation(std::ostream &out) {
+  inline void printCacheInformation(std::ostream& out) {
     out << "c \033[1m\033[34mCache Information\033[0m\n";
     out << "c Number of positive hit: " << m_nbPositiveHit << "\n";
     out << "c Number of negative hit: " << m_nbNegativeHit << "\n";
@@ -181,7 +181,7 @@ class CacheManager {
    * @param bucket is the entry we want to compute the hash.
    * @return the value.
    */
-  inline unsigned computeHash(DataBucket &dBucket) {
+  inline unsigned computeHash(DataBucket& dBucket) {
     return hashMethod.hash(dBucket.data, dBucket.szData(), dBucket.getInfo());
   }  // computeHash
 
@@ -191,7 +191,7 @@ class CacheManager {
    * @param cb
    * @param val
    */
-  void addInCache(TmpEntry<T> &cb, T val) {
+  void addInCache(TmpEntry<T>& cb, T val) {
     pushInHashTable(cb.e, cb.hashValue, val);
   }  // addInCache
 
@@ -204,7 +204,7 @@ class CacheManager {
    * @param varConnected is the set of variables.
    * @return TmpEntry<T>
    */
-  TmpEntry<T> searchInCache(std::vector<Var> &varConnected) {
+  TmpEntry<T> searchInCache(std::span<const Var> varConnected) {
     if (m_bucketManager->getComsumedMemory()) {
       m_cacheCleaningManager->reduceCache();
       m_bucketManager->reinitComsumedMemory();
@@ -214,7 +214,7 @@ class CacheManager {
     m_bucketManager->collectBucket(varConnected, dataBucket);
     unsigned hashValue = computeHash(dataBucket);
 
-    CachedBucket<T> *cacheBucket = bucketAlreadyExist(dataBucket, hashValue);
+    CachedBucket<T>* cacheBucket = bucketAlreadyExist(dataBucket, hashValue);
 
     m_cacheCleaningManager->updateCountCachedBucket(cacheBucket,
                                                     varConnected.size());
@@ -229,7 +229,7 @@ class CacheManager {
    *
    * @param formulaBucket is the bucket we want to release the memory.
    */
-  void releaseMemory(CachedBucket<T> &formulaBucket) {
+  void releaseMemory(CachedBucket<T>& formulaBucket) {
     m_bucketManager->releaseMemory(formulaBucket.data, formulaBucket.szData());
   }  // releaseMemory
 

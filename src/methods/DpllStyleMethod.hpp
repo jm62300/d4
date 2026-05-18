@@ -21,6 +21,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <span>
 
 #include "Counter.hpp"
 #include "DataBranch.hpp"
@@ -304,7 +305,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   /**
      Decide if the cache is realized or not.
    */
-  bool cacheIsActivated(std::vector<Var>& connected) {
+  bool cacheIsActivated(std::span<Var>& connected) {
     if (!m_optCached) return false;
     return m_cache->isActivated(connected.size());
   }  // cacheIsActivated
@@ -318,7 +319,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    * @return is the number of components.
    */
   inline int computeConnectedComponent(
-      std::vector<Var>& setOfVar, std::vector<std::vector<Var>>& varConnected,
+      std::span<Var> setOfVar, std::vector<std::vector<Var>>& varConnected,
       std::vector<Var>& freeVariable) {
     if (m_connectedComponent && !(m_nbCallCall % 100000)) {
       if (m_lastNbSplit == m_nbSplit)
@@ -364,7 +365,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
    * \return an element of type U that sums up the given CNF sub-formula
    * using a DPLL style algorithm with an operation manager.
    */
-  T compute_(std::vector<Var>& setOfVar, std::vector<Lit>& unitsLit,
+  T compute_(std::span<Var> setOfVar, std::vector<Lit>& unitsLit,
              std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
@@ -386,7 +387,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       m_nbSplit += (nbComponent > 1) ? nbComponent : 0;
       T ret = m_semiringOps.presetMul(nbComponent);
       for (int cp = 0; cp < nbComponent; cp++) {
-        std::vector<Var>& connected = varConnected[cp];
+        std::span<Var> connected(varConnected[cp].begin(),
+                                 varConnected[cp].size());
+        // std::vector<Var>& connected = varConnected[cp];
 
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
@@ -421,7 +424,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
      \return the compiled formula.
   */
-  T computeDecisionNode(std::vector<Var>& connected, std::ostream& out) {
+  T computeDecisionNode(std::span<Var> connected, std::ostream& out) {
     // search the next variable to branch on
     ListLit lits;
     m_heuristic->selectLitSet(connected, lits);

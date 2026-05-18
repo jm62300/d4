@@ -23,6 +23,7 @@
 #include <cassert>
 #include <deque>
 #include <iostream>
+#include <span>
 #include <vector>
 
 #include "../CachedBucket.hpp"
@@ -40,7 +41,7 @@ class BucketAllocator;
 
 class BucketManager {
  protected:
-  BucketAllocator *m_bucketAllocator;
+  BucketAllocator* m_bucketAllocator;
 
  public:
   virtual ~BucketManager() {
@@ -57,7 +58,7 @@ class BucketManager {
    *
    * @return a CNf bucket manager.
    */
-  static BucketManager *getBucketMangerCnf(CnfManager &scnf,
+  static BucketManager* getBucketMangerCnf(CnfManager& scnf,
                                            OptionBucketManager options);
 
   /**
@@ -69,8 +70,8 @@ class BucketManager {
    *
    * @return a bucket manager that fits with given options.
    */
-  static BucketManager *makeBucketManager(OptionBucketManager options,
-                                          FormulaManager &s, std::ostream &out);
+  static BucketManager* makeBucketManager(OptionBucketManager options,
+                                          FormulaManager& s, std::ostream& out);
 
   inline int nbOctetToEncodeInt(unsigned int v) {
     // we know that we cannot have more than 1<<32 variables
@@ -112,7 +113,8 @@ class BucketManager {
    *
    * \return a formula put in a bucket
    */
-  inline void collectBucket(std::vector<Var> &component, DataBucket &bucket) {
+  inline void collectBucket(std::span<const Var> component,
+                            DataBucket& bucket) {
     storeFormula(component, bucket);
   }  // collectBuckect
 
@@ -127,7 +129,7 @@ class BucketManager {
     m_bucketAllocator->reinitComsumedMemory();
   }
 
-  inline void releaseMemory(char *m, unsigned size) {
+  inline void releaseMemory(char* m, unsigned size) {
     m_bucketAllocator->releaseMemory(m, size);
   }  // releaseMemory
 
@@ -135,6 +137,6 @@ class BucketManager {
     return m_bucketAllocator->remainingMemory();
   }  // remainingMemory
 
-  virtual void storeFormula(std::vector<Var> &component, DataBucket &b) = 0;
+  virtual void storeFormula(std::span<const Var> component, DataBucket& b) = 0;
 };
 }  // namespace d4

@@ -64,7 +64,7 @@ void WrapperMinisat::initSolver(const ProblemManager& p) {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperMinisat::solve(std::vector<Var>& setOfVar) {
+bool WrapperMinisat::solve(std::span<const Var> setOfVar) {
   if (m_activeModel && m_needModel) return true;
 
   m_setOfVar_m.setSize(0);
@@ -243,7 +243,7 @@ bool WrapperMinisat::failedLiteralProbing(Lit l) {
    @param[in] component, the set of variables we search for.
    @param[out] units, the place where we store the literals found.
  */
-void WrapperMinisat::whichAreUnits(std::vector<Var>& component,
+void WrapperMinisat::whichAreUnits(std::span<const Var> component,
                                    std::vector<Lit>& units) {
   for (auto& v : component) {
     if (!m_solver.isAssigned(v)) continue;

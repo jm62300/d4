@@ -63,7 +63,7 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperGlucose::solve(std::vector<Var>& setOfVar) {
+bool WrapperGlucose::solve(std::span<const Var> setOfVar) {
   if (m_activeModel && m_needModel) return true;
 
   m_setOfVar_m.setSize(0);
@@ -240,7 +240,7 @@ bool WrapperGlucose::failedLiteralProbing(Lit l) {
    @param[in] component, the set of variables we search for.
    @param[out] units, the place where we store the literals found.
  */
-void WrapperGlucose::whichAreUnits(std::vector<Var>& component,
+void WrapperGlucose::whichAreUnits(std::span<const Var> component,
                                    std::vector<Lit>& units) {
   for (auto& v : component) {
     if (!m_solver.isAssigned(v)) continue;

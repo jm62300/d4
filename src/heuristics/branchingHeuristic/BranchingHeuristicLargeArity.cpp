@@ -50,7 +50,7 @@ BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
 /**
  * @brief BranchingHeuristicLargeArity::selectLitSet implementation.
  */
-void BranchingHeuristicLargeArity::selectLitSet(std::vector<Var>& vars,
+void BranchingHeuristicLargeArity::selectLitSet(std::span<const Var> vars,
                                                 ListLit& lits) {
   m_nbCall++;
   // decay the variable weights.

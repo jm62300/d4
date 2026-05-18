@@ -19,6 +19,7 @@
 #pragma once
 
 #include <iterator>
+#include <span>
 
 #include "../FormulaManager.hpp"
 #include "ClauseInfo.hpp"
@@ -75,7 +76,7 @@ class CnfManager : public FormulaManager {
   ~CnfManager();
 
   int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
-                                std::vector<Var>& setOfVar,
+                                std::span<Var> setOfVar,
                                 std::vector<Var>& freeVar) override;
 
   void connectedToLit(Lit l, std::vector<int>& v,
@@ -101,10 +102,10 @@ class CnfManager : public FormulaManager {
       int idx, std::vector<bool>& m_inCurrentComponent);
 
   virtual void getCurrentClauses(std::vector<unsigned>& idxClauses,
-                                 std::vector<Var>& component) = 0;
+                                 std::span<const Var> component) = 0;
 
   virtual void getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
-                                       std::vector<Var>& component) = 0;
+                                       std::span<const Var> component) = 0;
 
   virtual bool canSkipLit(const Lit& l) { return false; }
 

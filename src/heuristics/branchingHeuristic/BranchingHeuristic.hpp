@@ -207,7 +207,7 @@ class BranchingHeuristic {
    * @param[out] lits is the place where are stored the literals we are
    * considering.
    */
-  virtual void selectLitSet(std::vector<Var>& vars, ListLit& lits) = 0;
+  virtual void selectLitSet(std::span<const Var> vars, ListLit& lits) = 0;
 
   /**
    * @brief This function is called in order to update the branching heuristic

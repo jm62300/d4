@@ -77,7 +77,7 @@ void FormulaManager::showTrail(std::ostream& out) {
  * @brief FormulaManager::computeTrivialConnectedComponent implementation.
  */
 int FormulaManager::computeTrivialConnectedComponent(
-    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
     std::vector<Var>& freeVar) {
   varConnected.push_back(std::vector<Var>());
   for (auto& v : setOfVar) {

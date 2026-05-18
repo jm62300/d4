@@ -170,7 +170,7 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      \return a pointer to the end of the data we added
   */
   template <typename U>
-  void* storeClauses(void* data, std::vector<Var>& component,
+  void* storeClauses(void* data, std::span<const Var> component,
                      BucketInConstruction& inConstruction);
   /**
      Compute from the m_distribDiffSize the number of different size and the
@@ -201,7 +201,7 @@ class BucketManagerCnfSym : public BucketManagerCnf {
    * @param[out] orderedLits   The resulting list of literals, sorted according
    * to the described order.
    */
-  void varToSortedLiterals(const std::vector<Var>& component,
+  void varToSortedLiterals(std::span<const Var> component,
                            std::vector<Lit>& orderedLits);
 
   /**
@@ -211,6 +211,6 @@ class BucketManagerCnfSym : public BucketManagerCnf {
      @param[out] tmpFormula, the place where is stored the formula.
      @param[out] szTmpFormula, to collect the size of the stored formula.
   */
-  void storeFormula(std::vector<Var>& component, DataBucket& b);
+  void storeFormula(std::span<const Var> component, DataBucket& b) override;
 };
 }  // namespace d4

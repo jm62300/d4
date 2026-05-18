@@ -23,7 +23,7 @@ namespace d4 {
 /**
  * @brief BranchingHeuristic::selectLitSet implementation.
  */
-void BranchingHeuristicClassic::selectLitSet(std::vector<Var>& vars,
+void BranchingHeuristicClassic::selectLitSet(std::span<const Var> vars,
                                              ListLit& lits) {
   m_nbCall++;
 

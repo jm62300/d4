@@ -32,7 +32,7 @@ namespace d4 {
 
 class BucketManagerCnf : public BucketManager {
  protected:
-  CnfManager &m_specManager;
+  CnfManager& m_specManager;
 
   ModeStore m_modeStore;
   unsigned m_nbClauseCnf;
@@ -53,10 +53,10 @@ class BucketManagerCnf : public BucketManager {
      pages.
      @param[in] bucketAllocator, a bucket allocator.
   */
-  BucketManagerCnf(CnfManager &occM, ModeStore mdStore,
+  BucketManagerCnf(CnfManager& occM, ModeStore mdStore,
                    unsigned long sizeFirstPage,
                    unsigned long sizeAdditionalPage,
-                   BucketAllocator *bucketAllocator);
+                   BucketAllocator* bucketAllocator);
 
   /**
    * @brief Get the clauses that will be used, that are the clause that
@@ -65,13 +65,13 @@ class BucketManagerCnf : public BucketManager {
    * @param[in] component, the variables in the current component.
    * @param[out] idxClauses, the resulting clauses (index).
    */
-  void collectIdActiveClauses(std::vector<Var> &component,
-                              std::vector<unsigned> &idxClauses);
+  void collectIdActiveClauses(std::span<const Var> component,
+                              std::vector<unsigned>& idxClauses);
 
   virtual ~BucketManagerCnf() { ; }
-  virtual void storeFormula(std::vector<Var> &component, DataBucket &b) = 0;
+  virtual void storeFormula(std::span<const Var> component, DataBucket& b) = 0;
 
-  inline bool canSkipLit(const Lit &l) {
+  inline bool canSkipLit(const Lit& l) {
     if (m_modeStore == CACHE_NT)
       return m_specManager.getNbRemainingInitNotBinaryClause(l) == 0;
     return false;

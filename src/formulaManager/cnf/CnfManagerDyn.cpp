@@ -59,7 +59,7 @@ CnfManagerDyn::~CnfManagerDyn() {
  * @brief CnfManagerDyn::getCurrentClauses implementation.
  */
 void CnfManagerDyn::getCurrentClauses(std::vector<unsigned>& idxClauses,
-                                      std::vector<Var>& component) {
+                                      std::span<const Var> component) {
   idxClauses.resize(0);
   for (auto& v : component) m_inCurrentComponent[v] = true;
   for (unsigned i = 0; i < m_clauses.size(); i++) {
@@ -73,7 +73,7 @@ void CnfManagerDyn::getCurrentClauses(std::vector<unsigned>& idxClauses,
  * @brief CnfManagerDyn::getCurrentClausesNotBin implementation.
  */
 void CnfManagerDyn::getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
-                                            std::vector<Var>& component) {
+                                            std::span<const Var> component) {
   assert(m_keepListNotSatisfiedClauses);
   idxClauses.resize(0);
   for (auto& v : component) m_inCurrentComponent[v] = true;

@@ -206,7 +206,7 @@ void CircuitWithCnfManager::propagate(std::vector<Var>& vars,
  * implementation.
  */
 int CircuitWithCnfManager::computeTrivialConnectedComponent(
-    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
     std::vector<Var>& freeVar) {
   varConnected.push_back(std::vector<Var>());
   for (auto& v : setOfVar) {
@@ -225,7 +225,7 @@ int CircuitWithCnfManager::computeTrivialConnectedComponent(
  * @brief CircuitWithCnfManager::computeConnectedComponent implementation.
  */
 int CircuitWithCnfManager::computeConnectedComponent(
-    std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+    std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
     std::vector<Var>& freeVar) {
   int ret =
       m_cnfManager->computeConnectedComponent(varConnected, setOfVar, freeVar);

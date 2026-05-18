@@ -58,7 +58,7 @@ class CircuitWithCnfManager : public CircuitManager {
   void propagate(std::vector<Var>& vars, std::vector<Var>& pVars);
 
   int computeTrivialConnectedComponent(
-      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
       std::vector<Var>& freeVar) override;
 
   /**
@@ -72,7 +72,7 @@ class CircuitWithCnfManager : public CircuitManager {
    * @return the number of connected component.
    */
   int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
-                                std::vector<Var>& setOfVar,
+                                std::span<Var> setOfVar,
                                 std::vector<Var>& freeVar) override;
 
   /**

@@ -18,6 +18,8 @@
  */
 #pragma once
 
+#include <span>
+
 #include "ActivityManager.hpp"
 #include "PolarityManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
@@ -52,7 +54,7 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
 
   virtual ~WrapperSolver() {}
   virtual void initSolver(const ProblemManager& p) = 0;
-  virtual bool solve(std::vector<Var>& setOfVar) = 0;
+  virtual bool solve(std::span<const Var> setOfVar) = 0;
   virtual bool solve() = 0;
   virtual bool hasBeenInterrupt() = 0;
   virtual void uncheckedEnqueue(Lit l) = 0;
@@ -77,7 +79,7 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) = 0;
   virtual bool failedLiteralProbing(Lit l) = 0;
 
-  virtual void whichAreUnits(std::vector<Var>& component,
+  virtual void whichAreUnits(std::span<const Var> component,
                              std::vector<Lit>& units) = 0;
 
   inline bool getActiveModel() { return m_activeModel; }

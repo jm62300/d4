@@ -122,7 +122,7 @@ CnfManager::~CnfManager() { delete[] m_dataOccurrenceMemory; }  // destructor
    \return the number of component found
 */
 int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
-                                          std::vector<Var>& setOfVar,
+                                          std::span<Var> setOfVar,
                                           std::vector<Var>& freeVar) {
   incrementStampMarkView();
 

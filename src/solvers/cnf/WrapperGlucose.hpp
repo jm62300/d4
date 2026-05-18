@@ -33,7 +33,7 @@ class WrapperGlucose : public WrapperSolver {
 
  public:
   void initSolver(const ProblemManager& p) override;
-  bool solve(std::vector<Var>& setOfVar) override;
+  bool solve(std::span<const Var> setOfVar) override;
   bool solve() override;
   bool hasBeenInterrupt() override;
   void uncheckedEnqueue(Lit l) override;
@@ -41,7 +41,7 @@ class WrapperGlucose : public WrapperSolver {
   bool getPolarity(Var v) override;
   bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) override;
   bool failedLiteralProbing(Lit l) override;
-  void whichAreUnits(std::vector<Var>& component,
+  void whichAreUnits(std::span<const Var> component,
                      std::vector<Lit>& units) override;
   void restart() override;
   void setAssumption(std::vector<Lit>& assums) override;

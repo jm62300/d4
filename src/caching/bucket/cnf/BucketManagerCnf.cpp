@@ -23,10 +23,10 @@ namespace d4 {
 /**
  * @brief BucketManagerCnf::BucketManagerCnf implementation.
  */
-BucketManagerCnf::BucketManagerCnf(CnfManager &occM, ModeStore mdStore,
+BucketManagerCnf::BucketManagerCnf(CnfManager& occM, ModeStore mdStore,
                                    unsigned long sizeFirstPage,
                                    unsigned long sizeAdditionalPage,
-                                   BucketAllocator *bucketAllocator)
+                                   BucketAllocator* bucketAllocator)
     : m_specManager(occM) {
   this->m_bucketAllocator = bucketAllocator;
   m_modeStore = mdStore;
@@ -42,7 +42,7 @@ BucketManagerCnf::BucketManagerCnf(CnfManager &occM, ModeStore mdStore,
  * @brief BucketManagerCnf::collectIdActiveClauses implementation.
  */
 void BucketManagerCnf::collectIdActiveClauses(
-    std::vector<Var> &component, std::vector<unsigned> &idxClauses) {
+    std::span<const Var> component, std::vector<unsigned>& idxClauses) {
   // collect the clauses
   idxClauses.resize(0);
   if (m_modeStore == CACHE_ALL)

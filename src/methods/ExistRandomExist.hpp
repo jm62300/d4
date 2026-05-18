@@ -505,7 +505,7 @@ class ExistRandomExist : public MethodManager {
    * @return the number of component.
    */
   int computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
-                                std::vector<Var>& setOfVar,
+                                std::span<Var>& setOfVar,
                                 std::vector<Var>& freeVar) {
     if (m_componentOnRandom)
       return m_specs->computeConnectedComponentTargeted(

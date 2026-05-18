@@ -23,11 +23,11 @@ namespace d4 {
 /**
  * @brief BucketManagerCnfIndex::BucketManagerCnfIndex implementation.
  */
-BucketManagerCnfIndex::BucketManagerCnfIndex(CnfManager &occM,
+BucketManagerCnfIndex::BucketManagerCnfIndex(CnfManager& occM,
                                              ModeStore mdStore,
                                              unsigned long sizeFirstPage,
                                              unsigned long sizeAdditionalPage,
-                                             BucketAllocator *bucketAllocator)
+                                             BucketAllocator* bucketAllocator)
     : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
                                          sizeAdditionalPage, bucketAllocator) {
 }  // BucketManagerCnfIndex
@@ -41,9 +41,9 @@ BucketManagerCnfIndex::~BucketManagerCnfIndex() {}  // destructor
  * @brief BucketManagerCnfIndex::storeData implementation.
  */
 template <typename U, typename W>
-void *BucketManagerCnfIndex::storeData(void *data, std::vector<W> &value) {
-  U *p = static_cast<U *>(data);
-  for (auto &v : value) {
+void* BucketManagerCnfIndex::storeData(void* data, std::span<const W> value) {
+  U* p = static_cast<U*>(data);
+  for (auto& v : value) {
     *p = static_cast<U>(v);
     p++;
   }
@@ -54,8 +54,8 @@ void *BucketManagerCnfIndex::storeData(void *data, std::vector<W> &value) {
 /**
  * @brief BucketManagerCnfIndex::storeFormula implementation.
  */
-void BucketManagerCnfIndex::storeFormula(std::vector<Var> &component,
-                                         DataBucket &b) {
+void BucketManagerCnfIndex::storeFormula(std::span<const Var> component,
+                                         DataBucket& b) {
   this->collectIdActiveClauses(component, m_idxClauses);
 
   // nb bytes we need to store the information.
@@ -66,8 +66,8 @@ void BucketManagerCnfIndex::storeFormula(std::vector<Var> &component,
 
   // ask for memory
   unsigned szData = nbOVar * component.size() + nbOData * m_idxClauses.size();
-  char *data = this->m_bucketAllocator->getArray(szData);
-  void *p = data;
+  char* data = this->m_bucketAllocator->getArray(szData);
+  void* p = data;
 
   // store the variables
   switch (nbOVar) {
@@ -81,7 +81,7 @@ void BucketManagerCnfIndex::storeFormula(std::vector<Var> &component,
       p = storeData<uint32_t, Var>(p, component);
       break;
   }
-  assert(static_cast<char *>(p) == &data[nbOVar * component.size()]);
+  assert(static_cast<char*>(p) == &data[nbOVar * component.size()]);
   if (!m_idxClauses.size()) goto fillTheBucket;
 
   // store the clauses

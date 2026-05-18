@@ -40,12 +40,12 @@ class BucketManagerCnfCombi : public BucketManagerCnf {
   std::vector<unsigned> m_idInVecBucket;
 
   BucketInConstruction m_inConstruction;
-  unsigned *m_offsetClauses;
+  unsigned* m_offsetClauses;
 
-  BucketManagerCnfCl *clBucketManagerBis;
-  BucketManagerCnfCl *clBucketManager;
-  BucketManagerCnfIndex *indexBucketManager;
-  BucketManagerCnfSym *symBucketManager;
+  BucketManagerCnfCl* clBucketManagerBis;
+  BucketManagerCnfCl* clBucketManager;
+  BucketManagerCnfIndex* indexBucketManager;
+  BucketManagerCnfSym* symBucketManager;
 
   unsigned m_limitNbVarSym;
   unsigned m_limitNbVarIndex;
@@ -67,10 +67,10 @@ class BucketManagerCnfCombi : public BucketManagerCnf {
    * allocation.
    */
   BucketManagerCnfCombi(
-      CnfManager &occM, ModeStore mdStore, unsigned long sizeFirstPage,
+      CnfManager& occM, ModeStore mdStore, unsigned long sizeFirstPage,
       unsigned long sizeAdditionalPage, unsigned limitNbVarSym,
       unsigned limitNbVarIndex,
-      BucketAllocator *bucketAllocator = new BucketAllocator());
+      BucketAllocator* bucketAllocator = new BucketAllocator());
 
   /**
    * Destructor.
@@ -84,6 +84,6 @@ class BucketManagerCnfCombi : public BucketManagerCnf {
    * @param[out] tmpFormula, the place where is stored the formula.
    * @param[out] szTmpFormula, to collect the size of the stored formula.
    */
-  void storeFormula(std::vector<Var> &component, DataBucket &b) override;
+  void storeFormula(std::span<const Var> component, DataBucket& b) override;
 };
 }  // namespace d4

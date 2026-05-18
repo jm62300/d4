@@ -24,9 +24,9 @@ namespace d4 {
  * @brief BucketManagerCnfCombi::BucketManagerCnfCombi implementation.
  */
 BucketManagerCnfCombi::BucketManagerCnfCombi(
-    CnfManager &occM, ModeStore mdStore, unsigned long sizeFirstPage,
+    CnfManager& occM, ModeStore mdStore, unsigned long sizeFirstPage,
     unsigned long sizeAdditionalPage, unsigned limitNbVarSym,
-    unsigned limitNbVarIndex, BucketAllocator *bucketAllocator)
+    unsigned limitNbVarIndex, BucketAllocator* bucketAllocator)
     : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
                                          sizeAdditionalPage, bucketAllocator),
       m_inConstruction(occM) {
@@ -65,8 +65,8 @@ BucketManagerCnfCombi::~BucketManagerCnfCombi() {
 /**
  * @brief BucketManagerCnfCombi::storeFormula implementation.
  */
-void BucketManagerCnfCombi::storeFormula(std::vector<Var> &component,
-                                         DataBucket &b) {
+void BucketManagerCnfCombi::storeFormula(std::span<const Var> component,
+                                         DataBucket& b) {
   if (component.size() < m_limitNbVarSym)
     return symBucketManager->storeFormula(component, b);
   if (component.size() > m_limitNbVarIndex)

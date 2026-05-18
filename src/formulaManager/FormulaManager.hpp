@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <span>
 #include <src/problem/ProblemManager.hpp>
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
@@ -148,7 +149,7 @@ class FormulaManager {
    * @return the number of connected component.
    */
   virtual int computeTrivialConnectedComponent(
-      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
       std::vector<Var>& freeVar);
 
   /**
@@ -162,7 +163,7 @@ class FormulaManager {
    * @return the number of connected component.
    */
   virtual int computeConnectedComponent(
-      std::vector<std::vector<Var>>& varConnected, std::vector<Var>& setOfVar,
+      std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
       std::vector<Var>& freeVar) = 0;
 
   /**

@@ -315,7 +315,8 @@ void* BucketManagerCnfSym::storeDistribInfo(
    \return a pointer to the end of the data we added
 */
 template <typename U>
-void* BucketManagerCnfSym::storeClauses(void* data, std::vector<Var>& component,
+void* BucketManagerCnfSym::storeClauses(void* data,
+                                        std::span<const Var> component,
                                         BucketInConstruction& inConstruction) {
   // we map the variable to another index regarding their poistion in
   // component.
@@ -398,7 +399,7 @@ void BucketManagerCnfSym::getInfoDistributionSize(
  * @brief BucketManagerCnfSym::varToSortedLiterals implementation.
  *
  */
-void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var>& component,
+void BucketManagerCnfSym::varToSortedLiterals(std::span<const Var> component,
                                               std::vector<Lit>& orderedLits) {
   // init the vector of literals.
   orderedLits.clear();
@@ -475,15 +476,8 @@ void BucketManagerCnfSym::varToSortedLiterals(const std::vector<Var>& component,
    @param[out] tmpFormula, the place where is stored the formula.
    @param[out] szTmpFormula, to collect the size of the stored formula.
 */
-void BucketManagerCnfSym::storeFormula(std::vector<Var>& component,
+void BucketManagerCnfSym::storeFormula(std::span<const Var> component,
                                        DataBucket& b) {
-#if 0
-  std::vector<bool> presentVar(this->m_specManager.getNbVariable() + 1, false);
-  for (auto &v : component) presentVar[v] = true;
-  this->m_specManager.showCurrentFormula(std::cout, presentVar);
-  std::cout << "--------------------------------------------------\n";
-#endif
-
   std::vector<Lit> literalOrdered;
   varToSortedLiterals(component, literalOrdered);
 
