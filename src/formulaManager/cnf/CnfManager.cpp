@@ -131,7 +131,12 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
     assert(v < m_infoCluster.size());
     m_infoCluster[v].parent = v;
     m_infoCluster[v].size = 1;
-    if (m_currentValue[v] == l_Undef) *lastVar++ = v;
+    if (m_currentValue[v] == l_Undef) {
+      if (getNbClause(v) != 0)
+        *lastVar++ = v;
+      else
+        freeVar.push_back(v);
+    }
   }
 
   while (currentVar != lastVar) {
@@ -179,18 +184,9 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
   }
 
   // collect the component.
-  std::vector<Var> rootSet;
-  freeVar.resize(0);
-
+  m_rootSet.clear();
   for (currentVar = m_activeVariables; currentVar != lastVar; currentVar++) {
     Var v = *currentVar;
-    assert(m_currentValue[v] == l_Undef);
-
-    if (m_infoCluster[v].parent == v && m_infoCluster[v].size == 1) {
-      freeVar.push_back(v);
-      assert(getNbClause(v) == 0);
-      continue;
-    }
     assert(getNbClause(v) != 0);
     assert(m_currentValue[v] == l_Undef);
 
@@ -205,14 +201,14 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
     if (m_infoCluster[rootV].pos == -1) {
       m_infoCluster[rootV].pos = varCo.size();
       varCo.push_back(std::vector<Var>());
-      rootSet.push_back(rootV);
+      m_rootSet.push_back(rootV);
     }
 
     varCo[m_infoCluster[rootV].pos].push_back(v);
   }
 
   // restore for the next run.
-  for (auto& v : rootSet) m_infoCluster[v].pos = -1;
+  for (auto& v : m_rootSet) m_infoCluster[v].pos = -1;
 
   return varCo.size();
 }  // computeConnectedComponent

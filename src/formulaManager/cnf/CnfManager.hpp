@@ -47,6 +47,7 @@ class CnfManager : public FormulaManager {
   std::vector<unsigned> m_occInitSizeNotBin;
 
   std::vector<InfoCluster> m_infoCluster;
+  std::vector<Var> m_rootSet;
 
   // to manage the connected component
   std::vector<Var> m_tmpVecVar;
