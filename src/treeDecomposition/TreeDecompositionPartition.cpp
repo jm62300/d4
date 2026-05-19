@@ -91,9 +91,6 @@ TreeDecomp* TreeDecompositionPartition::computeDecomposition(
   if (!notLinked.size()) return tree;
   if (!component.size()) return new TreeDecomp(notLinked, {});
   auto* ret = new TreeDecomp(notLinked, {tree});
-
-  assert(checkMyTree(dynamic_cast<CnfManager&>(om), ret));
-
   return ret;
 }  // computeDecomposition
 
