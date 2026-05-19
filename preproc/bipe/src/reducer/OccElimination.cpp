@@ -58,12 +58,6 @@ void OccElimination::run(unsigned nbVar, std::vector<std::vector<Lit>>& clauses,
  */
 void OccElimination::run(Propagator& propagator, int nbIteration, bool verbose,
                          const Timer& timer) {
-  if (verbose) {
-    m_out << "c [REDUCER OCC-ELIMINATION] Number of iterations: " << nbIteration
-          << "\n";
-    m_out << "c [REDUCER OCC-ELIMINATION] Verbose: " << verbose << "\n";
-  }
-
   // compute the occurrence list.
   std::vector<std::vector<CRef>> occurrence;
   generateOccurrenceLit(propagator, occurrence);
@@ -73,9 +67,6 @@ void OccElimination::run(Propagator& propagator, int nbIteration, bool verbose,
        !propagator.getIsUnsat() && !timer.isTimeout() && !fixePoint &&
        (nbIteration == -1 || iteration < nbIteration);
        iteration++) {
-    if (verbose)
-      m_out << "c [REDUCER OCC-ELIMINATION] #Iteration: " << iteration << "\n";
-
     // try to remove in the binary clauses.
     unsigned current = m_nbRemoveLit;
     for (unsigned i = 1; !timer.isTimeout() && i < propagator.getNbVar(); i++) {
@@ -88,8 +79,8 @@ void OccElimination::run(Propagator& propagator, int nbIteration, bool verbose,
     fixePoint = current == m_nbRemoveLit;
 
     if (verbose)
-      m_out << "c [REDUCER OCC-ELIMINATION] #literal removed: " << m_nbRemoveLit
-            << "\n";
+      m_out << "c [REDUCER OccElimination] #Iteration: " << iteration << "/"
+            << nbIteration << " #lit-rm: " << m_nbRemoveLit << "\n";
   }
 
   if (verbose) displayInfo();
@@ -149,9 +140,9 @@ void OccElimination::removeLitFromLargeClauses(
       for (unsigned i = 0; !isUnsat && i < cl.size; i++) {
         Lit m = cl[i] == l ? l : ~cl[i];
         if (propagator.value(m) == l_True) continue;
-        if (propagator.value(m) == l_False)
+        if (propagator.value(m) == l_False) {
           isUnsat = true;
-        else
+        } else
           propagator.uncheckedEnqueue(m);
       }
 
@@ -163,12 +154,13 @@ void OccElimination::removeLitFromLargeClauses(
         // reduce the clause.
         bool isSat = false;
         for (unsigned i = 0; !isSat && i < cl.size;) {
-          if (propagator.value(cl[i]) == l_True)
+          if (propagator.value(cl[i]) == l_True) {
             isSat = true;
-          else if (propagator.value(cl[i]) == l_False)
+          } else if (propagator.value(cl[i]) == l_False || cl[i] == l) {
             cl[i] = cl[--cl.size];
-          else
+          } else {
             i++;
+          }
         }
 
         if (isSat)

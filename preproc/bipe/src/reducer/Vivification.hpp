@@ -34,7 +34,6 @@ namespace reducer {
 class Vivification : public Method {
  private:
   std::ostream& m_out;
-  unsigned m_nbRemoveClause;
 
  public:
   /**

@@ -26,7 +26,7 @@
 namespace bipe {
 struct OptionReducer {
   std::string reducerName = "combinaison";
-  int nbIterarion = 10;
+  int nbIterarion = 50;
 };
 
 struct OptionPreproc {

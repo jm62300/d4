@@ -88,7 +88,7 @@ void preprocEquivFull(Problem& problem, const OptionPreproc& optionPreproc) {
     }
   }
 
-  // --- PHASE 4: Reintegrate Equivalences as Binary Clauses ---
+  // Reintegrate Equivalences as Binary Clauses ---
   // To preserve the logical constraints of the substituted variables
   // (and allow solvers to deduce their values), we add them back as binary
   // clauses.
@@ -99,7 +99,7 @@ void preprocEquivFull(Problem& problem, const OptionPreproc& optionPreproc) {
     }
   }
 
-  // --- PHASE 5: Clause Reduction ---
+  // PHASE 5: Clause Reduction ---
   // Instantiate the reducer method using the configured factory name
   reducer::Method* rm = bipe::reducer::Method::makeMethod(
       optionPreproc.optionReducer.reducerName, std::cout);

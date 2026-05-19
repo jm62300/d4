@@ -58,19 +58,11 @@ void Vivification::run(Propagator& propagator, int nbIteration, bool verbose,
                        const Timer& timer) {
   std::vector<CRef>& notBinClauseRefs = propagator.getNotBinClauses();
 
-  if (verbose) {
-    m_out << "c [REDUCER VIVIFICATION] Number of iterations: " << nbIteration
-          << "\n";
-    m_out << "c [REDUCER VIVIFICATION] Verbose: " << verbose << "\n";
-  }
-
   bool fixePoint = false;
   for (int iteration = 0;
        !propagator.getIsUnsat() && !timer.isTimeout() && !fixePoint &&
        (nbIteration == -1 || iteration < nbIteration);
        iteration++) {
-    if (verbose)
-      m_out << "c [REDUCER VIVIFICATION] #Iteration: " << iteration << "\n";
     unsigned current = m_nbRemoveLit;
 
     for (unsigned i = 0; !propagator.getIsUnsat() && !timer.isTimeout() &&
@@ -120,9 +112,11 @@ void Vivification::run(Propagator& propagator, int nbIteration, bool verbose,
     }
 
     fixePoint = current == m_nbRemoveLit;
+    if (verbose)
+      m_out << "c [REDUCER VIVIFICATION] #Iteration: " << iteration << "/"
+            << nbIteration << " #lit-rm: " << m_nbRemoveLit
+            << " #cl-rm: " << m_nbRemoveClause << "\n";
   }
-
-  if (verbose) displayInfo();
 }  // run
 
 /**

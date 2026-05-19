@@ -57,12 +57,6 @@ void Combinaison::run(unsigned nbVar, std::vector<std::vector<Lit>>& clauses,
  */
 void Combinaison::run(Propagator& propagator, int nbIteration, bool verbose,
                       const Timer& timer) {
-  if (verbose) {
-    m_out << "c [REDUCER Combinaison] Number of iterations: " << nbIteration
-          << "\n";
-    m_out << "c [REDUCER Combinaison] Verbose: " << verbose << "\n";
-  }
-
   Vivification vivification(m_out);
   OccElimination occElimination(m_out);
 
@@ -74,24 +68,33 @@ void Combinaison::run(Propagator& propagator, int nbIteration, bool verbose,
        !propagator.getIsUnsat() && !timer.isTimeout() && !fixePoint &&
        (nbIteration == -1 || iteration < nbIteration);
        iteration++) {
-    if (verbose)
-      m_out << "c [REDUCER Combinaison] #Iteration: " << iteration << "\n";
+    unsigned current = m_nbRemoveLit;
     fixePoint = true;
 
     if (!propagator.getIsUnsat() && !timer.isTimeout()) {
-      unsigned current = occElimination.getNbRemoveLit();
-      occElimination.run(propagator, 1, verbose, timer);
-      fixePoint = current == occElimination.getNbRemoveLit();
+      occElimination.setNbRemoveLit(0);
+      occElimination.setNbRemoveClause(0);
+      occElimination.run(propagator, 1, false, timer);
     }
 
     if (!propagator.getIsUnsat() && !timer.isTimeout()) {
-      unsigned current = vivification.getNbRemoveLit();
-      vivification.run(propagator, 1, verbose, timer);
-      fixePoint = current == vivification.getNbRemoveLit();
+      vivification.setNbRemoveLit(0);
+      vivification.setNbRemoveClause(0);
+      vivification.run(propagator, 1, false, timer);
     }
+
+    m_nbRemoveLit +=
+        vivification.getNbRemoveLit() + occElimination.getNbRemoveLit();
+    m_nbRemoveClause +=
+        vivification.getNbRemoveClause() + occElimination.getNbRemoveClause();
+
+    fixePoint = current == m_nbRemoveLit;
+    if (verbose)
+      m_out << "c [REDUCER Combinaison] #Iteration: " << iteration << "/"
+            << nbIteration << " #lit-rm: " << m_nbRemoveLit
+            << " #cl-rm: " << m_nbRemoveClause << "\n";
   }
 
-  if (verbose) displayInfo();
   m_vivifier = m_occEliminator = nullptr;
 }  // run
 

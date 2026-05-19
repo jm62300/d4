@@ -35,12 +35,12 @@ TreeDecompositionPartition::TreeDecompositionPartition(
  * @brief TreeDecompositionCnfPartition::computeDecomposition implementation.
  *
  */
-TreeDecomp *TreeDecompositionPartition::computeDecomposition(
-    FormulaManager &om) {
-  TreeDecomp *tree = NULL;
+TreeDecomp* TreeDecompositionPartition::computeDecomposition(
+    FormulaManager& om) {
+  TreeDecomp* tree = NULL;
 
   // compute the hypergraph.
-  HyperGraphExtractor *hextract = HyperGraphExtractor::makeHyperGraphExtractor(
+  HyperGraphExtractor* hextract = HyperGraphExtractor::makeHyperGraphExtractor(
       m_hyperGraphExtractorMethod, om.getProblemInputType());
   std::vector<Var> component, notLinked;
   for (unsigned i = 1; i <= om.getNbVariable(); i++) {
@@ -56,7 +56,7 @@ TreeDecomp *TreeDecompositionPartition::computeDecomposition(
   assert(component.size() || !graph.getNbEdges());
 
   // extract the decomposition.
-  PartitionerManager *partitioner = PartitionerManager::makePartitioner(
+  PartitionerManager* partitioner = PartitionerManager::makePartitioner(
       m_partitionerName, infoHyperGraph, std::cout);
   std::vector<int> partition(infoHyperGraph.maxNbNodes + 1, 0);
 
@@ -70,7 +70,7 @@ TreeDecomp *TreeDecompositionPartition::computeDecomposition(
     if (!t.graph.getNbEdges()) continue;
 
     assert(t.father || !tree);
-    TreeDecomp *currentTree = new TreeDecomp();
+    TreeDecomp* currentTree = new TreeDecomp();
     if (!tree) tree = currentTree;
     if (t.father) t.father->getSons().push_back(currentTree);
 
@@ -90,7 +90,11 @@ TreeDecomp *TreeDecompositionPartition::computeDecomposition(
 
   if (!notLinked.size()) return tree;
   if (!component.size()) return new TreeDecomp(notLinked, {});
-  return new TreeDecomp(notLinked, {tree});
+  auto* ret = new TreeDecomp(notLinked, {tree});
+
+  assert(checkMyTree(dynamic_cast<CnfManager&>(om), ret));
+
+  return ret;
 }  // computeDecomposition
 
 }  // namespace d4

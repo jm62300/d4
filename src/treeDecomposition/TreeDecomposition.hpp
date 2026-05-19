@@ -18,14 +18,15 @@
  */
 #pragma once
 
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
 
-#include "src/formulaManager/FormulaManager.hpp"
-#include "src/problem/ProblemTypes.hpp"
-#include "src/options/EnumMetadata.hpp"
 #include "src/exceptions/FactoryException.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
+#include "src/formulaManager/cnf/CnfManager.hpp"
+#include "src/options/EnumMetadata.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
 
@@ -37,14 +38,15 @@ template <>
 struct EnumMetadata<TreeDecompositionMethod> {
   static std::string name() { return "TreeDecompositionMethod"; }
   static std::map<int, std::string> mapping() {
-    return {{TREE_DECOMP_PARTITION, "tree-partition"}, {TREE_DECOMP_TREE_WIDTH, "tree-width"}};
+    return {{TREE_DECOMP_PARTITION, "tree-partition"},
+            {TREE_DECOMP_TREE_WIDTH, "tree-width"}};
   }
 };
 
 class TreeDecomp {
  private:
   std::vector<Var> m_node;
-  std::vector<TreeDecomp *> m_sons;
+  std::vector<TreeDecomp*> m_sons;
 
  public:
   /**
@@ -58,8 +60,8 @@ class TreeDecomp {
    * @param node is the variables in the current node.
    * @param sons is a list of trees.
    */
-  TreeDecomp(const std::vector<Var> &node,
-             const std::vector<TreeDecomp *> &sons);
+  TreeDecomp(const std::vector<Var>& node,
+             const std::vector<TreeDecomp*>& sons);
 
   /**
    * @brief Destroy the Tree Decomp object
@@ -71,7 +73,7 @@ class TreeDecomp {
    *
    * @return the variable list.
    */
-  std::vector<Var> &getNode();
+  std::vector<Var>& getNode();
 
   /**
    * @brief Display the tree.
@@ -81,9 +83,9 @@ class TreeDecomp {
   inline void displayTree(unsigned shift) {
     printf("%3u ", shift);
     for (unsigned i = 0; i < shift; i++) std::cout << "| ";
-    for (auto &v : m_node) std::cout << v << " ";
+    for (auto& v : m_node) std::cout << v << " ";
     std::cout << '\n';
-    for (auto *tree : m_sons) tree->displayTree(shift + 1);
+    for (auto* tree : m_sons) tree->displayTree(shift + 1);
   }  // display
 
   /**
@@ -91,24 +93,24 @@ class TreeDecomp {
    *
    * @param[out] vars are the collected variables.
    */
-  void getAllVars(std::vector<Var> &vars) {
+  void getAllVars(std::vector<Var>& vars) {
     std::vector<bool> marked;
-    for (auto &v : vars) {
+    for (auto& v : vars) {
       if (marked.size() <= (unsigned)v) marked.resize(v + 1, false);
       marked[v] = true;
     }
 
-    for (auto *tree : m_sons) {
+    for (auto* tree : m_sons) {
       std::vector<Var> tmp;
       tree->getAllVars(tmp);
-      for (auto &v : tmp) {
+      for (auto& v : tmp) {
         if (marked.size() <= (unsigned)v) marked.resize(v + 1, false);
         if (!marked[v]) vars.push_back(v);
         marked[v] = true;
       }
     }
 
-    for (auto &v : m_node)
+    for (auto& v : m_node)
       if ((unsigned)v >= marked.size() || !marked[v]) vars.push_back(v);
   }  // getAllVars
 
@@ -117,7 +119,7 @@ class TreeDecomp {
    *
    * @return the list of children.
    */
-  std::vector<TreeDecomp *> &getSons();
+  std::vector<TreeDecomp*>& getSons();
 
   /**
    * @brief Get the with of the tree decompostion.
@@ -143,9 +145,9 @@ class TreeDecomposition {
    * consideration.
    * @return a tree decomposition manager.
    */
-  static TreeDecomposition *makeTreeDecomposition(
-      const OptionPartialOrderHeuristic &options,
-      const ProblemInputType &inType, std::ostream &out);
+  static TreeDecomposition* makeTreeDecomposition(
+      const OptionPartialOrderHeuristic& options,
+      const ProblemInputType& inType, std::ostream& out);
 
   /**
    * @brief Compute a decomposition.
@@ -154,6 +156,115 @@ class TreeDecomposition {
    *
    * @return is the computed tree decomposition.
    */
-  virtual TreeDecomp *computeDecomposition(FormulaManager &om) = 0;
+  virtual TreeDecomp* computeDecomposition(FormulaManager& om) = 0;
+
+  /**
+   * @brief Recursively verifies the tree decomposition by projecting the CNF
+   * formula down the tree, exactly as a DPLL solver would.
+   *
+   * @param node The current node (bag) of the tree decomposition.
+   * @param currentFormula The projected formula active at this node.
+   * @param nbVars Total number of variables in the problem.
+   * @return true if the formula splits perfectly, false if an error is found.
+   */
+  bool verifyCnfProjectionUserWay(
+      TreeDecomp* node, const std::vector<std::vector<Lit>>& currentFormula,
+      unsigned nbVars) {
+    // Base case: If we reached a leaf, the remaining formula should be fully
+    // covered here.
+    if (!node || node->getSons().empty()) return true;
+
+    unsigned nbChildren = node->getSons().size();
+
+    // 1. Identify variables in the current root (the separator)
+    std::vector<bool> inRoot(nbVars + 1, false);
+    for (Var v : node->getNode()) {
+      assert(v <= nbVars);
+      inRoot[v] = true;
+    }
+
+    // 2. Map every remaining variable to its specific child subtree
+    std::vector<int> varToChild(nbVars + 1, -1);
+    for (unsigned i = 0; i < nbChildren; i++) {
+      std::vector<Var> subtreeVars;
+      node->getSons()[i]->getAllVars(subtreeVars);
+
+      for (Var v : subtreeVars) {
+        assert(v <= nbVars);
+        if (!inRoot[v]) {
+          varToChild[v] = i;
+        }
+      }
+    }
+
+    // 3. Create the CNF-1, CNF-2, etc.
+    std::vector<std::vector<std::vector<Lit>>> childFormulas(nbChildren);
+
+    // 4. Consider clauses one by one
+    for (const std::vector<Lit>& clause : currentFormula) {
+      int targetChild = -1;
+      std::vector<Lit> projectedClause;  // The clause minus the root variables
+
+      for (Lit l : clause) {
+        Var v = l.var();
+        assert(v <= nbVars);
+
+        // If the variable is in the root, it is handled. We drop it from the
+        // projected clause.
+        if (inRoot[v]) continue;
+
+        int childIdx = varToChild[v];
+        if (childIdx != -1) {
+          if (targetChild == -1) {
+            // Assign the clause to this child
+            targetChild = childIdx;
+          } else if (targetChild != childIdx) {
+            // FATAL ERROR: The clause contains variables from multiple
+            // subtrees!
+            std::cerr
+                << "\n[Decomposition Error] Clause spans across subtrees!\n"
+                << "Even after removing root variables, the clause contains "
+                   "literals "
+                << "belonging to Child " << targetChild << " AND Child "
+                << childIdx << ".\n"
+                << "The root bag failed to separate them!\n";
+            return false;
+          }
+
+          // Add the literal to the projected clause for the child
+          projectedClause.push_back(l);
+        }
+      }
+
+      // 5. Add the properly projected clause to the correct child's formula
+      // If targetChild is -1, it means ALL variables in the clause were in the
+      // root bag, which is perfectly fine (the clause is fully
+      // satisfied/covered at this level).
+      if (targetChild != -1) {
+        childFormulas[targetChild].push_back(projectedClause);
+      }
+    }
+
+    // 6. Recursively call the function with one formula and then with the other
+    for (unsigned i = 0; i < nbChildren; i++) {
+      if (!verifyCnfProjectionUserWay(node->getSons()[i], childFormulas[i],
+                                      nbVars)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool checkMyTree(CnfManager& cnf, TreeDecomp* root) {
+    std::vector<std::vector<Lit>> fullFormula;
+
+    // Copy all valid clauses into our initial formula state
+    for (unsigned i = 0; i < cnf.getNbClause(); i++) {
+      fullFormula.push_back(cnf.getClause(i));
+    }
+
+    return verifyCnfProjectionUserWay(root, fullFormula, cnf.getNbVariable());
+  }
 };
 }  // namespace d4

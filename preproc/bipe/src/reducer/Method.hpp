@@ -35,7 +35,8 @@ namespace reducer {
 class Method {
  protected:
   /// Tracks the total number of literals removed by the method.
-  unsigned m_nbRemoveLit;
+  unsigned m_nbRemoveLit = 0;
+  unsigned m_nbRemoveClause = 0;
 
  public:
   /**
@@ -100,12 +101,10 @@ class Method {
   virtual void run(Propagator& propagator, int nbIteration, bool verbose,
                    const Timer& timer) = 0;
 
-  /**
-   * @brief Retrieves the total number of literals removed during execution.
-   *
-   * @return The count of removed literals.
-   */
   inline unsigned getNbRemoveLit() { return m_nbRemoveLit; }
+  inline unsigned getNbRemoveClause() { return m_nbRemoveClause; }
+  inline void setNbRemoveLit(unsigned nb) { m_nbRemoveLit = nb; }
+  inline void setNbRemoveClause(unsigned nb) { m_nbRemoveClause = nb; }
 };
 
 }  // namespace reducer
