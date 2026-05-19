@@ -53,3 +53,7 @@ echo "c [BUILD] Compiling..."
 cmake --build . $PARALLEL_FLAGS
 
 echo "c [BUILD] Build complete! A monolithic libd4.a has been created natively."
+
+if [ -f "$SCRIPT_DIR/completion.bash" ]; then
+    source "$SCRIPT_DIR/completion.bash"
+fi
