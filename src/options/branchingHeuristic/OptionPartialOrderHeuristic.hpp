@@ -119,8 +119,8 @@ class OptionPartialOrderHeuristic : public OptionGroup {
     out << " Option Partitioning Heuristic:"
         << " method(" << dt.partialOrderMethod.getValueAsString()
         << ") partioner name(" << dt.partitionerName.getValueAsString()
-        << ") treeDecomposition Method(" << dt.treeDecompositionMethod.getValueAsString()
-        << ")";
+        << ") treeDecomposition Method("
+        << dt.treeDecompositionMethod.getValueAsString() << ")";
     return out;
   }
 };

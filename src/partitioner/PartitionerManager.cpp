@@ -32,6 +32,8 @@ PartitionerManager* PartitionerManager::makePartitioner(
   switch (partitioner) {
     case PARTITIONER_PATOH:
       return new PartitionerPatoh(infoHyperGraph, out);
+    default:
+      throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
   }
   throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
 }  // makePartitioner
