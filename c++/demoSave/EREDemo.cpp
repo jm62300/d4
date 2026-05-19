@@ -45,8 +45,8 @@ void ereDemo(const po::variables_map &vm, d4::ProblemManager *problem) {
   config.digOnAnd = vm["ere-and-dig"].as<bool>();
   config.threshold = vm["ere-threshold"].as<double>();
   config.solver.solverName =
-      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
-  config.specManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+      d4::resolve_enum<d4::SolverName>(vm["solver"].as<std::string>());
+  config.specManager.specUpdateType = d4::resolve_enum<d4::SpecUpdateType>(
       vm["occurrence-manager"].as<std::string>());
 
   // options on exist variables.

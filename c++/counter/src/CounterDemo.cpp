@@ -91,6 +91,7 @@ void countModels(const OptionDpllStyleMethod& options,
  * Runs the counter using the provided configuration.
  */
 void counterDemo(const d4::OptionDpllStyleMethod& inputConfig,
+                 const d4::OptionCounter& optionCounter,
                  const parser::Formula& formula) {
   // Use the provided configuration.
   d4::OptionDpllStyleMethod options = inputConfig;
@@ -102,9 +103,8 @@ void counterDemo(const d4::OptionDpllStyleMethod& inputConfig,
       CACHE_INDEX)
     options.optionSpecManager.needFastNotSatisfied = true;
 
-  // TODO : In Config ? In arg ? Or just remove it.
-  const std::string format = "s";
-  const std::string outFormat = "classic";
+  const std::string format = optionCounter.format.get();
+  const std::string outFormat = optionCounter.outFormat.get();
 
   // Build the problem from the parsed formula.
   std::vector<d4::BcGate> gates;

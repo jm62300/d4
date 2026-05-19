@@ -30,33 +30,12 @@ namespace d4 {
 
 enum TreeDecompositionerMethod { TREE_DECOMP_TOOL_FLOW_CUTTER };
 
-class TreeDecompositionerMethodManager {
- public:
-  static std::string getTreeDecompositionerMethodManager(
-      const TreeDecompositionerMethod &m) {
-    if (m == TREE_DECOMP_TOOL_FLOW_CUTTER) return "flow-cutter";
-
-    throw(FactoryException("Tree Decomposition method type unknown", __FILE__,
-                           __LINE__));
-  }  // getTreeDecompositionerMethodManager
-
-  static TreeDecompositionerMethod getTreeDecompositionerMethodManager(
-      const std::string &m) {
-    if (m == "flow-cutter") return TREE_DECOMP_TOOL_FLOW_CUTTER;
-
-    throw(FactoryException("Tree Decomposition method unknown", __FILE__,
-                           __LINE__));
-  }  // getTreeDecompositionerMethodManager
-
-  static std::map<int, std::string> getMapping() {
-    return {{TREE_DECOMP_TOOL_FLOW_CUTTER, "flow-cutter"}};
-  }
-};
-
 template <>
 struct EnumMetadata<TreeDecompositionerMethod> {
   static std::string name() { return "TreeDecompositionerMethod"; }
-  static std::map<int, std::string> mapping() { return TreeDecompositionerMethodManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{TREE_DECOMP_TOOL_FLOW_CUTTER, "flow-cutter"}};
+  }
 };
 
 class TreeDecompositioner {

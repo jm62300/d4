@@ -35,7 +35,7 @@ namespace d4 {
 class OptionDpllStyleMethod : public OptionRoot {
  public:
   OptionDpllStyleMethod(
-      const std::string& name = "counter",
+      const std::string& name = "dpll",
       const std::string& description = "DPLL-style counter options")
       : OptionRoot() {
     m_name = name;

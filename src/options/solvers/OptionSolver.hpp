@@ -29,31 +29,12 @@
 namespace d4 {
 enum SolverName { GLUCOSE_CNF, MINISAT_CNF };
 
-class SolverNameManager {
- public:
-  static std::string getSolverName(const SolverName& m) {
-    if (m == GLUCOSE_CNF) return "glucose cnf";
-    if (m == MINISAT_CNF) return "minisat cnf";
-
-    throw(FactoryException("Solver Name unknown", __FILE__, __LINE__));
-  }  // getSolverName
-
-  static SolverName getSolverName(const std::string& m) {
-    if (m == "glucose") return GLUCOSE_CNF;
-    if (m == "minisat") return MINISAT_CNF;
-
-    throw(FactoryException("Solver Name unknown", __FILE__, __LINE__));
-  }  // getSolverName
-
-  static std::map<int, std::string> getMapping() {
-    return {{GLUCOSE_CNF, "glucose"}, {MINISAT_CNF, "minisat"}};
-  }
-};
-
 template <>
 struct EnumMetadata<SolverName> {
   static std::string name() { return "SolverName"; }
-  static std::map<int, std::string> mapping() { return SolverNameManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{GLUCOSE_CNF, "glucose"}, {MINISAT_CNF, "minisat"}};
+  }
 };
 
 class OptionSolver : public OptionGroup {
@@ -70,7 +51,7 @@ class OptionSolver : public OptionGroup {
 
   friend std::ostream& operator<<(std::ostream& out, const OptionSolver& dt) {
     out << " Option Solver:"
-        << " solver name(" << SolverNameManager::getSolverName(dt.solverName.get())
+        << " solver name(" << dt.solverName.getValueAsString()
         << ")";
 
     return out;

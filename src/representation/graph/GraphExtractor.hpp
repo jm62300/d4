@@ -29,33 +29,12 @@
 namespace d4 {
 enum GraphExtractorMethod { GRAPH_PRIMAL };
 
-class GraphExtractorMethodManager {
- public:
-  static std::string getGraphExtractorMethodManager(
-      const GraphExtractorMethod &m) {
-    if (m == GRAPH_PRIMAL) return "primal";
-
-    throw(FactoryException("Graph extractor method type unknown", __FILE__,
-                           __LINE__));
-  }  // getGraphExtractorMethodManager
-
-  static GraphExtractorMethod getGraphExtractorMethodManager(
-      const std::string &m) {
-    if (m == "primal") return GRAPH_PRIMAL;
-
-    throw(
-        FactoryException("Graph extractor method unknown", __FILE__, __LINE__));
-  }  // getGraphExtractorMethodManager
-
-  static std::map<int, std::string> getMapping() {
-    return {{GRAPH_PRIMAL, "primal"}};
-  }
-};
-
 template <>
 struct EnumMetadata<GraphExtractorMethod> {
   static std::string name() { return "GraphExtractorMethod"; }
-  static std::map<int, std::string> mapping() { return GraphExtractorMethodManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{GRAPH_PRIMAL, "primal"}};
+  }
 };
 
 class GraphExtractor {

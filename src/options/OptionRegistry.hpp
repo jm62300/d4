@@ -93,6 +93,22 @@ namespace d4
       for (int i = 1; i < argc; ++i)
       {
         std::string arg = argv[i];
+        
+        if (arg == "--dump-options")
+        {
+          std::set<std::string> opts;
+          for (const auto &[path, opt] : m_options)
+          {
+            opts.insert("--" + path);
+          }
+          opts.insert("-i");
+          for (const auto &o : opts)
+          {
+            std::cout << o << "\n";
+          }
+          exit(0);
+        }
+
         if (arg.size() > 2 && arg.substr(0, 2) == "--")
         {
           std::string key, value;
@@ -133,6 +149,8 @@ namespace d4
     {
       out << "\n\033[1;36mAvailable Options (use "
              "--path.to.option=value):\033[0m\n";
+      out << "\033[90mNote: Modifying an argument without its exact path (e.g. --verbosity=1)\n"
+             "      will automatically propagate the value to all matching child options.\033[0m\n";
       std::set<std::string> displayed_nodes;
       renderTree(out, "", "", displayed_nodes);
       out << std::endl;
@@ -168,7 +186,7 @@ namespace d4
         {
           OptionBase *opt = m_options.at(fullPath);
           out << " \033[90m(" << opt->getTypeName() << ")\033[0m : "
-              << opt->getDescription() << " \033[33m[default: "
+              << opt->getDescription() << " \033[33m[current value: "
               << opt->getValueAsString() << "]\033[0m";
           std::string possible = opt->getPossibleValues();
           if (!possible.empty())

@@ -105,7 +105,7 @@ void compilerDemo(const po::variables_map &vm, ProblemManager *problem) {
   // get the configuration.
   OptionDpllStyleMethod options;
 
-  options.methodName = d4::MethodNameManager::getMethodName("ddnnf-compiler");
+  options.methodName = d4::resolve_enum<d4::MethodName>("ddnnf-compiler");
 
   options.inputName = vm["input"].as<std::string>();
   options.problemInputType = d4::ProblemInputTypeManager::getInputType(
@@ -114,9 +114,9 @@ void compilerDemo(const po::variables_map &vm, ProblemManager *problem) {
   options.optionCacheManager = parseCacheConfiguration(vm);
   options.optionBranchingHeuristic = parseBranchingHeuristicConfiguration(vm);
   options.optionSolver.solverName =
-      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+      d4::resolve_enum<d4::SolverName>(vm["solver"].as<std::string>());
 
-  options.optionSpecManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  options.optionSpecManager.specUpdateType = d4::resolve_enum<d4::SpecUpdateType>(
       vm["occurrence-manager"].as<std::string>());
   options.optionSpecManager.removeGates = vm["remove-gates"].as<bool>();
 

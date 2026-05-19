@@ -39,7 +39,7 @@ void qbfCounterDemo(const po::variables_map &vm, ProblemManagerQbf *problem) {
   // get the configuration.
   OptionQbfCounter options;
 
-  options.methodName = d4::MethodNameManager::getMethodName("qbf-counter");
+  options.methodName = d4::resolve_enum<d4::MethodName>("qbf-counter");
 
   options.inputName = vm["input"].as<std::string>();
   options.problemInputType = d4::ProblemInputTypeManager::getInputType("qbf");
@@ -49,9 +49,9 @@ void qbfCounterDemo(const po::variables_map &vm, ProblemManagerQbf *problem) {
   options.optionPartitioningHeuristic = parsePartitioningHeuristicConfiguration(vm);
 
   options.optionSolver.solverName =
-      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+      d4::resolve_enum<d4::SolverName>(vm["solver"].as<std::string>());
 
-  options.optionSpecManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  options.optionSpecManager.specUpdateType = d4::resolve_enum<d4::SpecUpdateType>(
       vm["occurrence-manager"].as<std::string>());
 
   MethodManager::displayInfoVariables(problem, std::cout);

@@ -15,31 +15,12 @@ namespace d4 {
 
 enum CachingMethod { CACHE_NO_COL, CACHE_LIST };
 
-class CachingMethodManager {
- public:
-  static std::string getCachingMethod(const CachingMethod& m) {
-    if (m == CACHE_NO_COL) return "no-colission";
-    if (m == CACHE_LIST) return "list";
-
-    throw(FactoryException("CachingMethod unknown", __FILE__, __LINE__));
-  }
-
-  static CachingMethod getCachingMethod(const std::string& m) {
-    if (m == "no-colission") return CACHE_NO_COL;
-    if (m == "list") return CACHE_LIST;
-
-    throw(FactoryException("CachingMethod unknown", __FILE__, __LINE__));
-  }
-
-  static std::map<int, std::string> getMapping() {
-    return {{CACHE_NO_COL, "no-colission"}, {CACHE_LIST, "list"}};
-  }
-};
-
 template <>
 struct EnumMetadata<CachingMethod> {
   static std::string name() { return "CachingMethod"; }
-  static std::map<int, std::string> mapping() { return CachingMethodManager::getMapping(); }
+  static std::map<int, std::string> mapping() {
+    return {{CACHE_NO_COL, "no-colission"}, {CACHE_LIST, "list"}};
+  }
 };
 
 class OptionCacheManager : public OptionGroup {
@@ -60,7 +41,7 @@ class OptionCacheManager : public OptionGroup {
   friend std::ostream& operator<<(std::ostream& out, const OptionCacheManager& dt) {
     out << " Option Cache:"
         << " is activated?(" << dt.isActivated.get() << ")"
-        << " caching method(" << CachingMethodManager::getCachingMethod(dt.cachingMethod.get()) << ")"
+        << " caching method(" << dt.cachingMethod.getValueAsString() << ")"
         << " " << dt.optionCacheCleaningManager
         << " " << dt.optionBucketManager;
     return out;

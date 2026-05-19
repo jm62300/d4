@@ -36,51 +36,10 @@ enum MethodName {
   METH_NONE
 };
 
-class MethodNameManager {
- public:
-  static std::string getMethodName(const MethodName& m) {
-    switch (m) {
-      case METH_EROSION:
-        return "erosion";
-      case METH_COUNTING:
-        return "counting";
-      case METH_DDNNF:
-        return "ddnnf-compiler";
-      case METH_MAX_SHARP:
-        return "max#sat";
-      case METH_MIN_SHARP:
-        return "min#sat";
-      case METH_ERE:
-        return "ere";
-      case METH_PROJ_MC:
-        return "projMC";
-      case METH_COUNTING_GLOBAL_CACHE:
-        return "counting-global-cache";
-      case METH_QBF_COUNTER:
-        return "qbf-counter";
-      case METH_NONE:
-        return "none";
-    }
-
-    throw(FactoryException("Method name unknown", __FILE__, __LINE__));
-  }  // getOperatorType
-
-  static MethodName getMethodName(const std::string& m) {
-    if (m == "erosion") return METH_EROSION;
-    if (m == "counting") return METH_COUNTING;
-    if (m == "ddnnf-compiler") return METH_DDNNF;
-    if (m == "max#sat") return METH_MAX_SHARP;
-    if (m == "min#sat") return METH_MIN_SHARP;
-    if (m == "ere") return METH_ERE;
-    if (m == "projMC") return METH_PROJ_MC;
-    if (m == "counting-global-cache") return METH_COUNTING_GLOBAL_CACHE;
-    if (m == "qbf-counter") return METH_QBF_COUNTER;
-    if (m == "none") return METH_NONE;
-
-    throw(FactoryException("Method name unknown", __FILE__, __LINE__));
-  }  // getOperatorType
-
-  static std::map<int, std::string> getMapping() {
+template <>
+struct EnumMetadata<MethodName> {
+  static std::string name() { return "MethodName"; }
+  static std::map<int, std::string> mapping() {
     return {
         {METH_EROSION, "erosion"},
         {METH_COUNTING, "counting"},
@@ -93,12 +52,6 @@ class MethodNameManager {
         {METH_QBF_COUNTER, "qbf-counter"},
         {METH_NONE, "none"}};
   }
-};
-
-template <>
-struct EnumMetadata<MethodName> {
-  static std::string name() { return "MethodName"; }
-  static std::map<int, std::string> mapping() { return MethodNameManager::getMapping(); }
 };
 
 class MethodManager {

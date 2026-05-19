@@ -63,7 +63,7 @@ void serverCounter(const po::variables_map &vm, ProblemManager *problem,
   // get the configuration.
   OptionDpllStyleMethod options;
 
-  options.methodName = d4::MethodNameManager::getMethodName("counting");
+  options.methodName = d4::resolve_enum<d4::MethodName>("counting");
 
   options.inputName = "server cnf";
   options.problemInputType = d4::ProblemInputTypeManager::getInputType("cnf");
@@ -74,9 +74,9 @@ void serverCounter(const po::variables_map &vm, ProblemManager *problem,
       parsePartitioningHeuristicConfiguration(vm);
 
   options.optionSolver.solverName =
-      d4::SolverNameManager::getSolverName(vm["solver"].as<std::string>());
+      d4::resolve_enum<d4::SolverName>(vm["solver"].as<std::string>());
 
-  options.optionSpecManager.specUpdateType = d4::SpecUpdateManager::getSpecUpdate(
+  options.optionSpecManager.specUpdateType = d4::resolve_enum<d4::SpecUpdateType>(
       vm["occurrence-manager"].as<std::string>());
 
   options.operationType = d4::OperationTypeManager::getOperatorType("counting");

@@ -27,6 +27,7 @@
 #include "preproc/bipe/src/preproc/PreprocManager.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "OptionCounter.hpp"
 
 namespace fs = std::filesystem;
 d4::MethodManager* methodRun = nullptr;
@@ -58,6 +59,14 @@ int main(int argc, char** argv) {
     }
   }
 
+  // 1. Initialize configuration and registry
+  d4::OptionDpllStyleMethod options;
+  d4::OptionCounter optionCounter;
+  d4::OptionRegistry registry;
+  options.registerTo(registry);
+  optionCounter.registerTo(registry);
+  registry.parseArgv(argc, argv);
+
   if (showHelp || inputPath.empty()) {
     if (!showHelp && inputPath.empty())
       std::cerr << "Missing required argument: -i INPUT\n";
@@ -66,13 +75,12 @@ int main(int argc, char** argv) {
               << "  -i, --input   Path to the input DIMACS file (required)\n"
               << "  -h, --help    Show this help screen\n";
 
-    d4::OptionDpllStyleMethod config;
-    d4::OptionRegistry registry;
-    config.registerTo(registry);
     registry.displayHelp(std::cout);
 
     return showHelp ? 0 : 1;
   }
+
+
 
   // Check if input file exists
   if (!fs::exists(inputPath)) {
@@ -83,12 +91,6 @@ int main(int argc, char** argv) {
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
-
-  // 1. Initialize configuration and registry
-  d4::OptionDpllStyleMethod options;
-  d4::OptionRegistry registry;
-  options.registerTo(registry);
-  registry.parseArgv(argc, argv);
 
   // preproc.
   bipe::OptionPreproc optionPreproc;
@@ -104,7 +106,7 @@ int main(int argc, char** argv) {
                      std::vector<int>(), preprocMethod, optionPreproc);
 
   // count.
-  counterDemo(options, formula);
+  counterDemo(options, optionCounter, formula);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed = end - start;
