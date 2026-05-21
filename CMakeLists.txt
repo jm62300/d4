@@ -67,6 +67,22 @@ endif()
 add_subdirectory(3rdParty/glucose-3.0)
 add_subdirectory(3rdParty/flowCutter)
 
+# ==============================================================================
+# --- optree library integration ---
+# ==============================================================================
+include(FetchContent)
+set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
+if(DEFINED ENV{GITLAB_TOKEN})
+    set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN}@gitlab.univ-artois.fr/logical/optree.git")
+endif()
+FetchContent_Declare(
+    optree
+    GIT_REPOSITORY ${OPTREE_GIT_URL}
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(optree)
+
+
 # --- 4. Python Integration ---
 option(BUILD_PYTHON_WRAPPER "Build wrapper Python" OFF)
 if (SKBUILD OR BUILD_PYTHON_WRAPPER)
@@ -99,9 +115,9 @@ target_include_directories(d4 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gluc
 
 # Link dependencies
 if (MSVC)
-    target_link_libraries(d4 PUBLIC ZLIB::ZLIB ${GMP_LIBRARY})
+    target_link_libraries(d4 PUBLIC ZLIB::ZLIB ${GMP_LIBRARY} optree)
 else ()
-    target_link_libraries(d4 PUBLIC ZLIB::ZLIB ${GMPXX_LIBRARY} ${GMP_LIBRARY})
+    target_link_libraries(d4 PUBLIC ZLIB::ZLIB ${GMPXX_LIBRARY} ${GMP_LIBRARY} optree)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
