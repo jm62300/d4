@@ -46,6 +46,8 @@ cd "$SCRIPT_DIR"
 mkdir -p build
 cd build
 
+export GITLAB_TOKEN="glpat-XpIZ4boV_wOSId8eNA54cm86MQp1OjJpcAk.01.0z0mopjl8"
+
 echo "c [BUILD] Configuring CMake..."
 cmake .. $CMAKE_FLAGS 
 
