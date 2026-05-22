@@ -24,7 +24,7 @@
 
 #include "CounterDemo.hpp"
 #include "ParserDimacs.hpp"
-#include "preproc/bipe/src/preproc/PreprocManager.hpp"
+#include "preproc/PreprocManager.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "OptionCounter.hpp"
@@ -62,9 +62,13 @@ int main(int argc, char** argv) {
   // 1. Initialize configuration and registry
   d4::OptionDpllStyleMethod options;
   d4::OptionCounter optionCounter;
+  bipe::OptionPreproc optionPreproc;
+
   d4::OptionRegistry registry;
   options.registerTo(registry);
   optionCounter.registerTo(registry);
+  optionPreproc.registerTo(registry);
+
   registry.parseArgv(argc, argv);
 
   if (showHelp || inputPath.empty()) {
@@ -93,7 +97,6 @@ int main(int argc, char** argv) {
   parserDimacs.parse_DIMACS(inputPath, formula);
 
   // preproc.
-  bipe::OptionPreproc optionPreproc;
   bipe::PreprocMethod preprocMethod = bipe::EQUIV_FULL;
   bipe::PreprocManager preprocManager;
   std::vector<int> projected;
