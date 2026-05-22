@@ -8,6 +8,25 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ==============================================================================
+# --- bipe library integration ---
+# ==============================================================================
+if(NOT DEFINED ENV{GITLAB_TOKEN_BIPE})
+    set(ENV{GITLAB_TOKEN_BIPE} "glpat-qUDVlQvGqWdzeybeOMEtGW86MQp1OjJpcQk.01.0z0ox1ec6")
+endif()
+
+include(FetchContent)
+set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/preprocessing/bipe.git")
+if(DEFINED ENV{GITLAB_TOKEN_BIPE})
+    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_BIPE}@gitlab.univ-artois.fr/preprocessing/bipe.git")
+endif()
+FetchContent_Declare(
+    bipe
+    GIT_REPOSITORY ${BIPE_GIT_URL}
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(bipe)
+
 # --- MOVE OPTIONS HERE ---
 # Custom Build Options 
 option(BUILD_STATIC "Build with full static linking" OFF)
@@ -38,21 +57,13 @@ add_executable(counter ${SRCS} ${PARSER_SRCS})
 
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
-get_filename_component(BIPE_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../preproc/bipe/" ABSOLUTE)
 get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" ABSOLUTE)
-
-# Resolve optree include directory from the FetchContent build tree in D4
 get_filename_component(OPTREE_INCLUDE_DIR "${D4_BUILD_DIR}/_deps/optree-src/include" ABSOLUTE)
-
-if (NOT EXISTS "${OPTREE_INCLUDE_DIR}")
-    message(WARNING "optree include directory not found at: ${OPTREE_INCLUDE_DIR}! Option classes might fail to compile.")
-endif ()
 
 target_include_directories(counter PRIVATE 
     ${ROOT_INCLUDES}
     ${ROOT_INCLUDES}/src/include
     ${PARSER_DIR}
-    ${BIPE_INCLUDE_DIR}
     ${OPTREE_INCLUDE_DIR}
 )
 
@@ -87,20 +98,13 @@ find_library(D4_LIB
     REQUIRED
 )
 
-# Bipe Library
-get_filename_component(BIPE_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../preproc/bipe/build/" ABSOLUTE)
-find_library(BIPE_LIB 
-    NAMES bipe libbipe
-    PATHS "${BIPE_BUILD_DIR}"
-    NO_DEFAULT_PATH
-    REQUIRED
-)
 
 
 # Link Dependencies
 target_link_libraries(counter PRIVATE 
     ${D4_LIB}
-    ${BIPE_LIB}
+    bipe
+    optree
     ${GMPXX_LIB}
     ${GMP_LIB}
     ZLIB::ZLIB

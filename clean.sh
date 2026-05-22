@@ -7,11 +7,6 @@ then
     rm -f 3rdParty/glucose-3.0/core/depend.mk
     rm -f 3rdParty/glucose-3.0/utils/*.o*
     
-    curRep=$PWD
-    cd 3rdParty/bipe/
-    ./clean.sh 1
-    cd $curRep
-
     cd 3rdParty/flowCutter
     make mrproper
     cd $curRep

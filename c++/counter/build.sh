@@ -59,28 +59,14 @@ echo "c [BUILD] Parent library d4 is missing! Building d4 first..."
 CURRENT_DIR="$PWD"
 cd "$D4_ROOT_DIR"
 
+export GITLAB_TOKEN="glpat-XpIZ4boV_wOSId8eNA54cm86MQp1OjJpcAk.01.0z0mopjl8"
+export GITLAB_TOKEN_BIPE="glpat-qUDVlQvGqWdzeybeOMEtGW86MQp1OjJpcQk.01.0z0ox1ec6"
+
 # Pass ALL arguments (e.g., -s -j) down to the parent script
 ./build.sh "$@"
 
 cd "$CURRENT_DIR"
 echo "c [BUILD] d4 built successfully."
-
-# Check bipe
-BIPE_ROOT_DIR="../../preproc/bipe"
-echo "c [BUILD] bipe library is missing! Building bipe first..."
-
-CURRENT_DIR="$PWD"
-mkdir -p "$BIPE_ROOT_DIR/build"
-cd "$BIPE_ROOT_DIR/build"
-
-# Configure and build bipe using the same build type and parallel flag
-cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-
-# Unquoted $PARALLEL_FLAG so it expands to nothing if empty
-cmake --build . $PARALLEL_FLAG
-
-cd "$CURRENT_DIR"
-echo "c [BUILD] bipe built successfully."
 
 #  =============================================================================
 # Configure and build 'counter'
@@ -89,6 +75,7 @@ echo "c [BUILD] bipe built successfully."
 # Create and enter the build directory
 mkdir -p build
 cd build
+
 
 echo "c [BUILD] Configuring CMake (Type: $BUILD_TYPE, Static: $STATIC_FLAG, Profile: $PROFILE_FLAG)..."
 
