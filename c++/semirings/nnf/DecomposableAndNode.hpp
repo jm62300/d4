@@ -23,7 +23,6 @@
 
 #include "Branch.hpp"
 #include "Node.hpp"
-#include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
 template <class T, typename U>
@@ -35,7 +34,7 @@ class DecomposableAndNode : public Node<T> {
 
   T nbModels;
   U size;
-  Node<T> *sons[0];
+  Node<T>* sons[0];
 
   /**
      Init the two branches using the data coming from the solver.
@@ -43,7 +42,7 @@ class DecomposableAndNode : public Node<T> {
      @param[in] left, the left branch.
      @param[in] right, the right branch.
    */
-  DecomposableAndNode(unsigned _size, Node<T> **_sons) {
+  DecomposableAndNode(unsigned _size, Node<T>** _sons) {
     nbModels = T(0);
     header.stamp = 0;
     header.typeNode = TypeNode::TypeDecAndNode;
@@ -58,17 +57,17 @@ class DecomposableAndNode : public Node<T> {
      @param[in] func, give for the type of node the deallocate function.
      @param[in] globalstamp, get the stamp number.
   */
-  static void deallocate(Node<T> *node, void (**func)(), unsigned globalStamp) {
+  static void deallocate(Node<T>* node, void (**func)(), unsigned globalStamp) {
     if (node->header.stamp == globalStamp) return;
     node->header.stamp = globalStamp;
-    reinterpret_cast<DecomposableAndNode *>(node)->nbModels.~T();
+    reinterpret_cast<DecomposableAndNode*>(node)->nbModels.~T();
 
-    for (unsigned i = 0;
-         i < reinterpret_cast<DecomposableAndNode *>(node)->size; i++)
-      reinterpret_cast<void (**)(Node<T> *, void (**func)(), unsigned)>(
-          func)[(reinterpret_cast<DecomposableAndNode *>(node)->sons[i])
+    for (unsigned i = 0; i < reinterpret_cast<DecomposableAndNode*>(node)->size;
+         i++)
+      reinterpret_cast<void (**)(Node<T>*, void (**func)(), unsigned)>(
+          func)[(reinterpret_cast<DecomposableAndNode*>(node)->sons[i])
                     ->header.typeNode](
-          reinterpret_cast<DecomposableAndNode *>(node)->sons[i], func,
+          reinterpret_cast<DecomposableAndNode*>(node)->sons[i], func,
           globalStamp);
   }  // destructor
 
@@ -86,16 +85,16 @@ class DecomposableAndNode : public Node<T> {
 
      \return the number of models.
    */
-  static T computeNbModels(Node<T> *node, T (**func)(),
-                           std::vector<ValueVar> &fixedValue,
-                           ProblemManager &problem, unsigned globalStamp) {
-    auto *p = reinterpret_cast<DecomposableAndNode *>(node);
+  static T computeNbModels(Node<T>* node, T (**func)(),
+                           std::vector<ValueVar>& fixedValue,
+                           ProblemManager& problem, unsigned globalStamp) {
+    auto* p = reinterpret_cast<DecomposableAndNode*>(node);
     if (node->header.stamp == globalStamp) return p->nbModels;
 
     p->nbModels = T(1);
     for (unsigned i = 0; i < p->size; i++) {
       p->nbModels *= reinterpret_cast<T (**)(
-          Node<T> *, T(**func)(), std::vector<ValueVar> &, ProblemManager &,
+          Node<T>*, T (**func)(), std::vector<ValueVar>&, ProblemManager&,
           unsigned)>(func)[p->sons[i]->header.typeNode](
           p->sons[i], func, fixedValue, problem, globalStamp);
       if (p->nbModels == 0) break;
@@ -115,15 +114,15 @@ class DecomposableAndNode : public Node<T> {
 
      \return true if the problem is satisfiable, false otherwise.
    */
-  static bool isSAT(Node<T> *node, bool (**func)(),
-                    std::vector<ValueVar> &fixedValue, unsigned globalStamp) {
-    auto *p = reinterpret_cast<DecomposableAndNode *>(node);
+  static bool isSAT(Node<T>* node, bool (**func)(),
+                    std::vector<ValueVar>& fixedValue, unsigned globalStamp) {
+    auto* p = reinterpret_cast<DecomposableAndNode*>(node);
     if (node->header.stamp == globalStamp) return p->nbModels == 1;
     node->header.stamp = globalStamp;
 
     for (unsigned i = 0; i < p->size; i++) {
       p->nbModels = reinterpret_cast<bool (**)(
-          Node<T> *, bool (**func)(), std::vector<ValueVar> &, unsigned)>(
+          Node<T>*, bool (**func)(), std::vector<ValueVar>&, unsigned)>(
           func)[p->sons[i]->header.typeNode](p->sons[i], func, fixedValue,
                                              globalStamp);
       if (p->nbModels == 0) return false;
@@ -143,21 +142,20 @@ class DecomposableAndNode : public Node<T> {
 
      \return the index of the node.
   */
-  static unsigned printNNF(Node<T> *node, unsigned (**func)(),
-                           std::ostream &out, unsigned &idx,
+  static unsigned printNNF(Node<T>* node, unsigned (**func)(),
+                           std::ostream& out, unsigned& idx,
                            unsigned globalStamp) {
-    auto *p = reinterpret_cast<DecomposableAndNode *>(node);
+    auto* p = reinterpret_cast<DecomposableAndNode*>(node);
     if (p->header.stamp == globalStamp) return (unsigned)p->nbModels;
     p->nbModels = idx++;
 
     out << "a " << (unsigned)p->nbModels << " 0\n";
 
     for (unsigned i = 0; i < p->size; i++) {
-      unsigned sidx =
-          reinterpret_cast<unsigned (**)(Node<T> *, unsigned (**func)(),
-                                         std::ostream &, unsigned &, unsigned)>(
-              func)[p->sons[i]->header.typeNode](p->sons[i], func, out, idx,
-                                                 globalStamp);
+      unsigned sidx = reinterpret_cast<unsigned (**)(
+          Node<T>*, unsigned (**func)(), std::ostream&, unsigned&, unsigned)>(
+          func)[p->sons[i]->header.typeNode](p->sons[i], func, out, idx,
+                                             globalStamp);
       out << (unsigned)p->nbModels << " " << sidx << " 0\n";
     }
 

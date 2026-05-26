@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "Node.hpp"
-#include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
 template <class T, typename U>
@@ -43,7 +42,7 @@ class Branch {
   }  // isUnsatLit
 
  public:
-  Node<T> *d;
+  Node<T>* d;
   U nbUnits;
   U nbFree;
 
@@ -60,8 +59,8 @@ class Branch {
 
      \return the number of models.
   */
-  T computeNbModels(T (**func)(), U *data, std::vector<ValueVar> &fixedValue,
-                    ProblemManager &problem, unsigned globalStamp) {
+  T computeNbModels(T (**func)(), U* data, std::vector<ValueVar>& fixedValue,
+                    ProblemManager& problem, unsigned globalStamp) {
     T computeWeight = 1;
 
     for (unsigned i = 0; i < nbUnits; i++) {
@@ -71,8 +70,8 @@ class Branch {
     }
 
     T c =
-        reinterpret_cast<T (**)(Node<T> *, T(**func)(), std::vector<ValueVar> &,
-                                ProblemManager &, unsigned)>(
+        reinterpret_cast<T (**)(Node<T>*, T (**func)(), std::vector<ValueVar>&,
+                                ProblemManager&, unsigned)>(
             func)[d->header.typeNode](d, func, fixedValue, problem,
                                       globalStamp);
 
@@ -104,15 +103,15 @@ class Branch {
 
      \return true if the problem is satisfiable, false otherwise.
   */
-  bool isSAT(bool (**func)(), U *data, std::vector<ValueVar> &fixedValue,
+  bool isSAT(bool (**func)(), U* data, std::vector<ValueVar>& fixedValue,
              unsigned globalStamp) {
     for (unsigned i = 0; i < nbUnits; i++) {
       U l = data[i];
       if (isUnsatLit(fixedValue[l >> 1], l)) return false;
     }
 
-    return reinterpret_cast<bool (**)(Node<T> *, bool (**func)(),
-                                      std::vector<ValueVar> &, unsigned)>(
+    return reinterpret_cast<bool (**)(Node<T>*, bool (**func)(),
+                                      std::vector<ValueVar>&, unsigned)>(
         func)[d->header.typeNode](d, func, fixedValue, globalStamp);
   }  // isSAT
 
@@ -127,10 +126,10 @@ class Branch {
 
      \return the index of the node.
   */
-  void printNNF(unsigned idxFather, U *data, unsigned (**func)(),
-                std::ostream &out, unsigned &idx, unsigned globalStamp) {
+  void printNNF(unsigned idxFather, U* data, unsigned (**func)(),
+                std::ostream& out, unsigned& idx, unsigned globalStamp) {
     unsigned sidx = reinterpret_cast<unsigned (**)(
-        Node<T> *, unsigned (**func)(), std::ostream &, unsigned &, unsigned)>(
+        Node<T>*, unsigned (**func)(), std::ostream&, unsigned&, unsigned)>(
         func)[d->header.typeNode](d, func, out, idx, globalStamp);
 
     out << idxFather << " " << sidx << " ";

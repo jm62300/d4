@@ -21,9 +21,6 @@
 #include <iostream>
 #include <vector>
 
-#include "src/exceptions/NodeException.hpp"
-#include "src/problem/ProblemManager.hpp"
-
 namespace d4 {
 template <class T, typename U>
 class DecomposableAndNode;
