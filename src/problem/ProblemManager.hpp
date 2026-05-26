@@ -24,7 +24,6 @@
 #include <map>
 
 #include "src/exceptions/FactoryException.hpp"
-#include "src/methods/DataBranch.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {

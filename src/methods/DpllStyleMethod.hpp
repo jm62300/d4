@@ -24,8 +24,8 @@
 #include <span>
 
 #include "Counter.hpp"
-#include "DataBranch.hpp"
 #include "MethodManager.hpp"
+#include "SemiringConcept.hpp"
 #include "src/caching/CacheManager.hpp"
 #include "src/caching/CachedBucket.hpp"
 #include "src/caching/TmpEntry.hpp"
@@ -45,11 +45,6 @@
 #define MASK_SHOWRUN_MC ((2 << 16) - 1)
 #define WIDTH_PRINT_COLUMN_MC 12
 #define MASK_HEADER 33554431
-
-// #include "CountingOperation.hpp"
-//  #include "DecisionDNNFOperation.hpp"
-//  #include "OperationManager.hpp"
-#include "SemiringConcept.hpp"
 
 namespace d4 {
 template <class T>
