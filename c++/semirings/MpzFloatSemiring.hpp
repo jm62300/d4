@@ -129,7 +129,7 @@ class MpzFloatSemiring {
     return ret;
   }
 
-  // --- 5. Presets (Required by Policy) ---
+  // --- Presets (Required by Policy) ---
   mpz::mpf_float presetSum(int /* nb_gates */) const {
     return mpz::mpf_float(0);
   }

@@ -196,7 +196,7 @@ class MpzComplexSemiring {
     return ret;
   }
 
-  // --- 5. Presets (Required by Policy) ---
+  // --- Presets (Required by Policy) ---
   Complex presetSum(int /* nb_gates */) const { return Complex(0, 0); }
 
   Complex presetMul(int /* nb_gates */) const { return Complex(1, 0); }

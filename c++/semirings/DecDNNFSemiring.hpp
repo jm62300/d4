@@ -30,7 +30,21 @@ namespace semiring {
 // Your namespace alias
 namespace mpz = boost::multiprecision;
 
+enum TypeNode { TOP = 0, BOT = 1, AND = 2, OR = 3 };
+
+struct NodeStruct {
+  unsigned typeNode : 3;
+  unsigned page : 10;
+  unsigned posInPage : 32;
+};
+
+typedef uint64_t Node;
+
 class DecDNNFSemiring {
+ private:
+  uint8_t** m_pages = NULL;
+  unsigned m_nbPages = 0;
+
  public:
   // Required by std::default_initializable
   DecDNNFSemiring() = default;
@@ -40,76 +54,90 @@ class DecDNNFSemiring {
                   const std::map<d4::Lit, std::string>& literalWeights) {}
 
   // --- In-Place Multiplication ---
-  mpz::mpz_int& mul(mpz::mpz_int& a, const mpz::mpz_int& b) const {
+  Node& mul(Node& a, const Node& b) const {
+    // TODO
     a *= b;
     return a;
   }
 
   // --- In-Place Standard Binary Add ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b) const {
+  Node& add(Node& a, const Node& b) const {
+    // TODO
     a += b;
     return a;
   }
 
   // --- In-Place Binary Add with Smoothing ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<d4::Lit>& units) const {
+  Node& add(Node& a, const Node& b, const std::vector<d4::Lit>& units) const {
+    // TODO
     a += b;
     return a;
   }
 
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<d4::Var>& free_vars) const {
+  Node& add(Node& a, const Node& b,
+            const std::vector<d4::Var>& free_vars) const {
+    // TODO
     a += b * one(free_vars);
     return a;
   }
 
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<d4::Lit>& units,
-                    const std::vector<d4::Var>& free_vars) const {
+  Node& add(Node& a, const Node& b, const std::vector<d4::Lit>& units,
+            const std::vector<d4::Var>& free_vars) const {
+    // TODO
     a += b * one(free_vars);
     return a;
   }
 
   // --- In-Place Unary Adds (Smoothing a single branch) ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<d4::Lit>& units) const {
+  Node& add(Node& a, const std::vector<d4::Lit>& units) const {
+    // TODO
     return a;
   }
 
-  mpz::mpz_int& add(mpz::mpz_int& a,
-                    const std::vector<d4::Var>& free_vars) const {
+  Node& add(Node& a, const std::vector<d4::Var>& free_vars) const {
+    // TODO
     a *= one(free_vars);
     return a;
   }
 
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<d4::Lit>& units,
-                    const std::vector<d4::Var>& free_vars) const {
+  Node& add(Node& a, const std::vector<d4::Lit>& units,
+            const std::vector<d4::Var>& free_vars) const {
+    // TODO
     a *= one(free_vars);
     return a;
   }
 
   // Identities& Context - Aware Leaf Evaluation-- -
 
-  mpz::mpz_int zero() const { return mpz::mpz_int(0); }
+  Node zero() const { return 0; }
 
-  mpz::mpz_int one() const { return mpz::mpz_int(1); }
+  Node one() const { return 1; }
 
-  mpz::mpz_int one(const std::vector<d4::Lit>& units) const {
-    return mpz::mpz_int(1);
+  Node one(const std::vector<d4::Lit>& units) const {
+    // TODO
+    return 1;
   }
 
-  mpz::mpz_int one(const std::vector<d4::Var>& free_vars) const {
-    return mpz::mpz_int(1) << free_vars.size();
+  Node one(const std::vector<d4::Var>& free_vars) const {
+    // TODO
+    return 1;
   }
 
-  mpz::mpz_int one(const std::vector<d4::Lit>& units,
-                   const std::vector<d4::Var>& free_vars) const {
-    return mpz::mpz_int(1) << free_vars.size();
+  Node one(const std::vector<d4::Lit>& units,
+           const std::vector<d4::Var>& free_vars) const {
+    // TODO
+    return 1;
   }
 
-  // --- 5. Presets (Required by Policy) ---
-  mpz::mpz_int presetSum(int /* gate_id */) const { return mpz::mpz_int(0); }
+  // Presets (Required by Policy)
+  Node presetSum(int nbGates) const {
+    // TODO
+    return 1;
+  }
 
-  mpz::mpz_int presetMul(int /* gate_id */) const { return mpz::mpz_int(1); }
+  Node presetMul(int nbGates) const {
+    // TODO
+    return 1;
+  }
 };
 }  // namespace semiring

@@ -107,9 +107,9 @@ class MpzIntSemiring {
     return mpz::mpz_int(1) << free_vars.size();
   }
 
-  // --- 5. Presets (Required by Policy) ---
-  mpz::mpz_int presetSum(int /* gate_id */) const { return mpz::mpz_int(0); }
+  // --- Presets (Required by Policy) ---
+  mpz::mpz_int presetSum(int /* nb_gates */) const { return mpz::mpz_int(0); }
 
-  mpz::mpz_int presetMul(int /* gate_id */) const { return mpz::mpz_int(1); }
+  mpz::mpz_int presetMul(int /* nb_gates */) const { return mpz::mpz_int(1); }
 };
 }  // namespace semiring
