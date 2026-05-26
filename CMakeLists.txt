@@ -31,7 +31,7 @@ file(GLOB_RECURSE HEADERS "./src/*.hpp")
 
 # --- 2. Dependencies ---
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED)
+find_package(Boost CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_library(GMP_LIBRARY NAMES gmp libgmp REQUIRED)
 find_path(GMP_INCLUDE_DIR NAMES gmp.h REQUIRED)

@@ -18,16 +18,17 @@
  */
 #pragma once
 
-#include <boost/program_options.hpp>
-
-#include "src/problem/ProblemManager.hpp"
-
-namespace po = boost::program_options;
+#include "OptionCompiler.hpp"
+#include "ParserDimacs.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
 
 /**
- * @brief Run a counter.
+ * @brief Run a counter using a configuration object.
  *
- * @param vm are the options.
- * @param problem is the problem we deal with.
+ * @param config        The DPLL method configuration.
+ * @param optionCounter The counter-specific options.
+ * @param formula       The parsed input formula.
  */
-void compilerDemo(const po::variables_map &vm, d4::ProblemManager *problem);
+void compiler(const d4::OptionDpllStyleMethod& config,
+              const d4::OptionCompiler& optionCounter,
+              const parser::Formula& formula);

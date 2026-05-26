@@ -16,128 +16,101 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-#include <signal.h>
-
-#include <boost/multiprecision/gmp.hpp>
-#include <boost/program_options.hpp>
-#include <cassert>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
-#include <vector>
+#include <string>
 
 #include "CompilerDemo.hpp"
-#include "ParseOption.hpp"
-#include "src/options/Option.hpp"
+#include "OptionCompiler.hpp"
+#include "ParserDimacs.hpp"
 #include "src/methods/MethodManager.hpp"
-#include "src/options/preprocs/OptionPreprocManager.hpp"
-#include "src/preprocs/PreprocManager.hpp"
-#include "src/problem/ProblemManager.hpp"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/preproc/PreprocManager.hpp"
 
-#ifndef NOMAIN
-
-using namespace d4;
-namespace po = boost::program_options;
-MethodManager *methodRun = nullptr;
+namespace fs = std::filesystem;
 
 /**
- * @brief Catch the signal that ask for stopping the method which is running.
- *
- * @param signum is the signal.
- */
-static void signalHandler(int signum) {
-  std::cout << "c [MAIN] Method stop\n";
-  if (methodRun != nullptr) methodRun->interrupt();
-  exit(signum);
-}  // signalHandler
+   The main function.
 
-/**
-   The main function!
+   Usage: compilation -i INPUT [-h]
+
+   -i INPUT   Path to the input DIMACS file (required).
+
+   Examples:
+     counter -i formula.cnf
+     counter -i formula.cnf --solver.solverName glucose
 */
-int main(int argc, char **argv) {
-  po::options_description desc{"Options"};
-  desc.add_options()
-#include "option.dsc"
-      ;
+int main(int argc, char** argv) {
+  auto start = std::chrono::system_clock::now();
 
-  signal(SIGINT, signalHandler);
-  po::variables_map vm;
-  po::store(parse_command_line(argc, argv, desc), vm);
+  std::string inputPath;
+  bool showHelp = false;
 
-  try {
-    po::notify(vm);
-  } catch (const po::error &ex) {
-    std::cerr << ex.what() << '\n';
-    exit(1);
+  // Simple manual scan for launcher options
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "-h" || arg == "--help") {
+      showHelp = true;
+    } else if ((arg == "-i" || arg == "--input") && i + 1 < argc) {
+      inputPath = argv[++i];
+    }
   }
 
-  // help or problem with the command line
-  if (vm.count("help") || !vm.count("input")) {
-    if (!vm.count("help"))
-      std::cout << "Some parameters are missing, please read the README\n";
-    std::cout << "USAGE: " << argv[0] << " -i INPUT -m METH [OPTIONS]\n";
-    std::cout << desc << '\n';
-    exit(!vm.count("help"));
+  // 1. Initialize configuration and registry
+  d4::OptionDpllStyleMethod options;
+  d4::OptionCompiler optionCounter;
+  bipe::OptionPreproc optionPreproc;
+
+  d4::OptionRegistry registry;
+  options.registerTo(registry);
+  optionCounter.registerTo(registry);
+  optionPreproc.registerTo(registry);
+
+  registry.parseArgv(argc, argv);
+
+  if (showHelp || inputPath.empty()) {
+    if (!showHelp && inputPath.empty())
+      std::cerr << "Missing required argument: -i INPUT\n";
+
+    std::cout << "USAGE: " << argv[0] << " -i INPUT [Overrides...]\n"
+              << "  -i, --input   Path to the input DIMACS file (required)\n"
+              << "  -h, --help    Show this help screen\n";
+
+    registry.displayHelp(std::cout);
+
+    return showHelp ? 0 : 1;
   }
 
-  // parse the initial problem.
-  d4::ProblemManager *initProblem = d4::ProblemManager::makeProblemManager(
-      vm["input"].as<std::string>(),
-      d4::ProblemInputTypeManager::getInputType(
-          vm["input-type"].as<std::string>()),
-      std::cout);
-  assert(initProblem);
-  std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
-               "formula\033[0m\n";
-  initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
-  std::cout << "c\n";
-
-  std::vector<d4::Var> projectedVar;
-
-  if (vm["translate"].as<std::string>() != "none") {
-    std::cout << "c [TRANSLATION] Translate the input formula: "
-              << vm["input-type"].as<std::string>() << " -> "
-              << vm["translate"].as<std::string>() << '\n';
-
-    /*
-    static_cast<d4::ProblemManagerCircuit *>(initProblem)
-        ->getInputVar(projectedVar);
-
-    d4::ProblemManager *tmp =
-        initProblem->translate(d4::ProblemTranslateTypeManager::getInputType(
-            vm["translate"].as<std::string>()));
-    delete initProblem;
-    initProblem = tmp;
-    */
+  // Check if input file exists
+  if (!fs::exists(inputPath)) {
+    std::cerr << "ERROR! Input file does not exist: " << inputPath << "\n";
+    return 1;
   }
 
-  // run the method asked.
-  d4::MethodName methodName =
-      d4::MethodNameManager::getMethodName("ddnnf-compiler");
+  parser::Formula formula;
+  parser::ParserDimacs parserDimacs;
+  parserDimacs.parse_DIMACS(inputPath, formula);
 
   // preproc.
-  /*
-  d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
+  bipe::PreprocMethod preprocMethod = bipe::EQUIV_FULL;
+  bipe::PreprocManager preprocManager;
+  std::vector<int> projected;
+  if (formula.quantifications[0].size())
+    projected = formula.quantifications[0];
+  else
+    for (unsigned i = 1; i <= formula.nbVar; i++) projected.push_back(i);
 
-  bool rewind = false;
-  if (vm["translate"].as<std::string>() == "cnf" &&
-      vm["preproc"].as<std::string>() == "compile-equiv") {
-    rewind = true;
+  preprocManager.run(formula.nbVar, formula.clauses, projected,
+                     std::vector<int>(), preprocMethod, optionPreproc);
 
-    std::vector<d4::Var> &vars = initProblem->getSelectedVar();
-    for (auto &v : projectedVar) vars.push_back(v);
-  }
+  // compiler.
+  compiler(options, optionCounter, formula);
 
-  configPreproc.inputType = initProblem->getProblemType();
-  ProblemManager *problem =
-      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed = end - start;
+  std::cout << "c [COUNTER] Elapsed time: " << elapsed.count() << " seconds\n";
 
-  if (rewind) problem->getSelectedVar().clear();
-  */
-  ProblemManager *problem = initProblem;
-
-  // compile.
-  compilerDemo(vm, problem);
-
-  delete initProblem;
   return EXIT_SUCCESS;
 }  // main
-#endif
