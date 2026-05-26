@@ -82,5 +82,7 @@
         "c++/compiler/build/_deps/bipe-src/"
     ],
     "editor.formatOnSave": true,
-    "C_Cpp.clang_format_fallbackStyle": "Google"
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "C_Cpp.default.cStandard": "c23",
+    "C_Cpp.default.cppStandard": "c++26"
 }

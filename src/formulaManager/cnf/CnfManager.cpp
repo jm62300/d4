@@ -21,9 +21,9 @@
 
 #include <algorithm>  // std::sort
 #include <iostream>
+#include <span>
 
 #include "CnfManagerDyn.hpp"
-#include "src/methods/nnf/Node.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
