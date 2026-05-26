@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 4.1)
 
 # set the project name and version
 project(bipe VERSION 0.1)

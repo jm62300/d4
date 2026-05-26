@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 4.1)
 
 # set the project name and version
 project(D4 VERSION 0.1)
@@ -43,7 +43,7 @@ if(${BUILD_MODE} EQUAL 1)
   message("Library debug D4")  
   add_library(d4 ${SRCS} ${HEADERS})
 
-  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -g -O2 ${wnoOption} -U NDEBUG)
+  target_compile_options(d4 PUBLIC -DNOMAIN -std=c++20 -Wall -pg -g -O2 ${wnoOption} -U NDEBUG)
   target_link_libraries (d4 -lz -O2  -U NDEBUG -lgmpxx -lgmp ${libList})
   target_include_directories (d4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
