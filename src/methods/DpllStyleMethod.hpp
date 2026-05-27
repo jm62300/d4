@@ -474,8 +474,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     std::vector<Lit> units;
     std::vector<Var> free;
+    T ret = m_semiringOps.presetSum(1);
     T tmp = compute_(setOfVar, units, free, out);
-    return m_semiringOps.add(tmp, units, free);
+    return m_semiringOps.add(ret, tmp, units, free);
   }  // compute
 
  public:

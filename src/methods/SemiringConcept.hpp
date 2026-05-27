@@ -41,15 +41,7 @@ concept SemiringPolicy =
     requires(O& ops, T& a, const T& b, int preset_val,
              const std::vector<Lit>& units, const std::vector<Var>& free_vars) {
       // --- In-Place Binary Adds ---
-      { ops.add(a, b) };
-      { ops.add(a, b, units) };
-      { ops.add(a, b, free_vars) };
       { ops.add(a, b, units, free_vars) };
-
-      // --- In-Place Unary Adds / Smoothing ---
-      { ops.add(a, units) };
-      { ops.add(a, free_vars) };
-      { ops.add(a, units, free_vars) };
 
       // --- In-Place Multiplication ---
       { ops.mul(a, b) };
@@ -58,9 +50,6 @@ concept SemiringPolicy =
       // convertible_to is safe) ---
       { ops.zero() } -> std::convertible_to<T>;
       { ops.one() } -> std::convertible_to<T>;
-      { ops.one(units) } -> std::convertible_to<T>;
-      { ops.one(free_vars) } -> std::convertible_to<T>;
-      { ops.one(units, free_vars) } -> std::convertible_to<T>;
 
       { ops.presetSum(preset_val) } -> std::convertible_to<T>;
       { ops.presetMul(preset_val) } -> std::convertible_to<T>;

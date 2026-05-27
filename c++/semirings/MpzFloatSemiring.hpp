@@ -35,6 +35,26 @@ class MpzFloatSemiring {
   std::vector<mpz::mpf_float> m_weightLit;
   std::vector<mpz::mpf_float> m_weightVar;
 
+  mpz::mpf_float one(const std::vector<d4::Lit>& units) const {
+    auto ret = mpz::mpf_float(1);
+    for (auto l : units) ret *= m_weightLit[l.intern()];
+    return ret;
+  }
+
+  mpz::mpf_float one(const std::vector<d4::Var>& free_vars) const {
+    auto ret = mpz::mpf_float(1);
+    for (auto v : free_vars) ret *= m_weightVar[v];
+    return ret;
+  }
+
+  mpz::mpf_float one(const std::vector<d4::Lit>& units,
+                     const std::vector<d4::Var>& free_vars) const {
+    auto ret = mpz::mpf_float(1);
+    for (auto l : units) ret *= m_weightLit[l.intern()];
+    for (auto v : free_vars) ret *= m_weightVar[v];
+    return ret;
+  }
+
  public:
   // Required by std::default_initializable
   MpzFloatSemiring() = default;
@@ -58,48 +78,10 @@ class MpzFloatSemiring {
     return a;
   }
 
-  // --- In-Place Standard Binary Add ---
-  mpz::mpf_float& add(mpz::mpf_float& a, const mpz::mpf_float& b) const {
-    a += b;
-    return a;
-  }
-
-  // --- In-Place Binary Add with Smoothing ---
-  mpz::mpf_float& add(mpz::mpf_float& a, const mpz::mpf_float& b,
-                      const std::vector<d4::Lit>& units) const {
-    a += b * one(units);
-    return a;
-  }
-
-  mpz::mpf_float& add(mpz::mpf_float& a, const mpz::mpf_float& b,
-                      const std::vector<d4::Var>& free_vars) const {
-    a += b * one(free_vars);
-    return a;
-  }
-
   mpz::mpf_float& add(mpz::mpf_float& a, const mpz::mpf_float& b,
                       const std::vector<d4::Lit>& units,
                       const std::vector<d4::Var>& free_vars) const {
     a += b * one(units, free_vars);
-    return a;
-  }
-
-  // --- In-Place Unary Adds (Smoothing a single branch) ---
-  mpz::mpf_float& add(mpz::mpf_float& a,
-                      const std::vector<d4::Lit>& units) const {
-    a *= one(units);
-    return a;
-  }
-
-  mpz::mpf_float& add(mpz::mpf_float& a,
-                      const std::vector<d4::Var>& free_vars) const {
-    a *= one(free_vars);
-    return a;
-  }
-
-  mpz::mpf_float& add(mpz::mpf_float& a, const std::vector<d4::Lit>& units,
-                      const std::vector<d4::Var>& free_vars) const {
-    a *= one(units) * one(free_vars);
     return a;
   }
 
@@ -108,26 +90,6 @@ class MpzFloatSemiring {
   mpz::mpf_float zero() const { return mpz::mpf_float(0); }
 
   mpz::mpf_float one() const { return mpz::mpf_float(1); }
-
-  mpz::mpf_float one(const std::vector<d4::Lit>& units) const {
-    auto ret = mpz::mpf_float(1);
-    for (auto l : units) ret *= m_weightLit[l.intern()];
-    return ret;
-  }
-
-  mpz::mpf_float one(const std::vector<d4::Var>& free_vars) const {
-    auto ret = mpz::mpf_float(1);
-    for (auto v : free_vars) ret *= m_weightVar[v];
-    return ret;
-  }
-
-  mpz::mpf_float one(const std::vector<d4::Lit>& units,
-                     const std::vector<d4::Var>& free_vars) const {
-    auto ret = mpz::mpf_float(1);
-    for (auto l : units) ret *= m_weightLit[l.intern()];
-    for (auto v : free_vars) ret *= m_weightVar[v];
-    return ret;
-  }
 
   // --- Presets (Required by Policy) ---
   mpz::mpf_float presetSum(int /* nb_gates */) const {

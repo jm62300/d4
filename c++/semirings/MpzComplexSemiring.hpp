@@ -105,6 +105,26 @@ class MpzComplexSemiring {
   std::vector<Complex> m_weightLit;
   std::vector<Complex> m_weightVar;
 
+  Complex one(const std::vector<d4::Lit>& units) const {
+    auto ret = Complex(1, 0);
+    for (auto l : units) ret *= m_weightLit[l.intern()];
+    return ret;
+  }
+
+  Complex one(const std::vector<d4::Var>& free_vars) const {
+    auto ret = Complex(1, 0);
+    for (auto v : free_vars) ret *= m_weightVar[v];
+    return ret;
+  }
+
+  Complex one(const std::vector<d4::Lit>& units,
+              const std::vector<d4::Var>& free_vars) const {
+    auto ret = Complex(1, 0);
+    for (auto l : units) ret *= m_weightLit[l.intern()];
+    for (auto v : free_vars) ret *= m_weightVar[v];
+    return ret;
+  }
+
  public:
   // Required by std::default_initializable
   MpzComplexSemiring() = default;
@@ -128,45 +148,9 @@ class MpzComplexSemiring {
     return a;
   }
 
-  // --- In-Place Standard Binary Add ---
-  Complex& add(Complex& a, const Complex& b) const {
-    a += b;
-    return a;
-  }
-
-  // --- In-Place Binary Add with Smoothing ---
-  Complex& add(Complex& a, const Complex& b,
-               const std::vector<d4::Lit>& units) const {
-    a += b * one(units);
-    return a;
-  }
-
-  Complex& add(Complex& a, const Complex& b,
-               const std::vector<d4::Var>& free_vars) const {
-    a += b * one(free_vars);
-    return a;
-  }
-
   Complex& add(Complex& a, const Complex& b, const std::vector<d4::Lit>& units,
                const std::vector<d4::Var>& free_vars) const {
     a += b * one(units, free_vars);
-    return a;
-  }
-
-  // --- In-Place Unary Adds (Smoothing a single branch) ---
-  Complex& add(Complex& a, const std::vector<d4::Lit>& units) const {
-    a *= one(units);
-    return a;
-  }
-
-  Complex& add(Complex& a, const std::vector<d4::Var>& free_vars) const {
-    a *= one(free_vars);
-    return a;
-  }
-
-  Complex& add(Complex& a, const std::vector<d4::Lit>& units,
-               const std::vector<d4::Var>& free_vars) const {
-    a *= one(units) * one(free_vars);
     return a;
   }
 
@@ -175,26 +159,6 @@ class MpzComplexSemiring {
   Complex zero() const { return Complex(0, 0); }
 
   Complex one() const { return Complex(1, 0); }
-
-  Complex one(const std::vector<d4::Lit>& units) const {
-    auto ret = Complex(1, 0);
-    for (auto l : units) ret *= m_weightLit[l.intern()];
-    return ret;
-  }
-
-  Complex one(const std::vector<d4::Var>& free_vars) const {
-    auto ret = Complex(1, 0);
-    for (auto v : free_vars) ret *= m_weightVar[v];
-    return ret;
-  }
-
-  Complex one(const std::vector<d4::Lit>& units,
-              const std::vector<d4::Var>& free_vars) const {
-    auto ret = Complex(1, 0);
-    for (auto l : units) ret *= m_weightLit[l.intern()];
-    for (auto v : free_vars) ret *= m_weightVar[v];
-    return ret;
-  }
 
   // --- Presets (Required by Policy) ---
   Complex presetSum(int /* nb_gates */) const { return Complex(0, 0); }

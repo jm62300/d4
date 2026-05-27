@@ -31,6 +31,20 @@ namespace semiring {
 namespace mpz = boost::multiprecision;
 
 class MpzIntSemiring {
+ private:
+  mpz::mpz_int one(const std::vector<d4::Lit>& units) const {
+    return mpz::mpz_int(1);
+  }
+
+  mpz::mpz_int one(const std::vector<d4::Var>& free_vars) const {
+    return mpz::mpz_int(1) << free_vars.size();
+  }
+
+  mpz::mpz_int one(const std::vector<d4::Lit>& units,
+                   const std::vector<d4::Var>& free_vars) const {
+    return mpz::mpz_int(1) << free_vars.size();
+  }
+
  public:
   // Required by std::default_initializable
   MpzIntSemiring() = default;
@@ -45,46 +59,10 @@ class MpzIntSemiring {
     return a;
   }
 
-  // --- In-Place Standard Binary Add ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b) const {
-    a += b;
-    return a;
-  }
-
-  // --- In-Place Binary Add with Smoothing ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<d4::Lit>& units) const {
-    a += b;
-    return a;
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
-                    const std::vector<d4::Var>& free_vars) const {
-    a += b * one(free_vars);
-    return a;
-  }
-
   mpz::mpz_int& add(mpz::mpz_int& a, const mpz::mpz_int& b,
                     const std::vector<d4::Lit>& units,
                     const std::vector<d4::Var>& free_vars) const {
     a += b * one(free_vars);
-    return a;
-  }
-
-  // --- In-Place Unary Adds (Smoothing a single branch) ---
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<d4::Lit>& units) const {
-    return a;
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a,
-                    const std::vector<d4::Var>& free_vars) const {
-    a *= one(free_vars);
-    return a;
-  }
-
-  mpz::mpz_int& add(mpz::mpz_int& a, const std::vector<d4::Lit>& units,
-                    const std::vector<d4::Var>& free_vars) const {
-    a *= one(free_vars);
     return a;
   }
 
@@ -93,19 +71,6 @@ class MpzIntSemiring {
   mpz::mpz_int zero() const { return mpz::mpz_int(0); }
 
   mpz::mpz_int one() const { return mpz::mpz_int(1); }
-
-  mpz::mpz_int one(const std::vector<d4::Lit>& units) const {
-    return mpz::mpz_int(1);
-  }
-
-  mpz::mpz_int one(const std::vector<d4::Var>& free_vars) const {
-    return mpz::mpz_int(1) << free_vars.size();
-  }
-
-  mpz::mpz_int one(const std::vector<d4::Lit>& units,
-                   const std::vector<d4::Var>& free_vars) const {
-    return mpz::mpz_int(1) << free_vars.size();
-  }
 
   // --- Presets (Required by Policy) ---
   mpz::mpz_int presetSum(int /* nb_gates */) const { return mpz::mpz_int(0); }
