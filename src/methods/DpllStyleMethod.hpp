@@ -151,6 +151,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_cache;
   }  // destructor
 
+  inline O getSemiring() { return m_semiringOps; }
+
  private:
   /**
      Expel from a set of variables the ones they are marked as being decidable.

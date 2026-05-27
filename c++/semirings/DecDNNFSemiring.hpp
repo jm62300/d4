@@ -77,9 +77,11 @@ struct Edge {
  */
 class DecDNNFSemiring {
  private:
-  const unsigned REALLOC_SIZE_NODE_INFO = 1 << 20;  // 1M nodes per realloc
-  const unsigned REALLOC_SIZE_EDGE_INFO = 1 << 20;  // 1M edges per realloc
-  const unsigned SIZE_PAGE = 1 << 30;               // 1GB per memory page
+  static const unsigned REALLOC_SIZE_NODE_INFO = 1
+                                                 << 20;  // 1M nodes per realloc
+  static const unsigned REALLOC_SIZE_EDGE_INFO = 1
+                                                 << 20;  // 1M edges per realloc
+  static const unsigned SIZE_PAGE = 1 << 30;             // 1GB per memory page
 
   uint8_t** m_pages = NULL;  // Array of pointers to 1GB memory pages.
   unsigned m_nbPages = 0;    // Current number of allocated pages.
@@ -266,7 +268,7 @@ class DecDNNFSemiring {
    */
   template <class T>
   T count(Node n, const std::vector<d4::Lit>& assums,
-          const std::vector<T>& weight, unsigned nbVar) {
+          const std::vector<T>& weight, unsigned nbVar) const {
     enum Status { NOT_PROCESS, IN_PROCESS, DONE };
     std::vector<Status> status(m_idCurrentNode, NOT_PROCESS);
     std::vector<T> subCount(m_idCurrentNode, T(0));

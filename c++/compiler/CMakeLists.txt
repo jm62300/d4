@@ -53,14 +53,14 @@ file(GLOB_RECURSE SRCS "src/*.cpp")
 file(GLOB_RECURSE PARSER_SRCS "${PARSER_DIR}/*.cpp") 
 
 # Define the Executable (Now includes the parser sources!)
-add_executable(counter ${SRCS} ${PARSER_SRCS})
+add_executable(compiler ${SRCS} ${PARSER_SRCS})
 
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
 get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" ABSOLUTE)
 get_filename_component(OPTREE_INCLUDE_DIR "${D4_BUILD_DIR}/_deps/optree-src/include" ABSOLUTE)
 
-target_include_directories(counter PRIVATE 
+target_include_directories(compiler PRIVATE 
     ${ROOT_INCLUDES}
     ${ROOT_INCLUDES}/src/include
     ${PARSER_DIR}
@@ -76,7 +76,7 @@ find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
 find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # Adjust this path to point accurately to the 3rdParty/patoh folder from the counter directory
+    # Adjust this path to point accurately to the 3rdParty/patoh folder from the compiler directory
     # Based on your previous paths, it should look something like this:
     set(PATOH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty/patoh")
 
@@ -97,7 +97,7 @@ find_library(D4_LIB
 )
 
 # Link Dependencies
-target_link_libraries(counter PRIVATE 
+target_link_libraries(compiler PRIVATE 
     ${D4_LIB}
     bipe
     optree
@@ -107,20 +107,20 @@ target_link_libraries(counter PRIVATE
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(counter PRIVATE ${PATOH_LIBRARY})
+    target_link_libraries(compiler PRIVATE ${PATOH_LIBRARY})
 endif()
 
 # Apply Target-Specific Flags
 if(BUILD_STATIC)
-    target_compile_definitions(counter PRIVATE NDEBUG)
+    target_compile_definitions(compiler PRIVATE NDEBUG)
     if(NOT MSVC)
-        target_link_options(counter PRIVATE -static)
+        target_link_options(compiler PRIVATE -static)
     endif()
 endif()
 
 if(BUILD_PROFILE)
     if(NOT MSVC)
-        target_compile_options(counter PRIVATE -pg)
-        target_link_options(counter PRIVATE -pg)
+        target_compile_options(compiler PRIVATE -pg)
+        target_link_options(compiler PRIVATE -pg)
     endif()
 endif()

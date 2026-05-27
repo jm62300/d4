@@ -26,22 +26,29 @@
 #include <cassert>
 #include <iomanip>
 
-#include "../semirings/MpzComplexSemiring.hpp"
-#include "../semirings/MpzFloatSemiring.hpp"
-#include "../semirings/MpzIntSemiring.hpp"
+#include "../semirings/DecDNNFSemiring.hpp"
 #include "QueryManager.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 
 using namespace d4;
+namespace mpz = boost::multiprecision;
 
-template <typename T, typename O>
 void compileFormula(const OptionDpllStyleMethod& options,
                     const ProblemManager& problem, const std::string& dumpFile,
                     const std::string& queryFile) {
-  auto compilerEngine = new DpllStyleMethod<T, O>(options, problem, std::cout);
-  T result = compilerEngine->run();
+  auto compilerEngine =
+      new DpllStyleMethod<semiring::Node, semiring::DecDNNFSemiring>(
+          options, problem, std::cout);
+  semiring::Node result = compilerEngine->run();
+  const semiring::DecDNNFSemiring& semiring = compilerEngine->getSemiring();
+
+  std::vector<mpz::mpz_int> weight(2 + problem.getNbVar() * 2, 1);
+  mpz::mpz_int count = semiring.count<mpz::mpz_int>(result, std::vector<Lit>(),
+                                                    weight, problem.getNbVar());
+
+  std::cout << "s " << count << '\n';
 #if 0
   NodeManager<T>* nodeManager =
       NodeManager<T>::makeNodeManager(problem->getNbVar() + 1);
@@ -133,20 +140,6 @@ void compiler(const d4::OptionDpllStyleMethod& inputConfig,
   d4::ProblemManager problem(formula.type, formula.nbVar,
                              formula.quantifications, weightMap, gates,
                              std::cout);
-#if 0
-  switch (formula.weightType) {
-    case parser::WeightType::INT:
-      countModels<mpz::mpz_int, semiring::MpzIntSemiring>(
-          options, problem, format, outFormat, false);
-      break;
-    case parser::WeightType::FLOAT:
-      countModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
-          options, problem, format, outFormat, false);
-      break;
-    case parser::WeightType::COMPLEX:
-      countModels<semiring::Complex, semiring::MpzComplexSemiring>(
-          options, problem, format, outFormat, false);
-      break;
-  }
-#endif
+
+  compileFormula(options, problem, "/dev/null", "/dev/null");
 }  // counterDemo
