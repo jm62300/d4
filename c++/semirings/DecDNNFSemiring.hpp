@@ -389,5 +389,8 @@ class DecDNNFSemiring {
 
     return subCount[n];
   }  // count
+
+  inline unsigned getNbNodes() const { return m_idCurrentNode; }
+  inline unsigned getNbEdges() const { return m_idEdge; }
 };
 }  // namespace semiring

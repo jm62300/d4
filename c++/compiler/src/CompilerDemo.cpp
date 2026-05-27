@@ -44,6 +44,9 @@ void compileFormula(const OptionDpllStyleMethod& options,
   semiring::Node result = compilerEngine->run();
   const semiring::DecDNNFSemiring& semiring = compilerEngine->getSemiring();
 
+  std::cout << "c [COMPILER] #Nodes: " << semiring.getNbNodes() << '\n';
+  std::cout << "c [COMPILER] #Edges: " << semiring.getNbEdges() << '\n';
+
   std::vector<mpz::mpz_int> weight(2 + problem.getNbVar() * 2, 1);
   mpz::mpz_int count = semiring.count<mpz::mpz_int>(result, std::vector<Lit>(),
                                                     weight, problem.getNbVar());
