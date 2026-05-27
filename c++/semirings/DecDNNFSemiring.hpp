@@ -30,20 +30,70 @@ namespace semiring {
 // Your namespace alias
 namespace mpz = boost::multiprecision;
 
-enum TypeNode { TOP = 0, BOT = 1, AND = 2, OR = 3 };
+enum TypeNode { NODE_TOP = 0, NODE_BOT = 1, NODE_AND = 2, NODE_OR = 3 };
 
 struct NodeStruct {
-  unsigned typeNode : 3;
-  unsigned page : 10;
-  unsigned posInPage : 32;
+  unsigned typeNode : 4;    // for the future.
+  unsigned page : 10;       // which page in m_pages.
+  unsigned nbSons : 20;     // we suppose we cannot have more that 1<<20 sons.
+  unsigned posInPage : 30;  // the position in the page.
+};
+
+struct Sons {
+  unsigned size;
+  Node sons[0];
+};
+
+struct Edge {
+  unsigned idEdge;
+  Node target;
 };
 
 typedef uint64_t Node;
 
 class DecDNNFSemiring {
  private:
+  const unsigned REALLOC_SIZE_NODE_INFO = 1 << 20;
+  const unsigned SIZE_PAGE = 1 << 30;
+
   uint8_t** m_pages = NULL;
   unsigned m_nbPages = 0;
+  unsigned m_positionInPage = SIZE_PAGE;
+
+  NodeStruct* m_nodeInfo = NULL;
+  unsigned m_nodeInfoCapacity = 0;
+  unsigned m_idCurrentNode = 2;  // 0 for FALSE nodes, 1 for TRUE nodes.
+
+  /**
+   * @brief TODO
+   */
+  Node askNewNode(TypeNode type, unsigned nbChlidren) {
+    if (m_idCurrentNode >= m_nodeInfoCapacity) {
+      m_nodeInfoCapacity += REALLOC_SIZE_NODE_INFO;
+      m_nodeInfo = (NodeStruct*)realloc(
+          m_nodeInfo, sizeof(NodeStruct) * m_nodeInfoCapacity);
+    }
+
+    unsigned neededMem =
+        sizeof(Edge) * (1 + ((type != NODE_AND) ? 1 : 0)) * nbChlidren;
+
+    if (m_positionInPage + neededMem > SIZE_PAGE) {
+      m_nbPages++;
+      m_pages = (uint8_t**)realloc(m_pages, m_nbPages * sizeof(uint8_t*));
+      m_pages[m_nbPages - 1] = new uint8_t[SIZE_PAGE];
+      m_positionInPage = 0;
+    }
+
+    m_nodeInfo[m_idCurrentNode] = {
+        .typeNode = (unsigned)type,
+        .page = m_nbPages - 1,
+        .nbSons = 0,
+        .posInPage = m_positionInPage,
+    };
+    m_positionInPage += neededMem;
+
+    return m_idCurrentNode++;
+  }  // askNewNode
 
  public:
   // Required by std::default_initializable
@@ -61,47 +111,46 @@ class DecDNNFSemiring {
   }
 
   // --- In-Place Standard Binary Add ---
-  Node& add(Node& a, const Node& b) const {
+  Node& add(Node& a, const Node& b) {
     // TODO
     a += b;
     return a;
   }
 
   // --- In-Place Binary Add with Smoothing ---
-  Node& add(Node& a, const Node& b, const std::vector<d4::Lit>& units) const {
+  Node& add(Node& a, const Node& b, const std::vector<d4::Lit>& units) {
     // TODO
     a += b;
     return a;
   }
 
-  Node& add(Node& a, const Node& b,
-            const std::vector<d4::Var>& free_vars) const {
+  Node& add(Node& a, const Node& b, const std::vector<d4::Var>& free_vars) {
     // TODO
     a += b * one(free_vars);
     return a;
   }
 
   Node& add(Node& a, const Node& b, const std::vector<d4::Lit>& units,
-            const std::vector<d4::Var>& free_vars) const {
+            const std::vector<d4::Var>& free_vars) {
     // TODO
     a += b * one(free_vars);
     return a;
   }
 
   // --- In-Place Unary Adds (Smoothing a single branch) ---
-  Node& add(Node& a, const std::vector<d4::Lit>& units) const {
+  Node& add(Node& a, const std::vector<d4::Lit>& units) {
     // TODO
     return a;
   }
 
-  Node& add(Node& a, const std::vector<d4::Var>& free_vars) const {
+  Node& add(Node& a, const std::vector<d4::Var>& free_vars) {
     // TODO
     a *= one(free_vars);
     return a;
   }
 
   Node& add(Node& a, const std::vector<d4::Lit>& units,
-            const std::vector<d4::Var>& free_vars) const {
+            const std::vector<d4::Var>& free_vars) {
     // TODO
     a *= one(free_vars);
     return a;
@@ -109,35 +158,28 @@ class DecDNNFSemiring {
 
   // Identities& Context - Aware Leaf Evaluation-- -
 
-  Node zero() const { return 0; }
+  Node zero() { return 0; }
 
-  Node one() const { return 1; }
+  Node one() { return 1; }
 
-  Node one(const std::vector<d4::Lit>& units) const {
+  Node one(const std::vector<d4::Lit>& units) {
     // TODO
     return 1;
   }
 
-  Node one(const std::vector<d4::Var>& free_vars) const {
+  Node one(const std::vector<d4::Var>& free_vars) {
     // TODO
     return 1;
   }
 
   Node one(const std::vector<d4::Lit>& units,
-           const std::vector<d4::Var>& free_vars) const {
+           const std::vector<d4::Var>& free_vars) {
     // TODO
     return 1;
   }
 
   // Presets (Required by Policy)
-  Node presetSum(int nbGates) const {
-    // TODO
-    return 1;
-  }
-
-  Node presetMul(int nbGates) const {
-    // TODO
-    return 1;
-  }
+  Node presetSum(int nbGates) { return askNewNode(NODE_OR, nbGates); }
+  Node presetMul(int nbGates) { return askNewNode(NODE_AND, nbGates); }
 };
 }  // namespace semiring
