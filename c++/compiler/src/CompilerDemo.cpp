@@ -47,62 +47,35 @@ void compileFormula(const OptionDpllStyleMethod& options,
   std::cout << "c [COMPILER] #Nodes: " << semiring.getNbNodes() << '\n';
   std::cout << "c [COMPILER] #Edges: " << semiring.getNbEdges() << '\n';
 
-  std::vector<mpz::mpz_int> weight(2 + problem.getNbVar() * 2, 1);
-  mpz::mpz_int count = semiring.count<mpz::mpz_int>(result, std::vector<Lit>(),
-                                                    weight, problem.getNbVar());
-
-  std::cout << "s " << count << '\n';
-#if 0
-  NodeManager<T>* nodeManager =
-      NodeManager<T>::makeNodeManager(problem->getNbVar() + 1);
-
   if (dumpFile != "/dev/null") {
     std::ofstream outFile;
     outFile.open(dumpFile);
-    nodeManager->printNNF(result, outFile);
+    semiring.printNNF(result, outFile);
     outFile.close();
   } else if (queryFile != "/dev/null") {
     std::vector<Lit> query;
-    std::vector<ValueVar> fixedValue(problem->getNbVar() + 1,
-                                     ValueVar::isNotAssigned);
-
     QueryManager queryManager(queryFile);
     TypeQuery typeQuery = TypeQuery::QueryEnd;
 
     do {
       typeQuery = queryManager.next(query);
-      for (auto& l : query) {
-        if ((unsigned)l.var() >= fixedValue.size()) continue;
-        fixedValue[l.var()] = (l.sign()) ? ValueVar::isFalse : ValueVar::isTrue;
-      }
 
       if (typeQuery == TypeQuery::QueryCounting) {
-        std::cout << "s " << std::fixed
-                  << nodeManager->computeNbModels(result, fixedValue, *problem)
-                  << "\n";
-      } else if (typeQuery == TypeQuery::QueryDecision) {
-        bool res = nodeManager->isSAT(result, fixedValue);
-        std::cout << "s " << ((res) ? "SAT" : "UNS") << "\n";
-      }
+        // TODO
 
-      for (auto& l : query) {
-        if ((unsigned)l.var() >= fixedValue.size()) continue;
-        fixedValue[l.var()] = ValueVar::isNotAssigned;
+      } else if (typeQuery == TypeQuery::QueryDecision) {
+        bool res = true;  // TODO
+        std::cout << "s " << ((res) ? "SAT" : "UNS") << "\n";
       }
     } while (typeQuery != TypeQuery::QueryEnd);
   } else {
-    std::vector<ValueVar> fixedValue(problem->getNbVar() + 1,
-                                     ValueVar::isNotAssigned);
-    std::cout << "s " << std::fixed
-              << nodeManager->computeNbModels(result, fixedValue, *problem)
-              << "\n";
+    std::vector<mpz::mpz_int> weight(2 + problem.getNbVar() * 2, 1);
+    mpz::mpz_int count = semiring.count<mpz::mpz_int>(
+        result, std::vector<Lit>(), weight, problem.getNbVar());
+
+    std::cout << "s " << count << '\n';
   }
 
-  nodeManager->deallocate(result);
-
-  methodRun = nullptr;
-  delete comp;
-#endif
   delete compilerEngine;
 }  // count
 
@@ -144,5 +117,6 @@ void compiler(const d4::OptionDpllStyleMethod& inputConfig,
                              formula.quantifications, weightMap, gates,
                              std::cout);
 
-  compileFormula(options, problem, "/dev/null", "/dev/null");
+  compileFormula(options, problem, optionCompiler.dumpFile,
+                 optionCompiler.queryFile);
 }  // counterDemo

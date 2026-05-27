@@ -60,12 +60,12 @@ int main(int argc, char** argv) {
 
   // 1. Initialize configuration and registry
   d4::OptionDpllStyleMethod options;
-  d4::OptionCompiler optionCounter;
+  d4::OptionCompiler optionCompiler;
   bipe::OptionPreproc optionPreproc;
 
   d4::OptionRegistry registry;
   options.registerTo(registry);
-  optionCounter.registerTo(registry);
+  optionCompiler.registerTo(registry);
   optionPreproc.registerTo(registry);
 
   registry.parseArgv(argc, argv);
@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
                      std::vector<int>(), preprocMethod, optionPreproc);
 
   // compiler.
-  compiler(options, optionCounter, formula);
+  compiler(options, optionCompiler, formula);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed = end - start;

@@ -390,6 +390,113 @@ class DecDNNFSemiring {
     return subCount[n];
   }  // count
 
+  /**
+   * @brief Prints the Dec-DNNF backbone structure to a stream.
+   * Dynamically expands edges with units into virtual AND nodes to maintain
+   * a strictly valid NNF graph topology.
+   *
+   * @param n The root node of the graph to print.
+   * @param out The output stream.
+   */
+  void printNNF(Node n, std::ostream& out) const {
+    enum Status { NOT_PROCESS, IN_PROCESS, DONE };
+    std::vector<Status> status(m_idCurrentNode, NOT_PROCESS);
+    std::vector<unsigned> nodeIdx(m_idCurrentNode, 0);
+    unsigned idx = 1;
+
+    std::vector<Node> stack;
+    stack.push_back(n);
+
+    while (!stack.empty()) {
+      Node current = stack.back();
+
+      // Handle terminal TOP / BOT nodes natively
+      if (current == 0 || current == 1) {
+        if (status[current] == NOT_PROCESS) {
+          nodeIdx[current] = idx++;
+          out << (current == 0 ? "f " : "t ") << nodeIdx[current] << " 0\n";
+          status[current] = DONE;
+        }
+        stack.pop_back();
+        continue;
+      }
+
+      NodeStruct& info = m_nodeInfo[current];
+
+      switch (status[current]) {
+        case NOT_PROCESS: {
+          status[current] = IN_PROCESS;
+          nodeIdx[current] = idx++;
+
+          if (info.typeNode == NODE_AND)
+            out << "a " << nodeIdx[current] << " 0\n";
+          else if (info.typeNode == NODE_OR)
+            out << "o " << nodeIdx[current] << " 0\n";
+
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+          if (info.typeNode == NODE_AND) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (status[s] == NOT_PROCESS) stack.push_back(s);
+            }
+          } else if (info.typeNode == NODE_OR) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node target = ((Edge*)ptr)->target;
+              ptr += sizeof(Edge);
+              if (status[target] == NOT_PROCESS) stack.push_back(target);
+            }
+          }
+          break;
+        }
+
+        case IN_PROCESS: {
+          status[current] = DONE;
+          unsigned myIdx = nodeIdx[current];
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+          if (info.typeNode == NODE_AND) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              out << myIdx << " " << nodeIdx[s] << " 0\n";
+            }
+          } else if (info.typeNode == NODE_OR) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Edge& e = *((Edge*)ptr);
+              ptr += sizeof(Edge);
+
+              EdgeInfo& edgeInfo = m_edgeInfo[e.idEdge];
+              unsigned* tab =
+                  (unsigned*)(m_pages[edgeInfo.page] + edgeInfo.posInPage);
+
+              // Print the parent-child relationship
+              out << myIdx << ' ' << nodeIdx[e.target] << ' ';
+
+              // Print the unit literals directly on the edge
+              while (*tab != 0) {
+                out << (((*tab) & 1) ? "-" : "") << ((*tab) >> 1) << ' ';
+                tab++;
+              }
+              out << "0\n";
+
+              // Note: If you ever need to print the free variables in the
+              // future, you would just do tab++; here to skip the 0 separator,
+              // and then run another while(*tab != 0) loop!
+            }
+          }
+
+          stack.pop_back();
+          break;
+        }
+
+        case DONE:
+          stack.pop_back();
+          break;
+      }
+    }
+  }
+
   inline unsigned getNbNodes() const { return m_idCurrentNode; }
   inline unsigned getNbEdges() const { return m_idEdge; }
 };
