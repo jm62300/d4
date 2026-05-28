@@ -27,12 +27,11 @@ namespace d4 {
 /**
  * @brief TreeDecompositioner::makeTreeDecompositionMethod implementation.
  */
-TreeDecompositioner *TreeDecompositioner::makeTreeDecompositionMethod(
-    const TreeDecompositionerMethod &method) {
+TreeDecompositioner* TreeDecompositioner::makeTreeDecompositionMethod(
+    const TreeDecompositionerMethod& method) {
   switch (method) {
     case TREE_DECOMP_TOOL_FLOW_CUTTER:
       return new TreeDecompositionerFlowCutter();
-
     default:
       break;
   }

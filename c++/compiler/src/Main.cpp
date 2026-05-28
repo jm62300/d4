@@ -94,7 +94,6 @@ int main(int argc, char** argv) {
   parserDimacs.parse_DIMACS(inputPath, formula);
 
   // preproc.
-  bipe::PreprocMethod preprocMethod = bipe::EQUIV_FULL;
   bipe::PreprocManager preprocManager;
   std::vector<int> projected;
   if (formula.quantifications[0].size())
@@ -103,7 +102,7 @@ int main(int argc, char** argv) {
     for (unsigned i = 1; i <= formula.nbVar; i++) projected.push_back(i);
 
   preprocManager.run(formula.nbVar, formula.clauses, projected,
-                     std::vector<int>(), preprocMethod, optionPreproc);
+                     std::vector<int>(), optionPreproc);
 
   // compiler.
   compiler(options, optionCompiler, formula);

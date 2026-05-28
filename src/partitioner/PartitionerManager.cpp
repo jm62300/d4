@@ -31,6 +31,7 @@ PartitionerManager* PartitionerManager::makePartitioner(
     std::ostream& out) {
   switch (partitioner) {
     case PARTITIONER_PATOH:
+      out << "c [PATOH PARTITIONER] Constructor\n";
       return new PartitionerPatoh(infoHyperGraph, out);
     default:
       throw(FactoryException("Partitioner name unknown", __FILE__, __LINE__));
