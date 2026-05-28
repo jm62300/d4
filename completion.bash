@@ -8,7 +8,6 @@ _d4_completions()
 
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
     if [[ ${prev} == "-i" || ${prev} == "--inputName" ]] ; then
-        # On complète avec les fichiers .cnf ET les dossiers pour pouvoir naviguer
         COMPREPLY=( $(compgen -f -X "!*.cnf" -- "${cur}") $(compgen -d -- "${cur}") )
         return 0
     fi
