@@ -6,10 +6,8 @@
 QUERIES=$2 
 # QUERIES=/tmp/1queries.cnf
 
-ROOT_PATH=".."
+ROOT_PATH="."
 SOLVER="$ROOT_PATH/minisat"
-
-echo "test " >> /tmp/file
 
 $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
@@ -21,9 +19,10 @@ testQueriesMC()
 {
     OLDIFS=$IFS
     IFS='
-'       
+'   
     for i in $(cat $2)
     do
+
         cp $1 /tmp/cnfTest.cnf
 
         type=$(echo $i | cut -d ' ' -f1)
@@ -54,10 +53,10 @@ testQueriesMC()
 }
 
 
-MODEL_COUNTER="./DeMoniaC -mc"
-TESTED_METHOD="./DeMoniaC -PCDDG -pv=NO -query"
+MODEL_COUNTER="./d4_static -m counting -i"
+TESTED_METHOD="../c++/compiler/build/compiler --compiler.query-file $QUERIES -i $1"
 
-$TESTED_METHOD $1 < $QUERIES | grep "^s "  > /tmp/sol1.txt        
+$TESTED_METHOD | grep "^s "  > /tmp/sol1.txt        
 testQueriesMC $1 $QUERIES> /tmp/sol2.txt
 
 diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null

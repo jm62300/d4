@@ -49,6 +49,7 @@ void compileFormula(const OptionDpllStyleMethod& options,
 
   std::map<Lit, std::string> mapWeight = problem.getWeightMap();
 
+  std::vector<mpz::mpz_int> noweight(2 + problem.getNbVar() * 2, 1);
   std::vector<mpz::mpf_float> weight(2 + problem.getNbVar() * 2, 1);
   for (const auto& [lit, w] : mapWeight)
     weight[lit.intern()] = mpz::mpf_float(w);
@@ -67,9 +68,17 @@ void compileFormula(const OptionDpllStyleMethod& options,
       typeQuery = queryManager.next(query);
 
       if (typeQuery == TypeQuery::QueryCounting) {
-        mpz::mpf_float count = semiring.count<mpz::mpf_float>(
-            result, std::vector<Lit>(), weight, problem.getNbVar());
-        std::cout << "s " << count << '\n';
+        mpz::mpf_float count;
+        if (mapWeight.size())
+          std::cout << "s "
+                    << semiring.count<mpz::mpf_float>(result, query, weight,
+                                                      problem.getNbVar())
+                    << '\n';
+        else
+          std::cout << "s "
+                    << semiring.count<mpz::mpz_int>(result, query, noweight,
+                                                    problem.getNbVar())
+                    << '\n';
       } else if (typeQuery == TypeQuery::QueryDecision) {
         bool res = semiring.isSAT(result, query, problem.getNbVar());
         std::cout << "s " << ((res) ? "SAT" : "UNS") << "\n";

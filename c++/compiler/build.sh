@@ -69,7 +69,7 @@ cd "$CURRENT_DIR"
 echo "c [BUILD] d4 built successfully."
 
 #  =============================================================================
-# Configure and build 'counter'
+# Configure and build 'compiler'
 # ==============================================================================
 
 # Create and enter the build directory
@@ -89,4 +89,4 @@ echo "c [BUILD] Compiling executable using Make..."
 # Unquoted $PARALLEL_FLAG so it expands to nothing if empty, or --parallel if set
 cmake --build . $PARALLEL_FLAG
 
-echo "c [BUILD] Build complete! The 'counter' executable is ready."
+echo "c [BUILD] Build complete! The 'compiler' executable is ready."

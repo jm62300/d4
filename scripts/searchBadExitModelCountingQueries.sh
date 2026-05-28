@@ -21,7 +21,7 @@ generateSatisfiableCNF()
     ret=20
     while [ $ret -ne 10 ]
     do
-        $CNF_GENERATOR > /tmp/test.cnf
+        $CNF_GENERATOR | grep -v "^c "> /tmp/test.cnf
 
         nbVar=$(grep "p cnf" /tmp/test.cnf | cut -d ' ' -f3)
         if [ $nbVar -gt $LIMIT_SIZE ]; then continue; fi
@@ -43,8 +43,7 @@ generateQueries()
     for i in $(seq 1 $2)
     do
         type=$(($RANDOM % 2))
-	type=1
-        if [ $type -eq 0 ]; then echo -n "m "; else echo -n "d "; fi
+	    if [ $type -eq 0 ]; then echo -n "m "; else echo -n "d "; fi
         
         tab=$(echo $tab | tr ' ' '\n' | shuf | tr '\n' ' ')
         ratio=$(echo "$nbVar / 100 * $(($RANDOM % 10)) + 1" | bc -l | cut -d '.' -f1)
