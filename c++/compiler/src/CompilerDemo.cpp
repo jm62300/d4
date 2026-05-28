@@ -47,6 +47,12 @@ void compileFormula(const OptionDpllStyleMethod& options,
   std::cout << "c [COMPILER] #Nodes: " << semiring.getNbNodes() << '\n';
   std::cout << "c [COMPILER] #Edges: " << semiring.getNbEdges() << '\n';
 
+  std::map<Lit, std::string> mapWeight = problem.getWeightMap();
+
+  std::vector<mpz::mpf_float> weight(2 + problem.getNbVar() * 2, 1);
+  for (const auto& [lit, w] : mapWeight)
+    weight[lit.intern()] = mpz::mpf_float(w);
+
   if (dumpFile != "/dev/null") {
     std::ofstream outFile;
     outFile.open(dumpFile);
@@ -61,18 +67,17 @@ void compileFormula(const OptionDpllStyleMethod& options,
       typeQuery = queryManager.next(query);
 
       if (typeQuery == TypeQuery::QueryCounting) {
-        // TODO
-
+        mpz::mpf_float count = semiring.count<mpz::mpf_float>(
+            result, std::vector<Lit>(), weight, problem.getNbVar());
+        std::cout << "s " << count << '\n';
       } else if (typeQuery == TypeQuery::QueryDecision) {
-        bool res = true;  // TODO
+        bool res = semiring.isSAT(result, query, problem.getNbVar());
         std::cout << "s " << ((res) ? "SAT" : "UNS") << "\n";
       }
     } while (typeQuery != TypeQuery::QueryEnd);
   } else {
-    std::vector<mpz::mpz_int> weight(2 + problem.getNbVar() * 2, 1);
-    mpz::mpz_int count = semiring.count<mpz::mpz_int>(
+    mpz::mpf_float count = semiring.count<mpz::mpf_float>(
         result, std::vector<Lit>(), weight, problem.getNbVar());
-
     std::cout << "s " << count << '\n';
   }
 

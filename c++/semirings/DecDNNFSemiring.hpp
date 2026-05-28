@@ -495,7 +495,137 @@ class DecDNNFSemiring {
           break;
       }
     }
-  }
+  }  // count
+
+  /**
+   * @brief Checks if the Dec-DNNF is satisfiable under a given set of
+   * assumptions.
+   * @param n The root node of the graph to check.
+   * @param assums Unit assumptions that must hold true.
+   * @param nbVar The total number of variables in the formula.
+   * @return true if there is at least one valid model, false otherwise.
+   */
+  bool isSAT(Node n, const std::vector<d4::Lit>& assums, unsigned nbVar) const {
+    // Valuation mapping: 2 = unassigned. Otherwise, it matches the literal's
+    // required sign (0 for True, 1 for False).
+    std::vector<uint8_t> valuation(nbVar + 1, 2);
+    for (auto& l : assums) valuation[l.var()] = l.sign();
+
+    enum Status { NOT_PROCESS, IN_PROCESS, DONE };
+    std::vector<Status> status(m_idCurrentNode, NOT_PROCESS);
+    std::vector<int8_t> subSat(m_idCurrentNode, -1);  // -1=unk, 0=uns, 1=sat
+
+    // Base cases
+    subSat[0] = 0;  // BOT is always false
+    subSat[1] = 1;  // TOP is always true
+    status[0] = DONE;
+    status[1] = DONE;
+
+    std::vector<Node> stack;
+    stack.push_back(n);
+
+    while (!stack.empty()) {
+      Node current = stack.back();
+      NodeStruct& info = m_nodeInfo[current];
+
+      switch (status[current]) {
+        case NOT_PROCESS: {
+          status[current] = IN_PROCESS;
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+          if (info.typeNode == NODE_AND) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (status[s] == NOT_PROCESS) stack.push_back(s);
+            }
+          } else if (info.typeNode == NODE_OR) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Edge& e = *((Edge*)ptr);
+              ptr += sizeof(Edge);
+
+              // PRE-PRUNING: Check if this branch's units conflict with
+              // assumptions
+              EdgeInfo& edgeInfo = m_edgeInfo[e.idEdge];
+              unsigned* tab =
+                  (unsigned*)(m_pages[edgeInfo.page] + edgeInfo.posInPage);
+
+              bool edgeConflict = false;
+              while (*tab != 0) {
+                d4::Lit l = d4::Lit::makeLit((*tab) >> 1, (*tab) & 1);
+                tab++;
+                // If a variable is assigned (!= 2) and its sign doesn't match
+                // the literal -> Conflict
+                if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+                  edgeConflict = true;
+                  break;
+                }
+              }
+
+              // Only explore the child if the edge itself doesn't conflict!
+              if (!edgeConflict && status[e.target] == NOT_PROCESS) {
+                stack.push_back(e.target);
+              }
+            }
+          }
+          break;
+        }
+
+        case IN_PROCESS: {
+          status[current] = DONE;
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+          if (info.typeNode == NODE_AND) {
+            subSat[current] = 1;  // Assume true until proven false
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (subSat[s] == 0) {
+                subSat[current] = 0;
+                break;  // Short-circuit AND (one false child ruins it)
+              }
+            }
+          } else if (info.typeNode == NODE_OR) {
+            subSat[current] = 0;  // Assume false until proven true
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Edge& e = *((Edge*)ptr);
+              ptr += sizeof(Edge);
+
+              EdgeInfo& edgeInfo = m_edgeInfo[e.idEdge];
+              unsigned* tab =
+                  (unsigned*)(m_pages[edgeInfo.page] + edgeInfo.posInPage);
+
+              bool edgeConflict = false;
+              while (*tab != 0) {
+                d4::Lit l = d4::Lit::makeLit((*tab) >> 1, (*tab) & 1);
+                tab++;
+                if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+                  edgeConflict = true;
+                  break;
+                }
+              }
+
+              // If edge is valid AND the target to SAT, the OR node is SAT
+              if (!edgeConflict && subSat[e.target] == 1) {
+                subSat[current] = 1;
+                break;  // Short-circuit OR (one true valid branch is enough)
+              }
+            }
+          }
+
+          stack.pop_back();
+          break;
+        }
+
+        case DONE:
+          // Node was already fully computed by an earlier branch, skip it.
+          stack.pop_back();
+          break;
+      }
+    }
+
+    return subSat[n] == 1;
+  }  // isSAT
 
   inline unsigned getNbNodes() const { return m_idCurrentNode; }
   inline unsigned getNbEdges() const { return m_idEdge; }
