@@ -15,10 +15,7 @@ CMakeFiles
 *.o[dr]
 3rdParty/glucose-3.0/core/depend.mk
 *.a
-
 .idea/
-python/pytest/__pycache__/
 docs/
-pytest/
 xml/
 .clang-uml

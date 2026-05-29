@@ -84,11 +84,6 @@ FetchContent_MakeAvailable(optree)
 
 
 
-# --- 4. Python Integration ---
-option(BUILD_PYTHON_WRAPPER "Build wrapper Python" OFF)
-if (SKBUILD OR BUILD_PYTHON_WRAPPER)
-    add_subdirectory(python)
-endif ()
 
 # --- 5. BUILD THE MONOLITHIC LIBRARY ---
 # By passing $<TARGET_OBJECTS:...>, CMake extracts the raw compiled files 
@@ -102,7 +97,6 @@ add_library(d4::d4 ALIAS d4)
 
 # --- 6. Includes & Linking ---
 target_include_directories(d4 PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     ${GMP_INCLUDE_DIR}
 )
