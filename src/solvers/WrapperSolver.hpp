@@ -55,11 +55,10 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   virtual ~WrapperSolver() {}
   virtual void initSolver(const ProblemManager& p) = 0;
   virtual bool solve(std::span<const Var> setOfVar) = 0;
-  virtual bool solve() = 0;
-  virtual bool hasBeenInterrupt() = 0;
+  virtual lbool solveLimited(unsigned nbConflict) = 0;
   virtual void uncheckedEnqueue(Lit l) = 0;
   virtual void restart() = 0;
-  virtual void setAssumption(std::vector<Lit>& assums) = 0;
+  virtual void setAssumption(const std::vector<Lit>& assums) = 0;
   virtual std::vector<Lit>& getAssumption() = 0;
   virtual void pushAssumption(Lit l) = 0;
   virtual void popAssumption(unsigned count = 1) = 0;
@@ -121,5 +120,41 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
    *
    */
   inline void resetAssumption() { popAssumption(getAssumption().size()); }
+
+  /**
+   * @brief Computes the backbone for a given set of variables.
+   * A variable is in the backbone if it takes the exact same value in ALL
+   * models.
+   */
+  inline bool backbone(std::span<Var> setOfVars) {
+    if (!solve(setOfVars)) return false;
+    return true;
+    if (!m_needModel) return true;
+
+    std::cout << "compute backbone\n";
+
+    std::vector<lbool> model(setOfVars.size());
+    for (unsigned i = 0; i < setOfVars.size(); i++)
+      model[i] = m_model[setOfVars[i]];
+
+    for (unsigned i = 0; i < setOfVars.size(); i++) {
+      if (model[i] == l_Undef || varIsAssigned(setOfVars[i])) continue;
+      pushAssumption(Lit::makeLit(setOfVars[i], model[i] != l_False));
+      bool ret = solve(setOfVars);
+      popAssumption(1);
+
+      if (ret) {
+        std::cout << "the problem is SAT\n";
+        for (unsigned j = 0; j < setOfVars.size(); j++) {
+          if (m_model[setOfVars[j]] != model[j]) model[j] = l_Undef;
+        }
+      } else {
+        std::cout << "unit\n";
+        uncheckedEnqueue(Lit::makeLit(setOfVars[i], model[i] == l_False));
+      }
+    }
+
+    return true;
+  }  // backbone
 };
 }  // namespace d4

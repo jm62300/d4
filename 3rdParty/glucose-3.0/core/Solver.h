@@ -81,7 +81,11 @@ class Solver {
   lbool solveLimited(
       const vec<Lit>& assumps);  // Search for a model that respects a given set
                                  // of assumptions (With resource constraints).
-  bool solve();                  // Search without assumptions.
+  lbool solveLimited(
+      const vec<Lit>& assumps,
+      unsigned nbConflict);  // Search for a model that respects a given set
+                             // of assumptions (With resource constraints).
+  bool solve();              // Search without assumptions.
   bool solve(Lit p);  // Search for a model that respects a single assumption.
   bool solve(Lit p,
              Lit q);  // Search for a model that respects two assumptions.
@@ -457,7 +461,7 @@ class Solver {
   }  // rebuildWithAllVar
 
   inline bool solveWithAssumptions() {
-    budgetOff();
+    // budgetOff();
     bool ret = solve_(false) == l_True;
     return ret;
   }  // solveWithAssumptions
@@ -701,6 +705,13 @@ inline lbool Solver::solveLimited(const vec<Lit>& assumps) {
   assumps.copyTo(assumptions);
   return solve_();
 }
+
+inline lbool Solver::solveLimited(const vec<Lit>& assumps,
+                                  unsigned nbConflict) {
+  assumps.copyTo(assumptions);
+  return solve_(true, nbConflict);
+}
+
 inline bool Solver::okay() const { return ok; }
 
 inline void Solver::toDimacs(const char* file) {

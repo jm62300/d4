@@ -1455,6 +1455,8 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   if (rebuildHeap) rebuildOrderHeap();
 
   // Search:
+  curRestart = 1;
+  nbclausesbeforereduce = firstReduceDB;
   int curr_restarts = 0;
   while (status == l_Undef) {
     // the parameter is useless in glucose, kept to allow modifications

@@ -29,7 +29,7 @@ namespace d4 {
 
    @param[in] inputFile, the input we consider.
  */
-QueryManager::QueryManager(const std::string &inputFile) {
+QueryManager::QueryManager(const std::string& inputFile) {
   m_in = fopen(inputFile.c_str(), "r");
 }  // constructor
 
@@ -45,7 +45,7 @@ QueryManager::~QueryManager() {
 
    @param[out] query, the query we parse.
  */
-void QueryManager::readNextQuery(std::vector<Lit> &query) {
+void QueryManager::readNextQuery(std::vector<Lit>& query) {
   int v = -1;
   do {
     if (fscanf(m_in, "%d", &v) == EOF) break;
@@ -62,18 +62,24 @@ void QueryManager::readNextQuery(std::vector<Lit> &query) {
 
    \return the type of the query we parse.
  */
-TypeQuery QueryManager::next(std::vector<Lit> &query) {
+TypeQuery QueryManager::next(std::vector<Lit>& query) {
   query.resize(0);
   int c = 0;
-  while (c != 'm' && c != 'd' && c != -1) c = fgetc(m_in);
+  while (c != 'm' && c != 'd' && c != -1 && c != 'p' && c != 'e')
+    c = fgetc(m_in);
   if (c == -1) return QueryEnd;
 
-  if (c == 'm') {
-    readNextQuery(query);
-    return QueryCounting;
-  } else if (c == 'd') {
-    readNextQuery(query);
-    return QueryDecision;
+  readNextQuery(query);
+
+  switch (c) {
+    case 'm':
+      return QueryCounting;
+    case 'd':
+      return QueryDecision;
+    case 'p':
+      return QueryPartialEnum;
+    case 'e':
+      return QueryEnum;
   }
 
   throw(ParserException("Parsing execption.", __FILE__, __LINE__));

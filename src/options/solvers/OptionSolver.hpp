@@ -21,10 +21,10 @@
 #include <string>
 
 #include "src/exceptions/FactoryException.hpp"
+#include "src/options/EnumMetadata.hpp"
 #include "src/options/Option.hpp"
 #include "src/options/OptionGroup.hpp"
 #include "src/options/OptionRegistry.hpp"
-#include "src/options/EnumMetadata.hpp"
 
 namespace d4 {
 enum SolverName { GLUCOSE_CNF, MINISAT_CNF };
@@ -39,11 +39,13 @@ struct EnumMetadata<SolverName> {
 
 class OptionSolver : public OptionGroup {
  public:
-  OptionSolver(const std::string& name = "solver", const std::string& description = "Solver options")
+  OptionSolver(const std::string& name = "solver",
+               const std::string& description = "Solver options")
       : OptionGroup(name, description) {}
 
   /** @brief The solver we will use */
-  Option<SolverName> solverName{"solverName", "The solver we will use", MINISAT_CNF};
+  Option<SolverName> solverName{"solverName", "The solver we will use",
+                                GLUCOSE_CNF};
 
   std::vector<OptionBase*> getAllOptions() override {
     return {(OptionBase*)&solverName};
@@ -51,8 +53,7 @@ class OptionSolver : public OptionGroup {
 
   friend std::ostream& operator<<(std::ostream& out, const OptionSolver& dt) {
     out << " Option Solver:"
-        << " solver name(" << dt.solverName.getValueAsString()
-        << ")";
+        << " solver name(" << dt.solverName.getValueAsString() << ")";
 
     return out;
   }  // <<

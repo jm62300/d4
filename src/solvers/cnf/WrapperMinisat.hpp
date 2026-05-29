@@ -36,8 +36,7 @@ class WrapperMinisat : public WrapperSolver {
 
   void initSolver(const ProblemManager& p) override;
   bool solve(std::span<const Var> setOfVar) override;
-  bool solve() override;
-  bool hasBeenInterrupt() override;
+  lbool solveLimited(unsigned) override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
@@ -46,7 +45,7 @@ class WrapperMinisat : public WrapperSolver {
   void whichAreUnits(std::span<const Var> component,
                      std::vector<Lit>& units) override;
   void restart() override;
-  void setAssumption(std::vector<Lit>& assums) override;
+  void setAssumption(const std::vector<Lit>& assums) override;
   std::vector<Lit>& getAssumption() override;
   void pushAssumption(Lit l) override;
   void popAssumption(unsigned count) override;

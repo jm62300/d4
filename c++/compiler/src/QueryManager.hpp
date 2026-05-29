@@ -27,18 +27,24 @@
 #include "src/utils/BufferRead.hpp"
 
 namespace d4 {
-enum TypeQuery { QueryCounting, QueryDecision, QueryEnd };
+enum TypeQuery {
+  QueryCounting,
+  QueryDecision,
+  QueryPartialEnum,
+  QueryEnum,
+  QueryEnd
+};
 
 class QueryManager {
  private:
-  FILE *m_in;
-  void readNextQuery(std::vector<Lit> &query);
+  FILE* m_in;
+  void readNextQuery(std::vector<Lit>& query);
 
  public:
   QueryManager() = delete;
-  QueryManager(const std::string &inputFile);
+  QueryManager(const std::string& inputFile);
   ~QueryManager();
-  TypeQuery next(std::vector<Lit> &query);
+  TypeQuery next(std::vector<Lit>& query);
 };
 
 }  // namespace d4

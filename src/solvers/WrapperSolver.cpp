@@ -68,6 +68,7 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
       exit(ERROR_BAD_TYPE_PROBLEM);
   }
 
+  if (!ret) std::runtime_error("The SAT solver selected is unknown");
   return ret;
 }  // makeWrapperSolver
 
@@ -84,7 +85,10 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
  */
 bool WrapperSolver::warmStart(int iteration, int sizeQuery,
                               std::vector<Var>& setOfVar, std::ostream& out) {
-  if (!solve()) return false;
+  if (!solve(setOfVar)) {
+    out << "c Proved UNSAT during initialization\n";
+    return false;
+  }
   int nbSAT = 0;
 
   if (setOfVar.size() > 10000) {
@@ -106,8 +110,7 @@ bool WrapperSolver::warmStart(int iteration, int sizeQuery,
     }
 
     setAssumption(query);
-    bool res = solve();  // we do not care the result.
-    if (res) nbSAT++;
+    solveLimited(500);  // we do not care the result.
     restart();
   }
 

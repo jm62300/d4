@@ -76,21 +76,18 @@ bool WrapperMinisat::solve(std::span<const Var> setOfVar) {
 }  // solve
 
 /**
- * @brief WrapperMinisat::hasBeenInterrupt implementation.
- *
- */
-bool WrapperMinisat::hasBeenInterrupt() {
-  return m_solver.withinBudget();
-}  // hasBeenInterrupt
-
-/**
    Call the SAT solver and return its result.
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperMinisat::solve() {
+lbool WrapperMinisat::solveLimited(unsigned nbConflict) {
   m_solver.rebuildWithAllVar();
-  return m_solver.solveWithAssumptions();
+  minisat::lbool res =
+      m_solver.solveLimited(minisat::vec<minisat::Lit>(), nbConflict);
+
+  if (res == minisat::l_True) return l_True;
+  if (res == minisat::l_False) return l_True;
+  return l_Undef;
 }  // solve
 
 /**
@@ -287,7 +284,7 @@ void WrapperMinisat::restart() { m_solver.cancelUntil(0); }  // restart
 
    @param[in] assums, the set of assumptions
  */
-void WrapperMinisat::setAssumption(std::vector<Lit>& assums) {
+void WrapperMinisat::setAssumption(const std::vector<Lit>& assums) {
   popAssumption(m_assumption.size());
   minisat::vec<minisat::Lit>& assumptions = m_solver.assumptions;
   assumptions.clear();

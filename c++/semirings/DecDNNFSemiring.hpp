@@ -627,6 +627,239 @@ class DecDNNFSemiring {
     return subSat[n] == 1;
   }  // isSAT
 
+  /**
+   * @brief Enumerates all disjoint partial models of the Dec-DNNF.
+   * Based on "Leveraging Decision-DNNF Compilation for Enumerating Disjoint
+   * Partial Models" Guarantees polynomial delay by using a two-pass
+   * reachability + backtracking approach.
+   *
+   * @param n The root node of the graph.
+   * @param assums Unit assumptions that must hold true.
+   * @param nbVar The total number of variables in the formula.
+   * @param onModel Callback function invoked for each valid partial model.
+   */
+  void enumeratePartialModels(
+      Node n, const std::vector<d4::Lit>& assums, unsigned nbVar,
+      const std::function<void(std::vector<d4::Lit>&)>& onModel) const {
+    // 1. Prepare valuations for fast checking. (2 = unassigned)
+    std::vector<uint8_t> valuation(nbVar + 1, 2);
+    for (auto& l : assums) valuation[l.var()] = l.sign();
+
+    // =========================================================================
+    // PASS 1: Compute Satisfiability of all nodes under these assumptions.
+    // This is strictly required to guarantee polynomial delay by pruning dead
+    // branches.
+    // =========================================================================
+    enum Status { NOT_PROCESS, IN_PROCESS, DONE };
+    std::vector<Status> status(m_idCurrentNode, NOT_PROCESS);
+    std::vector<int8_t> subSat(m_idCurrentNode, -1);
+
+    subSat[0] = 0;  // BOT is always false
+    subSat[1] = 1;  // TOP is always true
+    status[0] = DONE;
+    status[1] = DONE;
+
+    std::vector<Node> evalStack;
+    evalStack.push_back(n);
+
+    while (!evalStack.empty()) {
+      Node current = evalStack.back();
+      NodeStruct& info = m_nodeInfo[current];
+
+      switch (status[current]) {
+        case NOT_PROCESS: {
+          status[current] = IN_PROCESS;
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+          if (info.typeNode == NODE_AND) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (status[s] == NOT_PROCESS) evalStack.push_back(s);
+            }
+          } else if (info.typeNode == NODE_OR) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Edge& e = *((Edge*)ptr);
+              ptr += sizeof(Edge);
+
+              EdgeInfo& edgeInfo = m_edgeInfo[e.idEdge];
+              unsigned* tab =
+                  (unsigned*)(m_pages[edgeInfo.page] + edgeInfo.posInPage);
+
+              bool edgeConflict = false;
+              while (*tab != 0) {
+                d4::Lit l = d4::Lit::makeLit((*tab) >> 1, (*tab) & 1);
+                tab++;
+                if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+                  edgeConflict = true;
+                  break;
+                }
+              }
+
+              if (!edgeConflict && status[e.target] == NOT_PROCESS) {
+                evalStack.push_back(e.target);
+              }
+            }
+          }
+          break;
+        }
+
+        case IN_PROCESS: {
+          status[current] = DONE;
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+          if (info.typeNode == NODE_AND) {
+            subSat[current] = 1;
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (subSat[s] == 0) {
+                subSat[current] = 0;
+                break;
+              }
+            }
+          } else if (info.typeNode == NODE_OR) {
+            subSat[current] = 0;
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Edge& e = *((Edge*)ptr);
+              ptr += sizeof(Edge);
+
+              EdgeInfo& edgeInfo = m_edgeInfo[e.idEdge];
+              unsigned* tab =
+                  (unsigned*)(m_pages[edgeInfo.page] + edgeInfo.posInPage);
+
+              bool edgeConflict = false;
+              while (*tab != 0) {
+                d4::Lit l = d4::Lit::makeLit((*tab) >> 1, (*tab) & 1);
+                tab++;
+                if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+                  edgeConflict = true;
+                  break;
+                }
+              }
+
+              if (!edgeConflict && subSat[e.target] == 1) {
+                subSat[current] = 1;
+                break;
+              }
+            }
+          }
+          evalStack.pop_back();
+          break;
+        }
+
+        case DONE:
+          evalStack.pop_back();
+          break;
+      }
+    }
+
+    // If the root is UNSAT, there are zero models to enumerate.
+    if (subSat[n] != 1) return;
+
+    // =========================================================================
+    // PASS 2: Backtracking Enumerator
+    // =========================================================================
+    std::vector<Node> stack;
+    stack.push_back(n);
+
+    // The current partial model being built (starts with the assumptions)
+    std::vector<d4::Lit> current_pm = assums;
+
+    // Zero-allocation backtracking lambda
+    auto backtrack = [&](auto& self) -> void {
+      if (stack.empty()) {
+        onModel(current_pm);  // Yield the fully constructed partial model
+        return;
+      }
+
+      Node current = stack.back();
+      stack.pop_back();
+
+      // Because of subSat pruning, we NEVER hit a 0 (BOT). We might hit a 1
+      // (TOP).
+      if (current == 1) {
+        self(self);                // Process the rest of the stack
+        stack.push_back(current);  // Restore state
+        return;
+      }
+
+      NodeStruct& info = m_nodeInfo[current];
+      uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+      if (info.typeNode == NODE_AND) {
+        // Since we know this AND node is SAT, all its children are SAT.
+        // Push them in reverse so they are popped and processed left-to-right.
+        for (int i = info.nbSons - 1; i >= 0; i--) {
+          Node s = *((Node*)(ptr + i * sizeof(Node)));
+          stack.push_back(s);
+        }
+
+        self(self);  // Dive deeper
+
+        // Restore stack
+        for (unsigned i = 0; i < info.nbSons; i++) stack.pop_back();
+        stack.push_back(current);
+      } else if (info.typeNode == NODE_OR) {
+        for (unsigned i = 0; i < info.nbSons; i++) {
+          Edge& e = *((Edge*)ptr);
+          ptr += sizeof(Edge);
+
+          // STRICT PRUNING: Only explore branches mathematically proven to be
+          // SAT!
+          if (subSat[e.target] != 1) continue;
+
+          EdgeInfo& edgeInfo = m_edgeInfo[e.idEdge];
+          unsigned* tab =
+              (unsigned*)(m_pages[edgeInfo.page] + edgeInfo.posInPage);
+
+          bool edgeConflict = false;
+          unsigned added_lits = 0;
+
+          // Verify edge consistency
+          unsigned* scan_tab = tab;
+          while (*scan_tab != 0) {
+            d4::Lit l = d4::Lit::makeLit((*scan_tab) >> 1, (*scan_tab) & 1);
+            scan_tab++;
+            if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+              edgeConflict = true;
+              break;
+            }
+          }
+
+          if (!edgeConflict) {
+            // Apply units to the current partial model
+            while (*tab != 0) {
+              d4::Lit l = d4::Lit::makeLit((*tab) >> 1, (*tab) & 1);
+              tab++;
+              // Only push if it wasn't already included by the global
+              // assumptions
+              if (valuation[l.var()] == 2) {
+                current_pm.push_back(l);
+                added_lits++;
+              }
+            }
+
+            // Note: We intentionally ignore free variables (*tab != 0 after the
+            // separator) because a partial model implies they can take any
+            // assignment.
+
+            stack.push_back(e.target);
+
+            self(self);  // Recurse into this branch
+
+            // Clean up dynamically added variables for the next iteration
+            stack.pop_back();
+            for (unsigned j = 0; j < added_lits; j++) current_pm.pop_back();
+          }
+        }
+        stack.push_back(current);
+      }
+    };
+
+    backtrack(backtrack);
+  }
+
   inline unsigned getNbNodes() const { return m_idCurrentNode; }
   inline unsigned getNbEdges() const { return m_idEdge; }
 };

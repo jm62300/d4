@@ -41,19 +41,26 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
   // say to the solver we have pcnf.getNbVar() variables.
   while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
   m_model.resize(p.getNbVar() + 1, l_Undef);
+  cadical.declare_more_variables(p.getNbVar() + 1);
 
   // get the clauses.
   for (auto& gate : p.getGates()) {
     assert(gate.gateType == BcGateType::CLAUSE);
     Glucose::vec<Glucose::Lit> lits;
-    for (auto& l : gate.input) lits.push(Glucose::mkLit(l.var(), l.sign()));
+    for (auto& l : gate.input) {
+      cadical.add(l.human());
+      lits.push(Glucose::mkLit(l.var(), l.sign()));
+    }
+    cadical.add(0);
     m_solver.addClause(lits);
   }
 
+  m_solver.setConfBudget(500);
   m_activeModel = false;
   m_needModel = false;
   setNeedModel(m_needModel);
   m_isInAssumption.resize(p.getNbVar() + 1, 0);
+
 }  // initSolver
 
 /**
@@ -64,22 +71,41 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
    \return true if the problem is SAT, false otherwise.
  */
 bool WrapperGlucose::solve(std::span<const Var> setOfVar) {
+  // static int cpt = 0;
+  // std::cout << ++cpt << " call the solver " << m_solver.learnts.size() <<
+  // '\n';
   if (m_activeModel && m_needModel) return true;
 
   m_setOfVar_m.setSize(0);
   for (auto& v : setOfVar) m_setOfVar_m.push(v);
   m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
   m_activeModel = m_solver.solveWithAssumptions();
+
+  if (!m_solver.withinBudget()) {
+    // set the assumption.
+    // std::cout << "call cadical\n";
+    cadical.reset_assumptions();
+    for (auto& l : m_assumption) cadical.assume(l.human());
+
+    int satCallRes = cadical.solve();
+    m_activeModel = satCallRes == 10;
+
+    if (m_activeModel) {
+      for (auto v : setOfVar)
+        m_model[v] = cadical.val(v) > 0 ? l_True : l_False;
+      for (auto v : setOfVar) cadical.phase(-cadical.val(v));
+    }
+  } else {
+    if (m_activeModel)
+      for (auto v : setOfVar) {
+        assert(m_solver.model[v] != Glucose::l_Undef);
+        m_model[v] = m_solver.model[v] == Glucose::l_True ? l_True : l_False;
+      }
+  }
+
+  // std::cout << "the problem is " << m_activeModel << '\n';
   return m_activeModel;
 }  // solve
-
-/**
- * @brief WrapperGlucose::hasBeenInterrupt implementation.
- *
- */
-bool WrapperGlucose::hasBeenInterrupt() {
-  return m_solver.withinBudget();
-}  // hasBeenInterrupt
 
 /**
  * @brief Strong assumption in the sense we push the literal on the stack.
@@ -104,9 +130,14 @@ bool WrapperGlucose::propagateAssumption() {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperGlucose::solve() {
+lbool WrapperGlucose::solveLimited(unsigned nbConflict) {
   m_solver.rebuildWithAllVar();
-  return m_solver.solveWithAssumptions();
+  m_solver.setConfBudget(nbConflict);
+  bool res = m_solver.solveWithAssumptions();
+  m_solver.setConfBudget(500);
+
+  if (!m_solver.withinBudget()) return l_Undef;
+  return res ? l_True : l_False;
 }  // solve
 
 /**
@@ -284,7 +315,7 @@ void WrapperGlucose::restart() { m_solver.cancelUntil(0); }  // restart
 
    @param[in] assums, the set of assumptions
  */
-void WrapperGlucose::setAssumption(std::vector<Lit>& assums) {
+void WrapperGlucose::setAssumption(const std::vector<Lit>& assums) {
   popAssumption(m_assumption.size());
   Glucose::vec<Glucose::Lit>& assumptions = m_solver.assumptions;
   assumptions.clear();
@@ -330,18 +361,7 @@ void WrapperGlucose::setNeedModel(bool b) {
  *
  * @return the model's value (lbool).
  */
-std::vector<lbool>& WrapperGlucose::getModel() {
-  for (int i = 0; i < m_solver.model.size(); i++) {
-    if (Glucose::toInt(m_solver.model[i]) == 0)
-      m_model[i] = l_True;
-    else if (Glucose::toInt(m_solver.model[i]) == 1)
-      m_model[i] = l_False;
-    else
-      m_model[i] = l_Undef;
-  }
-
-  return m_model;
-}  // getModel
+std::vector<lbool>& WrapperGlucose::getModel() { return m_model; }  // getModel
 
 /**
  * @brief Get the value given by the last computed model.
@@ -370,7 +390,7 @@ void WrapperGlucose::pushAssumption(Lit l) {
   m_isInAssumption[l.var()] = 1 + l.sign();
 
   if (m_activeModel && m_needModel) {
-    m_activeModel = m_solver.litTrueInLastModel(ml);
+    m_activeModel = m_model[l.var()] == l.sign();
     if (m_activeModel) {
       assert(m_solver.decisionLevel() == m_solver.assumptions.size() - 1);
       m_solver.newDecisionLevel();

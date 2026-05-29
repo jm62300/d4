@@ -46,8 +46,6 @@ void countModels(const OptionDpllStyleMethod& options,
             << isFloat << ")\n";
 
   auto counter = new DpllStyleMethod<T, O>(options, problem, std::cout);
-
-  methodRun = counter;
   T result = counter->run();
 
   if (outFormat == "competition") {
@@ -81,7 +79,6 @@ void countModels(const OptionDpllStyleMethod& options,
     std::cout << result << "\n";
   }
 
-  methodRun = nullptr;
   delete counter;
 }  // count
 

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "../WrapperSolver.hpp"
+#include "3rdParty/cadical/src/cadical.hpp"
 #include "3rdParty/glucose-3.0/core/Solver.h"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
@@ -29,13 +30,14 @@ class WrapperGlucose : public WrapperSolver {
   Glucose::Solver m_solver;
   Glucose::vec<Glucose::Var> m_setOfVar_m;
 
+  CaDiCaL::Solver cadical;
+
   using WrapperSolver::m_isInAssumption;
 
  public:
   void initSolver(const ProblemManager& p) override;
   bool solve(std::span<const Var> setOfVar) override;
-  bool solve() override;
-  bool hasBeenInterrupt() override;
+  lbool solveLimited(unsigned) override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
   bool getPolarity(Var v) override;
@@ -44,7 +46,7 @@ class WrapperGlucose : public WrapperSolver {
   void whichAreUnits(std::span<const Var> component,
                      std::vector<Lit>& units) override;
   void restart() override;
-  void setAssumption(std::vector<Lit>& assums) override;
+  void setAssumption(const std::vector<Lit>& assums) override;
   std::vector<Lit>& getAssumption() override;
   void pushAssumption(Lit l) override;
   void popAssumption(unsigned count) override;
