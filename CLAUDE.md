@@ -27,11 +27,12 @@ Dependencies: CMake ≥ 3.14, C++20 compiler, `libgmp`, `libgmpxx`, `libz`, Boos
 Each demo in `c++/` builds independently and will rebuild `libd4.a` as a dependency:
 
 ```bash
-cd c++/compiler && ./build.sh    # decision-DNNF compiler
-cd c++/counter  && ./build.sh    # model counter
-cd c++/maxT     && ./build.sh    # Max#SAT
-cd c++/qbfCounter && ./build.sh  # QBF counter
-cd c++/server   && ./build.sh    # server mode
+cd c++/compiler     && ./build.sh    # decision-DNNF compiler
+cd c++/counter      && ./build.sh    # model counter
+cd c++/maxT         && ./build.sh    # Max#SAT
+cd c++/qbfCounter   && ./build.sh    # QBF counter
+cd c++/server       && ./build.sh    # server mode
+cd c++/cube-counter && ./build.sh    # cube-and-count model counting
 ```
 
 Build flags (`-d`, `-s`, `-p`, `-j`) are passed through to the library build.

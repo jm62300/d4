@@ -80,7 +80,8 @@
         "src/include",
         "build/_deps/optree-src/include",
         "c++/compiler/build/_deps/bipe-src/",
-        "c++/counter/build/_deps/bipe-src/"
+        "c++/counter/build/_deps/bipe-src/",
+        "c++/cube-counter/build/_deps/bipe-src/"
     ],
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_fallbackStyle": "Google",
