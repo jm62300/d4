@@ -59,7 +59,7 @@ class ModelAccumulator {
     parser::Formula formula;
     parser::ParserDimacs parserDimacs;
     parserDimacs.parse_DIMACS(
-        "/home/lagniez/Works/Benchmarks/counting/mc25/mc2025_track1_all/"
+        "/data/Benchmarks/counting/MC2025_all/mc2025_track1_all/"
         "mc2025_track1_033.cnf",
         formula);
     cadical.declare_more_variables(formula.nbVar + 1);
@@ -97,7 +97,8 @@ class ModelAccumulator {
    */
   void addPartialModel(std::vector<d4::Lit>& partial_model) {
     static int cpt = 0;
-    static double cumulative_time = 0.0;  // Accumulator for total time
+    static double cumulative_time_sat = 0.0;  // Accumulator for total time
+    static double cumulative_time_uns = 0.0;  // Accumulator for total time
     cpt++;
 
     // 1. Start the timer
@@ -119,10 +120,12 @@ class ModelAccumulator {
       // 2a. Stop timer, update cumulative time, and print for UNSAT
       auto end_time = std::chrono::steady_clock::now();
       std::chrono::duration<double> elapsed = end_time - start_time;
-      cumulative_time += elapsed.count();
+      cumulative_time_uns += elapsed.count();
 
       std::cout << cpt << " unsat computed in " << elapsed.count()
-                << "s (Total: " << cumulative_time << "s)\n";
+                << "s (Total: " << cumulative_time_uns << '+'
+                << cumulative_time_sat << " = "
+                << cumulative_time_uns + cumulative_time_sat << "s)\n";
       return;
     }
 
@@ -132,11 +135,13 @@ class ModelAccumulator {
     // 2b. Stop timer, update cumulative time, and print for SAT
     auto end_time = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
-    cumulative_time += elapsed.count();
+    cumulative_time_sat += elapsed.count();
 
     std::cout << cpt << " consider a new model: " << m_totalModels
               << " computed in " << elapsed.count()
-              << "s (Total: " << cumulative_time << "s)\n";
+              << "s (Total: " << cumulative_time_uns << '+'
+              << cumulative_time_sat << " = "
+              << cumulative_time_uns + cumulative_time_sat << "s)\n";
   }
 
   /**

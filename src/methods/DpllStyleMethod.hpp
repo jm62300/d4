@@ -366,6 +366,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
+
     // if (m_nbCallCall > 500000) exit(0);
 
     if (!m_solver->backbone(setOfVar)) return m_semiringOps.zero();
