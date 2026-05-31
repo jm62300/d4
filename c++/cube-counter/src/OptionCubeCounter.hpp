@@ -9,47 +9,41 @@
 namespace d4 {
 
 /**
- * @brief Group of options specific to the compiler demo.
- *
- * This class handles command-line options for dumping the compiled
- * decision-DNNF to a file and for performing queries against it.
+ * @brief Options specific to the cube-counter demo.
  */
 class OptionCubeCounter : public OptionGroup {
  public:
-  /**
-   * @brief Construct a new OptionCubeCounter group.
-   *
-   * @param name The name of the option group (defaults to "compiler").
-   * @param description A brief description of the group's purpose.
-   */
-  OptionCubeCounter(const std::string& name = "compiler",
-                 const std::string& description = "Counter specific options")
+  OptionCubeCounter(const std::string& name = "cube-couter",
+                    const std::string& description = "Counter specific options")
       : OptionGroup(name, description) {}
 
   /**
-   * @brief Path to the file where the compiled decision-DNNF should be dumped.
-   * Defaults to "/dev/null" (no dump).
+   * @brief Clause selection strategy for cube-and-count.
+   *
+   * "primal-cut"           — single primal hypergraph bisection; F_easy
+   *                          = cut clauses (those spanning both partitions).
+   * "iterative-primal-cut" — recursive bisection up to maxDepth levels;
+   *                          F_easy = union of cut clauses at every level.
    */
-  Option<std::string> dumpFile{"dump-file", "Output format", "/dev/null"};
+  Option<std::string> selectorStrategy{"selectorStrategy",
+                                       "Clause selection strategy for F_easy "
+                                       "(primal-cut|iterative-primal-cut)",
+                                       "primal-cut"};
 
   /**
-   * @brief Path to a file containing queries to be executed on the compiled
-   * form. Defaults to "/dev/null" (no queries).
+   * @brief Maximum recursion depth for iterative-primal-cut.
    */
-  Option<std::string> queryFile{"query-file", "Output style", "/dev/null"};
+  Option<int> maxDepth{
+      "maxDepth", "Recursion depth for iterative-primal-cut (default 3)", 3};
 
-  /**
-   * @brief Returns a list of all options contained in this group.
-   * @return A vector of pointers to the internal options.
-   */
   std::vector<OptionBase*> getAllOptions() override {
-    return {&dumpFile, &queryFile};
+    return {&selectorStrategy, &maxDepth};
   }
 
-  /** @brief Overload for printing the state of the compiler options. */
-  friend std::ostream& operator<<(std::ostream& out, const OptionCubeCounter& dt) {
-    out << " Option Compiler: dump-file(" << dt.dumpFile.get()
-        << ") query-file(" << dt.queryFile.get() << ")\n";
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const OptionCubeCounter& dt) {
+    out << " Option CubeCounter: selectorStrategy(" << dt.selectorStrategy.get()
+        << ") maxDepth(" << dt.maxDepth.get() << ")\n";
     return out;
   }
 };

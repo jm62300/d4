@@ -196,17 +196,17 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
 
   const std::string strategy = optionCubeCounter.selectorStrategy.get();
 
-  if (strategy == "primal-cut" || strategy == "iterative-primal-cut") {
-    std::unique_ptr<ClauseSelector> selector;
-
-    if (strategy == "primal-cut") {
-      selector = std::make_unique<PrimalCutSelector>(std::cout);
-    } else {
-      unsigned depth = (unsigned)optionCubeCounter.maxDepth.get();
-      selector = std::make_unique<IterativePrimalCutSelector>(depth, std::cout);
-    }
-
-    std::vector<unsigned> easyClauses = selector->select(formula);
-    cubeAndCount(options, fullProblem, formula, easyClauses);
+  std::vector<unsigned> easyClauses;
+  if (strategy == "iterative-primal-cut") {
+    unsigned depth = (unsigned)optionCubeCounter.maxDepth.get();
+    easyClauses =
+        IterativePrimalCutSelector(depth, std::cout).select(formula);
+  } else {
+    if (strategy != "primal-cut")
+      std::cerr << "c [CUBE-COUNTER] unknown strategy '" << strategy
+                << "'; falling back to primal-cut\n";
+    easyClauses = PrimalCutSelector(std::cout).select(formula);
   }
+
+  cubeAndCount(options, fullProblem, formula, easyClauses);
 }
