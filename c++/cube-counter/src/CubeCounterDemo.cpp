@@ -52,8 +52,7 @@ namespace mpz = boost::multiprecision;
  */
 static d4::ProblemManager buildProblem(
     const parser::Formula& formula, const std::vector<unsigned>& clauseIdxs,
-    std::ostream& out,
-    const std::vector<std::vector<int>>& extraClauses = {}) {
+    std::ostream& out, const std::vector<std::vector<int>>& extraClauses = {}) {
   std::vector<d4::BcGate> gates;
   gates.reserve(clauseIdxs.size() + extraClauses.size());
 
@@ -114,7 +113,10 @@ static std::vector<std::vector<int>> strengthenByResolution(
     bool moreThanOne = false;
     for (int l : clauses[i]) {
       if (!inVeasy[std::abs(l)]) {
-        if (outsideLit) { moreThanOne = true; break; }
+        if (outsideLit) {
+          moreThanOne = true;
+          break;
+        }
         outsideLit = l;
       }
     }
@@ -125,20 +127,29 @@ static std::vector<std::vector<int>> strengthenByResolution(
       bool taut = false;
       for (int l : clauses[i]) {
         if (std::abs(l) == std::abs(outsideLit)) continue;
-        if (res.count(-l)) { taut = true; break; }
+        if (res.count(-l)) {
+          taut = true;
+          break;
+        }
         res[l] = true;
       }
       if (taut) continue;
       for (int l : clauses[j]) {
         if (std::abs(l) == std::abs(outsideLit)) continue;
-        if (res.count(-l)) { taut = true; break; }
+        if (res.count(-l)) {
+          taut = true;
+          break;
+        }
         res[l] = true;
       }
       if (taut) continue;
 
       bool allInVeasy = true;
       for (auto& [l, _] : res)
-        if (!inVeasy[std::abs(l)]) { allInVeasy = false; break; }
+        if (!inVeasy[std::abs(l)]) {
+          allInVeasy = false;
+          break;
+        }
       if (!allInVeasy) continue;
 
       std::vector<int> resolvent;
@@ -193,9 +204,9 @@ static std::vector<std::vector<int>> strengthenBySat(
   unsigned unsatBlocked = 0, satSeen = 0;
 
   while (true) {
-    double elapsed =
-        std::chrono::duration<double>(std::chrono::steady_clock::now() - wallStart)
-            .count();
+    double elapsed = std::chrono::duration<double>(
+                         std::chrono::steady_clock::now() - wallStart)
+                         .count();
     if (elapsed >= timeLimitSec) break;
     if (enumSolver.solve() != 10) break;  // F_easy exhausted
 
@@ -216,16 +227,17 @@ static std::vector<std::vector<int>> strengthenBySat(
       newClauses.push_back(blockClause);  // implied by F — safe to add
     } else {
       satSeen++;
-      for (int l : sigma) blockClause.push_back(-l);  // block only in enumSolver
+      for (int l : sigma)
+        blockClause.push_back(-l);  // block only in enumSolver
     }
 
     for (int l : blockClause) enumSolver.add(l);
     enumSolver.add(0);
   }
 
-  double elapsed =
-      std::chrono::duration<double>(std::chrono::steady_clock::now() - wallStart)
-          .count();
+  double elapsed = std::chrono::duration<double>(
+                       std::chrono::steady_clock::now() - wallStart)
+                       .count();
   out << "c [STRENGTHEN-SAT] new_clauses=" << newClauses.size()
       << " unsat_blocked=" << unsatBlocked << " sat_seen=" << satSeen
       << " time=" << std::fixed << std::setprecision(2) << elapsed << "s\n";
@@ -246,11 +258,10 @@ static std::vector<std::vector<int>> strengthenBySat(
  * independent components created by the primal cut, which the full counter
  * exploits automatically through its component analysis.
  */
-static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
-                         const ProblemManager& fullProblem,
-                         const parser::Formula& formula,
-                         const std::vector<unsigned>& easyClauses,
-                         const std::vector<std::vector<int>>& extraClauses = {}) {
+static void cubeAndCount(
+    const OptionDpllStyleMethod& inputConfig, const ProblemManager& fullProblem,
+    const parser::Formula& formula, const std::vector<unsigned>& easyClauses,
+    const std::vector<std::vector<int>>& extraClauses = {}) {
   d4::OptionDpllStyleMethod options = inputConfig;
   options.operationType = d4::OperationTypeManager::getOperatorType("counting");
   if (options.optionCacheManager.optionBucketManager.clauseRepresentation ==
@@ -278,7 +289,7 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
 
   std::cout << "c [CUBE-COUNTER] F_easy DNNF nodes=" << sem.getNbNodes()
             << " edges=" << sem.getNbEdges() << '\n';
-#if 0
+#if 1
   unsigned testCount = 0;
   sem.enumeratePartialModels(D_easy, {}, formula.nbVar,
                              [&](std::vector<d4::Lit>& sigma) {
@@ -405,8 +416,14 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
       if (selected[i]) continue;
       bool fits = true;
       for (int l : formula.clauses[i])
-        if (!inVeasy[std::abs(l)]) { fits = false; break; }
-      if (fits) { easyClauses.push_back(i); added++; }
+        if (!inVeasy[std::abs(l)]) {
+          fits = false;
+          break;
+        }
+      if (fits) {
+        easyClauses.push_back(i);
+        added++;
+      }
     }
     if (added)
       std::cout << "c [CUBE-COUNTER] extendEasy added " << added
@@ -420,9 +437,9 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
   if (strengthen == "resolution") {
     extraClauses = strengthenByResolution(formula, inVeasy, std::cout);
   } else if (strengthen == "sat") {
-    extraClauses = strengthenBySat(formula, easyClauses, inVeasy,
-                                   optionCubeCounter.strengthenTime.get(),
-                                   std::cout);
+    extraClauses =
+        strengthenBySat(formula, easyClauses, inVeasy,
+                        optionCubeCounter.strengthenTime.get(), std::cout);
   }
 
   cubeAndCount(options, fullProblem, formula, easyClauses, extraClauses);

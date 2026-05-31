@@ -70,16 +70,17 @@ class OptionCubeCounter : public OptionGroup {
       "strengthen",
       "Derive implied clauses over vars(F_easy) before compilation "
       "(none|resolution|sat)",
-      "none"};
+      "sat"};
 
   /**
    * @brief Wall-clock time limit (seconds) for the sat strengthening phase.
    */
   Option<double> strengthenTime{
-      "strengthenTime", "Time limit for sat strengthening in seconds (default 30)", 30.0};
+      "strengthenTime",
+      "Time limit for sat strengthening in seconds (default 30)", 30.0};
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {&selectorStrategy, &maxDepth, &targetRatio,
+    return {&selectorStrategy, &maxDepth,   &targetRatio,
             &extendEasy,       &strengthen, &strengthenTime};
   }
 
