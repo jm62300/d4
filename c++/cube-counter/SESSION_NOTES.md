@@ -42,8 +42,26 @@ Goal: maximise |F_easy| (→ fewer cubes) while keeping |vars(F_easy)| small
 |---|---|---|
 | `--selectorStrategy` | `high-degree` | Which selector to use |
 | `--maxDepth` | 3 | Recursion depth for iterative-primal-cut |
-| `--targetRatio` | 0.3 | Variable budget fraction for high-degree |
+| `--targetRatio` | 0.2 | Variable budget fraction for high-degree |
 | `--extendEasy` | `true` | After selection, absorb clauses that don't grow `vars(F_easy)` |
+| `--strengthen` | `none` | Derive implied clauses over `vars(F_easy)` before compilation (`none`\|`resolution`\|`sat`) |
+| `--strengthenTime` | `30.0` | Wall-clock time limit in seconds for the `sat` strengthen phase |
+
+### Strengthen strategies
+
+**`resolution`** — one syntactic pass: for each clause in F with exactly one
+variable outside V_easy, resolve it with every clause containing the negation
+of that variable; keep resolvents whose variables are all in V_easy.
+Cheap (O(|F|²) worst case), finds one-step derivations only.
+
+**`sat`** — enumerate models of F_easy with a dedicated CaDiCaL instance.
+For each model UNSAT w.r.t. F, extract the minimal failing core via
+`failed()` and add its negation as a new clause to F_easy (implied by F →
+correctness preserved). SAT models are blocked in the enumeration solver only.
+Stops after `--strengthenTime` seconds.
+
+Both strategies address the two observed problems: too many cubes, and most
+cubes being UNSAT w.r.t. the full formula.
 
 ## Pending / in-progress
 
