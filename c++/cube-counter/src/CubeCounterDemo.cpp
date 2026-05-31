@@ -101,6 +101,12 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
   std::cout << "c [CUBE-COUNTER] F_easy: " << easyClauses.size() << '/'
             << formula.clauses.size() << " clauses\n";
 
+  for (auto idx : easyClauses) {
+    std::cout << "  [clause" << idx << "]";
+    for (auto l : formula.clauses[idx]) std::cout << l << ' ';
+    std::cout << '\n';
+  }
+
   // --- Compile F_easy ---
   d4::ProblemManager easyProblem =
       buildProblem(formula, easyClauses, std::cout);
@@ -113,17 +119,17 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
 
   std::cout << "c [CUBE-COUNTER] F_easy DNNF nodes=" << sem.getNbNodes()
             << " edges=" << sem.getNbEdges() << '\n';
-
+#if 1
   unsigned testCount = 0;
   sem.enumeratePartialModels(D_easy, {}, formula.nbVar,
                              [&](std::vector<d4::Lit>& sigma) {
                                testCount++;
-                               std::cout << testCount << '\n';
                                return;
                              });
+  std::cout << "the number of cubes is " << testCount << '\n';
 
   return;
-
+#endif
   // --- Full counter (reused across all cubes) ---
   auto* fullCounter =
       new DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring>(
@@ -156,13 +162,14 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
   sem.enumeratePartialModels(
       D_easy, {}, formula.nbVar, [&](std::vector<d4::Lit>& sigma) {
         cubeCount++;
-        std::cout << cubeCount << '\n';
-        return;
+        std::cout << cubeCount << "the size of sigma is " << sigma.size()
+                  << "\n";
 
         cadical.reset_assumptions();
         for (auto& l : sigma) cadical.assume(l.human());
 
         if (cadical.solve() == 20) {
+          std::cout << "it is unsat\n";
           prunedCount++;
           return;
         }
@@ -223,6 +230,32 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
       std::cerr << "c [CUBE-COUNTER] unknown strategy '" << strategy
                 << "'; falling back to primal-cut\n";
     easyClauses = PrimalCutSelector(std::cout).select(formula);
+  }
+
+  if (optionCubeCounter.extendEasy.get()) {
+    // Compute the variable set of the current easy clauses.
+    std::vector<bool> inVeasy(formula.nbVar + 1, false);
+    for (unsigned idx : easyClauses)
+      for (int l : formula.clauses[idx]) inVeasy[std::abs(l)] = true;
+
+    // Mark already-selected clauses.
+    std::vector<bool> selected(formula.clauses.size(), false);
+    for (unsigned idx : easyClauses) selected[idx] = true;
+
+    // Absorb remaining clauses that don't introduce new variables.
+    unsigned added = 0;
+    for (unsigned i = 0; i < formula.clauses.size(); i++) {
+      if (selected[i]) continue;
+      bool fits = true;
+      for (int l : formula.clauses[i])
+        if (!inVeasy[std::abs(l)]) { fits = false; break; }
+      if (fits) { easyClauses.push_back(i); added++; }
+    }
+
+    if (added)
+      std::cout << "c [CUBE-COUNTER] extendEasy added " << added << " clauses"
+                << " (total easy=" << easyClauses.size() << "/"
+                << formula.clauses.size() << ")\n";
   }
 
   cubeAndCount(options, fullProblem, formula, easyClauses);

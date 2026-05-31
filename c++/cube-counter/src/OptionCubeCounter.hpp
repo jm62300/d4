@@ -29,7 +29,7 @@ class OptionCubeCounter : public OptionGroup {
       "selectorStrategy",
       "Clause selection strategy for F_easy "
       "(primal-cut|iterative-primal-cut|high-degree)",
-      "primal-cut"};
+      "high-degree"};
 
   /**
    * @brief Maximum recursion depth for iterative-primal-cut.
@@ -40,13 +40,21 @@ class OptionCubeCounter : public OptionGroup {
   /**
    * @brief Fraction of variables to target for high-degree-variable strategy.
    */
-  Option<double> targetRatio{
-      "targetRatio",
-      "Fraction of variables in V_target for high-degree-variable (default 0.1)",
-      0.1};
+  Option<double> targetRatio{"targetRatio",
+                             "Fraction of variables in V_target for "
+                             "high-degree-variable (default 0.1)",
+                             0.1};
+
+  /**
+   * @brief After the selector runs, absorb every remaining clause whose
+   *        variables are all already in vars(F_easy). On by default.
+   */
+  Option<bool> extendEasy{"extendEasy",
+                          "Absorb clauses that do not grow vars(F_easy) (default true)",
+                          true};
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {&selectorStrategy, &maxDepth, &targetRatio};
+    return {&selectorStrategy, &maxDepth, &targetRatio, &extendEasy};
   }
 
   friend std::ostream& operator<<(std::ostream& out,
