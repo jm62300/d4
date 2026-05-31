@@ -7,8 +7,11 @@ Entry point: `cubeCounter()` in `src/CubeCounterDemo.cpp`.
 
 Flow:
 1. Build a `ProblemManager` for the full formula.
-2. Use a `ClauseSelector` to pick a subset of clauses → **F_easy**.
-3. `cubeAndCount()` compiles F_easy into a decision-DNNF, enumerates its
+2. Use a `ClauseSelector` to pick an initial subset of clauses → **F_easy**.
+3. If `--extendEasy` is on (default): absorb every remaining clause whose
+   variables are all already in `vars(F_easy)` — does not grow the variable
+   set, strengthens F_easy for free.
+4. `cubeAndCount()` compiles F_easy into a decision-DNNF, enumerates its
    partial models (cubes), and for each cube counts the full formula
    conditioned on that cube via `DpllStyleMethod<mpz_int, MpzIntSemiring>`.
 
@@ -40,6 +43,7 @@ Goal: maximise |F_easy| (→ fewer cubes) while keeping |vars(F_easy)| small
 | `--selectorStrategy` | `high-degree` | Which selector to use |
 | `--maxDepth` | 3 | Recursion depth for iterative-primal-cut |
 | `--targetRatio` | 0.3 | Variable budget fraction for high-degree |
+| `--extendEasy` | `true` | After selection, absorb clauses that don't grow `vars(F_easy)` |
 
 ## Pending / in-progress
 
