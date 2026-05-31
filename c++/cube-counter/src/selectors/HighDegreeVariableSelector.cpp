@@ -19,10 +19,7 @@
 
 #include "HighDegreeVariableSelector.hpp"
 
-#include <algorithm>
 #include <cmath>
-#include <numeric>
-#include <unordered_set>
 
 namespace d4 {
 
@@ -30,60 +27,80 @@ std::vector<unsigned> HighDegreeVariableSelector::select(
     const parser::Formula& formula) {
   const unsigned nbVar = formula.nbVar;
   const auto& clauses = formula.clauses;
+  const unsigned numClauses = (unsigned)clauses.size();
 
-  // Step 1: compute degree of each variable (1-indexed).
-  std::vector<unsigned> degree(nbVar + 1, 0);
-  for (const auto& cl : clauses)
-    for (int l : cl) degree[std::abs(l)]++;
-
-  // Step 2: sort variables by degree descending, take top targetRatio fraction.
-  std::vector<unsigned> order(nbVar);
-  std::iota(order.begin(), order.end(), 1);
-  std::sort(order.begin(), order.end(),
-            [&](unsigned a, unsigned b) { return degree[a] > degree[b]; });
-
-  unsigned targetSize =
+  unsigned budget =
       std::max(1u, (unsigned)std::ceil(m_targetRatio * nbVar));
-  targetSize = std::min(targetSize, nbVar);
+  budget = std::min(budget, nbVar);
 
-  std::vector<bool> inTarget(nbVar + 1, false);
-  for (unsigned i = 0; i < targetSize; i++) inTarget[order[i]] = true;
+  // Build clause lists per variable.
+  std::vector<std::vector<unsigned>> varClauses(nbVar + 1);
+  for (unsigned i = 0; i < numClauses; i++)
+    for (int l : clauses[i]) varClauses[std::abs(l)].push_back(i);
 
-  m_out << "c [HIGH-DEGREE] target vars=" << targetSize << "/" << nbVar
-        << " (ratio=" << m_targetRatio << ")\n";
+  // degree[v] = number of clauses containing v (used as tiebreaker).
+  std::vector<unsigned> degree(nbVar + 1, 0);
+  for (unsigned v = 1; v <= nbVar; v++) degree[v] = varClauses[v].size();
 
-  // Step 3: F_easy_0 — clauses entirely within V_target.
-  std::vector<bool> selected(clauses.size(), false);
+  // remaining[c] = number of variables in clause c not yet in V_easy.
+  std::vector<unsigned> remaining(numClauses);
+  for (unsigned i = 0; i < numClauses; i++)
+    remaining[i] = (unsigned)clauses[i].size();
+
+  // gain[v] = number of clauses that become covered the moment v is added,
+  //           i.e. clauses where v is currently the sole missing variable.
+  std::vector<unsigned> gain(nbVar + 1, 0);
+
+  // Initialise gain for unit clauses.
+  for (unsigned i = 0; i < numClauses; i++) {
+    if (remaining[i] == 1) gain[std::abs(clauses[i][0])]++;
+  }
+
   std::vector<bool> inVeasy(nbVar + 1, false);
+  std::vector<bool> covered(numClauses, false);
 
-  for (unsigned i = 0; i < clauses.size(); i++) {
-    bool fits = true;
-    for (int l : clauses[i])
-      if (!inTarget[std::abs(l)]) { fits = false; break; }
-    if (fits) {
-      selected[i] = true;
-      for (int l : clauses[i]) inVeasy[std::abs(l)] = true;
+  for (unsigned step = 0; step < budget; step++) {
+    // Pick the variable maximising gain; break ties by degree.
+    unsigned best = 0;
+    for (unsigned v = 1; v <= nbVar; v++) {
+      if (inVeasy[v]) continue;
+      if (best == 0 || gain[v] > gain[best] ||
+          (gain[v] == gain[best] && degree[v] > degree[best]))
+        best = v;
+    }
+    if (best == 0) break;
+
+    inVeasy[best] = true;
+
+    // Update all clauses that contain 'best'.
+    for (unsigned c : varClauses[best]) {
+      if (covered[c]) continue;
+      remaining[c]--;
+      if (remaining[c] == 0) {
+        covered[c] = true;
+      } else if (remaining[c] == 1) {
+        // Find the single variable still missing.
+        for (int l : clauses[c]) {
+          unsigned u = (unsigned)std::abs(l);
+          if (!inVeasy[u]) {
+            gain[u]++;
+            break;
+          }
+        }
+      }
     }
   }
 
-  // Step 4: extension — add clauses that don't grow V_easy.
-  for (unsigned i = 0; i < clauses.size(); i++) {
-    if (selected[i]) continue;
-    bool fits = true;
-    for (int l : clauses[i])
-      if (!inVeasy[std::abs(l)]) { fits = false; break; }
-    if (fits) selected[i] = true;
-  }
-
   std::vector<unsigned> result;
-  for (unsigned i = 0; i < clauses.size(); i++)
-    if (selected[i]) result.push_back(i);
+  for (unsigned i = 0; i < numClauses; i++)
+    if (covered[i]) result.push_back(i);
 
   unsigned vEasyCount = 0;
   for (unsigned v = 1; v <= nbVar; v++) if (inVeasy[v]) vEasyCount++;
 
-  m_out << "c [HIGH-DEGREE] F_easy clauses=" << result.size() << "/"
-        << clauses.size() << " vars=" << vEasyCount << "/" << nbVar << "\n";
+  m_out << "c [HIGH-DEGREE] budget=" << budget << "/" << nbVar
+        << " actual vars=" << vEasyCount
+        << " clauses=" << result.size() << "/" << numClauses << "\n";
 
   return result;
 }
