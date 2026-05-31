@@ -32,6 +32,7 @@
 #include "../semirings/MpzIntSemiring.hpp"
 #include "3rdParty/cadical/src/cadical.hpp"
 #include "QueryManager.hpp"
+#include "selectors/HighDegreeVariableSelector.hpp"
 #include "selectors/IterativePrimalCutSelector.hpp"
 #include "selectors/PrimalCutSelector.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
@@ -113,6 +114,16 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
   std::cout << "c [CUBE-COUNTER] F_easy DNNF nodes=" << sem.getNbNodes()
             << " edges=" << sem.getNbEdges() << '\n';
 
+  unsigned testCount = 0;
+  sem.enumeratePartialModels(D_easy, {}, formula.nbVar,
+                             [&](std::vector<d4::Lit>& sigma) {
+                               testCount++;
+                               std::cout << testCount << '\n';
+                               return;
+                             });
+
+  return;
+
   // --- Full counter (reused across all cubes) ---
   auto* fullCounter =
       new DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring>(
@@ -145,6 +156,8 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
   sem.enumeratePartialModels(
       D_easy, {}, formula.nbVar, [&](std::vector<d4::Lit>& sigma) {
         cubeCount++;
+        std::cout << cubeCount << '\n';
+        return;
 
         cadical.reset_assumptions();
         for (auto& l : sigma) cadical.assume(l.human());
@@ -153,6 +166,8 @@ static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
           prunedCount++;
           return;
         }
+
+        std::cout << "it is SAT then we have to count ...\n";
 
         total += fullCounter->count(allVars, sigma, nullStream);
 
@@ -199,8 +214,10 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
   std::vector<unsigned> easyClauses;
   if (strategy == "iterative-primal-cut") {
     unsigned depth = (unsigned)optionCubeCounter.maxDepth.get();
-    easyClauses =
-        IterativePrimalCutSelector(depth, std::cout).select(formula);
+    easyClauses = IterativePrimalCutSelector(depth, std::cout).select(formula);
+  } else if (strategy == "high-degree") {
+    double ratio = optionCubeCounter.targetRatio.get();
+    easyClauses = HighDegreeVariableSelector(ratio, std::cout).select(formula);
   } else {
     if (strategy != "primal-cut")
       std::cerr << "c [CUBE-COUNTER] unknown strategy '" << strategy

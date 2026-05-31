@@ -25,10 +25,11 @@ class OptionCubeCounter : public OptionGroup {
    * "iterative-primal-cut" — recursive bisection up to maxDepth levels;
    *                          F_easy = union of cut clauses at every level.
    */
-  Option<std::string> selectorStrategy{"selectorStrategy",
-                                       "Clause selection strategy for F_easy "
-                                       "(primal-cut|iterative-primal-cut)",
-                                       "primal-cut"};
+  Option<std::string> selectorStrategy{
+      "selectorStrategy",
+      "Clause selection strategy for F_easy "
+      "(primal-cut|iterative-primal-cut|high-degree)",
+      "primal-cut"};
 
   /**
    * @brief Maximum recursion depth for iterative-primal-cut.
@@ -36,8 +37,16 @@ class OptionCubeCounter : public OptionGroup {
   Option<int> maxDepth{
       "maxDepth", "Recursion depth for iterative-primal-cut (default 3)", 3};
 
+  /**
+   * @brief Fraction of variables to target for high-degree-variable strategy.
+   */
+  Option<double> targetRatio{
+      "targetRatio",
+      "Fraction of variables in V_target for high-degree-variable (default 0.1)",
+      0.1};
+
   std::vector<OptionBase*> getAllOptions() override {
-    return {&selectorStrategy, &maxDepth};
+    return {&selectorStrategy, &maxDepth, &targetRatio};
   }
 
   friend std::ostream& operator<<(std::ostream& out,
