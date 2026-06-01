@@ -35,16 +35,22 @@ cd c++/server       && ./build.sh    # server mode
 cd c++/cube-counter && ./build.sh    # cube-and-count model counting
 ```
 
-Build flags (`-d`, `-s`, `-p`, `-j`) are passed through to the library build.
+Build flags (`-d`, `-s`, `-p`, `-j`) are passed through to the library build. Each demo also has a `clean.sh`.
 
 ### Running tests
 
+There are no CTest targets — `ninja -C build/ test` will fail. All testing is done via shell scripts in `scripts/` that compare binary outputs against a reference solver.
+
 ```bash
-./test.sh                        # builds then runs ninja test
-ninja -C build/ test             # run tests directly after build
+# Run a single integration test (from the scripts/ directory):
+cd scripts/
+bash testModelCounter.sh instancesTest/cnfs/cnf10.cnf
+
+# Run the full quick regression suite:
+bash scripts/searchBadExitQuick.sh
 ```
 
-Integration test scripts are in `scripts/` (e.g., `testModelCounter.sh`, `testCompiler.sh`). These rely on the compiled binary from a demo.
+Test instances are in `instancesTest/cnfs/`, `instancesTest/circuits/`, `instancesTest/maxT/`. The scripts assume compiled binaries (`d4_static`, `minisat`) are present in `scripts/`; run the relevant demo build first.
 
 ## Architecture
 
@@ -64,16 +70,28 @@ The library is templated on a **semiring** — the same DPLL search engine can c
 | `src/partitioner/` | Hypergraph partitioning interface (delegates to PaToH on Linux) |
 | `src/treeDecompositioner/` | Tree decomposition via FlowCutter |
 | `src/representation/` | Graph/hypergraph extractors used by partitioner and tree decomposer |
-| `src/preprocs/` | BiPe preprocessor integration |
+| `src/preprocs/` | BiPe preprocessor integration (BiPe itself is fetched per-demo via CMake `FetchContent`) |
 | `src/utils/` | Buffer reading, equivalence extraction, AT-MOST-1 detection |
 
 ### Central algorithm: `DpllStyleMethod<T, O>`
 
 `DpllStyleMethod` (`src/methods/DpllStyleMethod.hpp`) inherits both `MethodManager` and `Counter<T>`. It implements a DPLL-style component search parameterized by:
 - `T` — the value type (e.g., `mpz::mpz_int`, `double`, `std::complex<double>`)
-- `O` — a semiring policy satisfying the `SemiringPolicy<T>` concept (`src/methods/SemiringConcept.hpp`)
+- `O` — a semiring policy satisfying the `SemiringPolicy<O, T>` concept (`src/methods/SemiringConcept.hpp`)
 
-The semiring must provide: `add`, `mul`, `zero`, `one`, `presetSum`, `presetMul`.
+The `SemiringPolicy` concept (defined in `src/methods/SemiringConcept.hpp`) requires:
+
+```cpp
+O(unsigned nbVars, const std::map<Lit, std::string>& weights);  // constructor
+ops.add(T& a, const T& b, units, free_vars);  // in-place add (handles projecting over free_vars)
+ops.mul(T& a, const T& b);                    // in-place multiply
+ops.zero()       -> T;                        // additive identity
+ops.one()        -> T;                        // multiplicative identity
+ops.presetSum(int) -> T;                      // preset constant for sum
+ops.presetMul(int) -> T;                      // preset constant for product
+```
+
+The `NumberType` concept (also in that file) requires `T` to support `+=` and `*=`.
 
 ### Semiring implementations (`c++/semirings/`)
 
@@ -83,13 +101,15 @@ Shared across demos, not part of the library itself:
 - `MpzComplexSemiring` — complex-weight counting
 - `DecDNNFSemiring` — builds a decision-DNNF node structure
 
+Each demo's entry point instantiates `DpllStyleMethod<T, SemiringType>(options, problem, cout)` with the appropriate semiring. See `c++/counter/src/CounterDemo.cpp` for the canonical wiring pattern.
+
 ### Options system
 
-Options are declared as `Option<T>` members of `OptionGroup` subclasses. `OptionDpllStyleMethod` composes sub-groups: `OptionCacheManager`, `OptionSolver`, `OptionBranchingHeuristic`, `OptionSpecManager`. Each demo defines its own extra option group (e.g., `OptionCompiler` adds `--dump-file` and `--query-file`).
+Options use the `optree` external library (fetched via `FetchContent`). `Option<T>` members live inside `OptionGroup` subclasses. `OptionDpllStyleMethod` composes sub-groups: `OptionCacheManager`, `OptionSolver`, `OptionBranchingHeuristic`, `OptionSpecManager`. Each demo defines its own extra option group that inherits from `OptionDpllStyleMethod` (e.g., `OptionCompiler` adds `--dump-file` and `--query-file`).
 
 ### Parser (`c++/parser/`)
 
-`ParserDimacs` is shared by all demos. Produces a `parser::Formula` containing variables, clauses, and literal weights. The compiler and counter demos include parser sources directly via CMake glob.
+`ParserDimacs` is shared by all demos. Produces a `parser::Formula` containing `clauses`, `nbVar`, `weightMap` (literal → weight string), `weightType` (INT/FLOAT/COMPLEX), and `quantifications` for QBF. Each demo includes parser sources directly via CMake glob.
 
 ### Third-party bundled libraries (`3rdParty/`)
 
@@ -110,3 +130,4 @@ Options are declared as `Option<T>` members of `OptionGroup` subclasses. `Option
 - `BUILD_MODE` CMake variable controls optimization: 0=release, 1=debug, 2=static, 3=profiling.
 - On Linux, `USE_PATOH` is defined automatically enabling hypergraph partitioning; on other platforms it is disabled silently.
 - Demo `build.sh` scripts propagate all flags (e.g., `-s -j`) to the parent `libd4.a` build before building the demo executable.
+- Glucose and FlowCutter are merged into `libd4.a` as CMake OBJECT libraries — they are not separate `.a` files.

@@ -26,23 +26,32 @@
 namespace d4 {
 
 /**
- * @brief Selects F_easy by targeting the highest-degree variables.
+ * @brief Cube-aware greedy selection of F_easy.
  *
- * 1. Rank variables by degree (number of clause occurrences), descending.
- * 2. Take the top `targetRatio` fraction as V_target.
- * 3. F_easy_0 = clauses whose variable support is entirely within V_target.
- * 4. V_easy   = variables that actually appear in F_easy_0.
- * 5. Extend   = add any remaining clause whose variables are all in V_easy
- *               (does not grow V_easy, so one pass suffices).
+ * The cost of cube-and-count is roughly (#cubes) x (cost per conditioned
+ * count), and #cubes equals the number of partial models of F_easy. Adding a
+ * variable to V_easy adds one free dimension (it ~doubles the cube count)
+ * unless it also completes clauses that constrain it. So this selector spends a
+ * budget slot only on a variable that actually closes at least one clause, and
+ * prefers closing SHORT clauses (which remove the largest fraction of the model
+ * space). A small seeding phase assembles the first clause; afterwards any
+ * variable that would complete nothing is rejected and the search stops, rather
+ * than inflating the cube count by filling the whole `targetRatio` budget.
+ *
+ * A clause is "covered" once all its variables are in V_easy; covered clauses
+ * form F_easy. (The caller's --extendEasy pass then absorbs any further clause
+ * already wholly inside V_easy.)
  */
 class HighDegreeVariableSelector : public ClauseSelector {
   double m_targetRatio;
+  double m_minBits;
   std::ostream& m_out;
 
  public:
   explicit HighDegreeVariableSelector(double targetRatio = 0.10,
+                                      double minBits = 1.0,
                                       std::ostream& out = std::cout)
-      : m_targetRatio(targetRatio), m_out(out) {}
+      : m_targetRatio(targetRatio), m_minBits(minBits), m_out(out) {}
 
   std::vector<unsigned> select(const parser::Formula& formula) override;
 };

@@ -109,7 +109,8 @@ int main(int argc, char** argv) {
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed = end - start;
-  std::cout << "c [CUBE-COUNTER] Elapsed time: " << elapsed.count() << " seconds\n";
+  std::cout << "c [CUBE-COUNTER] Elapsed time: " << elapsed.count()
+            << " seconds\n";
 
   return EXIT_SUCCESS;
 }  // main

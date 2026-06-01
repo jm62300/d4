@@ -43,7 +43,20 @@ class OptionCubeCounter : public OptionGroup {
   Option<double> targetRatio{"targetRatio",
                              "Fraction of variables in V_target for "
                              "high-degree-variable (default 0.1)",
-                             0.2};
+                             0.1};
+
+  /**
+   * @brief Minimum model-count reduction (in bits) a variable must contribute
+   *        to be added to V_easy by the high-degree selector, beyond the first
+   *        seeded clause. A variable adds one free dimension (+1 bit) to F_easy;
+   *        1.0 keeps the estimated cube count non-increasing, lower values trade
+   *        more clauses (better decomposition) for more cubes.
+   */
+  Option<double> hdMinBits{
+      "hdMinBits",
+      "Min model-count reduction (bits) to add a variable in high-degree "
+      "(default 1.0)",
+      1.0};
 
   /**
    * @brief After the selector runs, absorb every remaining clause whose
@@ -70,7 +83,7 @@ class OptionCubeCounter : public OptionGroup {
       "strengthen",
       "Derive implied clauses over vars(F_easy) before compilation "
       "(none|resolution|sat)",
-      "sat"};
+      "none"};
 
   /**
    * @brief Wall-clock time limit (seconds) for the sat strengthening phase.
@@ -79,9 +92,43 @@ class OptionCubeCounter : public OptionGroup {
       "strengthenTime",
       "Time limit for sat strengthening in seconds (default 30)", 30.0};
 
+  /**
+   * @brief Maximum resolution steps per derivation path for the resolution
+   *        strengthening strategy.
+   */
+  Option<int> strengthenSteps{
+      "strengthenSteps",
+      "Max resolution steps per derivation for resolution strengthening "
+      "(default 10)",
+      10};
+
+  /**
+   * @brief Maximum number of new V_easy clauses to collect before stopping
+   *        the resolution strengthening search.
+   */
+  Option<int> strengthenMaxClauses{
+      "strengthenMaxClauses",
+      "Max new clauses to derive via resolution strengthening (default 100)",
+      100};
+
+  /**
+   * @brief Maximum |P|×|N| product allowed when eliminating an outside
+   *        variable in the elimination strengthening strategy.  Variables
+   *        whose elimination would produce more resolvents than this are
+   *        skipped.  Pure variables (one polarity absent) are always free.
+   */
+  Option<int> strengthenMaxProduct{
+      "strengthenMaxProduct",
+      "Max |P|x|N| resolvent budget per variable for elimination strengthening "
+      "(default 20)",
+      20};
+
   std::vector<OptionBase*> getAllOptions() override {
-    return {&selectorStrategy, &maxDepth,   &targetRatio,
-            &extendEasy,       &strengthen, &strengthenTime};
+    return {&selectorStrategy,    &maxDepth,
+            &targetRatio,         &hdMinBits,
+            &extendEasy,          &strengthen,
+            &strengthenTime,      &strengthenSteps,
+            &strengthenMaxClauses, &strengthenMaxProduct};
   }
 
   friend std::ostream& operator<<(std::ostream& out,

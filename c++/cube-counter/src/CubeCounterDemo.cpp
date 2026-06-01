@@ -78,19 +78,26 @@ static d4::ProblemManager buildProblem(
 // ---------------------------------------------------------------------------
 
 /**
- * @brief Single-step resolution into V_easy.
+ * @brief Multi-step resolution into V_easy.
  *
- * For each clause in F with exactly one variable outside V_easy, resolve it
- * with every clause containing the negation of that variable. Keep resolvents
- * whose variable support is entirely within V_easy.
+ * BFS over resolution derivations: starting from every clause in F that has
+ * at least one variable outside V_easy, repeatedly resolve on outside-variable
+ * pivots using original F clauses until the derived clause is fully within
+ * V_easy (success) or the step budget is exhausted (pruned).
+ *
+ * Guards:
+ *  - maxSteps: max resolution steps per derivation path.
+ *  - maxNewClauses: stop after collecting this many new V_easy clauses.
+ *  - kMaxClauseSize: discard resolvents larger than this (prevents blowup).
+ *  - visited set: each distinct intermediate clause is explored at most once.
  */
 static std::vector<std::vector<int>> strengthenByResolution(
     const parser::Formula& formula, const std::vector<bool>& inVeasy,
-    std::ostream& out) {
+    int maxSteps, int maxNewClauses, std::ostream& out) {
   const unsigned nbVar = formula.nbVar;
   const auto& clauses = formula.clauses;
+  static constexpr int kMaxClauseSize = 20;
 
-  // literal → clause indices  (positive lit l → index 2l, negative → 2|l|+1)
   auto litIdx = [](int l) -> unsigned {
     return l > 0 ? (unsigned)(2 * l) : (unsigned)(2 * (-l) + 1);
   };
@@ -98,7 +105,7 @@ static std::vector<std::vector<int>> strengthenByResolution(
   for (unsigned i = 0; i < clauses.size(); i++)
     for (int l : clauses[i]) litToClauses[litIdx(l)].push_back(i);
 
-  // Existing clauses (to avoid adding duplicates)
+  // All original clauses (sorted) — used to skip already-known clauses.
   std::set<std::vector<int>> existing;
   for (const auto& cl : clauses) {
     auto s = cl;
@@ -106,27 +113,76 @@ static std::vector<std::vector<int>> strengthenByResolution(
     existing.insert(s);
   }
 
-  std::set<std::vector<int>> newSet;
+  // visited prevents re-exploring the same intermediate clause.
+  std::set<std::vector<int>> visited;
 
-  for (unsigned i = 0; i < clauses.size(); i++) {
-    int outsideLit = 0;
-    bool moreThanOne = false;
-    for (int l : clauses[i]) {
+  // BFS queue: (sorted clause, steps_remaining).
+  std::deque<std::pair<std::vector<int>, int>> queue;
+
+  for (const auto& cl : clauses) {
+    bool hasOutside = false;
+    for (int l : cl)
       if (!inVeasy[std::abs(l)]) {
-        if (outsideLit) {
-          moreThanOne = true;
-          break;
-        }
-        outsideLit = l;
+        hasOutside = true;
+        break;
       }
-    }
-    if (moreThanOne || !outsideLit) continue;
+    if (!hasOutside) continue;
+    auto s = cl;
+    std::sort(s.begin(), s.end());
+    if (visited.insert(s).second) queue.push_back({s, maxSteps});
+  }
 
-    for (unsigned j : litToClauses[litIdx(-outsideLit)]) {
+  out << "c [STRENGTHEN-RES] starting BFS: seed_clauses=" << queue.size()
+      << " max_steps=" << maxSteps << " max_new=" << maxNewClauses << "\n";
+  out.flush();
+
+  std::vector<std::vector<int>> result;
+  unsigned long long iters = 0;
+  static constexpr unsigned long long kLogEvery = 50000;
+
+  while (!queue.empty() && (int)result.size() < maxNewClauses) {
+    auto [current, stepsLeft] = queue.front();
+    queue.pop_front();
+    iters++;
+
+    if (iters % kLogEvery == 0) {
+      out << "c [STRENGTHEN-RES] iters=" << iters
+          << " found=" << result.size() << "/" << maxNewClauses
+          << " queue=" << queue.size()
+          << " visited=" << visited.size() << "\n";
+      out.flush();
+    }
+
+    // Find the first outside-variable pivot.
+    int pivot = 0;
+    for (int l : current)
+      if (!inVeasy[std::abs(l)]) {
+        pivot = l;
+        break;
+      }
+
+    if (!pivot) {
+      // Clause is fully in V_easy.
+      if (!existing.count(current)) {
+        result.push_back(current);
+        existing.insert(current);
+        out << "c [STRENGTHEN-RES] new clause #" << result.size()
+            << " (size=" << current.size() << "): ";
+        for (int l : current) out << l << ' ';
+        out << "\n";
+        out.flush();
+      }
+      continue;
+    }
+
+    if (stepsLeft == 0) continue;
+
+    // Resolve current on pivot with every F clause containing ¬pivot.
+    for (unsigned j : litToClauses[litIdx(-pivot)]) {
       std::map<int, bool> res;
       bool taut = false;
-      for (int l : clauses[i]) {
-        if (std::abs(l) == std::abs(outsideLit)) continue;
+      for (int l : current) {
+        if (std::abs(l) == std::abs(pivot)) continue;
         if (res.count(-l)) {
           taut = true;
           break;
@@ -135,7 +191,7 @@ static std::vector<std::vector<int>> strengthenByResolution(
       }
       if (taut) continue;
       for (int l : clauses[j]) {
-        if (std::abs(l) == std::abs(outsideLit)) continue;
+        if (std::abs(l) == std::abs(pivot)) continue;
         if (res.count(-l)) {
           taut = true;
           break;
@@ -143,24 +199,164 @@ static std::vector<std::vector<int>> strengthenByResolution(
         res[l] = true;
       }
       if (taut) continue;
-
-      bool allInVeasy = true;
-      for (auto& [l, _] : res)
-        if (!inVeasy[std::abs(l)]) {
-          allInVeasy = false;
-          break;
-        }
-      if (!allInVeasy) continue;
+      if ((int)res.size() > kMaxClauseSize) continue;
 
       std::vector<int> resolvent;
+      resolvent.reserve(res.size());
       for (auto& [l, _] : res) resolvent.push_back(l);
       std::sort(resolvent.begin(), resolvent.end());
-      if (!existing.count(resolvent)) newSet.insert(resolvent);
+
+      if (visited.insert(resolvent).second)
+        queue.push_back({resolvent, stepsLeft - 1});
     }
   }
 
-  std::vector<std::vector<int>> result(newSet.begin(), newSet.end());
-  out << "c [STRENGTHEN-RES] new clauses=" << result.size() << "\n";
+  out << "c [STRENGTHEN-RES] max_steps=" << maxSteps
+      << " max_new=" << maxNewClauses << " new_clauses=" << result.size()
+      << " queue_remaining=" << queue.size() << "\n";
+  return result;
+}
+
+/**
+ * @brief Exact projection of F onto V_easy via bounded variable elimination
+ *        (Davis-Putnam procedure).
+ *
+ * For each outside variable v (not in V_easy), all clauses mentioning v are
+ * replaced by their pairwise resolvents on v, then v is dropped.  This
+ * computes the exact V_easy projection for every eliminated variable.
+ *
+ * Cost control:
+ *   - Pure variables (appear only positive or only negative) are eliminated
+ *     for free — their clauses impose no V_easy constraint and are dropped.
+ *   - For the rest, elimination is only performed when |P|×|N| ≤ maxProduct.
+ *   - Each round picks the cheapest remaining variable (min-fill heuristic).
+ *   - The loop terminates when no variable satisfies the budget.
+ *
+ * Why this works when BFS resolution does not: BFS tries to build derivation
+ * paths from individual seed clauses; it misses derivations that go through
+ * intermediate resolvents and explodes when branching is wide.  Variable
+ * elimination processes each outside variable completely in one shot —
+ * all information about v is folded into resolvents before v is removed.
+ */
+static std::vector<std::vector<int>> strengthenByElimination(
+    const parser::Formula& formula, const std::vector<bool>& inVeasy,
+    int maxProduct, std::ostream& out) {
+  const unsigned nbVar = formula.nbVar;
+
+  // Working formula — deduplicated, every clause stored sorted.
+  std::set<std::vector<int>> workingSet;
+  for (const auto& cl : formula.clauses) {
+    auto s = cl;
+    std::sort(s.begin(), s.end());
+    workingSet.insert(s);
+  }
+
+  // eliminated[v] = true means v no longer appears in workingSet.
+  std::vector<bool> done(nbVar + 1, false);
+  for (unsigned v = 1; v <= nbVar; v++)
+    if (inVeasy[v]) done[v] = true;  // V_easy vars are kept, not eliminated
+
+  out << "c [STRENGTHEN-VE] start formula_size=" << workingSet.size()
+      << " max_product=" << maxProduct << "\n";
+  out.flush();
+
+  unsigned nEliminated = 0;
+
+  while (true) {
+    // Count positive/negative occurrences for each remaining outside var.
+    std::vector<int> posCount(nbVar + 1, 0), negCount(nbVar + 1, 0);
+    for (const auto& cl : workingSet)
+      for (int l : cl) {
+        unsigned v = (unsigned)std::abs(l);
+        if (!done[v]) (l > 0 ? posCount[v] : negCount[v])++;
+      }
+
+    // Pick cheapest outside variable: pure vars first (cost 0), then min |P|×|N|.
+    unsigned bestV = 0;
+    long bestCost = (long)maxProduct + 1;
+    for (unsigned v = 1; v <= nbVar; v++) {
+      if (done[v]) continue;
+      long cost = (posCount[v] == 0 || negCount[v] == 0)
+                      ? 0
+                      : (long)posCount[v] * negCount[v];
+      if (cost <= maxProduct && cost < bestCost) {
+        bestCost = cost;
+        bestV = v;
+      }
+    }
+    if (!bestV) break;
+
+    // Partition: clauses with +v, clauses with -v, the rest.
+    std::vector<std::vector<int>> P, N;
+    std::set<std::vector<int>> nextSet;
+    for (const auto& cl : workingSet) {
+      bool hasPos = false, hasNeg = false;
+      for (int l : cl) {
+        if (l == (int)bestV) hasPos = true;
+        if (l == -(int)bestV) hasNeg = true;
+      }
+      if (!hasPos && !hasNeg) nextSet.insert(cl);  // unaffected
+      else if (hasPos) P.push_back(cl);
+      else N.push_back(cl);
+    }
+
+    out << "c [STRENGTHEN-VE] elim var=" << bestV << " |P|=" << P.size()
+        << " |N|=" << N.size() << " rest=" << nextSet.size() << "\n";
+    out.flush();
+
+    // Resolve every P clause against every N clause on bestV.
+    unsigned newResolvents = 0;
+    for (const auto& cp : P) {
+      for (const auto& cn : N) {
+        std::map<int, bool> res;
+        bool taut = false;
+        for (int l : cp) {
+          if ((unsigned)std::abs(l) == bestV) continue;
+          if (res.count(-l)) { taut = true; break; }
+          res[l] = true;
+        }
+        if (taut) continue;
+        for (int l : cn) {
+          if ((unsigned)std::abs(l) == bestV) continue;
+          if (res.count(-l)) { taut = true; break; }
+          res[l] = true;
+        }
+        if (taut) continue;
+        std::vector<int> r;
+        r.reserve(res.size());
+        for (auto& [l, _] : res) r.push_back(l);
+        std::sort(r.begin(), r.end());
+        if (nextSet.insert(r).second) newResolvents++;
+      }
+    }
+
+    out << "c [STRENGTHEN-VE]   new_resolvents=" << newResolvents
+        << " formula_size=" << nextSet.size() << "\n";
+    out.flush();
+
+    workingSet = std::move(nextSet);
+    done[bestV] = true;
+    nEliminated++;
+  }
+
+  // Extract clauses that are new and fully within V_easy.
+  std::set<std::vector<int>> original;
+  for (const auto& cl : formula.clauses) {
+    auto s = cl;
+    std::sort(s.begin(), s.end());
+    original.insert(s);
+  }
+
+  std::vector<std::vector<int>> result;
+  for (const auto& cl : workingSet) {
+    bool allInVeasy = true;
+    for (int l : cl)
+      if (!inVeasy[(unsigned)std::abs(l)]) { allInVeasy = false; break; }
+    if (allInVeasy && !original.count(cl)) result.push_back(cl);
+  }
+
+  out << "c [STRENGTHEN-VE] eliminated=" << nEliminated
+      << " new_veasy_clauses=" << result.size() << "\n";
   return result;
 }
 
@@ -394,7 +590,9 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
     easyClauses = IterativePrimalCutSelector(depth, std::cout).select(formula);
   } else if (strategy == "high-degree") {
     double ratio = optionCubeCounter.targetRatio.get();
-    easyClauses = HighDegreeVariableSelector(ratio, std::cout).select(formula);
+    double minBits = optionCubeCounter.hdMinBits.get();
+    easyClauses =
+        HighDegreeVariableSelector(ratio, minBits, std::cout).select(formula);
   } else {
     if (strategy != "primal-cut")
       std::cerr << "c [CUBE-COUNTER] unknown strategy '" << strategy
@@ -435,7 +633,15 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
   std::vector<std::vector<int>> extraClauses;
   const std::string strengthen = optionCubeCounter.strengthen.get();
   if (strengthen == "resolution") {
-    extraClauses = strengthenByResolution(formula, inVeasy, std::cout);
+    extraClauses =
+        strengthenByResolution(formula, inVeasy,
+                               optionCubeCounter.strengthenSteps.get(),
+                               optionCubeCounter.strengthenMaxClauses.get(),
+                               std::cout);
+  } else if (strengthen == "elimination") {
+    extraClauses = strengthenByElimination(
+        formula, inVeasy, optionCubeCounter.strengthenMaxProduct.get(),
+        std::cout);
   } else if (strengthen == "sat") {
     extraClauses =
         strengthenBySat(formula, easyClauses, inVeasy,
