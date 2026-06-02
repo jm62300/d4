@@ -35,7 +35,7 @@ cd "$SCRIPT_DIR"
 mkdir -p build
 cd build
 
-export GITLAB_TOKEN="glpat-XpIZ4boV_wOSId8eNA54cm86MQp1OjJpcAk.01.0z0mopjl8"
+export GITLAB_TOKEN_LOGICAL="${GITLAB_TOKEN_LOGICAL:-glpat-eHavaAslBimi87EABf6MIW86MQp1OjJpdgk.01.0z0dxf0ko}"
 
 echo "c [BUILD] Configuring CMake..."
 cmake .. $CMAKE_FLAGS 
@@ -47,4 +47,5 @@ echo "c [BUILD] Build complete! A monolithic libd4.a has been created natively."
 
 if [ -f "$SCRIPT_DIR/completion.bash" ]; then
     source "$SCRIPT_DIR/completion.bash"
+    export -f _d4_completions
 fi

@@ -11,14 +11,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # ==============================================================================
 # --- bipe library integration ---
 # ==============================================================================
-if(NOT DEFINED ENV{GITLAB_TOKEN_BIPE})
-    set(ENV{GITLAB_TOKEN_BIPE} "glpat-qUDVlQvGqWdzeybeOMEtGW86MQp1OjJpcQk.01.0z0ox1ec6")
-endif()
-
 include(FetchContent)
-set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/preprocessing/bipe.git")
+set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
 if(DEFINED ENV{GITLAB_TOKEN_BIPE})
-    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_BIPE}@gitlab.univ-artois.fr/preprocessing/bipe.git")
+    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_BIPE}@gitlab.univ-artois.fr/logical/bipe.git")
+elseif(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
+    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/bipe.git")
 endif()
 FetchContent_Declare(
     bipe
