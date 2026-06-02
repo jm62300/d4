@@ -60,7 +60,6 @@ CURRENT_DIR="$PWD"
 cd "$D4_ROOT_DIR"
 
 export GITLAB_TOKEN_LOGICAL="${GITLAB_TOKEN_LOGICAL:-glpat-eHavaAslBimi87EABf6MIW86MQp1OjJpdgk.01.0z0dxf0ko}"
-export GITLAB_TOKEN_BIPE="${GITLAB_TOKEN_BIPE:-glpat-qUDVlQvGqWdzeybeOMEtGW86MQp1OjJpcQk.01.0z0ox1ec6}"
 
 # Pass ALL arguments (e.g., -s -j) down to the parent script
 ./build.sh "$@"
