@@ -72,8 +72,8 @@ add_subdirectory(3rdParty/flowCutter)
 # ==============================================================================
 include(FetchContent)
 set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
-if(DEFINED ENV{GITLAB_TOKEN})
-    set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN}@gitlab.univ-artois.fr/logical/optree.git")
+if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
+    set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git")
 endif()
 FetchContent_Declare(
     optree
