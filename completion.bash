@@ -9,6 +9,7 @@ _d4_completions()
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
     if [[ ${prev} == "-i" || ${prev} == "--inputName" ]] ; then
         COMPREPLY=( $(compgen -f -X "!*.cnf" -- "${cur}") $(compgen -d -- "${cur}") )
+        compopt -o filenames 2>/dev/null
         return 0
     fi
 

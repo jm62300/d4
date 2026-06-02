@@ -90,6 +90,8 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
 
   virtual void getCore() = 0;
   virtual void getLastIUP(Lit l) = 0;
+  virtual double getCadicalTime() { return 0.0; }
+  virtual unsigned getCadicalCalls() { return 0; }
 
   /**
      Check out if a variable is already in the assumption.

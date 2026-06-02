@@ -31,6 +31,8 @@ class WrapperGlucose : public WrapperSolver {
   Glucose::vec<Glucose::Var> m_setOfVar_m;
 
   CaDiCaL::Solver cadical;
+  double m_cadicalTime = 0.0;
+  unsigned m_cadicalCalls = 0;
 
   using WrapperSolver::m_isInAssumption;
 
@@ -69,5 +71,7 @@ class WrapperGlucose : public WrapperSolver {
 
   inline unsigned getNbConflict() override { return m_solver.conflicts; }
   inline bool isUnsat() override { return !m_solver.okay(); }
+  inline double getCadicalTime() override { return m_cadicalTime; }
+  inline unsigned getCadicalCalls() override { return m_cadicalCalls; }
 };
 }  // namespace d4

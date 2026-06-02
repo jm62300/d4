@@ -284,6 +284,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_specs->printInformation(out);
     m_cache->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
+    out << "c CaDiCaL calls: " << m_solver->getCadicalCalls() << "\n";
+    out << "c CaDiCaL time: " << m_solver->getCadicalTime() << "\n";
     out << "c\n";
   }  // printFinalStat
 
@@ -366,7 +368,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
-
     // if (m_nbCallCall > 500000) exit(0);
 
     if (!m_solver->backbone(setOfVar)) return m_semiringOps.zero();

@@ -74,7 +74,10 @@ bool WrapperGlucose::solve(std::span<const Var> setOfVar) {
   // static int cpt = 0;
   // std::cout << ++cpt << " call the solver " << m_solver.learnts.size() <<
   // '\n';
-  if (m_activeModel && m_needModel) return true;
+  if (m_activeModel && m_needModel) {
+    // std::cout << "no need for calling a solver\n";
+    return true;
+  }
 
   m_setOfVar_m.setSize(0);
   for (auto& v : setOfVar) m_setOfVar_m.push(v);
@@ -85,9 +88,19 @@ bool WrapperGlucose::solve(std::span<const Var> setOfVar) {
     // set the assumption.
     // std::cout << "call cadical\n";
     cadical.reset_assumptions();
-    for (auto& l : m_assumption) cadical.assume(l.human());
 
+    for (auto& l : m_assumption) {
+      std::cout << l.human() << " 0\n";
+      cadical.assume(l.human());
+    }
+    std::cout << "c \n";
+
+    std::clock_t cadicalStart = std::clock();
     int satCallRes = cadical.solve();
+    double current = (double)(std::clock() - cadicalStart) / CLOCKS_PER_SEC;
+    m_cadicalTime += current;
+    std::cout << current << " Time needed to solve\n";
+    ++m_cadicalCalls;
     m_activeModel = satCallRes == 10;
 
     if (m_activeModel) {
