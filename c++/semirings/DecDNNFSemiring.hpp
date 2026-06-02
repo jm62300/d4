@@ -862,5 +862,244 @@ class DecDNNFSemiring {
 
   inline unsigned getNbNodes() const { return m_idCurrentNode; }
   inline unsigned getNbEdges() const { return m_idEdge; }
+
+  /**
+   * @brief Build a Tseitin encoding of the AND structure of this Dec-DNNF.
+   *
+   * Assigns a fresh SAT variable x_n = (tseitinOffset + n) to every node n.
+   * For each AND node: adds implication clauses -x_n ∨ x_ci for each child ci,
+   * so that assuming x_n propagates to all children.  OR nodes get no clauses
+   * (their branching is handled externally).  BOT (0) is forced false, TOP (1)
+   * is forced true.
+   *
+   * The addClause callback receives a zero-terminated literal array in DIMACS
+   * convention (positive = true, negative = false).  The caller is responsible
+   * for loading these into whatever SAT solver it uses.
+   *
+   * @param root        Root node of the DNNF.
+   * @param tsOffset    First fresh variable index: node n maps to tsOffset+n.
+   * @param addClause   Called once per clause with a {lit…, 0} vector.
+   */
+  void buildTseitin(
+      Node root, unsigned tsOffset,
+      const std::function<void(const std::vector<int>&)>& addClause) const {
+    // Force BOT=false, TOP=true.
+    addClause({-(int)(tsOffset + 0), 0});
+    addClause({(int)(tsOffset + 1), 0});
+
+    // Traverse the DNNF (iterative DFS, each node visited once).
+    std::vector<bool> visited(m_idCurrentNode, false);
+    std::vector<Node> stack;
+    stack.push_back(root);
+
+    while (!stack.empty()) {
+      Node cur = stack.back();
+      stack.pop_back();
+      if (visited[cur]) continue;
+      visited[cur] = true;
+
+      if (cur == 0 || cur == 1) continue;  // BOT/TOP already handled
+
+      const NodeStruct& info = m_nodeInfo[cur];
+      uint8_t* ptr = m_pages[info.page] + info.posInPage;
+      int xCur = (int)(tsOffset + cur);
+
+      if (info.typeNode == NODE_AND) {
+        for (unsigned i = 0; i < info.nbSons; i++) {
+          Node child = *((Node*)ptr);
+          ptr += sizeof(Node);
+          // -x_cur ∨ x_child
+          addClause({-xCur, (int)(tsOffset + child), 0});
+          if (!visited[child]) stack.push_back(child);
+        }
+      } else if (info.typeNode == NODE_OR) {
+        for (unsigned i = 0; i < info.nbSons; i++) {
+          Node target = ((Edge*)ptr)->target;
+          ptr += sizeof(Edge);
+          if (!visited[target]) stack.push_back(target);
+        }
+      }
+    }
+  }
+
+  /**
+   * @brief Like enumeratePartialModels but calls shouldPrune before recursing
+   * into each OR branch.
+   *
+   * @param shouldPrune Called as shouldPrune(target, current_partial_model)
+   *                    where current_partial_model already contains the edge
+   *                    units for this branch.  Return true to skip the branch.
+   * @param onModel     Called for each surviving complete partial model.
+   */
+  void enumeratePartialModelsWithPruning(
+      Node n, const std::vector<d4::Lit>& assums, unsigned nbVar,
+      const std::function<bool(Node, const std::vector<d4::Lit>&)>& shouldPrune,
+      const std::function<void(std::vector<d4::Lit>&)>& onModel) const {
+    std::vector<uint8_t> valuation(nbVar + 1, 2);
+    for (auto& l : assums) valuation[l.var()] = l.sign();
+
+    // Pass 1: compute subSat (identical to enumeratePartialModels).
+    enum Status { NOT_PROCESS, IN_PROCESS, DONE };
+    std::vector<Status> status(m_idCurrentNode, NOT_PROCESS);
+    std::vector<int8_t> subSat(m_idCurrentNode, -1);
+    subSat[0] = 0;
+    subSat[1] = 1;
+    status[0] = DONE;
+    status[1] = DONE;
+
+    std::vector<Node> evalStack;
+    evalStack.push_back(n);
+    while (!evalStack.empty()) {
+      Node cur = evalStack.back();
+      const NodeStruct& info = m_nodeInfo[cur];
+      switch (status[cur]) {
+        case NOT_PROCESS: {
+          status[cur] = IN_PROCESS;
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+          if (info.typeNode == NODE_AND) {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (status[s] == NOT_PROCESS) evalStack.push_back(s);
+            }
+          } else {
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node t = ((Edge*)ptr)->target;
+              ptr += sizeof(Edge);
+              EdgeInfo& ei =
+                  m_edgeInfo[((Edge*)(m_pages[info.page] + info.posInPage))[i]
+                                 .idEdge];
+              unsigned* tab = (unsigned*)(m_pages[ei.page] + ei.posInPage);
+              bool conflict = false;
+              while (*tab) {
+                d4::Lit l = d4::Lit::makeLit(*tab >> 1, *tab & 1);
+                tab++;
+                if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+                  conflict = true;
+                  break;
+                }
+              }
+              if (!conflict && status[t] == NOT_PROCESS) evalStack.push_back(t);
+            }
+          }
+          break;
+        }
+        case IN_PROCESS: {
+          status[cur] = DONE;
+          uint8_t* ptr = m_pages[info.page] + info.posInPage;
+          if (info.typeNode == NODE_AND) {
+            subSat[cur] = 1;
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Node s = *((Node*)ptr);
+              ptr += sizeof(Node);
+              if (subSat[s] == 0) {
+                subSat[cur] = 0;
+                break;
+              }
+            }
+          } else {
+            subSat[cur] = 0;
+            for (unsigned i = 0; i < info.nbSons; i++) {
+              Edge& e = *((Edge*)ptr);
+              ptr += sizeof(Edge);
+              EdgeInfo& ei = m_edgeInfo[e.idEdge];
+              unsigned* tab = (unsigned*)(m_pages[ei.page] + ei.posInPage);
+              bool conflict = false;
+              while (*tab) {
+                d4::Lit l = d4::Lit::makeLit(*tab >> 1, *tab & 1);
+                tab++;
+                if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+                  conflict = true;
+                  break;
+                }
+              }
+              if (!conflict && subSat[e.target] == 1) {
+                subSat[cur] = 1;
+                break;
+              }
+            }
+          }
+          evalStack.pop_back();
+          break;
+        }
+        case DONE:
+          evalStack.pop_back();
+          break;
+      }
+    }
+    if (subSat[n] != 1) return;
+
+    // Pass 2: backtracking enumeration with SAT pruning at OR branches.
+    std::vector<Node> stack;
+    stack.push_back(n);
+    std::vector<d4::Lit> current_pm = assums;
+
+    auto backtrack = [&](auto& self) -> void {
+      if (stack.empty()) {
+        onModel(current_pm);
+        return;
+      }
+      Node cur = stack.back();
+      stack.pop_back();
+      if (cur == 1) {
+        self(self);
+        stack.push_back(cur);
+        return;
+      }
+
+      const NodeStruct& info = m_nodeInfo[cur];
+      uint8_t* ptr = m_pages[info.page] + info.posInPage;
+
+      if (info.typeNode == NODE_AND) {
+        for (int i = (int)info.nbSons - 1; i >= 0; i--)
+          stack.push_back(*((Node*)(ptr + i * sizeof(Node))));
+        self(self);
+        for (unsigned i = 0; i < info.nbSons; i++) stack.pop_back();
+        stack.push_back(cur);
+      } else {
+        for (unsigned i = 0; i < info.nbSons; i++) {
+          Edge& e = *((Edge*)ptr);
+          ptr += sizeof(Edge);
+          if (subSat[e.target] != 1) continue;
+
+          EdgeInfo& ei = m_edgeInfo[e.idEdge];
+          unsigned* tab = (unsigned*)(m_pages[ei.page] + ei.posInPage);
+
+          bool conflict = false;
+          unsigned added = 0;
+          unsigned* scan = tab;
+          while (*scan) {
+            d4::Lit l = d4::Lit::makeLit(*scan >> 1, *scan & 1);
+            scan++;
+            if (valuation[l.var()] != 2 && valuation[l.var()] != l.sign()) {
+              conflict = true;
+              break;
+            }
+          }
+          if (conflict) continue;
+
+          while (*tab) {
+            d4::Lit l = d4::Lit::makeLit(*tab >> 1, *tab & 1);
+            tab++;
+            if (valuation[l.var()] == 2) {
+              current_pm.push_back(l);
+              added++;
+            }
+          }
+
+          // SAT-based pruning: ask caller if this branch should be skipped.
+          bool prune = shouldPrune(e.target, current_pm);
+          if (!prune) {
+            stack.push_back(e.target);
+            self(self);
+            stack.pop_back();
+          }
+          for (unsigned j = 0; j < added; j++) current_pm.pop_back();
+        }
+        stack.push_back(cur);
+      }
+    };
+    backtrack(backtrack);
+  }
 };
 }  // namespace semiring

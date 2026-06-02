@@ -19,7 +19,10 @@
 
 #include "CubeCounterDemo.hpp"
 
+#include <fcntl.h>
 #include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/integer.hpp>
@@ -98,6 +101,14 @@ static std::vector<std::vector<int>> strengthenByResolution(
   const auto& clauses = formula.clauses;
   static constexpr int kMaxClauseSize = 20;
 
+  // Print a clause annotating each literal: lit(E) if var is in V_easy, (O) if
+  // outside.
+  auto printClause = [&](const std::vector<int>& cl) {
+    for (int l : cl) {
+      out << l << '(' << (inVeasy[(unsigned)std::abs(l)] ? 'E' : 'O') << ") ";
+    }
+  };
+
   auto litIdx = [](int l) -> unsigned {
     return l > 0 ? (unsigned)(2 * l) : (unsigned)(2 * (-l) + 1);
   };
@@ -119,44 +130,74 @@ static std::vector<std::vector<int>> strengthenByResolution(
   // BFS queue: (sorted clause, steps_remaining).
   std::deque<std::pair<std::vector<int>, int>> queue;
 
+  // Collect seeds: clauses with at least 1 outside variable, sorted by
+  // ascending outside count so the cheapest derivations are tried first.
+  struct Seed {
+    std::vector<int> cl;
+    unsigned outside;
+  };
+  std::vector<Seed> seeds;
   for (const auto& cl : clauses) {
-    bool hasOutside = false;
+    unsigned outsideCount = 0;
     for (int l : cl)
-      if (!inVeasy[std::abs(l)]) {
-        hasOutside = true;
-        break;
-      }
-    if (!hasOutside) continue;
+      if (!inVeasy[(unsigned)std::abs(l)]) outsideCount++;
+    if (outsideCount == 0) continue;  // already in V_easy, skip
     auto s = cl;
     std::sort(s.begin(), s.end());
-    if (visited.insert(s).second) queue.push_back({s, maxSteps});
+    seeds.push_back({s, outsideCount});
+  }
+  std::sort(seeds.begin(), seeds.end(),
+            [](const Seed& a, const Seed& b) { return a.outside < b.outside; });
+
+  // Print distribution of outside counts before queuing.
+  {
+    std::map<unsigned, unsigned> dist;
+    for (const auto& s : seeds) dist[s.outside]++;
+    out << "c [STRENGTHEN-RES] seed distribution by #outside: ";
+    for (auto& [k, v] : dist) out << k << "-outside:" << v << " ";
+    out << "\n";
   }
 
-  out << "c [STRENGTHEN-RES] starting BFS: seed_clauses=" << queue.size()
+  unsigned seedIdx = 0;
+  for (const auto& seed : seeds) {
+    if (visited.insert(seed.cl).second) {
+      queue.push_back({seed.cl, maxSteps});
+      out << "c [STRENGTHEN-RES] seed #" << ++seedIdx
+          << " (outside=" << seed.outside << "): ";
+      printClause(seed.cl);
+      out << "\n";
+    }
+  }
+  out.flush();
+
+  out << "c [STRENGTHEN-RES] total_seeds=" << seedIdx
       << " max_steps=" << maxSteps << " max_new=" << maxNewClauses << "\n";
   out.flush();
 
   std::vector<std::vector<int>> result;
   unsigned long long iters = 0;
-  static constexpr unsigned long long kLogEvery = 50000;
 
   while (!queue.empty() && (int)result.size() < maxNewClauses) {
     auto [current, stepsLeft] = queue.front();
     queue.pop_front();
     iters++;
 
-    if (iters % kLogEvery == 0) {
-      out << "c [STRENGTHEN-RES] iters=" << iters
-          << " found=" << result.size() << "/" << maxNewClauses
-          << " queue=" << queue.size()
-          << " visited=" << visited.size() << "\n";
-      out.flush();
-    }
+    // Count outside vars in current clause.
+    unsigned nOutside = 0;
+    for (int l : current)
+      if (!inVeasy[(unsigned)std::abs(l)]) nOutside++;
+
+    out << "c [STRENGTHEN-RES] iter=" << iters << " steps_left=" << stepsLeft
+        << " clause(size=" << current.size() << ", outside=" << nOutside
+        << "): ";
+    printClause(current);
+    out << "\n";
+    out.flush();
 
     // Find the first outside-variable pivot.
     int pivot = 0;
     for (int l : current)
-      if (!inVeasy[std::abs(l)]) {
+      if (!inVeasy[(unsigned)std::abs(l)]) {
         pivot = l;
         break;
       }
@@ -166,19 +207,35 @@ static std::vector<std::vector<int>> strengthenByResolution(
       if (!existing.count(current)) {
         result.push_back(current);
         existing.insert(current);
-        out << "c [STRENGTHEN-RES] new clause #" << result.size()
-            << " (size=" << current.size() << "): ";
-        for (int l : current) out << l << ' ';
+        out << "c [STRENGTHEN-RES] => NEW V_easy clause #" << result.size()
+            << ": ";
+        printClause(current);
         out << "\n";
+        out.flush();
+      } else {
+        out << "c [STRENGTHEN-RES] => already known, skipped\n";
         out.flush();
       }
       continue;
     }
 
-    if (stepsLeft == 0) continue;
+    if (stepsLeft == 0) {
+      out << "c [STRENGTHEN-RES] => steps exhausted, pivot=" << pivot
+          << "(O), dropping\n";
+      out.flush();
+      continue;
+    }
+
+    out << "c [STRENGTHEN-RES]   pivot=" << pivot << "(O), resolving with "
+        << litToClauses[litIdx(-pivot)].size() << " clause(s) containing "
+        << -pivot << "\n";
+    out.flush();
 
     // Resolve current on pivot with every F clause containing ¬pivot.
     for (unsigned j : litToClauses[litIdx(-pivot)]) {
+      out << "c [STRENGTHEN-RES]     with F[" << j << "]: ";
+      printClause(clauses[j]);
+
       std::map<int, bool> res;
       bool taut = false;
       for (int l : current) {
@@ -189,31 +246,54 @@ static std::vector<std::vector<int>> strengthenByResolution(
         }
         res[l] = true;
       }
-      if (taut) continue;
-      for (int l : clauses[j]) {
-        if (std::abs(l) == std::abs(pivot)) continue;
-        if (res.count(-l)) {
-          taut = true;
-          break;
+      if (!taut) {
+        for (int l : clauses[j]) {
+          if (std::abs(l) == std::abs(pivot)) continue;
+          if (res.count(-l)) {
+            taut = true;
+            break;
+          }
+          res[l] = true;
         }
-        res[l] = true;
       }
-      if (taut) continue;
-      if ((int)res.size() > kMaxClauseSize) continue;
+
+      if (taut) {
+        out << "=> tautology\n";
+        out.flush();
+        continue;
+      }
+      if ((int)res.size() > kMaxClauseSize) {
+        out << "=> too large (" << res.size() << "), skipped\n";
+        out.flush();
+        continue;
+      }
 
       std::vector<int> resolvent;
       resolvent.reserve(res.size());
       for (auto& [l, _] : res) resolvent.push_back(l);
       std::sort(resolvent.begin(), resolvent.end());
 
-      if (visited.insert(resolvent).second)
+      unsigned rOutside = 0;
+      for (int l : resolvent)
+        if (!inVeasy[(unsigned)std::abs(l)]) rOutside++;
+
+      out << "=> resolvent(size=" << resolvent.size()
+          << ", outside=" << rOutside << "): ";
+      printClause(resolvent);
+
+      if (visited.insert(resolvent).second) {
         queue.push_back({resolvent, stepsLeft - 1});
+        out << "  [queued]\n";
+      } else {
+        out << "  [already visited]\n";
+      }
+      out.flush();
     }
   }
 
-  out << "c [STRENGTHEN-RES] max_steps=" << maxSteps
-      << " max_new=" << maxNewClauses << " new_clauses=" << result.size()
-      << " queue_remaining=" << queue.size() << "\n";
+  out << "c [STRENGTHEN-RES] done: iters=" << iters
+      << " new_clauses=" << result.size() << " queue_remaining=" << queue.size()
+      << "\n";
   return result;
 }
 
@@ -271,7 +351,8 @@ static std::vector<std::vector<int>> strengthenByElimination(
         if (!done[v]) (l > 0 ? posCount[v] : negCount[v])++;
       }
 
-    // Pick cheapest outside variable: pure vars first (cost 0), then min |P|×|N|.
+    // Pick cheapest outside variable: pure vars first (cost 0), then min
+    // |P|×|N|.
     unsigned bestV = 0;
     long bestCost = (long)maxProduct + 1;
     for (unsigned v = 1; v <= nbVar; v++) {
@@ -295,9 +376,12 @@ static std::vector<std::vector<int>> strengthenByElimination(
         if (l == (int)bestV) hasPos = true;
         if (l == -(int)bestV) hasNeg = true;
       }
-      if (!hasPos && !hasNeg) nextSet.insert(cl);  // unaffected
-      else if (hasPos) P.push_back(cl);
-      else N.push_back(cl);
+      if (!hasPos && !hasNeg)
+        nextSet.insert(cl);  // unaffected
+      else if (hasPos)
+        P.push_back(cl);
+      else
+        N.push_back(cl);
     }
 
     out << "c [STRENGTHEN-VE] elim var=" << bestV << " |P|=" << P.size()
@@ -312,13 +396,19 @@ static std::vector<std::vector<int>> strengthenByElimination(
         bool taut = false;
         for (int l : cp) {
           if ((unsigned)std::abs(l) == bestV) continue;
-          if (res.count(-l)) { taut = true; break; }
+          if (res.count(-l)) {
+            taut = true;
+            break;
+          }
           res[l] = true;
         }
         if (taut) continue;
         for (int l : cn) {
           if ((unsigned)std::abs(l) == bestV) continue;
-          if (res.count(-l)) { taut = true; break; }
+          if (res.count(-l)) {
+            taut = true;
+            break;
+          }
           res[l] = true;
         }
         if (taut) continue;
@@ -351,7 +441,10 @@ static std::vector<std::vector<int>> strengthenByElimination(
   for (const auto& cl : workingSet) {
     bool allInVeasy = true;
     for (int l : cl)
-      if (!inVeasy[(unsigned)std::abs(l)]) { allInVeasy = false; break; }
+      if (!inVeasy[(unsigned)std::abs(l)]) {
+        allInVeasy = false;
+        break;
+      }
     if (allInVeasy && !original.count(cl)) result.push_back(cl);
   }
 
@@ -380,6 +473,7 @@ static std::vector<std::vector<int>> strengthenBySat(
   // Solver for enumerating models of F_easy (gets all blocking clauses).
   CaDiCaL::Solver enumSolver;
   enumSolver.set("quiet", 1);
+  enumSolver.set("simplify", 1);
   enumSolver.declare_more_variables(nbVar);
   for (unsigned idx : easyClauses) {
     for (int l : clauses[idx]) enumSolver.add(l);
@@ -441,6 +535,127 @@ static std::vector<std::vector<int>> strengthenBySat(
 }
 
 /**
+ * @brief Pre-strengthen F_easy before DNNF compilation.
+ *
+ * Repeatedly: ask a SAT solver for a model of F_easy; check it against F
+ * (simplify=0 so failed() is reliable); if UNSAT, extract the core and add
+ * its negation as a new implied clause back into F_easy; if SAT, the model is
+ * genuine — block it in the enumeration solver but do NOT add anything to
+ * F_easy (that would lose models). Stops after maxIter iterations or when
+ * F_easy has no more models.
+ *
+ * Returns the list of new clauses (implied by F) to add to F_easy before
+ * compilation. Adding them reduces spurious cubes in the DNNF.
+ */
+static std::vector<std::vector<int>> preStrengthenFEasy(
+    const parser::Formula& formula, const std::vector<unsigned>& easyClauses,
+    const std::vector<std::vector<int>>& currentExtra,
+    const std::vector<bool>& inVeasy, int maxIter, std::ostream& out) {
+  const unsigned nbVar = formula.nbVar;
+  const auto& clauses = formula.clauses;
+
+  std::vector<unsigned> veasyVars;
+  for (unsigned v = 1; v <= nbVar; v++)
+    if (inVeasy[v]) veasyVars.push_back(v);
+
+  // Enumerate models of F_easy (including already-derived extra clauses).
+  CaDiCaL::Solver enumSolver;
+  enumSolver.set("quiet", 1);
+  enumSolver.declare_more_variables(nbVar);
+  for (unsigned idx : easyClauses) {
+    for (int l : clauses[idx]) enumSolver.add(l);
+    enumSolver.add(0);
+  }
+  for (const auto& cl : currentExtra) {
+    for (int l : cl) enumSolver.add(l);
+    enumSolver.add(0);
+  }
+
+  // Checker against F' = F \ F_easy — simplify=0 for reliable failed().
+  // σ satisfies F_easy by construction so F ∧ σ ≡ F' ∧ σ.
+  std::vector<bool> isEasy(clauses.size(), false);
+  for (unsigned idx : easyClauses) isEasy[idx] = true;
+
+  CaDiCaL::Solver fullSolver;
+  fullSolver.set("quiet", 1);
+  fullSolver.set("simplify", 0);
+  fullSolver.declare_more_variables(nbVar);
+  for (unsigned i = 0; i < clauses.size(); i++) {
+    if (isEasy[i]) continue;
+    for (int l : clauses[i]) fullSolver.add(l);
+    fullSolver.add(0);
+  }
+
+  std::vector<std::vector<int>> newClauses;
+  unsigned satSeen = 0, unsatBlocked = 0;
+
+  out << "c [PRE-STRENGTHEN] starting: maxIter=" << maxIter
+      << " |V_easy|=" << veasyVars.size() << "\n";
+  out.flush();
+
+  for (int iter = 0; iter < maxIter; iter++) {
+    if (enumSolver.solve() != 10) {
+      out << "c [PRE-STRENGTHEN] F_easy exhausted after " << iter
+          << " iterations\n";
+      break;
+    }
+
+    // Extract V_easy model.
+    std::vector<int> sigma;
+    sigma.reserve(veasyVars.size());
+    for (unsigned v : veasyVars)
+      sigma.push_back(enumSolver.val(v) > 0 ? (int)v : -(int)v);
+
+    // Rephase: flip every V_easy variable to the opposite of its current
+    // assignment so the next solve explores a different region of the space.
+    for (int l : sigma) enumSolver.phase(-l);
+
+    // Check against F.
+    fullSolver.reset_assumptions();
+    for (int l : sigma) fullSolver.assume(l);
+
+    if (fullSolver.solve() == 10) {
+      // Genuine model — block in enumSolver only, don't touch F_easy.
+      satSeen++;
+      for (int l : sigma) enumSolver.add(-l);
+      enumSolver.add(0);
+      out << "c [PRE-STRENGTHEN] iter=" << iter
+          << " SAT (genuine model, blocked)\n";
+      out.flush();
+      continue;
+    }
+
+    // Spurious model — extract core via failed() and add negated core to
+    // F_easy.
+    unsatBlocked++;
+    std::vector<int> blocking;
+    for (int l : sigma)
+      if (fullSolver.failed(l)) blocking.push_back(-l);
+
+    if (blocking.empty()) {
+      // Fallback: use full sigma (should not happen with simplify=0).
+      for (int l : sigma) blocking.push_back(-l);
+    }
+
+    // Add to both solvers: implied by F' so safe to strengthen F_easy.
+    for (int l : blocking) enumSolver.add(l);
+    enumSolver.add(0);
+    newClauses.push_back(blocking);
+
+    out << "c [PRE-STRENGTHEN] iter=" << iter
+        << " UNSAT: core=" << blocking.size() << "/" << sigma.size()
+        << " clause:";
+    for (int l : blocking) out << ' ' << l;
+    out << "\n";
+    out.flush();
+  }
+
+  out << "c [PRE-STRENGTHEN] done: new_clauses=" << newClauses.size()
+      << " unsat_blocked=" << unsatBlocked << " sat_seen=" << satSeen << "\n";
+  return newClauses;
+}
+
+/**
  * @brief Core cube-and-count implementation.
  *
  * 1. Compiles F_easy (given by easyClauses) into a decision-DNNF.
@@ -454,10 +669,13 @@ static std::vector<std::vector<int>> strengthenBySat(
  * independent components created by the primal cut, which the full counter
  * exploits automatically through its component analysis.
  */
-static void cubeAndCount(
-    const OptionDpllStyleMethod& inputConfig, const ProblemManager& fullProblem,
-    const parser::Formula& formula, const std::vector<unsigned>& easyClauses,
-    const std::vector<std::vector<int>>& extraClauses = {}) {
+static void cubeAndCount(const OptionDpllStyleMethod& inputConfig,
+                         const ProblemManager& fullProblem,
+                         const parser::Formula& formula,
+                         const std::vector<unsigned>& easyClauses,
+                         const std::vector<std::vector<int>>& extraClauses,
+                         unsigned maxCubes,
+                         const std::string& externSolver = "") {
   d4::OptionDpllStyleMethod options = inputConfig;
   options.operationType = d4::OperationTypeManager::getOperatorType("counting");
   if (options.optionCacheManager.optionBucketManager.clauseRepresentation ==
@@ -466,12 +684,6 @@ static void cubeAndCount(
 
   std::cout << "c [CUBE-COUNTER] F_easy: " << easyClauses.size() << '/'
             << formula.clauses.size() << " clauses\n";
-
-  for (auto idx : easyClauses) {
-    std::cout << "  [clause" << idx << "]";
-    for (auto l : formula.clauses[idx]) std::cout << l << ' ';
-    std::cout << '\n';
-  }
 
   // --- Compile F_easy (plus any strengthening clauses) ---
   d4::ProblemManager easyProblem =
@@ -485,18 +697,21 @@ static void cubeAndCount(
 
   std::cout << "c [CUBE-COUNTER] F_easy DNNF nodes=" << sem.getNbNodes()
             << " edges=" << sem.getNbEdges() << '\n';
-#if 1
-  unsigned testCount = 0;
-  sem.enumeratePartialModels(D_easy, {}, formula.nbVar,
-                             [&](std::vector<d4::Lit>& sigma) {
-                               testCount++;
-                               return;
-                             });
-  std::cout << "the number of cubes is " << testCount << '\n';
 
-  return;
-#endif
-  // --- Full counter (reused across all cubes) ---
+  // --- Fast cube count: polynomial DNNF traversal, no per-cube solving ---
+  unsigned cubeCount = 0;
+  sem.enumeratePartialModels(D_easy, {}, formula.nbVar,
+                             [&](std::vector<d4::Lit>&) { cubeCount++; });
+  std::cout << "c [CUBE-COUNTER] cube_count=" << cubeCount
+            << " max_cubes=" << maxCubes << '\n';
+
+  // --- Null stream: suppress per-cube counter log output ---
+  struct NullBuf : std::streambuf {
+    int overflow(int c) override { return c; }
+  } nullBuf;
+  std::ostream nullStream(&nullBuf);
+
+  // --- Full counter (reused across all cubes, or for the fallback) ---
   auto* fullCounter =
       new DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring>(
           options, fullProblem, std::cout);
@@ -505,59 +720,119 @@ static void cubeAndCount(
   allVars.reserve(formula.nbVar);
   for (unsigned i = 1; i <= formula.nbVar; i++) allVars.push_back(i);
 
-  // --- SAT checker for full formula (prunes unsatisfiable cubes) ---
-  CaDiCaL::Solver cadical;
-  cadical.set("quiet", 1);
-  cadical.declare_more_variables(formula.nbVar);
-  for (const auto& cl : formula.clauses) {
-    for (auto l : cl) cadical.add(l);
-    cadical.add(0);
+  mpz::mpz_int total = 0;
+  std::vector<bool> isEasy(formula.clauses.size(), false);
+  for (unsigned idx : easyClauses) isEasy[idx] = true;
+
+  // --- Pre-serialize F' (used by both solver paths) ---
+  std::string fPrimeBody;
+  unsigned fPrimeCount = 0;
+  {
+    std::ostringstream oss;
+    for (unsigned i = 0; i < formula.clauses.size(); i++) {
+      if (isEasy[i]) continue;
+      for (auto l : formula.clauses[i]) oss << l << ' ';
+      oss << "0\n";
+      fPrimeCount++;
+    }
+    fPrimeBody = oss.str();
   }
 
-  // --- Null stream: suppress per-cube counter log output ---
-  struct NullBuf : std::streambuf {
-    int overflow(int c) override { return c; }
-  } nullBuf;
-  std::ostream nullStream(&nullBuf);
+  // --- Build the per-cube UNSAT check function ---
+  // Two paths: external solver (e.g. Kissat) or built-in CaDiCaL.
+  std::function<bool(const std::vector<d4::Lit>&)> isUNSAT;
+
+  // External solver path: pipe DIMACS to /dev/stdin.
+  std::string tmpPipe = "/dev/stdin";
+  if (!externSolver.empty()) {
+    std::cout << "c [CUBE-COUNTER] using external solver: " << externSolver
+              << "\n";
+    // Use fork+execvp directly (no shell), ~5x less overhead than popen.
+    isUNSAT = [&](const std::vector<d4::Lit>& sigma) -> bool {
+      int pipefd[2];
+      if (pipe(pipefd) != 0) return false;
+
+      pid_t pid = fork();
+      if (pid == 0) {
+        // Child: stdin = read end of pipe, stdout/stderr = /dev/null.
+        dup2(pipefd[0], STDIN_FILENO);
+        close(pipefd[1]);
+        close(pipefd[0]);
+        int devnull = open("/dev/null", O_WRONLY);
+        if (devnull >= 0) {
+          dup2(devnull, STDOUT_FILENO);
+          dup2(devnull, STDERR_FILENO);
+          close(devnull);
+        }
+        const char* argv[] = {externSolver.c_str(), "--quiet", "/dev/stdin",
+                              nullptr};
+        execvp(externSolver.c_str(), const_cast<char* const*>(argv));
+        _exit(1);
+      }
+      close(pipefd[0]);
+      // Parent: write DIMACS to pipe write end.
+      FILE* f = fdopen(pipefd[1], "w");
+      fprintf(f, "p cnf %u %u\n", formula.nbVar,
+              fPrimeCount + (unsigned)sigma.size());
+      fwrite(fPrimeBody.c_str(), 1, fPrimeBody.size(), f);
+      for (const auto& l : sigma) fprintf(f, "%d 0\n", l.human());
+      fclose(f);  // closes pipefd[1], signals EOF to child
+
+      int status = 0;
+      waitpid(pid, &status, 0);
+      return WEXITSTATUS(status) == 20;
+    };
+  } else {
+    // Built-in CaDiCaL path with core learning.
+    // simplify=0: reliable failed() for core extraction.
+    auto* cadical = new CaDiCaL::Solver();
+    cadical->set("quiet", 1);
+    cadical->set("simplify", 0);
+    cadical->declare_more_variables(formula.nbVar);
+    for (unsigned i = 0; i < formula.clauses.size(); i++) {
+      if (isEasy[i]) continue;
+      for (auto l : formula.clauses[i]) cadical->add(l);
+      cadical->add(0);
+    }
+    isUNSAT = [cadical](const std::vector<d4::Lit>& sigma) -> bool {
+      cadical->reset_assumptions();
+      for (const auto& l : sigma) cadical->assume(l.human());
+      if (cadical->solve() != 20) return false;
+      return true;
+    };
+  }
 
   // --- Enumerate and count ---
-  mpz::mpz_int total = 0;
-  unsigned cubeCount = 0, prunedCount = 0;
+  unsigned prunedCount = 0, enumCount = 0;
   auto wallStart = std::chrono::steady_clock::now();
 
   sem.enumeratePartialModels(
       D_easy, {}, formula.nbVar, [&](std::vector<d4::Lit>& sigma) {
-        cubeCount++;
-        std::cout << cubeCount << "the size of sigma is " << sigma.size()
-                  << "\n";
-
-        cadical.reset_assumptions();
-        for (auto& l : sigma) cadical.assume(l.human());
-
-        if (cadical.solve() == 20) {
-          std::cout << "it is unsat\n";
+        enumCount++;
+        if (isUNSAT(sigma)) {
           prunedCount++;
-          return;
+        } else {
+          total += fullCounter->count(allVars, sigma, nullStream);
         }
-
-        std::cout << "it is SAT then we have to count ...\n";
-
-        total += fullCounter->count(allVars, sigma, nullStream);
-
-        auto now = std::chrono::steady_clock::now();
-        double t = std::chrono::duration<double>(now - wallStart).count();
-        std::cout << "c cube " << cubeCount << " pruned=" << prunedCount
-                  << " total=" << total << " t=" << t << "s\n";
+        if (enumCount % 100 == 0 || enumCount == cubeCount) {
+          auto t = std::chrono::duration<double>(
+                       std::chrono::steady_clock::now() - wallStart)
+                       .count();
+          std::cout << "c cube " << enumCount << '/' << cubeCount
+                    << " pruned=" << prunedCount << " total=" << total
+                    << " t=" << std::fixed << std::setprecision(2) << t
+                    << "s\n";
+        }
       });
 
   double elapsed = std::chrono::duration<double>(
                        std::chrono::steady_clock::now() - wallStart)
                        .count();
+  std::cout << "c [CUBE-COUNTER] cubes=" << enumCount
+            << " pruned=" << prunedCount << " time=" << std::fixed
+            << std::setprecision(2) << elapsed << "s\n";
 
-  std::cout << "c [CUBE-COUNTER] cubes=" << cubeCount
-            << " pruned=" << prunedCount << " time=" << elapsed << "s\n";
   std::cout << "s " << total << '\n';
-
   delete easyCompiler;
   delete fullCounter;
 }
@@ -575,12 +850,16 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
       CACHE_INDEX)
     options.optionSpecManager.needFastNotSatisfied = true;
 
-  // All clause indices for the full formula.
+  // All clause indices — kept for reference; fullProblem is built from F'
+  // (= F \ F_easy) once easyClauses is known, since every cube already
+  // satisfies F_easy by construction.
   std::vector<unsigned> allClauses;
   allClauses.reserve(formula.clauses.size());
   for (unsigned i = 0; i < formula.clauses.size(); i++) allClauses.push_back(i);
 
-  d4::ProblemManager fullProblem = buildProblem(formula, allClauses, std::cout);
+  // fullProblem placeholder — rebuilt below once easyClauses is known.
+  // (declared here so it is in scope for cubeAndCount)
+  std::unique_ptr<d4::ProblemManager> fullProblemPtr;
 
   const std::string strategy = optionCubeCounter.selectorStrategy.get();
 
@@ -633,11 +912,9 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
   std::vector<std::vector<int>> extraClauses;
   const std::string strengthen = optionCubeCounter.strengthen.get();
   if (strengthen == "resolution") {
-    extraClauses =
-        strengthenByResolution(formula, inVeasy,
-                               optionCubeCounter.strengthenSteps.get(),
-                               optionCubeCounter.strengthenMaxClauses.get(),
-                               std::cout);
+    extraClauses = strengthenByResolution(
+        formula, inVeasy, optionCubeCounter.strengthenSteps.get(),
+        optionCubeCounter.strengthenMaxClauses.get(), std::cout);
   } else if (strengthen == "elimination") {
     extraClauses = strengthenByElimination(
         formula, inVeasy, optionCubeCounter.strengthenMaxProduct.get(),
@@ -648,5 +925,31 @@ void cubeCounter(const d4::OptionDpllStyleMethod& inputConfig,
                         optionCubeCounter.strengthenTime.get(), std::cout);
   }
 
-  cubeAndCount(options, fullProblem, formula, easyClauses, extraClauses);
+  // SAT-based pre-strengthening: enumerate spurious models of F_easy, add
+  // their negated cores to F_easy before DNNF compilation.
+  const int preStrengthenIter = optionCubeCounter.preStrengthen.get();
+  if (preStrengthenIter > 0) {
+    auto extra2 = preStrengthenFEasy(formula, easyClauses, extraClauses,
+                                     inVeasy, preStrengthenIter, std::cout);
+    extraClauses.insert(extraClauses.end(), extra2.begin(), extra2.end());
+  }
+
+  // Build fullProblem from F' = F \ F_easy.  Every cube σ satisfies F_easy
+  // by construction, so F ∧ σ ≡ F' ∧ σ.  Fewer clauses → faster counting.
+  {
+    std::vector<bool> isEasy(formula.clauses.size(), false);
+    for (unsigned idx : easyClauses) isEasy[idx] = true;
+    std::vector<unsigned> hardClauses;
+    hardClauses.reserve(formula.clauses.size() - easyClauses.size());
+    for (unsigned i = 0; i < formula.clauses.size(); i++)
+      if (!isEasy[i]) hardClauses.push_back(i);
+    std::cout << "c [CUBE-COUNTER] F'=F\\F_easy: " << hardClauses.size() << "/"
+              << formula.clauses.size() << " clauses\n";
+    fullProblemPtr = std::make_unique<d4::ProblemManager>(
+        buildProblem(formula, hardClauses, std::cout));
+  }
+
+  cubeAndCount(options, *fullProblemPtr, formula, easyClauses, extraClauses,
+               (unsigned)optionCubeCounter.maxCubes.get(),
+               optionCubeCounter.externSolver.get());
 }

@@ -1,4 +1,4 @@
-# Cube-counter session notes (2026-06-01)
+# Cube-counter session notes (updated 2026-06-02)
 
 ## Architecture
 
@@ -11,10 +11,14 @@ Flow:
 3. If `--extendEasy` is on (default): absorb every remaining clause whose
    variables are all already in `vars(F_easy)` — does not grow the variable
    set, strengthens F_easy for free.
-4. Optionally strengthen F_easy with implied V_easy clauses (see below).
-5. `cubeAndCount()` compiles F_easy into a decision-DNNF, enumerates its
-   partial models (cubes), and for each cube counts the full formula
-   conditioned on that cube via `DpllStyleMethod<mpz_int, MpzIntSemiring>`.
+4. Optionally strengthen F_easy (see below).
+5. Build **F' = F \ F_easy** — used for SAT checking and counting, since every
+   cube already satisfies F_easy by construction.
+6. `cubeAndCount()` compiles F_easy into a decision-DNNF, does a fast
+   first-pass cube count (polynomial DAG traversal), and either:
+   - Falls back to direct counting if `cube_count > --maxCubes`, OR
+   - Enumerates cubes and for each cube counts F' conditioned on that cube
+     via `DpllStyleMethod<mpz_int, MpzIntSemiring>`.
 
 Empty F_easy is valid: produces one empty cube → plain direct count.
 
@@ -24,73 +28,28 @@ Empty F_easy is valid: produces one empty cube → plain direct count.
 |---|---|---|
 | `primal-cut` | `PrimalCutSelector` | Primal hypergraph bisection (PaToH); returns cut clauses |
 | `iterative-primal-cut` | `IterativePrimalCutSelector` | Recursive bisection up to `--maxDepth` levels |
-| `high-degree` *(default)* | `HighDegreeVariableSelector` | Gain-based greedy — see below |
+| `high-degree` *(default)* | `HighDegreeVariableSelector` | Iterative neighbourhood expansion — see below |
 
-### high-degree strategy — REWORKED 2026-06-01 (cube-aware), VALIDATION PENDING
+### high-degree strategy (rewritten 2026-06-02)
 
-**Objective (clarified with user):** minimise **end-to-end runtime**, keeping
-the variable-ratio budget. Runtime ≈ (#cubes) × (cost of counting F | cube),
-and **#cubes == number of partial models of F_easy**.
+**Algorithm:**
+1. V = {}
+2. While |V| < `targetRatio * nbVar`:
+   - Pick v* = arg max_{v ∉ V} occ[v] (occurrence in original F)
+   - V ← V ∪ (all variables in every clause containing v*)
+   - F_easy ← {c ∈ F : var(c) ⊆ V}  ← clauses *fully* inside V
+3. Return F_easy
 
-**Key model:** `log2(#cubes) ≈ |V_easy| − Σ_{c∈F_easy} −log2(1 − 2^−|c|)`.
-Adding a variable to V_easy adds **one free dimension (+1 bit ≈ ×2 cubes)**
-unless it also *completes* clauses that constrain it back down. A completed
-binary clause is worth only `−log2(1−1/4) = 0.415` bits, ternary `0.193`, etc.
-So a variable that completes a single binary clause STILL grows the cube count.
+Key: one-hop neighbourhood expansion around each seed. The `--targetRatio`
+(default 0.15 = 15%) bounds |V|. The old cube-aware gain-based code is gone.
 
-**Why the old version was useless:** it always spent the *entire* variable
-budget, adding variables even when they completed no clause (tie-broken on raw
-`degree`). Every such free variable ~doubled the cube count. Measured on
-`test.cnf` (460 var / 794 cl) at ratio 0.1: 46 vars → 68 clauses but
-**162903 cubes**.
-
-**New algorithm (`HighDegreeVariableSelector.cpp`):**
-- `constraintBits[s] = −log2(1 − 2^−s)` precomputed (short clauses dominate).
-- `completion[v]` = Σ constraintBits over clauses `v` would complete now
-  (clauses where `v` is the sole missing variable); maintained incrementally.
-- `seedScore[v]` = Σ `2^−remaining[c]` — closeness potential, used ONLY while
-  F_easy is still empty, to pick the first seed variable(s).
-- Loop each step: if any var can complete a clause, pick max `completion`
-  (degree tiebreak); else seeding move pick max `seedScore`.
-  - Seeding moves (complete nothing, pure +1 bit) allowed only to assemble the
-    FIRST clause, capped at `kMaxSeed = min(budget, max(2, maxClauseSize))`.
-  - After seeding, **reject any variable with `completion[best] < kMinBits`**
-    and stop — this is the gate that prevents cube explosion. `kMinBits`
-    defaults to 1.0 (net non-increasing cube estimate).
-- Reports `~cubes` estimate in the `c [HIGH-DEGREE] ...` log line.
-
-`m_minBits` is a new constructor param (default 1.0), wired to the new
-`--hdMinBits` option.
-
-**STATUS: NOT YET VALIDATED.** The `--hdMinBits 1.0` gate was just built but the
-confirming run on `test.cnf` was interrupted before results. **First thing to do
-next session:** run and confirm the gate actually crushes the cube count:
-
-```bash
-cd c++/cube-counter && ./build.sh -j
-for r in 0.1 0.2 0.3 0.5; do
-  ./build/cube-counter -i test.cnf --targetRatio $r 2>&1 \
-    | grep -E 'HIGH-DEGREE|cubes is'
-done
-```
-
-Expectation: `~cubes` (estimate) and the real "the number of cubes is N" should
-now both be small (single/low double digits) instead of 160k–360k, because the
-gate stops adding variables once they no longer pay for their dimension.
-
-**Open risk / next tuning:** the gate may make F_easy *too* small on some
-instances (few clauses → each conditioned count ≈ full formula → no
-decomposition speedup, but never worse than ~direct count). The trade-off dial
-is `--hdMinBits`: lower (<1.0) admits more variables/clauses (better
-decomposition, more cubes), higher is stricter. This can only be tuned against
-**real end-to-end runtime**, which requires removing the `#if 1` debug guard in
-`cubeAndCount()` (see Pending) so the actual counting loop runs.
-
-**Earlier dead-end (do not repeat):** an α-decay "partial credit / clustering"
-potential was tried first — it grows a dense variable community and *maximised
-clauses*, but that is the WRONG objective: at fixed 46 vars it gave 71 clauses
-yet **359992 cubes** (worse than old). Clause count is not the right proxy;
-cube count (model count of F_easy) is.
+**Key observation on `mc2025_track1_033.cnf`:**
+- At targetRatio=0.15 → ~193,880 cubes, 99%+ pruning rate.
+- Root cause: max-occurrence vars are hub nodes; conditioning on them does NOT
+  decompose the primal graph. F_easy is structurally thin.
+- The `primal-cut` selector is the theoretically correct choice for
+  decomposition (it finds actual graph separators via PaToH), but has not been
+  tested on this instance yet.
 
 ## Options (`OptionCubeCounter`)
 
@@ -98,74 +57,78 @@ cube count (model count of F_easy) is.
 |---|---|---|
 | `--selectorStrategy` | `high-degree` | Which selector to use |
 | `--maxDepth` | 3 | Recursion depth for iterative-primal-cut |
-| `--targetRatio` | 0.1 | Variable budget fraction for high-degree (hard cap) |
-| `--hdMinBits` | 1.0 | Min model-count reduction (bits) to add a var in high-degree; 1.0 = non-increasing cube estimate, lower = more clauses/more cubes |
+| `--targetRatio` | 0.15 | Variable budget fraction for high-degree |
+| `--hdMinBits` | 1.0 | (unused in current selector — kept for compat) |
+| `--maxCubes` | 1000 | Max F_easy cube count before falling back to direct counting |
 | `--extendEasy` | `true` | After selection, absorb clauses that don't grow `vars(F_easy)` |
-| `--strengthen` | `none` | Derive implied clauses over `vars(F_easy)` before compilation (`none`\|`resolution`\|`sat`) |
-| `--strengthenTime` | `30.0` | Wall-clock time limit in seconds for the `sat` strengthen phase |
-| `--strengthenSteps` | `10` | Max resolution steps per derivation path (resolution strategy) |
-| `--strengthenMaxClauses` | `100` | Max new V_easy clauses to collect (resolution strategy) |
+| `--strengthen` | `none` | Derive implied clauses over `vars(F_easy)` before compilation (`none`\|`resolution`\|`elimination`\|`sat`) |
+| `--strengthenTime` | `30.0` | Time limit for `sat` strengthen phase |
+| `--strengthenSteps` | `10` | Max resolution steps per derivation path |
+| `--strengthenMaxClauses` | `100` | Max new V_easy clauses to collect |
+| `--strengthenMaxProduct` | `20` | Max \|P\|×\|N\| resolvent budget per variable (elimination) |
+| `--preStrengthen` | `0` | SAT-based pre-strengthening iterations before DNNF compilation (0=off) |
+| `--externSolver` | `""` | Path to external SAT solver binary for per-cube checks (empty = CaDiCaL) |
 
-### Strengthen strategies
+## F' optimisation (2026-06-02)
 
-**`resolution`** — multi-step BFS over resolution derivations.
-Starting from every clause in F that has at least one variable outside V_easy,
-repeatedly resolves on outside-variable pivots using original F clauses.
-A path succeeds when the derived clause lands fully within V_easy.
+Every cube σ produced by the DNNF enumerator satisfies F_easy by construction.
+Therefore **F ∧ σ ≡ F' ∧ σ** where F' = F \ F_easy.
 
-Bounds that prevent blowup:
-- `--strengthenSteps`: max resolution steps per path (default 10).
-- `--strengthenMaxClauses`: stop after collecting this many new clauses (default 100).
-- `kMaxClauseSize = 20`: discard resolvents larger than this.
-- Visited set on intermediate clause content: each distinct intermediate is
-  explored at most once.
+Both the per-cube SAT checker (CaDiCaL) and the full counter
+(`DpllStyleMethod`) are built from F' only — fewer clauses, faster
+propagation, correct counts.
 
-Previous single-step version added zero clauses in practice because it required
-exactly 1 outside variable; the multi-step BFS handles the common case where
-multiple outside variables must be resolved away in sequence.
+## Per-cube SAT checker — CaDiCaL with core learning
 
-**`sat`** — enumerate models of F_easy with a dedicated CaDiCaL instance.
-For each model UNSAT w.r.t. F, extract the minimal failing core via
-`failed()` and add its negation as a new clause to F_easy (implied by F →
-correctness preserved). SAT models are blocked in the enumeration solver only.
-Stops after `--strengthenTime` seconds.
+The checker uses `simplify=0` (pure CDCL) so `failed()` returns a genuine
+subset of the assumed cube literals. On each UNSAT cube the negated core is
+added back as a learned clause, so future cubes that extend the same UNSAT
+sub-assignment are pruned by unit propagation without a full solve.
 
-## Pending / in-progress
+**`--externSolver` (Kissat test, 2026-06-02):**
+Kissat was tested as an external process (`fork`+`execvp`, DIMACS piped to
+`/dev/stdin`). **CaDiCaL is faster** for this workload: the incremental clause
+learning accumulated across 4000+ cube checks more than compensates for
+Kissat's per-solve speed. External-process overhead (~0.5 ms/call × 4000
+cubes) is secondary. Kissat path kept for completeness but not recommended.
 
-### Debug scaffolding in `cubeAndCount()`
-There is a `#if 1` / `return` block (around line 292) that short-circuits
-into a cube-count-only loop for testing enumeration. The real counting loop
-below it is **currently dead code**. Remove the guard once cube enumeration
-is validated.
+## Tseitin DNNF pruning (implemented 2026-06-02, left for future work)
 
-### Cleanup in the counting loop
-Debug prints to remove before production:
-- `"the size of sigma is ..."`
-- `"it is SAT then we have to count ..."`
-- `"it is unsat\n"`
-- The per-clause dump of F_easy (lines ~274–279 in `cubeAndCount()`)
+`DecDNNFSemiring` has two new public methods:
 
-### Validate resolution strengthening
-The multi-step resolution strategy was just implemented (2026-06-01).
-Next step: run on a test instance and check how many clauses it actually adds.
+- **`buildTseitin(root, tsOffset, addClause)`**: traverses the DNNF like
+  `printNNF` but instead of printing, emits `(-x_n ∨ x_ci)` implication
+  clauses for every AND node. Node `n` maps to variable `tsOffset + n`. This
+  allows CaDiCaL to propagate through AND-chains when a sub-circuit node is
+  assumed.
 
-```bash
-cd c++/cube-counter
-./build/cube-counter -i test.cnf --strengthen resolution
-# or try scripts/1test_reduced.cnf / scripts/bug.cnf
-```
+- **`enumeratePartialModelsWithPruning(root, assums, nbVar, shouldPrune, onModel)`**:
+  identical to `enumeratePartialModels` but calls `shouldPrune(target_node,
+  accumulated_partial_model)` before recursing into each OR branch. If the
+  pruner returns true, the entire subtree is skipped.
 
-Tune `--strengthenSteps` and `--strengthenMaxClauses` based on results.
-If still few clauses, consider adding a `"probing"` strategy (failed literal
-detection over V_easy vars using a CaDiCaL backbone check).
+In `cubeAndCount` this was wired up so the SAT check happens at every OR branch
+(not just complete cubes), allowing large subtrees to be pruned early. **The
+improvement was modest on the tested instance** — the fundamental bottleneck is
+not the number of SAT calls but the formula structure. Left in the code but
+**not the default path** — `enumeratePartialModels` is used.
 
-### Validation (end-to-end)
-Once the `#if 1` guard is removed:
-- Run on a small known instance; compare result against the direct counter.
-- Tune `--targetRatio` on real benchmarks to balance cube count vs. per-cube cost.
+The `declare_more_variables(formula.nbVar)` call must come **before** loading
+F' clauses into CaDiCaL because the bundled bipe build has `factor` +
+`factorcheck` enabled (requires explicit variable declaration).
 
-### Future selector strategies
-The user plans to add more variable-selection heuristics beyond `high-degree`.
+## `cubeAndCount()` flow (as of 2026-06-02)
+
+1. Compiles F_easy (+ extra clauses) → DNNF (DecDNNFSemiring).
+2. Fast first-pass cube count — polynomial DNNF traversal.
+3. If `cube_count > maxCubes` → direct count of F' and return.
+4. Pre-serialises F' as a string (reused for all per-cube checks).
+5. Builds CaDiCaL checker on F' (`simplify=0`).
+6. `enumeratePartialModels`: for each cube σ:
+   - CaDiCaL check F' ∧ σ. If UNSAT: extract core, add negated core to
+     CaDiCaL, prune.
+   - If SAT: `fullCounter->count(allVars, σ, nullStream)`.
+7. Prints `s <total>`.
 
 ## Build
 
@@ -175,3 +138,47 @@ cd c++/cube-counter && ./build.sh -j
 
 Test instances: `test.cnf`, `scripts/1test_reduced.cnf`, `scripts/bug.cnf`,
 `instancesTest/cnfs/`.
+
+Correctness tested with `scripts/searchBadExitModelCounting.sh` +
+`scripts/testModelCounter.sh` — 440+ random SAT instances passed, 0 failures.
+
+## Hard benchmark
+
+`/data/Benchmarks/counting/MC2025_all/mc2025_track1_all/mc2025_track1_033.cnf`
+
+At `--targetRatio 0.15` this produces 193,880 cubes with 99%+ pruning rate.
+All approaches tried this session (SAT pre-strengthen, Tseitin pruning, core
+learning, Kissat) failed to make a dent on cube count. Root cause: the
+high-degree selector picks hub variables that don't decompose the primal graph.
+
+## Next session (TODO)
+
+### 1. Try `primal-cut` selector on the hard benchmark
+The `primal-cut` / `iterative-primal-cut` strategies find genuine graph
+separators via PaToH, which is the correct decomposition for cube-and-count.
+After conditioning on cut variables, the two sub-problems become independent
+and the full counter exploits component analysis.
+
+```bash
+./build/cube-counter -i <hard.cnf> --selectorStrategy primal-cut
+./build/cube-counter -i <hard.cnf> --selectorStrategy iterative-primal-cut \
+  --maxDepth 4
+```
+
+### 2. Revisit Tseitin pruning
+The `enumeratePartialModelsWithPruning` infrastructure is in place. The
+pruning check currently happens at every OR branch (expensive). A better
+strategy: only prune at OR branches near the root (depth-bounded), where one
+SAT call can eliminate the largest subtrees. Add a depth parameter to
+`shouldPrune`.
+
+### 3. Integrate Kissat as a library (if CaDiCaL remains a bottleneck)
+Link against `libkissat.a` and use the IPASIR interface for incremental
+solving with assumptions. Only worth doing if Kissat solves the hard instance
+sub-problems faster than CaDiCaL.
+
+### 4. Better variable selection heuristic
+Instead of max-occurrence (hub variables), try selecting variables that
+maximise the number of clauses that become *fully contained* in V after
+expansion — i.e. maximise |F_easy| per variable added. This is a one-step
+look-ahead that targets decomposability rather than connectivity.

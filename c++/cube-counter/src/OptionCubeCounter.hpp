@@ -43,20 +43,34 @@ class OptionCubeCounter : public OptionGroup {
   Option<double> targetRatio{"targetRatio",
                              "Fraction of variables in V_target for "
                              "high-degree-variable (default 0.1)",
-                             0.1};
+                             0.10};
 
   /**
    * @brief Minimum model-count reduction (in bits) a variable must contribute
    *        to be added to V_easy by the high-degree selector, beyond the first
-   *        seeded clause. A variable adds one free dimension (+1 bit) to F_easy;
-   *        1.0 keeps the estimated cube count non-increasing, lower values trade
-   *        more clauses (better decomposition) for more cubes.
+   *        seeded clause. A variable adds one free dimension (+1 bit) to
+   * F_easy; 1.0 keeps the estimated cube count non-increasing, lower values
+   * trade more clauses (better decomposition) for more cubes.
    */
   Option<double> hdMinBits{
       "hdMinBits",
       "Min model-count reduction (bits) to add a variable in high-degree "
       "(default 1.0)",
       1.0};
+
+  /**
+   * @brief Maximum number of cubes (partial models of F_easy) before falling
+   *        back to a direct count of the full formula. The cube count is
+   *        measured by a fast polynomial DNNF traversal immediately after
+   *        F_easy is compiled. Raising this allows more parallelism at the
+   *        cost of more per-cube solves; lowering it reduces overhead but may
+   *        skip decomposition opportunities. Default 1000.
+   */
+  Option<int> maxCubes{
+      "maxCubes",
+      "Max F_easy cube count before falling back to direct counting (default "
+      "1000)",
+      1000};
 
   /**
    * @brief After the selector runs, absorb every remaining clause whose
@@ -123,12 +137,45 @@ class OptionCubeCounter : public OptionGroup {
       "(default 20)",
       20};
 
+  /**
+   * @brief Before compiling F_easy, enumerate spurious models (models of
+   *        F_easy that are UNSAT w.r.t. F), extract the UNSAT core via
+   *        failed() with simplify=0, and add the negated core as a new clause
+   *        to F_easy. Repeats up to this many iterations. 0 = disabled.
+   */
+  Option<int> preStrengthen{
+      "preStrengthen",
+      "Iterations of SAT-based pre-strengthening before DNNF compilation "
+      "(0 = disabled, default 0)",
+      0};
+
+  /**
+   * @brief Path to an external SAT solver binary for per-cube checks instead
+   *        of the built-in CaDiCaL.  The binary must accept a DIMACS file path
+   *        as its last argument, suppress output to stdout, and exit 10 (SAT)
+   *        or 20 (UNSAT).  DIMACS is piped via /dev/stdin.
+   *        Empty string = use CaDiCaL (default).
+   */
+  Option<std::string> externSolver{
+      "externSolver",
+      "Path to external SAT solver binary for per-cube UNSAT checks "
+      "(empty = use CaDiCaL)",
+      ""};
+
   std::vector<OptionBase*> getAllOptions() override {
-    return {&selectorStrategy,    &maxDepth,
-            &targetRatio,         &hdMinBits,
-            &extendEasy,          &strengthen,
-            &strengthenTime,      &strengthenSteps,
-            &strengthenMaxClauses, &strengthenMaxProduct};
+    return {&selectorStrategy,
+            &maxDepth,
+            &targetRatio,
+            &hdMinBits,
+            &maxCubes,
+            &extendEasy,
+            &strengthen,
+            &strengthenTime,
+            &strengthenSteps,
+            &strengthenMaxClauses,
+            &strengthenMaxProduct,
+            &preStrengthen,
+            &externSolver};
   }
 
   friend std::ostream& operator<<(std::ostream& out,

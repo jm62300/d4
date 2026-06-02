@@ -26,21 +26,14 @@
 namespace d4 {
 
 /**
- * @brief Cube-aware greedy selection of F_easy.
+ * @brief Iterative flood-fill selection of F_easy.
  *
- * The cost of cube-and-count is roughly (#cubes) x (cost per conditioned
- * count), and #cubes equals the number of partial models of F_easy. Adding a
- * variable to V_easy adds one free dimension (it ~doubles the cube count)
- * unless it also completes clauses that constrain it. So this selector spends a
- * budget slot only on a variable that actually closes at least one clause, and
- * prefers closing SHORT clauses (which remove the largest fraction of the model
- * space). A small seeding phase assembles the first clause; afterwards any
- * variable that would complete nothing is rejected and the search stops, rather
- * than inflating the cube count by filling the whole `targetRatio` budget.
- *
- * A clause is "covered" once all its variables are in V_easy; covered clauses
- * form F_easy. (The caller's --extendEasy pass then absorbs any further clause
- * already wholly inside V_easy.)
+ * Repeatedly picks the variable with maximum occurrence in the original formula
+ * (among those not yet in V_easy) as a seed, then flood-fills through the
+ * variable-clause bipartite graph: adding a variable pulls in all its clauses,
+ * and adding a clause pulls in all its variables. The result is the connected
+ * component of the seed in that graph. Stops before starting a new component
+ * once |V_easy| >= targetRatio * nbVar.
  */
 class HighDegreeVariableSelector : public ClauseSelector {
   double m_targetRatio;
