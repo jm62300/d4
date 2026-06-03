@@ -51,7 +51,7 @@ add_subdirectory("${ROOT_DIR}/3rdParty/cadical" "${CMAKE_CURRENT_BINARY_DIR}/cad
 # Define the test executable
 add_executable(test_api 
     test_api.cpp 
-    "${ROOT_DIR}/api/runner/Counter.cpp" 
+    "${ROOT_DIR}/api/solver/Solver.cpp" 
     "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
 )
 
