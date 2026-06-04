@@ -43,8 +43,8 @@ class OptionSolver : public OptionGroup {
                const std::string& description = "Solver options")
       : OptionGroup(name, description) {}
 
-  Option<SolverName> solverName{
-      "solverName", "The solver we will use", GLUCOSE_CNF};
+  Option<SolverName> solverName{"solverName", "The solver we will use",
+                                GLUCOSE_CNF};
 
   Option<unsigned> initBudget{
       "solver-init-budget",
@@ -63,8 +63,8 @@ class OptionSolver : public OptionGroup {
       "Rebuild CaDiCaL when #redundant > factor * #initial-clauses", 1};
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {(OptionBase*)&solverName,    (OptionBase*)&initBudget,
-            (OptionBase*)&minLimitVar,   (OptionBase*)&learntFactor,
+    return {(OptionBase*)&solverName, (OptionBase*)&initBudget,
+            (OptionBase*)&minLimitVar, (OptionBase*)&learntFactor,
             (OptionBase*)&cadicalRedundantFactor};
   }
 
