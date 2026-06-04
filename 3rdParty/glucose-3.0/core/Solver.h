@@ -401,6 +401,8 @@ class Solver {
   unsigned int computeLBD(const Clause& c);
   void minimisationWithBinaryResolution(vec<Lit>& out_learnt);
 
+  void removeLearnt();
+
   void relocAll(ClauseAllocator& to);
 
   // Misc:
@@ -415,6 +417,24 @@ class Solver {
   inline bool isSelector(Var v) {
     return (incremental && v > nbVarsInitialFormula);
   }
+
+  void addLearntClauseWithPropagation(vec<Lit>& learnt_clause) {
+    if (learnt_clause.size() == 1) {
+      uncheckedEnqueue(learnt_clause[0]);
+      return;
+    }
+
+    CRef cr = ca.alloc(learnt_clause, true);
+    ca[cr].setLBD(learnt_clause.size());
+    ca[cr].setSizeWithoutSelectors(learnt_clause.size());
+    if (learnt_clause.size() <= 2) nbDL2++;  // stats
+    if (ca[cr].size() == 2) nbBin++;         // stats
+    learnts.push(cr);
+    attachClause(cr);
+
+    claBumpActivity(ca[cr]);
+    uncheckedEnqueue(learnt_clause[0], cr);
+  }  // addLearntClauseWithPropagation
 
   // Static helpers:
   //

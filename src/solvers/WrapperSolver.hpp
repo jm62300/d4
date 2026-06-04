@@ -54,8 +54,12 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
 
   virtual ~WrapperSolver() {}
   virtual void initSolver(const ProblemManager& p) = 0;
-  virtual bool solve(std::span<const Var> setOfVar) = 0;
-  virtual lbool solveLimited(unsigned nbConflict) = 0;
+  virtual bool solve(std::span<const Var> setOfVar,
+                     std::vector<Lit>& units) = 0;
+
+  virtual lbool solveLimited(std::span<const Var> setOfVar,
+                             unsigned nbConflict) = 0;
+
   virtual void uncheckedEnqueue(Lit l) = 0;
   virtual void restart() = 0;
   virtual void setAssumption(const std::vector<Lit>& assums) = 0;
@@ -76,7 +80,6 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
 
   // this function returns false if the propagation gives a conflict.
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) = 0;
-  virtual bool failedLiteralProbing(Lit l) = 0;
 
   virtual void whichAreUnits(std::span<const Var> component,
                              std::vector<Lit>& units) = 0;
@@ -92,6 +95,9 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   virtual void getLastIUP(Lit l) = 0;
   virtual double getCadicalTime() { return 0.0; }
   virtual unsigned getCadicalCalls() { return 0; }
+
+  virtual void cleanLearntClauses() = 0;
+  virtual unsigned getNbLearntClauses() = 0;
 
   /**
      Check out if a variable is already in the assumption.
@@ -124,39 +130,15 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   inline void resetAssumption() { popAssumption(getAssumption().size()); }
 
   /**
-   * @brief Computes the backbone for a given set of variables.
-   * A variable is in the backbone if it takes the exact same value in ALL
-   * models.
+   * @brief Get the Polarity object
+   *
+   * @param v
+   * @return true
+   * @return false
    */
-  inline bool backbone(std::span<Var> setOfVars) {
-    if (!solve(setOfVars)) return false;
-    return true;
-    if (!m_needModel) return true;
-
-    std::cout << "compute backbone\n";
-
-    std::vector<lbool> model(setOfVars.size());
-    for (unsigned i = 0; i < setOfVars.size(); i++)
-      model[i] = m_model[setOfVars[i]];
-
-    for (unsigned i = 0; i < setOfVars.size(); i++) {
-      if (model[i] == l_Undef || varIsAssigned(setOfVars[i])) continue;
-      pushAssumption(Lit::makeLit(setOfVars[i], model[i] != l_False));
-      bool ret = solve(setOfVars);
-      popAssumption(1);
-
-      if (ret) {
-        std::cout << "the problem is SAT\n";
-        for (unsigned j = 0; j < setOfVars.size(); j++) {
-          if (m_model[setOfVars[j]] != model[j]) model[j] = l_Undef;
-        }
-      } else {
-        std::cout << "unit\n";
-        uncheckedEnqueue(Lit::makeLit(setOfVars[i], model[i] == l_False));
-      }
-    }
-
-    return true;
-  }  // backbone
+  bool getPolarity(Var v) override {
+    if (!m_activeModel) return false;
+    return m_model[v];
+  }  // getPolarity
 };
 }  // namespace d4

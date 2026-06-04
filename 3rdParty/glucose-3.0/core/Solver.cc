@@ -1151,6 +1151,22 @@ void Solver::rebuildOrderHeap() {
   order_heap.build(vsRebuildOrderHeap);
 }  // rebuildOrderHeap
 
+void Solver::removeLearnt() {
+  unsigned i, j;
+  for (i = j = 0; i < learnts.size(); i++) {
+    Clause& c = ca[learnts[i]];
+    if (c.lbd() > 2 && c.size() > 2 && c.canBeDel() && !locked(c)) {
+      removeClause(learnts[i]);
+      nbRemovedClauses++;
+    } else {
+      c.setLBD(c.size());
+      learnts[j++] = learnts[i];
+    }
+  }
+  learnts.shrink(i - j);
+  checkGarbage();
+}  // removeLearnt
+
 /*_________________________________________________________________________________________________
 |
 |  simplify : [void]  ->  [bool]
@@ -1293,8 +1309,7 @@ lbool Solver::search(int nof_conflicts) {
       }
       // Perform clause database reduction !
       if (conflicts >= curRestart * nbclausesbeforereduce &&
-          decisionLevel() > assumptions.size()) {
-        assert(learnts.size() > 0);
+          decisionLevel() > assumptions.size() && learnts.size() > 0) {
         curRestart = (conflicts / nbclausesbeforereduce) + 1;
         reduceDB();
         nbclausesbeforereduce += incReduceDB;

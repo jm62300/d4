@@ -41,21 +41,36 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
   // say to the solver we have pcnf.getNbVar() variables.
   while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
   m_model.resize(p.getNbVar() + 1, l_Undef);
+
+  cadical.set("inprocessing", 0);
+  cadical.set("reduceinit", 1000);  // start reducing sooner
+  cadical.set("reducefactor", 10);  // reduce more aggressively
+  cadical.set("reducetier1glue", 1);
+
   cadical.declare_more_variables(p.getNbVar() + 1);
+
+  m_startClock = std::clock();
+  m_nbInitVar = p.getNbVar();
+  m_initClauses.reserve(p.getGates().size());
 
   // get the clauses.
   for (auto& gate : p.getGates()) {
     assert(gate.gateType == BcGateType::CLAUSE);
     Glucose::vec<Glucose::Lit> lits;
+    std::vector<int> cl;
+
     for (auto& l : gate.input) {
+      cl.push_back(l.human());
       cadical.add(l.human());
       lits.push(Glucose::mkLit(l.var(), l.sign()));
     }
+
+    m_initClauses.push_back(cl);
     cadical.add(0);
     m_solver.addClause(lits);
   }
 
-  m_solver.setConfBudget(500);
+  m_solver.setConfBudget(m_initBudget);
   m_activeModel = false;
   m_needModel = false;
   setNeedModel(m_needModel);
@@ -70,53 +85,111 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperGlucose::solve(std::span<const Var> setOfVar) {
-  // static int cpt = 0;
-  // std::cout << ++cpt << " call the solver " << m_solver.learnts.size() <<
-  // '\n';
+bool WrapperGlucose::solve(std::span<const Var> setOfVar,
+                           std::vector<Lit>& units) {
   if (m_activeModel && m_needModel) {
-    // std::cout << "no need for calling a solver\n";
+    whichAreUnits(setOfVar, units);
     return true;
   }
 
+  if (cadical.redundant() > m_initClauses.size()) rebuildCadical();
+  if (m_solver.learnts.size() > m_initClauses.size()) m_solver.removeLearnt();
+
   m_setOfVar_m.setSize(0);
   for (auto& v : setOfVar) m_setOfVar_m.push(v);
+  m_solver.setConfBudget(setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
   m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
-  m_activeModel = m_solver.solveWithAssumptions();
 
-  if (!m_solver.withinBudget()) {
-    // set the assumption.
-    // std::cout << "call cadical\n";
-    cadical.reset_assumptions();
+  std::clock_t glucoseStart = std::clock();
+  lbool resGlucose = solveLimited(
+      setOfVar, setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
 
-    for (auto& l : m_assumption) {
-      std::cout << l.human() << " 0\n";
-      cadical.assume(l.human());
+  m_glucoseTime += (double)(std::clock() - glucoseStart) / CLOCKS_PER_SEC;
+  if (setOfVar.size() >= m_minLimitVar) {
+    ++m_glucoseCalls;
+    ++m_totalCalls;
+  }
+
+  if (m_totalCalls % 100 == 0) {
+    double totalTime = (double)(std::clock() - m_startClock) / CLOCKS_PER_SEC;
+    double solverTime = m_glucoseTime + m_cadicalTime;
+    double solverPct = totalTime > 0.0 ? 100.0 * solverTime / totalTime : 0.0;
+    int64_t cadicalConflicts = cadical.get_statistic_value("conflicts");
+    int64_t totalConflicts = (int64_t)m_solver.conflicts + cadicalConflicts;
+    std::cout << m_solver.learnts.size() << " learnt clause for glucose\n";
+    std::cout << "c [SOLVER] calls=" << m_totalCalls
+              << " glucose=" << m_glucoseCalls << " t=" << m_glucoseTime << "s"
+              << " cadical=" << m_cadicalCalls << " t=" << m_cadicalTime << "s"
+              << " total-cpu=" << totalTime << "s"
+              << " solver%=" << solverPct << "%"
+              << " conflicts=" << totalConflicts << " (g=" << m_solver.conflicts
+              << " c=" << cadicalConflicts << ")\n";
+  }
+
+  if (resGlucose == l_False) return false;
+  m_activeModel = resGlucose == l_True;
+
+  if (!m_activeModel) {
+    assert(m_solver.decisionLevel() == m_assumption.size());
+    if (m_initBudget > 1 && m_glucoseCalls > 100 &&
+        ((double)m_cadicalCalls / (double)m_totalCalls) > 0.9) {
+      std::cout << (double)m_cadicalCalls / (double)m_glucoseCalls
+                << " dactivate glucose\n";
+      m_initBudget = 1;
     }
-    std::cout << "c \n";
+
+    cadical.reset_assumptions();
+    for (auto& l : m_assumption) cadical.assume(l.human());
 
     std::clock_t cadicalStart = std::clock();
     int satCallRes = cadical.solve();
+
     double current = (double)(std::clock() - cadicalStart) / CLOCKS_PER_SEC;
     m_cadicalTime += current;
-    std::cout << current << " Time needed to solve\n";
     ++m_cadicalCalls;
     m_activeModel = satCallRes == 10;
 
-    if (m_activeModel) {
-      for (auto v : setOfVar)
-        m_model[v] = cadical.val(v) > 0 ? l_True : l_False;
-      for (auto v : setOfVar) cadical.phase(-cadical.val(v));
+    if (!m_activeModel) return false;
+
+    // SAT: propagate some information
+    for (auto v : setOfVar) m_model[v] = cadical.val(v) > 0 ? l_True : l_False;
+    cadical.reset_assumptions();
+    for (auto& l : m_assumption) cadical.assume(l.human());
+
+    std::vector<int> implicants;
+    int res = cadical.propagate();
+
+    if (res != 20) {  // res == 0, then INCONCLUSIVE, else SAT by BCP
+      cadical.implied(implicants);
+      if (implicants.size()) {
+        Glucose::vec<Glucose::Lit> learnt;
+        learnt.push();
+        for (auto& l : m_assumption)
+          learnt.push(Glucose::mkLit(l.var(), l.sign()));
+
+        for (auto& l : implicants)
+          if (!m_solver.isAssigned(std::abs(l))) {
+            learnt[0] = Glucose::mkLit(std::abs(l), l < 0);
+            m_solver.addLearntClauseWithPropagation(learnt);
+          }
+
+        m_solver.propagate();
+      }
     }
   } else {
-    if (m_activeModel)
-      for (auto v : setOfVar) {
-        assert(m_solver.model[v] != Glucose::l_Undef);
-        m_model[v] = m_solver.model[v] == Glucose::l_True ? l_True : l_False;
-      }
+    // it is SAT!
+    for (auto v : setOfVar) {
+      assert(m_solver.model[v] != Glucose::l_Undef);
+      m_model[v] = m_solver.model[v] == Glucose::l_True ? l_True : l_False;
+    }
   }
 
-  // std::cout << "the problem is " << m_activeModel << '\n';
+  for (auto v : setOfVar)
+    if (m_solver.isAssigned(v))
+      units.push_back(Lit::makeLit(v, sign(m_solver.litAssigned(v))));
+
+  assert(!m_activeModel || m_solver.decisionLevel() == m_assumption.size());
+  assert(!m_assumption.size() || units.size());  // at least the assumption!
   return m_activeModel;
 }  // solve
 
@@ -143,14 +216,16 @@ bool WrapperGlucose::propagateAssumption() {
 
    \return true if the problem is SAT, false otherwise.
  */
-lbool WrapperGlucose::solveLimited(unsigned nbConflict) {
-  m_solver.rebuildWithAllVar();
+lbool WrapperGlucose::solveLimited(std::span<const Var> setOfVar,
+                                   unsigned nbConflict) {
+  m_setOfVar_m.setSize(0);
+  for (auto& v : setOfVar) m_setOfVar_m.push(v);
+  m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
   m_solver.setConfBudget(nbConflict);
-  bool res = m_solver.solveWithAssumptions();
-  m_solver.setConfBudget(500);
+  Glucose::lbool res = m_solver.solve_(false);
 
-  if (!m_solver.withinBudget()) return l_Undef;
-  return res ? l_True : l_False;
+  if (res == Glucose::l_Undef) return l_Undef;
+  return res == Glucose::l_True ? l_True : l_False;
 }  // solve
 
 /**
@@ -197,15 +272,6 @@ void WrapperGlucose::setCountConflict(Var v, double count) {
    Print out the trail on the standard output.
  */
 void WrapperGlucose::showTrail() { m_solver.showTrail(); }  // showTrail
-
-/**
-   An accessor on the polarity of a variable.
-
-   @param[in] v, the variable we want the polarity.
- */
-bool WrapperGlucose::getPolarity(Var v) {
-  return m_solver.polarity[v];
-}  // getPolarity
 
 /**
  * @brief Set the reverse polarity flag to the solver.
@@ -258,26 +324,6 @@ bool WrapperGlucose::decideAndComputeUnit(Lit l, std::vector<Lit>& units) {
 }  // decideAndComputeUnit
 
 /**
- * @brief WrapperGlucose::literalProbing implementation.
- */
-bool WrapperGlucose::failedLiteralProbing(Lit l) {
-  if (!m_solver.okay()) return true;
-  Glucose::Lit ml = Glucose::mkLit(l.var(), (~l).sign());
-  if (varIsAssigned(l.var())) {
-    if (m_solver.litAssigned(l.var()) == ml) return true;
-    return false;
-  }
-
-  m_solver.newDecisionLevel();
-  m_solver.uncheckedEnqueue(ml);
-  Glucose::CRef confl = m_solver.propagate();
-  m_solver.cancelUntil(m_solver.decisionLevel() - 1);
-
-  if (confl != Glucose::CRef_Undef) return true;  // unit literal
-  return false;
-}  // failedLiteralProbing
-
-/**
    Fill the vector units with the literal l that are units such that l.var() is
    in component.
 
@@ -286,8 +332,10 @@ bool WrapperGlucose::failedLiteralProbing(Lit l) {
  */
 void WrapperGlucose::whichAreUnits(std::span<const Var> component,
                                    std::vector<Lit>& units) {
+  assert(m_solver.decisionLevel() == m_assumption.size());
   for (auto& v : component) {
     if (!m_solver.isAssigned(v)) continue;
+
     Glucose::Lit l = m_solver.litAssigned(v);
     units.push_back(Lit::makeLit(var(l), sign(l)));
   }

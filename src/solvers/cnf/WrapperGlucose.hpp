@@ -33,18 +33,39 @@ class WrapperGlucose : public WrapperSolver {
   CaDiCaL::Solver cadical;
   double m_cadicalTime = 0.0;
   unsigned m_cadicalCalls = 0;
+  double m_glucoseTime = 0.0;
+  unsigned m_glucoseCalls = 0;
+  unsigned m_totalCalls = 0;
+  std::clock_t m_startClock = 0;
+  unsigned m_initBudget = 500;
+  unsigned m_minLimitVar = 50;
+
+  std::vector<std::vector<int>> m_initClauses;
+  unsigned m_nbInitVar;
 
   using WrapperSolver::m_isInAssumption;
 
+  inline void rebuildCadical() {
+    cadical.~Solver();
+    new (&cadical) CaDiCaL::Solver();
+    cadical.set("inprocessing", 0);
+    cadical.set("reduceinit", 1000);
+    cadical.set("reducefactor", 10);
+    cadical.set("reducetier1glue", 1);
+    cadical.declare_more_variables(m_nbInitVar + 1);
+    for (const auto& cl : m_initClauses) {
+      for (auto l : cl) cadical.add(l);
+      cadical.add(0);
+    }
+  }
+
  public:
   void initSolver(const ProblemManager& p) override;
-  bool solve(std::span<const Var> setOfVar) override;
-  lbool solveLimited(unsigned) override;
+  bool solve(std::span<const Var> setOfVar, std::vector<Lit>& units) override;
+  lbool solveLimited(std::span<const Var> setOfVar, unsigned) override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
-  bool getPolarity(Var v) override;
   bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) override;
-  bool failedLiteralProbing(Lit l) override;
   void whichAreUnits(std::span<const Var> component,
                      std::vector<Lit>& units) override;
   void restart() override;
@@ -69,9 +90,17 @@ class WrapperGlucose : public WrapperSolver {
   inline void getCore() { assert(0); }
   inline void getLastIUP(Lit l) { assert(0); }
 
+  inline void cleanLearntClauses() {
+    m_solver.removeLearnt();
+  }  // cleanLearntClauses
+
+  unsigned getNbLearntClauses() { return m_solver.learnts.size(); }
+
   inline unsigned getNbConflict() override { return m_solver.conflicts; }
   inline bool isUnsat() override { return !m_solver.okay(); }
   inline double getCadicalTime() override { return m_cadicalTime; }
   inline unsigned getCadicalCalls() override { return m_cadicalCalls; }
+  inline double getGlucoseTime() { return m_glucoseTime; }
+  inline unsigned getGlucoseCalls() { return m_glucoseCalls; }
 };
 }  // namespace d4

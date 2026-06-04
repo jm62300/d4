@@ -370,8 +370,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbCallCall++;
     // if (m_nbCallCall > 500000) exit(0);
 
-    if (!m_solver->backbone(setOfVar)) return m_semiringOps.zero();
-    m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
+    if (!m_solver->solve(setOfVar, unitsLit)) return m_semiringOps.zero();
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -430,21 +429,25 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_nbDecisionNode++;
 
     // compile the formula where l is assigned to true
+    std::vector<Lit> units;
+    std::vector<Var> free;
     T ret = m_semiringOps.presetSum(lits.size() + 1);
     unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
     for (unsigned i = 0; i <= lits.size(); i++) {
       if (i != 0) {
         m_solver->popAssumption();
         m_solver->pushAssumption(~lits[i - 1]);
-        if (lits.size() > 1 && !m_solver->solve(connected)) break;
+        if (lits.size() > 1 && !m_solver->solve(connected, units)) break;
       }
 
       if (i != lits.size()) m_solver->pushAssumption(lits[i]);
-
-      std::vector<Lit> units;
-      std::vector<Var> free;
-
+      units.clear();
+      free.clear();
       T tmp = compute_(connected, units, free, out);
+
+      if (i == 0 && tmp == T(0)) {
+        std::cout << "strange, normally we follow the last value!!!\n";
+      }
       m_semiringOps.add(ret, tmp, units, free);
     }
 

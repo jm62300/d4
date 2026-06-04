@@ -85,7 +85,8 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
  */
 bool WrapperSolver::warmStart(int iteration, int sizeQuery,
                               std::vector<Var>& setOfVar, std::ostream& out) {
-  if (!solve(setOfVar)) {
+  std::vector<Lit> units;
+  if (!solve(setOfVar, units)) {
     out << "c Proved UNSAT during initialization\n";
     return false;
   }

@@ -64,7 +64,8 @@ void WrapperMinisat::initSolver(const ProblemManager& p) {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperMinisat::solve(std::span<const Var> setOfVar) {
+bool WrapperMinisat::solve(std::span<const Var> setOfVar,
+                           std::vector<Lit>& units) {
   if (m_activeModel && m_needModel) return true;
 
   m_setOfVar_m.setSize(0);
@@ -72,6 +73,7 @@ bool WrapperMinisat::solve(std::span<const Var> setOfVar) {
   m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
 
   m_activeModel = m_solver.solveWithAssumptions();
+  if (m_activeModel) whichAreUnits(setOfVar, units);
   return m_activeModel;
 }  // solve
 
@@ -80,10 +82,14 @@ bool WrapperMinisat::solve(std::span<const Var> setOfVar) {
 
    \return true if the problem is SAT, false otherwise.
  */
-lbool WrapperMinisat::solveLimited(unsigned nbConflict) {
-  m_solver.rebuildWithAllVar();
-  minisat::lbool res =
-      m_solver.solveLimited(minisat::vec<minisat::Lit>(), nbConflict);
+lbool WrapperMinisat::solveLimited(std::span<const Var> setOfVar,
+                                   unsigned nbConflict) {
+  m_setOfVar_m.setSize(0);
+  for (auto& v : setOfVar) m_setOfVar_m.push(v);
+  m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
+  m_solver.setConfBudget(nbConflict);
+
+  minisat::lbool res = m_solver.solve_(false);
 
   if (res == minisat::l_True) return l_True;
   if (res == minisat::l_False) return l_True;
@@ -163,15 +169,6 @@ void WrapperMinisat::setCountConflict(Var v, double count) {
 void WrapperMinisat::showTrail() { m_solver.showTrail(); }  // showTrail
 
 /**
-   An accessor on the polarity of a variable.
-
-   @param[in] v, the variable we want the polarity.
- */
-bool WrapperMinisat::getPolarity(Var v) {
-  return m_solver.polarity[v];
-}  // getPolarity
-
-/**
    Collect the unit literal from the affectation of the literal l to the
    formula.
 
@@ -212,26 +209,6 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit>& units) {
   m_solver.cancelUntil(m_solver.decisionLevel() - 1);
   return true;
 }  // decideAndComputeUnit
-
-/**
- * @brief WrapperMinisat::literalProbing implementation.
- */
-bool WrapperMinisat::failedLiteralProbing(Lit l) {
-  if (!m_solver.okay()) return true;
-  minisat::Lit ml = minisat::mkLit(l.var(), (~l).sign());
-  if (varIsAssigned(l.var())) {
-    if (m_solver.litAssigned(l.var()) == ml) return true;
-    return false;
-  }
-
-  m_solver.newDecisionLevel();
-  m_solver.uncheckedEnqueue(ml);
-  minisat::CRef confl = m_solver.propagate();
-  m_solver.cancelUntil(m_solver.decisionLevel() - 1);
-
-  if (confl != minisat::CRef_Undef) return true;  // unit literal
-  return false;
-}  // failedLiteralProbing
 
 /**
    Fill the vector units with the literal l that are units such that l.var() is

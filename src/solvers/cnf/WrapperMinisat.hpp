@@ -35,13 +35,11 @@ class WrapperMinisat : public WrapperSolver {
   ~WrapperMinisat() override {}
 
   void initSolver(const ProblemManager& p) override;
-  bool solve(std::span<const Var> setOfVar) override;
-  lbool solveLimited(unsigned) override;
+  bool solve(std::span<const Var> setOfVar, std::vector<Lit>& units) override;
+  lbool solveLimited(std::span<const Var> setOfVar, unsigned) override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
-  bool getPolarity(Var v) override;
   bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) override;
-  bool failedLiteralProbing(Lit l) override;
   void whichAreUnits(std::span<const Var> component,
                      std::vector<Lit>& units) override;
   void restart() override;
@@ -65,6 +63,12 @@ class WrapperMinisat : public WrapperSolver {
 
   void getCore() override;
   void getLastIUP(Lit l) override;
+  void cleanLearntClauses() override {
+    // TODO
+  }
+  unsigned getNbLearntClauses() override {
+    // TODO
+  }
 
   inline unsigned getNbConflict() override { return m_solver.conflicts; }
   inline bool isUnsat() override { return !m_solver.okay(); }
