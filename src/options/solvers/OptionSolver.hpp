@@ -43,20 +43,41 @@ class OptionSolver : public OptionGroup {
                const std::string& description = "Solver options")
       : OptionGroup(name, description) {}
 
-  /** @brief The solver we will use */
-  Option<SolverName> solverName{"solverName", "The solver we will use",
-                                GLUCOSE_CNF};
+  Option<SolverName> solverName{
+      "solverName", "The solver we will use", GLUCOSE_CNF};
+
+  Option<unsigned> initBudget{
+      "solver-init-budget",
+      "Conflict budget for the primary solver before CaDiCaL fallback", 500};
+
+  Option<unsigned> minLimitVar{
+      "solver-min-limit-var",
+      "Minimum component size before applying conflict budget", 50};
+
+  Option<unsigned> learntFactor{
+      "solver-learnt-factor",
+      "Remove learnt clauses when #learnt > factor * #initial-clauses", 1};
+
+  Option<unsigned> cadicalRedundantFactor{
+      "solver-cadical-redundant-factor",
+      "Rebuild CaDiCaL when #redundant > factor * #initial-clauses", 1};
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {(OptionBase*)&solverName};
+    return {(OptionBase*)&solverName,    (OptionBase*)&initBudget,
+            (OptionBase*)&minLimitVar,   (OptionBase*)&learntFactor,
+            (OptionBase*)&cadicalRedundantFactor};
   }
 
   friend std::ostream& operator<<(std::ostream& out, const OptionSolver& dt) {
     out << " Option Solver:"
-        << " solver name(" << dt.solverName.getValueAsString() << ")";
-
+        << " solver(" << dt.solverName.getValueAsString() << ")"
+        << " init-budget(" << (unsigned)dt.initBudget << ")"
+        << " min-limit-var(" << (unsigned)dt.minLimitVar << ")"
+        << " learnt-factor(" << (unsigned)dt.learntFactor << ")"
+        << " cadical-redundant-factor(" << (unsigned)dt.cadicalRedundantFactor
+        << ")";
     return out;
-  }  // <<
+  }
 };
 
 }  // namespace d4

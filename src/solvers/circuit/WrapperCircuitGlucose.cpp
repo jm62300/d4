@@ -40,20 +40,29 @@ void WrapperCircuitGlucose::initSolver(const ProblemManager& p) {
   if (p.getProblemInputType() != PB_CIRC)
     std::runtime_error("A circuit was expected here!");
 
-  // say to the solver we have pcnf.getNbVar() variables.
   while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
   m_model.resize(p.getNbVar() + 1, l_Undef);
 
-  std::vector<std::vector<Lit>> clauses;
+  initCadical(p.getNbVar());
 
+  std::vector<std::vector<Lit>> clauses;
   Translator::tseitinEncoding(p.getGates(), clauses);
+  m_initClauses.reserve(clauses.size());
 
   for (auto& cl : clauses) {
     Glucose::vec<Glucose::Lit> lits;
-    for (auto& l : cl) lits.push(Glucose::mkLit(l.var(), l.sign()));
+    std::vector<int> intCl;
+    for (auto& l : cl) {
+      intCl.push_back(l.human());
+      m_cadical.add(l.human());
+      lits.push(Glucose::mkLit(l.var(), l.sign()));
+    }
+    m_initClauses.push_back(intCl);
+    m_cadical.add(0);
     m_solver.addClause(lits);
   }
 
+  m_solver.setConfBudget(m_initBudget);
   m_activeModel = false;
   m_needModel = false;
   setNeedModel(m_needModel);

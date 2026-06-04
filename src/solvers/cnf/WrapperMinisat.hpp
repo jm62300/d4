@@ -35,7 +35,8 @@ class WrapperMinisat : public WrapperSolver {
   ~WrapperMinisat() override {}
 
   void initSolver(const ProblemManager& p) override;
-  bool solve(std::span<const Var> setOfVar, std::vector<Lit>& units) override;
+  lbool runSolver(std::span<const Var> setOfVar) override;
+  void onCadicalSat(std::span<const Var> setOfVar) override;
   lbool solveLimited(std::span<const Var> setOfVar, unsigned) override;
   void uncheckedEnqueue(Lit l) override;
   bool varIsAssigned(Var v) override;
@@ -67,7 +68,7 @@ class WrapperMinisat : public WrapperSolver {
     // TODO
   }
   unsigned getNbLearntClauses() override {
-    // TODO
+    return 0;  // TODO
   }
 
   inline unsigned getNbConflict() override { return m_solver.conflicts; }

@@ -284,8 +284,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_specs->printInformation(out);
     m_cache->printCacheInformation(out);
     out << "c Final time: " << getTimer() << "\n";
-    out << "c CaDiCaL calls: " << m_solver->getCadicalCalls() << "\n";
-    out << "c CaDiCaL time: " << m_solver->getCadicalTime() << "\n";
     out << "c\n";
   }  // printFinalStat
 

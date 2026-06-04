@@ -19,7 +19,9 @@
 #pragma once
 
 #include <span>
+#include <vector>
 
+#include "3rdParty/cadical/src/cadical.hpp"
 #include "ActivityManager.hpp"
 #include "PolarityManager.hpp"
 #include "src/options/solvers/OptionSolver.hpp"
@@ -28,34 +30,34 @@
 
 namespace d4 {
 class WrapperSolver : public ActivityManager, public PolarityManager {
- private:
  protected:
   std::vector<char> m_isInAssumption;
-
   std::vector<Lit> m_assumption;
   std::vector<lbool> m_model;
   bool m_activeModel;
   bool m_needModel;
 
+  CaDiCaL::Solver m_cadical;
+  std::vector<std::vector<int>> m_initClauses;
+  unsigned m_nbInitVar = 0;
+  unsigned m_initBudget = 500;
+  unsigned m_minLimitVar = 50;
+  unsigned m_learntFactor = 1;
+  unsigned m_cadicalRedundantFactor = 1;
+
+  void initCadical(unsigned nbVar);
+  void rebuildCadical();
+  virtual void onCadicalSat(std::span<const Var> setOfVar) {}
+
  public:
-  /**
-   * @brief Wrapper to get a solver able to solve the input problem for the
-   * compilation/counting problems.
-   *
-   * @param name is the solver name.
-   * @param p is the problem under consideration (CNF, QBF, ...).
-   * @param out is the stream where is printed out the logs.
-   *
-   * \return a solver.
-   */
   static WrapperSolver* makeWrapperSolver(const OptionSolver& name,
                                           const ProblemManager& p,
                                           std::ostream& out);
 
   virtual ~WrapperSolver() {}
   virtual void initSolver(const ProblemManager& p) = 0;
-  virtual bool solve(std::span<const Var> setOfVar,
-                     std::vector<Lit>& units) = 0;
+  bool solve(std::span<const Var> setOfVar, std::vector<Lit>& units);
+  virtual lbool runSolver(std::span<const Var> setOfVar) = 0;
 
   virtual lbool solveLimited(std::span<const Var> setOfVar,
                              unsigned nbConflict) = 0;
@@ -78,7 +80,6 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   virtual bool propagateAssumption() = 0;
   virtual bool isUnsat() = 0;
 
-  // this function returns false if the propagation gives a conflict.
   virtual bool decideAndComputeUnit(Lit l, std::vector<Lit>& units) = 0;
 
   virtual void whichAreUnits(std::span<const Var> component,
@@ -88,57 +89,27 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   inline bool getNeedModel() { return m_needModel; }
   unsigned sizeAssumption() { return getAssumption().size(); }
 
+  void configure(const OptionSolver& opts);
   bool warmStart(int iteration, int sizeQuery, std::vector<Var>& setOfVar,
                  std::ostream& out);
 
   virtual void getCore() = 0;
   virtual void getLastIUP(Lit l) = 0;
-  virtual double getCadicalTime() { return 0.0; }
-  virtual unsigned getCadicalCalls() { return 0; }
 
   virtual void cleanLearntClauses() = 0;
   virtual unsigned getNbLearntClauses() = 0;
 
-  /**
-     Check out if a variable is already in the assumption.
-
-     @param[in] l, the literal we want to know if it is already in the
-     assumption list.
-
-     \return true if l is in the assumption list, false otherwise.
-  */
   inline bool isInAssumption(Lit l) {
     return m_isInAssumption[l.var()] == 1 + l.sign();
-  }  // isInassumption
+  }
 
-  /**
-     Check out if a variable is already in the assumption.
+  inline bool isInAssumption(Var v) { return m_isInAssumption[v]; }
 
-     @param[in] v, the variable we want to know if it is already in the
-     assumption list.
-
-     \return true if v is in the assumption list, false otherwise.
-  */
-  inline bool isInAssumption(Var v) {
-    return m_isInAssumption[v];
-  }  // isInassumption
-
-  /**
-   * @brief Pop all the element of the assumption.
-   *
-   */
   inline void resetAssumption() { popAssumption(getAssumption().size()); }
 
-  /**
-   * @brief Get the Polarity object
-   *
-   * @param v
-   * @return true
-   * @return false
-   */
   bool getPolarity(Var v) override {
     if (!m_activeModel) return false;
     return m_model[v];
-  }  // getPolarity
+  }
 };
 }  // namespace d4

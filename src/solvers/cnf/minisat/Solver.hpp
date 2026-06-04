@@ -476,6 +476,18 @@ class Solver {
     return true;
   }  // insertClauseAndPropagate
 
+  inline void addLearntClauseWithPropagation(vec<Lit>& learnt_clause) {
+    if (learnt_clause.size() == 1) {
+      uncheckedEnqueue(learnt_clause[0]);
+      return;
+    }
+    CRef cr = ca.alloc(learnt_clause, true);
+    learnts.push(cr);
+    attachClause(cr);
+    claBumpActivity(ca[cr]);
+    uncheckedEnqueue(learnt_clause[0], cr);
+  }  // addLearntClauseWithPropagation
+
   inline vec<char>& getPolarity() { return polarity; }
 
   void searchAtMostOne(vec<Lit>& vc, vec<Lit>& canBeTrue);

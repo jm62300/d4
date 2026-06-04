@@ -19,6 +19,8 @@
 
 #include "WrapperSolver.hpp"
 
+#include <new>
+
 #include "circuit/WrapperCircuitGlucose.hpp"
 #include "circuit/WrapperCircuitMinisat.hpp"
 #include "cnf/WrapperGlucose.hpp"
@@ -27,6 +29,82 @@
 #include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
+
+/**
+ * @brief Apply solver options to the configurable parameters.
+ */
+void WrapperSolver::configure(const OptionSolver& opts) {
+  m_initBudget = opts.initBudget;
+  m_minLimitVar = opts.minLimitVar;
+  m_learntFactor = opts.learntFactor;
+  m_cadicalRedundantFactor = opts.cadicalRedundantFactor;
+}  // configure
+
+/**
+ * @brief Initialize CaDiCaL with the given number of variables.
+ */
+void WrapperSolver::initCadical(unsigned nbVar) {
+  m_nbInitVar = nbVar;
+  m_cadical.set("inprocessing", 0);
+  m_cadical.set("reduceinit", 1000);
+  m_cadical.set("reducefactor", 10);
+  m_cadical.set("reducetier1glue", 1);
+  m_cadical.declare_more_variables(nbVar + 1);
+}  // initCadical
+
+/**
+ * @brief Rebuild CaDiCaL from scratch using the stored initial clauses.
+ */
+void WrapperSolver::rebuildCadical() {
+  m_cadical.~Solver();
+  new (&m_cadical) CaDiCaL::Solver();
+  m_cadical.set("inprocessing", 0);
+  m_cadical.set("reduceinit", 1000);
+  m_cadical.set("reducefactor", 10);
+  m_cadical.set("reducetier1glue", 1);
+  m_cadical.declare_more_variables(m_nbInitVar + 1);
+  for (const auto& cl : m_initClauses) {
+    for (auto l : cl) m_cadical.add(l);
+    m_cadical.add(0);
+  }
+}  // rebuildCadical
+
+/**
+ * @brief Run the solver, falling back to CaDiCaL when the budget is exceeded.
+ */
+bool WrapperSolver::solve(std::span<const Var> setOfVar,
+                          std::vector<Lit>& units) {
+  if (m_activeModel && m_needModel) {
+    whichAreUnits(setOfVar, units);
+    return true;
+  }
+
+  lbool res = runSolver(setOfVar);
+
+  if (res == l_False) {
+    m_activeModel = false;
+    return false;
+  }
+
+  if (res == l_Undef) {
+    if (m_cadical.redundant() > (int64_t)(m_cadicalRedundantFactor * m_initClauses.size())) rebuildCadical();
+
+    m_cadical.reset_assumptions();
+    for (auto& l : m_assumption) m_cadical.assume(l.human());
+
+    m_activeModel = m_cadical.solve() == 10;
+    if (!m_activeModel) return false;
+
+    for (auto v : setOfVar) m_model[v] = m_cadical.val(v) > 0 ? l_True : l_False;
+    onCadicalSat(setOfVar);
+  } else {
+    m_activeModel = true;
+  }
+
+  whichAreUnits(setOfVar, units);
+  return true;
+}  // solve
+
 /**
  * @brief WrapperSolver::makeWrapperSolver implementation.
  */
@@ -69,19 +147,12 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
   }
 
   if (!ret) std::runtime_error("The SAT solver selected is unknown");
+  ret->configure(options);
   return ret;
 }  // makeWrapperSolver
 
 /**
-   Prepare the solver by running it a given number of iteration for some queries
-   of a given size.
-
-   @param[in] iteration, the number of queries we test.
-   @param[in] sizeQuery, the (maximum) size of the queries.
-   @param[in] setOfvar, the set of variable we construct the queries on.
-   @param[in] out, the place where we print out the information.
-
-   \return true if the problem is SAT, false otherwise.
+ * @brief Prepare the solver by running it for warm-up queries.
  */
 bool WrapperSolver::warmStart(int iteration, int sizeQuery,
                               std::vector<Var>& setOfVar, std::ostream& out) {
@@ -92,9 +163,7 @@ bool WrapperSolver::warmStart(int iteration, int sizeQuery,
   }
   int nbSAT = 0;
 
-  if (setOfVar.size() > 10000) {
-    sizeQuery *= 100;
-  }
+  if (setOfVar.size() > 10000) sizeQuery *= 100;
 
   std::vector<Lit> query(sizeQuery);
 
@@ -111,7 +180,7 @@ bool WrapperSolver::warmStart(int iteration, int sizeQuery,
     }
 
     setAssumption(query);
-    solveLimited(500);  // we do not care the result.
+    solveLimited(setOfVar, 500);
     restart();
   }
 

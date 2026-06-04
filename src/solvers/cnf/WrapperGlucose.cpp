@@ -38,22 +38,12 @@ namespace d4 {
  */
 void WrapperGlucose::initSolver(const ProblemManager& p) {
   std::cout << "c [GLUCOSE SOLVER] Init phase\n";
-  // say to the solver we have pcnf.getNbVar() variables.
   while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
   m_model.resize(p.getNbVar() + 1, l_Undef);
 
-  cadical.set("inprocessing", 0);
-  cadical.set("reduceinit", 1000);  // start reducing sooner
-  cadical.set("reducefactor", 10);  // reduce more aggressively
-  cadical.set("reducetier1glue", 1);
-
-  cadical.declare_more_variables(p.getNbVar() + 1);
-
-  m_startClock = std::clock();
-  m_nbInitVar = p.getNbVar();
+  initCadical(p.getNbVar());
   m_initClauses.reserve(p.getGates().size());
 
-  // get the clauses.
   for (auto& gate : p.getGates()) {
     assert(gate.gateType == BcGateType::CLAUSE);
     Glucose::vec<Glucose::Lit> lits;
@@ -61,12 +51,12 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
 
     for (auto& l : gate.input) {
       cl.push_back(l.human());
-      cadical.add(l.human());
+      m_cadical.add(l.human());
       lits.push(Glucose::mkLit(l.var(), l.sign()));
     }
 
     m_initClauses.push_back(cl);
-    cadical.add(0);
+    m_cadical.add(0);
     m_solver.addClause(lits);
   }
 
@@ -75,123 +65,54 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
   m_needModel = false;
   setNeedModel(m_needModel);
   m_isInAssumption.resize(p.getNbVar() + 1, 0);
-
 }  // initSolver
 
 /**
-   Call the SAT solver and return its result.
+   Run Glucose with a conflict budget; return l_Undef if budget exceeded.
 
-   @param[in] setOfvar, the variables we focus the solving process.
+   @param[in] setOfVar, the variables we focus the solving process.
 
-   \return true if the problem is SAT, false otherwise.
+   \return l_True/l_False/l_Undef (budget exceeded → CaDiCaL fallback).
  */
-bool WrapperGlucose::solve(std::span<const Var> setOfVar,
-                           std::vector<Lit>& units) {
-  if (m_activeModel && m_needModel) {
-    whichAreUnits(setOfVar, units);
-    return true;
-  }
-
-  if (cadical.redundant() > m_initClauses.size()) rebuildCadical();
-  if (m_solver.learnts.size() > m_initClauses.size()) m_solver.removeLearnt();
-
-  m_setOfVar_m.setSize(0);
-  for (auto& v : setOfVar) m_setOfVar_m.push(v);
-  m_solver.setConfBudget(setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
-  m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
-
-  std::clock_t glucoseStart = std::clock();
-  lbool resGlucose = solveLimited(
-      setOfVar, setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
-
-  m_glucoseTime += (double)(std::clock() - glucoseStart) / CLOCKS_PER_SEC;
-  if (setOfVar.size() >= m_minLimitVar) {
-    ++m_glucoseCalls;
-    ++m_totalCalls;
-  }
-
-  if (m_totalCalls % 100 == 0) {
-    double totalTime = (double)(std::clock() - m_startClock) / CLOCKS_PER_SEC;
-    double solverTime = m_glucoseTime + m_cadicalTime;
-    double solverPct = totalTime > 0.0 ? 100.0 * solverTime / totalTime : 0.0;
-    int64_t cadicalConflicts = cadical.get_statistic_value("conflicts");
-    int64_t totalConflicts = (int64_t)m_solver.conflicts + cadicalConflicts;
-    std::cout << m_solver.learnts.size() << " learnt clause for glucose\n";
-    std::cout << "c [SOLVER] calls=" << m_totalCalls
-              << " glucose=" << m_glucoseCalls << " t=" << m_glucoseTime << "s"
-              << " cadical=" << m_cadicalCalls << " t=" << m_cadicalTime << "s"
-              << " total-cpu=" << totalTime << "s"
-              << " solver%=" << solverPct << "%"
-              << " conflicts=" << totalConflicts << " (g=" << m_solver.conflicts
-              << " c=" << cadicalConflicts << ")\n";
-  }
-
-  if (resGlucose == l_False) return false;
-  m_activeModel = resGlucose == l_True;
-
-  if (!m_activeModel) {
-    assert(m_solver.decisionLevel() == m_assumption.size());
-    if (m_initBudget > 1 && m_glucoseCalls > 100 &&
-        ((double)m_cadicalCalls / (double)m_totalCalls) > 0.9) {
-      std::cout << (double)m_cadicalCalls / (double)m_glucoseCalls
-                << " dactivate glucose\n";
-      m_initBudget = 1;
-    }
-
-    cadical.reset_assumptions();
-    for (auto& l : m_assumption) cadical.assume(l.human());
-
-    std::clock_t cadicalStart = std::clock();
-    int satCallRes = cadical.solve();
-
-    double current = (double)(std::clock() - cadicalStart) / CLOCKS_PER_SEC;
-    m_cadicalTime += current;
-    ++m_cadicalCalls;
-    m_activeModel = satCallRes == 10;
-
-    if (!m_activeModel) return false;
-
-    // SAT: propagate some information
-    for (auto v : setOfVar) m_model[v] = cadical.val(v) > 0 ? l_True : l_False;
-    cadical.reset_assumptions();
-    for (auto& l : m_assumption) cadical.assume(l.human());
-
-    std::vector<int> implicants;
-    int res = cadical.propagate();
-
-    if (res != 20) {  // res == 0, then INCONCLUSIVE, else SAT by BCP
-      cadical.implied(implicants);
-      if (implicants.size()) {
-        Glucose::vec<Glucose::Lit> learnt;
-        learnt.push();
-        for (auto& l : m_assumption)
-          learnt.push(Glucose::mkLit(l.var(), l.sign()));
-
-        for (auto& l : implicants)
-          if (!m_solver.isAssigned(std::abs(l))) {
-            learnt[0] = Glucose::mkLit(std::abs(l), l < 0);
-            m_solver.addLearntClauseWithPropagation(learnt);
-          }
-
-        m_solver.propagate();
-      }
-    }
-  } else {
-    // it is SAT!
+lbool WrapperGlucose::runSolver(std::span<const Var> setOfVar) {
+  if (m_solver.learnts.size() > m_learntFactor * m_initClauses.size())
+    m_solver.removeLearnt();
+  lbool res = solveLimited(setOfVar,
+                           setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
+  if (res == l_True)
     for (auto v : setOfVar) {
       assert(m_solver.model[v] != Glucose::l_Undef);
       m_model[v] = m_solver.model[v] == Glucose::l_True ? l_True : l_False;
     }
+  return res;
+}  // runSolver
+
+/**
+ * @brief After CaDiCaL finds SAT, learn its implied units back into Glucose.
+ */
+void WrapperGlucose::onCadicalSat(std::span<const Var> setOfVar) {
+  m_cadical.reset_assumptions();
+  for (auto& l : m_assumption) m_cadical.assume(l.human());
+
+  std::vector<int> implicants;
+  if (m_cadical.propagate() != 20) {  // 20 = UNSAT by BCP; 0/10 = ok
+    m_cadical.implied(implicants);
+    if (!implicants.empty()) {
+      Glucose::vec<Glucose::Lit> learnt;
+      learnt.push();
+      for (auto& l : m_assumption)
+        learnt.push(Glucose::mkLit(l.var(), l.sign()));
+
+      for (auto& l : implicants)
+        if (!m_solver.isAssigned(std::abs(l))) {
+          learnt[0] = Glucose::mkLit(std::abs(l), l < 0);
+          m_solver.addLearntClauseWithPropagation(learnt);
+        }
+
+      m_solver.propagate();
+    }
   }
-
-  for (auto v : setOfVar)
-    if (m_solver.isAssigned(v))
-      units.push_back(Lit::makeLit(v, sign(m_solver.litAssigned(v))));
-
-  assert(!m_activeModel || m_solver.decisionLevel() == m_assumption.size());
-  assert(!m_assumption.size() || units.size());  // at least the assumption!
-  return m_activeModel;
-}  // solve
+}  // onCadicalSat
 
 /**
  * @brief Strong assumption in the sense we push the literal on the stack.

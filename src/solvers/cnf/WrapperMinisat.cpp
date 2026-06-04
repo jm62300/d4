@@ -39,15 +39,23 @@ using minisat::toInt;
    @param[in] p, the problem we want to link with the SAT solver.
  */
 void WrapperMinisat::initSolver(const ProblemManager& p) {
-  // say to the solver we have pcnf.getNbVar() variables.
   while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
   m_model.resize(p.getNbVar() + 1, l_Undef);
 
-  // get the clauses.
+  initCadical(p.getNbVar());
+  m_initClauses.reserve(p.getGates().size());
+
   for (auto& gate : p.getGates()) {
     assert(gate.gateType == BcGateType::CLAUSE);
     minisat::vec<minisat::Lit> lits;
-    for (auto& l : gate.input) lits.push(minisat::mkLit(l.var(), l.sign()));
+    std::vector<int> cl;
+    for (auto& l : gate.input) {
+      cl.push_back(l.human());
+      m_cadical.add(l.human());
+      lits.push(minisat::mkLit(l.var(), l.sign()));
+    }
+    m_initClauses.push_back(cl);
+    m_cadical.add(0);
     m_solver.addClause(lits);
   }
 
@@ -64,18 +72,40 @@ void WrapperMinisat::initSolver(const ProblemManager& p) {
 
    \return true if the problem is SAT, false otherwise.
  */
-bool WrapperMinisat::solve(std::span<const Var> setOfVar,
-                           std::vector<Lit>& units) {
-  if (m_activeModel && m_needModel) return true;
+lbool WrapperMinisat::runSolver(std::span<const Var> setOfVar) {
+  lbool res = solveLimited(setOfVar, setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
+  if (res == l_True)
+    for (auto v : setOfVar)
+      m_model[v] = minisat::toInt(m_solver.model[v]) == 0 ? l_True : l_False;
+  return res;
+}  // runSolver
 
-  m_setOfVar_m.setSize(0);
-  for (auto& v : setOfVar) m_setOfVar_m.push(v);
-  m_solver.rebuildWithConnectedComponent(m_setOfVar_m);
+/**
+ * @brief After CaDiCaL finds SAT, learn its implied units back into Minisat.
+ */
+void WrapperMinisat::onCadicalSat(std::span<const Var> setOfVar) {
+  m_cadical.reset_assumptions();
+  for (auto& l : m_assumption) m_cadical.assume(l.human());
 
-  m_activeModel = m_solver.solveWithAssumptions();
-  if (m_activeModel) whichAreUnits(setOfVar, units);
-  return m_activeModel;
-}  // solve
+  std::vector<int> implicants;
+  if (m_cadical.propagate() != 20) {  // 20 = UNSAT by BCP; 0/10 = ok
+    m_cadical.implied(implicants);
+    if (!implicants.empty()) {
+      minisat::vec<minisat::Lit> learnt;
+      learnt.push(minisat::mkLit(0));  // placeholder for implied literal
+      for (auto& l : m_assumption)
+        learnt.push(minisat::mkLit(l.var(), l.sign()));
+
+      for (auto& l : implicants)
+        if (!m_solver.isAssigned(std::abs(l))) {
+          learnt[0] = minisat::mkLit(std::abs(l), l < 0);
+          m_solver.addLearntClauseWithPropagation(learnt);
+        }
+
+      m_solver.propagate();
+    }
+  }
+}  // onCadicalSat
 
 /**
    Call the SAT solver and return its result.
