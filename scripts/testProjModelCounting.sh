@@ -11,8 +11,8 @@ cp $1 $BENCH
 # grep "^c p show" /tmp/2test.cnf >> $BENCH
 
 
-MODEL_COUNTER="./d4_static -m counting -i"
-TESTED_METHOD="../c++/counter/build/counter -i"
+MODEL_COUNTER="${MODEL_COUNTER:-./d4_static -m counting -i}"
+TESTED_METHOD="${TESTED_METHOD:-../c++/counter/build/counter -i}"
 
 $TESTED_METHOD $BENCH 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 $MODEL_COUNTER $BENCH 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt

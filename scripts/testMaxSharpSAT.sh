@@ -14,9 +14,9 @@ cp $1 /tmp/bench.cnf
 $SOLVER /tmp/bench.cnf > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
-MODEL_COUNTER="../build/d4_debug -m counting -i"
-TESTED_METHOD="../build/d4_debug -m ere -i"
-COMPARED_METHOD="../build/d4_debug -m max#sat  --maxsharpsat-option-cut-max 0 --maxsharpsat-option-cut-ind 0 --maxsharpsat-option-greedy-init 0 -i"
+MODEL_COUNTER="${MODEL_COUNTER:-../build/d4_debug -m counting -i}"
+TESTED_METHOD="${TESTED_METHOD:-../build/d4_debug -m ere -i}"
+COMPARED_METHOD="${COMPARED_METHOD:-../build/d4_debug -m max#sat --maxsharpsat-option-cut-max 0 --maxsharpsat-option-cut-ind 0 --maxsharpsat-option-greedy-init 0 -i}"
 
 
 # get the max variables.

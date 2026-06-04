@@ -9,10 +9,8 @@ SOLVER="$ROOT_PATH/minisat"
 $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
-MODEL_COUNTER="/home/lagniez/Works/Softs/solvers/ganak2.4.6/ganak --mode 6"
-TESTED_METHOD="../c++/counter/build/counter --branching-heuristic classic -i"
-# TESTED_METHOD="../demo/counter/build/counter_debug -i"
-#TESTED_METHOD="./starexec_run_ds_preprocSharpEquiv.sh"
+MODEL_COUNTER="${MODEL_COUNTER:-/home/lagniez/Works/Softs/solvers/ganak2.4.6/ganak --mode 6}"
+TESTED_METHOD="${TESTED_METHOD:-../c++/counter/build/counter --branching-heuristic classic -i}"
 
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2- > /tmp/sol1.txt
 $MODEL_COUNTER $1 2>/dev/null | grep "^c s exact" | cut -d ' ' -f6-  > /tmp/sol2.txt
