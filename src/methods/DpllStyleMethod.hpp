@@ -441,10 +441,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       units.clear();
       free.clear();
       T tmp = compute_(connected, units, free, out);
-
-      if (i == 0 && tmp == T(0)) {
-        std::cout << "strange, normally we follow the last value!!!\n";
-      }
       m_semiringOps.add(ret, tmp, units, free);
     }
 

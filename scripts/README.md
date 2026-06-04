@@ -12,10 +12,13 @@ The first time you run any script it will build `cnfuzz` and `minisat` via `make
 | Plain model counting | `searchBadExitModelCounting.sh` | crashes + wrong count |
 | Projected model counting | `searchBadExitProjected.sh` | crashes + wrong count |
 | Weighted counting (real weights) | `searchBadExitWModelCounting.sh` | crashes only |
-| Weighted counting (complex weights) | `searchBadExitComplexModelCounting.sh` | crashes + wrong value |
+| Weighted counting (complex weights) | `searchBadExitComplexModelCounting.sh` | crashes only¹ |
 | Max#SAT / ERE | `searchBadExitMaxSharpSAT.sh` | crashes + wrong optimum |
 | Model counting with queries | `searchBadExitModelCountingQueries.sh` | crashes + wrong answer |
 | Any binary, quickly | `searchBadExitQuick.sh <cmd>` | crashes only |
+
+¹ Complex correctness uses ganak as reference, which is too slow for the tight fuzz loop.
+  Use `bash testComplexModelCounter.sh /tmp/fail_N.cnf` to verify a specific instance manually.
 
 ---
 
@@ -67,29 +70,34 @@ TESTED_METHOD="../c++/counter/build/counter --float 1 -i" bash searchBadExitWMod
 ### Weighted model counting — complex weights
 
 ```bash
-bash searchBadExitComplexModelCounting.sh
-bash searchBadExitComplexModelCounting.sh 5 20
+bash searchBadExitComplexModelCounting.sh             # crash detection, ≤200 vars, 2s
+bash searchBadExitComplexModelCounting.sh 5           # 5s timeout
+TESTED_METHOD="../c++/counter/build/counter --branching-heuristic classic -i" \
+    bash searchBadExitComplexModelCounting.sh
 ```
 
-Oracle used: `testComplexModelCounter.sh`  
-Reference: ganak (`/home/lagniez/Works/Softs/solvers/ganak2.4.6/ganak --mode 6`)  
-Weights are random pairs `(re, im)` in `[0.00, 0.99]²`.  
-Comparison uses a tolerance of `1e-9`.
+**Crash detection only.** ganak (the reference for correctness) is too slow to call on
+every generated instance. When the fuzzer saves a crash to `/tmp/fail_N.cnf`, verify it:
+
+```bash
+bash testComplexModelCounter.sh /tmp/fail_N.cnf
+```
 
 ---
 
 ### Max#SAT
 
 ```bash
-bash searchBadExitMaxSharpSAT.sh
-bash searchBadExitMaxSharpSAT.sh 2 10
+bash searchBadExitMaxSharpSAT.sh           # default: 10s timeout, ≤20 vars
+bash searchBadExitMaxSharpSAT.sh 20 10
 ```
 
 Oracle used: `testMaxSharpSAT.sh`  
 The generator partitions variables into `c max` (1/3) and `c ind` (2/3) with random real weights.  
 The oracle checks:
 1. The claimed optimum equals the count under the returned valuation.
-2. The result matches a second Max#SAT run with cuts disabled.
+2. The result matches a second Max#SAT run with cuts disabled.  
+**Note:** the oracle runs three solvers, so keep the timeout generous (≥ 10s).
 
 ---
 
