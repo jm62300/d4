@@ -496,6 +496,8 @@ class ProjMCMethod : public MethodManager {
      @return the projected model count.
    */
   T compute_(std::vector<Var>& setOfVar, std::ostream& out) {
+    std::cout << "compute\n";
+
     showRun(out);
     m_nbCallRec++;
 
@@ -529,6 +531,7 @@ class ProjMCMethod : public MethodManager {
     T ret = T(1);
     if (projectSetOfVar.size()) {
       if (nbComponent > 1) {
+        std::cout << "more than one component\n";
         for (auto& component : varConnected) ret *= compute_(component, out);
         m_nbSplit += nbComponent;
       } else if (nbComponent == 1) {
@@ -544,6 +547,10 @@ class ProjMCMethod : public MethodManager {
         else {
           // count projected models under current selector assignments.
           std::vector<Lit> nextAssums(m_solver->getAssumption());
+          std::cout << "==========> ";
+          for (auto& l : nextAssums) std::cout << l.human() << ' ';
+          std::cout << '\n';
+
           for (auto& s : selector) {
             assert(!m_solver->isInAssumption(s.var()));
             if (!m_solver->isInAssumption(s)) nextAssums.push_back(s);
