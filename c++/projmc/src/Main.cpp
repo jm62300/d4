@@ -97,9 +97,10 @@ int main(int argc, char** argv) {
     if (!showHelp && inputPath.empty())
       std::cerr << "Missing required argument: -i INPUT\n";
 
-    std::cout << "USAGE: " << argv[0] << " -i INPUT [Overrides...]\n"
-              << "  -i, --input   Path to the projected DIMACS file (required)\n"
-              << "  -h, --help    Show this help screen\n";
+    std::cout
+        << "USAGE: " << argv[0] << " -i INPUT [Overrides...]\n"
+        << "  -i, --input   Path to the projected DIMACS file (required)\n"
+        << "  -h, --help    Show this help screen\n";
 
     registry.displayHelp(std::cout);
     return showHelp ? 0 : 1;
@@ -122,6 +123,8 @@ int main(int argc, char** argv) {
   }
 
   runPreproc(formula, optionPreproc);
+
+  std::cout << formula << '\n';
   projMcCounter(options, optionCounter, formula);
 
   auto end = std::chrono::system_clock::now();

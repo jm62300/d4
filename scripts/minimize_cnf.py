@@ -9,6 +9,11 @@ variables from the projection set (c p show) and renumbers all variables to
 produce a clean minimal output.  Use --no-reduce-show to skip the show-set
 reduction.
 
+With --reduce-literals the script also tries to remove individual literals
+from clauses.  Whenever a literal is successfully removed the clause-removal
+passes are re-run, and this continues until no further progress is possible
+(fixpoint).
+
 ORACLE CONTRACT
   The oracle command must:
     - Accept a CNF file path as its last argument
@@ -34,6 +39,9 @@ EXAMPLES
 
   # Keep original variable numbers (skip renumbering):
   python3 minimize_cnf.py --no-renumber /tmp/fail_1.cnf
+
+  # Also shrink individual clauses by removing literals (fixpoint with clause removal):
+  python3 minimize_cnf.py --reduce-literals /tmp/fail_1.cnf
 
   # Increase per-call timeout for slow solvers:
   python3 minimize_cnf.py --timeout 60 /tmp/fail_1.cnf
@@ -252,6 +260,43 @@ def minimize_show_vars(clauses: list, show_vars: list, oracle_cmd: list,
     return current
 
 
+def greedy_literals(clauses: list, show_vars: list, oracle_cmd: list,
+                    tmp_path: str, timeout: int, verbose: bool):
+    """Try removing individual literals from each clause.
+
+    Unit clauses (length 1) are left intact — removing their only literal would
+    produce an empty clause that most parsers reject.
+
+    Returns (new_clauses, changed) where changed is True if at least one
+    literal was removed.
+    """
+    if verbose:
+        total = sum(len(c) for c in clauses)
+        print(f'[literals] trying to shrink literals across {len(clauses)} clauses ({total} total lits)')
+
+    current = [list(c) for c in clauses]
+    changed = False
+
+    for i in range(len(current)):
+        j = 0
+        while j < len(current[i]):
+            if len(current[i]) <= 1:
+                break  # never empty a clause
+            candidate = current[:i] + [current[i][:j] + current[i][j + 1:]] + current[i + 1:]
+            if _still_bugs(candidate, show_vars, oracle_cmd, tmp_path, timeout):
+                removed_lit = current[i][j]
+                current[i] = candidate[i]
+                changed = True
+                if verbose:
+                    print(f'[literals] removed lit {removed_lit} from clause {i} '
+                          f'→ {len(current[i])} lits remain')
+                # don't advance j — the next literal slid into position j
+            else:
+                j += 1
+
+    return current, changed
+
+
 def renumber(clauses: list, show_vars: list):
     """Renumber variables to be contiguous starting from 1.
 
@@ -329,6 +374,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
         ),
     )
     p.add_argument(
+        '--reduce-literals',
+        action='store_true',
+        help=(
+            'After clause removal, also try removing individual literals from '
+            'each clause. Whenever a literal is removed the clause-removal '
+            'passes restart; this repeats until no further progress is made '
+            '(fixpoint). Disabled by default because it is significantly slower.'
+        ),
+    )
+    p.add_argument(
         '--timeout',
         type=int,
         default=30,
@@ -368,12 +423,27 @@ def main():
         if args.verbose:
             print('[init] bug confirmed on original instance', file=sys.stderr)
 
-        # --- ddmin on clauses ---
-        clauses = ddmin_clauses(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+        # --- fixpoint loop: clause removal ↔ literal removal ---
+        iteration = 0
+        while True:
+            iteration += 1
+            if args.verbose and args.reduce_literals:
+                print(f'[fixpoint] iteration {iteration}', file=sys.stderr)
 
-        # --- greedy fine-grained pass ---
-        if not args.no_greedy:
-            clauses = greedy_clauses(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+            clauses = ddmin_clauses(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+
+            if not args.no_greedy:
+                clauses = greedy_clauses(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+
+            if not args.reduce_literals:
+                break
+
+            clauses, lits_changed = greedy_literals(
+                clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+            if not lits_changed:
+                break  # fixpoint reached
+            if args.verbose:
+                print('[fixpoint] literals removed — restarting clause reduction', file=sys.stderr)
 
         # --- shrink projection set ---
         if not args.no_reduce_show and show_vars:
