@@ -27,7 +27,7 @@
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
-#include "src/options/solvers/OptionSolver.hpp"
+#include "src/solvers/OptionSolver.hpp"
 
 namespace d4 {
 class OptionProjMcMethod : public OptionRoot {

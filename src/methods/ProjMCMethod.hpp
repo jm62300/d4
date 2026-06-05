@@ -25,14 +25,18 @@
 
 #include "DpllStyleMethod.hpp"
 #include "MethodManager.hpp"
-#include "src/configurations/Configuration.hpp"
+#include "SemiringConcept.hpp"
+#include "src/caching/CacheManager.hpp"
+#include "src/caching/TmpEntry.hpp"
+#include "src/formulaManager/FormulaManager.hpp"
 #include "src/methods/Counter.hpp"
 #include "src/options/methods/OptionProjMcMethod.hpp"
 #include "src/problem/ProblemManager.hpp"
+#include "src/solvers/WrapperSolver.hpp"
 
 namespace d4 {
 
-template <class T>
+template <NumberType T, SemiringPolicy<T> O>
 class ProjMCMethod : public MethodManager {
  private:
   struct CoupleNotProjClauseSelector {
@@ -52,7 +56,6 @@ class ProjMCMethod : public MethodManager {
   const long unsigned c_MASK_SHOWRUN = ((2 << 13) - 1);
   const unsigned c_WIDTH_PRINT_COLUMN = 12;
 
-  ProblemManager* m_problem;
   std::ostream m_out;
   std::ostream m_outCounter;
 
@@ -71,6 +74,8 @@ class ProjMCMethod : public MethodManager {
   Counter<T>* m_counter;
   CacheManager<T>* m_cache;
 
+  O m_semiringOps;
+
   long unsigned m_nbCallRec;
   long unsigned m_nbSplit;
 
@@ -80,43 +85,47 @@ class ProjMCMethod : public MethodManager {
   /**
      Constructor.
 
-     @param[in] vm, the list of options.
+     @param[in] options, the method options.
+     @param[in] problem, the input problem.
+     @param[in] out, the output stream for logs.
    */
-  ProjMCMethod(const OptionProjMcMethod& options, ProblemManager* problem,
+  ProjMCMethod(const OptionProjMcMethod& options, const ProblemManager& problem,
                std::ostream& out)
-      : m_problem(problem), m_out(nullptr), m_outCounter(nullptr) {
+      : m_out(nullptr), m_outCounter(nullptr) {
     m_nbCallRec = m_nbSplit = 0;
 
     // init the output stream
-    m_out.copyfmt(std::cout);
-    m_out.clear(std::cout.rdstate());
-    m_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
+    m_out.copyfmt(out);
+    m_out.clear(out.rdstate());
+    m_out.basic_ios<char>::rdbuf(out.rdbuf());
 
     // mark the projected variables.
-    m_isProjectedVar.resize(m_problem->getNbVar() + 1, false);
-    m_isSelector.resize(m_problem->getNbVar() + 1, false);
-    for (auto v : m_problem->getSelectedVar()) m_isProjectedVar[v] = true;
+    const std::vector<Var>& projVars = problem.getQuantification().empty()
+                                           ? std::vector<Var>{}
+                                           : problem.getQuantification()[0];
+    m_isProjectedVar.resize(problem.getNbVar() + 1, false);
+    m_isSelector.resize(problem.getNbVar() + 1, false);
+    for (auto v : projVars) m_isProjectedVar[v] = true;
 
-    m_refinement = options.refinement;
+    m_refinement = options.refinement.get();
     m_out << "c [PROJ MC]" << options << "\n";
 
     std::vector<std::vector<Lit>> projClause, nprojClause, mix;
-    partitionFormula(m_problem, m_isProjectedVar, projClause, nprojClause, mix);
+    partitionFormula(problem, m_isProjectedVar, projClause, nprojClause, mix);
 
     // split the mixed clauses.
-    unsigned idxVar = m_problem->getNbVar() + 1;
+    unsigned idxVar = problem.getNbVar() + 1;
     manageMixedClauses(mix, m_isProjectedVar, projClause, nprojClause,
                        m_selectors, idxVar);
 
-    // prepare the SAT solver.
+    // prepare the SAT solver with all clauses (proj + nproj).
     std::vector<std::vector<Lit>> satSolverClauses = projClause;
     for (auto& cl : nprojClause) satSolverClauses.push_back(cl);
-    initSatSolver(options.optionSolver, m_problem, satSolverClauses,
-                  idxVar - 1);
+    initSatSolver(options.optionSolver, problem, satSolverClauses, idxVar - 1);
 
-    // prepare the spec manager.
-    m_specs = FormulaManager::makeFormulaManager(options.optionSpecs, *problem,
-                                                 m_out);
+    // prepare the spec manager with the projected formula (including
+    // selectors).
+    initSpecManager(options.optionSpecs, problem, projClause, idxVar - 1);
 
     // prepare the cache.
     m_cache = CacheManager<T>::makeCacheManager(options.optionCache, idxVar - 1,
@@ -125,10 +134,14 @@ class ProjMCMethod : public MethodManager {
     // init the clock time.
     initTimer();
 
-    // prepare the counter.
-    initCounter(options.optionCounter, m_problem, projClause, idxVar - 1);
+    // prepare the counter for the projected formula.
+    initCounter(options.optionCounter, problem, projClause, idxVar - 1);
+
     m_marked.resize(idxVar + 1, -1);
     m_flag.resize((idxVar + 1) << 1, false);
+
+    // init semiring with original problem weights.
+    m_semiringOps = O(problem.getNbVar(), problem.getWeightMap());
   }  // constructor
 
   /**
@@ -139,22 +152,41 @@ class ProjMCMethod : public MethodManager {
     delete m_solver;
     delete m_specs;
     delete m_cache;
-    delete m_problem;
   }  // destructor
 
  private:
   /**
-     Init the counter with the projected clauses.
+     Build a ProblemManager from a clause list.
 
-     @param[in] vm, the option to create the SAT solver.
-     @param[in] problem, the input problem (only used to get information about
-     weight).
-     @param[in] isFloat, specify if the weight are float or int.
-     @param[in] clauses, the set of clauses.
-     @param[in] nbVar, the number of variables of the formula.
+     @param[in] nbVar, the number of variables.
+     @param[in] quantifications, the variable quantification blocks.
+     @param[in] weightMap, the weight map.
+     @param[in] clauses, the clause list.
+     @return a ProblemManager owning those clauses.
+   */
+  static ProblemManager buildCnfProblem(
+      unsigned nbVar, const std::vector<std::vector<Var>>& quantifications,
+      const std::map<Lit, std::string>& weightMap,
+      const std::vector<std::vector<Lit>>& clauses) {
+    std::vector<BcGate> gates;
+    gates.reserve(clauses.size());
+    for (const auto& cl : clauses)
+      gates.push_back({cl, lit_Undef, BcGateType::CLAUSE});
+    std::ostream nullStream(nullptr);
+    return ProblemManager("cnf", nbVar, quantifications, weightMap, gates,
+                          nullStream);
+  }
+
+  /**
+     Init the inner counter with the projected clauses.
+
+     @param[in] options, the option to create the counter.
+     @param[in] problem, the original input problem.
+     @param[in] clauses, the projected clause set (including selector clauses).
+     @param[in] nbVar, the number of variables (including selectors).
    */
   void initCounter(const OptionDpllStyleMethod& options,
-                   ProblemManager* problem,
+                   const ProblemManager& problem,
                    std::vector<std::vector<Lit>>& clauses, unsigned nbVar) {
 #if DEBUG
     m_outCounter.copyfmt(m_out);
@@ -163,90 +195,73 @@ class ProjMCMethod : public MethodManager {
 #else
     m_outCounter.setstate(std::ios_base::badbit);
 #endif
-    // init the problem we will pass to the counter.
-    std::vector<mpz::mpf_float> weightLit((nbVar + 1) << 1, 1);
-    std::vector<mpz::mpf_float> weightVar(nbVar + 1, 2);
+    // Empty projection: counter counts all models (selectors are fixed by
+    // assumptions so weight=1 per selector).
+    std::vector<std::vector<Var>> emptyQuant = {std::vector<Var>{}};
+    ProblemManager counterProblem =
+        buildCnfProblem(nbVar, emptyQuant, problem.getWeightMap(), clauses);
 
-    std::vector<mpz::mpf_float>& problemWeightLit = problem->getWeightLit();
-    for (unsigned i = 0; i < problemWeightLit.size(); i++)
-      weightLit[i] = problemWeightLit[i];
-
-    std::vector<mpz::mpf_float>& problemWeightVar = problem->getWeightVar();
-    for (unsigned i = 0; i < problemWeightVar.size(); i++) {
-      if (m_isProjectedVar[i])
-        weightVar[i] = problemWeightVar[i];
-      else
-        weightVar[i] = 1;
-    }
-
-    std::vector<Var> emptySelectedVar;
-    ProblemManagerCnf* p =
-        new ProblemManagerCnf(nbVar, weightLit, weightVar, emptySelectedVar);
-    p->setClauses(clauses);
-    m_problem = p;
-
-    // create the counter.
     m_out << "c [PROJ MC] Create an external counter\n";
-    m_counter = new DpllStyleMethod<T, T>(options, problem, m_outCounter);
+    m_counter =
+        new DpllStyleMethod<T, O>(options, counterProblem, m_outCounter);
   }  // initCounter
 
   /**
-     Init the SAT solver with a set of clauses (actually two sets).  Only deals
-     with CNF formula.
+     Init the SAT solver with the full clause set (proj + nproj).
 
-     @param[in] vm, the option to create the SAT solver.
-     @param[in] problem, the input problem (only used to get information about
-     weight).
-     @param[in] clauses, the set of clauses.
-     @param[in] nbVar, the number of variables of the formula.
+     @param[in] options, the option to create the SAT solver.
+     @param[in] problem, the original input problem (used for type detection).
+     @param[in] clauses, the combined clause set.
+     @param[in] nbVar, the number of variables (including selectors).
    */
-  void initSatSolver(const OptionSolver& options, ProblemManager* problem,
+  void initSatSolver(const OptionSolver& options, const ProblemManager& problem,
                      std::vector<std::vector<Lit>>& clauses, unsigned nbVar) {
-    m_solver = WrapperSolver::makeWrapperSolver(options, *problem, m_out);
+    m_solver = WrapperSolver::makeWrapperSolver(options, problem, m_out);
     assert(m_solver);
 
-    // prepare the weight vectors and init the problem.
-    std::vector<mpz::mpf_float> weightLit((nbVar + 1) << 1, 1);
-    std::vector<mpz::mpf_float> weightVar(nbVar + 1, 2);
-
-    std::vector<mpz::mpf_float>& problemWeightLit = problem->getWeightLit();
-    for (unsigned i = 0; i < problemWeightLit.size(); i++)
-      weightLit[i] = problemWeightLit[i];
-
-    std::vector<mpz::mpf_float>& problemWeightVar = problem->getWeightVar();
-    for (unsigned i = 0; i < problemWeightVar.size(); i++)
-      weightVar[i] = problemWeightVar[i];
-
-    ProblemManagerCnf p(nbVar, weightLit, weightVar, problem->getSelectedVar());
-    p.setClauses(clauses);
-    m_solver->initSolver(p);
-
-    // ask for the witness.
+    ProblemManager satProblem = buildCnfProblem(
+        nbVar, problem.getQuantification(), problem.getWeightMap(), clauses);
+    m_solver->initSolver(satProblem);
     m_solver->setNeedModel(true);
   }  // initSatSolver
 
   /**
-     Partition the formula in tree sets regarding the the clauses contain or not
-     projected variable.
+     Init the spec manager with the projected formula (including selectors).
 
-     @param[in] prolem, the problem we want to partition.
-     @param[in] isProjectvar, boolean vector that specifies the projected
-     variables.
-     @param[out] projClause, the clauses that only contain projected variable.
-     @param[out] nprojClause, the clauses that do not contain projected
-     variable.
-     @param[out] mix, the clauses that contain both projected variable and not.
-     projected variables.
+     @param[in] options, spec manager options.
+     @param[in] problem, the original input problem.
+     @param[in] projClauses, the projected clauses (with selector vars).
+     @param[in] nbVar, the number of variables (including selectors).
    */
-  void partitionFormula(ProblemManager* problem,
+  void initSpecManager(const OptionSpecManager& options,
+                       const ProblemManager& problem,
+                       const std::vector<std::vector<Lit>>& projClauses,
+                       unsigned nbVar) {
+    std::vector<std::vector<Var>> emptyQuant = {std::vector<Var>{}};
+    ProblemManager projProblem =
+        buildCnfProblem(nbVar, emptyQuant, problem.getWeightMap(), projClauses);
+    m_specs = FormulaManager::makeFormulaManager(options, projProblem, m_out);
+  }  // initSpecManager
+
+  /**
+     Partition the formula into three sets: projected-only clauses,
+     non-projected-only clauses, and mixed clauses.
+
+     @param[in] problem, the problem to partition.
+     @param[in] isProjectedVar, boolean vector marking projected variables.
+     @param[out] projClause, clauses containing only projected variables.
+     @param[out] nprojClause, clauses containing no projected variables.
+     @param[out] mix, clauses containing both.
+   */
+  void partitionFormula(const ProblemManager& problem,
                         std::vector<bool>& isProjectedVar,
                         std::vector<std::vector<Lit>>& projClause,
                         std::vector<std::vector<Lit>>& nprojClause,
                         std::vector<std::vector<Lit>>& mix) {
-    ProblemManagerCnf* cnf = static_cast<ProblemManagerCnf*>(problem);
-    std::vector<std::vector<Lit>>& clauses = cnf->getClauses();
+    for (const auto& gate : problem.getGates()) {
+      assert(gate.gateType == BcGateType::CLAUSE);
+      const std::vector<Lit>& cl = gate.input;
 
-    for (auto& cl : clauses) {
       unsigned nbp = 0, nbn = 0;
       for (auto l : cl) {
         if (isProjectedVar[l.var()])
@@ -266,20 +281,15 @@ class ProjMCMethod : public MethodManager {
   }  // partitionFormula
 
   /**
-     Manage the mixed clauses by adding a selector in order to seperate each
-     clause between projected and not projected variables.
+     Manage the mixed clauses by adding a selector variable to separate the
+     projected and non-projected parts.
 
-     @param[int] mix, the clauses that contain both projected variable and not.
-     projected variables.
-     @param[in] isProjectvar, boolean vector that specifies the projected
-     variables.
-     @param[out] projClause, the clauses that only contain projected variable.
-     @param[out] nprojClause, the clauses that do not contain projected
-     variable.
-     @param[out] nextVar, the index of the next available variable.
-
-     @param[out] selectors, the added selectors literals (that can be used to
-     activate the projected part - ¬s v C).
+     @param[in] mix, clauses containing both projected and non-projected vars.
+     @param[in] isProjectedVar, boolean vector marking projected variables.
+     @param[out] projClause, receives extended projected clauses (clp ∨ s).
+     @param[out] nprojClause, receives extended non-proj clauses (clnp ∨ ¬s).
+     @param[out] selectors, the added selector literals.
+     @param[in,out] nextVar, index of the next available variable.
    */
   void manageMixedClauses(std::vector<std::vector<Lit>>& mix,
                           std::vector<bool>& isProjectedVar,
@@ -321,7 +331,7 @@ class ProjMCMethod : public MethodManager {
         m_isProjectedVar[s.var()] = false;
       }
 
-      // link the selector to the not projected part of the considered clause.
+      // link the selector to the non-projected part of the clause.
       m_selectorToNProjClause[s.var()].push_back(notProjClauses.size());
       notProjClauses.push_back({clnp, s});
       clnp.push_back(~s);
@@ -330,17 +340,18 @@ class ProjMCMethod : public MethodManager {
   }  // manageMixedClauses
 
   /**
-     Extract the selector that correspond to the non projected clauses that are
-     falsified by a given interpretation.
+     Extract the selector literals corresponding to non-projected clauses
+     that are falsified under the given model.
 
-     @param[in] model, the interpretation we check.
-     @param[out] selector, the returned selector.
+     @param[in] setOfVar, the set of variables to inspect.
+     @param[in] model, the current interpretation.
+     @param[out] selector, the returned selectors with their required values.
    */
   void extractSelectorFalsifiedNProj(std::vector<Var>& setOfVar,
                                      std::vector<lbool>& model,
                                      std::vector<Lit>& selector) {
     for (auto& v : setOfVar) {
-      if (!m_isSelector[v]) continue;
+      if (v >= (int)m_isSelector.size() || !m_isSelector[v]) continue;
       if (m_solver->isInAssumption(v)) continue;
 
       bool allSAT = true;
@@ -366,15 +377,14 @@ class ProjMCMethod : public MethodManager {
   }  // extractSelectorFalsifiedNProj
 
   /**
-     Expel from a list of variables, and a list of literals, the elements that
-     are not belonging to the projected set of variables.
+     Remove from litList and varList the elements that are not projected
+     variables.
 
-     @param[out] litList, the list of literals we want to refine.
-     @param[out] varList, the list of variables want to refine.
+     @param[out] litList, the literal list to filter in-place.
+     @param[out] varList, the variable list to filter in-place.
    */
   void expelNoProjectedElement(std::vector<Lit>& litList,
                                std::vector<Var>& varList) {
-    // only keep the projected.
     unsigned j = 0;
     for (unsigned i = 0; i < litList.size(); i++)
       if (m_isProjectedVar[litList[i].var()]) litList[j++] = litList[i];
@@ -387,15 +397,30 @@ class ProjMCMethod : public MethodManager {
   }  // expelNoProjectedElement
 
   /**
-     Try to reduce the number of falsified selector.
+     Compute the weight contribution of projected unit literals and free
+     projected variables using the semiring.
 
-     @param[in] setOfVar, the set of variableswe consider.
-     @param[out] selector, the selector list we try to reduce.
+     @param[in] unitLits, projected unit literals.
+     @param[in] freeVars, projected free variables.
+     @return the multiplicative weight factor.
+   */
+  T computeWeightUnitFree(const std::vector<Lit>& unitLits,
+                          const std::vector<Var>& freeVars) {
+    T w = m_semiringOps.zero();
+    m_semiringOps.add(w, m_semiringOps.one(), unitLits, freeVars);
+    return w;
+  }  // computeWeightUnitFree
+
+  /**
+     Try to reduce the number of falsified selectors using SAT calls.
+
+     @param[in] setOfVar, the set of variables to consider.
+     @param[out] selector, the selector list to reduce.
    */
   void refine(std::vector<Var>& setOfVar, std::vector<Lit>& selector) {
     unsigned initSizeAssumption = m_solver->sizeAssumption();
 
-    // split between true and false selector.
+    // split between true (satisfied) and false (unsatisfied) selectors.
     std::vector<Lit> falseSelector;
     unsigned j = 0;
     for (unsigned i = 0; i < selector.size(); i++) {
@@ -410,7 +435,7 @@ class ProjMCMethod : public MethodManager {
     }
     selector.resize(j);
 
-    // reintegrate false selector regarding if it is possible to flip some.
+    // reintegrate false selectors, flipping if possible.
     for (unsigned i = 0; i < falseSelector.size(); i++) {
       Lit l = falseSelector[i];
       if (m_solver->isInAssumption(l.var())) {
@@ -419,7 +444,8 @@ class ProjMCMethod : public MethodManager {
       }
 
       m_solver->pushAssumption(~l);
-      if (m_solver->solve(setOfVar)) {
+      std::vector<Lit> units;
+      if (m_solver->solve(setOfVar, units)) {
         std::vector<lbool>& model = m_solver->getModel();
         selector.push_back(~l);
 
@@ -463,27 +489,23 @@ class ProjMCMethod : public MethodManager {
   }  // refine
 
   /**
-     Compute the number of model on the projected variables.
+     Compute the projected model count over the given set of variables.
 
-     @param[in] setOfVar, the set of variableswe consider.
-     @param[in] out, the stream where are printed the logs.
-
-     \return the number of models.
+     @param[in] setOfVar, the set of variables to consider.
+     @param[in] out, the stream for logs.
+     @return the projected model count.
    */
   T compute_(std::vector<Var>& setOfVar, std::ostream& out) {
     showRun(out);
     m_nbCallRec++;
-    // if(m_nbCallRec > 100000) exit(0);
 
     unsigned initSizeAssumption = m_solver->sizeAssumption();
-    if (!m_solver->solve(setOfVar)) return T(0);
-
-    // collect unit literals
     std::vector<Lit> unitLits;
-    m_solver->whichAreUnits(setOfVar, unitLits);
+    if (!m_solver->solve(setOfVar, unitLits)) return T(0);
+
     m_specs->preUpdate(unitLits);
 
-    // add the unit in the assumption.
+    // add the unit literals to the assumption.
     for (auto& l : unitLits) {
       assert(!m_solver->isInAssumption(~l));
       if (!m_solver->isInAssumption(l)) m_solver->pushAssumption(l);
@@ -494,24 +516,23 @@ class ProjMCMethod : public MethodManager {
     int nbComponent = m_specs->computeConnectedComponent(varConnected, setOfVar,
                                                          freeVariable);
 
-    // extract the really present variables.
+    // collect vars that are in a connected component.
     reallyPresent.reserve(setOfVar.size() - freeVariable.size());
-    for (auto& l : varConnected)
-      for (auto& v : l) reallyPresent.push_back(v);
+    for (auto& comp : varConnected)
+      for (auto& v : comp) reallyPresent.push_back(v);
 
-    // extract the projected variables.
+    // extract the projected variables in the component.
     std::vector<Var> projectSetOfVar;
     for (auto& v : reallyPresent)
       if (m_isProjectedVar[v]) projectSetOfVar.push_back(v);
 
-    T ret = 1;
+    T ret = T(1);
     if (projectSetOfVar.size()) {
       if (nbComponent > 1) {
-        // consider each component independently
         for (auto& component : varConnected) ret *= compute_(component, out);
         m_nbSplit += nbComponent;
       } else if (nbComponent == 1) {
-        // collect the selectors of the unsatisfied non projected clauses.
+        // extract selector values for non-projected constraints.
         std::vector<Lit> selector;
         extractSelectorFalsifiedNProj(reallyPresent, m_solver->getModel(),
                                       selector);
@@ -521,7 +542,7 @@ class ProjMCMethod : public MethodManager {
         if (cb.defined)
           ret = cb.getValue();
         else {
-          // prepare the next assumption.
+          // count projected models under current selector assignments.
           std::vector<Lit> nextAssums(m_solver->getAssumption());
           for (auto& s : selector) {
             assert(!m_solver->isInAssumption(s.var()));
@@ -529,7 +550,8 @@ class ProjMCMethod : public MethodManager {
           }
           ret = m_counter->count(reallyPresent, nextAssums, m_outCounter);
 
-          // reajust the selectors by only keeping the negative.
+          // for each unsatisfied selector, add models where the projected
+          // clause forces satisfaction (inclusion-exclusion step).
           unsigned j = 0;
           for (unsigned i = 0; i < selector.size(); i++)
             if (selector[i].sign()) selector[j++] = selector[i];
@@ -566,24 +588,26 @@ class ProjMCMethod : public MethodManager {
     expelNoProjectedElement(unitLits, freeVariable);
 
     m_solver->popAssumption(m_solver->sizeAssumption() - initSizeAssumption);
-    return ret * m_problem->computeWeightUnitFree<T>(unitLits, freeVariable);
+    return ret * computeWeightUnitFree(unitLits, freeVariable);
   }  // compute_
 
   /**
-     Prepare the computed process.
+     Entry point for the recursive computation.
 
-     @param[in] out, the stream used to print the information.
+     @param[in] out, the output stream.
+     @return the projected model count.
    */
   T compute(std::ostream& out) {
     std::vector<Var> setOfVar;
-    for (int i = 1; i <= m_specs->getNbVariable(); i++) setOfVar.push_back(i);
+    for (unsigned i = 1; i <= (unsigned)m_specs->getNbVariable(); i++)
+      setOfVar.push_back(i);
     return compute_(setOfVar, out);
   }  // compute
 
   /**
-   Print out information about the solving process.
+   Print out the running statistics.
 
-   @param[in] out, the stream we use to print out information.
+   @param[in] out, the stream to write to.
 */
   inline void showInter(std::ostream& out) {
     out << "c [PROJMC] " << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
@@ -597,22 +621,12 @@ class ProjMCMethod : public MethodManager {
         << "|\n";
   }  // showInter
 
-  /**
-     Print out a line of dashes.
-
-     @param[in] out, the stream we use to print out information.
-   */
   inline void separator(std::ostream& out) {
     out << "c [PROJMC] ";
     for (unsigned i = 0; i < c_NB_SEP; i++) out << "-";
     out << "\n";
   }  // separator
 
-  /**
-     Print out the header information.
-
-     @param[in] out, the stream we use to print out information.
-  */
   inline void showHeader(std::ostream& out) {
     separator(out);
     out << "c [PROJMC] " << "|" << std::setw(c_WIDTH_PRINT_COLUMN)
@@ -625,42 +639,26 @@ class ProjMCMethod : public MethodManager {
     separator(out);
   }  // showHeader
 
-  /**
-     Print out information when it is requiered.
-
-     @param[in] out, the stream we use to print out information.
-   */
   inline void showRun(std::ostream& out) {
     if (!(m_nbCallRec & (c_MASK_HEADER))) showHeader(out);
     if (m_nbCallRec && !(m_nbCallRec & c_MASK_SHOWRUN)) showInter(out);
   }  // showRun
 
-  /**
-     Print out the final stat.
-
-     @param[in] out, the stream we use to print out information.
-  */
   inline void printFinalStats(std::ostream& out) {
     out << "c [PROJMC] \n";
     out << "c [PROJMC] \033[1m\033[31mStatistics \033[0m\n";
     out << "c [PROJMC] \033[33mCompilation Information\033[0m\n";
-    /*
-    out << "c [PROJMC] Number of recursive call: " << nbCallCall << "\n";
-    out << "c [PROJMC] Number of split formula: " << nbSplit << "\n";
-    out << "c [PROJMC] Number of decision: " << nbDecisionNode << "\n";
-    out << "c [PROJMC] Number of paritioner calls: " << callPartitioner << "\n";
-    */
     out << "c [PROJMC]\n";
     m_cache->printCacheInformation(out);
     out << "c [PROJMC] Final time: " << getTimer() << "\n";
     out << "c\n";
-  }  // printFinalStat
+  }  // printFinalStats
 
  public:
   /**
-     Run the DPLL style algorithm with the operation manager.
+     Run the ProjMC algorithm.
 
-     @param[in] vm, the set of options.
+     @return the projected model count.
    */
   T run() {
     T res = compute(m_out);
