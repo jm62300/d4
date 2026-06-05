@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-#include "CounterDemo.hpp"
+#include "Counter.hpp"
 #include "OptionCounter.hpp"
 #include "ParserDimacs.hpp"
 #include "src/methods/MethodManager.hpp"
@@ -31,6 +31,36 @@
 
 namespace fs = std::filesystem;
 d4::MethodManager* methodRun = nullptr;
+
+// Run BiPe preprocessing on the formula in place.
+static void runPreproc(parser::Formula& formula,
+                       const bipe::OptionPreproc& optionPreproc) {
+  bipe::PreprocManager preprocManager;
+
+  // quantifications[0] holds the projection scope when doing projected
+  // counting; fall back to all variables for standard model counting.
+  std::vector<int> projected;
+  if (formula.quantifications[0].size())
+    projected = formula.quantifications[0];
+  else
+    for (unsigned i = 1; i <= formula.nbVar; i++) projected.push_back(i);
+
+  // Variables whose positive and negative literal weights differ must not be
+  // eliminated: removing them would change the weighted count.
+  std::vector<int> varProtected;
+  for (int i = 1; i <= formula.nbVar; i++) {
+    std::string w1 = formula.weightMap.find(i) != formula.weightMap.end()
+                         ? formula.weightMap[i]
+                         : "";
+    std::string w2 = formula.weightMap.find(-i) != formula.weightMap.end()
+                         ? formula.weightMap[-i]
+                         : "";
+    if (w1 != w2) varProtected.push_back(i);
+  }
+
+  preprocManager.run(formula.nbVar, formula.clauses, projected, varProtected,
+                     optionPreproc);
+}  // runPreproc
 
 /**
    The main function.
@@ -94,19 +124,8 @@ int main(int argc, char** argv) {
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
 
-  // preproc.
-  bipe::PreprocManager preprocManager;
-  std::vector<int> projected;
-  if (formula.quantifications[0].size())
-    projected = formula.quantifications[0];
-  else
-    for (unsigned i = 1; i <= formula.nbVar; i++) projected.push_back(i);
-
-  preprocManager.run(formula.nbVar, formula.clauses, projected,
-                     std::vector<int>(), optionPreproc);
-
-  // count.
-  counterDemo(options, optionCounter, formula);
+  runPreproc(formula, optionPreproc);
+  counter(options, optionCounter, formula);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed = end - start;

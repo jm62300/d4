@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "CounterDemo.hpp"
+#include "Counter.hpp"
 
 #include <signal.h>
 
@@ -87,9 +87,9 @@ void countModels(const OptionDpllStyleMethod& options,
  *
  * Runs the counter using the provided configuration.
  */
-void counterDemo(const d4::OptionDpllStyleMethod& inputConfig,
-                 const d4::OptionCounter& optionCounter,
-                 const parser::Formula& formula) {
+void counter(const d4::OptionDpllStyleMethod& inputConfig,
+             const d4::OptionCounter& optionCounter,
+             const parser::Formula& formula) {
   // Use the provided configuration.
   d4::OptionDpllStyleMethod options = inputConfig;
 
@@ -134,4 +134,4 @@ void counterDemo(const d4::OptionDpllStyleMethod& inputConfig,
           options, problem, format, outFormat, false);
       break;
   }
-}  // counterDemo
+}  // counter

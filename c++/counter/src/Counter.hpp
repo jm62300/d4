@@ -18,9 +18,9 @@
  */
 #pragma once
 
+#include "OptionCounter.hpp"
 #include "ParserDimacs.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
-#include "OptionCounter.hpp"
 
 /**
  * @brief Run a counter using a configuration object.
@@ -29,6 +29,6 @@
  * @param optionCounter The counter-specific options.
  * @param formula       The parsed input formula.
  */
-void counterDemo(const d4::OptionDpllStyleMethod& config,
-                 const d4::OptionCounter& optionCounter,
-                 const parser::Formula& formula);
+void counter(const d4::OptionDpllStyleMethod& config,
+             const d4::OptionCounter& optionCounter,
+             const parser::Formula& formula);
