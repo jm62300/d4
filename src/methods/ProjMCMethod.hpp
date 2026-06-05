@@ -123,9 +123,10 @@ class ProjMCMethod : public MethodManager {
     for (auto& cl : nprojClause) satSolverClauses.push_back(cl);
     initSatSolver(options.optionSolver, problem, satSolverClauses, idxVar - 1);
 
-    // prepare the spec manager with the projected formula (including
-    // selectors).
-    initSpecManager(options.optionSpecs, problem, projClause, idxVar - 1);
+    // prepare the spec manager with ALL clauses (proj + nproj + selectors) so
+    // that connected-component computation sees the full variable graph.
+    initSpecManager(options.optionSpecs, problem, projClause, nprojClause,
+                    idxVar - 1);
 
     // prepare the cache.
     m_cache = CacheManager<T>::makeCacheManager(options.optionCache, idxVar - 1,
@@ -236,11 +237,14 @@ class ProjMCMethod : public MethodManager {
   void initSpecManager(const OptionSpecManager& options,
                        const ProblemManager& problem,
                        const std::vector<std::vector<Lit>>& projClauses,
+                       const std::vector<std::vector<Lit>>& nprojClauses,
                        unsigned nbVar) {
+    std::vector<std::vector<Lit>> allClauses = projClauses;
+    for (const auto& cl : nprojClauses) allClauses.push_back(cl);
     std::vector<std::vector<Var>> emptyQuant = {std::vector<Var>{}};
-    ProblemManager projProblem =
-        buildCnfProblem(nbVar, emptyQuant, problem.getWeightMap(), projClauses);
-    m_specs = FormulaManager::makeFormulaManager(options, projProblem, m_out);
+    ProblemManager allProblem =
+        buildCnfProblem(nbVar, emptyQuant, problem.getWeightMap(), allClauses);
+    m_specs = FormulaManager::makeFormulaManager(options, allProblem, m_out);
   }  // initSpecManager
 
   /**
@@ -496,8 +500,6 @@ class ProjMCMethod : public MethodManager {
      @return the projected model count.
    */
   T compute_(std::vector<Var>& setOfVar, std::ostream& out) {
-    std::cout << "compute\n";
-
     showRun(out);
     m_nbCallRec++;
 
@@ -531,7 +533,6 @@ class ProjMCMethod : public MethodManager {
     T ret = T(1);
     if (projectSetOfVar.size()) {
       if (nbComponent > 1) {
-        std::cout << "more than one component\n";
         for (auto& component : varConnected) ret *= compute_(component, out);
         m_nbSplit += nbComponent;
       } else if (nbComponent == 1) {
@@ -546,16 +547,21 @@ class ProjMCMethod : public MethodManager {
           ret = cb.getValue();
         else {
           // count projected models under current selector assignments.
-          std::vector<Lit> nextAssums(m_solver->getAssumption());
-          std::cout << "==========> ";
-          for (auto& l : nextAssums) std::cout << l.human() << ' ';
-          std::cout << '\n';
+          // Only pass projected vars and selectors to the counter; nproj vars
+          // that appear in the (full-formula) component must not inflate the
+          // count with a spurious 2^|nproj_free| factor.
+          std::vector<Var> counterVars;
+          for (auto v : reallyPresent)
+            if (m_isProjectedVar[v] ||
+                (v < (int)m_isSelector.size() && m_isSelector[v]))
+              counterVars.push_back(v);
 
+          std::vector<Lit> nextAssums(m_solver->getAssumption());
           for (auto& s : selector) {
             assert(!m_solver->isInAssumption(s.var()));
             if (!m_solver->isInAssumption(s)) nextAssums.push_back(s);
           }
-          ret = m_counter->count(reallyPresent, nextAssums, m_outCounter);
+          ret = m_counter->count(counterVars, nextAssums, m_outCounter);
 
           // for each unsatisfied selector, add models where the projected
           // clause forces satisfaction (inclusion-exclusion step).
