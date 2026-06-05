@@ -123,8 +123,6 @@ int main(int argc, char** argv) {
   }
 
   runPreproc(formula, optionPreproc);
-
-  std::cout << formula << '\n';
   projMcCounter(options, optionCounter, formula);
 
   auto end = std::chrono::system_clock::now();
