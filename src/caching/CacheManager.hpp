@@ -89,8 +89,12 @@ class CacheManager {
     m_cacheCleaningManager = CacheCleaningManager<T>::makeCacheCleaningManager(
         options.optionCacheCleaningManager, this, nbVar, out);
 
-    m_bucketManager = BucketManager::makeBucketManager(
-        options.optionBucketManager, *specs, out);
+    out << "c [BUCKET MANAGER] " << options.optionBucketManager << "\n";
+    specs->initFormulaStore(options.optionBucketManager);
+    BucketAllocator* alloc = new BucketAllocator();
+    alloc->init(options.optionBucketManager.sizeFirstPage.get(),
+                options.optionBucketManager.sizeAdditionalPage.get());
+    m_bucketManager = new BucketManager(*specs, alloc);
   }  // constructor
 
   /**

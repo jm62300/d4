@@ -23,6 +23,9 @@
 #include <src/problem/ProblemTypes.hpp>
 #include <vector>
 
+#include "src/caching/CachedBucket.hpp"
+#include "src/caching/bucket/BucketAllocator.hpp"
+#include "src/options/cache/OptionBucketManager.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
 
 namespace d4 {
@@ -243,5 +246,27 @@ class FormulaManager {
    * @return true if the variable is free, false otherwise.
    */
   virtual bool isFreeVariable(Var v) = 0;
+
+  /**
+   * @brief Initialize the formula store strategy used by storeFormula.
+   * Must be called once before the first storeFormula call.
+   *
+   * @param opts selects the encoding strategy and mode.
+   */
+  virtual void initFormulaStore(const OptionBucketManager& opts) = 0;
+
+  /**
+   * @brief Serialize the current formula state for the given connected component
+   * into a compact byte representation suitable for caching.
+   *
+   * Soundness invariant: two calls with equivalent residual sub-formulas
+   * (same model count) must produce identical bytes.
+   *
+   * @param[in] component variables in the connected component.
+   * @param[out] b receives the serialized representation.
+   * @param[in] alloc allocator used to obtain raw memory.
+   */
+  virtual void storeFormula(std::span<const Var> component, DataBucket& b,
+                            BucketAllocator& alloc) = 0;
 };
 }  // namespace d4

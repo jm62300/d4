@@ -392,4 +392,14 @@ bool CircuitWithCnfManager::isFreeVariable(Var v) {
   return m_cnfManager->isFreeVariable(v);
 }  // isFreeVariable
 
+void CircuitWithCnfManager::initFormulaStore(const OptionBucketManager& opts) {
+  m_cnfManager->initFormulaStore(opts);
+}  // initFormulaStore
+
+void CircuitWithCnfManager::storeFormula(std::span<const Var> component,
+                                         DataBucket& b,
+                                         BucketAllocator& alloc) {
+  m_cnfManager->storeFormula(component, b, alloc);
+}  // storeFormula
+
 }  // namespace d4

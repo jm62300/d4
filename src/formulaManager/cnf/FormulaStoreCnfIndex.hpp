@@ -16,10 +16,29 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
+#pragma once
 
-#include "BucketManager.hpp"
+#include <algorithm>
+
+#include "FormulaStoreCnf.hpp"
+#include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-// BucketManager is now a thin wrapper: construction and delegation happen
-// inline in the header. Nothing to define here.
+
+class FormulaStoreCnfIndex : public FormulaStoreCnf {
+ private:
+  std::vector<unsigned> m_idxClauses;
+
+ protected:
+  template <typename U, typename W>
+  void* storeData(void* data, std::span<const W> value);
+
+ public:
+  FormulaStoreCnfIndex(CnfManager& occM, ModeStore mdStore);
+  ~FormulaStoreCnfIndex();
+
+  void storeFormula(std::span<const Var> component, DataBucket& b,
+                    BucketAllocator& alloc) override;
+};
+
 }  // namespace d4

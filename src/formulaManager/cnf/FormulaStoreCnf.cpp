@@ -17,33 +17,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "BucketManagerCnf.hpp"
+#include "FormulaStoreCnf.hpp"
 
 namespace d4 {
-/**
- * @brief BucketManagerCnf::BucketManagerCnf implementation.
- */
-BucketManagerCnf::BucketManagerCnf(CnfManager& occM, ModeStore mdStore,
-                                   unsigned long sizeFirstPage,
-                                   unsigned long sizeAdditionalPage,
-                                   BucketAllocator* bucketAllocator)
+
+FormulaStoreCnf::FormulaStoreCnf(CnfManager& occM, ModeStore mdStore)
     : m_specManager(occM) {
-  this->m_bucketAllocator = bucketAllocator;
   m_modeStore = mdStore;
   m_nbClauseCnf = occM.getNbClause();
   m_nbVarCnf = occM.getNbVariable();
   m_maxSizeClause = occM.getMaxSizeClause();
   m_varInComponent.resize(m_nbVarCnf, false);
+}
 
-  this->m_bucketAllocator->init(sizeFirstPage, sizeAdditionalPage);
-}  // BucketManager
-
-/**
- * @brief BucketManagerCnf::collectIdActiveClauses implementation.
- */
-void BucketManagerCnf::collectIdActiveClauses(
-    std::span<const Var> component, std::vector<unsigned>& idxClauses) {
-  // collect the clauses
+void FormulaStoreCnf::collectIdActiveClauses(std::span<const Var> component,
+                                             std::vector<unsigned>& idxClauses) {
   idxClauses.resize(0);
   if (m_modeStore == CACHE_ALL)
     m_specManager.getCurrentClauses(idxClauses, component);
@@ -56,5 +44,6 @@ void BucketManagerCnf::collectIdActiveClauses(
     idxClauses[j++] = idxClauses[i];
   }
   idxClauses.resize(j);
-}  // collectIdActiveClauses
+}
+
 }  // namespace d4

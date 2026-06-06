@@ -19,11 +19,14 @@
 #pragma once
 
 #include <iterator>
+#include <memory>
 #include <span>
 
 #include "../FormulaManager.hpp"
 #include "ClauseInfo.hpp"
 #include "DataOccurrence.hpp"
+#include "FormulaStore.hpp"
+#include "src/caching/bucket/BucketAllocator.hpp"
 #include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemManager.hpp"
 
@@ -57,6 +60,8 @@ class CnfManager : public FormulaManager {
 
   Var* m_activeVariables;
 
+  std::unique_ptr<FormulaStore> m_formulaStore;
+
   inline void incrementStampMarkView() {
     if (m_stampMarkView == std::numeric_limits<uint32_t>::max()) {
       std::fill(m_markView.begin(), m_markView.end(), 0);
@@ -75,6 +80,10 @@ class CnfManager : public FormulaManager {
  public:
   CnfManager(const ProblemManager& p);
   ~CnfManager();
+
+  void initFormulaStore(const OptionBucketManager& opts);
+  void storeFormula(std::span<const Var> component, DataBucket& b,
+                    BucketAllocator& alloc) override;
 
   int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
                                 std::span<Var> setOfVar,

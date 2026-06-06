@@ -152,5 +152,13 @@ class CircuitWithCnfManager : public CircuitManager {
    * @return true if the variable is free, false otherwise.
    */
   bool isFreeVariable(Var v) override;
+
+  void initFormulaStore(const OptionBucketManager& opts) override;
+
+  /**
+   * @brief Delegate formula self-description to the embedded CNF manager.
+   */
+  void storeFormula(std::span<const Var> component, DataBucket& b,
+                    BucketAllocator& alloc) override;
 };
 }  // namespace d4

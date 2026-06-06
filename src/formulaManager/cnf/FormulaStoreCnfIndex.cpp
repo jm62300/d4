@@ -17,59 +17,38 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include "BucketManagerCnfIndex.hpp"
+#include "FormulaStoreCnfIndex.hpp"
 
 namespace d4 {
-/**
- * @brief BucketManagerCnfIndex::BucketManagerCnfIndex implementation.
- */
-BucketManagerCnfIndex::BucketManagerCnfIndex(CnfManager& occM,
-                                             ModeStore mdStore,
-                                             unsigned long sizeFirstPage,
-                                             unsigned long sizeAdditionalPage,
-                                             BucketAllocator* bucketAllocator)
-    : BucketManagerCnf::BucketManagerCnf(occM, mdStore, sizeFirstPage,
-                                         sizeAdditionalPage, bucketAllocator) {
-}  // BucketManagerCnfIndex
 
-/**
- * @brief BucketManagerCnfIndex::~BucketManagerCnfIndex implementation.
- */
-BucketManagerCnfIndex::~BucketManagerCnfIndex() {}  // destructor
+FormulaStoreCnfIndex::FormulaStoreCnfIndex(CnfManager& occM, ModeStore mdStore)
+    : FormulaStoreCnf(occM, mdStore) {}
 
-/**
- * @brief BucketManagerCnfIndex::storeData implementation.
- */
+FormulaStoreCnfIndex::~FormulaStoreCnfIndex() {}
+
 template <typename U, typename W>
-void* BucketManagerCnfIndex::storeData(void* data, std::span<const W> value) {
+void* FormulaStoreCnfIndex::storeData(void* data, std::span<const W> value) {
   U* p = static_cast<U*>(data);
   for (auto& v : value) {
     *p = static_cast<U>(v);
     p++;
   }
-
   return p;
-}  // storeVariables
+}
 
-/**
- * @brief BucketManagerCnfIndex::storeFormula implementation.
- */
-void BucketManagerCnfIndex::storeFormula(std::span<const Var> component,
-                                         DataBucket& b) {
+void FormulaStoreCnfIndex::storeFormula(std::span<const Var> component,
+                                        DataBucket& b, BucketAllocator& alloc) {
   this->collectIdActiveClauses(component, m_idxClauses);
 
-  // nb bytes we need to store the information.
   unsigned int nbOVar = this->nbOctetToEncodeInt(component.back() + 1);
   unsigned int nbOData = m_idxClauses.size()
                              ? this->nbOctetToEncodeInt(m_idxClauses.back() + 1)
                              : 1;
 
-  // ask for memory
   unsigned szData = nbOVar * component.size() + nbOData * m_idxClauses.size();
-  char* data = this->m_bucketAllocator->getArray(szData);
+  char* data = alloc.getArray(szData);
   void* p = data;
 
-  // store the variables
   switch (nbOVar) {
     case 1:
       p = storeData<uint8_t, Var>(p, component);
@@ -84,7 +63,6 @@ void BucketManagerCnfIndex::storeFormula(std::span<const Var> component,
   assert(static_cast<char*>(p) == &data[nbOVar * component.size()]);
   if (!m_idxClauses.size()) goto fillTheBucket;
 
-  // store the clauses
   switch (nbOData) {
     case 1:
       p = storeData<uint8_t, unsigned>(p, m_idxClauses);
@@ -101,5 +79,6 @@ fillTheBucket:
   DataInfo di(szData, component.size(), nbOVar, nbOData);
   assert(di.szData() == szData);
   b.set(data, di);
-}  // storeFormula
+}
+
 }  // namespace d4

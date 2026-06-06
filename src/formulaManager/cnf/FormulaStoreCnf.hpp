@@ -22,15 +22,16 @@
 #include <iostream>
 #include <vector>
 
-#include "../../CachedBucket.hpp"
-#include "../BucketAllocator.hpp"
-#include "../BucketManager.hpp"
-#include "src/formulaManager/cnf/CnfManager.hpp"
+#include "CnfManager.hpp"
+#include "FormulaStore.hpp"
+#include "src/caching/CachedBucket.hpp"
+#include "src/caching/bucket/BucketAllocator.hpp"
+#include "src/options/cache/OptionBucketManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
 
-class BucketManagerCnf : public BucketManager {
+class FormulaStoreCnf : public FormulaStore {
  protected:
   CnfManager& m_specManager;
 
@@ -43,48 +44,22 @@ class BucketManagerCnf : public BucketManager {
   std::vector<int> m_idxClauses;
 
  public:
-  /**
-     Constructor.
+  FormulaStoreCnf(CnfManager& occM, ModeStore mdStore);
 
-     @param[in] occM, the CNF occurrence manager.
-     @param[in] mdStore, the storing mode for the clause.
-     @param[in] sizeFirstPage, the amount of bytes for the first page.
-     @param[in] sizeAdditionalPage, the amount of bytes for the additional
-     pages.
-     @param[in] bucketAllocator, a bucket allocator.
-  */
-  BucketManagerCnf(CnfManager& occM, ModeStore mdStore,
-                   unsigned long sizeFirstPage,
-                   unsigned long sizeAdditionalPage,
-                   BucketAllocator* bucketAllocator);
+  virtual ~FormulaStoreCnf() = default;
 
-  /**
-   * @brief Get the clauses that will be used, that are the clause that
-   * respect the modeStore.
-   *
-   * @param[in] component, the variables in the current component.
-   * @param[out] idxClauses, the resulting clauses (index).
-   */
+  virtual void storeFormula(std::span<const Var> component, DataBucket& b,
+                            BucketAllocator& alloc) = 0;
+
   void collectIdActiveClauses(std::span<const Var> component,
                               std::vector<unsigned>& idxClauses);
-
-  virtual ~BucketManagerCnf() { ; }
-  virtual void storeFormula(std::span<const Var> component, DataBucket& b) = 0;
 
   inline bool canSkipLit(const Lit& l) {
     if (m_modeStore == CACHE_NT)
       return m_specManager.getNbRemainingInitNotBinaryClause(l) == 0;
     return false;
-  }  // canSkipLit
+  }
 
-  /**
-   * Tell if the clause given as parameter (which is represented by its index
-   * in the spec manager) should be considered or not.
-   *
-   * @param[in] idx, the index of the clause.
-   *
-   * \return true if the clause is kept, false otherwise.
-   */
   inline bool isKeptClause(int idx) {
     switch (m_modeStore) {
       case CACHE_NT:
@@ -94,6 +69,28 @@ class BucketManagerCnf : public BucketManager {
       default:
         return true;
     }
-  }  // isKeptClause
+  }
+
+  // Utility: number of bits needed to encode v (~log2(v)+1).
+  inline static unsigned nbBitUnsigned(unsigned v) {
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+    const unsigned int S[] = {1, 2, 4, 8, 16};
+    unsigned int r = 0;
+    for (int i = 4; i >= 0; i--) {
+      if (v & b[i]) {
+        v >>= S[i];
+        r |= S[i];
+      }
+    }
+    return r + 1;
+  }
+
+  // Utility: minimum number of bytes needed to encode v.
+  inline int nbOctetToEncodeInt(unsigned int v) {
+    if (v < (1 << 8)) return 1;
+    if (v < (1 << 16)) return 2;
+    return 4;
+  }
 };
+
 }  // namespace d4

@@ -24,6 +24,11 @@
 #include <span>
 
 #include "CnfManagerDyn.hpp"
+#include "FormulaStoreCnfCl.hpp"
+#include "FormulaStoreCnfCombi.hpp"
+#include "FormulaStoreCnfIndex.hpp"
+#include "FormulaStoreCnfSym.hpp"
+#include "src/exceptions/FactoryException.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
@@ -436,5 +441,34 @@ void CnfManager::debugFunction() {
   }
 
 }  // debugFunction
+
+void CnfManager::initFormulaStore(const OptionBucketManager& opts) {
+  switch (opts.clauseRepresentation.get()) {
+    case CACHE_CLAUSE:
+      m_formulaStore =
+          std::make_unique<FormulaStoreCnfCl>(*this, opts.modeStore.get());
+      return;
+    case CACHE_SYM:
+      m_formulaStore =
+          std::make_unique<FormulaStoreCnfSym>(*this, opts.modeStore.get());
+      return;
+    case CACHE_INDEX:
+      m_formulaStore =
+          std::make_unique<FormulaStoreCnfIndex>(*this, opts.modeStore.get());
+      return;
+    case CACHE_COMBI:
+      m_formulaStore = std::make_unique<FormulaStoreCnfCombi>(
+          *this, opts.modeStore.get(), opts.limitVarSym.get(),
+          opts.limitVarIndex.get());
+      return;
+  }
+  throw(FactoryException("Cannot create a FormulaStore", __FILE__, __LINE__));
+}
+
+void CnfManager::storeFormula(std::span<const Var> component, DataBucket& b,
+                              BucketAllocator& alloc) {
+  assert(m_formulaStore);
+  m_formulaStore->storeFormula(component, b, alloc);
+}
 
 }  // namespace d4
