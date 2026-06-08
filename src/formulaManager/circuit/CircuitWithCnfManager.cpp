@@ -35,7 +35,58 @@ CircuitWithCnfManager::CircuitWithCnfManager(const ProblemManager& p,
 
   m_optionRemoveGates = optRmGates;
   m_propagatedFree = 0;
-  m_cnfManager = new CnfManagerDyn(p);
+
+  // Build Tseitin biconditional clauses from the circuit gates so the embedded
+  // CNF manager has correct clause constraints for all variables (input and
+  // gate-output). Without this, input vars have no clause occurrences and are
+  // wrongly treated as free during projected model counting.
+  std::vector<BcGate> tseitinGates;
+  for (const auto& g : p.getGates()) {
+    switch (g.gateType) {
+      case BcGateType::AND: {
+        // Forward: {o, ~l1, ..., ~ln}  Backward: {li, ~o} per input
+        std::vector<Lit> fwd = {g.output};
+        for (auto l : g.input) {
+          tseitinGates.push_back({{l, ~g.output}, lit_Undef, BcGateType::CLAUSE});
+          fwd.push_back(~l);
+        }
+        tseitinGates.push_back({fwd, lit_Undef, BcGateType::CLAUSE});
+        break;
+      }
+      case BcGateType::OR: {
+        // Forward: {~o, l1, ..., ln}  Backward: {~li, o} per input
+        std::vector<Lit> fwd = {~g.output};
+        for (auto l : g.input) {
+          tseitinGates.push_back({{~l, g.output}, lit_Undef, BcGateType::CLAUSE});
+          fwd.push_back(l);
+        }
+        tseitinGates.push_back({fwd, lit_Undef, BcGateType::CLAUSE});
+        break;
+      }
+      case BcGateType::IDENTITY:
+        tseitinGates.push_back(
+            {{g.input[0], ~g.output}, lit_Undef, BcGateType::CLAUSE});
+        tseitinGates.push_back(
+            {{~g.input[0], g.output}, lit_Undef, BcGateType::CLAUSE});
+        break;
+      case BcGateType::CLAUSE:
+        tseitinGates.push_back(g);
+        break;
+      default:
+        break;
+    }
+  }
+  ProblemManager tseitinProblem("cnf", p.getNbVar(), p.getQuantification(),
+                                p.getWeightMap(), tseitinGates, std::cout);
+  m_cnfManager = new CnfManagerDyn(tseitinProblem);
+
+  // Populate m_true_lits from CLAUSE gates (T statements).
+  // In our representation, T statements are stored as CLAUSE gates with
+  // output = lit_Undef. The gate structure loop below must skip them to avoid
+  // accessing m_varToGate[-1] (lit_Undef.var() == -1).
+  for (const auto& g : m_gates)
+    if (g.gateType == BcGateType::CLAUSE)
+      for (const auto& l : g.input) m_true_lits.push_back(l);
 
   // assign variable with their definition, and for each variable v store the
   // gates where v is part of the input.
@@ -47,6 +98,10 @@ CircuitWithCnfManager::CircuitWithCnfManager(const ProblemManager& p,
   m_litThatInactiveVar.resize((p.getNbVar() + 1) << 1);
 
   for (unsigned i = 0; i < m_gates.size(); i++) {
+    // CLAUSE gates (T statements) have output = lit_Undef (var = -1).
+    // They are handled entirely by the CNF manager; skip them here.
+    if (m_gates[i].gateType == BcGateType::CLAUSE) continue;
+
     for (auto l : m_gates[i].input) {
       if (m_gates[i].gateType == BcGateType::AND) l = ~l;
       m_litThatInactiveVar[l.intern()].push_back(m_gates[i].output.var());

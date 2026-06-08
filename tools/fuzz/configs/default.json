@@ -153,7 +153,8 @@
           "max_gates": 25,
           "polarity_prob": 0.5,
           "or_prob": 0.4
-        }
+        },
+        "max_vars": 20
       },
       "oracle": {
         "type": "correctness",
@@ -164,6 +165,12 @@
         {
           "name": "counter_circuit",
           "command": "c++/counter/build/counter --counter.input-format circuit -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 15
+        },
+        {
+          "name": "counter_circuit+remove-gates",
+          "command": "c++/counter/build/counter --dpll.spec.removeGates 1 --counter.input-format circuit -i",
           "result_pattern": "^s (.+)",
           "timeout": 15
         }

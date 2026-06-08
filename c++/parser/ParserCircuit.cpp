@@ -117,7 +117,12 @@ static void process_gate(const std::string& line, std::string& tok,
 
   while (ss >> tok) g.inputs.push_back(parse_lit(tok, lm));
 
-  assert(g.inputs.size() >= 2 || g.gateType == GateType::IDENTITY);
+  if (g.inputs.size() < 2 && g.gateType != GateType::IDENTITY) {
+    std::cerr << "ERROR: gate '" << g.output << "' of type "
+              << static_cast<int>(g.gateType) << " has only "
+              << g.inputs.size() << " input(s); expected >= 2\n";
+    exit(1);
+  }
 
   gates.push_back(std::move(g));
 }
@@ -160,6 +165,7 @@ static void process_weight(const std::string& line, std::string& tok,
 int ParserCircuit::parse_circuit_main(std::ifstream& in, Formula& formula) {
   LitNameMap lm;
   std::vector<Gate>& gates = formula.gates;
+  std::vector<int> declaredInputs;  // var IDs from 'I' lines, in order
   std::string line, tok;
   unsigned lineNb = 0;
 
@@ -173,14 +179,12 @@ int ParserCircuit::parse_circuit_main(std::ifstream& in, Formula& formula) {
       case 'T':
         process_true(line, tok, gates, lm);
         break;
-      case 'I':
-        // Input variable declaration — just ensure it has an assigned id.
-        {
-          std::istringstream ss(line);
-          ss >> tok;  // eat 'I'
-          if (ss >> tok) lm.get(tok);
-        }
+      case 'I': {
+        std::istringstream ss(line);
+        ss >> tok;  // eat 'I'
+        if (ss >> tok) declaredInputs.push_back(lm.get(tok));
         break;
+      }
       case 'c':
         if (line.size() >= 4 && line.substr(0, 4) == "c w ")
           process_weight(line, tok, formula, lm);
@@ -194,6 +198,10 @@ int ParserCircuit::parse_circuit_main(std::ifstream& in, Formula& formula) {
 
   formula.nbVar = lm.nextVar - 1;
   formula.type = "circuit";
+  // Empty quantification: all variables are decision variables (non-projected
+  // mode), which lets the tree-decomposition branching heuristic operate on
+  // the full set. Gate outputs are constrained by Tseitin clauses in
+  // CircuitWithCnfManager, so the count is still correct.
   formula.quantifications = {{}};
   return formula.nbVar;
 }

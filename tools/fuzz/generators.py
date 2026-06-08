@@ -158,12 +158,15 @@ def _gen_circuit_structure(
     gate_inputs_sigma: float = 2.5,
 ) -> tuple[list[tuple[str, str, list[str]]], list[str], list[str]]:
     """
-    Generate a random circuit with a forced-true output.
+    Generate a random circuit with a forced-true OR output named 'root'.
 
-    Returns (gates, primary_inputs, true_names) where:
-      gates         — list of (output_name, gtype "A"|"O", [input_literals])
-      primary_inputs — names of leaf (non-gate) inputs
-      true_names    — names asserted to be true (circuit outputs)
+    Mirrors the structure of real instances in instancesTest/circuits/:
+      - primary inputs feed intermediate AND/OR gates
+      - the forced-true output is always an explicit OR gate named "root"
+        whose inputs are only gate outputs (never raw primary inputs)
+      - T root fixes the output to true
+
+    Returns (gates, primary_inputs, true_names).
     """
     n_inputs = random.randint(3, max(3, max_inputs))
     n_gates  = random.randint(2, max(2, max_gates))
@@ -182,31 +185,37 @@ def _gen_circuit_structure(
         gates.append((gname, gtype, inputs))
         available.append(gname)
 
-    # Roots: names not consumed as any gate input.
+    # Free gate outputs: gate outputs not consumed as input by any other gate.
+    # Primary inputs are excluded — the forced-true root must be a proper gate.
     used_as_input: set[str] = set()
     for _, _, inps in gates:
         used_as_input.update(_cab(n) for n in inps)
-    roots = [n for n in available if n not in used_as_input]
-    assert roots
+    gate_names = {_cab(g[0]) for g in gates}
+    free_outputs = [n for n in gate_names if n not in used_as_input]
+    if not free_outputs:
+        free_outputs = [_cab(gates[-1][0])]
 
-    if len(roots) == 1:
-        true_names = list(roots)
-    else:
-        gates.append(("root", "O", list(roots)))
-        true_names = ["root"]
+    # Always create an explicit OR gate named "root" as the single forced-true
+    # output. This ensures T always targets a gate (not a raw primary input)
+    # and the output gate is always OR — matching all non-verilog instances.
+    root_lits = [n if random.random() < polarity_prob else _cneg(n)
+                 for n in free_outputs]
+    # OR requires at least 2 inputs. If only 1 free output exists, add a
+    # secondary gate input by creating a small companion gate from the pool.
+    if len(root_lits) < 2:
+        extra = random.choice(prim_inputs)
+        root_lits.append(extra if random.random() < polarity_prob else _cneg(extra))
+    gates.append(("root", "O", root_lits))
+    true_names = ["root"]
 
-    # Primary inputs: appear in gate inputs but are not gate outputs.
-    defined = {_cab(g[0]) for g in gates}
+    # Primary inputs: vars appearing in gate inputs that are not gate outputs.
+    all_gate_names = {_cab(g[0]) for g in gates}
     actual_inputs: set[str] = set()
     for _, _, inps in gates:
         for n in inps:
             abs_n = _cab(n)
-            if abs_n not in defined:
+            if abs_n not in all_gate_names:
                 actual_inputs.add(abs_n)
-    for t in true_names:
-        abs_t = _cab(t)
-        if abs_t not in defined:
-            actual_inputs.add(abs_t)
 
     return gates, sorted(actual_inputs), true_names
 
