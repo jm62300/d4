@@ -6,10 +6,14 @@ scripts_dir) and returns OracleResult.
 """
 
 from __future__ import annotations
+import os
 import re
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from typing import Optional
+
+from generators import bcs_file_to_cnf
 
 
 @dataclass
@@ -117,5 +121,58 @@ def run_oracle(
                 reason=f"mismatch: oracle={ref_ans!r} evaluated={tst_ans!r}",
             )
         return OracleResult(passed=True)
+
+    if ora.type == "circuit_cnf_crosscheck":
+        # Translate the circuit to CNF, run the reference counter on the CNF,
+        # and compare against the circuit counter result.
+        try:
+            cnf_text = bcs_file_to_cnf(instance_path)
+        except Exception as e:
+            return OracleResult(passed=True, reason=f"CNF translation failed: {e}")
+
+        fd, cnf_path = tempfile.mkstemp(suffix=".cnf", prefix="fuzz_xcheck_")
+        try:
+            os.write(fd, cnf_text.encode())
+            os.close(fd)
+
+            ref_out, ref_code, ref_to = _run(ora.reference, cnf_path, None,
+                                             timeout, cwd)
+            if ref_to or ref_code not in (0, 10, 20):
+                return OracleResult(passed=True, timed_out=ref_to,
+                                    reason="reference inconclusive")
+
+            tst_out, tst_code, tst_to = _run(evaluated.command, instance_path,
+                                             None, timeout, cwd)
+            if tst_to:
+                return OracleResult(passed=True, timed_out=True)
+            if tst_code != 0:
+                return OracleResult(passed=False, reason=f"crash (exit {tst_code})")
+
+            ref_ans = _extract(ref_out, ora.result_pattern)
+            tst_ans = _extract(tst_out, tst_pat or ora.result_pattern)
+
+            no_answer = ref_ans == "" or tst_ans == ""
+            if no_answer:
+                missing = []
+                if ref_ans == "":
+                    missing.append(f"oracle/CNF (pattern={ora.result_pattern!r})")
+                if tst_ans == "":
+                    missing.append(f"evaluated/circuit (pattern={tst_pat!r})")
+                return OracleResult(passed=True, no_answer=True,
+                                    reason=f"no answer line in {', '.join(missing)}")
+
+            tol = ora.tolerance
+            match = _approx_equal(ref_ans, tst_ans, tol) if tol > 0 else (ref_ans == tst_ans)
+            if not match:
+                return OracleResult(
+                    passed=False,
+                    reason=f"mismatch: oracle(CNF)={ref_ans!r} evaluated(circuit)={tst_ans!r}",
+                )
+            return OracleResult(passed=True)
+        finally:
+            try:
+                os.unlink(cnf_path)
+            except OSError:
+                pass
 
     raise ValueError(f"Unknown oracle type: {ora.type!r}")

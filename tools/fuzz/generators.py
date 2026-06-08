@@ -364,6 +364,49 @@ def gen_circuit_files(files: list[str]) -> tuple[str, None]:
     return random.choice(files), None
 
 
+def parse_bcs_file(
+    path: str,
+) -> tuple[list[tuple[str, str, list[str]]], list[str], list[str]]:
+    """
+    Parse a BC-S1.2 file into the same (gates, inputs, true_names) structure
+    used by _gen_circuit_structure / _circuit_to_cnf.
+
+    Lines handled:
+      c ...         comment, skipped
+      T name        required-true literal
+      I name        input variable
+      G name := TYPE lit1 lit2 ...  gate definition (TYPE: A, O, X, AM, I)
+    """
+    gates: list[tuple[str, str, list[str]]] = []
+    inputs: list[str] = []
+    true_names: list[str] = []
+
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("c"):
+                continue
+            if line.startswith("T "):
+                true_names.append(line[2:].strip())
+            elif line.startswith("I "):
+                inputs.append(line[2:].strip())
+            elif line.startswith("G "):
+                parts = line.split()
+                # G <name> := <TYPE> [threshold] <lit1> <lit2> ...
+                name = parts[1]
+                gtype = parts[3]
+                inps = parts[4:]
+                gates.append((name, gtype, inps))
+
+    return gates, inputs, true_names
+
+
+def bcs_file_to_cnf(path: str) -> str:
+    """Translate a BC-S1.2 file to a DIMACS CNF string via Tseitin encoding."""
+    gates, inputs, true_names = parse_bcs_file(path)
+    return _circuit_to_cnf(gates, inputs, true_names)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch
 # ---------------------------------------------------------------------------

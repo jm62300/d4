@@ -56,6 +56,7 @@ def run_headless(runners: list[SuiteRunner], workers: int) -> None:
     active: list[SuiteRunner] = []
     for r in runners[:workers]:
         r.start()
+        r.resume()
         active.append(r)
         print(f"[START] {r.suite.name}", flush=True)
 

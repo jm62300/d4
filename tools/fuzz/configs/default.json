@@ -144,6 +144,34 @@
       "enabled": true
     },
     {
+      "name": "circuit_gen_correctness",
+      "description": "Circuit model counting correctness: compare new counter (circuit mode) against counter_static reference",
+      "generator": {
+        "type": "circuit_gen",
+        "extra": {
+          "max_inputs": 15,
+          "max_gates": 25,
+          "polarity_prob": 0.5,
+          "or_prob": 0.4
+        }
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/counter_static --input-type circuit -i",
+        "result_pattern": "^s (.+)"
+      },
+      "evaluated": [
+        {
+          "name": "counter_circuit",
+          "command": "c++/counter/build/counter --counter.input-format circuit -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 15
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
       "name": "circuit_gen_crash",
       "description": "Circuit counting crash detection (randomly generated circuits)",
       "generator": {
