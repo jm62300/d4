@@ -138,6 +138,7 @@ set(COMMON_LIBS
     ${GMP_LIB}
     ZLIB::ZLIB
     ${GRPC_LIBRARIES}
+    nlohmann_json
 )
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND COMMON_LIBS ${PATOH_LIBRARY})
@@ -166,3 +167,13 @@ add_executable(d4_grpc_client
 )
 target_include_directories(d4_grpc_client PRIVATE ${COMMON_INCLUDES})
 target_link_libraries(d4_grpc_client PRIVATE ${COMMON_LIBS})
+
+# Executable: KCMCP Server
+add_executable(d4_kcmcp_server
+    src/kcmcp_server.cpp
+    "${D4_ROOT_DIR}/api/solver/Solver.cpp"
+    ${PARSER_SRCS}
+)
+target_include_directories(d4_kcmcp_server PRIVATE ${COMMON_INCLUDES})
+target_link_libraries(d4_kcmcp_server PRIVATE ${COMMON_LIBS})
+
