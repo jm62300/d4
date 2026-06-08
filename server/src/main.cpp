@@ -20,6 +20,7 @@
 #include "src/preproc/PreprocManager.hpp"
 #include "ParserDimacs.hpp"
 #include "api/solver/Solver.hpp"
+#include <optree/Option.hpp>
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -183,57 +184,39 @@ void RunServer(int port) {
 }
 
 int main(int argc, char** argv) {
-  int port = 50051;
   bool showHelp = false;
-  std::vector<std::string> solverArgs; // extra args forwarded to the registry
-
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
     if (arg == "-h" || arg == "--help") {
       showHelp = true;
-    } else if ((arg == "-p" || arg == "--port") && i + 1 < argc) {
-      try {
-        port = std::stoi(argv[++i]);
-      } catch (const std::exception& e) {
-        std::cerr << "Invalid port argument. Usage: -p <port>\n";
-        return 1;
-      }
-    } else {
-      // Collect remaining args (solver options) to apply to the registry
-      solverArgs.push_back(arg);
+      break;
     }
   }
 
+  d4::OptionDpllStyleMethod options;
+  bipe::OptionPreproc optionPreproc;
+  d4::OptionRegistry registry;
+  options.registerTo(registry);
+  optionPreproc.registerTo(registry);
+
+  optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
+  portOpt.registerTo(registry);
+
   if (showHelp) {
     std::cout << "Usage: " << argv[0] << " [options]\n"
-              << "  -p, --port <port>   Specify port for the gRPC server (default: 50051)\n"
-              << "  -h, --help          Show this help screen\n\n";
-
-    d4::OptionDpllStyleMethod options;
-    bipe::OptionPreproc optionPreproc;
-    d4::OptionRegistry registry;
-    options.registerTo(registry);
-    optionPreproc.registerTo(registry);
-
-    // Apply any extra solver arguments so current values are accurate
-    if (!solverArgs.empty()) {
-      std::vector<std::string> args = {argv[0]};
-      args.insert(args.end(), solverArgs.begin(), solverArgs.end());
-      std::vector<char*> fakeArgv;
-      for (auto& a : args) fakeArgv.push_back(const_cast<char*>(a.data()));
-      fakeArgv.push_back(nullptr);
-      try {
-        registry.parseArgv(static_cast<int>(fakeArgv.size()) - 1, fakeArgv.data());
-      } catch (const std::exception& e) {
-        std::cerr << "Warning: could not apply some arguments: " << e.what() << "\n";
-      }
-    }
-
-    std::cout << "Solver Options:\n";
+              << "  -h, --help            Show this help screen\n\n"
+              << "Solver & Server Options:\n";
     registry.displayHelp(std::cout);
     return 0;
   }
 
-  RunServer(port);
+  try {
+    registry.parseArgv(argc, argv);
+  } catch (const std::exception& e) {
+    std::cerr << "Error parsing arguments: " << e.what() << "\n";
+    return 1;
+  }
+
+  RunServer(portOpt.get());
   return 0;
 }

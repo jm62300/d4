@@ -5,6 +5,10 @@
 
 #include <grpcpp/grpcpp.h>
 #include "d4.grpc.pb.h"
+#include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/preproc/PreprocManager.hpp"
+#include <optree/Option.hpp>
+
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -67,35 +71,65 @@ class D4Client {
 };
 
 int main(int argc, char** argv) {
-  std::string host = "localhost";
-  int port = 50051;
   bool showHelp = false;
-  std::vector<std::string> solver_args;
-
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
     if (arg == "-h" || arg == "--help") {
       showHelp = true;
-    } else if ((arg == "--host") && i + 1 < argc) {
-      host = argv[++i];
-    } else if ((arg == "-p" || arg == "--port") && i + 1 < argc) {
-      port = std::stoi(argv[++i]);
+      break;
+    }
+  }
+
+  d4::OptionDpllStyleMethod options;
+  bipe::OptionPreproc optionPreproc;
+  d4::OptionRegistry registry;
+  options.registerTo(registry);
+  optionPreproc.registerTo(registry);
+
+  optree::Option<std::string> hostOpt("host", "Specify host for the gRPC server", "localhost");
+  optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
+  hostOpt.registerTo(registry);
+  portOpt.registerTo(registry);
+
+  try {
+    registry.parseArgv(argc, argv);
+  } catch (const std::exception& e) {
+    if (!showHelp) {
+      std::cerr << "Error parsing arguments: " << e.what() << "\n";
+      return 1;
+    }
+  }
+
+  // Filter out host/port related options to forward only solver options to server
+  std::vector<std::string> solver_args;
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "--host" || arg == "-h" || arg == "--help" || arg == "--completion-script" || arg == "--dump-options") {
+      // skip
+    } else if (arg.rfind("--host=", 0) == 0) {
+      // skip
+    } else if (arg == "--port" || arg == "-p") {
+      if (i + 1 < argc) ++i;
+    } else if (arg.rfind("--port=", 0) == 0) {
+      // skip
     } else {
-      // Remaining args are forwarded as solver options (e.g. --solver=glucose)
       solver_args.push_back(arg);
     }
   }
 
-  std::string target_str = host + ":" + std::to_string(port);
-  std::cout << "[gRPC Client] Connecting to " << target_str << "..." << std::endl;
-  D4Client client(grpc::CreateChannel(
-      target_str, grpc::InsecureChannelCredentials()));
+  std::string target_str = hostOpt.get() + ":" + std::to_string(portOpt.get());
 
-  // --help : query the server for available options (with current values) and exit
   if (showHelp) {
+    std::cout << "[gRPC Client] Connecting to " << target_str << "..." << std::endl;
+    D4Client client(grpc::CreateChannel(
+        target_str, grpc::InsecureChannelCredentials()));
     client.GetHelp(solver_args);
     return 0;
   }
+
+  std::cout << "[gRPC Client] Connecting to " << target_str << "..." << std::endl;
+  D4Client client(grpc::CreateChannel(
+      target_str, grpc::InsecureChannelCredentials()));
 
   // Default: run a demo model count query
   // Formula: 3 variables, 1 clause (1 OR 2 OR 3) → 7 models
