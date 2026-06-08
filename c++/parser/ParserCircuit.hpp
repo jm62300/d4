@@ -1,6 +1,6 @@
 /*
  * d4
- * Copyright (C) 2020  Univ. Artois & CNRS
+ * Copyright (C) 2024  Univ. Artois & CNRS & KU Leuven
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,19 +18,19 @@
  */
 #pragma once
 
+#include <fstream>
 #include <string>
 
-#include "BufferRead.hpp"
 #include "Formula.hpp"
 
 namespace parser {
 
-class ParserDimacs {
+class ParserCircuit {
  private:
-  int parse_DIMACS_main(BufferRead& in, Formula& formula);
+  int parse_circuit_main(std::ifstream& in, Formula& formula);
 
  public:
-  int parse_DIMACS(const std::string& input_stream, Formula& formula);
+  int parse_circuit(const std::string& path, Formula& formula);
 };
 
 }  // namespace parser

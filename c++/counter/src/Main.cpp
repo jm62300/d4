@@ -24,6 +24,7 @@
 
 #include "Counter.hpp"
 #include "OptionCounter.hpp"
+#include "ParserCircuit.hpp"
 #include "ParserDimacs.hpp"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
@@ -121,10 +122,17 @@ int main(int argc, char** argv) {
   }
 
   parser::Formula formula;
-  parser::ParserDimacs parserDimacs;
-  parserDimacs.parse_DIMACS(inputPath, formula);
+  const std::string informat = optionCounter.informat.get();
 
-  runPreproc(formula, optionPreproc);
+  if (informat == "circuit") {
+    parser::ParserCircuit parserCircuit;
+    parserCircuit.parse_circuit(inputPath, formula);
+  } else {
+    parser::ParserDimacs parserDimacs;
+    parserDimacs.parse_DIMACS(inputPath, formula);
+    runPreproc(formula, optionPreproc);
+  }
+
   counter(options, optionCounter, formula);
 
   auto end = std::chrono::system_clock::now();

@@ -105,11 +105,33 @@ void counter(const d4::OptionDpllStyleMethod& inputConfig,
 
   // Build the problem from the parsed formula.
   std::vector<d4::BcGate> gates;
-  gates.reserve(formula.clauses.size());
-  for (auto& cl : formula.clauses) {
-    std::vector<d4::Lit> d4Clause;
-    for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
-    gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
+  if (formula.type == "circuit") {
+    gates.reserve(formula.gates.size());
+    for (auto& g : formula.gates) {
+      d4::BcGateType t;
+      switch (g.gateType) {
+        case parser::GateType::AND:      t = d4::BcGateType::AND;      break;
+        case parser::GateType::OR:       t = d4::BcGateType::OR;       break;
+        case parser::GateType::IDENTITY: t = d4::BcGateType::IDENTITY; break;
+        case parser::GateType::CLAUSE:   t = d4::BcGateType::CLAUSE;   break;
+        default:
+          std::cerr << "ERROR: unsupported gate type for counting\n";
+          exit(1);
+      }
+      std::vector<d4::Lit> lits;
+      lits.reserve(g.inputs.size());
+      for (int l : g.inputs) lits.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
+      d4::Lit out = (g.output == 0) ? d4::lit_Undef
+                                    : d4::Lit::makeLit(std::abs(g.output), g.output < 0);
+      gates.push_back({lits, out, t});
+    }
+  } else {
+    gates.reserve(formula.clauses.size());
+    for (auto& cl : formula.clauses) {
+      std::vector<d4::Lit> d4Clause;
+      for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
+      gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
+    }
   }
 
   std::map<d4::Lit, std::string> weightMap;
