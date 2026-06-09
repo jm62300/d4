@@ -310,27 +310,15 @@ void handle_client(int csocket) {
             }
         }
 
-        // Write the formula to a temporary file for ParserDimacs
-        std::string temp_filename = "kcmcp_formula_" + std::to_string(rand()) + ".cnf";
-        std::ofstream temp_file(temp_filename);
-        if (!temp_file.is_open()) {
-            send_error(csocket, request_id, 6, "Failed to create temp CNF file.");
-            continue;
-        }
-        temp_file << problem_str;
-        temp_file.close();
-
-        // Parse Formula
+        // Parse Formula directly in-memory (no disk I/O)
         parser::Formula formula;
         parser::ParserDimacs parserDimacs;
         try {
-            parserDimacs.parse_DIMACS(temp_filename, formula);
+            parserDimacs.parse_DIMACS_from_data(problem_str, formula);
         } catch (const std::exception& e) {
-            std::remove(temp_filename.c_str());
             send_error(csocket, request_id, 3, std::string("CNF Parse error: ") + e.what());
             continue;
         }
-        std::remove(temp_filename.c_str());
 
         // Apply "projset" options to quantifications
         if (opts_json.contains("projset") && opts_json["projset"].is_array()) {

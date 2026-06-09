@@ -175,4 +175,13 @@ int ParserDimacs::parse_DIMACS(const std::string& input_stream,
   return parse_DIMACS_main(in, formula);
 }  // parse_DIMACS
 
+int ParserDimacs::parse_DIMACS(const char* data, size_t len, Formula& formula) {
+  BufferRead in(data, len);
+  return parse_DIMACS_main(in, formula);
+}  // parse_DIMACS
+
+int ParserDimacs::parse_DIMACS_from_data(const std::string& data, Formula& formula) {
+  return parse_DIMACS(data.data(), data.size(), formula);
+}  // parse_DIMACS_from_data
+
 }  // namespace parser
