@@ -17,6 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 #pragma once
+#include <vector>
+
 #include "src/formulaManager/cnf/CnfManager.hpp"
 
 namespace d4 {
@@ -30,6 +32,9 @@ class BucketInConstruction {
   unsigned *distribDiffSize;
   bool *markedAsRedundant;
 
+  // the clause sizes s such that distribDiffSize[s] > 0.
+  std::vector<unsigned> presentSizes;
+
   unsigned nbClauseInDistrib;
   unsigned sizeDistrib;
   unsigned capacityDistrib;
@@ -39,5 +44,26 @@ class BucketInConstruction {
   BucketInConstruction(CnfManager &occM);
   ~BucketInConstruction();
   void reinit();
+
+  /**
+   * @brief Increment distribDiffSize for the given clause size, keeping
+   * presentSizes in sync.
+   */
+  inline void addClauseSize(unsigned sz) {
+    if (!distribDiffSize[sz]++) presentSizes.push_back(sz);
+  }  // addClauseSize
+
+  /**
+   * @brief Sort presentSizes in ascending order (the list is expected to be
+   * very small, hence the insertion sort).
+   */
+  inline void sortPresentSizes() {
+    for (unsigned i = 1; i < presentSizes.size(); i++) {
+      unsigned val = presentSizes[i], j = i;
+      for (; j > 0 && presentSizes[j - 1] > val; j--)
+        presentSizes[j] = presentSizes[j - 1];
+      presentSizes[j] = val;
+    }
+  }  // sortPresentSizes
 };
 }  // namespace d4

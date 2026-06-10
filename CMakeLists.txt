@@ -5,6 +5,7 @@ project(D4 VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Fix: Specify the C++ standard correctly
 set(CMAKE_CXX_STANDARD 20)
@@ -67,6 +68,18 @@ endif()
 add_subdirectory(3rdParty/glucose-3.0)
 add_subdirectory(3rdParty/flowCutter)
 
+# htd's own CMake relies on write_compiler_detection_header (removed in
+# CMake >= 3.19), so its sources are compiled here directly. The headers htd
+# normally generates at configure time live in 3rdParty/htdGlue.
+file(GLOB HTD_SOURCES "3rdParty/htd/src/htd/*.cpp")
+add_library(htd OBJECT ${HTD_SOURCES} "3rdParty/htdGlue/AssemblyInfo.cpp")
+target_include_directories(htd PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/htdGlue/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/htd/include"
+)
+target_compile_options(htd PRIVATE -w)
+target_compile_definitions(htd PRIVATE NDEBUG)
+
 # ==============================================================================
 # --- optree library integration ---
 # ==============================================================================
@@ -91,16 +104,19 @@ FetchContent_MakeAvailable(optree)
 # --- 5. BUILD THE MONOLITHIC LIBRARY ---
 # By passing $<TARGET_OBJECTS:...>, CMake extracts the raw compiled files 
 # from glucose and flowcutter and bundles them directly into libd4.a
-add_library(d4 STATIC 
-    ${SRCS} 
-    $<TARGET_OBJECTS:glucose> 
+add_library(d4 STATIC
+    ${SRCS}
+    $<TARGET_OBJECTS:glucose>
     $<TARGET_OBJECTS:flowCutter>
+    $<TARGET_OBJECTS:htd>
 )
 add_library(d4::d4 ALIAS d4)
 
 # --- 6. Includes & Linking ---
-target_include_directories(d4 PUBLIC 
+target_include_directories(d4 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/htdGlue/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/htd/include>
     ${GMP_INCLUDE_DIR}
 )
 

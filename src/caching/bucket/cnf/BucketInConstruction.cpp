@@ -51,7 +51,9 @@ BucketInConstruction::BucketInConstruction(CnfManager &occM) {
   markedAsRedundant = new bool[occM.getNbClause()];
   sizeClauses = new unsigned[occM.getNbClause()];
   shiftedSizeClause = new unsigned[occM.getNbClause()];
-  distribDiffSize = new unsigned[occM.getMaxSizeClause() + 1];
+  // zero initialized: reinit only clears the entries listed in presentSizes.
+  distribDiffSize = new unsigned[occM.getMaxSizeClause() + 1]();
+  presentSizes.reserve(occM.getMaxSizeClause() + 1);
 
   for (unsigned i = 0; i < occM.getNbClause(); i++)
     markedAsRedundant[i] = false;
@@ -75,6 +77,7 @@ BucketInConstruction::~BucketInConstruction() {
 void BucketInConstruction::reinit() {
   nbClauseInDistrib = 0;
   sizeDistrib = 0;
-  for (unsigned i = 0; i <= maxSizeClause; i++) distribDiffSize[i] = 0;
+  for (unsigned sz : presentSizes) distribDiffSize[sz] = 0;
+  presentSizes.clear();
 }  // reinit
 }  // namespace d4

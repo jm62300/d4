@@ -28,13 +28,17 @@
 
 namespace d4 {
 
-enum TreeDecompositionerMethod { TREE_DECOMP_TOOL_FLOW_CUTTER };
+enum TreeDecompositionerMethod {
+  TREE_DECOMP_TOOL_FLOW_CUTTER,
+  TREE_DECOMP_TOOL_HTD
+};
 
 template <>
 struct EnumMetadata<TreeDecompositionerMethod> {
   static std::string name() { return "TreeDecompositionerMethod"; }
   static std::map<int, std::string> mapping() {
-    return {{TREE_DECOMP_TOOL_FLOW_CUTTER, "flow-cutter"}};
+    return {{TREE_DECOMP_TOOL_FLOW_CUTTER, "flow-cutter"},
+            {TREE_DECOMP_TOOL_HTD, "htd"}};
   }
 };
 

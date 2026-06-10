@@ -20,6 +20,7 @@
 #include "TreeDecompositioner.hpp"
 
 #include "TreeDecompositionerFlowCutter.hpp"
+#include "TreeDecompositionerHtd.hpp"
 #include "src/exceptions/FactoryException.hpp"
 
 namespace d4 {
@@ -32,6 +33,8 @@ TreeDecompositioner* TreeDecompositioner::makeTreeDecompositionMethod(
   switch (method) {
     case TREE_DECOMP_TOOL_FLOW_CUTTER:
       return new TreeDecompositionerFlowCutter();
+    case TREE_DECOMP_TOOL_HTD:
+      return new TreeDecompositionerHtd();
     default:
       break;
   }

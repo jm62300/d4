@@ -156,7 +156,7 @@ unsigned FormulaStoreCnfCl::collectDistrib(
   unsigned index = 0;
   for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {
     if (!inConstruction.markedAsRedundant[i]) {
-      inConstruction.distribDiffSize[inConstruction.shiftedSizeClause[i]]++;
+      inConstruction.addClauseSize(inConstruction.shiftedSizeClause[i]);
       inConstruction.shiftedSizeClause[index] =
           inConstruction.shiftedSizeClause[i];
       inConstruction.shiftedIndexClause[i] = index++;
@@ -165,6 +165,7 @@ unsigned FormulaStoreCnfCl::collectDistrib(
     inConstruction.markedAsRedundant[i] = false;
   }
   inConstruction.nbClauseInDistrib = index;
+  inConstruction.sortPresentSizes();
   return realSizeDistrib;
 }
 
@@ -197,12 +198,10 @@ AllocSizeInfo FormulaStoreCnfCl::computeNeededBytes(
 
   ret.nbBitStoreLit = nbBitUnsigned(2 + (component.size() << 1));
 
-  unsigned cptLitFormula = 0, cptDistrib = 0;
-  for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
-    if (!inConstruction.distribDiffSize[i]) continue;
-    cptDistrib++;
-    cptLitFormula += i * inConstruction.distribDiffSize[i];
-  }
+  unsigned cptLitFormula = 0;
+  unsigned cptDistrib = inConstruction.presentSizes.size();
+  for (unsigned sz : inConstruction.presentSizes)
+    cptLitFormula += sz * inConstruction.distribDiffSize[sz];
 
   ret.nbByteStoreFormula =
       (!cptDistrib)
@@ -267,17 +266,14 @@ char* FormulaStoreCnfCl::storeClauses(AllocSizeInfo& info, char* data,
     m_mapVar[component[i]] = i + 1;
   }
 
-  for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
-    if (!inConstruction.distribDiffSize[i]) continue;
-    p = addElementInData(p, i, info.nbBitStoreLit, remaining);
-  }
+  for (unsigned sz : inConstruction.presentSizes)
+    p = addElementInData(p, sz, info.nbBitStoreLit, remaining);
 
   unsigned offSet = (8 - remaining) + info.nbBitStoreLit;
-  for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
-    if (!inConstruction.distribDiffSize[i]) continue;
-    m_memoryPosWrtClauseSize[i] = offSet;
+  for (unsigned sz : inConstruction.presentSizes) {
+    m_memoryPosWrtClauseSize[sz] = offSet;
     offSet += info.nbBitStoreLit +
-              inConstruction.distribDiffSize[i] * i * info.nbBitStoreLit;
+              inConstruction.distribDiffSize[sz] * sz * info.nbBitStoreLit;
   }
 
   for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {

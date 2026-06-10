@@ -157,7 +157,7 @@ unsigned FormulaStoreCnfSym::collectDistrib(
   unsigned index = 0;
   for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {
     if (!inConstruction.markedAsRedundant[i]) {
-      inConstruction.distribDiffSize[inConstruction.shiftedSizeClause[i]]++;
+      inConstruction.addClauseSize(inConstruction.shiftedSizeClause[i]);
       inConstruction.shiftedSizeClause[index] =
           inConstruction.shiftedSizeClause[i];
       inConstruction.shiftedIndexClause[i] = index++;
@@ -166,6 +166,7 @@ unsigned FormulaStoreCnfSym::collectDistrib(
     inConstruction.markedAsRedundant[i] = false;
   }
   inConstruction.nbClauseInDistrib = index;
+  inConstruction.sortPresentSizes();
 
   return realSizeDistrib;
 }
@@ -206,11 +207,10 @@ template <typename U>
 void* FormulaStoreCnfSym::storeDistribInfo(void* data,
                                            BucketInConstruction& inConstruction) {
   U* p = static_cast<U*>(data);
-  for (unsigned i = 0; i <= inConstruction.maxSizeClause; i++) {
-    if (!inConstruction.distribDiffSize[i]) continue;
-    *p = static_cast<U>(i);
+  for (unsigned sz : inConstruction.presentSizes) {
+    *p = static_cast<U>(sz);
     p++;
-    *p = static_cast<U>(inConstruction.distribDiffSize[i]);
+    *p = static_cast<U>(inConstruction.distribDiffSize[sz]);
     p++;
   }
   return p;
@@ -223,9 +223,9 @@ void* FormulaStoreCnfSym::storeClauses(void* data,
   for (unsigned i = 0; i < component.size(); i++) m_mapVar[component[i]] = i;
 
   unsigned offSet = 0;
-  for (unsigned i = 0; i <= this->m_maxSizeClause; i++) {
-    m_memoryPlaceWrtSizeClause[i] = offSet;
-    offSet += inConstruction.distribDiffSize[i] * i;
+  for (unsigned sz : inConstruction.presentSizes) {
+    m_memoryPlaceWrtSizeClause[sz] = offSet;
+    offSet += inConstruction.distribDiffSize[sz] * sz;
   }
 
   for (unsigned i = 0; i < inConstruction.nbClauseInDistrib; i++) {
@@ -263,15 +263,13 @@ void FormulaStoreCnfSym::getInfoDistributionSize(
     BucketInConstruction& inConstruction) {
   largestSizeClause = 0;
   maxNbSizeClause = 0;
-  nbDiffClauseSize = 0;
-  for (unsigned i = 0; i <= this->m_maxSizeClause; i++)
-    if (inConstruction.distribDiffSize[i]) {
-      largestSizeClause = i;
-      if (maxNbSizeClause < inConstruction.distribDiffSize[i])
-        maxNbSizeClause = inConstruction.distribDiffSize[i];
-      nbDiffClauseSize++;
-      nbLit += inConstruction.distribDiffSize[i] * i;
-    }
+  nbDiffClauseSize = inConstruction.presentSizes.size();
+  for (unsigned sz : inConstruction.presentSizes) {
+    largestSizeClause = sz;
+    if (maxNbSizeClause < inConstruction.distribDiffSize[sz])
+      maxNbSizeClause = inConstruction.distribDiffSize[sz];
+    nbLit += inConstruction.distribDiffSize[sz] * sz;
+  }
 }
 
 #define MORE_SYM 0
