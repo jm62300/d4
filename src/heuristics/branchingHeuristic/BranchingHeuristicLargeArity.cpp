@@ -37,7 +37,7 @@ BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
   m_limitClause = options.limitSizeClause;
 
   std::vector<std::vector<Lit>>& clauses =
-      static_cast<CnfManager*>(specs)->getClauses();
+      dynamic_cast<CnfManager*>(specs)->getClauses();
   for (unsigned i = 0; i < clauses.size(); i++) {
     if (clauses[i].size() >= m_limitClause) m_indexOfLargeClause.push_back(i);
   }
@@ -59,7 +59,7 @@ void BranchingHeuristicLargeArity::selectLitSet(std::span<const Var> vars,
   for (auto& v : vars) m_markedVar[v] = true;
 
   // check if we still have a large enough clause.
-  CnfManager* specs = static_cast<CnfManager*>(m_specs);
+  CnfManager* specs = dynamic_cast<CnfManager*>(m_specs);
   unsigned larger = 0, lIdx = 0;
   for (auto& idx : m_indexOfLargeClause) {
     if (specs->getSize(idx) >= m_limitClause &&

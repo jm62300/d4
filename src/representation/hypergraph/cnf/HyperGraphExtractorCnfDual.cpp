@@ -37,7 +37,7 @@ HyperGraphExtractorCnfDual::~HyperGraphExtractorCnfDual() {
 InfoHyperGraph HyperGraphExtractorCnfDual::constructHyperGraph(
     FormulaManager& om, std::vector<Var>& component, HyperGraph& hypergraph) {
   // cast into a CNF spec manager
-  CnfManager& tmp = static_cast<CnfManager&>(om);
+  CnfManager& tmp = dynamic_cast<CnfManager&>(om);
 
   // allocate memory.
   unsigned pos = 0;

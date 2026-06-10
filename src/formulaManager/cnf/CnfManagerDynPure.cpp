@@ -25,7 +25,8 @@ namespace d4 {
  * @brief CnfManagerDynPure::CnfManagerDynPure implementation.
  */
 CnfManagerDynPure::CnfManagerDynPure(const ProblemManager& p)
-    : CnfManagerDyn(p) {
+    : FormulaManager(p.getNbVar()),
+      CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with pure literal elimination\n";
   m_nbPureSimplification = 0;
 

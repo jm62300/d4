@@ -37,7 +37,7 @@ struct InfoCluster {
   int pos;
 };
 
-class CnfManager : public FormulaManager {
+class CnfManager : public virtual FormulaManager {
  protected:
   std::vector<std::vector<Lit>> m_clauses;
   std::vector<int> m_clausesNotBin;

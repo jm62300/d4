@@ -25,7 +25,8 @@ namespace d4 {
  * @brief CnfManagerDynBlockedCl::CnfManagerDynBlockedCl implementation.
  */
 CnfManagerDynBlockedCl::CnfManagerDynBlockedCl(const ProblemManager& p)
-    : CnfManagerDyn(p) {
+    : FormulaManager(p.getNbVar()),
+      CnfManagerDyn(p) {
   std::cout << "c [SPEC MANAGER] DYN with blocked clause elimination\n";
 
   assert(p.getQuantification().size() == 1);

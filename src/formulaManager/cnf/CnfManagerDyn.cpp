@@ -26,7 +26,8 @@ namespace d4 {
  */
 CnfManagerDyn::CnfManagerDyn(const ProblemManager& p,
                              bool keepListNotSatisfiedClauses)
-    : CnfManager(p),
+    : FormulaManager(p.getNbVar()),
+      CnfManager(p),
       m_keepListNotSatisfiedClauses(keepListNotSatisfiedClauses) {
   m_markedLitStack.resize((1 + p.getNbVar()) << 1, 0);
   m_markedLitRemove.resize((1 + p.getNbVar()) << 1, 0);

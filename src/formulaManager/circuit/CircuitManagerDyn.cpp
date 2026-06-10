@@ -25,7 +25,8 @@ namespace d4 {
  * @brief CircuitManagerDyn::CircuitManagerDyn implementation.
  */
 CircuitManagerDyn::CircuitManagerDyn(const ProblemManager& p, bool optRmGates)
-    : CircuitManager(p, optRmGates) {
+    : FormulaManager(p.getNbVar()),
+      CircuitManager(p, optRmGates) {
   unsigned nbVar = getNbVariable();
   unsigned nbGates = m_gates.size();
 

@@ -33,7 +33,7 @@ namespace d4 {
  * (watch lists, propagation, backtracking). Subclasses implement connected
  * component computation via different strategies.
  */
-class CircuitManager : public FormulaManager {
+class CircuitManager : public virtual FormulaManager {
  protected:
   std::vector<BcGate> m_gates;
   std::vector<Lit> m_true_lits;

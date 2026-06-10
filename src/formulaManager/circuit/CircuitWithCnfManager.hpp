@@ -19,6 +19,7 @@
 #pragma once
 
 #include "CircuitManager.hpp"
+#include "src/formulaManager/cnf/CnfManagerDyn.hpp"
 
 namespace d4 {
 
@@ -26,14 +27,16 @@ namespace d4 {
  * @brief Circuit manager that delegates connected component computation to the
  * embedded CnfManagerDyn (via the Tseitin expansion of the circuit).
  */
-class CircuitWithCnfManager : public CircuitManager {
+class CircuitWithCnfManager : public CircuitManager, public CnfManagerDyn {
  private:
   std::vector<Lit> m_litsTrue;
-  CnfManagerDyn* m_cnfManager;
+
+  static ProblemManager makeTseitinProblem(const ProblemManager& p);
 
  public:
   CircuitWithCnfManager(const ProblemManager& p, bool optRmGates);
-  ~CircuitWithCnfManager() override;
+
+  inline ProblemInputType getProblemInputType() override { return PB_CIRC; }
 
   int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
                                 std::span<Var> setOfVar,
@@ -55,6 +58,6 @@ class CircuitWithCnfManager : public CircuitManager {
   void initFormulaStore(const OptionBucketManager& opts) override;
   void storeFormula(std::span<const Var> component, DataBucket& b,
                     BucketAllocator& alloc) override;
-  CnfManager* getCnfManager() override { return m_cnfManager; }
+  CnfManager* getCnfManager() override { return this; }
 };
 }  // namespace d4
