@@ -32,7 +32,7 @@ namespace d4 {
  * @brief TreeDecompositionerFlowCutter::getCenterGraph implementation.
  */
 unsigned TreeDecompositionerFlowCutter::getCenterGraph(
-    const std::vector<std::vector<unsigned>> &graph) {
+    const std::vector<std::vector<unsigned>>& graph) {
   std::vector<unsigned> degree, degreeOne, nextDegreeOne;
   std::vector<bool> removed(graph.size() + 1, false);
 
@@ -68,11 +68,11 @@ unsigned TreeDecompositionerFlowCutter::getCenterGraph(
  * @brief TreeDecompositionerFlowCutter::makeTreeFromGraph implementation.
  */
 void TreeDecompositionerFlowCutter::makeTreeFromGraph(
-    const std::vector<std::vector<unsigned>> &graph, unsigned center,
-    std::vector<TreeDecomp *> &setOfTrees, std::vector<bool> &marked) {
+    const std::vector<std::vector<unsigned>>& graph, unsigned center,
+    std::vector<TreeDecomp*>& setOfTrees, std::vector<bool>& marked) {
   marked[center] = true;
 
-  for (auto &n : graph[center]) {
+  for (auto& n : graph[center]) {
     if (marked[n]) continue;
     setOfTrees[center]->getSons().push_back(setOfTrees[n]);
     makeTreeFromGraph(graph, n, setOfTrees, marked);
@@ -83,13 +83,13 @@ void TreeDecompositionerFlowCutter::makeTreeFromGraph(
  * @brief TreeDecompositionerFlowCutter::constructTreeDecomposition
  * implementation.
  */
-TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
-    Graph &graph, unsigned budget, unsigned seed, bool verbose) {
-  TreeDecomp *ret = NULL;
+TreeDecomp* TreeDecompositionerFlowCutter::constructTreeDecomposition(
+    Graph& graph, unsigned budget, unsigned seed, bool verbose) {
+  TreeDecomp* ret = NULL;
 
   // compute the tree decomposition using flow cutter.
   auto start = std::chrono::system_clock::now();
-  const char *decomp = NULL;
+  const char* decomp = NULL;
 
   decomp = flowCutter::paceMain(graph.getNbNode(), graph.getEdge(), 29, budget,
                                 true, seed, verbose);
@@ -106,7 +106,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
     std::vector<Var> vars;
     std::vector<bool> marked;
 
-    for (auto &e : graph.getEdge()) {
+    for (auto& e : graph.getEdge()) {
       if (e.first >= marked.size() || !marked[e.first]) {
         marked.resize(e.first + 1, false);
         marked[e.first] = true;
@@ -120,12 +120,12 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
       }
     }
 
-    ret = new TreeDecomp(vars, std::vector<TreeDecomp *>());
+    ret = new TreeDecomp(vars, std::vector<TreeDecomp*>());
   } else {
     // parse the decomposition from the result returned by flow-cutter.
     std::istringstream f(decomp);
     std::string line;
-    std::vector<TreeDecomp *> setOfTrees;
+    std::vector<TreeDecomp*> setOfTrees;
     std::vector<std::vector<unsigned>> edges;
 
     while (std::getline(f, line)) {
@@ -163,7 +163,7 @@ TreeDecomp *TreeDecompositionerFlowCutter::constructTreeDecomposition(
         }
 
         assert(idx == setOfTrees.size());
-        setOfTrees.push_back(new TreeDecomp(vars, std::vector<TreeDecomp *>()));
+        setOfTrees.push_back(new TreeDecomp(vars, std::vector<TreeDecomp*>()));
         edges.push_back(std::vector<unsigned>());
       } else {
         unsigned e1 = 0, e2 = 0, i = 0;

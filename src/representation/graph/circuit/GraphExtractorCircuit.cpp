@@ -25,13 +25,13 @@ namespace d4 {
  * @brief GraphExtractorCnf::extractCnf implementation.
  */
 void GraphExtractorCircuit::extractCircuit(
-    CircuitManager &formula, std::vector<Var> &component,
-    std::vector<std::vector<int> > &gates) {
-  for (auto &g : formula.getGates()) {
+    CircuitManager& formula, std::vector<Var>& component,
+    std::vector<std::vector<int> >& gates) {
+  for (auto& g : formula.getGates()) {
     if (!formula.isActiveGates(g)) continue;
     std::vector<int> gate;
-    gate.push_back(g.output.var());
-    for (auto &l : g.input) gate.push_back(l.var());
+    if (g.gateType != BcGateType::CLAUSE) gate.push_back(g.output.var());
+    for (auto& l : g.input) gate.push_back(l.var());
     gates.push_back(gate);
   }
 }  // extractCircuit

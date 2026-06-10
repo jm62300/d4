@@ -110,7 +110,7 @@ struct BcGate {
    * @param[out] out is the stream where the messages are redirected.
    */
   void display(std::ostream& out) {
-    out << output;
+    if (gateType != BcGateType::CLAUSE) out << output;
     switch (gateType) {
       case BcGateType::AND:
         out << " =(AND): ";
@@ -120,6 +120,9 @@ struct BcGate {
         break;
       case BcGateType::IDENTITY:
         out << " =(I): ";
+        break;
+      case BcGateType::CLAUSE:
+        out << "   (CLAUSE): ";
         break;
       default:
         out << " =(UNKNOWN): ";

@@ -60,10 +60,6 @@ class CircuitManagerDyn : public CircuitManager {
   inline bool isAliveGateIdx(unsigned idx);
   inline void incrementStampCirc();
 
- protected:
-  void onGateDeactivated(Var w) override;
-  void onGateReactivated(Var w) override;
-
  public:
   CircuitManagerDyn(const ProblemManager& p, bool optRmGates);
   ~CircuitManagerDyn() override;

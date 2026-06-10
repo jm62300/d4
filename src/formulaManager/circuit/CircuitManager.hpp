@@ -38,8 +38,6 @@ class CircuitManager : public FormulaManager {
   std::vector<BcGate> m_gates;
   std::vector<Lit> m_true_lits;
 
-  CnfManagerDyn* m_cnfManager;
-
   unsigned m_propagatedFree;
   unsigned m_lastIndex;
   std::vector<unsigned> m_varToGate;
@@ -49,33 +47,36 @@ class CircuitManager : public FormulaManager {
   std::vector<std::vector<Var>> m_litThatInactiveVar;
 
   bool m_optionRemoveGates;
+  std::vector<Lit> m_activeLitTrue;
+
+ private:
   std::vector<bool> m_isStillAlive;
   std::vector<unsigned> m_stackGatesNotAlive;
   std::vector<unsigned> m_stackGatesNotAliveSize;
 
-  /**
-   * @brief Called whenever gate with output variable w is deactivated.
-   * Subclasses override to maintain their own occurrence counts.
-   */
-  virtual void onGateDeactivated(Var w) {}
-
-  /**
-   * @brief Called whenever gate with output variable w is re-activated
-   * during backtracking. Symmetric to onGateDeactivated.
-   */
-  virtual void onGateReactivated(Var w) {}
-
   void debugFunction();
 
  public:
+  /**
+   * @brief Init the CircuitManager in order to make possible the suppresion of
+   * unactive gates. At the end of the initialization it could be possible that
+   * some literals are assigned to true (the variables they are deactivated
+   * during the process, which means that the both sides are assigned to true).
+   *
+   * @param p is the problem we want to handle.
+   * @param optRmGates is set to true if the option that make possible the
+   * suppresion of gates is activated.
+   */
   CircuitManager(const ProblemManager& p, bool optRmGates);
-  ~CircuitManager() override;
 
   inline std::vector<BcGate>& getGates() { return m_gates; }
-  inline CnfManager* getCnfManager() { return m_cnfManager; }
   inline ProblemInputType getProblemInputType() override { return PB_CIRC; }
   inline bool isActiveGates(BcGate& g) {
-    return m_isStillAlive[g.output.var()];
+    return !m_optionRemoveGates || m_isStillAlive[g.output.var()];
+  }
+
+  inline bool isStillAliveVar(Var v) {
+    return !m_optionRemoveGates || m_isStillAlive[v];
   }
 
   bool stillActive(BcGate& g);
@@ -88,16 +89,6 @@ class CircuitManager : public FormulaManager {
   void preUpdateGatesRemoved(const std::vector<Lit>& lits,
                              std::vector<Lit>& litsTrue);
   void postUpdateGatesRemoved(const std::vector<Lit>& lits);
-
-  void showFormula(std::ostream& out) override;
-  void showCurrentFormula(std::ostream& out) override;
-  void showCurrentFormula(std::ostream& out,
-                          std::vector<bool>& isInComponent) override;
-  void printInformation(std::ostream& out) override;
-
-  bool isFreeVariable(Var v) override;
-  void initFormulaStore(const OptionBucketManager& opts) override;
-  void storeFormula(std::span<const Var> component, DataBucket& b,
-                    BucketAllocator& alloc) override;
+  virtual CnfManager* getCnfManager() = 0;
 };
 }  // namespace d4

@@ -42,7 +42,7 @@ FormulaManager* FormulaManager::makeFormulaManager(
         case CIRC_WITH_CNF:
           return new CircuitWithCnfManager(p, options.removeGates);
         case CIRC_DYNAMIC:
-          return new CircuitManagerDyn(p, options.removeGates);
+          return NULL;  // new CircuitManagerDyn(p, options.removeGates);
       }
     case PB_TCNF:
     case PB_CNF:
@@ -58,7 +58,6 @@ FormulaManager* FormulaManager::makeFormulaManager(
     case PB_NONE:
       std::cerr << "c The problem type has to be specified\n";
       ProblemInputTypeManager::displayPossibleOptions(std::cerr);
-      exit(ERROR_BAD_OPTION);
   }
 
   throw(FactoryException("Cannot create a FormulaManager", __FILE__, __LINE__));

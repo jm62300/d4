@@ -35,12 +35,7 @@ CircuitManager::CircuitManager(const ProblemManager& p, bool optRmGates)
   m_gates = p.getGates();
   m_optionRemoveGates = optRmGates;
   m_propagatedFree = 0;
-
-  std::vector<BcGate> tseitinGates;
-  p.toCnf(tseitinGates);
-  ProblemManager tseitinProblem("cnf", p.getNbVar(), p.getQuantification(),
-                                p.getWeightMap(), tseitinGates, std::cout);
-  m_cnfManager = new CnfManagerDyn(tseitinProblem);
+  if (!m_optionRemoveGates) return;
 
   // Populate m_true_lits from CLAUSE gates (T statements).
   for (const auto& g : m_gates)
@@ -115,29 +110,16 @@ CircuitManager::CircuitManager(const ProblemManager& p, bool optRmGates)
     }
 
     if (shouldBePropagated.size()) {
-      std::vector<Lit> litsTrue;
       for (auto& v : shouldBePropagated) {
-        litsTrue.push_back(Lit::makeLitTrue(v));
-        litsTrue.push_back(Lit::makeLitFalse(v));
+        m_activeLitTrue.push_back(Lit::makeLitTrue(v));
+        m_activeLitTrue.push_back(Lit::makeLitFalse(v));
       }
 
       m_stackGatesNotAliveSize.push_back(m_stackGatesNotAlive.size());
-      m_cnfManager->pushStacks();
-      m_cnfManager->propagateTrue(litsTrue);
-
       m_propagatedFree += shouldBePropagated.size();
-      m_cnfManager->unmarkLastClausesSaved();
     }
   }
 }  // constructor
-
-/**
- * @brief CircuitManager::~CircuitManager implementation.
- */
-CircuitManager::~CircuitManager() {
-  std::cout << "c [CIRCUIT MANAGER] Destructor called\n";
-  delete m_cnfManager;
-}  // destructor
 
 /**
  * @brief CircuitManager::stillActive implementation.
@@ -200,7 +182,6 @@ void CircuitManager::propagate(std::vector<Var>& vars,
           pVars.push_back(w);
           m_isStillAlive[w] = false;
           m_stackGatesNotAlive.push_back(w);
-          onGateDeactivated(w);
         }
       }
     }
@@ -262,7 +243,6 @@ void CircuitManager::preUpdateGatesRemoved(const std::vector<Lit>& lits,
       if (m_isStillAlive[v]) {
         m_isStillAlive[v] = false;
         m_stackGatesNotAlive.push_back(v);
-        onGateDeactivated(v);
         toPu.push_back(v);
       }
     }
@@ -302,61 +282,4 @@ void CircuitManager::postUpdateGatesRemoved(const std::vector<Lit>& lits) {
   m_stackGatesNotAlive.resize(m_stackGatesNotAliveSize.back());
   m_stackGatesNotAliveSize.pop_back();
 }  // postUpdateGatesRemoved
-
-/**
- * @brief CircuitManager::showFormula implementation.
- */
-void CircuitManager::showFormula(std::ostream& out) {
-  m_cnfManager->showFormula(out);
-}
-
-/**
- * @brief CircuitManager::showCurrentFormula implementation.
- */
-void CircuitManager::showCurrentFormula(std::ostream& out) {
-  m_cnfManager->showCurrentFormula(out);
-}
-
-/**
- * @brief CircuitManager::showCurrentFormula (with component mask)
- * implementation.
- */
-void CircuitManager::showCurrentFormula(std::ostream& out,
-                                        std::vector<bool>& isInComponent) {
-  m_cnfManager->showCurrentFormula(out, isInComponent);
-}
-
-/**
- * @brief CircuitManager::printInformation implementation.
- */
-void CircuitManager::printInformation(std::ostream& out) {
-  out << "c \033[1m\033[36mFormula Manager Information\033[0m\n";
-  m_cnfManager->printInformation(out);
-  out << "c Number of variable eliminated: " << m_propagatedFree << '\n';
-  out << "c\n";
-}
-
-/**
- * @brief CircuitManager::isFreeVariable implementation.
- * Default: delegates to the embedded CNF manager.
- */
-bool CircuitManager::isFreeVariable(Var v) {
-  return m_cnfManager->isFreeVariable(v);
-}
-
-/**
- * @brief CircuitManager::initFormulaStore implementation.
- */
-void CircuitManager::initFormulaStore(const OptionBucketManager& opts) {
-  m_cnfManager->initFormulaStore(opts);
-}
-
-/**
- * @brief CircuitManager::storeFormula implementation.
- */
-void CircuitManager::storeFormula(std::span<const Var> component, DataBucket& b,
-                                  BucketAllocator& alloc) {
-  m_cnfManager->storeFormula(component, b, alloc);
-}
-
 }  // namespace d4

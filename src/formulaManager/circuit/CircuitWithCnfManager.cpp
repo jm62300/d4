@@ -21,15 +21,32 @@
 
 namespace d4 {
 
+/**
+ * @brief CircuitWithCnfManager::CircuitWithCnfManager implementation.
+ */
 CircuitWithCnfManager::CircuitWithCnfManager(const ProblemManager& p,
                                              bool optRmGates)
-    : CircuitManager(p, optRmGates) {}
+    : CircuitManager(p, optRmGates) {
+  std::vector<BcGate> tseitinGates;
+  p.toCnf(tseitinGates);
+  ProblemManager tseitinProblem("cnf", p.getNbVar(), p.getQuantification(),
+                                p.getWeightMap(), tseitinGates, std::cout);
+  m_cnfManager = new CnfManagerDyn(tseitinProblem);
 
-CircuitWithCnfManager::~CircuitWithCnfManager() {}
+  if (m_activeLitTrue.size()) {
+    m_cnfManager->pushStacks();
+    m_cnfManager->propagateTrue(m_activeLitTrue);
+    m_cnfManager->unmarkLastClausesSaved();
+  }
+}  // constructor
 
 /**
- * @brief Compute connected components by delegating to the embedded
- * CnfManagerDyn, then filter out no-longer-alive free variables.
+ * @brief CircuitWithCnfManager::~CircuitWithCnfManager implementation.
+ */
+CircuitWithCnfManager::~CircuitWithCnfManager() { delete m_cnfManager; }
+
+/**
+ * @brief CircuitWithCnfManager::computeConnectedComponent implementation.
  */
 int CircuitWithCnfManager::computeConnectedComponent(
     std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
@@ -39,11 +56,11 @@ int CircuitWithCnfManager::computeConnectedComponent(
 
   unsigned i, j;
   for (i = j = 0; i < freeVar.size(); i++)
-    if (m_isStillAlive[freeVar[i]]) freeVar[j++] = freeVar[i];
+    if (isStillAliveVar(freeVar[i])) freeVar[j++] = freeVar[i];
   freeVar.resize(j);
 
   return ret;
-}
+}  // computeConnectedComponent
 
 /**
  * @brief Targeted CC by delegating to the embedded CnfManagerDyn, then filter
@@ -54,10 +71,12 @@ int CircuitWithCnfManager::computeConnectedComponentTargeted(
     std::vector<bool>& isTargeted, std::vector<Var>& freeVar) {
   int ret = m_cnfManager->computeConnectedComponentTargeted(
       varConnected, setOfVar, isTargeted, freeVar);
+  if (!m_optionRemoveGates) return ret;
 
+  // check if we remove
   unsigned i, j;
   for (i = j = 0; i < freeVar.size(); i++)
-    if (m_isStillAlive[freeVar[i]]) freeVar[j++] = freeVar[i];
+    if (isStillAliveVar(freeVar[i])) freeVar[j++] = freeVar[i];
   freeVar.resize(j);
 
   return ret;
@@ -85,5 +104,62 @@ void CircuitWithCnfManager::postUpdate(const std::vector<Lit>& lits) {
   postUpdateGatesRemoved(lits);
   m_cnfManager->postUpdate(lits);
 }  // postUpdate
+
+/**
+ * @brief CircuitWithCnfManager::showFormula implementation.
+ */
+void CircuitWithCnfManager::showFormula(std::ostream& out) {
+  m_cnfManager->showFormula(out);
+}  // showFormula
+
+/**
+ * @brief CircuitWithCnfManager::showCurrentFormula implementation.
+ */
+void CircuitWithCnfManager::showCurrentFormula(std::ostream& out) {
+  m_cnfManager->showCurrentFormula(out);
+}  // showCurrentFormula
+
+/**
+ * @brief CircuitWithCnfManager::showCurrentFormula (with component mask)
+ * implementation.
+ */
+void CircuitWithCnfManager::showCurrentFormula(
+    std::ostream& out, std::vector<bool>& isInComponent) {
+  m_cnfManager->showCurrentFormula(out, isInComponent);
+}  // showCurrentFormula
+
+/**
+ * @brief CircuitWithCnfManager::printInformation implementation.
+ */
+void CircuitWithCnfManager::printInformation(std::ostream& out) {
+  out << "c \033[1m\033[36mFormula Manager Information\033[0m\n";
+  m_cnfManager->printInformation(out);
+  out << "c Number of variable eliminated: " << m_propagatedFree << '\n';
+  out << "c\n";
+}  // printInformation
+
+/**
+ * @brief CircuitWithCnfManager::isFreeVariable implementation.
+ * Default: delegates to the embedded CNF manager.
+ */
+bool CircuitWithCnfManager::isFreeVariable(Var v) {
+  return m_cnfManager->isFreeVariable(v);
+}  // isFreeVariable
+
+/**
+ * @brief CircuitManager::initFormulaStore implementation.
+ */
+void CircuitWithCnfManager::initFormulaStore(const OptionBucketManager& opts) {
+  m_cnfManager->initFormulaStore(opts);
+}  // initFormulaStore
+
+/**
+ * @brief CircuitWithCnfManager::storeFormula implementation.
+ */
+void CircuitWithCnfManager::storeFormula(std::span<const Var> component,
+                                         DataBucket& b,
+                                         BucketAllocator& alloc) {
+  m_cnfManager->storeFormula(component, b, alloc);
+}  // storeFormula
 
 }  // namespace d4

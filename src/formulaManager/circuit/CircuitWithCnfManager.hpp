@@ -29,6 +29,7 @@ namespace d4 {
 class CircuitWithCnfManager : public CircuitManager {
  private:
   std::vector<Lit> m_litsTrue;
+  CnfManagerDyn* m_cnfManager;
 
  public:
   CircuitWithCnfManager(const ProblemManager& p, bool optRmGates);
@@ -44,5 +45,16 @@ class CircuitWithCnfManager : public CircuitManager {
 
   void preUpdate(const std::vector<Lit>& lits) override;
   void postUpdate(const std::vector<Lit>& lits) override;
+
+  void showFormula(std::ostream& out) override;
+  void showCurrentFormula(std::ostream& out) override;
+  void showCurrentFormula(std::ostream& out,
+                          std::vector<bool>& isInComponent) override;
+  void printInformation(std::ostream& out) override;
+  bool isFreeVariable(Var v) override;
+  void initFormulaStore(const OptionBucketManager& opts) override;
+  void storeFormula(std::span<const Var> component, DataBucket& b,
+                    BucketAllocator& alloc) override;
+  CnfManager* getCnfManager() override { return m_cnfManager; }
 };
 }  // namespace d4

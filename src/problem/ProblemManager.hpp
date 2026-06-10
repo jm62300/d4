@@ -230,6 +230,40 @@ class ProblemManager {
   bool isUnsat() const { return m_isUnsat; }
 
   /**
+   * @brief Print all attributes of this object to the given stream.
+   *
+   * @param[out] out is the stream where the messages are redirected.
+   */
+  void display(std::ostream& out) const {
+    out << "nbVar: " << m_nbVar << "\n";
+    out << "isUnsat: " << m_isUnsat << "\n";
+    out << "problemInputType: "
+        << ProblemInputTypeManager::getInputType(m_problemInputType) << "\n";
+
+    out << "order:";
+    for (auto v : m_order) out << " " << v;
+    out << "\n";
+
+    out << "quantification (" << m_quantification.size() << " block(s)):\n";
+    for (std::size_t i = 0; i < m_quantification.size(); ++i) {
+      out << "  [" << i << "]:";
+      for (auto v : m_quantification[i]) out << " " << v;
+      out << "\n";
+    }
+
+    out << "weightMap (" << m_weightMap.size() << " entries):\n";
+    for (const auto& [lit, w] : m_weightMap)
+      out << "  " << lit.human() << " -> " << w << "\n";
+
+    out << "gates (" << m_gates.size() << "):\n";
+    for (auto g : m_gates) {
+      out << "  ";
+      g.display(out);
+      out << "\n";
+    }
+  }  // display
+
+  /**
    * @brief Translate the circuit into a set of clauses using the tseitin
    * encoding.
    *

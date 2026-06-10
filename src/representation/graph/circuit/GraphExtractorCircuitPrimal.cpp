@@ -27,11 +27,11 @@ namespace d4 {
  * @param[in] component is the set of variables under consideration.
  * @param[out] graph is the computed graph.
  */
-void GraphExtractorCircuitPrimal::constructGraph(FormulaManager &om,
-                                                 std::vector<Var> &component,
-                                                 Graph &graph) {
+void GraphExtractorCircuitPrimal::constructGraph(FormulaManager& om,
+                                                 std::vector<Var>& component,
+                                                 Graph& graph) {
   std::vector<std::vector<int>> gates;
-  extractCircuit(dynamic_cast<CircuitManager &>(om), component, gates);
+  extractCircuit(dynamic_cast<CircuitManager&>(om), component, gates);
 
   unsigned maxId = 0;
   for (auto v : component) {
@@ -39,9 +39,9 @@ void GraphExtractorCircuitPrimal::constructGraph(FormulaManager &om,
   }
 
   graph.setNbNode(maxId);
-  for (auto &cl : gates) {
+  for (auto& cl : gates) {
     for (unsigned i = 0; i < cl.size(); i++) {
-      auto &l = cl[i];
+      auto& l = cl[i];
       for (unsigned j = i + 1; j < cl.size(); j++)
         graph.addEdge(std::make_pair(l, cl[j]));
     }

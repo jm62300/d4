@@ -27,11 +27,11 @@ namespace d4 {
  * @param[in] component is the set of variables under consideration.
  * @param[out] graph is the computed graph.
  */
-void GraphExtractorCnfPrimal::constructGraph(FormulaManager &om,
-                                             std::vector<Var> &component,
-                                             Graph &graph) {
+void GraphExtractorCnfPrimal::constructGraph(FormulaManager& om,
+                                             std::vector<Var>& component,
+                                             Graph& graph) {
   std::vector<std::vector<int>> clauses;
-  extractCnf(dynamic_cast<CnfManager &>(om), component, clauses);
+  extractCnf(dynamic_cast<CnfManager&>(om), component, clauses);
   if (m_simplication) simplication(clauses);
 
   unsigned maxId = 0;
@@ -40,9 +40,9 @@ void GraphExtractorCnfPrimal::constructGraph(FormulaManager &om,
   }
 
   graph.setNbNode(maxId);
-  for (auto &cl : clauses) {
+  for (auto& cl : clauses) {
     for (unsigned i = 0; i < cl.size(); i++) {
-      auto &l = cl[i];
+      auto& l = cl[i];
       for (unsigned j = i + 1; j < cl.size(); j++)
         graph.addEdge(std::make_pair(l, cl[j]));
     }
