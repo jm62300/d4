@@ -24,7 +24,7 @@
 #include "cnf/ScoringMethodVsads.hpp"
 #include "cnf/ScoringMethodVsids.hpp"
 #include "src/exceptions/FactoryException.hpp"
-#include "src/formulaManager/circuit/CircuitWithCnfManager.hpp"
+#include "src/formulaManager/circuit/CircuitManager.hpp"
 #include "src/utils/ErrorCode.hpp"
 
 namespace d4 {
@@ -71,7 +71,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
   switch (p.getProblemInputType()) {
     case PB_CIRC:
       try {
-        CircuitWithCnfManager &ps = dynamic_cast<CircuitWithCnfManager &>(p);
+        CircuitManager &ps = dynamic_cast<CircuitManager &>(p);
         return getScoringMethodCnf(*(ps.getCnfManager()), am,
                                    options.scoringMethodType);
       } catch (std::bad_cast &bc) {

@@ -34,6 +34,16 @@ enum SpecUpdateType {
   SPEC_DYNAMIC_PURE_SIMP
 };
 
+enum CircuitManagerType { CIRC_WITH_CNF, CIRC_DYNAMIC };
+
+template <>
+struct EnumMetadata<CircuitManagerType> {
+  static std::string name() { return "CircuitManagerType"; }
+  static std::map<int, std::string> mapping() {
+    return {{CIRC_WITH_CNF, "withCnf"}, {CIRC_DYNAMIC, "dynamic"}};
+  }
+};
+
 template <>
 struct EnumMetadata<SpecUpdateType> {
   static std::string name() { return "SpecUpdateType"; }
@@ -53,16 +63,19 @@ class OptionSpecManager : public OptionGroup {
   Option<SpecUpdateType> specUpdateType{"specUpdateType", "The occurrence manager used", SPEC_DYNAMIC};
   Option<bool> removeGates{"removeGates", "If some gates can be removed during the search", false};
   Option<bool> needFastNotSatisfied{"needFastNotSatisfied", "If we need fast not satisfied", false};
+  Option<CircuitManagerType> circuitManagerType{
+      "circuitManagerType", "The circuit formula manager used", CIRC_WITH_CNF};
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {(OptionBase*)&specUpdateType, (OptionBase*)&removeGates, (OptionBase*)&needFastNotSatisfied};
+    return {(OptionBase*)&specUpdateType, (OptionBase*)&removeGates,
+            (OptionBase*)&needFastNotSatisfied, (OptionBase*)&circuitManagerType};
   }
 
   friend std::ostream& operator<<(std::ostream& out, const OptionSpecManager& dt) {
     out << " Option Formula Manager:" << " update mode("
         << dt.specUpdateType.getValueAsString() << ") rm-gates("
         << dt.removeGates.get() << ") need-not-satisfied(" << dt.needFastNotSatisfied.get()
-        << ") ";
+        << ") circuit-manager(" << dt.circuitManagerType.getValueAsString() << ") ";
     return out;
   }
 };

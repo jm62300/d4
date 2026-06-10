@@ -18,6 +18,7 @@
  */
 #include "FormulaManager.hpp"
 
+#include "circuit/CircuitManagerDyn.hpp"
 #include "circuit/CircuitWithCnfManager.hpp"
 #include "cnf/CnfManagerDyn.hpp"
 #include "cnf/CnfManagerDynBlockedCl.hpp"
@@ -37,7 +38,12 @@ FormulaManager* FormulaManager::makeFormulaManager(
 
   switch (p.getProblemInputType()) {
     case PB_CIRC:
-      return new CircuitWithCnfManager(p, options.removeGates);
+      switch (options.circuitManagerType) {
+        case CIRC_WITH_CNF:
+          return new CircuitWithCnfManager(p, options.removeGates);
+        case CIRC_DYNAMIC:
+          return new CircuitManagerDyn(p, options.removeGates);
+      }
     case PB_TCNF:
     case PB_CNF:
     case PB_QBF:

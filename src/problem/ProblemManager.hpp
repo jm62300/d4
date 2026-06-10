@@ -228,5 +228,49 @@ class ProblemManager {
    * Returned by value.
    */
   bool isUnsat() const { return m_isUnsat; }
+
+  /**
+   * @brief Translate the circuit into a set of clauses using the tseitin
+   * encoding.
+   *
+   * @param[out] tseitinGates is the set of clauses.
+   */
+  void toCnf(std::vector<BcGate>& tseitinGates) const {
+    for (const auto& g : getGates()) {
+      switch (g.gateType) {
+        case BcGateType::AND: {
+          std::vector<Lit> fwd = {g.output};
+          for (auto l : g.input) {
+            tseitinGates.push_back(
+                {{l, ~g.output}, lit_Undef, BcGateType::CLAUSE});
+            fwd.push_back(~l);
+          }
+          tseitinGates.push_back({fwd, lit_Undef, BcGateType::CLAUSE});
+          break;
+        }
+        case BcGateType::OR: {
+          std::vector<Lit> fwd = {~g.output};
+          for (auto l : g.input) {
+            tseitinGates.push_back(
+                {{~l, g.output}, lit_Undef, BcGateType::CLAUSE});
+            fwd.push_back(l);
+          }
+          tseitinGates.push_back({fwd, lit_Undef, BcGateType::CLAUSE});
+          break;
+        }
+        case BcGateType::IDENTITY:
+          tseitinGates.push_back(
+              {{g.input[0], ~g.output}, lit_Undef, BcGateType::CLAUSE});
+          tseitinGates.push_back(
+              {{~g.input[0], g.output}, lit_Undef, BcGateType::CLAUSE});
+          break;
+        case BcGateType::CLAUSE:
+          tseitinGates.push_back(g);
+          break;
+        default:
+          break;
+      }
+    }
+  }  // toCnf
 };
 }  // namespace d4
