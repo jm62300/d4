@@ -53,7 +53,7 @@ void AndGatesExtractor::searchAndGates(CnfManager *om, std::vector<Var> &vars,
   for (unsigned i = 0; i < om->getNbClause(); i++) {
     if (om->isSatisfiedClause(i) || om->getInitSize(i) < 5) continue;
 
-    std::vector<Lit> &cl = om->getClause(i);
+    std::span<Lit> cl = om->getClause(i);
     unsigned cpt = 0;
     for (auto &l : cl) {
       if (om->litIsAssigned(l)) continue;
@@ -67,7 +67,7 @@ void AndGatesExtractor::searchAndGates(CnfManager *om, std::vector<Var> &vars,
       if (cpt > lbin.size() + 1) continue;
 
       for (int *ptr = lbin.start; ptr != lbin.end; ptr++) {
-        std::vector<Lit> &clBin = om->getClause(*ptr);
+        std::span<Lit> clBin = om->getClause(*ptr);
         Lit m = (clBin[0] == ~l) ? clBin[1] : clBin[0];
         if (m_flagVar[m.var()] + m.sign() + 1 != 3) continue;
         m_flagVar[m.var()] = 3;

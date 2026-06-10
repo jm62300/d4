@@ -37,26 +37,32 @@ namespace d4 {
    Constructor.
 */
 CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
-  // get the clauses.
+  // get the clauses, stored contiguously (CSR layout).
   const auto& gates = p.getGates();
-  m_clauses.reserve(gates.size());
+  unsigned nbClause = gates.size();
+
+  unsigned count = 0;
   for (const auto& g : gates) {
     assert(g.gateType == BcGateType::CLAUSE);
-    m_clauses.push_back(g.input);
+    count += g.input.size();
   }
+
+  m_infoClauses.resize(nbClause);
+  m_clauseData.reserve(count);
 
   // store the not binary clauses.
   m_maxSizeClause = 0;
-  unsigned count = 0;
   std::vector<std::vector<int>> occurrence((m_nbVar + 1) << 1);
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_clauses[i].size() > 2) m_clausesNotBin.push_back(i);
+  for (unsigned i = 0; i < nbClause; i++) {
+    const std::vector<Lit>& cl = gates[i].input;
+    m_infoClauses[i].first = m_clauseData.size();
+    m_infoClauses[i].size = cl.size();
+    m_clauseData.insert(m_clauseData.end(), cl.begin(), cl.end());
 
-    for (auto& l : m_clauses[i]) occurrence[l.intern()].push_back(i);
-    count += m_clauses[i].size();
+    if (cl.size() > 2) m_clausesNotBin.push_back(i);
+    for (auto& l : cl) occurrence[l.intern()].push_back(i);
 
-    if (m_clauses[i].size() > m_maxSizeClause)
-      m_maxSizeClause = m_clauses[i].size();
+    if (cl.size() > m_maxSizeClause) m_maxSizeClause = cl.size();
   }
 
   // reserve the memory to store the occurrence lists.
@@ -70,7 +76,7 @@ CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
 
     unsigned posNotBin = occList.size() - 1;
     for (auto const& idx : occList) {
-      if (m_clauses[idx].size() == 2)
+      if (m_infoClauses[idx].size == 2)
         ptr[m_occurrence[i].nbBin++] = idx;
       else
         ptr[posNotBin--] = idx;
@@ -87,17 +93,15 @@ CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
   m_idxComponent.resize(m_nbVar + 1, 0);
 
   // clauses:
-  unsigned nbClause = m_clauses.size();
   m_markView.resize(nbClause, 0);
   m_stampMarkView = 0;
 
-  m_infoClauses.resize(nbClause);
-
   // set the info about xorLitBin.
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
-    if (m_clauses[i].size() == 2)
-      m_infoClauses[i].xorLitBin =
-          m_clauses[i][0].intern() ^ m_clauses[i][1].intern();
+  for (unsigned i = 0; i < nbClause; i++) {
+    if (m_infoClauses[i].size == 2) {
+      Lit* cl = &m_clauseData[m_infoClauses[i].first];
+      m_infoClauses[i].xorLitBin = cl[0].intern() ^ cl[1].intern();
+    }
   }
 
   m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
@@ -242,7 +246,7 @@ void CnfManager::connectedToLit(Lit l, std::vector<int>& v,
       m_markView[idx] = m_stampMarkView;
 
       // compute component
-      for (auto& l : m_clauses[idx]) {
+      for (auto& l : getClause(idx)) {
         if (m_currentValue[l.var()] != l_Undef || v[l.var()]) continue;
 
         varComponent.push_back(l.var());
@@ -327,7 +331,7 @@ int CnfManager::computeConnectedComponentTargeted(
    \return true if the clause is satisfied, false otherwise.
 */
 bool CnfManager::isSatisfiedClause(unsigned idx) {
-  assert(idx < m_clauses.size());
+  assert(idx < m_infoClauses.size());
   return m_infoClauses[idx].isSat;
 }  // isSatisfiedClause
 
@@ -339,7 +343,7 @@ bool CnfManager::isSatisfiedClause(unsigned idx) {
 
    \return true if the clause is satisfied, false otherwise.
 */
-bool CnfManager::isSatisfiedClause(std::vector<Lit>& c) {
+bool CnfManager::isSatisfiedClause(std::span<const Lit> c) {
   for (auto& l : c) {
     if (!litIsAssigned(l)) continue;
     if (l.sign() && m_currentValue[l.var()] == l_False) return true;
@@ -363,15 +367,17 @@ bool CnfManager::isSatisfiedClause(std::vector<Lit>& c) {
 */
 bool CnfManager::isNotSatisfiedClauseAndInComponent(
     int idx, std::vector<bool>& inCurrentComponent) {
-  if (m_infoClauses[idx].isSat) return false;
-  assert(!litIsAssigned(m_clauses[idx][0]));
-  return inCurrentComponent[m_clauses[idx][0].var()];
+  const ClauseInfo& info = m_infoClauses[idx];
+  if (info.isSat) return false;
+  const Lit& watched = m_clauseData[info.first];
+  assert(!litIsAssigned(watched));
+  return inCurrentComponent[watched.var()];
 }  // isSatisfiedClause
 
 void CnfManager::showFormula(std::ostream& out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
-  for (auto& cl : m_clauses) {
-    showListLit(out, cl);
+  for (unsigned i = 0; i < getNbClause(); i++) {
+    showListLit(out, getClause(i));
     out << "0\n";
   }
 }  // showFormula
@@ -381,10 +387,10 @@ void CnfManager::showFormula(std::ostream& out) {
  */
 void CnfManager::showCurrentFormula(std::ostream& out) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
+  for (unsigned i = 0; i < getNbClause(); i++) {
     if (m_infoClauses[i].isSat) continue;
     out << "[" << i << "] ";
-    for (auto& l : m_clauses[i])
+    for (auto& l : getClause(i))
       if (!litIsAssigned(l)) out << l << " ";
     out << "0\n";
   }
@@ -396,10 +402,10 @@ void CnfManager::showCurrentFormula(std::ostream& out) {
 void CnfManager::showCurrentFormula(std::ostream& out,
                                     std::vector<bool>& isInComponent) {
   out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
+  for (unsigned i = 0; i < getNbClause(); i++) {
     if (!isNotSatisfiedClauseAndInComponent(i, isInComponent)) continue;
     if (m_infoClauses[i].isSat) continue;
-    for (auto& l : m_clauses[i])
+    for (auto& l : getClause(i))
       if (!litIsAssigned(l)) out << l << " ";
     out << "0\n";
   }
@@ -409,9 +415,9 @@ void CnfManager::showCurrentFormula(std::ostream& out,
  * @brief CnfManager::debugFunction implementation.
  */
 void CnfManager::debugFunction() {
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
+  for (unsigned i = 0; i < getNbClause(); i++) {
     if (m_infoClauses[i].isSat) continue;
-    for (auto& l : m_clauses[i])
+    for (auto& l : getClause(i))
       if (!litIsAssigned(l)) {
         unsigned nbOcc = 0;
         for (unsigned j = 0; j < m_occurrence[l.intern()].nbBin; j++)

@@ -39,7 +39,7 @@ struct InfoCluster {
 
 class CnfManager : public virtual FormulaManager {
  protected:
-  std::vector<std::vector<Lit>> m_clauses;
+  std::vector<Lit> m_clauseData;
   std::vector<int> m_clausesNotBin;
   unsigned m_maxSizeClause;
   std::vector<ClauseInfo> m_infoClauses;
@@ -101,13 +101,13 @@ class CnfManager : public virtual FormulaManager {
   void showCurrentFormula(std::ostream& out,
                           std::vector<bool>& isInComponent) override;
 
-  int getInitSize(int i) { return m_clauses[i].size(); }
+  int getInitSize(int i) { return m_infoClauses[i].size; }
   int getCurrentSize(int i) {
-    return m_clauses[i].size() - m_infoClauses[i].nbUnsat;
+    return m_infoClauses[i].size - m_infoClauses[i].nbUnsat;
   }
 
   bool isSatisfiedClause(unsigned idx);
-  bool isSatisfiedClause(std::vector<Lit>& c);
+  bool isSatisfiedClause(std::span<const Lit> c);
   bool isNotSatisfiedClauseAndInComponent(
       int idx, std::vector<bool>& m_inCurrentComponent);
 
@@ -152,13 +152,11 @@ class CnfManager : public virtual FormulaManager {
     return m_occurrence[l.intern()].nbNotBin;
   }  // getNbInitNotBinaryClause
 
-  inline unsigned getNbClause() { return m_clauses.size(); }
+  inline unsigned getNbClause() { return m_infoClauses.size(); }
   inline unsigned getMaxSizeClause() { return m_maxSizeClause; }
 
   virtual inline unsigned getSumSizeClauses() {
-    unsigned sum = 0;
-    for (auto& cl : m_clauses) sum += cl.size();
-    return sum;
+    return m_clauseData.size();
   }  // getSumSizeClauses
 
   inline int getNbBinaryClause(Lit l) {
@@ -171,14 +169,13 @@ class CnfManager : public virtual FormulaManager {
   // about the clauses.
   inline int getNbUnsat(int idx) { return m_infoClauses[idx].nbUnsat; }
   inline int getSize(int idx) {
-    return m_clauses[idx].size() - m_infoClauses[idx].nbUnsat;
+    return m_infoClauses[idx].size - m_infoClauses[idx].nbUnsat;
   }
 
-  inline std::vector<std::vector<Lit>>& getClauses() { return m_clauses; }
-
-  inline std::vector<Lit>& getClause(int idx) {
-    assert((unsigned)idx < m_clauses.size());
-    return m_clauses[idx];
+  inline std::span<Lit> getClause(int idx) {
+    assert((unsigned)idx < m_infoClauses.size());
+    const ClauseInfo& info = m_infoClauses[idx];
+    return {&m_clauseData[info.first], info.size};
   }
 
   inline int getNbOccurrence(Lit l) { return getNbClause(l); }

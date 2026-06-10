@@ -261,7 +261,8 @@ class TreeDecomposition {
 
     // Copy all valid clauses into our initial formula state
     for (unsigned i = 0; i < cnf.getNbClause(); i++) {
-      fullFormula.push_back(cnf.getClause(i));
+      std::span<Lit> cl = cnf.getClause(i);
+      fullFormula.emplace_back(cl.begin(), cl.end());
     }
 
     return verifyCnfProjectionUserWay(root, fullFormula, cnf.getNbVariable());

@@ -31,8 +31,8 @@ CnfManagerDyn::CnfManagerDyn(const ProblemManager& p,
       m_keepListNotSatisfiedClauses(keepListNotSatisfiedClauses) {
   m_markedLitStack.resize((1 + p.getNbVar()) << 1, 0);
   m_markedLitRemove.resize((1 + p.getNbVar()) << 1, 0);
-  m_markedClauseIdx.resize(m_clauses.size() + 1, false);
-  m_indexSatClauses.reserve(m_clauses.size());
+  m_markedClauseIdx.resize(getNbClause() + 1, false);
+  m_indexSatClauses.reserve(getNbClause());
 
   m_currentMarkedLitStackIndex = m_currentMarkedLitRemoveIndex = 0;
 
@@ -41,10 +41,10 @@ CnfManagerDyn::CnfManagerDyn(const ProblemManager& p,
 
   m_notSatifiedClauses = nullptr;
   if (m_keepListNotSatisfiedClauses) {
-    m_notSatifiedClauses = new unsigned[m_clauses.size()];
-    for (unsigned i = 0; i < m_clauses.size(); i++) m_notSatifiedClauses[i] = i;
-    m_sizeNotSatifiedClauses = m_clauses.size();
-    m_markedNotSatClauses.resize(m_clauses.size() + 1, 0);
+    m_notSatifiedClauses = new unsigned[getNbClause()];
+    for (unsigned i = 0; i < getNbClause(); i++) m_notSatifiedClauses[i] = i;
+    m_sizeNotSatifiedClauses = getNbClause();
+    m_markedNotSatClauses.resize(getNbClause() + 1, 0);
     m_stampNotSatClauses = 0;
   }
 }  // CnfManagerDyn
@@ -63,7 +63,7 @@ void CnfManagerDyn::getCurrentClauses(std::vector<unsigned>& idxClauses,
                                       std::span<const Var> component) {
   idxClauses.resize(0);
   for (auto& v : component) m_inCurrentComponent[v] = true;
-  for (unsigned i = 0; i < m_clauses.size(); i++) {
+  for (unsigned i = 0; i < getNbClause(); i++) {
     if (isNotSatisfiedClauseAndInComponent(i, m_inCurrentComponent))
       idxClauses.push_back(i);
   }
@@ -80,8 +80,8 @@ void CnfManagerDyn::getCurrentClausesNotBin(std::vector<unsigned>& idxClauses,
   for (auto& v : component) m_inCurrentComponent[v] = true;
   for (unsigned i = 0; i < m_sizeNotSatifiedClauses; i++) {
     unsigned idx = m_notSatifiedClauses[i];
-    if (m_clauses[idx].size() > 2 &&
-        m_inCurrentComponent[m_clauses[idx][0].var()])
+    const ClauseInfo& info = m_infoClauses[idx];
+    if (info.size > 2 && m_inCurrentComponent[m_clauseData[info.first].var()])
       idxClauses.push_back(m_notSatifiedClauses[i]);
   }
 
@@ -103,17 +103,20 @@ void CnfManagerDyn::propagateFalseInNotBin(const std::vector<Lit>& lits) {
             {idxCl, m_infoClauses[idxCl].isSat, m_infoClauses[idxCl].nbUnsat});
       }
       m_infoClauses[idxCl].nbUnsat++;
-      if (m_clauses[idxCl][0] == ~l) m_reviewWatcher.push_back(idxCl);
+      if (m_clauseData[m_infoClauses[idxCl].first] == ~l)
+        m_reviewWatcher.push_back(idxCl);
     }
   }
 
   // we search another non assigned literal if requiered
   for (auto& idxCl : m_reviewWatcher) {
-    if (m_infoClauses[idxCl].isSat) continue;
+    const ClauseInfo& info = m_infoClauses[idxCl];
+    if (info.isSat) continue;
 
-    for (unsigned i = 1; i < m_clauses[idxCl].size(); i++) {
-      if (m_currentValue[m_clauses[idxCl][i].var()] == l_Undef) {
-        std::swap(m_clauses[idxCl][0], m_clauses[idxCl][i]);
+    Lit* cl = &m_clauseData[info.first];
+    for (unsigned i = 1; i < info.size; i++) {
+      if (m_currentValue[cl[i].var()] == l_Undef) {
+        std::swap(cl[0], cl[i]);
         break;
       }
     }
@@ -128,7 +131,7 @@ void CnfManagerDyn::removeSatisfiedClauses(
   m_currentMarkedLitRemoveIndex++;
 
   for (auto idxCl : idxClauses) {
-    for (auto& ll : m_clauses[idxCl]) {
+    for (auto& ll : getClause(idxCl)) {
       if (m_markedLitStack[ll.intern()] != m_currentMarkedLitStackIndex) {
         m_savedStateOccs.push_back({ll, m_occurrence[ll.intern()].nbBin,
                                     m_occurrence[ll.intern()].nbNotBin});

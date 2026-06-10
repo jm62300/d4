@@ -24,7 +24,9 @@ struct ClauseInfo {
   unsigned isSat : 1;
   unsigned nbUnsat : 31;
   unsigned xorLitBin;
+  unsigned first;  // offset of the first literal in the flat clause data.
+  unsigned size;   // initial clause size.
 
-  ClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0) {}
+  ClauseInfo() : isSat(0), nbUnsat(0), xorLitBin(0), first(0), size(0) {}
 };
 }

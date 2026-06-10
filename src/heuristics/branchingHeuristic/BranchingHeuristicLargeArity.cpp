@@ -36,10 +36,10 @@ BranchingHeuristicLargeArity::BranchingHeuristicLargeArity(
                          polarityManager, out) {
   m_limitClause = options.limitSizeClause;
 
-  std::vector<std::vector<Lit>>& clauses =
-      dynamic_cast<CnfManager*>(specs)->getClauses();
-  for (unsigned i = 0; i < clauses.size(); i++) {
-    if (clauses[i].size() >= m_limitClause) m_indexOfLargeClause.push_back(i);
+  CnfManager* cnfSpecs = dynamic_cast<CnfManager*>(specs);
+  for (unsigned i = 0; i < cnfSpecs->getNbClause(); i++) {
+    if ((unsigned)cnfSpecs->getInitSize(i) >= m_limitClause)
+      m_indexOfLargeClause.push_back(i);
   }
 
   m_markedVar.resize(specs->getNbVariable() + 1, false);

@@ -59,7 +59,9 @@ def _parse_complex(s: str) -> complex:
 def _approx_equal(a: str, b: str, tol: float) -> bool:
     try:
         ca, cb = _parse_complex(a), _parse_complex(b)
-        return abs(ca - cb) <= tol
+        # relative tolerance, so tiny weighted counts are still compared
+        # meaningfully (with an absolute floor for counts that are zero).
+        return abs(ca - cb) <= tol * max(abs(ca), abs(cb), 1e-300)
     except ValueError:
         return a == b
 

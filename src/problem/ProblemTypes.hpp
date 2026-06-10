@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <span>
 #include <vector>
 
 namespace d4 {
@@ -84,7 +85,7 @@ struct Lit {
 const Lit lit_Undef = {-2};  // }- Useful special constants.
 const Lit lit_Error = {-1};  // }
 
-inline void showListLit(std::ostream& out, std::vector<Lit>& v) {
+inline void showListLit(std::ostream& out, std::span<const Lit> v) {
   for (auto& l : v) out << l << " ";
 }  // showListLit
 
