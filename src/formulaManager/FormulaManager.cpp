@@ -42,7 +42,7 @@ FormulaManager* FormulaManager::makeFormulaManager(
         case CIRC_WITH_CNF:
           return new CircuitWithCnfManager(p, options.removeGates);
         case CIRC_DYNAMIC:
-          return NULL;  // new CircuitManagerDyn(p, options.removeGates);
+          return new CircuitManagerDyn(p, options.removeGates);
       }
     case PB_TCNF:
     case PB_CNF:

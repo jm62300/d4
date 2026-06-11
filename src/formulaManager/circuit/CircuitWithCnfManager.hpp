@@ -49,15 +49,7 @@ class CircuitWithCnfManager : public CircuitManager, public CnfManagerDyn {
   void preUpdate(const std::vector<Lit>& lits) override;
   void postUpdate(const std::vector<Lit>& lits) override;
 
-  void showFormula(std::ostream& out) override;
-  void showCurrentFormula(std::ostream& out) override;
-  void showCurrentFormula(std::ostream& out,
-                          std::vector<bool>& isInComponent) override;
   void printInformation(std::ostream& out) override;
-  bool isFreeVariable(Var v) override;
-  void initFormulaStore(const OptionBucketManager& opts) override;
-  void storeFormula(std::span<const Var> component, DataBucket& b,
-                    BucketAllocator& alloc) override;
   CnfManager* getCnfManager() override { return this; }
 };
 }  // namespace d4

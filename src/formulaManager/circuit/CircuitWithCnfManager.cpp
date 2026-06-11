@@ -27,7 +27,7 @@ ProblemManager CircuitWithCnfManager::makeTseitinProblem(
   p.toCnf(tseitinGates);
   return ProblemManager("cnf", p.getNbVar(), p.getQuantification(),
                         p.getWeightMap(), tseitinGates, std::cout);
-}
+}  // makeTseitinProblem
 
 CircuitWithCnfManager::CircuitWithCnfManager(const ProblemManager& p,
                                              bool optRmGates)
@@ -44,8 +44,8 @@ CircuitWithCnfManager::CircuitWithCnfManager(const ProblemManager& p,
 int CircuitWithCnfManager::computeConnectedComponent(
     std::vector<std::vector<Var>>& varConnected, std::span<Var> setOfVar,
     std::vector<Var>& freeVar) {
-  int ret = CnfManager::computeConnectedComponent(varConnected, setOfVar,
-                                                  freeVar);
+  int ret =
+      CnfManager::computeConnectedComponent(varConnected, setOfVar, freeVar);
   unsigned i, j;
   for (i = j = 0; i < freeVar.size(); i++)
     if (isStillAliveVar(freeVar[i])) freeVar[j++] = freeVar[i];
@@ -82,38 +82,11 @@ void CircuitWithCnfManager::postUpdate(const std::vector<Lit>& lits) {
   CnfManagerDyn::postUpdate(lits);
 }  // postUpdate
 
-void CircuitWithCnfManager::showFormula(std::ostream& out) {
-  CnfManager::showFormula(out);
-}  // showFormula
-
-void CircuitWithCnfManager::showCurrentFormula(std::ostream& out) {
-  CnfManager::showCurrentFormula(out);
-}  // showCurrentFormula
-
-void CircuitWithCnfManager::showCurrentFormula(
-    std::ostream& out, std::vector<bool>& isInComponent) {
-  CnfManager::showCurrentFormula(out, isInComponent);
-}  // showCurrentFormula
-
 void CircuitWithCnfManager::printInformation(std::ostream& out) {
   out << "c \033[1m\033[36mFormula Manager Information\033[0m\n";
   CnfManager::printInformation(out);
   out << "c Number of variable eliminated: " << m_propagatedFree << '\n';
   out << "c\n";
 }  // printInformation
-
-bool CircuitWithCnfManager::isFreeVariable(Var v) {
-  return CnfManager::isFreeVariable(v);
-}  // isFreeVariable
-
-void CircuitWithCnfManager::initFormulaStore(const OptionBucketManager& opts) {
-  CnfManager::initFormulaStore(opts);
-}  // initFormulaStore
-
-void CircuitWithCnfManager::storeFormula(std::span<const Var> component,
-                                         DataBucket& b,
-                                         BucketAllocator& alloc) {
-  CnfManager::storeFormula(component, b, alloc);
-}  // storeFormula
 
 }  // namespace d4

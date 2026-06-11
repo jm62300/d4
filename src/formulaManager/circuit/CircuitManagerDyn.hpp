@@ -32,39 +32,13 @@ namespace d4 {
  * clauses.  Maintains per-variable alive-gate counts through the virtual hooks
  * onGateDeactivated / onGateReactivated.
  */
-class CircuitManagerDyn : public CircuitManager {
+class CircuitManagerDyn : public CircuitManager, public CnfManagerDyn {
  private:
-  // Gate occurrence lists: m_varGates[v] = indices of gates where v appears
-  // (as output for non-CLAUSE gates, or as an input for CLAUSE gates and also
-  //  as an input for non-CLAUSE gates).
-  std::vector<std::vector<unsigned>> m_varGates;
-
-  // Count of currently alive gate occurrences per variable.
-  // Decremented by onGateDeactivated; incremented by onGateReactivated.
-  std::vector<unsigned> m_nbActiveGates;
-
-  // Union-find scratch structures (mirror of CnfManager).
-  // Size: nbVar + nbGates + 1  (gate gIdx occupies slot gIdx + nbVar + 1).
-  std::vector<InfoCluster> m_infoClusterCirc;
-  Var* m_activeVarsCirc;
-  std::vector<Var> m_rootSetCirc;
-
-  // Stamp-based marking of visited gates (mirrors m_stampMarkView/m_markView).
-  uint32_t m_stampCirc;
-  std::vector<uint32_t> m_markCirc;  // indexed by gate index
-
-  // Auxiliary structures for the targeted CC (BFS variant).
-  std::vector<int> m_idxComponentCirc;
-  std::vector<Var> m_tmpVecCirc;
-
-  inline bool isAliveGateIdx(unsigned idx);
-  inline void incrementStampCirc();
+  static ProblemManager onlyWithClauseProblem(const ProblemManager& p);
 
  public:
   CircuitManagerDyn(const ProblemManager& p, bool optRmGates);
   ~CircuitManagerDyn() override;
-
-  bool isFreeVariable(Var v) override;
 
   int computeConnectedComponent(std::vector<std::vector<Var>>& varConnected,
                                 std::span<Var> setOfVar,
@@ -76,5 +50,7 @@ class CircuitManagerDyn : public CircuitManager {
 
   void preUpdate(const std::vector<Lit>& lits) override;
   void postUpdate(const std::vector<Lit>& lits) override;
+  CnfManager* getCnfManager() override { return this; }
+  inline ProblemInputType getProblemInputType() override { return PB_CIRC; }
 };
 }  // namespace d4
