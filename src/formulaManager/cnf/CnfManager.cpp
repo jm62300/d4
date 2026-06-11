@@ -242,7 +242,7 @@ void CnfManager::connectedToLit(Lit l, std::vector<int>& v,
     for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
       int idx = *ptr;
 
-      if (m_markView[idx]) continue;
+      if (m_markView[idx] == m_stampMarkView) continue;
       m_markView[idx] = m_stampMarkView;
 
       // compute component
