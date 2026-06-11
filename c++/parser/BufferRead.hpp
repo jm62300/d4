@@ -23,6 +23,7 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 #define BUFFER_SIZE 65536
 
@@ -64,13 +65,12 @@ class BufferRead {
 
     m_fd = open(name.c_str(), O_RDONLY);
     if (m_fd < 0)
-      std::cerr << "ERROR! Could not open file: " << name << "\n", exit(1);
+      throw std::runtime_error("ERROR! Could not open file: " + name);
 
     // fill the buffer
     size = read(m_fd, buffer, BUFFER_SIZE);
     if (size < 0) {
-      perror("read()");
-      exit(EXIT_FAILURE);
+      throw std::runtime_error("read() failed in BufferRead constructor");
     }
   }
 
@@ -87,8 +87,7 @@ class BufferRead {
     // fill the buffer
     size = read(m_fd, buffer, BUFFER_SIZE);
     if (size < 0) {
-      perror("read()");
-      exit(EXIT_FAILURE);
+      throw std::runtime_error("read() failed in BufferRead constructor (fd)");
     }
   }
 
@@ -131,8 +130,7 @@ class BufferRead {
       } else {
         size = read(m_fd, buffer, BUFFER_SIZE);
         if (size < 0) {
-          perror("read()");
-          exit(EXIT_FAILURE);
+          throw std::runtime_error("read() failed in BufferRead::consumeChar");
         }
       }
     }

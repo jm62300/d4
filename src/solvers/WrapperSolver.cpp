@@ -20,6 +20,7 @@
 #include "WrapperSolver.hpp"
 
 #include <new>
+#include <stdexcept>
 
 #include "circuit/WrapperCircuitGlucose.hpp"
 #include "circuit/WrapperCircuitMinisat.hpp"
@@ -142,11 +143,10 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
       }
       break;
     case PB_NONE:
-      std::cerr << "c The problem type is none\n";
-      exit(ERROR_BAD_TYPE_PROBLEM);
+      throw std::runtime_error("WrapperSolver: The problem type is none");
   }
 
-  if (!ret) std::runtime_error("The SAT solver selected is unknown");
+  if (!ret) throw std::runtime_error("The SAT solver selected is unknown");
   ret->configure(options);
   return ret;
 }  // makeWrapperSolver

@@ -355,6 +355,10 @@ void handle_client(int csocket) {
                 send_error(csocket, request_id, 2, "Unsupported count output format (only decimal or bigint).");
                 continue;
             }
+            if (operation == 0 && output_format == 3 && formula.weightType != parser::WeightType::INT) {
+                send_error(csocket, request_id, 2, "Bigint output format is only supported for unweighted formulas.");
+                continue;
+            }
             if (operation == 1 && output_format != 0) {
                 send_error(csocket, request_id, 2, "Unsupported wmc output format (only decimal).");
                 continue;
