@@ -73,7 +73,8 @@ void WrapperMinisat::initSolver(const ProblemManager& p) {
    \return true if the problem is SAT, false otherwise.
  */
 lbool WrapperMinisat::runSolver(std::span<const Var> setOfVar) {
-  lbool res = solveLimited(setOfVar, setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
+  lbool res = solveLimited(setOfVar,
+                           setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
   if (res == l_True)
     for (auto v : setOfVar)
       m_model[v] = minisat::toInt(m_solver.model[v]) == 0 ? l_True : l_False;
@@ -122,7 +123,7 @@ lbool WrapperMinisat::solveLimited(std::span<const Var> setOfVar,
   minisat::lbool res = m_solver.solve_(false);
 
   if (res == minisat::l_True) return l_True;
-  if (res == minisat::l_False) return l_True;
+  if (res == minisat::l_False) return l_False;
   return l_Undef;
 }  // solve
 
