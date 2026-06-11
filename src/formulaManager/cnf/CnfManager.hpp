@@ -37,6 +37,11 @@ struct InfoCluster {
   int pos;
 };
 
+struct ClauseMark {
+  uint32_t stamp;
+  Var rep;  // root of the component the clause belongs to (may be stale).
+};
+
 class CnfManager : public virtual FormulaManager {
  protected:
   std::vector<Lit> m_clauseData;
@@ -50,6 +55,7 @@ class CnfManager : public virtual FormulaManager {
   std::vector<unsigned> m_occInitSizeNotBin;
 
   std::vector<InfoCluster> m_infoCluster;
+  std::vector<ClauseMark> m_clauseMark;
   std::vector<Var> m_rootSet;
 
   // to manage the connected component
@@ -65,6 +71,7 @@ class CnfManager : public virtual FormulaManager {
   inline void incrementStampMarkView() {
     if (m_stampMarkView == std::numeric_limits<uint32_t>::max()) {
       std::fill(m_markView.begin(), m_markView.end(), 0);
+      for (auto& cm : m_clauseMark) cm.stamp = 0;
       m_stampMarkView = 1;
     } else {
       m_stampMarkView++;

@@ -32,6 +32,18 @@
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
+namespace {
+/**
+   Get the root of v applying path halving.
+*/
+inline Var findRoot(std::vector<InfoCluster>& infoCluster, Var v) {
+  while (v != infoCluster[v].parent) {
+    infoCluster[v].parent = infoCluster[infoCluster[v].parent].parent;
+    v = infoCluster[v].parent;
+  }
+  return v;
+}
+}  // namespace
 
 /**
    Constructor.
@@ -104,7 +116,8 @@ CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
     }
   }
 
-  m_infoCluster.resize(p.getNbVar() + nbClause + 1, {0, 0, -1});
+  m_infoCluster.resize(p.getNbVar() + 1, {0, 0, -1});
+  m_clauseMark.resize(nbClause, {0, 0});
   m_activeVariables = new Var[p.getNbVar() + 1];
 
   m_occInitSizeNotBin.resize((p.getNbVar() + 1) << 1, 0);
@@ -137,15 +150,14 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
 
   Var *lastVar = m_activeVariables, *currentVar = m_activeVariables;
   for (auto v : setOfVar) {
-    assert(v < m_infoCluster.size());
-    m_infoCluster[v].parent = v;
-    m_infoCluster[v].size = 1;
-    if (m_currentValue[v] == l_Undef) {
-      if (getNbClause(v) != 0)
-        *lastVar++ = v;
-      else
-        freeVar.push_back(v);
-    }
+    assert(v < (Var)m_infoCluster.size());
+    if (m_currentValue[v] != l_Undef) continue;
+    if (getNbClause(v) != 0) {
+      m_infoCluster[v].parent = v;
+      m_infoCluster[v].size = 1;
+      *lastVar++ = v;
+    } else
+      freeVar.push_back(v);
   }
 
   while (currentVar != lastVar) {
@@ -156,35 +168,38 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
     Var rootV = v;
     Lit l = Lit::makeLit(v, false);
 
+    auto unionWith = [&](Var rootW) {
+      if (rootV == rootW) return;
+      if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
+        m_infoCluster[rootW].size += m_infoCluster[rootV].size;
+        m_infoCluster[rootV].parent = rootW;
+        rootV = rootW;
+      } else {
+        m_infoCluster[rootV].size += m_infoCluster[rootW].size;
+        m_infoCluster[rootW].parent = rootV;
+      }
+    };
+
     for (unsigned i = 0; i < 2; i++) {  // both literals.
-      IteratorIdxClause listIndex = getVecIdxClause(l);
-      for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
-        int idx = *ptr;
-        if (m_markView[idx] != m_stampMarkView) {
-          m_markView[idx] = m_stampMarkView;
-          m_infoCluster[idx + m_nbVar + 1].parent = rootV;
-          m_infoCluster[rootV].size++;
+      // binary clauses: union directly with the other end, no clause node.
+      IteratorIdxClause listBin = getVecIdxClauseBin(l);
+      for (int* ptr = listBin.start; ptr != listBin.end; ptr++) {
+        Var w = Var((m_infoClauses[*ptr].xorLitBin ^ l.intern()) >> 1);
+        assert(m_currentValue[w] == l_Undef);
+        unionWith(findRoot(m_infoCluster, w));
+      }
+
+      // longer clauses: the clause remembers the root of its first visitor.
+      IteratorIdxClause listNotBin = getVecIdxClauseNotBin(l);
+      for (int* ptr = listNotBin.start; ptr != listNotBin.end; ptr++) {
+        ClauseMark& cm = m_clauseMark[*ptr];
+        if (cm.stamp != m_stampMarkView) {
+          cm.stamp = m_stampMarkView;
+          cm.rep = rootV;
         } else {
-          // search for the root.
-          Var rootW = m_infoCluster[idx + m_nbVar + 1].parent;
-          while (rootW != m_infoCluster[rootW].parent) {
-            m_infoCluster[rootW].parent =
-                m_infoCluster[m_infoCluster[rootW].parent].parent;
-            rootW = m_infoCluster[rootW].parent;
-          }
-
-          // already in the same component.
-          if (rootV == rootW) continue;
-
-          // union.
-          if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
-            m_infoCluster[rootW].size += m_infoCluster[rootV].size;
-            m_infoCluster[rootV].parent = m_infoCluster[rootW].parent;
-            rootV = rootW;
-          } else {
-            m_infoCluster[rootV].size += m_infoCluster[rootW].size;
-            m_infoCluster[rootW].parent = m_infoCluster[rootV].parent;
-          }
+          Var rootW = findRoot(m_infoCluster, cm.rep);
+          cm.rep = rootW;
+          unionWith(rootW);
         }
       }
 
@@ -200,12 +215,7 @@ int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
     assert(m_currentValue[v] == l_Undef);
 
     // get the root.
-    unsigned rootV = m_infoCluster[v].parent;
-    while (rootV != m_infoCluster[rootV].parent) {
-      m_infoCluster[rootV].parent =
-          m_infoCluster[m_infoCluster[rootV].parent].parent;
-      rootV = m_infoCluster[rootV].parent;
-    }
+    Var rootV = findRoot(m_infoCluster, v);
 
     if (m_infoCluster[rootV].pos == -1) {
       m_infoCluster[rootV].pos = varCo.size();
