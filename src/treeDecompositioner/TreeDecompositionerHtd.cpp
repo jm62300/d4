@@ -19,10 +19,12 @@
 
 #include "TreeDecompositionerHtd.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include "3rdParty/htd/main.hpp"
 
@@ -48,11 +50,25 @@ TreeDecomp* TreeDecompositionerHtd::constructTreeDecomposition(Graph& graph,
   // numbering that also starts at 1.
   htd::MultiHypergraph hGraph(instance.get());
   hGraph.addVertices(graph.getNbNode());
+  std::vector<unsigned> degree(graph.getNbNode() + 1, 0);
   for (auto& e : graph.getEdge()) {
     assert(e.first && e.first <= graph.getNbNode());
     assert(e.second && e.second <= graph.getNbNode());
-    if (e.first != e.second) hGraph.addEdge(e.first, e.second);
+    if (e.first != e.second) {
+      hGraph.addEdge(e.first, e.second);
+      degree[e.first]++;
+      degree[e.second]++;
+    }
   }
+
+  // Min-fill ordering gives smaller widths, but its cost per elimination
+  // step grows quadratically with the vertex degree; on high-degree graphs
+  // fall back to the near-linear min-degree ordering.
+  unsigned maxDegree = *std::max_element(degree.begin(), degree.end());
+  bool useMinDegree = maxDegree > m_maxDegreeForMinFill;
+  if (useMinDegree)
+    instance->orderingAlgorithmFactory().setConstructionTemplate(
+        new htd::MinDegreeOrderingAlgorithm(instance.get()));
 
   htd::BucketEliminationTreeDecompositionAlgorithm algorithm(instance.get());
 
@@ -113,8 +129,10 @@ TreeDecomp* TreeDecompositionerHtd::constructTreeDecomposition(Graph& graph,
   std::chrono::duration<double> elapsed =
       std::chrono::system_clock::now() - start;
   if (verbose)
-    std::cout << "c [HTD] Decomposition computed, width(" << width
-              << ") elapsed time: " << elapsed.count() << "s" << std::endl;
+    std::cout << "c [HTD] Decomposition computed, ordering("
+              << (useMinDegree ? "min-degree" : "min-fill") << ") width("
+              << width << ") elapsed time: " << elapsed.count() << "s"
+              << std::endl;
 
   return ret;
 }  // constructTreeDecomposition

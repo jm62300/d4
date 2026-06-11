@@ -96,6 +96,14 @@ class OptionPartialOrderHeuristic : public OptionGroup {
 
   Option<unsigned> seed{"seed", "The seed for random number generator", 2911};
 
+  /** @brief Above this maximum degree the htd tree decompositioner falls back
+   * from min-fill to min-degree ordering. */
+  Option<unsigned> maxDegreeForMinFill{
+      "maxDegreeForMinFill",
+      "The maximum degree above which the htd tree decompositioner falls back "
+      "from min-fill to min-degree ordering",
+      256};
+
   // vector is harder to handle in Option<T> with setFromString.
   // We keep it as is for now or use a specialization.
   std::vector<double> givenOrder;
@@ -111,6 +119,7 @@ class OptionPartialOrderHeuristic : public OptionGroup {
             (OptionBase*)&useSimpGraphExtractor,
             (OptionBase*)&budget,
             (OptionBase*)&seed,
+            (OptionBase*)&maxDegreeForMinFill,
             (OptionBase*)&scaleFactor};
   }
 

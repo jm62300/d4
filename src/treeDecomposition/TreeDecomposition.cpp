@@ -86,7 +86,7 @@ TreeDecomposition* TreeDecomposition::makeTreeDecomposition(
       return new TreeDecompositionTreeWidth(
           options.treeDecompositionerMethod, options.graphExtractorMethod,
           inType, options.useSimpGraphExtractor, options.budget, options.seed,
-          options.verbosity);
+          options.maxDegreeForMinFill, options.verbosity);
     default:
       throw(FactoryException("Unknown TreeDecompositionMethod", __FILE__,
                              __LINE__));

@@ -50,10 +50,12 @@ class TreeDecompositioner {
    * @brief Factory.
    *
    * @param method is the tree decompositioner we want to use.
+   * @param maxDegreeForMinFill is the maximum degree above which htd falls
+   * back from min-fill to min-degree ordering (ignored by flow-cutter).
    * @return an object that compute a tree decomposition.
    */
   static TreeDecompositioner *makeTreeDecompositionMethod(
-      const TreeDecompositionerMethod &method);
+      const TreeDecompositionerMethod &method, unsigned maxDegreeForMinFill);
 
   /**
    * @brief Compute a tree decomposition regarding a given graph.

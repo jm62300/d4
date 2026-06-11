@@ -24,7 +24,20 @@
 namespace d4 {
 
 class TreeDecompositionerHtd : public TreeDecompositioner {
+ private:
+  unsigned m_maxDegreeForMinFill;
+
  public:
+  /**
+   * @brief Constructor.
+   *
+   * @param maxDegreeForMinFill is the maximum degree (counted over the edge
+   * multiset, hence an upper bound on the true degree) above which the
+   * ordering falls back from min-fill to min-degree.
+   */
+  TreeDecompositionerHtd(unsigned maxDegreeForMinFill)
+      : m_maxDegreeForMinFill(maxDegreeForMinFill) {}
+
   /**
    * @brief Compute a tree decomposition using the htd library (bucket
    * elimination with the library's default ordering). The algorithm is

@@ -29,12 +29,12 @@ namespace d4 {
  * @brief TreeDecompositioner::makeTreeDecompositionMethod implementation.
  */
 TreeDecompositioner* TreeDecompositioner::makeTreeDecompositionMethod(
-    const TreeDecompositionerMethod& method) {
+    const TreeDecompositionerMethod& method, unsigned maxDegreeForMinFill) {
   switch (method) {
     case TREE_DECOMP_TOOL_FLOW_CUTTER:
       return new TreeDecompositionerFlowCutter();
     case TREE_DECOMP_TOOL_HTD:
-      return new TreeDecompositionerHtd();
+      return new TreeDecompositionerHtd(maxDegreeForMinFill);
     default:
       break;
   }

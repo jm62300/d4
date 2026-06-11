@@ -52,11 +52,11 @@ TreeDecompositionTreeWidth::TreeDecompositionTreeWidth(
     const TreeDecompositionerMethod& treeDecompositionerMethod,
     const GraphExtractorMethod& graphExtractorMethod,
     const ProblemInputType pbType, bool simplification, unsigned budget,
-    unsigned seed, bool verbose) {
+    unsigned seed, unsigned maxDegreeForMinFill, bool verbose) {
   m_graphExtractor = GraphExtractor::makeGraphExtractor(graphExtractorMethod,
                                                         simplification, pbType);
   m_treeDecompositioner = TreeDecompositioner::makeTreeDecompositionMethod(
-      treeDecompositionerMethod);
+      treeDecompositionerMethod, maxDegreeForMinFill);
 
   m_budget = budget;
   m_seed = seed;

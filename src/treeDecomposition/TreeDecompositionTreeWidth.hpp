@@ -42,13 +42,15 @@ class TreeDecompositionTreeWidth : public TreeDecomposition {
    * simplification.
    * @param budget is a time in second the method is run.
    * @param seed is the seed use if the method use random numbers.
+   * @param maxDegreeForMinFill is the maximum degree above which htd falls
+   * back from min-fill to min-degree ordering (ignored by flow-cutter).
    * @param verbose controls the verbosity.
    */
   TreeDecompositionTreeWidth(
       const TreeDecompositionerMethod &treeDecompositionerMethod,
       const GraphExtractorMethod &graphExtractorMethod,
       const ProblemInputType pbType, bool simplication, unsigned budget,
-      unsigned seed, bool verbose);
+      unsigned seed, unsigned maxDegreeForMinFill, bool verbose);
 
   /**
    * @brief Destroy the Tree Decomposition Cnf Tree Width object
