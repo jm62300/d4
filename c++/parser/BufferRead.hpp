@@ -23,6 +23,7 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 #define BUFFER_SIZE 65536
 
@@ -47,22 +48,29 @@ class BufferRead {
   char buffer[BUFFER_SIZE];
   int m_fd;
   int m_keepOpen;
+  const char* m_mem_data = nullptr;
+  size_t m_mem_len = 0;
+  size_t m_mem_pos = 0;
+  bool m_is_mem = false;
 
  public:
   BufferRead(const std::string& name, bool keepOpen = false) {
     pos = 0;
     size = 0;
     m_keepOpen = keepOpen;
+    m_mem_data = nullptr;
+    m_mem_len = 0;
+    m_mem_pos = 0;
+    m_is_mem = false;
 
     m_fd = open(name.c_str(), O_RDONLY);
     if (m_fd < 0)
-      std::cerr << "ERROR! Could not open file: " << name << "\n", exit(1);
+      throw std::runtime_error("ERROR! Could not open file: " + name);
 
     // fill the buffer
     size = read(m_fd, buffer, BUFFER_SIZE);
     if (size < 0) {
-      perror("read()");
-      exit(EXIT_FAILURE);
+      throw std::runtime_error("read() failed in BufferRead constructor");
     }
   }
 
@@ -71,13 +79,31 @@ class BufferRead {
     size = 0;
     m_fd = fd;
     m_keepOpen = keepOpen;
+    m_mem_data = nullptr;
+    m_mem_len = 0;
+    m_mem_pos = 0;
+    m_is_mem = false;
 
     // fill the buffer
     size = read(m_fd, buffer, BUFFER_SIZE);
     if (size < 0) {
-      perror("read()");
-      exit(EXIT_FAILURE);
+      throw std::runtime_error("read() failed in BufferRead constructor (fd)");
     }
+  }
+
+  BufferRead(const char* data, size_t len) {
+    pos = 0;
+    m_fd = 0;
+    m_keepOpen = false;
+    m_mem_data = data;
+    m_mem_len = len;
+    m_is_mem = true;
+
+    size = std::min(len, (size_t)BUFFER_SIZE);
+    if (size > 0) {
+      std::copy(data, data + size, buffer);
+    }
+    m_mem_pos = size;
   }
 
   ~BufferRead() {
@@ -95,10 +121,17 @@ class BufferRead {
     pos++;
     if (pos >= size) {
       pos = 0;
-      size = read(m_fd, buffer, BUFFER_SIZE);
-      if (size < 0) {
-        perror("read()");
-        exit(EXIT_FAILURE);
+      if (m_is_mem) {
+        size = std::min(m_mem_len - m_mem_pos, (size_t)BUFFER_SIZE);
+        if (size > 0) {
+          std::copy(m_mem_data + m_mem_pos, m_mem_data + m_mem_pos + size, buffer);
+          m_mem_pos += size;
+        }
+      } else {
+        size = read(m_fd, buffer, BUFFER_SIZE);
+        if (size < 0) {
+          throw std::runtime_error("read() failed in BufferRead::consumeChar");
+        }
       }
     }
   }

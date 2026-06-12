@@ -20,6 +20,7 @@
 #include "ParserDimacs.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 // #include "src/utils/Parsing.hpp"
 
@@ -67,10 +68,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       }
       if (in.currentChar() == 'w') in.consumeChar();
 
-      if (in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f')
-        std::cerr << "PARSE ERROR! Unexpected char: " << in.currentChar()
-                  << "\n",
-            exit(3);
+      if (in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f') {
+        throw std::runtime_error("PARSE ERROR! Unexpected char after p");
+      }
 
       nbVars = in.nextInt();
       nbClauses = in.nextInt();
@@ -78,7 +78,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       if (vpActivated)
         std::cout << "c Some variable are marked: " << in.nextInt() << "\n";
 
-      if (nbClauses < 0) printf("parse error\n"), exit(2);
+      if (nbClauses < 0) {
+        throw std::runtime_error("PARSE ERROR! Negative number of clauses");
+      }
     } else if (in.currentChar() == 'z') {
       std::cout << "c [PARSER] Read EOF in the file\n";
       break;
@@ -102,7 +104,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
             elements.push_back(current_word);
           }
 
-          assert(elements.back() == "0");
+          if (elements.empty() || elements.back() != "0") {
+            throw std::runtime_error("PARSE ERROR! Weight line must be terminated by 0");
+          }
 
           if (elements.size() == 2) {
             formula.weightMap[lit] = elements[0];
@@ -120,7 +124,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
 
           // in this format we have an end line we have to consume.
           [[maybe_unused]] int endLine = in.nextInt();
-          assert(!endLine);
+          if (endLine != 0) {
+            throw std::runtime_error("PARSE ERROR! Complex weight line must be terminated by 0");
+          }
         } else if (in.canConsume("show"))
           in.readListIntTerminatedByZero(showedVars);
         else
@@ -131,15 +137,16 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       int v = -1;
       do {
         v = in.nextInt();
-        if ((v > 0 && nbVars < v) || (-v > 0 && nbVars < -v))
-          std::cerr << "PARSE ERROR! Number of variables incorrect: " << v
-                    << "\n",
-              exit(3);
+        if ((v > 0 && nbVars < v) || (-v > 0 && nbVars < -v)) {
+          throw std::runtime_error("PARSE ERROR! Number of variables incorrect: " + std::to_string(v));
+        }
 
         if (v) lits.push_back(v);
       } while (v);
 
-      assert(lits.size());
+      if (lits.empty()) {
+        throw std::runtime_error("PARSE ERROR! Clause is empty");
+      }
       std::sort(lits.begin(), lits.end());
 
       // remove redundant literal and check for tautology.
@@ -174,5 +181,14 @@ int ParserDimacs::parse_DIMACS(const std::string& input_stream,
   BufferRead in(input_stream);
   return parse_DIMACS_main(in, formula);
 }  // parse_DIMACS
+
+int ParserDimacs::parse_DIMACS(const char* data, size_t len, Formula& formula) {
+  BufferRead in(data, len);
+  return parse_DIMACS_main(in, formula);
+}  // parse_DIMACS
+
+int ParserDimacs::parse_DIMACS_from_data(const std::string& data, Formula& formula) {
+  return parse_DIMACS(data.data(), data.size(), formula);
+}  // parse_DIMACS_from_data
 
 }  // namespace parser

@@ -23,6 +23,7 @@
 #include "cnf/GraphExtractorCnfPrimal.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/utils/ErrorCode.hpp"
+#include <stdexcept>
 
 namespace d4 {
 
@@ -45,11 +46,9 @@ GraphExtractor *GraphExtractor::makeGraphExtractor(
       }
     case PB_TCNF:
     case PB_QBF:
-      std::cerr << "This type of formula is not handle yet.\n";
-      exit(ERROR_BAD_TYPE_PROBLEM);
+      throw std::runtime_error("GraphExtractor: This type of formula is not handled yet.");
     case PB_NONE:
-      std::cerr << "This type none is not supported.\n";
-      exit(ERROR_BAD_TYPE_PROBLEM);
+      throw std::runtime_error("GraphExtractor: This type none is not supported.");
   }
 
   throw(FactoryException("Cannot create GraphExtractor", __FILE__, __LINE__));

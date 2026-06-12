@@ -1,0 +1,7 @@
+build/
+server/build/
+cmake-build-debug/
+.git/
+.idea/
+.vscode/
+.pytest_cache/

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <fstream>
 #include <cassert>
 #include "c++/parser/ParserDimacs.hpp"
 #include "api/solver/Solver.hpp"
@@ -8,11 +9,20 @@
 
 int main() {
   std::string inputPath = "instancesTest/cnfs/smallSAT.cnf";
+  std::cout << "Reading CNF file into memory buffer..." << std::endl;
+  std::ifstream f_in(inputPath);
+  if (!f_in.is_open()) {
+    std::cerr << "Failed to open " << inputPath << std::endl;
+    return 1;
+  }
+  std::string buffer((std::istreambuf_iterator<char>(f_in)), std::istreambuf_iterator<char>());
+  f_in.close();
 
   parser::Formula formula;
   parser::ParserDimacs parserDimacs;
   try {
-    parserDimacs.parse_DIMACS(inputPath, formula);
+    parserDimacs.parse_DIMACS_from_data(buffer, formula);
+    std::cout << formula << std::endl;
   } catch (const std::exception& e) {
     std::cerr << "Failed to parse formula: " << e.what() << std::endl;
     return 1;

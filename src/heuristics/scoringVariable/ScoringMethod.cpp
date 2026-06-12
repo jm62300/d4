@@ -26,6 +26,7 @@
 #include "src/exceptions/FactoryException.hpp"
 #include "src/formulaManager/circuit/CircuitManager.hpp"
 #include "src/utils/ErrorCode.hpp"
+#include <stdexcept>
 
 namespace d4 {
 
@@ -75,9 +76,7 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
         return getScoringMethodCnf(*(ps.getCnfManager()), am,
                                    options.scoringMethodType);
       } catch (std::bad_cast &bc) {
-        std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-        std::cerr << "c A CNF formula was expeted\n";
-        exit(ERROR_BAD_CAST);
+        throw std::runtime_error(std::string("ScoringMethod (PB_CIRC) bad_cast caught: ") + bc.what());
       }
     case PB_QBF:
     case PB_TCNF:
@@ -86,13 +85,10 @@ ScoringMethod *ScoringMethod::makeScoringMethod(
         CnfManager &ps = dynamic_cast<CnfManager &>(p);
         return getScoringMethodCnf(ps, am, options.scoringMethodType);
       } catch (std::bad_cast &bc) {
-        std::cerr << "c bad_cast caught: " << bc.what() << '\n';
-        std::cerr << "c A CNF formula was expeted\n";
-        exit(ERROR_BAD_CAST);
+        throw std::runtime_error(std::string("ScoringMethod bad_cast caught: ") + bc.what());
       }
     case PB_NONE:
-      std::cerr << "c The problem type cannot be none!\n";
-      exit(ERROR_BAD_TYPE_PROBLEM);
+      throw std::runtime_error("ScoringMethod: The problem type cannot be none");
   }
 
   throw(FactoryException("Cannot create a ScoringMethod", __FILE__, __LINE__));

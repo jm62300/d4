@@ -177,6 +177,7 @@ class DecDNNFSemiring {
     for (auto& l : units) tab[i++] = l.intern();
     tab[i++] = 0;  // Separator
     for (auto& v : free_vars) tab[i++] = v;
+    tab[i++] = 0;  // Terminator
 
     m_positionInPage += neededMem;
     return m_idEdge++;

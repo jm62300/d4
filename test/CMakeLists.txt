@@ -3,6 +3,7 @@ project(test_api LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_BUILD_TYPE Debug)
 
 # Root directory of the repository
 get_filename_component(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
@@ -45,12 +46,33 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(optree)
 
+# Integrated BiPe Library
+set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
+if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
+    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/bipe.git")
+endif()
+FetchContent_Declare(
+    bipe
+    GIT_REPOSITORY ${BIPE_GIT_URL}
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(bipe)
+
+
 # Build CaDiCaL from 3rdParty
-add_subdirectory("${ROOT_DIR}/3rdParty/cadical" "${CMAKE_CURRENT_BINARY_DIR}/cadical_build")
+if (NOT TARGET cadical)
+    add_subdirectory("${ROOT_DIR}/3rdParty/cadical" "${CMAKE_CURRENT_BINARY_DIR}/cadical_build")
+endif()
 
 # Define the test executable
 add_executable(test_api 
     test_api.cpp 
+    "${ROOT_DIR}/api/solver/Solver.cpp" 
+    "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
+)
+
+add_executable(test_crash_19 
+    test_crash_19.cpp 
     "${ROOT_DIR}/api/solver/Solver.cpp" 
     "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
 )
@@ -60,14 +82,28 @@ target_include_directories(test_api PRIVATE
     ${ROOT_DIR}
     ${GMP_INCLUDE_DIR}
 )
+target_include_directories(test_crash_19 PRIVATE
+    ${ROOT_DIR}
+    ${GMP_INCLUDE_DIR}
+)
 if(Boost_INCLUDE_DIRS)
     target_include_directories(test_api PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(test_crash_19 PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
 
 # Link everything
 if (MSVC)
     target_link_libraries(test_api PRIVATE 
         ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_crash_19 PRIVATE 
+        ${D4_LIB}
+        bipe
         cadical
         optree
         ZLIB::ZLIB
@@ -76,6 +112,16 @@ if (MSVC)
 else()
     target_link_libraries(test_api PRIVATE 
         ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMPXX_LIBRARY}
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_crash_19 PRIVATE 
+        ${D4_LIB}
+        bipe
         cadical
         optree
         ZLIB::ZLIB
@@ -95,4 +141,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     )
     target_link_libraries(test_api PRIVATE ${PATOH_LIBRARY})
     target_compile_definitions(test_api PRIVATE USE_PATOH)
+    target_link_libraries(test_crash_19 PRIVATE ${PATOH_LIBRARY})
+    target_compile_definitions(test_crash_19 PRIVATE USE_PATOH)
 endif()
+
