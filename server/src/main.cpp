@@ -19,6 +19,8 @@
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/preproc/PreprocManager.hpp"
 #include "ParserDimacs.hpp"
+#include "ParserCircuit.hpp"
+#include "counter/src/OptionCounter.hpp"
 #include "api/solver/Solver.hpp"
 #include <optree/Option.hpp>
 
@@ -32,14 +34,30 @@ using d4::CountReply;
 using d4::HelpRequest;
 using d4::HelpReply;
 
+static bool isCircuitFormula(const std::string& formula_str) {
+  std::istringstream iss(formula_str);
+  std::string line;
+  while (std::getline(iss, line)) {
+    size_t first = line.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos) continue;
+    char firstChar = line[first];
+    if (firstChar == 'G' || firstChar == 'I' || firstChar == 'T') {
+      return true;
+    }
+  }
+  return false;
+}
+
 class D4SolverServiceImpl final : public D4Solver::Service {
   Status GetHelp(ServerContext* context, const HelpRequest* request,
                  HelpReply* reply) override {
     d4::OptionDpllStyleMethod options;
     bipe::OptionPreproc optionPreproc;
+    d4::OptionCounter optionCounter;
     d4::OptionRegistry registry;
     options.registerTo(registry);
     optionPreproc.registerTo(registry);
+    optionCounter.registerTo(registry);
 
     // Apply any arguments sent by the client so current values are accurate
     if (request->arguments_size() > 0) {
@@ -70,39 +88,15 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     
     logs_stream << "c [gRPC] Starting CountModels request...\n";
     
-    // 1. Write the CNF formula to a temporary file
-    std::string temp_filename = "temp_formula_" + std::to_string(rand()) + ".cnf";
-    std::ofstream temp_file(temp_filename);
-    if (!temp_file.is_open()) {
-      reply->set_status(CountReply::ERROR);
-      reply->set_logs("Error: Failed to open temp file for writing CNF formula.");
-      return Status::OK;
-    }
-    temp_file << request->cnf_formula();
-    temp_file.close();
-    
-    // 2. Parse the DIMACS file
-    parser::Formula formula;
-    parser::ParserDimacs parserDimacs;
-    try {
-      parserDimacs.parse_DIMACS(temp_filename, formula);
-    } catch (const std::exception& e) {
-      std::remove(temp_filename.c_str());
-      reply->set_status(CountReply::ERROR);
-      reply->set_logs(std::string("Error: Parsing failed: ") + e.what());
-      return Status::OK;
-    }
-    
-    // Clean up the temp file immediately
-    std::remove(temp_filename.c_str());
-    
-    // 3. Initialize options and parse CLI arguments passed in gRPC request
+    // 1. Initialize options and parse CLI arguments passed in gRPC request
     d4::OptionDpllStyleMethod options;
     bipe::OptionPreproc optionPreproc;
+    d4::OptionCounter optionCounter;
 
     d4::OptionRegistry registry;
     options.registerTo(registry);
     optionPreproc.registerTo(registry);
+    optionCounter.registerTo(registry);
     
     // Map request arguments to argc/argv format
     std::vector<std::string> args = {"d4_grpc_server"};
@@ -128,21 +122,62 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     if (options.optionCacheManager.optionBucketManager.clauseRepresentation == d4::CACHE_INDEX) {
       options.optionSpecManager.needFastNotSatisfied = true;
     }
+
+    // Determine if the formula is a circuit (explicit option or auto-detection)
+    bool is_circuit = (optionCounter.informat.get() == "circuit") || isCircuitFormula(request->cnf_formula());
     
-    // 4. Run the BIPE Preprocessor
-    bipe::PreprocManager preprocManager;
-    std::vector<int> projected;
-    if (formula.quantifications.size() > 0 && formula.quantifications[0].size() > 0) {
-      projected = formula.quantifications[0];
-    } else {
-      for (unsigned i = 1; i <= formula.nbVar; i++) {
-        projected.push_back(i);
+    // 2. Write the formula to a temporary file
+    std::string ext = is_circuit ? ".bc" : ".cnf";
+    std::string temp_filename = "temp_formula_" + std::to_string(rand()) + ext;
+    std::ofstream temp_file(temp_filename);
+    if (!temp_file.is_open()) {
+      reply->set_status(CountReply::ERROR);
+      reply->set_logs("Error: Failed to open temp file for writing formula.");
+      return Status::OK;
+    }
+    temp_file << request->cnf_formula();
+    temp_file.close();
+    
+    // 3. Parse the file
+    parser::Formula formula;
+    try {
+      if (is_circuit) {
+        logs_stream << "c [gRPC] Parsing circuit formula...\n";
+        parser::ParserCircuit parserCircuit;
+        parserCircuit.parse_circuit(temp_filename, formula);
+      } else {
+        logs_stream << "c [gRPC] Parsing CNF DIMACS formula...\n";
+        parser::ParserDimacs parserDimacs;
+        parserDimacs.parse_DIMACS(temp_filename, formula);
       }
+    } catch (const std::exception& e) {
+      std::remove(temp_filename.c_str());
+      reply->set_status(CountReply::ERROR);
+      reply->set_logs(std::string("Error: Parsing failed: ") + e.what());
+      return Status::OK;
     }
     
-    logs_stream << "c [gRPC] Running preprocessor...\n";
-    preprocManager.run(formula.nbVar, formula.clauses, projected,
-                       std::vector<int>(), optionPreproc);
+    // Clean up the temp file immediately
+    std::remove(temp_filename.c_str());
+    
+    // 4. Run the BIPE Preprocessor (Only for CNF, skip for circuit)
+    if (!is_circuit) {
+      bipe::PreprocManager preprocManager;
+      std::vector<int> projected;
+      if (formula.quantifications.size() > 0 && formula.quantifications[0].size() > 0) {
+        projected = formula.quantifications[0];
+      } else {
+        for (unsigned i = 1; i <= formula.nbVar; i++) {
+          projected.push_back(i);
+        }
+      }
+      
+      logs_stream << "c [gRPC] Running preprocessor...\n";
+      preprocManager.run(formula.nbVar, formula.clauses, projected,
+                         std::vector<int>(), optionPreproc);
+    } else {
+      logs_stream << "c [gRPC] Skipping CNF preprocessing for circuit input.\n";
+    }
     
     // 5. Run solver using high-level API Solver
     std::string model_count_str = "";

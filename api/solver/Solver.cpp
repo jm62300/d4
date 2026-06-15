@@ -64,15 +64,52 @@ void Solver::setFormula(const parser::Formula& formula) {
   formula_ = formula;
 }
 
+std::vector<d4::BcGate> Solver::buildGates() const {
+  std::vector<d4::BcGate> gates;
+  if (formula_.type == "circuit") {
+    gates.reserve(formula_.gates.size());
+    for (const auto& g : formula_.gates) {
+      d4::BcGateType t;
+      switch (g.gateType) {
+        case parser::GateType::AND:
+          t = d4::BcGateType::AND;
+          break;
+        case parser::GateType::OR:
+          t = d4::BcGateType::OR;
+          break;
+        case parser::GateType::IDENTITY:
+          t = d4::BcGateType::IDENTITY;
+          break;
+        case parser::GateType::CLAUSE:
+          t = d4::BcGateType::CLAUSE;
+          break;
+        default:
+          throw std::runtime_error("Unsupported gate type for counting");
+      }
+      std::vector<d4::Lit> lits;
+      lits.reserve(g.inputs.size());
+      for (int l : g.inputs)
+        lits.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
+      d4::Lit out = (g.output == 0)
+                        ? d4::lit_Undef
+                        : d4::Lit::makeLit(std::abs(g.output), g.output < 0);
+      gates.push_back({lits, out, t});
+    }
+  } else {
+    gates.reserve(formula_.clauses.size());
+    for (const auto& cl : formula_.clauses) {
+      std::vector<d4::Lit> d4Clause;
+      for (auto& l : cl)
+        d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
+      gates.push_back({d4Clause, d4::lit_Undef, d4::BcGateType::CLAUSE});
+    }
+  }
+  return gates;
+}
+
 std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
   // Build the problem from the parsed formula.
-  std::vector<d4::BcGate> gates;
-  gates.reserve(formula_.clauses.size());
-  for (auto& cl : formula_.clauses) {
-    std::vector<d4::Lit> d4Clause;
-    for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
-    gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
-  }
+  std::vector<d4::BcGate> gates = buildGates();
 
   std::map<d4::Lit, std::string> weightMap;
   for (const auto& [lit, weight] : formula_.weightMap)
@@ -99,13 +136,7 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
 
 std::unique_ptr<CompileResult> Solver::compile(std::ostream& out) {
   // Build the problem from the parsed formula.
-  std::vector<d4::BcGate> gates;
-  gates.reserve(formula_.clauses.size());
-  for (auto& cl : formula_.clauses) {
-    std::vector<d4::Lit> d4Clause;
-    for (auto& l : cl) d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
-    gates.push_back({d4Clause, d4::lit_Undef, BcGateType::CLAUSE});
-  }
+  std::vector<d4::BcGate> gates = buildGates();
 
   std::map<d4::Lit, std::string> weightMap;
   for (const auto& [lit, weight] : formula_.weightMap)

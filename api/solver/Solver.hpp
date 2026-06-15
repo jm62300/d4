@@ -2,7 +2,9 @@
 
 #include <memory>
 #include <iostream>
+#include <vector>
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/problem/ProblemTypes.hpp"
 #include "c++/parser/ParserDimacs.hpp"
 #include "api/result/SolverResult.hpp"
 
@@ -63,6 +65,8 @@ class Solver {
   std::unique_ptr<CompileResult> compile(std::ostream& out = std::cout);
 
  private:
+  std::vector<d4::BcGate> buildGates() const;
+
   d4::OptionDpllStyleMethod options_;
   parser::Formula formula_;
 };
