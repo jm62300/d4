@@ -130,7 +130,17 @@ class CompileResultImpl : public CompileResult {
     boost::multiprecision::mpf_float::default_precision(128);
 
     if (isWeighted_) {
-      ss << semiring.count<mpz::mpf_float>(resultNode_, assums, weight_, nbVar_);
+      mpz::mpf_float assumption_weight_product(1.0);
+      for (int lit : queryLits) {
+        if (lit != 0) {
+          d4::Lit d4Lit = (lit > 0) ? d4::Lit::makeLit(lit, false)
+                                      : d4::Lit::makeLit(-lit, true);
+          assumption_weight_product *= weight_[d4Lit.intern()];
+        }
+      }
+      mpz::mpf_float result = semiring.count<mpz::mpf_float>(resultNode_, assums, weight_, nbVar_);
+      result *= assumption_weight_product;
+      ss << result;
     } else {
       ss << semiring.count<mpz::mpz_int>(resultNode_, assums, noweight_, nbVar_);
     }

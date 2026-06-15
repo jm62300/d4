@@ -172,9 +172,22 @@ class D4SolverServiceImpl final : public D4Solver::Service {
         }
       }
       
+      // Variables whose positive and negative literal weights differ must not be
+      // eliminated: removing them would change the weighted count.
+      std::vector<int> varProtected;
+      for (unsigned i = 1; i <= formula.nbVar; i++) {
+        std::string w1 = formula.weightMap.find(i) != formula.weightMap.end()
+                             ? formula.weightMap[i]
+                             : "";
+        std::string w2 = formula.weightMap.find(-static_cast<int>(i)) != formula.weightMap.end()
+                             ? formula.weightMap[-static_cast<int>(i)]
+                             : "";
+        if (w1 != w2) varProtected.push_back(i);
+      }
+      
       logs_stream << "c [gRPC] Running preprocessor...\n";
       preprocManager.run(formula.nbVar, formula.clauses, projected,
-                         std::vector<int>(), optionPreproc);
+                         varProtected, optionPreproc);
     } else {
       logs_stream << "c [gRPC] Skipping CNF preprocessing for circuit input.\n";
     }

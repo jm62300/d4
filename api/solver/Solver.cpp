@@ -64,6 +64,14 @@ void Solver::setFormula(const parser::Formula& formula) {
   formula_ = formula;
 }
 
+void Solver::setWeights(const std::map<int, std::string>& weights, parser::WeightType type) {
+  formula_.weightType = type;
+  formula_.weightMap.clear();
+  for (const auto& [lit, w] : weights) {
+    formula_.weightMap[lit] = w;
+  }
+}
+
 std::vector<d4::BcGate> Solver::buildGates() const {
   std::vector<d4::BcGate> gates;
   if (formula_.type == "circuit") {

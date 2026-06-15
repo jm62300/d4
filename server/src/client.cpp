@@ -116,6 +116,7 @@ int main(int argc, char** argv) {
   }
   parse_argv.push_back(nullptr);
 
+
   try {
     registry.parseArgv(parse_argv.size() - 1, parse_argv.data());
   } catch (const std::exception& e) {

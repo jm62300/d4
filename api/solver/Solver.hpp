@@ -49,6 +49,14 @@ class Solver {
   void setFormula(const parser::Formula& formula);
 
   /**
+   * @brief Set weights for literals to perform Weighted Model Counting.
+   *
+   * @param weights     A map of DIMACS literal integers (e.g. 1, -1) to their weight string representations.
+   * @param type        The weight type (INT, FLOAT, or COMPLEX, default FLOAT).
+   */
+  void setWeights(const std::map<int, std::string>& weights, parser::WeightType type = parser::WeightType::FLOAT);
+
+  /**
    * @brief Executes the model counting algorithm and returns a CountResult object.
    *
    * @param out         The output stream to print standard logs/results to (defaults to std::cout).
