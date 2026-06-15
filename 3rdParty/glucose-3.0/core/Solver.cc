@@ -226,6 +226,8 @@ Solver::Solver(std::ostream* certif)
     }
     //    fprintf(certifiedOutput,"o proof DRUP\n");
   }
+
+  curRestart = 1;
 }
 
 Solver::~Solver() {}
@@ -1096,7 +1098,7 @@ void Solver::reduceDB() {
   nbReduceDB++;
   sort(learnts, reduceDB_lt(ca));
 
-  // printf("reduce DB : %d\n", learnts.size());
+  //  printf("reduce DB : %d\n", learnts.size());
 
   // We have a lot of "good" clauses, it is difficult to compare them. Keep more
   // !
@@ -1123,10 +1125,13 @@ void Solver::reduceDB() {
         limit++;            // we keep c, so we can delete an other clause
       c.setCanBeDel(true);  // At the next step, c can be delete
       learnts[j++] = learnts[i];
+      c.setLBD(c.lbd() + 1);
     }
   }
   learnts.shrink(i - j);
   checkGarbage();
+
+  // std::cout << "#removed clauses " << i - j << '\n';
 }
 
 void Solver::removeSatisfied(vec<CRef>& cs) {
@@ -1395,7 +1400,6 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   conflict.clear();
   if (!ok) return l_False;
   double curTime = cpuTime();
-
   solves++;
 
 #if 0
@@ -1470,7 +1474,7 @@ lbool Solver::solve_(bool rebuildHeap, int nbConflict) {
   if (rebuildHeap) rebuildOrderHeap();
 
   // Search:
-  curRestart = 1;
+  // curRestart = 1;
   nbclausesbeforereduce = firstReduceDB;
   int curr_restarts = 0;
   while (status == l_Undef) {

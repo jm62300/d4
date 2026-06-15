@@ -190,6 +190,13 @@ class DecDNNFSemiring {
   DecDNNFSemiring(unsigned nbVar,
                   const std::map<d4::Lit, std::string>& literalWeights) {}
 
+  ~DecDNNFSemiring() {
+    for (unsigned i = 0; i < m_nbPages; i++) delete[] m_pages[i];
+    free(m_pages);
+    free(m_nodeInfo);
+    free(m_edgeInfo);
+  }
+
   /**
    * @brief Connects a child node to an AND node.
    * @param a The parent AND node.
