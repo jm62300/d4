@@ -31,7 +31,7 @@ namespace d4 {
 template <class T>
 class CacheList : public CacheManager<T> {
  private:
-  static constexpr uint64_t SIZE_HASH = 2097152;
+  static constexpr uint64_t SIZE_HASH = (1 << 24);
   static constexpr uint32_t END_OF_LIST = 0xFFFFFFFF;  // "null" index
 
   struct CollisionNode {

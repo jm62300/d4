@@ -219,7 +219,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->getNbPositiveHit()
         << "|" << std::setw(WIDTH_PRINT_COLUMN_MC)
         << m_cache->getNbNegativeHit() << "|"
-        << std::setw(WIDTH_PRINT_COLUMN_MC) << m_cache->usedMemory() << "|"
+        << std::setw(WIDTH_PRINT_COLUMN_MC)
+        << m_cache->usedMemory() / (1024.0 * 1024.0) << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbSplit << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << MemoryStat::memUsedPeak() << "|"
         << std::setw(WIDTH_PRINT_COLUMN_MC) << m_nbDecisionNode << "|\n";
