@@ -57,6 +57,23 @@ class Solver {
   void setWeights(const std::map<int, std::string>& weights, parser::WeightType type = parser::WeightType::FLOAT);
 
   /**
+   * @brief Set the variables to project on for Projected Model Counting.
+   *
+   * @param projectionVars The variables (1-based DIMACS indices) to project on.
+   */
+  void setProjectionVariables(const std::vector<int>& projectionVars);
+
+  /**
+   * @brief Set refinement option for Projected Model Counting.
+   */
+  void setRefinement(bool refinement);
+
+  /**
+   * @brief Get refinement option for Projected Model Counting.
+   */
+  bool getRefinement() const;
+
+  /**
    * @brief Executes the model counting algorithm and returns a CountResult object.
    *
    * @param out         The output stream to print standard logs/results to (defaults to std::cout).
@@ -77,6 +94,7 @@ class Solver {
 
   d4::OptionDpllStyleMethod options_;
   parser::Formula formula_;
+  bool refinement_ = true;
 };
 
 }  // namespace d4::api

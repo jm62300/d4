@@ -94,10 +94,12 @@ int main(int argc, char** argv) {
   optree::Option<std::string> hostOpt("host", "Specify host for the gRPC server", "localhost");
   optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
   optree::Option<std::string> inputOpt("input", "Specify path to the input DIMACS or circuit file", "");
+  optree::Option<bool> refinementOpt("refinement", "Refinement activated or not (for ProjMC)", true);
   
   hostOpt.registerTo(registry);
   portOpt.registerTo(registry);
   inputOpt.registerTo(registry);
+  refinementOpt.registerTo(registry);
 
   // Map -i to --input for registry parsing compatibility
   std::vector<std::string> parse_args;

@@ -33,3 +33,6 @@ ASAN_OPTIONS=detect_leaks=0 ./test/build/test_circuit_api
 
 echo "c [TEST] Running test_wmc_api..."
 ASAN_OPTIONS=detect_leaks=0 ./test/build/test_wmc_api
+
+echo "c [TEST] Running test_projmc_api..."
+ASAN_OPTIONS=detect_leaks=0 ./test/build/test_projmc_api
