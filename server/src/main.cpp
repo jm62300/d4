@@ -22,6 +22,7 @@
 #include "ParserCircuit.hpp"
 #include "counter/src/OptionCounter.hpp"
 #include "api/solver/Solver.hpp"
+#include "OptionProjMc.hpp"
 #include <optree/Option.hpp>
 
 using grpc::Server;
@@ -54,13 +55,13 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     d4::OptionDpllStyleMethod options;
     bipe::OptionPreproc optionPreproc;
     d4::OptionCounter optionCounter;
-    d4::OptionRegistry registry;
+    optree::OptionRegistry registry;
     options.registerTo(registry);
     optionPreproc.registerTo(registry);
     optionCounter.registerTo(registry);
 
-    optree::Option<bool> refinementOpt("refinement", "Refinement activated or not (for ProjMC)", true);
-    refinementOpt.registerTo(registry);
+    d4::OptionProjMc projMcOpts;
+    projMcOpts.registerTo(registry);
 
     // Apply any arguments sent by the client so current values are accurate
     if (request->arguments_size() > 0) {
@@ -101,8 +102,8 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     optionPreproc.registerTo(registry);
     optionCounter.registerTo(registry);
 
-    optree::Option<bool> refinementOpt("refinement", "Refinement activated or not (for ProjMC)", true);
-    refinementOpt.registerTo(registry);
+    d4::OptionProjMc projMcOpts;
+    projMcOpts.registerTo(registry);
     
     // Map request arguments to argc/argv format
     std::vector<std::string> args = {"d4_grpc_server"};
@@ -203,7 +204,7 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     try {
       logs_stream << "c [gRPC] Starting D4 solver...\n";
       d4::api::Solver solver(formula, options);
-      solver.setRefinement(refinementOpt.get());
+      solver.setRefinement(projMcOpts.refinement.get());
       std::unique_ptr<d4::api::CountResult> result = solver.count(logs_stream);
       model_count_str = result->getResult();
       reply->set_status(CountReply::SATISFIABLE);
@@ -257,8 +258,8 @@ int main(int argc, char** argv) {
   optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
   portOpt.registerTo(registry);
 
-  optree::Option<bool> refinementOpt("refinement", "Refinement activated or not (for ProjMC)", true);
-  refinementOpt.registerTo(registry);
+  d4::OptionProjMc projMcOpts;
+  projMcOpts.registerTo(registry);
 
   if (showHelp) {
     std::cout << "Usage: " << argv[0] << " [options]\n"
