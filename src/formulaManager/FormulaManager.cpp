@@ -25,6 +25,7 @@
 #include "cnf/CnfManagerDynPure.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/utils/ErrorCode.hpp"
+#include <stdexcept>
 
 namespace d4 {
 

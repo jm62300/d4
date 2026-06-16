@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <iostream>
 #include <span>
+#include <stdexcept>
 
 #include "Counter.hpp"
 #include "MethodManager.hpp"
@@ -105,7 +106,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->initSolver(problem);
     m_solver->setNeedModel(true);
 
-    assert(problem.getQuantification().size() == 1);
+    if (problem.getQuantification().size() != 1) {
+      throw std::runtime_error("DpllStyleMethod requires exactly one quantification block");
+    }
     m_semiringOps = O(problem.getNbVar(), problem.getWeightMap());
     m_isProjectedMode = problem.getQuantification()[0].size() > 0;
     m_connectedComponent = true;
@@ -150,7 +153,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     delete m_cache;
   }  // destructor
 
-  inline O getSemiring() { return m_semiringOps; }
+  inline const O& getSemiring() const { return m_semiringOps; }
 
  private:
   /**

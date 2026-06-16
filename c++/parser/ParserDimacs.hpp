@@ -31,6 +31,8 @@ class ParserDimacs {
 
  public:
   int parse_DIMACS(const std::string& input_stream, Formula& formula);
+  int parse_DIMACS(const char* data, size_t len, Formula& formula);
+  int parse_DIMACS_from_data(const std::string& data, Formula& formula);
 };
 
 }  // namespace parser

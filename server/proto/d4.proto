@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package d4;
+
+// The D4 solver service definition.
+service D4Solver {
+  // Computes the model count of a CNF formula.
+  rpc CountModels (CountRequest) returns (CountReply) {}
+
+  // Retrieves the list of available CLI arguments and options.
+  rpc GetHelp (HelpRequest) returns (HelpReply) {}
+}
+
+// Request for the available options help text.
+// Pass optional solver arguments to see their resolved current values.
+message HelpRequest {
+  repeated string arguments = 1;
+}
+
+// Reply containing the formatted help text.
+message HelpReply {
+  string help_text = 1;
+}
+
+// The request containing the formula and CLI arguments.
+message CountRequest {
+  // Raw CNF formula in DIMACS format.
+  string cnf_formula = 1;
+
+  // Command-line arguments for configuration (e.g., Heuristics, Solver name, Cache options)
+  repeated string arguments = 2;
+}
+
+// The reply containing the result and execution statistics.
+message CountReply {
+  enum SolverStatus {
+    UNKNOWN = 0;
+    SATISFIABLE = 1;
+    UNSATISFIABLE = 2;
+    ERROR = 3;
+  }
+  
+  SolverStatus status = 1;
+
+  // The model count returned as a string (to preserve GMP precision)
+  string model_count = 2;
+
+  // Output logs from the solver
+  string logs = 3;
+
+  // Execution time in seconds
+  double elapsed_time_seconds = 4;
+}
