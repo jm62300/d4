@@ -53,9 +53,9 @@ void BucketAllocator::init(unsigned long sizeFirstPage,
 
    \return a pointer on a memory block.
 */
-char *BucketAllocator::getArray(unsigned size) {
+char* BucketAllocator::getArray(unsigned size) {
   m_usedMemory += size;
-  char *ret = NULL;
+  char* ret = NULL;
 
   if (m_freeSpace.size() > size &&
       (m_freeSpace[size].size() || (size < (m_freeSpace.size() >> 1)))) {
@@ -90,7 +90,6 @@ char *BucketAllocator::getArray(unsigned size) {
     m_freeMemory += rSz;
 
     m_consumedMemory = true;
-    printf("c Allocate a new page for the cache %lu\n", m_freeMemory);
 
     m_sizeData = m_sizeAdditionalPage;
     m_posInData = 0;
@@ -98,6 +97,8 @@ char *BucketAllocator::getArray(unsigned size) {
     m_allocateData.push_back(m_data);
 
     m_allMemory += m_sizeData;
+    printf("c Allocate a new page for the cache %lu %lu %lu\n", m_freeMemory,
+           m_usedMemory, m_allMemory);
   }
 
   ret = &m_data[m_posInData];
@@ -112,7 +113,7 @@ char *BucketAllocator::getArray(unsigned size) {
    @param[in] m, the memory we want to release
    @param[in] size, the size of the memory block
 */
-void BucketAllocator::releaseMemory(char *m, unsigned size) {
+void BucketAllocator::releaseMemory(char* m, unsigned size) {
   m_usedMemory -= size;
 
   if ((m_posInData - size) > 0 && &m_data[m_posInData - size] == m)

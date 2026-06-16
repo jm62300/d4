@@ -77,6 +77,7 @@ void WrapperGlucose::initSolver(const ProblemManager& p) {
 lbool WrapperGlucose::runSolver(std::span<const Var> setOfVar) {
   if (m_solver.learnts.size() > m_learntFactor * m_initClauses.size())
     m_solver.removeLearnt();
+
   lbool res = solveLimited(setOfVar,
                            setOfVar.size() < m_minLimitVar ? -1 : m_initBudget);
   if (res == l_True)

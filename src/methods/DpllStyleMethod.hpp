@@ -327,7 +327,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       }
 
       m_connectedComponent = m_nbFailedIncreased < m_limitNbFailedInRaw;
-      if (!m_connectedComponent)
+      if (!m_connectedComponent && m_verbosity)
         std::cout << "c [CONNECTED COMPONENT] Stop searching for connected "
                      "component\n";
     }
@@ -337,8 +337,9 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
                                                         freeVariable);
 
       if (ret > 1 && !m_connectedComponent) {
-        std::cout << "c [CONNECTECT COMPONENT] Start for searching for "
-                     "connected component\n";
+        if (m_verbosity)
+          std::cout << "c [CONNECTECT COMPONENT] Start for searching for "
+                       "connected component\n";
         m_nbFailedIncreased = 0;
         m_limitNbFailedInRaw++;
         m_connectedComponent = true;
@@ -366,7 +367,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
              std::vector<Var>& freeVariable, std::ostream& out) {
     showRun(out);
     m_nbCallCall++;
-    /// if (m_nbCallCall > 10000000) exit(0);
+
+    // if (m_nbCallCall > 2000000) exit(0);
+
+    int tmp = m_nbCallCall;
 
     if (!m_solver->solve(setOfVar, unitsLit)) return m_semiringOps.zero();
     m_specs->preUpdate(unitsLit);
@@ -384,8 +388,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
       for (int cp = 0; cp < nbComponent; cp++) {
         std::span<Var> connected(varConnected[cp].begin(),
                                  varConnected[cp].size());
-        // std::vector<Var>& connected = varConnected[cp];
-
         bool cacheActivated = cacheIsActivated(connected);
         TmpEntry<T> cb = cacheActivated ? m_cache->searchInCache(connected)
                                         : NULL_CACHE_ENTRY;
@@ -401,7 +403,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       m_specs->postUpdate(unitsLit);
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-
       return ret;
     }
 

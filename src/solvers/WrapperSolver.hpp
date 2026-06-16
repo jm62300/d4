@@ -107,9 +107,6 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
 
   inline void resetAssumption() { popAssumption(getAssumption().size()); }
 
-  bool getPolarity(Var v) override {
-    if (!m_activeModel) return false;
-    return m_model[v];
-  }
+  bool getPolarity(Var v) override { return m_model[v]; }
 };
 }  // namespace d4
