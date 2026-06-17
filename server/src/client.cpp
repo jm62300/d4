@@ -2,12 +2,16 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 #include <grpcpp/grpcpp.h>
 #include "d4.grpc.pb.h"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "counter/src/OptionCounter.hpp"
 #include "src/preproc/PreprocManager.hpp"
 #include <optree/Option.hpp>
+#include "OptionProjMc.hpp"
 
 
 using grpc::Channel;
@@ -82,17 +86,42 @@ int main(int argc, char** argv) {
 
   d4::OptionDpllStyleMethod options;
   bipe::OptionPreproc optionPreproc;
+  d4::OptionCounter optionCounter;
   d4::OptionRegistry registry;
   options.registerTo(registry);
   optionPreproc.registerTo(registry);
+  optionCounter.registerTo(registry);
 
   optree::Option<std::string> hostOpt("host", "Specify host for the gRPC server", "localhost");
   optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
+  optree::Option<std::string> inputOpt("input", "Specify path to the input DIMACS or circuit file", "");
+  d4::OptionProjMc projMcOpts;
+  
   hostOpt.registerTo(registry);
   portOpt.registerTo(registry);
+  inputOpt.registerTo(registry);
+  projMcOpts.registerTo(registry);
+
+  // Map -i to --input for registry parsing compatibility
+  std::vector<std::string> parse_args;
+  for (int i = 0; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "-i") {
+      parse_args.push_back("--input");
+    } else {
+      parse_args.push_back(arg);
+    }
+  }
+
+  std::vector<char*> parse_argv;
+  for (auto& a : parse_args) {
+    parse_argv.push_back(const_cast<char*>(a.data()));
+  }
+  parse_argv.push_back(nullptr);
+
 
   try {
-    registry.parseArgv(argc, argv);
+    registry.parseArgv(parse_argv.size() - 1, parse_argv.data());
   } catch (const std::exception& e) {
     if (!showHelp) {
       std::cerr << "Error parsing arguments: " << e.what() << "\n";
@@ -100,17 +129,15 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Filter out host/port related options to forward only solver options to server
+  // Filter out client-side options to forward only solver options to server
   std::vector<std::string> solver_args;
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
-    if (arg == "--host" || arg == "-h" || arg == "--help" || arg == "--completion-script" || arg == "--dump-options") {
-      // skip
-    } else if (arg.rfind("--host=", 0) == 0) {
-      // skip
-    } else if (arg == "--port" || arg == "-p") {
+    if (arg == "--host" || arg == "--port" || arg == "--input" || arg == "-i") {
       if (i + 1 < argc) ++i;
-    } else if (arg.rfind("--port=", 0) == 0) {
+    } else if (arg.rfind("--host=", 0) == 0 || arg.rfind("--port=", 0) == 0 || arg.rfind("--input=", 0) == 0) {
+      // skip
+    } else if (arg == "-h" || arg == "--help" || arg == "--completion-script" || arg == "--dump-options") {
       // skip
     } else {
       solver_args.push_back(arg);
@@ -120,27 +147,39 @@ int main(int argc, char** argv) {
   std::string target_str = hostOpt.get() + ":" + std::to_string(portOpt.get());
 
   if (showHelp) {
-    std::cout << "[gRPC Client] Connecting to " << target_str << "..." << std::endl;
-    D4Client client(grpc::CreateChannel(
-        target_str, grpc::InsecureChannelCredentials()));
+    std::cout << "Usage: " << argv[0] << " [options]\n"
+              << "  -h, --help            Show this help screen\n"
+              << "  --host HOST           Specify host for the gRPC server (default: localhost)\n"
+              << "  --port PORT           Specify port for the gRPC server (default: 50051)\n"
+              << "  -i, --input FILE      Specify path to the input DIMACS or circuit file\n\n"
+              << "[gRPC Client] Querying help from server at " << target_str << "...\n";
+    D4Client client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
     client.GetHelp(solver_args);
     return 0;
   }
 
   std::cout << "[gRPC Client] Connecting to " << target_str << "..." << std::endl;
-  D4Client client(grpc::CreateChannel(
-      target_str, grpc::InsecureChannelCredentials()));
+  D4Client client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
-  // Default: run a demo model count query
-  // Formula: 3 variables, 1 clause (1 OR 2 OR 3) → 7 models
-  std::string cnf_formula =
-      "p cnf 3 1\n"
-      "1 2 3 0\n";
+  std::string formula_data;
+  std::string inputPath = inputOpt.get();
+  if (!inputPath.empty()) {
+    std::ifstream infile(inputPath);
+    if (!infile.is_open()) {
+      std::cerr << "Error: Could not open input file: " << inputPath << "\n";
+      return 1;
+    }
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    formula_data = buffer.str();
+  } else {
+    // Default fallback CNF
+    formula_data =
+        "p cnf 3 1\n"
+        "1 2 3 0\n";
+  }
 
-  if (solver_args.empty())
-    solver_args.push_back("--solver=glucose");
-
-  client.CountModels(cnf_formula, solver_args);
+  client.CountModels(formula_data, solver_args);
 
   return 0;
 }

@@ -2,7 +2,9 @@
 
 #include <memory>
 #include <iostream>
+#include <vector>
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/problem/ProblemTypes.hpp"
 #include "c++/parser/ParserDimacs.hpp"
 #include "api/result/SolverResult.hpp"
 
@@ -47,6 +49,31 @@ class Solver {
   void setFormula(const parser::Formula& formula);
 
   /**
+   * @brief Set weights for literals to perform Weighted Model Counting.
+   *
+   * @param weights     A map of DIMACS literal integers (e.g. 1, -1) to their weight string representations.
+   * @param type        The weight type (INT, FLOAT, or COMPLEX, default FLOAT).
+   */
+  void setWeights(const std::map<int, std::string>& weights, parser::WeightType type = parser::WeightType::FLOAT);
+
+  /**
+   * @brief Set the variables to project on for Projected Model Counting.
+   *
+   * @param projectionVars The variables (1-based DIMACS indices) to project on.
+   */
+  void setProjectionVariables(const std::vector<int>& projectionVars);
+
+  /**
+   * @brief Set refinement option for Projected Model Counting.
+   */
+  void setRefinement(bool refinement);
+
+  /**
+   * @brief Get refinement option for Projected Model Counting.
+   */
+  bool getRefinement() const;
+
+  /**
    * @brief Executes the model counting algorithm and returns a CountResult object.
    *
    * @param out         The output stream to print standard logs/results to (defaults to std::cout).
@@ -63,8 +90,11 @@ class Solver {
   std::unique_ptr<CompileResult> compile(std::ostream& out = std::cout);
 
  private:
+  std::vector<d4::BcGate> buildGates() const;
+
   d4::OptionDpllStyleMethod options_;
   parser::Formula formula_;
+  bool refinement_ = true;
 };
 
 }  // namespace d4::api

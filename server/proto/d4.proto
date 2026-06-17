@@ -24,7 +24,7 @@ message HelpReply {
 
 // The request containing the formula and CLI arguments.
 message CountRequest {
-  // Raw CNF formula in DIMACS format.
+  // Raw formula in DIMACS (.cnf) or Circuit (.bc) format.
   string cnf_formula = 1;
 
   // Command-line arguments for configuration (e.g., Heuristics, Solver name, Cache options)

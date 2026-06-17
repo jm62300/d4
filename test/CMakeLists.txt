@@ -74,6 +74,27 @@ add_executable(test_crash_19
     "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
 )
 
+add_executable(test_circuit_api 
+    test_circuit_api.cpp 
+    "${ROOT_DIR}/api/solver/Solver.cpp" 
+    "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
+    "${ROOT_DIR}/c++/parser/ParserCircuit.cpp"
+)
+
+add_executable(test_wmc_api 
+    test_wmc_api.cpp 
+    "${ROOT_DIR}/api/solver/Solver.cpp" 
+    "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
+    "${ROOT_DIR}/c++/parser/ParserCircuit.cpp"
+)
+
+add_executable(test_projmc_api 
+    test_projmc_api.cpp 
+    "${ROOT_DIR}/api/solver/Solver.cpp" 
+    "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
+    "${ROOT_DIR}/c++/parser/ParserCircuit.cpp"
+)
+
 # Include Directories
 target_include_directories(test_api PRIVATE
     ${ROOT_DIR}
@@ -83,9 +104,24 @@ target_include_directories(test_crash_19 PRIVATE
     ${ROOT_DIR}
     ${GMP_INCLUDE_DIR}
 )
+target_include_directories(test_circuit_api PRIVATE
+    ${ROOT_DIR}
+    ${GMP_INCLUDE_DIR}
+)
+target_include_directories(test_wmc_api PRIVATE
+    ${ROOT_DIR}
+    ${GMP_INCLUDE_DIR}
+)
+target_include_directories(test_projmc_api PRIVATE
+    ${ROOT_DIR}
+    ${GMP_INCLUDE_DIR}
+)
 if(Boost_INCLUDE_DIRS)
     target_include_directories(test_api PRIVATE ${Boost_INCLUDE_DIRS})
     target_include_directories(test_crash_19 PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(test_circuit_api PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(test_wmc_api PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(test_projmc_api PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
 
 # Link everything
@@ -99,6 +135,30 @@ if (MSVC)
         ${GMP_LIBRARY}
     )
     target_link_libraries(test_crash_19 PRIVATE 
+        ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_circuit_api PRIVATE 
+        ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_wmc_api PRIVATE 
+        ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_projmc_api PRIVATE 
         ${D4_LIB}
         bipe
         cadical
@@ -125,6 +185,33 @@ else()
         ${GMPXX_LIBRARY}
         ${GMP_LIBRARY}
     )
+    target_link_libraries(test_circuit_api PRIVATE 
+        ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMPXX_LIBRARY}
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_wmc_api PRIVATE 
+        ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMPXX_LIBRARY}
+        ${GMP_LIBRARY}
+    )
+    target_link_libraries(test_projmc_api PRIVATE 
+        ${D4_LIB}
+        bipe
+        cadical
+        optree
+        ZLIB::ZLIB
+        ${GMPXX_LIBRARY}
+        ${GMP_LIBRARY}
+    )
 endif()
 
 # Handle Patoh (Linux only)
@@ -140,5 +227,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(test_api PRIVATE USE_PATOH)
     target_link_libraries(test_crash_19 PRIVATE ${PATOH_LIBRARY})
     target_compile_definitions(test_crash_19 PRIVATE USE_PATOH)
+    target_link_libraries(test_circuit_api PRIVATE ${PATOH_LIBRARY})
+    target_compile_definitions(test_circuit_api PRIVATE USE_PATOH)
+    target_link_libraries(test_wmc_api PRIVATE ${PATOH_LIBRARY})
+    target_compile_definitions(test_wmc_api PRIVATE USE_PATOH)
+    target_link_libraries(test_projmc_api PRIVATE ${PATOH_LIBRARY})
+    target_compile_definitions(test_projmc_api PRIVATE USE_PATOH)
 endif()
 

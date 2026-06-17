@@ -45,7 +45,7 @@ else()
     set(GRPC_LIBRARIES grpc++ grpc++_reflection libprotobuf)
 endif()
 
-# --- 2. Integrated BiPe Library ---
+# --- 2. Fetch Dependencies (bipe) ---
 include(FetchContent)
 set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
 if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})

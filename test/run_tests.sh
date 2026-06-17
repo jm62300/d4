@@ -23,7 +23,16 @@ cmake ..
 echo "c [TEST] Compiling test_api..."
 cmake --build . --parallel
 
-# 3. Run the test from the repository root
+# 3. Run the tests from the repository root
 echo "c [TEST] Running test_api..."
 cd "$ROOT_DIR"
-./test/build/test_api
+ASAN_OPTIONS=detect_leaks=0 ./test/build/test_api
+
+echo "c [TEST] Running test_circuit_api..."
+ASAN_OPTIONS=detect_leaks=0 ./test/build/test_circuit_api
+
+echo "c [TEST] Running test_wmc_api..."
+ASAN_OPTIONS=detect_leaks=0 ./test/build/test_wmc_api
+
+echo "c [TEST] Running test_projmc_api..."
+ASAN_OPTIONS=detect_leaks=0 ./test/build/test_projmc_api
