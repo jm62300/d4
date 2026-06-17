@@ -13,6 +13,7 @@
 
 #define private public
 #include "src/methods/DpllStyleMethod.hpp"
+#include "src/methods/ProjMCMethod.hpp"
 #undef private
 
 #include "c++/semirings/DecDNNFSemiring.hpp"
@@ -80,6 +81,65 @@ class CountResultImpl : public CountResult {
   std::unique_ptr<d4::DpllStyleMethod<T, O>> method_;
 };
 
+template <typename T, typename O>
+class ProjMcResultImpl : public CountResult {
+ public:
+  ProjMcResultImpl(T result, std::unique_ptr<d4::ProjMCMethod<T, O>> method)
+      : result_(result), method_(std::move(method)) {}
+
+  std::string getResult() const override {
+    std::stringstream ss;
+    ss.precision(std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+    boost::multiprecision::mpf_float::default_precision(128);
+    ss << result_;
+    return ss.str();
+  }
+
+  boost::multiprecision::mpz_int getIntResult() const override {
+    if constexpr (std::is_same_v<T, boost::multiprecision::mpz_int>) {
+      return result_;
+    } else {
+      throw std::runtime_error("Count result is not an integer");
+    }
+  }
+
+  boost::multiprecision::mpf_float getFloatResult() const override {
+    if constexpr (std::is_same_v<T, boost::multiprecision::mpf_float>) {
+      return result_;
+    } else {
+      throw std::runtime_error("Count result is not a float");
+    }
+  }
+
+  semiring::Complex getComplexResult() const override {
+    if constexpr (std::is_same_v<T, semiring::Complex>) {
+      return result_;
+    } else {
+      throw std::runtime_error("Count result is not a complex number");
+    }
+  }
+
+  unsigned getNbRecursiveCalls() const override {
+    return method_ ? method_->m_nbCallRec : 0;
+  }
+
+  unsigned getNbSplits() const override {
+    return method_ ? method_->m_nbSplit : 0;
+  }
+
+  unsigned getNbDecisionNodes() const override {
+    return 0; // Not applicable for ProjMC
+  }
+
+  float getSolveTime() const override {
+    return method_ ? method_->getTimer() : 0.0f;
+  }
+
+ private:
+  T result_;
+  std::unique_ptr<d4::ProjMCMethod<T, O>> method_;
+};
+
 class CompileResultImpl : public CompileResult {
  public:
   CompileResultImpl(semiring::Node resultNode,
@@ -130,7 +190,17 @@ class CompileResultImpl : public CompileResult {
     boost::multiprecision::mpf_float::default_precision(128);
 
     if (isWeighted_) {
-      ss << semiring.count<mpz::mpf_float>(resultNode_, assums, weight_, nbVar_);
+      mpz::mpf_float assumption_weight_product(1.0);
+      for (int lit : queryLits) {
+        if (lit != 0) {
+          d4::Lit d4Lit = (lit > 0) ? d4::Lit::makeLit(lit, false)
+                                      : d4::Lit::makeLit(-lit, true);
+          assumption_weight_product *= weight_[d4Lit.intern()];
+        }
+      }
+      mpz::mpf_float result = semiring.count<mpz::mpf_float>(resultNode_, assums, weight_, nbVar_);
+      result *= assumption_weight_product;
+      ss << result;
     } else {
       ss << semiring.count<mpz::mpz_int>(resultNode_, assums, noweight_, nbVar_);
     }

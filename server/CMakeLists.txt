@@ -45,11 +45,25 @@ else()
     set(GRPC_LIBRARIES grpc++ grpc++_reflection libprotobuf)
 endif()
 
-# --- 2. Integrated BiPe Library ---
+# --- 2. Fetch Dependencies (optree & bipe) ---
 include(FetchContent)
 if(NOT DEFINED ENV{GITLAB_TOKEN_LOGICAL})
     set(ENV{GITLAB_TOKEN_LOGICAL} "glpat-eHavaAslBimi87EABf6MIW86MQp1OjJpdgk.01.0z0dxf0ko")
 endif()
+
+# optree
+set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
+if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
+    set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git")
+endif()
+FetchContent_Declare(
+    optree
+    GIT_REPOSITORY ${OPTREE_GIT_URL}
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(optree)
+
+# bipe
 set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
 if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
     set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/bipe.git")
@@ -64,7 +78,7 @@ FetchContent_MakeAvailable(bipe)
 # --- 3. Find D4 Library and Dependencies ---
 get_filename_component(D4_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../" ABSOLUTE)
 get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../build" ABSOLUTE)
-get_filename_component(OPTREE_INCLUDE_DIR "${D4_BUILD_DIR}/_deps/optree-src/include" ABSOLUTE)
+set(OPTREE_INCLUDE_DIR "${optree_SOURCE_DIR}/include")
 
 find_library(D4_LIB 
     NAMES d4 libd4
