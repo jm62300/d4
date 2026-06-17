@@ -19,7 +19,7 @@ option(BUILD_PROFILE "Build with profiling (-p/-pg)" OFF)
 if(BUILD_STATIC)
     # Tell CMake's find_package to strictly look for static libraries
     set(ZLIB_USE_STATIC_LIBS ON)
-    
+
     # Tell CMake's find_library to look for .a files instead of .so files
     if(NOT MSVC)
         set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
@@ -30,6 +30,8 @@ endif()
 # ==============================================================================
 # --- bipe library integration ---
 # ==============================================================================
+get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
+set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
 include(FetchContent)
 set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
 if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
@@ -56,7 +58,8 @@ add_executable(counter ${SRCS} ${PARSER_SRCS})
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
 get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" ABSOLUTE)
-get_filename_component(OPTREE_INCLUDE_DIR "${D4_BUILD_DIR}/_deps/optree-src/include" ABSOLUTE)
+get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
+get_filename_component(OPTREE_INCLUDE_DIR "${SHARED_3RDPARTY_DIR}/optree-src/include" ABSOLUTE)
 
 target_include_directories(counter PRIVATE 
     ${ROOT_INCLUDES}

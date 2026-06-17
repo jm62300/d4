@@ -87,6 +87,7 @@ target_compile_definitions(htd PRIVATE NDEBUG)
 # ==============================================================================
 # --- optree library integration ---
 # ==============================================================================
+set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty" CACHE PATH "Directory for FetchContent" FORCE)
 include(FetchContent)
 set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
 if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})

@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Set FetchContent base directory to the shared 3rdParty directory
+get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty" ABSOLUTE)
+set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
+
 # --- 1. Find or Download gRPC/Protobuf ---
 find_package(gRPC CONFIG QUIET)
 find_package(Protobuf CONFIG QUIET)

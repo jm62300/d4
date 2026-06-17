@@ -21,3 +21,8 @@ xml/
 .clang-uml
 __pycache__
 __init__.py
+
+# FetchContent directories
+3rdParty/*-src/
+3rdParty/*-build/
+3rdParty/*-subbuild/
