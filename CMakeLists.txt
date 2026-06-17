@@ -88,9 +88,6 @@ target_compile_definitions(htd PRIVATE NDEBUG)
 # --- optree library integration ---
 # ==============================================================================
 include(FetchContent)
-if(NOT DEFINED ENV{GITLAB_TOKEN_LOGICAL})
-    set(ENV{GITLAB_TOKEN_LOGICAL} "glpat-eHavaAslBimi87EABf6MIW86MQp1OjJpdgk.01.0z0dxf0ko")
-endif()
 set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
 if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
     set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git")
