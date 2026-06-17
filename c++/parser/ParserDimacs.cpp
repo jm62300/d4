@@ -93,6 +93,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
         in.skipSimpleSpace();
         in.skipLine();
       } else {
+        in.consumeChar();
         if (in.canConsume("weight")) {
           int lit = in.nextInt();
           std::vector<std::string> elements;

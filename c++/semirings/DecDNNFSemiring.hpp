@@ -183,96 +183,9 @@ class DecDNNFSemiring {
     return m_idEdge++;
   }  // askNewEdge
 
-  // Helper to free allocated memory
-  void clear() {
-    if (m_pages) {
-      for (unsigned i = 0; i < m_nbPages; ++i) {
-        delete[] m_pages[i];
-      }
-      free(m_pages);
-      m_pages = nullptr;
-    }
-    m_nbPages = 0;
-    m_positionInPage = SIZE_PAGE;
-
-    if (m_nodeInfo) {
-      free(m_nodeInfo);
-      m_nodeInfo = nullptr;
-    }
-    m_nodeInfoCapacity = 0;
-    m_idCurrentNode = 2;
-
-    if (m_edgeInfo) {
-      free(m_edgeInfo);
-      m_edgeInfo = nullptr;
-    }
-    m_edgeInfoCapacity = 0;
-    m_idEdge = 0;
-  }
-
  public:
   // Required by std::default_initializable
   DecDNNFSemiring() = default;
-
-  // Destructor
-  ~DecDNNFSemiring() {
-    clear();
-  }
-
-  // Delete copy constructor and copy assignment operator
-  DecDNNFSemiring(const DecDNNFSemiring&) = delete;
-  DecDNNFSemiring& operator=(const DecDNNFSemiring&) = delete;
-
-  // Move constructor
-  DecDNNFSemiring(DecDNNFSemiring&& other) noexcept {
-    m_pages = other.m_pages;
-    m_nbPages = other.m_nbPages;
-    m_positionInPage = other.m_positionInPage;
-    m_nodeInfo = other.m_nodeInfo;
-    m_nodeInfoCapacity = other.m_nodeInfoCapacity;
-    m_idCurrentNode = other.m_idCurrentNode;
-    m_edgeInfo = other.m_edgeInfo;
-    m_edgeInfoCapacity = other.m_edgeInfoCapacity;
-    m_idEdge = other.m_idEdge;
-
-    other.m_pages = nullptr;
-    other.m_nbPages = 0;
-    other.m_positionInPage = SIZE_PAGE;
-    other.m_nodeInfo = nullptr;
-    other.m_nodeInfoCapacity = 0;
-    other.m_idCurrentNode = 2;
-    other.m_edgeInfo = nullptr;
-    other.m_edgeInfoCapacity = 0;
-    other.m_idEdge = 0;
-  }
-
-  // Move assignment operator
-  DecDNNFSemiring& operator=(DecDNNFSemiring&& other) noexcept {
-    if (this != &other) {
-      clear();
-
-      m_pages = other.m_pages;
-      m_nbPages = other.m_nbPages;
-      m_positionInPage = other.m_positionInPage;
-      m_nodeInfo = other.m_nodeInfo;
-      m_nodeInfoCapacity = other.m_nodeInfoCapacity;
-      m_idCurrentNode = other.m_idCurrentNode;
-      m_edgeInfo = other.m_edgeInfo;
-      m_edgeInfoCapacity = other.m_edgeInfoCapacity;
-      m_idEdge = other.m_idEdge;
-
-      other.m_pages = nullptr;
-      other.m_nbPages = 0;
-      other.m_positionInPage = SIZE_PAGE;
-      other.m_nodeInfo = nullptr;
-      other.m_nodeInfoCapacity = 0;
-      other.m_idCurrentNode = 2;
-      other.m_edgeInfo = nullptr;
-      other.m_edgeInfoCapacity = 0;
-      other.m_idEdge = 0;
-    }
-    return *this;
-  }
 
   // Required by the SemiringPolicy constructor constraint
   DecDNNFSemiring(unsigned nbVar,
