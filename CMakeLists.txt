@@ -213,3 +213,4 @@ install(FILES ${HEADERS} DESTINATION include/${CMAKE_PROJECT_NAME}${SUFFIX_DIR})
 
 # Optional: Keep the cleanup target if you use it manually
 add_custom_target(clean-cmake-files COMMAND ${CMAKE_COMMAND} -P clean-all.cmake)
+
