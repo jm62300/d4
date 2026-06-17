@@ -8,6 +8,25 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# --- Custom Build Options ---
+# Must be set before FetchContent_MakeAvailable(bipe) below, since bipe's own
+# CMakeLists.txt calls find_package(ZLIB) and caches whatever it finds first;
+# if the static hints aren't in place yet, bipe locks in the .so and a later
+# -static link fails trying to statically link that dynamic object.
+option(BUILD_STATIC "Build with full static linking" OFF)
+option(BUILD_PROFILE "Build with profiling (-p/-pg)" OFF)
+
+if(BUILD_STATIC)
+    # Tell CMake's find_package to strictly look for static libraries
+    set(ZLIB_USE_STATIC_LIBS ON)
+    
+    # Tell CMake's find_library to look for .a files instead of .so files
+    if(NOT MSVC)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    endif()
+endif()
+# -------------------------
+
 # ==============================================================================
 # --- bipe library integration ---
 # ==============================================================================
@@ -25,23 +44,6 @@ FetchContent_Declare(
     GIT_TAG        main
 )
 FetchContent_MakeAvailable(bipe)
-
-# --- MOVE OPTIONS HERE ---
-# Custom Build Options 
-option(BUILD_STATIC "Build with full static linking" OFF)
-option(BUILD_PROFILE "Build with profiling (-p/-pg)" OFF)
-
-if(BUILD_STATIC)
-    # Tell CMake's find_package to strictly look for static libraries
-    set(ZLIB_USE_STATIC_LIBS ON)
-    
-    # Tell CMake's find_library to look for .a files instead of .so files
-    if(NOT MSVC)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    endif()
-endif()
-# -------------------------
-
 
 # Get the absolute path to the parser directory safely
 get_filename_component(PARSER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parser" ABSOLUTE)
