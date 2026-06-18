@@ -26,11 +26,11 @@ cd "$D4_ROOT_DIR"
 
 # Check if the parent clean.sh exists before trying to run it
 if [ -x "clean.sh" ]; then
-    ./clean.sh
+    ./clean.sh "$@"
     echo "c [CLEAN] Parent 'd4' project cleaned successfully."
 elif [ -f "clean.sh" ]; then
     # In case it exists but isn't marked as executable
-    bash clean.sh
+    bash clean.sh "$@"
     echo "c [CLEAN] Parent 'd4' project cleaned successfully."
 else
     # Fallback just in case the parent project relies on a standard Makefile

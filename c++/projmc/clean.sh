@@ -19,9 +19,9 @@ echo "c [CLEAN] Cleaning parent d4 project..."
 cd "$D4_ROOT_DIR"
 
 if [ -x "clean.sh" ]; then
-    ./clean.sh
+    ./clean.sh "$@"
 elif [ -f "clean.sh" ]; then
-    bash clean.sh
+    bash clean.sh "$@"
 fi
 
 cd "$CURRENT_DIR"

@@ -30,6 +30,10 @@ endif()
 # Find Boost
 find_package(Boost REQUIRED)
 
+# Set FetchContent base directory to the shared 3rdParty directory
+get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty" ABSOLUTE)
+set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
+
 # Fetch optree (header-only library)
 include(FetchContent)
 set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
