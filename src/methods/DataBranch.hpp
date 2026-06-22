@@ -18,17 +18,20 @@
  */
 #pragma once
 
-#include "ParserDimacs.hpp"
-#include "src/options/methods/OptionMaxTMethod.hpp"
+#include <iostream>
+#include <vector>
 
-/**
- * @brief Run a MaxT solver using the given configuration.
- *
- * Builds the d4::ProblemManager from the parsed formula and dispatches to
- * the complex- or real-weighted MaxT instantiation depending on
- * formula.weightType.
- *
- * @param options is the method configuration.
- * @param formula is the parsed input formula.
- */
-void maxT(const d4::OptionMaxTMethod &options, const parser::Formula &formula);
+#include "src/problem/ProblemManager.hpp"
+#include "src/problem/ProblemTypes.hpp"
+
+namespace d4 {
+template <class T>
+class DataBranch {
+ public:
+  T d;
+  std::vector<Lit> unitLits;
+  std::vector<Var> freeVars;
+
+  inline unsigned sumFreeUnit() { return unitLits.size() + freeVars.size(); }
+};
+}  // namespace d4

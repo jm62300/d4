@@ -93,8 +93,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
         in.consumeChar();
         in.skipSimpleSpace();
         in.skipLine();
-      } else {
-        in.consumeChar();
+      } else if (in.canConsume("p")) {
         if (in.canConsume("weight")) {
           int lit = in.nextInt();
           std::vector<std::string> elements;
@@ -122,6 +121,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
           std::string wr = in.nextWord();
           std::string wi = in.nextWord();
           formula.weightMap[lit] = wr + " " + wi;
+          formula.weightType = WeightType::COMPLEX;
 
           // in this format we have an end line we have to consume.
           [[maybe_unused]] int endLine = in.nextInt();
@@ -132,6 +132,12 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
           in.readListIntTerminatedByZero(showedVars);
         else
           in.skipLine();
+      } else if (in.canConsume("max")) {
+        in.readListIntTerminatedByZero(maxVars);
+      } else if (in.canConsume("ind")) {
+        in.readListIntTerminatedByZero(indVars);
+      } else {
+        in.skipLine();
       }
     } else {
       lits.clear();
@@ -167,7 +173,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
     }
   }
 
-  if (maxVars.size()) {
+  if (maxVars.size() || indVars.size()) {
     formula.quantifications.push_back(maxVars);
     formula.quantifications.push_back(indVars);
   }

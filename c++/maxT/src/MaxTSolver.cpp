@@ -22,112 +22,25 @@
 #include <signal.h>
 
 #include <cassert>
+#include <sstream>
 
-#include "ParseOption.hpp"
+#include "../semirings/MpzComplexSemiring.hpp"
 #include "src/methods/MaxT.hpp"
 #include "src/methods/MethodManager.hpp"
-#include "src/options/methods/OptionMaxTMethod.hpp"
 
 extern d4::MethodManager *methodRun;
 
 using namespace d4;
 
 template <typename T, class A>
-void maxT(const OptionMaxTMethod &options, ProblemManager *problem) {
-  MaxT<T, A> *maxT = new MaxT<T, A>(options, problem, std::cout);
+static void runMaxT(const OptionMaxTMethod &options, ProblemManager *problem) {
+  MaxT<T, A> *solver = new MaxT<T, A>(options, problem, std::cout);
 
-  methodRun = maxT;
-  maxT->run();
+  methodRun = solver;
+  solver->run();
   methodRun = nullptr;
-  delete maxT;
-}  // count
-
-class Complex {
- public:
-  mpz::mpf_float real, im;
-
-  Complex() : real(0), im(0) {}
-  Complex(mpz::mpf_float r, mpz::mpf_float i) : real(r), im(i) {}
-  Complex(const std::vector<std::string> &v) {
-    assert(v.size() == 2);
-    real = mpz::mpf_float(v[0]);
-    im = mpz::mpf_float(v[1]);
-  }
-
-  Complex operator*(Complex const &obj) {
-    Complex res(real * obj.real - im * obj.im, real * obj.im + im * obj.real);
-    return res;
-  }
-
-  Complex operator+(Complex const &obj) {
-    Complex res(real + obj.real, im + obj.im);
-    return res;
-  }
-
-  inline mpz::mpf_float norm() const { return real * real + im * im; }
-
-  bool operator==(Complex const &obj) {
-    return real == obj.real && im == obj.im;
-  }
-
-  bool operator<(Complex const &obj) { return norm() < obj.norm(); }
-  bool operator>(Complex const &obj) { return norm() > obj.norm(); }
-  bool operator<=(Complex const &obj) { return norm() <= obj.norm(); }
-  bool operator>=(Complex const &obj) { return norm() >= obj.norm(); }
-
-  friend std::ostream &operator<<(std::ostream &os, const Complex &dt) {
-    if (dt.im < 0)
-      os << dt.real << dt.im << 'i';
-    else
-      os << dt.real << "+" << dt.im << 'i';
-    return os;
-  }
-};
-
-class AggregateComplex {
- private:
-  std::vector<mpz::mpf_float> &m_realLits;
-  std::vector<mpz::mpf_float> &m_imLits;
-
- public:
-  AggregateComplex(ProblemManager *problem)
-      : m_realLits(problem->getWeightLit()),
-        m_imLits(problem->getWeightLitIm()) {}
-
-  inline bool isGreaterThan(Lit l1, Lit l2) {
-    mpz::mpf_float n1 = m_realLits[l1.intern()] * m_realLits[l1.intern()] +
-                        m_imLits[l1.intern()] * m_imLits[l1.intern()];
-    mpz::mpf_float n2 = m_realLits[l2.intern()] * m_realLits[l2.intern()] +
-                        m_imLits[l2.intern()] * m_imLits[l2.intern()];
-
-    return n1 > n2;
-  }
-
-  inline Complex getWeightLit(Lit l) {
-    assert(m_imLits.size() > l.intern());
-    assert(m_realLits.size() > l.intern());
-    return Complex(m_realLits[l.intern()], m_imLits[l.intern()]);
-  }
-
-  inline Complex getWeightVar(Var v) {
-    Lit l = Lit::makeLitTrue(v);
-    Complex v1(m_realLits[l.intern()], m_imLits[l.intern()]);
-    Complex v2(m_realLits[(~l).intern()], m_imLits[(~l).intern()]);
-
-    return v1 + v2;
-  }  // getWeightVar
-
-  inline void multiplyUnitFree(Complex &out, std::vector<Lit> &units,
-                               std::vector<Var> &free) {
-    for (auto &l : units) out = out * getWeightLit(l);
-    for (auto &v : free) out = out * getWeightVar(v);
-  }
-
-  inline void setCount(mpz::mpf_float &out, mpz::mpf_float val) { out = val; }
-  inline Complex sumIdentity() { return Complex(0, 0); }
-  inline Complex mulIdentity() { return Complex(1, 0); }
-  inline Complex min() { return Complex(0, 0); }
-};
+  delete solver;
+}  // runMaxT
 
 class BigFloat {
  public:
@@ -163,25 +76,75 @@ class BigFloat {
   }
 };
 
-class AggregateMpfFloat {
+/**
+ * @brief Aggregator for complex-weighted formulas (e.g. quantum amplitudes).
+ * Builds its own per-literal weight array from the problem's weight map,
+ * the same way semiring::MpzComplexSemiring does.
+ */
+class AggregateComplex {
  private:
-  std::vector<mpz::mpf_float> &m_weightLits;
+  std::vector<semiring::Complex> m_weightLit;
 
  public:
-  AggregateMpfFloat(ProblemManager *problem)
-      : m_weightLits(problem->getWeightLit()) {}
+  AggregateComplex(ProblemManager *problem) {
+    unsigned nbVar = problem->getNbVar();
+    m_weightLit.resize(2 * (nbVar + 1), semiring::Complex(1, 0));
+    for (const auto &[lit, weight] : problem->getWeightMap())
+      m_weightLit[lit.intern()] = semiring::Complex(weight);
+  }
 
   inline bool isGreaterThan(Lit l1, Lit l2) {
-    return m_weightLits[l1.intern()] > m_weightLits[l2.intern()];
+    return m_weightLit[l1.intern()].norm() > m_weightLit[l2.intern()].norm();
+  }
+
+  inline semiring::Complex getWeightLit(Lit l) {
+    return m_weightLit[l.intern()];
+  }
+
+  inline semiring::Complex getWeightVar(Var v) {
+    Lit l = Lit::makeLitTrue(v);
+    return m_weightLit[l.intern()] + m_weightLit[(~l).intern()];
+  }  // getWeightVar
+
+  inline void multiplyUnitFree(semiring::Complex &out, std::vector<Lit> &units,
+                               std::vector<Var> &free) {
+    for (auto &l : units) out = out * getWeightLit(l);
+    for (auto &v : free) out = out * getWeightVar(v);
+  }
+
+  inline semiring::Complex sumIdentity() { return semiring::Complex(0, 0); }
+  inline semiring::Complex mulIdentity() { return semiring::Complex(1, 0); }
+  inline semiring::Complex min() { return semiring::Complex(0, 0); }
+};
+
+/**
+ * @brief Aggregator for real-weighted (or unweighted) formulas. Builds its
+ * own per-literal weight array from the problem's weight map, the same way
+ * semiring::MpzFloatSemiring does.
+ */
+class AggregateMpfFloat {
+ private:
+  std::vector<mpz::mpf_float> m_weightLit;
+
+ public:
+  AggregateMpfFloat(ProblemManager *problem) {
+    unsigned nbVar = problem->getNbVar();
+    m_weightLit.resize(2 * (nbVar + 1), mpz::mpf_float(1));
+    for (const auto &[lit, weight] : problem->getWeightMap())
+      m_weightLit[lit.intern()] = mpz::mpf_float(weight);
+  }
+
+  inline bool isGreaterThan(Lit l1, Lit l2) {
+    return m_weightLit[l1.intern()] > m_weightLit[l2.intern()];
   }
 
   inline BigFloat getWeightLit(Lit l) {
-    return BigFloat(m_weightLits[l.intern()]);
+    return BigFloat(m_weightLit[l.intern()]);
   }
 
   inline BigFloat getWeightVar(Var v) {
     Lit l = Lit::makeLitTrue(v);
-    return BigFloat(m_weightLits[l.intern()] + m_weightLits[(~l).intern()]);
+    return BigFloat(m_weightLit[l.intern()] + m_weightLit[(~l).intern()]);
   }
 
   inline void multiplyUnitFree(BigFloat &out, std::vector<Lit> &units,
@@ -196,11 +159,11 @@ class AggregateMpfFloat {
 };
 
 /**
- * @brief couterDemo implementation.
+ * @brief maxT implementation.
  */
-void maxT(const po::variables_map &vm, ProblemManager *problem) {
-  // get the configuration.
-  OptionMaxTMethod options;
+void maxT(const d4::OptionMaxTMethod &inputOptions,
+         const parser::Formula &formula) {
+  OptionMaxTMethod options = inputOptions;
 
   options.optionSolver.solverName = MINISAT_CNF;
 
@@ -210,32 +173,44 @@ void maxT(const po::variables_map &vm, ProblemManager *problem) {
   options.optionCacheManagerInd.isActivated = true;
   options.optionCacheManagerInd.optionBucketManager.sizeFirstPage = 1UL << 30;
 
-  options.optionBranchingHeuristicMax.branchingHeuristicType = BRANCHING_CLASSIC;
-  options.optionBranchingHeuristicInd.branchingHeuristicType = BRANCHING_CLASSIC;
-  options.optionBranchingHeuristicInd.optionPartialOrderHeuristic.verbosity =
-      false;
+  options.optionBranchingHeuristicMax.branchingHeuristicType =
+      BRANCHING_CLASSIC;
+  options.optionBranchingHeuristicInd.branchingHeuristicType =
+      BRANCHING_CLASSIC;
 
   options.optionBranchingHeuristicMax.scoringMethodType = SCORE_VSADS;
   options.optionBranchingHeuristicInd.scoringMethodType = SCORE_VSADS;
 
-  options.phaseHeuristicMax = vm["phaseHeuristicMax"].as<std::string>();
-
-  std::string s = vm["threshold"].as<std::string>();
-  std::stringstream ss(s);
+  std::stringstream ss(options.threshold.get());
   std::string t;
-
-  // Splitting the str string by delimiter
-  while (getline(ss, t, ' '))
+  while (std::getline(ss, t, ' '))
     if (t.size()) options.thresholdList.push_back(t);
 
-  bool isFloat = problem->isFloat();
+  // build the problem; heap-allocated since MaxT takes ownership (its
+  // destructor deletes the pointer it is given).
+  std::vector<BcGate> gates;
+  gates.reserve(formula.clauses.size());
+  for (auto &cl : formula.clauses) {
+    std::vector<Lit> d4Clause;
+    for (auto &l : cl) d4Clause.push_back(Lit::makeLit(std::abs(l), l < 0));
+    gates.push_back({d4Clause, lit_Undef, BcGateType::CLAUSE});
+  }
+
+  std::map<Lit, std::string> weightMap;
+  for (const auto &[lit, weight] : formula.weightMap)
+    weightMap[Lit::makeLit(std::abs(lit), lit < 0)] = weight;
+
+  ProblemManager *problem =
+      new ProblemManager(formula.type, formula.nbVar, formula.quantifications,
+                         weightMap, gates, std::cout);
+
   MethodManager::displayInfoVariables(*problem, std::cout);
 
-  if (vm["complex"].as<bool>()) {
+  if (formula.weightType == parser::WeightType::COMPLEX) {
     std::cout << "c Run with the complex mode\n";
-    maxT<Complex, AggregateComplex>(options, problem);
+    runMaxT<semiring::Complex, AggregateComplex>(options, problem);
   } else {
     std::cout << "c Run with the classic mode\n";
-    maxT<BigFloat, AggregateMpfFloat>(options, problem);
+    runMaxT<BigFloat, AggregateMpfFloat>(options, problem);
   }
-}  // counterDemo
+}  // maxT
