@@ -20,6 +20,7 @@
 #include "ParserDimacs.hpp"
 
 #include <algorithm>
+#include <sstream>
 #include <stdexcept>
 
 // #include "src/utils/Parsing.hpp"

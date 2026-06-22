@@ -20,7 +20,6 @@
 
 #include <fcntl.h>
 
-#include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
 
@@ -167,29 +166,6 @@ class BufferRead {
     double ret = 0;
     ret = std::stod(cur, &pos);
 
-    return (sign) ? -ret : ret;
-  }
-
-  /**
-   * @brief Read on the buffer the next float.
-   *
-   * @return an mpz::mpf_float that encode the float we read.
-   */
-  inline boost::multiprecision::mpf_float nextMpf_float() {
-    skipSpace();
-    bool sign = currentChar() == '-';
-    if (sign) consumeChar();
-
-    std::string cur = "";
-    while (!eof() && ((currentChar() >= '0' && currentChar() <= '9') ||
-                      currentChar() == '.' || currentChar() == 'e' ||
-                      currentChar() == '-')) {
-      cur += currentChar();
-      nextChar();
-    }
-
-    boost::multiprecision::mpf_float ret =
-        boost::multiprecision::mpf_float(cur);
     return (sign) ? -ret : ret;
   }
 };

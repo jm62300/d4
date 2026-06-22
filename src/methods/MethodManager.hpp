@@ -18,6 +18,8 @@
  */
 #pragma once
 
+#include <ctime>
+
 #include "src/problem/ProblemManager.hpp"
 #include "src/options/EnumMetadata.hpp"
 

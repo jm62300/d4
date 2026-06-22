@@ -18,13 +18,17 @@
  */
 #include <signal.h>
 
-#include <boost/multiprecision/gmp.hpp>
+#include <gmpxx.h>
+
 #include <cassert>
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <iostream>
 #include <vector>
 
+#include "../semirings/MpzFloatSemiring.hpp"
+#include "../semirings/MpzIntSemiring.hpp"
 #include "src/options/Option.hpp"
 #include "src/methods/DpllStyleMethod.hpp"
 #include "src/methods/MethodManager.hpp"
@@ -33,6 +37,22 @@
 #include "src/preprocs/PreprocManager.hpp"
 
 using namespace d4;
+
+namespace {
+// log10 of a (possibly huge) arbitrary-precision value, computed without
+// transcendental support from GMP by decomposing the value as d*2^exp first.
+double log10Estimate(const mpz_class& n) {
+  signed long int exp2;
+  double d = mpz_get_d_2exp(&exp2, n.get_mpz_t());
+  return std::log10(d) + exp2 * std::log10(2.0);
+}
+
+double log10Estimate(const mpf_class& n) {
+  signed long int exp2;
+  double d = mpf_get_d_2exp(&exp2, n.get_mpf_t());
+  return std::log10(d) + exp2 * std::log10(2.0);
+}
+}  // namespace
 
 #define SOLVER "minisat"
 
@@ -110,14 +130,13 @@ void wmc(d4::ProblemManager *initProblem) {
   options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::DpllStyleMethod<mpz::mpf_float, mpz::mpf_float> *counter =
-      new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(options, problem,
-                                                          std::cout);
+  d4::DpllStyleMethod<mpz::mpf_float, semiring::MpzFloatSemiring> *counter =
+      new DpllStyleMethod<mpz::mpf_float, semiring::MpzFloatSemiring>(
+          options, problem, std::cout);
   mpz::mpf_float result = counter->run();
 
-  boost::multiprecision::mpf_float::default_precision(128);
-  std::cout.precision(
-      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+  mpf_set_default_prec(426);  // ~128 decimal digits
+  std::cout.precision(50);
 
   if (result == 0) {
     std::cout << "s UNSATISFIABLE\n";
@@ -128,9 +147,7 @@ void wmc(d4::ProblemManager *initProblem) {
     std::cout << "s SATISFIABLE\n";
     std::cout << "c s type mc\n";
     std::cout << "c s log10-estimate "
-              << boost::multiprecision::log10(
-                     boost::multiprecision::cpp_dec_float_100(result))
-              << "\n";
+              << log10Estimate(result) << "\n";
     std::cout << "c s exact quadruple int " << result << "\n";
   }
 }  // wmc
@@ -192,14 +209,13 @@ void pwmc(d4::ProblemManager *initProblem) {
   options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::DpllStyleMethod<mpz::mpf_float, mpz::mpf_float> *counter =
-      new DpllStyleMethod<mpz::mpf_float, mpz::mpf_float>(options, problem,
-                                                          std::cout);
+  d4::DpllStyleMethod<mpz::mpf_float, semiring::MpzFloatSemiring> *counter =
+      new DpllStyleMethod<mpz::mpf_float, semiring::MpzFloatSemiring>(
+          options, problem, std::cout);
   mpz::mpf_float result = counter->run();
 
-  boost::multiprecision::mpf_float::default_precision(128);
-  std::cout.precision(
-      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+  mpf_set_default_prec(426);  // ~128 decimal digits
+  std::cout.precision(50);
 
   if (result == 0) {
     std::cout << "s UNSATISFIABLE\n";
@@ -210,9 +226,7 @@ void pwmc(d4::ProblemManager *initProblem) {
     std::cout << "s SATISFIABLE\n";
     std::cout << "c s type mc\n";
     std::cout << "c s log10-estimate "
-              << boost::multiprecision::log10(
-                     boost::multiprecision::cpp_dec_float_100(result))
-              << "\n";
+              << log10Estimate(result) << "\n";
     std::cout << "c s exact quadruple int " << result << "\n";
   }
 }  // pwmc
@@ -274,14 +288,13 @@ void pmc(d4::ProblemManager *initProblem) {
   options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::DpllStyleMethod<mpz::mpz_int, mpz::mpz_int> *counter =
-      new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(options, problem,
-                                                      std::cout);
+  d4::DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring> *counter =
+      new DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring>(
+          options, problem, std::cout);
   mpz::mpz_int result = counter->run();
 
-  boost::multiprecision::mpf_float::default_precision(128);
-  std::cout.precision(
-      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+  mpf_set_default_prec(426);  // ~128 decimal digits
+  std::cout.precision(50);
 
   if (result == 0) {
     std::cout << "s UNSATISFIABLE\n";
@@ -292,9 +305,7 @@ void pmc(d4::ProblemManager *initProblem) {
     std::cout << "s SATISFIABLE\n";
     std::cout << "c s type mc\n";
     std::cout << "c s log10-estimate "
-              << boost::multiprecision::log10(
-                     boost::multiprecision::cpp_dec_float_100(result))
-              << "\n";
+              << log10Estimate(result) << "\n";
     std::cout << "c s exact arb int " << result << "\n";
   }
 }  // pmc
@@ -372,14 +383,13 @@ void mc(d4::ProblemManager *initProblem) {
   options.operationType =
       d4::OperationTypeManager::getOperatorType("counting");
 
-  d4::DpllStyleMethod<mpz::mpz_int, mpz::mpz_int> *counter =
-      new DpllStyleMethod<mpz::mpz_int, mpz::mpz_int>(options, problem,
-                                                      std::cout);
+  d4::DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring> *counter =
+      new DpllStyleMethod<mpz::mpz_int, semiring::MpzIntSemiring>(
+          options, problem, std::cout);
   mpz::mpz_int result = counter->run();
 
-  boost::multiprecision::mpf_float::default_precision(128);
-  std::cout.precision(
-      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+  mpf_set_default_prec(426);  // ~128 decimal digits
+  std::cout.precision(50);
 
   if (result == 0) {
     std::cout << "s UNSATISFIABLE\n";
@@ -390,9 +400,7 @@ void mc(d4::ProblemManager *initProblem) {
     std::cout << "s SATISFIABLE\n";
     std::cout << "c s type mc\n";
     std::cout << "c s log10-estimate "
-              << boost::multiprecision::log10(
-                     boost::multiprecision::cpp_dec_float_100(result))
-              << "\n";
+              << log10Estimate(result) << "\n";
     std::cout << "c s exact arb int " << result << "\n";
   }
 }  // mc

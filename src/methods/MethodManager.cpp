@@ -19,9 +19,6 @@
 
 #include "MethodManager.hpp"
 
-#include <boost/multiprecision/cpp_int.hpp>
-#include <boost/multiprecision/gmp.hpp>
-
 #include "DpllStyleMethod.hpp"
 // #include "ExistRandomExist.hpp"
 // #include "MaxSharpSAT.hpp"
@@ -35,7 +32,6 @@
 #include "src/problem/ProblemManager.hpp"
 
 namespace d4 {
-namespace mpz = boost::multiprecision;
 
 /**
  * @brief Display the projected variables in order.

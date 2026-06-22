@@ -20,10 +20,10 @@
 
 #include <fcntl.h>
 
-#include <boost/multiprecision/gmp.hpp>
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <vector>
 
 #define BUFFER_SIZE 65536
 

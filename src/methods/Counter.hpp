@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <boost/multiprecision/gmp.hpp>
 #include <vector>
 
 #include "DpllStyleMethod.hpp"

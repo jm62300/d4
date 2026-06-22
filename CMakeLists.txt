@@ -22,7 +22,6 @@ endif ()
 if (${BUILD_MODE} EQUAL 2)
     # This tells CMake: "When searching for libraries, look for .a BEFORE .so"
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    set(Boost_USE_STATIC_LIBS ON)
 endif()
 
 
@@ -31,9 +30,6 @@ file(GLOB_RECURSE SRCS "./src/*.cpp")
 file(GLOB_RECURSE HEADERS "./src/*.hpp")
 
 # --- 2. Dependencies ---
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost CONFIG REQUIRED)
-
 set(ZLIB_USE_STATIC_LIBS ON)
 set(ZLIB_ROOT /usr)
 
@@ -121,10 +117,6 @@ target_include_directories(d4 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/htd/include>
     ${GMP_INCLUDE_DIR}
 )
-
-if(Boost_INCLUDE_DIRS)
-    target_include_directories(d4 PUBLIC ${Boost_INCLUDE_DIRS})
-endif()
 
 # WIN : D4 find glucose bip before glucose
 target_include_directories(d4 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glucose-3.0") 

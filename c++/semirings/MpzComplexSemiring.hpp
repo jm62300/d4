@@ -18,17 +18,16 @@
  */
 #pragma once
 
-#include <boost/multiprecision/gmp.hpp>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "src/problem/ProblemTypes.hpp"
+#include "src/utils/MpzTypes.hpp"
 
 namespace semiring {
 
-// Your namespace alias
-namespace mpz = boost::multiprecision;
+namespace mpz = d4MpzTypes;
 
 class Complex {
  public:

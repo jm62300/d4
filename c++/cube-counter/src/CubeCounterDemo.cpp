@@ -24,8 +24,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
 #include <cassert>
 #include <chrono>
 #include <iomanip>
@@ -43,7 +41,6 @@
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 
 using namespace d4;
-namespace mpz = boost::multiprecision;
 
 // ---------------------------------------------------------------------------
 // Helpers
