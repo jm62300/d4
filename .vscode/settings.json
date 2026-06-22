@@ -87,7 +87,8 @@
         "c++/compiler/build/_deps/bipe-src/**",
         "c++/projmc/build/_deps/bipe-src/**",
         "3rdParty/htd/include/",
-        "3rdParty/htd/src/"
+        "3rdParty/htd/src/",
+        "3rdParty/optree-src/include/"
     ],
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_fallbackStyle": "Google",
