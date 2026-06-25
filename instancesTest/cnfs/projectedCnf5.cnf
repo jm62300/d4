@@ -1,7 +1,5 @@
-p pcnf 6 2 
-vp 6 2 0
+p cnf 6 2
+c t pmc
+c p show 6 2 0
 -1 4 6 0
 5 2 3 0
-
-
-

@@ -169,10 +169,10 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
     
     switch (formula_.weightType) {
       case parser::WeightType::INT:
-        return countProjMcModels<mpz::mpz_int, semiring::MpzIntSemiring>(
+        return countProjMcModels<d4MpzTypes::mpz_int, semiring::MpzIntSemiring>(
             projMcOptions, problem, out);
       case parser::WeightType::FLOAT:
-        return countProjMcModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
+        return countProjMcModels<d4MpzTypes::mpf_float, semiring::MpzFloatSemiring>(
             projMcOptions, problem, out);
       default:
         break;
@@ -181,10 +181,10 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
 
   switch (formula_.weightType) {
     case parser::WeightType::INT:
-      return countModels<mpz::mpz_int, semiring::MpzIntSemiring>(
+      return countModels<d4MpzTypes::mpz_int, semiring::MpzIntSemiring>(
           options_, problem, out);
     case parser::WeightType::FLOAT:
-      return countModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
+      return countModels<d4MpzTypes::mpf_float, semiring::MpzFloatSemiring>(
           options_, problem, out);
     case parser::WeightType::COMPLEX:
       return countModels<semiring::Complex, semiring::MpzComplexSemiring>(

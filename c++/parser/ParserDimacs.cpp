@@ -85,12 +85,6 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
     } else if (in.currentChar() == 'z') {
       std::cout << "c [PARSER] Read EOF in the file\n";
       break;
-    } else if (in.currentChar() == 'v') {
-      in.consumeChar();
-      if (in.currentChar() == 'p') {
-        in.consumeChar();
-      }
-      in.readListIntTerminatedByZero(showedVars);
     } else if (in.currentChar() == 'c') {
       in.consumeChar();
       in.skipSimpleSpace();
