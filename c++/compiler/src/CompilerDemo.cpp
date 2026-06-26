@@ -21,8 +21,6 @@
 
 #include <signal.h>
 
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
 #include <cassert>
 #include <iomanip>
 
@@ -33,7 +31,6 @@
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 
 using namespace d4;
-namespace mpz = boost::multiprecision;
 
 void compileFormula(const OptionDpllStyleMethod& options,
                     const ProblemManager& problem, const std::string& dumpFile,

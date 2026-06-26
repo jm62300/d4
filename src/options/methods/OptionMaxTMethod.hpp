@@ -23,7 +23,7 @@
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/cache/OptionCacheManager.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
-#include "src/options/solvers/OptionSolver.hpp"
+#include "src/solvers/OptionSolver.hpp"
 
 namespace d4 {
 class OptionMaxTMethod : public OptionRoot {
@@ -36,6 +36,8 @@ class OptionMaxTMethod : public OptionRoot {
 
   /** @brief Search for a first interpretation greedily. */
   Option<bool> greedyInitActivated{"greedyInitActivated", "Search for a first interpretation greedily", false};
+  /** @brief Specify a threshold value as a space-separated string (real value, or "real im" for complex). */
+  Option<std::string> threshold{"threshold", "Threshold value to stop the search as soon as it is reached", ""};
   /** @brief Specify a threshold value as a list of string. */
   std::vector<std::string> thresholdList;
   OptionSolver optionSolver{"solver", "Solver options"};
@@ -53,6 +55,7 @@ class OptionMaxTMethod : public OptionRoot {
   std::vector<OptionBase*> getAllOptions() override {
     auto options = OptionRoot::getAllOptions();
     options.push_back((OptionBase*)&greedyInitActivated);
+    options.push_back((OptionBase*)&threshold);
     options.push_back((OptionBase*)&optionSolver);
     options.push_back((OptionBase*)&optionSpecManager);
     options.push_back((OptionBase*)&phaseHeuristicMax);

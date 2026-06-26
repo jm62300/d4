@@ -18,17 +18,14 @@
  */
 #pragma once
 
-#include "ParserDimacs.hpp"
-#include "src/options/methods/OptionMaxTMethod.hpp"
+#include <gmpxx.h>
 
-/**
- * @brief Run a MaxT solver using the given configuration.
- *
- * Builds the d4::ProblemManager from the parsed formula and dispatches to
- * the complex- or real-weighted MaxT instantiation depending on
- * formula.weightType.
- *
- * @param options is the method configuration.
- * @param formula is the parsed input formula.
- */
-void maxT(const d4::OptionMaxTMethod &options, const parser::Formula &formula);
+// Canonical home for the arbitrary-precision number types, backed directly
+// by gmpxx (already a hard dependency of d4). Every place that used to write
+// "namespace mpz = boost::multiprecision;" now instead aliases this single
+// namespace, so multiple aliasing declarations never create ambiguous
+// distinct namespaces when combined with "using namespace d4;".
+namespace d4MpzTypes {
+using mpz_int = mpz_class;
+using mpf_float = mpf_class;
+}  // namespace d4MpzTypes

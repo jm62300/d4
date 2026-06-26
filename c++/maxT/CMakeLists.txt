@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Set the project name
-project(counter LANGUAGES CXX)
+project(maxT LANGUAGES CXX)
 
-# Specify the C++ standard 
+# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -28,7 +28,8 @@ endif()
 # -------------------------
 
 # ==============================================================================
-# --- bipe library integration ---
+# --- bipe library integration (only used here to make the shared `optree`
+# target available; this demo does not call BiPe preprocessing itself) ---
 # ==============================================================================
 get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
 set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
@@ -50,10 +51,10 @@ get_filename_component(PARSER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parser" ABSOLU
 # Gather Sources
 file(GLOB_RECURSE SRCS "src/*.cpp")
 # Grab the parser source files (ParserDimacs.cpp)
-file(GLOB_RECURSE PARSER_SRCS "${PARSER_DIR}/*.cpp") 
+file(GLOB_RECURSE PARSER_SRCS "${PARSER_DIR}/*.cpp")
 
 # Define the Executable (Now includes the parser sources!)
-add_executable(counter ${SRCS} ${PARSER_SRCS})
+add_executable(maxT ${SRCS} ${PARSER_SRCS})
 
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
@@ -61,7 +62,7 @@ get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" AB
 get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
 get_filename_component(OPTREE_INCLUDE_DIR "${SHARED_3RDPARTY_DIR}/optree-src/include" ABSOLUTE)
 
-target_include_directories(counter PRIVATE 
+target_include_directories(maxT PRIVATE
     ${ROOT_INCLUDES}
     ${ROOT_INCLUDES}/src/include
     ${PARSER_DIR}
@@ -77,32 +78,27 @@ find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
 find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # Adjust this path to point accurately to the 3rdParty/patoh folder from the counter directory
-    # Based on your previous paths, it should look something like this:
+    # Adjust this path to point accurately to the 3rdParty/patoh folder from the maxT directory
     set(PATOH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty/patoh")
 
-    find_library(PATOH_LIBRARY 
-        NAMES patoh libpatoh 
-        PATHS ${PATOH_DIR} 
-        NO_DEFAULT_PATH 
+    find_library(PATOH_LIBRARY
+        NAMES patoh libpatoh
+        PATHS ${PATOH_DIR}
+        NO_DEFAULT_PATH
         REQUIRED
     )
 endif()
 
-
-
 # D4 Library
-find_library(D4_LIB 
+find_library(D4_LIB
     NAMES d4 libd4
     PATHS "${D4_BUILD_DIR}"
     NO_DEFAULT_PATH
     REQUIRED
 )
 
-
-
 # Link Dependencies
-target_link_libraries(counter PRIVATE 
+target_link_libraries(maxT PRIVATE
     ${D4_LIB}
     bipe
     optree
@@ -112,20 +108,20 @@ target_link_libraries(counter PRIVATE
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(counter PRIVATE ${PATOH_LIBRARY})
+    target_link_libraries(maxT PRIVATE ${PATOH_LIBRARY})
 endif()
 
 # Apply Target-Specific Flags
 if(BUILD_STATIC)
-    target_compile_definitions(counter PRIVATE NDEBUG)
+    target_compile_definitions(maxT PRIVATE NDEBUG)
     if(NOT MSVC)
-        target_link_options(counter PRIVATE -static)
+        target_link_options(maxT PRIVATE -static)
     endif()
 endif()
 
 if(BUILD_PROFILE)
     if(NOT MSVC)
-        target_compile_options(counter PRIVATE -pg -g)
-        target_link_options(counter PRIVATE -pg -g) 
+        target_compile_options(maxT PRIVATE -pg -g)
+        target_link_options(maxT PRIVATE -pg -g)
     endif()
 endif()

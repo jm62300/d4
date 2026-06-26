@@ -27,8 +27,11 @@ if(NOT MSVC)
     find_library(GMPXX_LIBRARY NAMES gmpxx libgmpxx REQUIRED)
 endif()
 
-# Find Boost
-find_package(Boost REQUIRED)
+
+
+# Set FetchContent base directory to the shared 3rdParty directory
+get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty" ABSOLUTE)
+set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
 
 # Fetch optree (header-only library)
 include(FetchContent)
@@ -66,12 +69,14 @@ add_executable(test_api
     test_api.cpp 
     "${ROOT_DIR}/api/solver/Solver.cpp" 
     "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
+    "${ROOT_DIR}/c++/parser/ParserCircuit.cpp"
 )
 
 add_executable(test_crash_19 
     test_crash_19.cpp 
     "${ROOT_DIR}/api/solver/Solver.cpp" 
     "${ROOT_DIR}/c++/parser/ParserDimacs.cpp"
+    "${ROOT_DIR}/c++/parser/ParserCircuit.cpp"
 )
 
 add_executable(test_circuit_api 
@@ -116,13 +121,7 @@ target_include_directories(test_projmc_api PRIVATE
     ${ROOT_DIR}
     ${GMP_INCLUDE_DIR}
 )
-if(Boost_INCLUDE_DIRS)
-    target_include_directories(test_api PRIVATE ${Boost_INCLUDE_DIRS})
-    target_include_directories(test_crash_19 PRIVATE ${Boost_INCLUDE_DIRS})
-    target_include_directories(test_circuit_api PRIVATE ${Boost_INCLUDE_DIRS})
-    target_include_directories(test_wmc_api PRIVATE ${Boost_INCLUDE_DIRS})
-    target_include_directories(test_projmc_api PRIVATE ${Boost_INCLUDE_DIRS})
-endif()
+
 
 # Link everything
 if (MSVC)

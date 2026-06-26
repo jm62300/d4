@@ -24,7 +24,7 @@ _d4_completions()
 }
 
 # Associe la fonction d'autocomplétion à tous les exécutables D4
-for bin in counter compiler maxT qbfCounter server competition demoSave; do
+for bin in counter compiler maxT qbfCounter server demoSave; do
     complete -o default -F _d4_completions "$bin"
     complete -o default -F _d4_completions "./$bin"
     complete -o default -F _d4_completions "build/$bin"

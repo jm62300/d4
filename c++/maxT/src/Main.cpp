@@ -18,29 +18,23 @@
  */
 #include <signal.h>
 
-#include <boost/multiprecision/gmp.hpp>
-#include <boost/program_options.hpp>
-#include <cassert>
 #include <chrono>
-#include <ctime>
+#include <filesystem>
 #include <iostream>
-#include <vector>
 
 #include "MaxTSolver.hpp"
-#include "ParseOption.hpp"
-#include "src/options/Option.hpp"
+#include "ParserDimacs.hpp"
 #include "src/methods/MethodManager.hpp"
-#include "src/options/preprocs/OptionPreprocManager.hpp"
-#include "src/preprocs/PreprocManager.hpp"
+#include "src/options/methods/OptionMaxTMethod.hpp"
 
-#ifndef NOMAIN
+namespace fs = std::filesystem;
 
 using namespace d4;
-namespace po = boost::program_options;
 MethodManager* methodRun = nullptr;
 
 /**
- * @brief Catch the signal that ask for stopping the method which is running.
+ * @brief Catch the signal that asks for stopping the method which is
+ * running.
  *
  * @param signum is the signal.
  */
@@ -51,69 +45,70 @@ static void signalHandler(int signum) {
 }  // signalHandler
 
 /**
-   The main function!
+   The main function.
+
+   Usage: maxT -i INPUT [-h]
+
+   -i INPUT   Path to the input DIMACS file (required).
 */
 int main(int argc, char** argv) {
   auto start = std::chrono::system_clock::now();
-  po::options_description desc{"Options"};
-  desc.add_options()
-#include "option.dsc"
-      ;
 
   signal(SIGINT, signalHandler);
-  po::variables_map vm;
-  po::store(parse_command_line(argc, argv, desc), vm);
 
-  try {
-    po::notify(vm);
-  } catch (const po::error& ex) {
-    std::cerr << ex.what() << '\n';
-    exit(1);
+  std::string inputPath;
+  bool showHelp = false;
+
+  // simple manual scan for launcher options (optree options only expose
+  // long flags, so -i/-h are handled here).
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "-h" || arg == "--help") {
+      showHelp = true;
+    } else if ((arg == "-i" || arg == "--input") && i + 1 < argc) {
+      inputPath = argv[++i];
+    }
   }
 
-  // help or problem with the command line
-  if (vm.count("help") || !vm.count("input")) {
-    if (!vm.count("help"))
-      std::cout << "Some parameters are missing, please read the README\n";
-    std::cout << "USAGE: " << argv[0] << " -i INPUT [OPTIONS]\n";
-    std::cout << desc << '\n';
-    exit(!vm.count("help"));
+  d4::OptionMaxTMethod options;
+  d4::OptionRegistry registry;
+  options.registerTo(registry);
+  registry.parseArgv(argc, argv);
+
+  if (showHelp || inputPath.empty()) {
+    if (!showHelp && inputPath.empty())
+      std::cerr << "Missing required argument: -i INPUT\n";
+
+    std::cout << "USAGE: " << argv[0] << " -i INPUT [Overrides...]\n"
+              << "  -i, --input   Path to the input DIMACS file (required)\n"
+              << "  -h, --help    Show this help screen\n";
+
+    registry.displayHelp(std::cout);
+
+    return showHelp ? 0 : 1;
   }
 
-  // parse the initial problem.
-  d4::ProblemManager* initProblem = d4::ProblemManager::makeProblemManager(
-      vm["input"].as<std::string>(),
-      d4::ProblemInputTypeManager::getInputType(
-          vm["input-type"].as<std::string>()),
-      std::cout);
-  assert(initProblem);
+  if (!fs::exists(inputPath)) {
+    std::cerr << "ERROR! Input file does not exist: " << inputPath << "\n";
+    return 1;
+  }
+
+  parser::Formula formula;
+  parser::ParserDimacs parserDimacs;
+  parserDimacs.parse_DIMACS(inputPath, formula);
+
   std::cout << "c [INITIAL INPUT] \033[4m\033[32mStatistics about the input "
                "formula\033[0m\n";
-  initProblem->displayStat(std::cout, "c [INITIAL INPUT] ");
+  std::cout << "c [INITIAL INPUT] nbVar(" << formula.nbVar << ") nbClauses("
+            << formula.clauses.size() << ")\n";
   std::cout << "c\n";
 
-  // run the method asked.
-  d4::MethodName methodName = d4::resolve_enum<d4::MethodName>("counting");
-
-  // preproc.
-  /*
-  d4::ConfigurationPeproc configPreproc = parsePreprocConfiguration(vm);
-  configPreproc.inputType = initProblem->getProblemType();
-  ProblemManager* problem =
-      d4::MethodManager::runPreproc(configPreproc, initProblem, std::cout);
-  */
-  ProblemManager* problem = initProblem;
-
-  // count.
-  problem->displayStat(std::cout, "c [AFTER PREPROC] ");
-  maxT(vm, problem);
+  maxT(options, formula);
 
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
   std::cout << "c [MAX-T] Elapsed time: " << elapsed_seconds.count()
             << " seconds\n";
 
-  delete initProblem;
   return EXIT_SUCCESS;
 }  // main
-#endif

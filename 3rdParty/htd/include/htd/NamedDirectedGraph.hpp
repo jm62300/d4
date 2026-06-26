@@ -59,7 +59,7 @@ namespace htd
              *
              *  @param[in] original  The original directed graph.
              */
-            NamedDirectedGraph(const NamedDirectedGraph<VertexNameType, EdgeNameType> & original) : base_(original.base_->clone()), names_(original.nameLabeling_), vertexCreationFunction_(std::bind(&htd::IMutableLabeledDirectedGraph::addVertex, base_))
+            NamedDirectedGraph(const NamedDirectedGraph<VertexNameType, EdgeNameType> & original) : base_(original.base_->clone()), names_(original.names_), vertexCreationFunction_(std::bind(&htd::IMutableLabeledDirectedGraph::addVertex, base_))
             {
 
             }

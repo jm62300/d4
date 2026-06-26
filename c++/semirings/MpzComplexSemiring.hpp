@@ -18,17 +18,18 @@
  */
 #pragma once
 
-#include <boost/multiprecision/gmp.hpp>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "src/problem/ProblemTypes.hpp"
+#include "src/utils/MpzTypes.hpp"
 
 namespace semiring {
 
-// Your namespace alias
-namespace mpz = boost::multiprecision;
+namespace mpz = d4MpzTypes;
 
 class Complex {
  public:
@@ -51,9 +52,13 @@ class Complex {
       elements.push_back(current_word);
     }
 
-    assert(elements.size() == 2);
+    // A formula can mix plain real weights ("c p weight", one token) with
+    // true complex pairs ("c p complex", two tokens) on literals of the same
+    // (complex-typed) formula; a lone token means an implicit zero imaginary
+    // part.
+    assert(elements.size() == 1 || elements.size() == 2);
     real = mpz::mpf_float(elements[0]);
-    im = mpz::mpf_float(elements[1]);
+    im = (elements.size() == 2) ? mpz::mpf_float(elements[1]) : mpz::mpf_float(0);
   }
 
   Complex& operator+=(Complex const& obj) {

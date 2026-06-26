@@ -39,11 +39,10 @@
 #include "src/heuristics/partialOrder/PartialOrderHeuristic.hpp"
 #include "src/heuristics/phaseSelection/PhaseHeuristic.hpp"
 #include "src/heuristics/scoringVariable/ScoringMethod.hpp"
-#include "src/methods/nnf/Node.hpp"
 #include "src/options/branchingHeuristic/OptionBranchingHeuristic.hpp"
 #include "src/options/formulaManager/OptionFormulaManager.hpp"
 #include "src/options/methods/OptionMaxTMethod.hpp"
-#include "src/options/solvers/OptionSolver.hpp"
+#include "src/solvers/OptionSolver.hpp"
 #include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 #include "src/solvers/WrapperSolver.hpp"
@@ -97,6 +96,7 @@ class MaxT : public MethodManager {
   std::vector<bool> m_isProjectedVariable;
   std::vector<bool> m_isMaxDecisionVariable;
   std::vector<unsigned> m_redirectionPos;
+  std::vector<Var> m_maxVars;
   unsigned m_countUpdateMaxCount = 0;
 
   const unsigned c_sizePage = 1 << 25;
@@ -178,7 +178,7 @@ class MaxT : public MethodManager {
         options.optionBranchingHeuristicMax, *m_specs, *m_solver, m_out);
 
     m_heuristicInd = BranchingHeuristic::makeBranchingHeuristic(
-        options.optionBranchingHeuristicInd, m_problem, m_specs, *m_solver,
+        options.optionBranchingHeuristicInd, *m_problem, m_specs, *m_solver,
         *m_solver, m_out);
 
     // specify which variables are decisions, and which are not.
@@ -187,19 +187,23 @@ class MaxT : public MethodManager {
     m_isMaxDecisionVariable.clear();
     m_isProjectedVariable.clear();
 
+    const auto& quant = m_problem->getQuantification();
+    m_maxVars = quant.size() > 0 ? quant[0] : std::vector<Var>{};
+    std::vector<Var> indVars = quant.size() > 1 ? quant[1] : std::vector<Var>{};
+
     m_redirectionPos.resize(m_problem->getNbVar() + 1, 0);
     m_isDecisionVariable.resize(m_problem->getNbVar() + 1, false);
     m_isProjectedVariable.resize(m_problem->getNbVar() + 1, false);
-    for (unsigned i = 0; i < m_problem->getIndVar().size(); i++) {
-      Var v = m_problem->getIndVar()[i];
+    for (unsigned i = 0; i < indVars.size(); i++) {
+      Var v = indVars[i];
       m_isDecisionVariable[v] = true;
       m_redirectionPos[v] = i;
       m_isProjectedVariable[v] = true;
     }
 
     m_isMaxDecisionVariable.resize(m_problem->getNbVar() + 1, false);
-    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
-      Var v = m_problem->getMaxVar()[i];
+    for (unsigned i = 0; i < m_maxVars.size(); i++) {
+      Var v = m_maxVars[i];
       m_isMaxDecisionVariable[v] = true;
       m_redirectionPos[v] = i;
     }
@@ -225,7 +229,7 @@ class MaxT : public MethodManager {
     // init the memory required for storing interpretation.
     m_memoryPages.push_back(new uint8_t[c_sizePage]);
     m_posInMemoryPages = 0;
-    m_sizeArray = computeSizeArray(m_problem->getMaxVar().size());
+    m_sizeArray = computeSizeArray(m_maxVars.size());
 
     // set the m_scale variable if needed.
     out << "c [MAXT] The size of the valuation array is: " << m_sizeArray
@@ -319,9 +323,9 @@ class MaxT : public MethodManager {
 
     assert(solution.valuation);
     std::cout << "v ";
-    for (unsigned i = 0; i < m_problem->getMaxVar().size(); i++) {
+    for (unsigned i = 0; i < m_maxVars.size(); i++) {
       std::cout << ((getBit(solution.valuation, i)) ? "" : "-")
-                << m_problem->getMaxVar()[i] << " ";
+                << m_maxVars[i] << " ";
     }
     std::cout << "0\n";
     std::cout << status << " " << std::fixed << std::setprecision(50)
@@ -561,12 +565,11 @@ class MaxT : public MethodManager {
     m_nbCallCall++;
 
     // is the problem still satisfiable?
-    if (!m_solver->solve(setOfVar)) {
+    if (!m_solver->solve(setOfVar, unitsLit)) {
       result = {m_aggregator.sumIdentity(), NULL};
       return;
     }
 
-    m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -769,9 +772,8 @@ class MaxT : public MethodManager {
     showRun(out);
     m_nbCallProj++;
 
-    if (!m_solver->solve(setOfVar)) return m_aggregator.sumIdentity();
+    if (!m_solver->solve(setOfVar, unitsLit)) return m_aggregator.sumIdentity();
 
-    m_solver->whichAreUnits(setOfVar, unitsLit);  // collect unit literals
     m_specs->preUpdate(unitsLit);
 
     // compute the connected composant
@@ -838,7 +840,7 @@ class MaxT : public MethodManager {
         m_solver->popAssumption();
         assert(!m_specs->varIsAssigned(lits[i - 1].var()));
         m_solver->pushAssumption(~lits[i - 1]);
-        if (lits.size() > 1 && !m_solver->solve(connected)) break;
+        if (lits.size() > 1 && !m_solver->solve(connected, b.unitLits)) break;
       }
 
       if (i != lits.size()) {
@@ -900,9 +902,9 @@ class MaxT : public MethodManager {
   }  // interrupt
 
   /**
-   * @brief Search for the instantiation of the variables of
-   * m_problem->getMaxVar() that maximize the number of the remaining
-   * variables where the variables not belonging to m_problem->getIndVar()
+   * @brief Search for the instantiation of the max variables (quantification
+   * block 0) that maximize the number of the remaining variables where the
+   * variables not belonging to the ind variables (quantification block 1)
    * are existantially quantified.
    *
    */

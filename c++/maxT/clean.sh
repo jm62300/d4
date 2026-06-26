@@ -6,12 +6,12 @@ set -u
 
 echo "c [CLEAN] Starting cleanup process..."
 
-# 1. Clean the local 'counter' build directory
+# 1. Clean the local 'maxT' build directory
 if [ -d "build" ]; then
-    echo "c [CLEAN] Removing local 'counter' build directory..."
+    echo "c [CLEAN] Removing local 'maxT' build directory..."
     rm -rf build/
 else
-    echo "c [CLEAN] Local 'counter' build directory already clean."
+    echo "c [CLEAN] Local 'maxT' build directory already clean."
 fi
 
 # 2. Clean the parent 'd4' project

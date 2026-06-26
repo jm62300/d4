@@ -22,7 +22,6 @@ endif ()
 if (${BUILD_MODE} EQUAL 2)
     # This tells CMake: "When searching for libraries, look for .a BEFORE .so"
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    set(Boost_USE_STATIC_LIBS ON)
 endif()
 
 
@@ -31,10 +30,9 @@ file(GLOB_RECURSE SRCS "./src/*.cpp")
 file(GLOB_RECURSE HEADERS "./src/*.hpp")
 
 # --- 2. Dependencies ---
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost CONFIG REQUIRED)
-
-set(ZLIB_USE_STATIC_LIBS ON)
+    if(CMAKE_PROJECT_NAME STREQUAL "D4")
+        set(ZLIB_USE_STATIC_LIBS ON)
+    endif()
 set(ZLIB_ROOT /usr)
 
 find_package(ZLIB REQUIRED)
@@ -87,6 +85,7 @@ target_compile_definitions(htd PRIVATE NDEBUG)
 # ==============================================================================
 # --- optree library integration ---
 # ==============================================================================
+set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty" CACHE PATH "Directory for FetchContent" FORCE)
 include(FetchContent)
 set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
 if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
@@ -94,8 +93,7 @@ if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
 endif()
 FetchContent_Declare(
     optree
-    GIT_REPOSITORY ${OPTREE_GIT_URL}
-    GIT_TAG        main
+    SOURCE_DIR "/home/jm/dev/cnrs/d4/d4/3rdParty/optree-src"
 )
 FetchContent_MakeAvailable(optree)
 
@@ -120,10 +118,6 @@ target_include_directories(d4 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/htd/include>
     ${GMP_INCLUDE_DIR}
 )
-
-if(Boost_INCLUDE_DIRS)
-    target_include_directories(d4 PUBLIC ${Boost_INCLUDE_DIRS})
-endif()
 
 # WIN : D4 find glucose bip before glucose
 target_include_directories(d4 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glucose-3.0") 

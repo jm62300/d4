@@ -19,9 +19,10 @@
 
 #include "ProjMcCounter.hpp"
 
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
+#include <gmpxx.h>
+
 #include <cassert>
+#include <cmath>
 #include <iomanip>
 #include <limits>
 
@@ -30,6 +31,22 @@
 #include "src/methods/ProjMCMethod.hpp"
 
 using namespace d4;
+
+namespace {
+// log10 of a (possibly huge) arbitrary-precision value, computed without
+// transcendental support from GMP by decomposing the value as d*2^exp first.
+double log10Estimate(const mpz_class& n) {
+  signed long int exp2;
+  double d = mpz_get_d_2exp(&exp2, n.get_mpz_t());
+  return std::log10(d) + exp2 * std::log10(2.0);
+}
+
+double log10Estimate(const mpf_class& n) {
+  signed long int exp2;
+  double d = mpf_get_d_2exp(&exp2, n.get_mpf_t());
+  return std::log10(d) + exp2 * std::log10(2.0);
+}
+}  // namespace
 
 template <typename T, typename O>
 void runProjMc(const OptionProjMcMethod& options, const ProblemManager& problem,
@@ -43,9 +60,8 @@ void runProjMc(const OptionProjMcMethod& options, const ProblemManager& problem,
   auto* counter = new ProjMCMethod<T, O>(options, problem, std::cout);
   T result = counter->run();
 
-  boost::multiprecision::mpf_float::default_precision(128);
-  std::cout.precision(
-      std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+  mpf_set_default_prec(426);  // ~128 decimal digits
+  std::cout.precision(50);
 
   if (outFormat == "competition") {
     if (result == T(0)) {
@@ -56,10 +72,7 @@ void runProjMc(const OptionProjMcMethod& options, const ProblemManager& problem,
     } else {
       std::cout << "s SATISFIABLE\n";
       std::cout << "c " << format << "\n";
-      std::cout << "c s log10-estimate "
-                << boost::multiprecision::log10(
-                       boost::multiprecision::cpp_dec_float_100(result))
-                << "\n";
+      std::cout << "c s log10-estimate " << log10Estimate(result) << "\n";
       if (isFloat)
         std::cout << "c s exact quadruple int " << result << "\n";
       else

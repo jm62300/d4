@@ -16,39 +16,22 @@
  * along with this library; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
-
 #pragma once
+
+#include <iostream>
 #include <vector>
 
-#include "DpllStyleMethod.hpp"
-#include "SemiringConcept.hpp"
-#include "src/options/methods/OptionDpllStyleMethod.hpp"
+#include "src/problem/ProblemManager.hpp"
 #include "src/problem/ProblemTypes.hpp"
 
 namespace d4 {
-template <NumberType T, SemiringPolicy<T> O>
-class DpllStyleMethod;
-
 template <class T>
-class Counter {
+class DataBranch {
  public:
-  virtual ~Counter() {}
+  T d;
+  std::vector<Lit> unitLits;
+  std::vector<Var> freeVars;
 
-  virtual T count(std::vector<Var>& setOfVar, std::vector<Lit>& assumption,
-                  std::ostream& out) = 0;
-
-  /**
-     Count the number of model on the problem.
-
-     @param[in] setOfvar, the set of variables involved in the considered
-     problem.
-     @param[in] out, the stream where are print out the log.
-
-     \return the number of models.
-   */
-  T count(std::vector<Var>& setOfVar, std::ostream& out) {
-    std::vector<Lit> assum;
-    return count(setOfVar, assum, out);
-  }
+  inline unsigned sumFreeUnit() { return unitLits.size() + freeVars.size(); }
 };
 }  // namespace d4

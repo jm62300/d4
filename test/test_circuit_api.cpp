@@ -3,26 +3,13 @@
 #include <sstream>
 #include <fstream>
 #include <cassert>
-#include "c++/parser/ParserCircuit.hpp"
 #include "api/solver/Solver.hpp"
 #include "api/result/SolverResult.hpp"
 
 int main() {
   std::string inputPath = "instancesTest/circuits/test.bc";
-  std::cout << "Reading circuit file: " << inputPath << std::endl;
-
-  parser::Formula formula;
-  parser::ParserCircuit parserCircuit;
-  try {
-    parserCircuit.parse_circuit(inputPath, formula);
-    std::cout << formula << std::endl;
-  } catch (const std::exception& e) {
-    std::cerr << "Failed to parse circuit: " << e.what() << std::endl;
-    return 1;
-  }
-
   std::cout << "Creating Solver for circuit..." << std::endl;
-  d4::api::Solver solver(formula);
+  d4::api::Solver solver(inputPath);
 
   std::cout << "Running direct model counting on circuit..." << std::endl;
   std::stringstream countLog;
@@ -57,6 +44,20 @@ int main() {
   std::cout << "Query empty assumptions count: " << compileResult->count(queryEmpty) << " (Expected: 15)" << std::endl;
   assert(compileResult->count(queryEmpty) == "15");
   assert(compileResult->isSAT(queryEmpty) == true);
+
+  std::cout << "\nCreating Solver for circuit programmatically using gates..." << std::endl;
+  std::vector<d4::api::Gate> gates = {
+    {d4::api::GateType::CLAUSE, {1}, 0, 0},
+    {d4::api::GateType::OR, {5, 4}, 6, 0},
+    {d4::api::GateType::OR, {3, 2}, 7, 0},
+    {d4::api::GateType::OR, {6, 7}, 1, 0}
+  };
+  d4::api::Solver programSolver(gates, 7);
+  std::stringstream progCountLog;
+  std::unique_ptr<d4::api::CountResult> progCountResult = programSolver.count(progCountLog);
+
+  std::cout << "Programmatic circuit model count: " << progCountResult->getResult() << std::endl;
+  assert(progCountResult->getIntResult() == 15);
 
   std::cout << "\nAll Circuit API tests passed successfully!" << std::endl;
   return 0;

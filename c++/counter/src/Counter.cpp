@@ -21,8 +21,8 @@
 
 #include <signal.h>
 
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
+#include <gmpxx.h>
+
 #include <cassert>
 #include <iomanip>
 
@@ -49,9 +49,8 @@ void countModels(const OptionDpllStyleMethod& options,
   T result = counter->run();
 
   if (outFormat == "competition") {
-    boost::multiprecision::mpf_float::default_precision(128);
-    std::cout.precision(
-        std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+    mpf_set_default_prec(426);  // ~128 decimal digits
+    std::cout.precision(50);
 
     if (result == T(0)) {
       std::cout << "s UNSATISFIABLE\n";
@@ -71,9 +70,8 @@ void countModels(const OptionDpllStyleMethod& options,
     exit(0);  // stop faster than cleaning the memory!
   } else {
     assert(outFormat == "classic");
-    boost::multiprecision::mpf_float::default_precision(128);
-    std::cout.precision(
-        std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
+    mpf_set_default_prec(426);  // ~128 decimal digits
+    std::cout.precision(50);
 
     std::cout << format << " ";
     std::cout << result << "\n";

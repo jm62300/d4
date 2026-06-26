@@ -3,12 +3,28 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <map>
+#include <string>
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/problem/ProblemTypes.hpp"
-#include "c++/parser/ParserDimacs.hpp"
 #include "api/result/SolverResult.hpp"
 
+namespace parser {
+struct Formula;
+}
+
 namespace d4::api {
+
+enum class WeightType { INT, FLOAT, COMPLEX };
+
+enum class GateType { AND, OR, XOR, ATMOST, IDENTITY, CLAUSE };
+
+struct Gate {
+  GateType gateType;
+  std::vector<int> inputs;
+  int output = 0;
+  int threshold = 0;
+};
 
 /**
  * @brief Class for solving and compiling a formula using configured options, designed for the API and wrappers.
@@ -16,12 +32,31 @@ namespace d4::api {
 class Solver {
  public:
   /**
-   * @brief Construct a Solver with a pre-parsed formula.
+   * @brief Construct a Solver with logic gates representing a Boolean Circuit.
    *
-   * @param formula     The parsed input formula.
+   * @param gates       The gates of the Boolean Circuit.
+   * @param nbVars      The number of variables (if 0, it will be auto-detected from gates).
    * @param config      The DPLL method configuration (defaults to default settings).
    */
-  Solver(const parser::Formula& formula,
+  Solver(const std::vector<Gate>& gates, int nbVars = 0,
+         const d4::OptionDpllStyleMethod& config = d4::OptionDpllStyleMethod());
+  /**
+   * @brief Construct a Solver with clauses and number of variables.
+   *
+   * @param clauses     The clauses of the CNF formula.
+   * @param nbVars      The number of variables (if 0, it will be auto-detected from clauses).
+   * @param config      The DPLL method configuration (defaults to default settings).
+   */
+  Solver(const std::vector<std::vector<int>>& clauses, int nbVars = 0,
+         const d4::OptionDpllStyleMethod& config = d4::OptionDpllStyleMethod());
+
+  /**
+   * @brief Construct a Solver from a DIMACS (.cnf) or circuit (.bc) file.
+   *
+   * @param filepath    The path to the DIMACS or circuit file.
+   * @param config      The DPLL method configuration (defaults to default settings).
+   */
+  Solver(const std::string& filepath,
          const d4::OptionDpllStyleMethod& config = d4::OptionDpllStyleMethod());
 
   /**
@@ -37,24 +72,12 @@ class Solver {
   void setOptions(const d4::OptionDpllStyleMethod& config);
 
   /**
-   * @brief Get the parsed formula.
-   * @return The parsed input formula.
-   */
-  const parser::Formula& getFormula() const;
-
-  /**
-   * @brief Set the parsed formula.
-   * @param formula The parsed input formula.
-   */
-  void setFormula(const parser::Formula& formula);
-
-  /**
    * @brief Set weights for literals to perform Weighted Model Counting.
    *
    * @param weights     A map of DIMACS literal integers (e.g. 1, -1) to their weight string representations.
    * @param type        The weight type (INT, FLOAT, or COMPLEX, default FLOAT).
    */
-  void setWeights(const std::map<int, std::string>& weights, parser::WeightType type = parser::WeightType::FLOAT);
+  void setWeights(const std::map<int, std::string>& weights, WeightType type = WeightType::FLOAT);
 
   /**
    * @brief Set the variables to project on for Projected Model Counting.
@@ -89,11 +112,16 @@ class Solver {
    */
   std::unique_ptr<CompileResult> compile(std::ostream& out = std::cout);
 
+  /**
+   * @brief Destructor.
+   */
+  ~Solver();
+
  private:
   std::vector<d4::BcGate> buildGates() const;
 
   d4::OptionDpllStyleMethod options_;
-  parser::Formula formula_;
+  std::unique_ptr<parser::Formula> formula_;
   bool refinement_ = true;
 };
 

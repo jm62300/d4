@@ -4,30 +4,16 @@
 #include <fstream>
 #include <cassert>
 #include <cmath>
-#include "c++/parser/ParserDimacs.hpp"
 #include "api/solver/Solver.hpp"
 #include "api/result/SolverResult.hpp"
 
 int main() {
   std::cout << "Creating a simple 3-variable CNF formula..." << std::endl;
   // Formula: (x1 v x2) ^ (~x2 v x3)
-  std::string cnfData = 
-      "p cnf 3 2\n"
-      "1 2 0\n"
-      "-2 3 0\n";
-
-  parser::Formula formula;
-  parser::ParserDimacs parserDimacs;
-  try {
-    parserDimacs.parse_DIMACS_from_data(cnfData, formula);
-    std::cout << formula << std::endl;
-  } catch (const std::exception& e) {
-    std::cerr << "Failed to parse formula: " << e.what() << std::endl;
-    return 1;
-  }
+  std::vector<std::vector<int>> clauses = {{1, 2}, {-2, 3}};
 
   std::cout << "Creating Solver and configuring projection variables programmatically..." << std::endl;
-  d4::api::Solver solver(formula);
+  d4::api::Solver solver(clauses, 3);
 
   // Set projection variables to {1, 3}
   solver.setProjectionVariables({1, 3});
@@ -43,7 +29,7 @@ int main() {
   std::stringstream countLog;
   std::unique_ptr<d4::api::CountResult> countResult = solver.count(countLog);
 
-  unsigned long directCount = countResult->getIntResult().convert_to<unsigned long>();
+  unsigned long directCount = countResult->getIntResult().get_ui();
   std::cout << "Direct ProjMC Result: " << directCount << " (Expected: 3)" << std::endl;
   assert(directCount == 3);
 

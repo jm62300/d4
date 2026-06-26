@@ -9,8 +9,8 @@ SOLVER="$ROOT_PATH/minisat"
 $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
-MODEL_COUNTER="./d4ScriptsCompetition/bin/d4_static -m counting -i"
-PREPROC="../build/d4_debug -m counting --preproc-timeout 1 -i"
+MODEL_COUNTER="./build/counter -m counting -i"
+PREPROC="./build/counter -m counting --preproc-timeout 1 -i"
 
 
 
