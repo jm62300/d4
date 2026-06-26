@@ -61,6 +61,17 @@ static void runPreproc(parser::Formula& formula,
 
   preprocManager.run(formula.nbVar, formula.clauses, projected, varProtected,
                      optionPreproc);
+
+  // Reflect the (possibly narrowed) projected set back into the formula so the
+  // counter performs projected model counting whenever preprocessing shrank the
+  // scope below all variables (e.g. --preproc.project-on-input narrows it to the
+  // bipartition input set). When the scope still covers every variable this
+  // clears the quantification so standard model counting is used.
+  if (formula.quantifications.empty()) formula.quantifications.emplace_back();
+  if (projected.size() < formula.nbVar)
+    formula.quantifications[0] = projected;
+  else
+    formula.quantifications[0].clear();
 }  // runPreproc
 
 /**

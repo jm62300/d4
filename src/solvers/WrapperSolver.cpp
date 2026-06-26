@@ -88,7 +88,9 @@ bool WrapperSolver::solve(std::span<const Var> setOfVar,
   }
 
   if (res == l_Undef) {
-    if (m_cadical.redundant() > (int64_t)(m_cadicalRedundantFactor * m_initClauses.size())) rebuildCadical();
+    if (m_cadical.redundant() >
+        (int64_t)(m_cadicalRedundantFactor * m_initClauses.size()))
+      rebuildCadical();
 
     m_cadical.reset_assumptions();
     for (auto& l : m_assumption) m_cadical.assume(l.human());
@@ -96,7 +98,8 @@ bool WrapperSolver::solve(std::span<const Var> setOfVar,
     m_activeModel = m_cadical.solve() == 10;
     if (!m_activeModel) return false;
 
-    for (auto v : setOfVar) m_model[v] = m_cadical.val(v) > 0 ? l_True : l_False;
+    for (auto v : setOfVar)
+      m_model[v] = m_cadical.val(v) > 0 ? l_True : l_False;
     onCadicalSat(setOfVar);
   } else {
     m_activeModel = true;

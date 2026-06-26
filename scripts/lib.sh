@@ -182,9 +182,8 @@ fuzz_loop() {
 
     while true; do
         printf "tested: %-6d  bugs: %d\r" "$cpt" "$((nbBugs - 1))"
-        eval "$generator"        
-        timeout "$timeout" bash "$oracle" /tmp/fuzz_test.cnf "${oracle_args[@]}" \
-            > /dev/null 2>/dev/null
+        eval "$generator"                
+        timeout "$timeout" bash "$oracle" /tmp/fuzz_test.cnf "${oracle_args[@]}" > /dev/null 2>/dev/null
         code=$?
 
         [ $code -ne 124 ] && ((cpt++))

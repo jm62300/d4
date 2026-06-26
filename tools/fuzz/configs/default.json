@@ -1,250 +1,250 @@
 {
- "global": {
-  "scripts_dir": "scripts",
-  "fuzz_dir": "tools/fuzz",
-  "save_dir": "/tmp/fuzz_bugs",
-  "workers": 1
- },
- "suites": [
-  {
-   "name": "plain_counting",
-   "description": "Plain model counting correctness",
-   "generator": {
-    "type": "cnf_plain",
-    "max_vars": 100
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/d4_static -m counting -i",
-    "result_pattern": "^s (.+)"
-   },
-   "evaluated": [
-    {
-     "name": "counter",
-     "command": "c++/counter/build/counter -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
+  "global": {
+    "scripts_dir": "scripts",
+    "fuzz_dir": "tools/fuzz",
+    "save_dir": "/tmp/fuzz_bugs",
+    "workers": 1
   },
-  {
-   "name": "projected_counting",
-   "description": "Projected model counting correctness",
-   "generator": {
-    "type": "cnf_projected",
-    "max_vars": 50
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/d4_static -m counting -i",
-    "result_pattern": "^s (.+)"
-   },
-   "evaluated": [
+  "suites": [
     {
-     "name": "counter",
-     "command": "c++/counter/build/counter -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "weighted_counting",
-   "description": "Weighted (real) model counting correctness",
-   "generator": {
-    "type": "cnf_weighted",
-    "max_vars": 50
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/d4_static -m counting -f 1 --output-format competition -i",
-    "result_pattern": "c s exact quadruple int (.+)",
-    "tolerance": 1e-06
-   },
-   "evaluated": [
-    {
-     "name": "counter",
-     "command": "c++/counter/build/counter -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "complex_counting",
-   "description": "Weighted (complex) model counting correctness \u2014 oracle: ganak --mode 6",
-   "generator": {
-    "type": "cnf_complex",
-    "max_vars": 300
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/ganak --mode 6",
-    "result_pattern": "^c s exact arb cpx (.+)",
-    "tolerance": 1e-06
-   },
-   "evaluated": [
-    {
-     "name": "counter",
-     "command": "c++/counter/build/counter -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "maxsharpsat",
-   "description": "Max#SAT correctness",
-   "generator": {
-    "type": "cnf_maxsharpsat",
-    "max_vars": 30
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/d4_static -m max-sharpsat -i",
-    "result_pattern": "^s (.+)"
-   },
-   "evaluated": [
-    {
-     "name": "maxT",
-     "command": "c++/maxT/build/maxT -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "compiler_crash",
-   "description": "decision-DNNF compiler crash detection",
-   "generator": {
-    "type": "cnf_plain",
-    "max_vars": 100
-   },
-   "oracle": {
-    "type": "crash"
-   },
-   "evaluated": [
-    {
-     "name": "compiler",
-     "command": "c++/compiler/build/compiler -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "circuit_gen_correctness",
-   "description": "Circuit model counting correctness: compare new counter (circuit mode) against counter_static reference",
-   "generator": {
-    "type": "circuit_gen",
-    "extra": {
-     "max_inputs": 15,
-     "max_gates": 25,
-     "polarity_prob": 0.5,
-     "or_prob": 0.4
-    },
-    "max_vars": 20
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/counter_static --input-type circuit -i",
-    "result_pattern": "^s (.+)"
-   },
-   "evaluated": [
-    {
-     "name": "counter_circuit",
-     "command": "c++/counter/build/counter --counter.input-format circuit -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 15
+      "name": "plain_counting",
+      "description": "Plain model counting correctness",
+      "generator": {
+        "type": "cnf_plain",
+        "max_vars": 200
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/d4_static -m counting -i",
+        "result_pattern": "^s (.+)"
+      },
+      "evaluated": [
+        {
+          "name": "counter",
+          "command": "c++/counter/build/counter --preproc.preproc-method sharp-equiv --preproc.timeout 1 -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
     },
     {
-     "name": "counter_circuit+remove-gates",
-     "command": "c++/counter/build/counter --dpll.spec.removeGates 1 --counter.input-format circuit -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 15
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "circuit_gen_crash",
-   "description": "Circuit counting crash detection (randomly generated circuits)",
-   "generator": {
-    "type": "circuit_gen",
-    "max_vars": 50,
-    "extra": {
-     "max_inputs": 20,
-     "max_gates": 30,
-     "polarity_prob": 0.5,
-     "or_prob": 0.3
-    }
-   },
-   "oracle": {
-    "type": "crash"
-   },
-   "evaluated": [
+      "name": "projected_counting",
+      "description": "Projected model counting correctness",
+      "generator": {
+        "type": "cnf_projected",
+        "max_vars": 50
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/d4_static -m counting -i",
+        "result_pattern": "^s (.+)"
+      },
+      "evaluated": [
+        {
+          "name": "counter",
+          "command": "c++/counter/build/counter -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
     {
-     "name": "d4_circuit",
-     "command": "tools/fuzz/d4_static --input-type circuit -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 10
-    }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  },
-  {
-   "name": "circuit_counting",
-   "description": "Circuit model counting correctness (fixed instances)",
-   "generator": {
-    "type": "circuit_files",
-    "files": [
-     "instancesTest/circuits/circ1.bc",
-     "instancesTest/circuits/noisy_or_2.bc",
-     "instancesTest/circuits/noisy_or_10.bc",
-     "instancesTest/circuits/noisy_or_100.bc",
-     "instancesTest/circuits/noisy_or_200.bc",
-     "instancesTest/circuits/noisy_or_250.bc",
-     "instancesTest/circuits/noisy_or_500.bc",
-     "instancesTest/circuits/dnf_countries_proofs_countries_s1.bc",
-     "instancesTest/circuits/dnf_countries_proofs_countries_s2.bc",
-     "instancesTest/circuits/dnf_countries_proofs_countries_s3_smaller.bc",
-     "instancesTest/circuits/verilog_jpsety_c17.bc",
-     "instancesTest/circuits/verilog_jpsety_c432.bc",
-     "instancesTest/circuits/verilog_jpsety_c880.bc",
-     "instancesTest/circuits/verilog_jpsety_adder.bc",
-     "instancesTest/circuits/verilog_jpsety_arbiter.bc",
-     "instancesTest/circuits/test.bc"
-    ]
-   },
-   "oracle": {
-    "type": "correctness",
-    "reference": "tools/fuzz/d4_static -m counting -i",
-    "result_pattern": "^s (.+)"
-   },
-   "evaluated": [
+      "name": "weighted_counting",
+      "description": "Weighted (real) model counting correctness",
+      "generator": {
+        "type": "cnf_weighted",
+        "max_vars": 50
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/d4_static -m counting -f 1 --output-format competition -i",
+        "result_pattern": "c s exact quadruple int (.+)",
+        "tolerance": 1e-06
+      },
+      "evaluated": [
+        {
+          "name": "counter",
+          "command": "c++/counter/build/counter -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
     {
-     "name": "compiler",
-     "command": "c++/compiler/build/compiler -i",
-     "result_pattern": "^s (.+)",
-     "timeout": 30
+      "name": "complex_counting",
+      "description": "Weighted (complex) model counting correctness \u2014 oracle: ganak --mode 6",
+      "generator": {
+        "type": "cnf_complex",
+        "max_vars": 300
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/ganak --mode 6",
+        "result_pattern": "^c s exact arb cpx (.+)",
+        "tolerance": 1e-06
+      },
+      "evaluated": [
+        {
+          "name": "counter",
+          "command": "c++/counter/build/counter -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
+      "name": "maxsharpsat",
+      "description": "Max#SAT correctness",
+      "generator": {
+        "type": "cnf_maxsharpsat",
+        "max_vars": 30
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/d4_static -m max-sharpsat -i",
+        "result_pattern": "^s (.+)"
+      },
+      "evaluated": [
+        {
+          "name": "maxT",
+          "command": "c++/maxT/build/maxT -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
+      "name": "compiler_crash",
+      "description": "decision-DNNF compiler crash detection",
+      "generator": {
+        "type": "cnf_plain",
+        "max_vars": 100
+      },
+      "oracle": {
+        "type": "crash"
+      },
+      "evaluated": [
+        {
+          "name": "compiler",
+          "command": "c++/compiler/build/compiler -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
+      "name": "circuit_gen_correctness",
+      "description": "Circuit model counting correctness: compare new counter (circuit mode) against counter_static reference",
+      "generator": {
+        "type": "circuit_gen",
+        "extra": {
+          "max_inputs": 15,
+          "max_gates": 25,
+          "polarity_prob": 0.5,
+          "or_prob": 0.4
+        },
+        "max_vars": 20
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/counter_static --input-type circuit -i",
+        "result_pattern": "^s (.+)"
+      },
+      "evaluated": [
+        {
+          "name": "counter_circuit",
+          "command": "c++/counter/build/counter --counter.input-format circuit -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 15
+        },
+        {
+          "name": "counter_circuit+remove-gates",
+          "command": "c++/counter/build/counter --dpll.spec.removeGates 1 --counter.input-format circuit -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 15
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
+      "name": "circuit_gen_crash",
+      "description": "Circuit counting crash detection (randomly generated circuits)",
+      "generator": {
+        "type": "circuit_gen",
+        "max_vars": 50,
+        "extra": {
+          "max_inputs": 20,
+          "max_gates": 30,
+          "polarity_prob": 0.5,
+          "or_prob": 0.3
+        }
+      },
+      "oracle": {
+        "type": "crash"
+      },
+      "evaluated": [
+        {
+          "name": "d4_circuit",
+          "command": "tools/fuzz/d4_static --input-type circuit -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
+      "name": "circuit_counting",
+      "description": "Circuit model counting correctness (fixed instances)",
+      "generator": {
+        "type": "circuit_files",
+        "files": [
+          "instancesTest/circuits/circ1.bc",
+          "instancesTest/circuits/noisy_or_2.bc",
+          "instancesTest/circuits/noisy_or_10.bc",
+          "instancesTest/circuits/noisy_or_100.bc",
+          "instancesTest/circuits/noisy_or_200.bc",
+          "instancesTest/circuits/noisy_or_250.bc",
+          "instancesTest/circuits/noisy_or_500.bc",
+          "instancesTest/circuits/dnf_countries_proofs_countries_s1.bc",
+          "instancesTest/circuits/dnf_countries_proofs_countries_s2.bc",
+          "instancesTest/circuits/dnf_countries_proofs_countries_s3_smaller.bc",
+          "instancesTest/circuits/verilog_jpsety_c17.bc",
+          "instancesTest/circuits/verilog_jpsety_c432.bc",
+          "instancesTest/circuits/verilog_jpsety_c880.bc",
+          "instancesTest/circuits/verilog_jpsety_adder.bc",
+          "instancesTest/circuits/verilog_jpsety_arbiter.bc",
+          "instancesTest/circuits/test.bc"
+        ]
+      },
+      "oracle": {
+        "type": "correctness",
+        "reference": "tools/fuzz/d4_static -m counting -i",
+        "result_pattern": "^s (.+)"
+      },
+      "evaluated": [
+        {
+          "name": "compiler",
+          "command": "c++/compiler/build/compiler -i",
+          "result_pattern": "^s (.+)",
+          "timeout": 30
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
     }
-   ],
-   "max_bugs": 10,
-   "enabled": true
-  }
- ]
+  ]
 }

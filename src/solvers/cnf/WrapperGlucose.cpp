@@ -101,8 +101,10 @@ void WrapperGlucose::onCadicalSat(std::span<const Var> setOfVar) {
     if (!implicants.empty()) {
       Glucose::vec<Glucose::Lit> learnt;
       learnt.push();
-      for (auto& l : m_assumption)
-        learnt.push(Glucose::mkLit(l.var(), l.sign()));
+      for (int i = m_assumption.size() - 1; i >= 0; i--) {
+        Lit l = m_assumption[i];
+        learnt.push(Glucose::mkLit(l.var(), !l.sign()));
+      }
 
       for (auto& l : implicants)
         if (!m_solver.isAssigned(std::abs(l))) {

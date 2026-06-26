@@ -94,8 +94,10 @@ void WrapperMinisat::onCadicalSat(std::span<const Var> setOfVar) {
     if (!implicants.empty()) {
       minisat::vec<minisat::Lit> learnt;
       learnt.push(minisat::mkLit(0));  // placeholder for implied literal
-      for (auto& l : m_assumption)
-        learnt.push(minisat::mkLit(l.var(), l.sign()));
+      for (int i = m_assumption.size() - 1; i >= 0; i--) {
+        Lit l = m_assumption[i];
+        learnt.push(minisat::mkLit(l.var(), !l.sign()));
+      }
 
       for (auto& l : implicants)
         if (!m_solver.isAssigned(std::abs(l))) {
@@ -242,8 +244,8 @@ bool WrapperMinisat::decideAndComputeUnit(Lit l, std::vector<Lit>& units) {
 }  // decideAndComputeUnit
 
 /**
-   Fill the vector units with the literal l that are units such that l.var() is
-   in component.
+   Fill the vector units with the literal l that are units such that l.var()
+   is in component.
 
    @param[in] component, the set of variables we search for.
    @param[out] units, the place where we store the literals found.
@@ -287,8 +289,8 @@ bool WrapperMinisat::varIsAssigned(Var v) {
 void WrapperMinisat::restart() { m_solver.cancelUntil(0); }  // restart
 
 /**
-   Transfer to the solver the fact we have a set of assumption variables we want
-   to consider.
+   Transfer to the solver the fact we have a set of assumption variables we
+   want to consider.
 
    @param[in] assums, the set of assumptions
  */

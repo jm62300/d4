@@ -107,7 +107,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     m_solver->setNeedModel(true);
 
     if (problem.getQuantification().size() != 1) {
-      throw std::runtime_error("DpllStyleMethod requires exactly one quantification block");
+      throw std::runtime_error(
+          "DpllStyleMethod requires exactly one quantification block");
     }
     m_semiringOps = O(problem.getNbVar(), problem.getWeightMap());
     m_isProjectedMode = problem.getQuantification()[0].size() > 0;
@@ -371,7 +372,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     showRun(out);
     m_nbCallCall++;
 
-    // if (m_nbCallCall > 2000000) exit(0);
+    // if (m_nbCallCall > 100000000) exit(0);
 
     int tmp = m_nbCallCall;
 
