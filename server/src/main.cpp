@@ -203,7 +203,17 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     std::string model_count_str = "";
     try {
       logs_stream << "c [gRPC] Starting D4 solver...\n";
-      d4::api::Solver solver(formula, options);
+      d4::api::Solver solver(formula.clauses, formula.nbVar, options);
+      d4::api::WeightType wt = d4::api::WeightType::INT;
+      if (formula.weightType == parser::WeightType::FLOAT) {
+        wt = d4::api::WeightType::FLOAT;
+      } else if (formula.weightType == parser::WeightType::COMPLEX) {
+        wt = d4::api::WeightType::COMPLEX;
+      }
+      solver.setWeights(formula.weightMap, wt);
+      if (formula.quantifications.size() > 0 && formula.quantifications[0].size() > 0) {
+        solver.setProjectionVariables(formula.quantifications[0]);
+      }
       solver.setRefinement(projMcOpts.refinement.get());
       std::unique_ptr<d4::api::CountResult> result = solver.count(logs_stream);
       model_count_str = result->getResult();
