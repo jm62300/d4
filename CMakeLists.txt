@@ -30,7 +30,9 @@ file(GLOB_RECURSE SRCS "./src/*.cpp")
 file(GLOB_RECURSE HEADERS "./src/*.hpp")
 
 # --- 2. Dependencies ---
-set(ZLIB_USE_STATIC_LIBS ON)
+    if(CMAKE_PROJECT_NAME STREQUAL "D4")
+        set(ZLIB_USE_STATIC_LIBS ON)
+    endif()
 set(ZLIB_ROOT /usr)
 
 find_package(ZLIB REQUIRED)
@@ -91,8 +93,7 @@ if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
 endif()
 FetchContent_Declare(
     optree
-    GIT_REPOSITORY ${OPTREE_GIT_URL}
-    GIT_TAG        main
+    SOURCE_DIR "/home/jm/dev/cnrs/d4/d4/3rdParty/optree-src"
 )
 FetchContent_MakeAvailable(optree)
 

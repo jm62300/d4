@@ -373,7 +373,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
     // if (m_nbCallCall > 2000000) exit(0);
 
-    int tmp = m_nbCallCall;
+    // // int tmp = m_nbCallCall;
 
     if (!m_solver->solve(setOfVar, unitsLit)) return m_semiringOps.zero();
     m_specs->preUpdate(unitsLit);
@@ -434,7 +434,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     std::vector<Lit> units;
     std::vector<Var> free;
     T ret = m_semiringOps.presetSum(lits.size() + 1);
-    unsigned nb = 0, sizeAssum = m_solver->sizeAssumption();
+    unsigned sizeAssum = m_solver->sizeAssumption();
     for (unsigned i = 0; i <= lits.size(); i++) {
       if (i != 0) {
         m_solver->popAssumption();
