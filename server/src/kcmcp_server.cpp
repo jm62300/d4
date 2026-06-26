@@ -347,7 +347,17 @@ void handle_client(int csocket) {
 
         // Setup Solver
         std::stringstream logs;
-        d4::api::Solver solver(formula, options);
+        d4::api::Solver solver(formula.clauses, formula.nbVar, options);
+        d4::api::WeightType wt = d4::api::WeightType::INT;
+        if (formula.weightType == parser::WeightType::FLOAT) {
+            wt = d4::api::WeightType::FLOAT;
+        } else if (formula.weightType == parser::WeightType::COMPLEX) {
+            wt = d4::api::WeightType::COMPLEX;
+        }
+        solver.setWeights(formula.weightMap, wt);
+        if (!formula.quantifications.empty() && !formula.quantifications[0].empty()) {
+            solver.setProjectionVariables(formula.quantifications[0]);
+        }
         auto start_time = std::chrono::high_resolution_clock::now();
 
         if (operation == 0 || operation == 1) { // count or wmc

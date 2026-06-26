@@ -5,11 +5,9 @@
 #include <limits>
 #include <vector>
 #include <map>
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
-#include <boost/multiprecision/gmp.hpp>
 
 #include "SolverResult.hpp"
+#include "src/utils/MpzTypes.hpp"
 
 #define private public
 #include "src/methods/DpllStyleMethod.hpp"
@@ -20,7 +18,7 @@
 
 namespace d4::api {
 
-namespace mpz = boost::multiprecision;
+namespace mpz = d4MpzTypes;
 
 template <typename T, typename O>
 class CountResultImpl : public CountResult {
@@ -30,22 +28,20 @@ class CountResultImpl : public CountResult {
 
   std::string getResult() const override {
     std::stringstream ss;
-    ss.precision(std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
-    boost::multiprecision::mpf_float::default_precision(128);
     ss << result_;
     return ss.str();
   }
 
-  boost::multiprecision::mpz_int getIntResult() const override {
-    if constexpr (std::is_same_v<T, boost::multiprecision::mpz_int>) {
+  d4MpzTypes::mpz_int getIntResult() const override {
+    if constexpr (std::is_same_v<T, d4MpzTypes::mpz_int>) {
       return result_;
     } else {
       throw std::runtime_error("Count result is not an integer");
     }
   }
 
-  boost::multiprecision::mpf_float getFloatResult() const override {
-    if constexpr (std::is_same_v<T, boost::multiprecision::mpf_float>) {
+  d4MpzTypes::mpf_float getFloatResult() const override {
+    if constexpr (std::is_same_v<T, d4MpzTypes::mpf_float>) {
       return result_;
     } else {
       throw std::runtime_error("Count result is not a float");
@@ -89,22 +85,20 @@ class ProjMcResultImpl : public CountResult {
 
   std::string getResult() const override {
     std::stringstream ss;
-    ss.precision(std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
-    boost::multiprecision::mpf_float::default_precision(128);
     ss << result_;
     return ss.str();
   }
 
-  boost::multiprecision::mpz_int getIntResult() const override {
-    if constexpr (std::is_same_v<T, boost::multiprecision::mpz_int>) {
+  d4MpzTypes::mpz_int getIntResult() const override {
+    if constexpr (std::is_same_v<T, d4MpzTypes::mpz_int>) {
       return result_;
     } else {
       throw std::runtime_error("Count result is not an integer");
     }
   }
 
-  boost::multiprecision::mpf_float getFloatResult() const override {
-    if constexpr (std::is_same_v<T, boost::multiprecision::mpf_float>) {
+  d4MpzTypes::mpf_float getFloatResult() const override {
+    if constexpr (std::is_same_v<T, d4MpzTypes::mpf_float>) {
       return result_;
     } else {
       throw std::runtime_error("Count result is not a float");

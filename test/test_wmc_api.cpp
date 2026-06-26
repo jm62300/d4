@@ -4,29 +4,16 @@
 #include <fstream>
 #include <cassert>
 #include <cmath>
-#include "c++/parser/ParserDimacs.hpp"
 #include "api/solver/Solver.hpp"
 #include "api/result/SolverResult.hpp"
 
 int main() {
   std::cout << "Creating a simple 2-variable CNF formula..." << std::endl;
   // Formula: (x1 v x2)
-  std::string cnfData = 
-      "p cnf 2 1\n"
-      "1 2 0\n";
-
-  parser::Formula formula;
-  parser::ParserDimacs parserDimacs;
-  try {
-    parserDimacs.parse_DIMACS_from_data(cnfData, formula);
-    std::cout << formula << std::endl;
-  } catch (const std::exception& e) {
-    std::cerr << "Failed to parse formula: " << e.what() << std::endl;
-    return 1;
-  }
+  std::vector<std::vector<int>> clauses = {{1, 2}};
 
   std::cout << "Creating Solver and configuring literal weights programmatically..." << std::endl;
-  d4::api::Solver solver(formula);
+  d4::api::Solver solver(clauses, 2);
 
   // Configure weights:
   // w(1)  = 0.3, w(-1) = 0.7
@@ -37,7 +24,7 @@ int main() {
     {2, "0.4"},
     {-2, "0.6"}
   };
-  solver.setWeights(weights, parser::WeightType::FLOAT);
+  solver.setWeights(weights, d4::api::WeightType::FLOAT);
 
   std::cout << "Running direct WMC..." << std::endl;
   std::stringstream countLog;
@@ -49,8 +36,8 @@ int main() {
 
   // Verify typed C++ accessors
   std::cout << "Testing C++ typed float result accessor..." << std::endl;
-  boost::multiprecision::mpf_float floatVal = countResult->getFloatResult();
-  double doubleVal = floatVal.convert_to<double>();
+  d4MpzTypes::mpf_float floatVal = countResult->getFloatResult();
+  double doubleVal = floatVal.get_d();
   assert(std::abs(doubleVal - 0.58) < 1e-9);
 
   std::cout << "\nRunning WMC compilation to d-DNNF..." << std::endl;

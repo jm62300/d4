@@ -14,6 +14,8 @@
 #include "c++/semirings/MpzIntSemiring.hpp"
 #include "c++/semirings/DecDNNFSemiring.hpp"
 #include "c++/parser/ParserDimacs.hpp"
+#include "c++/parser/ParserCircuit.hpp"
+#include "c++/parser/Formula.hpp"
 
 #define private public
 #include "src/methods/DpllStyleMethod.hpp"
@@ -42,15 +44,104 @@ std::unique_ptr<d4::api::CountResult> countProjMcModels(const d4::OptionProjMcMe
   return std::make_unique<d4::api::ProjMcResultImpl<T, O>>(result, std::move(counter));
 }
 
+parser::GateType mapGateType(d4::api::GateType type) {
+  switch (type) {
+    case d4::api::GateType::AND: return parser::GateType::AND;
+    case d4::api::GateType::OR: return parser::GateType::OR;
+    case d4::api::GateType::XOR: return parser::GateType::XOR;
+    case d4::api::GateType::ATMOST: return parser::GateType::ATMOST;
+    case d4::api::GateType::IDENTITY: return parser::GateType::IDENTITY;
+    case d4::api::GateType::CLAUSE: return parser::GateType::CLAUSE;
+  }
+  throw std::runtime_error("Unknown gate type");
+}
+
 }  // namespace
 
 namespace d4::api {
 
-Solver::Solver(const parser::Formula& formula,
+Solver::Solver(const std::vector<Gate>& gates, int nbVars,
                const d4::OptionDpllStyleMethod& config)
-    : formula_(formula) {
+    : formula_(std::make_unique<parser::Formula>()) {
+  formula_->type = "circuit";
+  formula_->weightType = parser::WeightType::INT;
+  formula_->projected = false;
+  formula_->quantifications = {{}};
+
+  formula_->gates.reserve(gates.size());
+  for (const auto& g : gates) {
+    formula_->gates.push_back({
+      mapGateType(g.gateType),
+      g.inputs,
+      g.output,
+      g.threshold
+    });
+  }
+
+  if (nbVars > 0) {
+    formula_->nbVar = nbVars;
+  } else {
+    int maxVar = 0;
+    for (const auto& g : gates) {
+      if (std::abs(g.output) > maxVar) {
+        maxVar = std::abs(g.output);
+      }
+      for (int input : g.inputs) {
+        if (std::abs(input) > maxVar) {
+          maxVar = std::abs(input);
+        }
+      }
+    }
+    formula_->nbVar = maxVar;
+  }
   setOptions(config);
 }
+
+Solver::Solver(const std::vector<std::vector<int>>& clauses, int nbVars,
+               const d4::OptionDpllStyleMethod& config)
+    : formula_(std::make_unique<parser::Formula>()) {
+  formula_->type = "cnf";
+  formula_->clauses = clauses;
+  formula_->weightType = parser::WeightType::INT;
+  formula_->projected = false;
+  formula_->quantifications = {{}};
+
+  if (nbVars > 0) {
+    formula_->nbVar = nbVars;
+  } else {
+    unsigned maxVar = 0;
+    for (const auto& clause : clauses) {
+      for (int lit : clause) {
+        unsigned var = std::abs(lit);
+        if (var > maxVar) {
+          maxVar = var;
+        }
+      }
+    }
+    formula_->nbVar = maxVar;
+  }
+  setOptions(config);
+}
+
+Solver::Solver(const std::string& filepath,
+               const d4::OptionDpllStyleMethod& config)
+    : formula_(std::make_unique<parser::Formula>()) {
+  bool isCircuit = false;
+  if (filepath.size() >= 3 && filepath.substr(filepath.size() - 3) == ".bc") {
+    isCircuit = true;
+  }
+
+  if (isCircuit) {
+    parser::ParserCircuit parserCircuit;
+    parserCircuit.parse_circuit(filepath, *formula_);
+  } else {
+    parser::ParserDimacs parserDimacs;
+    parserDimacs.parse_DIMACS(filepath, *formula_);
+  }
+  setOptions(config);
+}
+
+Solver::~Solver() = default;
 
 const d4::OptionDpllStyleMethod& Solver::getOptions() const {
   return options_;
@@ -66,29 +157,28 @@ void Solver::setOptions(const d4::OptionDpllStyleMethod& config) {
     options_.optionSpecManager.needFastNotSatisfied = true;
 }
 
-const parser::Formula& Solver::getFormula() const {
-  return formula_;
-}
-
-void Solver::setFormula(const parser::Formula& formula) {
-  formula_ = formula;
-}
-
-void Solver::setWeights(const std::map<int, std::string>& weights, parser::WeightType type) {
-  formula_.weightType = type;
-  formula_.weightMap.clear();
+void Solver::setWeights(const std::map<int, std::string>& weights, WeightType type) {
+  parser::WeightType pType;
+  switch (type) {
+    case WeightType::INT: pType = parser::WeightType::INT; break;
+    case WeightType::FLOAT: pType = parser::WeightType::FLOAT; break;
+    case WeightType::COMPLEX: pType = parser::WeightType::COMPLEX; break;
+  }
+  formula_->weightType = pType;
+  formula_->weightMap.clear();
   for (const auto& [lit, w] : weights) {
-    formula_.weightMap[lit] = w;
+    formula_->weightMap[lit] = w;
   }
 }
 
 void Solver::setProjectionVariables(const std::vector<int>& projectionVars) {
-  formula_.quantifications.clear();
+  formula_->quantifications.clear();
   if (!projectionVars.empty()) {
-    formula_.quantifications.push_back(projectionVars);
-    formula_.projected = true;
+    formula_->quantifications.push_back(projectionVars);
+    formula_->projected = true;
   } else {
-    formula_.projected = false;
+    formula_->quantifications.push_back({});
+    formula_->projected = false;
   }
 }
 
@@ -102,9 +192,9 @@ bool Solver::getRefinement() const {
 
 std::vector<d4::BcGate> Solver::buildGates() const {
   std::vector<d4::BcGate> gates;
-  if (formula_.type == "circuit") {
-    gates.reserve(formula_.gates.size());
-    for (const auto& g : formula_.gates) {
+  if (formula_->type == "circuit") {
+    gates.reserve(formula_->gates.size());
+    for (const auto& g : formula_->gates) {
       d4::BcGateType t;
       switch (g.gateType) {
         case parser::GateType::AND:
@@ -132,8 +222,8 @@ std::vector<d4::BcGate> Solver::buildGates() const {
       gates.push_back({lits, out, t});
     }
   } else {
-    gates.reserve(formula_.clauses.size());
-    for (const auto& cl : formula_.clauses) {
+    gates.reserve(formula_->clauses.size());
+    for (const auto& cl : formula_->clauses) {
       std::vector<d4::Lit> d4Clause;
       for (auto& l : cl)
         d4Clause.push_back(d4::Lit::makeLit(std::abs(l), l < 0));
@@ -148,15 +238,15 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
   std::vector<d4::BcGate> gates = buildGates();
 
   std::map<d4::Lit, std::string> weightMap;
-  for (const auto& [lit, weight] : formula_.weightMap)
+  for (const auto& [lit, weight] : formula_->weightMap)
     weightMap[d4::Lit::makeLit(std::abs(lit), lit < 0)] = weight;
 
-  d4::ProblemManager problem(formula_.type, formula_.nbVar,
-                              formula_.quantifications, weightMap, gates,
+  d4::ProblemManager problem(formula_->type, formula_->nbVar,
+                              formula_->quantifications, weightMap, gates,
                               out);
 
-  if (formula_.projected) {
-    if (formula_.weightType == parser::WeightType::COMPLEX) {
+  if (formula_->projected) {
+    if (formula_->weightType == parser::WeightType::COMPLEX) {
       throw std::runtime_error("Complex weights are not supported for Projected Model Counting (ProjMC)");
     }
     
@@ -167,7 +257,7 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
     projMcOptions.optionSpecs = options_.optionSpecManager;
     projMcOptions.optionCounter = options_;
     
-    switch (formula_.weightType) {
+    switch (formula_->weightType) {
       case parser::WeightType::INT:
         return countProjMcModels<d4MpzTypes::mpz_int, semiring::MpzIntSemiring>(
             projMcOptions, problem, out);
@@ -179,7 +269,7 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
     }
   }
 
-  switch (formula_.weightType) {
+  switch (formula_->weightType) {
     case parser::WeightType::INT:
       return countModels<d4MpzTypes::mpz_int, semiring::MpzIntSemiring>(
           options_, problem, out);
@@ -199,11 +289,11 @@ std::unique_ptr<CompileResult> Solver::compile(std::ostream& out) {
   std::vector<d4::BcGate> gates = buildGates();
 
   std::map<d4::Lit, std::string> weightMap;
-  for (const auto& [lit, weight] : formula_.weightMap)
+  for (const auto& [lit, weight] : formula_->weightMap)
     weightMap[d4::Lit::makeLit(std::abs(lit), lit < 0)] = weight;
 
-  d4::ProblemManager problem(formula_.type, formula_.nbVar,
-                              formula_.quantifications, weightMap, gates,
+  d4::ProblemManager problem(formula_->type, formula_->nbVar,
+                              formula_->quantifications, weightMap, gates,
                               out);
 
   // Compile using DecDNNFSemiring
@@ -211,7 +301,7 @@ std::unique_ptr<CompileResult> Solver::compile(std::ostream& out) {
       options_, problem, out);
   semiring::Node resultNode = compilerEngine->run();
 
-  return std::make_unique<CompileResultImpl>(resultNode, std::move(compilerEngine), formula_.nbVar, weightMap);
+  return std::make_unique<CompileResultImpl>(resultNode, std::move(compilerEngine), formula_->nbVar, weightMap);
 }
 
 }  // namespace d4::api

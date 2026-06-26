@@ -3,9 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
-#include <boost/multiprecision/gmp.hpp>
+#include "src/utils/MpzTypes.hpp"
 #include "c++/semirings/MpzComplexSemiring.hpp"
 
 namespace d4::api {
@@ -54,7 +52,7 @@ class CountResult : public SolverResult {
    * @brief Returns the integer model count result if the formula was unweighted.
    * Throws std::runtime_error if the result type is not an integer.
    */
-  virtual boost::multiprecision::mpz_int getIntResult() const {
+  virtual d4MpzTypes::mpz_int getIntResult() const {
     throw std::runtime_error("Count result is not an integer");
   }
 
@@ -62,7 +60,7 @@ class CountResult : public SolverResult {
    * @brief Returns the floating-point model count result if the formula used real weights.
    * Throws std::runtime_error if the result type is not a float.
    */
-  virtual boost::multiprecision::mpf_float getFloatResult() const {
+  virtual d4MpzTypes::mpf_float getFloatResult() const {
     throw std::runtime_error("Count result is not a float");
   }
 

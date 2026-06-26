@@ -21,7 +21,7 @@ export GITLAB_TOKEN_LOGICAL="${GITLAB_TOKEN_LOGICAL:-glpat-eHavaAslBimi87EABf6MI
 cmake ..
 
 echo "c [TEST] Compiling test_api..."
-cmake --build . --parallel
+cmake --build .
 
 # 3. Run the tests from the repository root
 echo "c [TEST] Running test_api..."
