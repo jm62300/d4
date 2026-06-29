@@ -21,7 +21,6 @@
 #include "src/methods/DpllStyleMethod.hpp"
 #undef private
 
-#include "src/options/methods/OptionProjMcMethod.hpp"
 #include "api/result/SolverResultImpl.hpp"
 
 namespace {
@@ -35,14 +34,6 @@ std::unique_ptr<d4::api::CountResult> countModels(const d4::OptionDpllStyleMetho
   return std::make_unique<d4::api::CountResultImpl<T, O>>(result, std::move(counter));
 }
 
-template <typename T, typename O>
-std::unique_ptr<d4::api::CountResult> countProjMcModels(const d4::OptionProjMcMethod& options,
-                                                       const d4::ProblemManager& problem, std::ostream& out) {
-  auto counter = std::make_unique<d4::ProjMCMethod<T, O>>(options, problem, out);
-  T result = counter->run();
-
-  return std::make_unique<d4::api::ProjMcResultImpl<T, O>>(result, std::move(counter));
-}
 
 parser::GateType mapGateType(d4::api::GateType type) {
   switch (type) {
@@ -157,6 +148,7 @@ void Solver::setOptions(const d4::OptionDpllStyleMethod& config) {
     options_.optionSpecManager.needFastNotSatisfied = true;
 }
 
+
 void Solver::setWeights(const std::map<int, std::string>& weights, WeightType type) {
   parser::WeightType pType;
   switch (type) {
@@ -171,24 +163,7 @@ void Solver::setWeights(const std::map<int, std::string>& weights, WeightType ty
   }
 }
 
-void Solver::setProjectionVariables(const std::vector<int>& projectionVars) {
-  formula_->quantifications.clear();
-  if (!projectionVars.empty()) {
-    formula_->quantifications.push_back(projectionVars);
-    formula_->projected = true;
-  } else {
-    formula_->quantifications.push_back({});
-    formula_->projected = false;
-  }
-}
 
-void Solver::setRefinement(bool refinement) {
-  refinement_ = refinement;
-}
-
-bool Solver::getRefinement() const {
-  return refinement_;
-}
 
 std::vector<d4::BcGate> Solver::buildGates() const {
   std::vector<d4::BcGate> gates;
@@ -245,29 +220,6 @@ std::unique_ptr<CountResult> Solver::count(std::ostream& out) {
                               formula_->quantifications, weightMap, gates,
                               out);
 
-  if (formula_->projected) {
-    if (formula_->weightType == parser::WeightType::COMPLEX) {
-      throw std::runtime_error("Complex weights are not supported for Projected Model Counting (ProjMC)");
-    }
-    
-    d4::OptionProjMcMethod projMcOptions;
-    projMcOptions.refinement.set(refinement_);
-    projMcOptions.optionCache = options_.optionCacheManager;
-    projMcOptions.optionSolver = options_.optionSolver;
-    projMcOptions.optionSpecs = options_.optionSpecManager;
-    projMcOptions.optionCounter = options_;
-    
-    switch (formula_->weightType) {
-      case parser::WeightType::INT:
-        return countProjMcModels<d4MpzTypes::mpz_int, semiring::MpzIntSemiring>(
-            projMcOptions, problem, out);
-      case parser::WeightType::FLOAT:
-        return countProjMcModels<d4MpzTypes::mpf_float, semiring::MpzFloatSemiring>(
-            projMcOptions, problem, out);
-      default:
-        break;
-    }
-  }
 
   switch (formula_->weightType) {
     case parser::WeightType::INT:
