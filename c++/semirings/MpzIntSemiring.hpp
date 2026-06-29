@@ -67,9 +67,9 @@ class MpzIntSemiring {
 
   // Identities& Context - Aware Leaf Evaluation-- -
 
-  mpz::mpz_int zero() const { return mpz::mpz_int(0); }
+  static mpz::mpz_int zero() { return mpz::mpz_int(0); }
 
-  mpz::mpz_int one() const { return mpz::mpz_int(1); }
+  static mpz::mpz_int one() { return mpz::mpz_int(1); }
 
   // --- Presets (Required by Policy) ---
   mpz::mpz_int presetSum(int /* nb_gates */) const { return mpz::mpz_int(0); }

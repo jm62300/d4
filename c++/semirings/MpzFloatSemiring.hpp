@@ -86,9 +86,9 @@ class MpzFloatSemiring {
 
   // Identities& Context - Aware Leaf Evaluation-- -
 
-  mpz::mpf_float zero() const { return mpz::mpf_float(0); }
+  static mpz::mpf_float zero() { return mpz::mpf_float(0); }
 
-  mpz::mpf_float one() const { return mpz::mpf_float(1); }
+  static mpz::mpf_float one() { return mpz::mpf_float(1); }
 
   // --- Presets (Required by Policy) ---
   mpz::mpf_float presetSum(int /* nb_gates */) const {

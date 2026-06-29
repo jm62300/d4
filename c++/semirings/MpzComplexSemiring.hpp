@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <cassert>
 #include <iomanip>
 #include <map>
 #include <sstream>
@@ -58,7 +59,8 @@ class Complex {
     // part.
     assert(elements.size() == 1 || elements.size() == 2);
     real = mpz::mpf_float(elements[0]);
-    im = (elements.size() == 2) ? mpz::mpf_float(elements[1]) : mpz::mpf_float(0);
+    im = (elements.size() == 2) ? mpz::mpf_float(elements[1])
+                                : mpz::mpf_float(0);
   }
 
   Complex& operator+=(Complex const& obj) {
@@ -161,9 +163,9 @@ class MpzComplexSemiring {
 
   // Identities& Context - Aware Leaf Evaluation-- -
 
-  Complex zero() const { return Complex(0, 0); }
+  static Complex zero() { return Complex(0, 0); }
 
-  Complex one() const { return Complex(1, 0); }
+  static Complex one() { return Complex(1, 0); }
 
   // --- Presets (Required by Policy) ---
   Complex presetSum(int /* nb_gates */) const { return Complex(0, 0); }

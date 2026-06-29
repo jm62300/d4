@@ -243,13 +243,13 @@ class DecDNNFSemiring {
    * @brief Returns the universal constant node for FALSE (Bottom).
    * @return Node Identifier for the BOT node (0).
    */
-  Node zero() { return 0; }
+  static Node zero() { return 0; }
 
   /**
    * @brief Returns the universal constant node for TRUE (Top).
    * @return Node Identifier for the TOP node (1).
    */
-  Node one() { return 1; }
+  static Node one() { return 1; }
 
   /**
    * @brief Pre-allocates an OR node with a known number of children.

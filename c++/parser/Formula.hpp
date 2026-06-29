@@ -44,6 +44,7 @@ struct Gate {
 
 struct Formula {
   std::string type = "";
+  std::string typeCompet = "";
   std::vector<std::vector<int>> quantifications;
   std::map<int, std::string> weightMap;
   std::vector<std::vector<int>> clauses;  // populated by CNF parser
@@ -87,12 +88,18 @@ inline std::ostream& operator<<(std::ostream& os, const Formula& f) {
 
   auto gateTypeName = [](GateType t) -> const char* {
     switch (t) {
-      case GateType::AND: return "AND";
-      case GateType::OR: return "OR";
-      case GateType::XOR: return "XOR";
-      case GateType::ATMOST: return "ATMOST";
-      case GateType::IDENTITY: return "IDENTITY";
-      case GateType::CLAUSE: return "CLAUSE";
+      case GateType::AND:
+        return "AND";
+      case GateType::OR:
+        return "OR";
+      case GateType::XOR:
+        return "XOR";
+      case GateType::ATMOST:
+        return "ATMOST";
+      case GateType::IDENTITY:
+        return "IDENTITY";
+      case GateType::CLAUSE:
+        return "CLAUSE";
     }
     return "?";
   };

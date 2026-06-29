@@ -254,11 +254,15 @@ class Solver {
   OccLists<Lit, vec<Watcher>, WatcherDeleted>
       watches;  // 'watches[lit]' is a list of constraints watching 'lit' (will
                 // go there if literal becomes true).
-  OccLists<Lit, vec<Watcher>, WatcherDeleted>
-      watchesBin;     // 'watches[lit]' is a list of constraints watching 'lit'
-                      // (will go there if literal becomes true).
-  vec<CRef> clauses;  // List of problem clauses.
-  vec<CRef> learnts;  // List of learnt clauses.
+  vec<CRef> clauses;       // List of problem clauses.
+  vec<CRef> learnts;       // List of learnt clauses.
+  vec<CRef> binaryReason;  // One shared reason clause per literal, used when a
+                           // binary clause forces an assignment.
+  vec<vec<Lit>>
+      binaryClauses;  // 'binaryClauses[toInt(x)]' lists every literal 'y' such
+                      // that the clause (x | y) exists: when 'x' becomes false
+                      // each 'y' is implied. Binary clauses are stored here
+                      // instead of in 'ca'/watch lists.
 
   vec<lbool> assigns;  // The current assignments.
   vec<char> polarity;  // The preferred polarity of each variable.

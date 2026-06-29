@@ -189,7 +189,6 @@ Solver::Solver(std::ostream* certif)
       cla_inc(1),
       var_inc(1),
       watches(WatcherDeleted(ca)),
-      watchesBin(WatcherDeleted(ca)),
       qhead(0),
       simpDB_assigns(-1),
       simpDB_props(0),
@@ -255,8 +254,6 @@ Var Solver::newVar(bool sign, bool dvar) {
   int v = nVars();
   watches.init(mkLit(v, false));
   watches.init(mkLit(v, true));
-  watchesBin.init(mkLit(v, false));
-  watchesBin.init(mkLit(v, true));
   assigns.push(l_Undef);
   vardata.push(mkVarData(CRef_Undef, 0));
   // activity .push(0);
@@ -269,6 +266,24 @@ Var Solver::newVar(bool sign, bool dvar) {
   problemVariable.push(v);
   decision.push();
   trail.capacity(v + 1);
+
+  // Flat storage for binary clauses (one list per polarity) and the shared
+  // reason clause used when they trigger a propagation.
+  binaryClauses.push();
+  binaryClauses.push();
+
+  Lit l = mkLit(v, false);
+  vec<Lit> ps;
+  ps.push(lit_Undef);
+  ps.push(l);
+
+  CRef cr = ca.alloc(ps, false);
+  binaryReason.push(cr);
+
+  ps[1] = ~ps[1];
+  cr = ca.alloc(ps, false);
+  binaryReason.push(cr);
+
   setDecisionVar(v, dvar);
   return v;
 }
@@ -318,6 +333,9 @@ bool Solver::addClause_(vec<Lit>& ps) {
   else if (ps.size() == 1) {
     uncheckedEnqueue(ps[0]);
     return ok = (propagate() == CRef_Undef);
+  } else if (ps.size() == 2) {
+    binaryClauses[toInt(ps[0])].push(ps[1]);
+    binaryClauses[toInt(ps[1])].push(ps[0]);
   } else {
     CRef cr = ca.alloc(ps, false);
     clauses.push(cr);
@@ -331,13 +349,8 @@ void Solver::attachClause(CRef cr) {
   const Clause& c = ca[cr];
 
   assert(c.size() > 1);
-  if (c.size() == 2) {
-    watchesBin[~c[0]].push(Watcher(cr, c[1]));
-    watchesBin[~c[1]].push(Watcher(cr, c[0]));
-  } else {
-    watches[~c[0]].push(Watcher(cr, c[1]));
-    watches[~c[1]].push(Watcher(cr, c[0]));
-  }
+  watches[~c[0]].push(Watcher(cr, c[1]));
+  watches[~c[1]].push(Watcher(cr, c[0]));
   if (c.learnt())
     learnts_literals += c.size();
   else
@@ -348,26 +361,14 @@ void Solver::detachClause(CRef cr, bool strict) {
   const Clause& c = ca[cr];
 
   assert(c.size() > 1);
-  if (c.size() == 2) {
-    if (strict) {
-      remove(watchesBin[~c[0]], Watcher(cr, c[1]));
-      remove(watchesBin[~c[1]], Watcher(cr, c[0]));
-    } else {
-      // Lazy detaching: (NOTE! Must clean all watcher lists before garbage
-      // collecting this clause)
-      watchesBin.smudge(~c[0]);
-      watchesBin.smudge(~c[1]);
-    }
+  if (strict) {
+    remove(watches[~c[0]], Watcher(cr, c[1]));
+    remove(watches[~c[1]], Watcher(cr, c[0]));
   } else {
-    if (strict) {
-      remove(watches[~c[0]], Watcher(cr, c[1]));
-      remove(watches[~c[1]], Watcher(cr, c[0]));
-    } else {
-      // Lazy detaching: (NOTE! Must clean all watcher lists before garbage
-      // collecting this clause)
-      watches.smudge(~c[0]);
-      watches.smudge(~c[1]);
-    }
+    // Lazy detaching: (NOTE! Must clean all watcher lists before garbage
+    // collecting this clause)
+    watches.smudge(~c[0]);
+    watches.smudge(~c[1]);
   }
   if (c.learnt())
     learnts_literals -= c.size();
@@ -482,10 +483,10 @@ void Solver::minimisationWithBinaryResolution(vec<Lit>& out_learnt) {
       permDiff[var(out_learnt[i])] = MYFLAG;
     }
 
-    vec<Watcher>& wbin = watchesBin[p];
+    vec<Lit>& wbin = binaryClauses[toInt(~p)];
     int nb = 0;
     for (int k = 0; k < wbin.size(); k++) {
-      Lit imp = wbin[k].blocker;
+      Lit imp = wbin[k];
       if (permDiff[var(imp)] == MYFLAG && value(imp) == l_True) {
         nb++;
         permDiff[var(imp)] = MYFLAG - 1;
@@ -588,14 +589,6 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, vec<Lit>& selectors,
     assert(confl != CRef_Undef);  // (otherwise should be UIP)
     Clause& c = ca[confl];
 
-    // Special case for binary clauses
-    // The first one has to be SAT
-    if (p != lit_Undef && c.size() == 2 && value(c[0]) == l_False) {
-      assert(value(c[1]) == l_True);
-      Lit tmp = c[0];
-      c[0] = c[1], c[1] = tmp;
-    }
-
     if (c.learnt()) claBumpActivity(c);
 
 #ifdef DYNAMICNBLEVEL
@@ -674,8 +667,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, vec<Lit>& selectors,
         out_learnt[j++] = out_learnt[i];
       else {
         Clause& c = ca[reason(var(out_learnt[i]))];
-        // Thanks to Siert Wieringa for this bug fix!
-        for (int k = ((c.size() == 2) ? 0 : 1); k < c.size(); k++)
+        for (int k = 1; k < c.size(); k++)
           if (!seen[var(c[k])] && level(var(c[k])) > 0) {
             out_learnt[j++] = out_learnt[i];
             break;
@@ -755,11 +747,6 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels) {
     assert(reason(var(analyze_stack.last())) != CRef_Undef);
     Clause& c = ca[reason(var(analyze_stack.last()))];
     analyze_stack.pop();
-    if (c.size() == 2 && value(c[0]) == l_False) {
-      assert(value(c[1]) == l_True);
-      Lit tmp = c[0];
-      c[0] = c[1], c[1] = tmp;
-    }
 
     for (int i = 1; i < c.size(); i++) {
       Lit p = c[i];
@@ -814,14 +801,6 @@ void Solver::analyzeLastUIP(CRef confl, vec<Lit>& out_learnt,
 
     if (c.learnt()) claBumpActivity(c);
 
-    // Special case for binary clauses
-    // The first one has to be SAT
-    if (p != lit_Undef && c.size() == 2 && value(c[0]) == l_False) {
-      assert(value(c[1]) == l_True);
-      Lit tmp = c[0];
-      c[0] = c[1], c[1] = tmp;
-    }
-
     for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++) {
       Lit q = c[j];
 
@@ -864,7 +843,7 @@ void Solver::analyzeLastUIP(CRef confl, vec<Lit>& out_learnt,
         out_learnt[j++] = out_learnt[i];
       else {
         Clause& c = ca[reason(var(out_learnt[i]))];
-        for (int k = 0; k < c.size(); k++)
+        for (int k = 1; k < c.size(); k++)
           if (!seen[var(c[k])] && level(var(c[k])) > 0) {
             out_learnt[j++] = out_learnt[i];
             break;
@@ -923,12 +902,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict) {
         out_conflict.push(~trail[i]);
       } else {
         Clause& c = ca[reason(x)];
-        //                for (int j = 1; j < c.size(); j++) Minisat
-        //                (glucose 2.0) loop
-        // Bug in case of assumptions due to special data structures for Binary.
-        // Many thanks to Sam Bayless (sbayless@cs.ubc.ca) for discover this
-        // bug.
-        for (int j = ((c.size() == 2) ? 0 : 1); j < c.size(); j++)
+        for (int j = 1; j < c.size(); j++)
           if (level(var(c[j])) > 0) seen[var(c[j])] = 1;
       }
 
@@ -961,25 +935,25 @@ CRef Solver::propagate() {
   CRef confl = CRef_Undef;
   int num_props = 0;
   watches.cleanAll();
-  watchesBin.cleanAll();
   while (qhead < trail.size()) {
     Lit p = trail[qhead++];  // 'p' is enqueued fact to propagate.
     vec<Watcher>& ws = watches[p];
     Watcher *i, *j, *end;
     num_props++;
 
-    // First, Propagate binary clauses
-    vec<Watcher>& wbin = watchesBin[p];
+    // First, propagate the binary clauses. 'p' is true, so '~p' is false and
+    // every literal stored for '~p' is implied.
+    vec<Lit>& toPropagate = binaryClauses[toInt(~p)];
+    for (int k = 0; k < toPropagate.size(); k++) {
+      if (value(toPropagate[k]) == l_Undef) {
+        uncheckedEnqueue(toPropagate[k], binaryReason[toInt(~p)]);
+      } else if (value(toPropagate[k]) == l_False) {  // conflict
+        qhead = trail.size();
 
-    for (int k = 0; k < wbin.size(); k++) {
-      Lit imp = wbin[k].blocker;
+        CRef refBinReason = binaryReason[toInt(~p)];
+        ca[refBinReason][0] = toPropagate[k];
 
-      if (value(imp) == l_False) {
-        return wbin[k].cref;
-      }
-
-      if (value(imp) == l_Undef) {
-        uncheckedEnqueue(imp, wbin[k].cref);
+        return refBinReason;
       }
     }
 
@@ -1282,12 +1256,19 @@ lbool Solver::search(int nof_conflicts) {
       if (learnt_clause.size() == 1) {
         uncheckedEnqueue(learnt_clause[0]);
         nbUn++;
+      } else if (learnt_clause.size() == 2) {
+        // Store the binary clause in the flat structure and reuse the shared
+        // reason for the asserting literal 'learnt_clause[0]'.
+        binaryClauses[toInt(learnt_clause[0])].push(learnt_clause[1]);
+        binaryClauses[toInt(learnt_clause[1])].push(learnt_clause[0]);
+        if (nblevels <= 2) nbDL2++;  // stats
+        nbBin++;                     // stats
+        uncheckedEnqueue(learnt_clause[0], binaryReason[toInt(learnt_clause[1])]);
       } else {
         CRef cr = ca.alloc(learnt_clause, true);
         ca[cr].setLBD(nblevels);
         ca[cr].setSizeWithoutSelectors(szWoutSelectors);
-        if (nblevels <= 2) nbDL2++;       // stats
-        if (ca[cr].size() == 2) nbBin++;  // stats
+        if (nblevels <= 2) nbDL2++;  // stats
         learnts.push(cr);
         attachClause(cr);
 
@@ -1604,16 +1585,17 @@ void Solver::relocAll(ClauseAllocator& to) {
   //
   // for (int i = 0; i < watches.size(); i++)
   watches.cleanAll();
-  watchesBin.cleanAll();
   for (int v = 0; v < nVars(); v++)
     for (int s = 0; s < 2; s++) {
       Lit p = mkLit(v, s);
       // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
       vec<Watcher>& ws = watches[p];
       for (int j = 0; j < ws.size(); j++) ca.reloc(ws[j].cref, to);
-      vec<Watcher>& ws2 = watchesBin[p];
-      for (int j = 0; j < ws2.size(); j++) ca.reloc(ws2[j].cref, to);
     }
+
+  // All binary reason clauses:
+  //
+  for (int i = 0; i < binaryReason.size(); i++) ca.reloc(binaryReason[i], to);
 
   // All reasons:
   //

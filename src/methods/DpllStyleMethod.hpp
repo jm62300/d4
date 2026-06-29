@@ -57,6 +57,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   bool optReversePolarity;
   bool m_verbosity;
 
+  bool m_isProblemUnsat = false;
   unsigned m_nbCallCall;
   unsigned m_nbSplit;
   unsigned m_nbDecisionNode;
@@ -405,13 +406,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       m_specs->postUpdate(unitsLit);
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
-
+#if 0
       static T tmpBest = m_semiringOps.zero();
       if (tmpBest < ret) {
         tmpBest = ret;
         std::cout << ret << '\n';
       }
-
+#endif
       return ret;
     }
 
@@ -479,8 +480,10 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     for (auto& v : setOfVar)
       if (m_isDecisionVariable[v]) decisionVar.push_back(v);
 
-    if (warmStart && !m_solver->warmStart(29, 11, decisionVar, m_out))
+    if (warmStart && !m_solver->warmStart(29, 11, decisionVar, m_out)) {
+      m_isProblemUnsat = true;
       return m_semiringOps.zero();
+    }
 
     std::vector<Lit> units;
     std::vector<Var> free;
@@ -490,6 +493,11 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   }  // compute
 
  public:
+  /**
+   * @brief Ask if the problem is UNSAT (zero does not mean unsat!!!!)
+   */
+  inline bool isProblemUnsat() { return m_isProblemUnsat; }
+
   /**
      Given an assumption, we compute the number of models.  That is
      different from the query strategy, where we first compute and then

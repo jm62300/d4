@@ -69,7 +69,8 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       }
       if (in.currentChar() == 'w') in.consumeChar();
 
-      if (in.nextChar() != 'c' || in.nextChar() != 'n' || in.nextChar() != 'f') {
+      if (in.nextChar() != 'c' || in.nextChar() != 'n' ||
+          in.nextChar() != 'f') {
         throw std::runtime_error("PARSE ERROR! Unexpected char after p");
       }
 
@@ -92,6 +93,7 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       if (in.currentChar() == 't') {
         in.consumeChar();
         in.skipSimpleSpace();
+        formula.typeCompet = in.lineWord();
         in.skipLine();
       } else if (in.canConsume("p")) {
         if (in.canConsume("weight")) {
@@ -104,11 +106,47 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
             elements.push_back(current_word);
           }
 
+          // test if it is correct.
           if (elements.empty() || elements.back() != "0") {
-            throw std::runtime_error("PARSE ERROR! Weight line must be terminated by 0");
+            throw std::runtime_error(
+                "PARSE ERROR! Weight line must be terminated by 0");
           }
 
-          if (elements.size() == 2) {
+          // remove the zero at the end.
+          elements.pop_back();
+
+          // Complex weight written as a single token "<real>±<imag>i",
+          // e.g. "0+1i", "0.70710678...+0i" or "0-0.70710678...i". Split it
+          // into its real and imaginary parts.
+          if (elements.size() == 1 && !elements[0].empty() &&
+              elements[0].back() == 'i') {
+            std::string tok = elements[0];
+            tok.pop_back();  // drop the trailing 'i'
+
+            // The imaginary part starts at the last '+'/'-' that is neither
+            // the leading sign of the number nor part of an exponent (e.g.
+            // the '-' in "1.5e-10").
+            std::size_t split = std::string::npos;
+            for (std::size_t i = tok.size(); i-- > 1;) {
+              if ((tok[i] == '+' || tok[i] == '-') && tok[i - 1] != 'e' &&
+                  tok[i - 1] != 'E') {
+                split = i;
+                break;
+              }
+            }
+            if (split == std::string::npos) {
+              throw std::runtime_error(
+                  "PARSE ERROR! Malformed complex weight: " + elements[0]);
+            }
+
+            std::string im = tok.substr(split);  // keeps its sign
+            if (im[0] == '+') im.erase(0, 1);
+
+            elements[0] = tok.substr(0, split);
+            elements.push_back(im);
+          }
+
+          if (elements.size() == 1) {
             formula.weightMap[lit] = elements[0];
             if (formula.weightType == WeightType::INT)
               formula.weightType = WeightType::FLOAT;
@@ -126,7 +164,8 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
           // in this format we have an end line we have to consume.
           [[maybe_unused]] int endLine = in.nextInt();
           if (endLine != 0) {
-            throw std::runtime_error("PARSE ERROR! Complex weight line must be terminated by 0");
+            throw std::runtime_error(
+                "PARSE ERROR! Complex weight line must be terminated by 0");
           }
         } else if (in.canConsume("show"))
           in.readListIntTerminatedByZero(showedVars);
@@ -145,7 +184,9 @@ int ParserDimacs::parse_DIMACS_main(BufferRead& in, Formula& formula) {
       do {
         v = in.nextInt();
         if ((v > 0 && nbVars < v) || (-v > 0 && nbVars < -v)) {
-          throw std::runtime_error("PARSE ERROR! Number of variables incorrect: " + std::to_string(v));
+          throw std::runtime_error(
+              "PARSE ERROR! Number of variables incorrect: " +
+              std::to_string(v));
         }
 
         if (v) lits.push_back(v);
@@ -194,7 +235,8 @@ int ParserDimacs::parse_DIMACS(const char* data, size_t len, Formula& formula) {
   return parse_DIMACS_main(in, formula);
 }  // parse_DIMACS
 
-int ParserDimacs::parse_DIMACS_from_data(const std::string& data, Formula& formula) {
+int ParserDimacs::parse_DIMACS_from_data(const std::string& data,
+                                         Formula& formula) {
   return parse_DIMACS(data.data(), data.size(), formula);
 }  // parse_DIMACS_from_data
 

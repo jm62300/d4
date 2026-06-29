@@ -19,12 +19,16 @@
 
 #include "Counter.hpp"
 
+#include <gmpxx.h>
 #include <signal.h>
 
-#include <gmpxx.h>
-
 #include <cassert>
+#include <cmath>
 #include <iomanip>
+#include <limits>
+#include <sstream>
+#include <string>
+#include <type_traits>
 
 #include "../semirings/MpzComplexSemiring.hpp"
 #include "../semirings/MpzFloatSemiring.hpp"
@@ -36,6 +40,57 @@
 extern d4::MethodManager* methodRun;
 
 using namespace d4;
+
+namespace {
+
+// log10(|x|) as a double, robust to arbitrarily large/small magnitudes: GMP
+// has no native log, so we decompose x = d * 2^e (0.5 <= |d| < 1) and compute
+// log10(|x|) = log10(|d|) + e * log10(2). This keeps double precision (the ~15
+// significant digits the competition format expects for the estimate) even
+// when x is far beyond the range of a double.
+inline double log10Abs(const mpz::mpz_int& x) {
+  signed long int e;
+  double d = mpz_get_d_2exp(&e, x.get_mpz_t());
+  if (d == 0.0) return -std::numeric_limits<double>::infinity();
+  return std::log10(std::fabs(d)) + e * std::log10(2.0);
+}
+
+inline double log10Abs(const mpz::mpf_float& x) {
+  signed long int e;
+  double d = mpf_get_d_2exp(&e, x.get_mpf_t());
+  if (d == 0.0) return -std::numeric_limits<double>::infinity();
+  return std::log10(std::fabs(d)) + e * std::log10(2.0);
+}
+
+// Emit a mandatory "c s [neg]log10-estimate<suffix> VALUE" line for a real
+// quantity, following the competition sign rules: VALUE := log10(|cnt|);
+// cnt > 0 -> log10-estimate, cnt < 0 -> neglog10-estimate, cnt = 0 -> -inf.
+template <typename R>
+inline void emitLog10Estimate(std::ostream& out, const R& v,
+                              const std::string& suffix) {
+  int s = sgn(v);
+  if (s == 0)
+    out << "c s log10-estimate" << suffix << " -inf\n";
+  else if (s > 0)
+    out << "c s log10-estimate" << suffix << " " << log10Abs(v) << "\n";
+  else
+    out << "c s neglog10-estimate" << suffix << " " << log10Abs(v) << "\n";
+}
+
+// Render a complex value as "a+bi" / "a-bi" with no spaces, as required by the
+// algebraic-model-counting track.
+inline std::string complexToString(const semiring::Complex& c) {
+  std::ostringstream os;
+  os.precision(50);
+  os << c.real;
+  if (sgn(c.im) < 0)
+    os << c.im << "i";  // c.im already carries its leading '-'
+  else
+    os << "+" << c.im << "i";
+  return os.str();
+}
+
+}  // namespace
 
 template <typename T, typename O>
 void countModels(const OptionDpllStyleMethod& options,
@@ -52,18 +107,22 @@ void countModels(const OptionDpllStyleMethod& options,
     mpf_set_default_prec(426);  // ~128 decimal digits
     std::cout.precision(50);
 
-    if (result == T(0)) {
-      std::cout << "s UNSATISFIABLE\n";
-      std::cout << "c " << format << "\n";
-      std::cout << "c s log10-estimate -inf\n";
-      std::cout << "c s exact quadruple int 0\n";
-    } else {
-      std::cout << "s SATISFIABLE\n";
-      std::cout << "c " << format << "\n";
-      std::cout << "c s log10-estimate " << result << "\n";
+    // Mandatory satisfiability line, then the mandatory problem-type line
+    // (mc|pmc|wmc|pwmc|amc-complex) taken from the input "c t" header.
+    std::cout << (counter->isProblemUnsat() ? "s UNSATISFIABLE\n"
+                                            : "s SATISFIABLE\n");
+    std::cout << "c s type " << format << "\n";
 
-      if (isFloat)
-        std::cout << "c s exact quadruple int " << result << "\n";
+    if constexpr (std::is_same_v<T, semiring::Complex>) {
+      // Algebraic counting: announce the log10 estimate of the real and the
+      // imaginary parts separately, then the exact result as "a+bi".
+      emitLog10Estimate(std::cout, result.real, "-real");
+      emitLog10Estimate(std::cout, result.im, "-imag");
+      std::cout << "c s exact arb float " << complexToString(result) << "\n";
+    } else {
+      emitLog10Estimate(std::cout, result, "");
+      if constexpr (std::is_same_v<T, mpz::mpf_float>)
+        std::cout << "c s exact arb float " << result << "\n";
       else
         std::cout << "c s exact arb int " << result << "\n";
     }
@@ -154,15 +213,15 @@ void counter(const d4::OptionDpllStyleMethod& inputConfig,
   switch (formula.weightType) {
     case parser::WeightType::INT:
       countModels<mpz::mpz_int, semiring::MpzIntSemiring>(
-          options, problem, format, outFormat, false);
+          options, problem, formula.typeCompet, outFormat, false);
       break;
     case parser::WeightType::FLOAT:
       countModels<mpz::mpf_float, semiring::MpzFloatSemiring>(
-          options, problem, format, outFormat, false);
+          options, problem, formula.typeCompet, outFormat, true);
       break;
     case parser::WeightType::COMPLEX:
       countModels<semiring::Complex, semiring::MpzComplexSemiring>(
-          options, problem, format, outFormat, false);
+          options, problem, formula.typeCompet, outFormat, true);
       break;
   }
 }  // counter
