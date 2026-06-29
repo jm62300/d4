@@ -47,7 +47,8 @@ class CacheCleaningManager {
   static CacheCleaningManager<T>* makeCacheCleaningManager(
       const OptionCacheCleaningManager& options, CacheManager<T>* cache,
       int nbVar, std::ostream& out) {
-    out << "c [CACHE CLEANING MANAGER] " << options << '\n';
+    if (options.verbosity)
+      out << "c [CACHE CLEANING MANAGER] " << options << '\n';
 
     if (options.cacheCleaningStrategy == CACHE_EXPECTATION)
       return new CacheCleaningExpectation<T>(cache, nbVar);

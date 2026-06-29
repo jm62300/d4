@@ -133,6 +133,7 @@ class BranchingHeuristic {
   unsigned m_freqDecay;
   unsigned m_nbCall;
   ListLitAllocator* m_listLitAllocator = NULL;
+  int m_verbosity = 0;
 
  public:
   /**

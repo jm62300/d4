@@ -15,6 +15,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # -static link fails trying to statically link that dynamic object.
 option(BUILD_STATIC "Build with full static linking" OFF)
 option(BUILD_PROFILE "Build with profiling (-p/-pg)" OFF)
+option(BUILD_COMPETITION "Build with -O3 -march=native -flto (compile on target cluster)" OFF)
 
 if(BUILD_STATIC)
     # Tell CMake's find_package to strictly look for static libraries
@@ -126,6 +127,17 @@ endif()
 if(BUILD_PROFILE)
     if(NOT MSVC)
         target_compile_options(counter PRIVATE -pg -g)
-        target_link_options(counter PRIVATE -pg -g) 
+        target_link_options(counter PRIVATE -pg -g)
+    endif()
+endif()
+
+if(BUILD_COMPETITION)
+    target_compile_definitions(counter PRIVATE NDEBUG)
+    if(NOT MSVC)
+        # Competition = release + LTO (benchmarks showed -march=native/PGO add
+        # nothing for d4). LTO must be on the final link to cross the libd4.a
+        # boundary; -ffat-lto-objects keeps linking robust if any object lacks IR.
+        target_compile_options(counter PRIVATE -O3 -flto=auto -ffat-lto-objects)
+        target_link_options(counter PRIVATE -flto=auto)
     endif()
 endif()

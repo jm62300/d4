@@ -30,7 +30,7 @@ namespace d4 {
 template <class T>
 class CacheNoCollision : public CacheManager<T> {
  private:
-  const uint64_t SIZE_HASH = 22041997;
+  const uint64_t SIZE_HASH = 220419970;
 
  protected:
   std::vector<CachedBucket<T>> hashTable;
@@ -47,7 +47,7 @@ class CacheNoCollision : public CacheManager<T> {
   CacheNoCollision(const OptionCacheManager& options, unsigned nbVar,
                    FormulaManager* specs, std::ostream& out)
       : CacheManager<T>(options, nbVar, specs, out) {
-    out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
+    if (options.verbosity) out << "c [CACHE NO-COLLISION CONSTRUCTOR]\n";
     initHashTable(nbVar);
   }  // constructor
 

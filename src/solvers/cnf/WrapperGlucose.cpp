@@ -37,7 +37,7 @@ namespace d4 {
    @param[in] p, the problem we want to link with the SAT solver.
  */
 void WrapperGlucose::initSolver(const ProblemManager& p) {
-  std::cout << "c [GLUCOSE SOLVER] Init phase\n";
+  if (m_verbosity) std::cout << "c [GLUCOSE SOLVER] Init phase\n";
   while ((unsigned)m_solver.nVars() <= p.getNbVar()) m_solver.newVar();
   m_model.resize(p.getNbVar() + 1, l_Undef);
 
@@ -85,6 +85,7 @@ lbool WrapperGlucose::runSolver(std::span<const Var> setOfVar) {
       assert(m_solver.model[v] != Glucose::l_Undef);
       m_model[v] = m_solver.model[v] == Glucose::l_True ? l_True : l_False;
     }
+
   return res;
 }  // runSolver
 

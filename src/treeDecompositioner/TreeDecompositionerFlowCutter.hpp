@@ -32,7 +32,7 @@ class TreeDecompositionerFlowCutter : public TreeDecompositioner {
    * @return a node from the graph that will represent the center. If the graph
    * is emptied then we return the last node + 1 (graph.size()).
    */
-  unsigned getCenterGraph(const std::vector<std::vector<unsigned>> &graph);
+  unsigned getCenterGraph(const std::vector<std::vector<unsigned>>& graph);
 
   /**
    * @brief From a given graph and a center, constructs a tree that is stored in
@@ -44,18 +44,16 @@ class TreeDecompositionerFlowCutter : public TreeDecompositioner {
    * @param[out] marked is a boolean vector used in order to mark the visited
    * nodes.
    */
-  void makeTreeFromGraph(const std::vector<std::vector<unsigned>> &graph,
-                         unsigned center, std::vector<TreeDecomp *> &setOfTrees,
-                         std::vector<bool> &marked);
+  void makeTreeFromGraph(const std::vector<std::vector<unsigned>>& graph,
+                         unsigned center, std::vector<TreeDecomp*>& setOfTrees,
+                         std::vector<bool>& marked);
 
  public:
   /**
    * @brief Construct a new Tree Decompositioner Flow Cutter object.
    *
    */
-  TreeDecompositionerFlowCutter() {
-    std::cout << "c [TREE DECOMPOSITION] Flow Cutter\n";
-  }
+  TreeDecompositionerFlowCutter() {}
 
   /**
    * @brief Compute a tree decomposition regarding a given graph using the tool
@@ -68,7 +66,7 @@ class TreeDecompositionerFlowCutter : public TreeDecompositioner {
    *
    * @return a tree decomposition of graph.
    */
-  TreeDecomp *constructTreeDecomposition(Graph &graph, unsigned budget,
+  TreeDecomp* constructTreeDecomposition(Graph& graph, unsigned budget,
                                          unsigned seed,
                                          bool verbosity) override;
 };

@@ -97,8 +97,8 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
   DpllStyleMethod(const OptionDpllStyleMethod& options,
                   const ProblemManager& problem, std::ostream& out)
       : m_out(out) {
-    m_out << "c [DPLL STYLE METHOD]" << options << "\n";
     m_verbosity = options.verbosity;
+    if (m_verbosity) m_out << "c [DPLL STYLE METHOD]" << options << "\n";
 
     // we create and init the solver.
     m_solver =
@@ -372,9 +372,7 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     showRun(out);
     m_nbCallCall++;
 
-    // if (m_nbCallCall > 100000000) exit(0);
-
-    // // int tmp = m_nbCallCall;
+    // if (m_nbCallCall > 50000000) exit(0);
 
     if (!m_solver->solve(setOfVar, unitsLit)) return m_semiringOps.zero();
     m_specs->preUpdate(unitsLit);
@@ -407,6 +405,13 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
 
       m_specs->postUpdate(unitsLit);
       expelNoDecisionLit(unitsLit, m_isDecisionVariable);
+
+      static T tmpBest = m_semiringOps.zero();
+      if (tmpBest < ret) {
+        tmpBest = ret;
+        std::cout << ret << '\n';
+      }
+
       return ret;
     }
 

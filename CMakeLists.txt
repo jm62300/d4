@@ -24,6 +24,23 @@ if (${BUILD_MODE} EQUAL 2)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ${CMAKE_FIND_LIBRARY_SUFFIXES})
 endif()
 
+# --- Competition mode (BUILD_MODE 4): release + LTO ---
+# Benchmarking d4 on this workload (MC2025 track1; AVX2 CPU, no AVX-512) showed:
+#   LTO        ~ +6%   (the only real win)
+#   -march=native ~ 0  (d4 is pointer-chasing + GMP, not vectorizable)
+#   PGO        ~ 0     (actually slightly slower than plain LTO)
+# So competition mode = standard release + LTO only. We deliberately do NOT add
+# -march=native on the d4/demo side (no benefit, and it would make the binary
+# CPU-specific). glucose/flowCutter keep their own -march=native (their release
+# default) via their CMakeLists.
+# Set GLOBALLY here, BEFORE add_subdirectory(), so glucose/flowCutter/htd inherit
+# -flto. -ffat-lto-objects keeps libd4.a linkable by demos that do not opt in.
+if (${BUILD_MODE} EQUAL 4 AND NOT MSVC)
+    message(STATUS "Build D4 : Mode COMPETITION (4) - -O3 -flto (LTO)")
+    add_compile_options(-O3 -flto=auto -ffat-lto-objects)
+    add_link_options(-flto=auto)
+endif()
+
 
 # --- 1. Gather Sources ---
 file(GLOB_RECURSE SRCS "./src/*.cpp")
@@ -93,7 +110,8 @@ if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
 endif()
 FetchContent_Declare(
     optree
-    SOURCE_DIR "/home/jm/dev/cnrs/d4/d4/3rdParty/optree-src"
+    GIT_REPOSITORY https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git
+    GIT_TAG main
 )
 FetchContent_MakeAvailable(optree)
 
@@ -172,10 +190,17 @@ elseif (${BUILD_MODE} EQUAL 2)
     if (MSVC)
         target_compile_options(d4 PUBLIC $<$<NOT:$<CONFIG:Debug>>:/O2> /MT)
     else ()
-        target_compile_options(d4 PUBLIC -O2)
+        target_compile_options(d4 PUBLIC -O3 -march=native)
         target_link_options(d4 PUBLIC -static)
     endif ()
     set(SUFFIX_DIR "-static")
+
+elseif (${BUILD_MODE} EQUAL 4)
+    message(STATUS "Build D4 : Mode COMPETITION (4)")
+    target_compile_definitions(d4 PUBLIC NDEBUG)
+    # Optimization/LTO flags are applied globally above (add_compile_options),
+    # so glucose/flowCutter/htd pick them up as well.
+    set(SUFFIX_DIR "-competition")
 
 elseif (${BUILD_MODE} EQUAL 3)
     message(STATUS "Build D4 : Mode PROFILING (3)")

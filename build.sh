@@ -9,9 +9,13 @@ opt=0
 PARALLEL_FLAGS=""
 
 # Note: Added 'j' to cleanly trigger parallel builds
-while getopts 'dspj' OPTION
+while getopts 'cdspj' OPTION
 do
     case "$OPTION" in
+        c)
+            # Competition: -O3 -march=native -flto (build on the target cluster)
+            opt=4
+            ;;
         d)
             opt=1
             ;;

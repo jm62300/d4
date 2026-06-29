@@ -115,7 +115,7 @@ bool WrapperSolver::solve(std::span<const Var> setOfVar,
 WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
                                                 const ProblemManager& p,
                                                 std::ostream& out) {
-  out << "c [WRAPPER SOLVER]" << options << "\n";
+  if (options.verbosity) out << "c [WRAPPER SOLVER]" << options << "\n";
   WrapperSolver* ret = nullptr;
 
   switch (p.getProblemInputType()) {
@@ -126,7 +126,7 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
           break;
         }
         case GLUCOSE_CNF: {
-          ret = new WrapperCircuitGlucose();
+          ret = new WrapperCircuitGlucose(options);
           break;
         }
       }
@@ -140,7 +140,7 @@ WrapperSolver* WrapperSolver::makeWrapperSolver(const OptionSolver& options,
           break;
         }
         case GLUCOSE_CNF: {
-          ret = new WrapperGlucose();
+          ret = new WrapperGlucose(options);
           break;
         }
       }
@@ -191,8 +191,9 @@ bool WrapperSolver::warmStart(int iteration, int sizeQuery,
   setAssumption(query);
   restart();
 
-  out << "c Warm start process (" << sizeQuery << "): " << nbSAT << "/"
-      << iteration << "\n";
+  if (m_verbosity)
+    out << "c Warm start process (" << sizeQuery << "): " << nbSAT << "/"
+        << iteration << "\n";
   return true;
 }  // warmStart
 

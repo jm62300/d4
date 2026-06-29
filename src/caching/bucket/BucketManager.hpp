@@ -63,6 +63,10 @@ class BucketManager {
     return m_bucketAllocator->getComsumedMemory();
   }
 
+  inline bool isMemoryLimitReached() {
+    return m_bucketAllocator->isMemoryLimitReached();
+  }
+
   inline void reinitComsumedMemory() {
     m_bucketAllocator->reinitComsumedMemory();
   }

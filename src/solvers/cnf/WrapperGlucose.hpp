@@ -32,6 +32,10 @@ class WrapperGlucose : public WrapperSolver {
   using WrapperSolver::m_isInAssumption;
 
  public:
+  WrapperGlucose(const OptionSolver& options) {
+    m_verbosity = options.verbosity;
+  }
+
   void initSolver(const ProblemManager& p) override;
   lbool runSolver(std::span<const Var> setOfVar) override;
   void onCadicalSat(std::span<const Var> setOfVar) override;

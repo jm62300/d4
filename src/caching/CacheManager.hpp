@@ -209,7 +209,8 @@ class CacheManager {
    * @return TmpEntry<T>
    */
   TmpEntry<T> searchInCache(std::span<const Var> varConnected) {
-    if (m_bucketManager->getComsumedMemory()) {
+    if (m_bucketManager->getComsumedMemory() ||
+        m_bucketManager->isMemoryLimitReached()) {
       m_cacheCleaningManager->reduceCache();
       m_bucketManager->reinitComsumedMemory();
     }

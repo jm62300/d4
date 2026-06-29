@@ -1164,7 +1164,7 @@ void Solver::removeLearnt() {
       removeClause(learnts[i]);
       nbRemovedClauses++;
     } else {
-      c.setLBD(c.size());
+      c.setLBD(c.lbd() + 1);
       learnts[j++] = learnts[i];
     }
   }

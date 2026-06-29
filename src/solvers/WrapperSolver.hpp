@@ -36,6 +36,7 @@ class WrapperSolver : public ActivityManager, public PolarityManager {
   std::vector<lbool> m_model;
   bool m_activeModel;
   bool m_needModel;
+  int m_verbosity = 0;
 
   CaDiCaL::Solver m_cadical;
   std::vector<std::vector<int>> m_initClauses;

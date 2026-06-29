@@ -33,13 +33,14 @@ PartialOrderHeuristic* PartialOrderHeuristic::makePartialOrderingHeuristic(
     std::ostream& out) {
   switch (options.partialOrderMethod) {
     case PARTIAL_ORDER_NONE:
-      out << "c [PARTIAL ORDER HEURISTIC] None\n";
+      if (options.verbosity) out << "c [PARTIAL ORDER HEURISTIC] None\n";
       return new PartialOrderHeuristicNone();
     case PARTIAL_ORDER_TREE_DECOMPOSITION:
-      out << "c [PARTIAL ORDER HEURISTIC] Tree decomposition\n";
+      if (options.verbosity)
+        out << "c [PARTIAL ORDER HEURISTIC] Tree decomposition\n";
       return new PartialOrderHeuristicTreeDecomp(options, s, out);
     case PARTIAL_ORDER_GIVEN:
-      out << "c [PARTIAL ORDER HEURISTIC] Given\n";
+      if (options.verbosity) out << "c [PARTIAL ORDER HEURISTIC] Given\n";
       return new PartialOrderHeuristicGiven(options, s, out);
   }
 

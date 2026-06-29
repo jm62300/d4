@@ -30,15 +30,17 @@ namespace d4 {
 PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
     const OptionPartialOrderHeuristic& options, FormulaManager& om,
     std::ostream& out) {
-  std::cout << "c [PARTIAL ORDER HEURISTIC TREE DECOMP] Factory\n";
+  if (options.verbosity)
+    out << "c [PARTIAL ORDER HEURISTIC TREE DECOMP] Factory\n";
   TreeDecomposition* decomp = TreeDecomposition::makeTreeDecomposition(
       options, om.getProblemInputType(), out);
 
   TreeDecomp* tree = decomp->computeDecomposition(om);
   assert(tree);
-  std::cout << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed size("
-            << tree->getSizeLargestBag() << ") first size("
-            << tree->getNode().size() << ")\n";
+  if (options.verbosity)
+    out << "c [PARTIAL ORDER TREE DECOMP] Decomposition computed size("
+        << tree->getSizeLargestBag() << ") first size("
+        << tree->getNode().size() << ")\n";
 
   // construct the topological order.
   std::vector<TreeDecomp*> stack;
@@ -69,7 +71,8 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
 
   if (options.scaleFactor == 0) {
     double rt = (double)om.getNbVariable() / (double)m_treeWidth;
-    out << "c [TREE DECOMPOSITION] Ratio #var/tree-width: " << rt << '\n';
+    if (options.verbosity)
+      out << "c [TREE DECOMPOSITION] Ratio #var/tree-width: " << rt << '\n';
     if (rt > 40)
       m_scaleFactor = 1e7;
     else
@@ -81,8 +84,10 @@ PartialOrderHeuristicTreeDecomp::PartialOrderHeuristicTreeDecomp(
     w = m_scaleFactor * ((double)(level - w + 1)) / (double)level;
   }
 
-  out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
-  out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';
+  if (options.verbosity) {
+    out << "c [TREE DECOMPOSITION] Number of levels: " << level - 1 << '\n';
+    out << "c [TREE DECOMPOSITION] Scaling factor: " << m_scaleFactor << '\n';
+  }
 }  // constructor
 
 /**

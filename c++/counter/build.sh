@@ -11,6 +11,7 @@ set -o pipefail
 BUILD_TYPE="Release"
 STATIC_FLAG="OFF"
 PROFILE_FLAG="OFF"
+COMPETITION_FLAG="OFF"
 PARALLEL_FLAG=""
 
 while getopts 'cdspj' OPTION
@@ -18,9 +19,11 @@ do
     echo "c [BUILD] Option Selected: -$OPTION"
     case "$OPTION" in
         c)
+            # Competition: -O3 -march=native -flto on both d4 and this demo.
             BUILD_TYPE="Release"
             STATIC_FLAG="OFF"
             PROFILE_FLAG="OFF"
+            COMPETITION_FLAG="ON"
             ;;
         d)
             BUILD_TYPE="Debug"
@@ -42,7 +45,7 @@ do
             PARALLEL_FLAG="--parallel"
             ;;
         *)
-            echo "Usage: $0 [-c (release) | -d (debug) | -s (static) | -p (profile) | -j (parallel)]"
+            echo "Usage: $0 [-c (competition) | -d (debug) | -s (static) | -p (profile) | -j (parallel)]"
             exit 1
             ;;
     esac
@@ -76,12 +79,13 @@ mkdir -p build
 cd build
 
 
-echo "c [BUILD] Configuring CMake (Type: $BUILD_TYPE, Static: $STATIC_FLAG, Profile: $PROFILE_FLAG)..."
+echo "c [BUILD] Configuring CMake (Type: $BUILD_TYPE, Static: $STATIC_FLAG, Profile: $PROFILE_FLAG, Competition: $COMPETITION_FLAG)..."
 
 cmake .. \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DBUILD_STATIC="$STATIC_FLAG" \
-    -DBUILD_PROFILE="$PROFILE_FLAG"
+    -DBUILD_PROFILE="$PROFILE_FLAG" \
+    -DBUILD_COMPETITION="$COMPETITION_FLAG"
 
 echo "c [BUILD] Compiling executable using Make..."
 

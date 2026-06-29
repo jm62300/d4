@@ -18,6 +18,8 @@
  */
 #include "FormulaManager.hpp"
 
+#include <stdexcept>
+
 #include "circuit/CircuitManagerDyn.hpp"
 #include "circuit/CircuitWithCnfManager.hpp"
 #include "cnf/CnfManagerDyn.hpp"
@@ -25,7 +27,6 @@
 #include "cnf/CnfManagerDynPure.hpp"
 #include "src/exceptions/FactoryException.hpp"
 #include "src/utils/ErrorCode.hpp"
-#include <stdexcept>
 
 namespace d4 {
 
@@ -35,7 +36,7 @@ namespace d4 {
 FormulaManager* FormulaManager::makeFormulaManager(
     const OptionSpecManager& options, const ProblemManager& p,
     std::ostream& out) {
-  out << "c [SPEC MANAGER]" << options << "\n";
+  if (options.verbosity) out << "c [SPEC MANAGER]" << options << "\n";
 
   switch (p.getProblemInputType()) {
     case PB_CIRC:

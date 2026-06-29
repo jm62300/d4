@@ -64,7 +64,8 @@ class BranchingHeuristicHybridPartialClassic : public BranchingHeuristic {
                            polarityManager, out),
         m_saveOptionPartialOrderHeuristic(options.optionPartialOrderHeuristic) {
     // Create the partial order heuristic based on the given options.
-    out << "c [BRANCHING HEURISTIC] Make Partial Order Heuristic\n";
+    if (options.verbosity)
+      out << "c [BRANCHING HEURISTIC] Make Partial Order Heuristic\n";
     m_partialOrder = PartialOrderHeuristic::makePartialOrderingHeuristic(
         options.optionPartialOrderHeuristic, *specs, out);
 

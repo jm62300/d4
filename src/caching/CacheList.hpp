@@ -50,7 +50,7 @@ class CacheList : public CacheManager<T> {
   CacheList(const OptionCacheManager& options, unsigned nbVar,
             FormulaManager* specs, std::ostream& out)
       : CacheManager<T>(options, nbVar, specs, out) {
-    out << "c [CACHE LIST CONSTRUCTOR]\n";
+    if (options.verbosity) out << "c [CACHE LIST CONSTRUCTOR]\n";
     initHashTable(nbVar);
   }
 
