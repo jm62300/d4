@@ -355,9 +355,6 @@ void handle_client(int csocket) {
             wt = d4::api::WeightType::COMPLEX;
         }
         solver.setWeights(formula.weightMap, wt);
-        if (!formula.quantifications.empty() && !formula.quantifications[0].empty()) {
-            solver.setProjectionVariables(formula.quantifications[0]);
-        }
         auto start_time = std::chrono::high_resolution_clock::now();
 
         if (operation == 0 || operation == 1) { // count or wmc

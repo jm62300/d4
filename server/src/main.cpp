@@ -22,7 +22,7 @@
 #include "ParserCircuit.hpp"
 #include "counter/src/OptionCounter.hpp"
 #include "api/solver/Solver.hpp"
-#include "OptionProjMc.hpp"
+#include "src/options/methods/OptionProjMcMethod.hpp"
 #include <optree/Option.hpp>
 
 using grpc::Server;
@@ -60,8 +60,6 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     optionPreproc.registerTo(registry);
     optionCounter.registerTo(registry);
 
-    d4::OptionProjMc projMcOpts;
-    projMcOpts.registerTo(registry);
 
     // Apply any arguments sent by the client so current values are accurate
     if (request->arguments_size() > 0) {
@@ -102,8 +100,6 @@ class D4SolverServiceImpl final : public D4Solver::Service {
     optionPreproc.registerTo(registry);
     optionCounter.registerTo(registry);
 
-    d4::OptionProjMc projMcOpts;
-    projMcOpts.registerTo(registry);
     
     // Map request arguments to argc/argv format
     std::vector<std::string> args = {"d4_grpc_server"};
@@ -211,10 +207,7 @@ class D4SolverServiceImpl final : public D4Solver::Service {
         wt = d4::api::WeightType::COMPLEX;
       }
       solver.setWeights(formula.weightMap, wt);
-      if (formula.quantifications.size() > 0 && formula.quantifications[0].size() > 0) {
-        solver.setProjectionVariables(formula.quantifications[0]);
-      }
-      solver.setRefinement(projMcOpts.refinement.get());
+
       std::unique_ptr<d4::api::CountResult> result = solver.count(logs_stream);
       model_count_str = result->getResult();
       reply->set_status(CountReply::SATISFIABLE);
@@ -268,8 +261,6 @@ int main(int argc, char** argv) {
   optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
   portOpt.registerTo(registry);
 
-  d4::OptionProjMc projMcOpts;
-  projMcOpts.registerTo(registry);
 
   if (showHelp) {
     std::cout << "Usage: " << argv[0] << " [options]\n"

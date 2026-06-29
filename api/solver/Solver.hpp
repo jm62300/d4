@@ -71,30 +71,9 @@ class Solver {
    */
   void setOptions(const d4::OptionDpllStyleMethod& config);
 
-  /**
-   * @brief Set weights for literals to perform Weighted Model Counting.
-   *
-   * @param weights     A map of DIMACS literal integers (e.g. 1, -1) to their weight string representations.
-   * @param type        The weight type (INT, FLOAT, or COMPLEX, default FLOAT).
-   */
   void setWeights(const std::map<int, std::string>& weights, WeightType type = WeightType::FLOAT);
 
-  /**
-   * @brief Set the variables to project on for Projected Model Counting.
-   *
-   * @param projectionVars The variables (1-based DIMACS indices) to project on.
-   */
-  void setProjectionVariables(const std::vector<int>& projectionVars);
 
-  /**
-   * @brief Set refinement option for Projected Model Counting.
-   */
-  void setRefinement(bool refinement);
-
-  /**
-   * @brief Get refinement option for Projected Model Counting.
-   */
-  bool getRefinement() const;
 
   /**
    * @brief Executes the model counting algorithm and returns a CountResult object.
@@ -122,7 +101,6 @@ class Solver {
 
   d4::OptionDpllStyleMethod options_;
   std::unique_ptr<parser::Formula> formula_;
-  bool refinement_ = true;
 };
 
 }  // namespace d4::api
