@@ -11,8 +11,6 @@
 #include "counter/src/OptionCounter.hpp"
 #include "src/preproc/PreprocManager.hpp"
 #include <optree/Option.hpp>
-#include "OptionProjMc.hpp"
-
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -95,12 +93,10 @@ int main(int argc, char** argv) {
   optree::Option<std::string> hostOpt("host", "Specify host for the gRPC server", "localhost");
   optree::Option<int> portOpt("port", "Specify port for the gRPC server", 50051);
   optree::Option<std::string> inputOpt("input", "Specify path to the input DIMACS or circuit file", "");
-  d4::OptionProjMc projMcOpts;
   
   hostOpt.registerTo(registry);
   portOpt.registerTo(registry);
   inputOpt.registerTo(registry);
-  projMcOpts.registerTo(registry);
 
   // Map -i to --input for registry parsing compatibility
   std::vector<std::string> parse_args;
