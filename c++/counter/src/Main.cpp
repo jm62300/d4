@@ -612,7 +612,6 @@ static void runArjunPreproc(parser::Formula& formula,
     if (cnf.defined(i)) std::cout << i + 1 << " is defined\n";
   }
 
-  formula.nbVar = marked.size();
   std::cout << formula << '\n';
 }
 
