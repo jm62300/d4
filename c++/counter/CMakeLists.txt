@@ -170,8 +170,9 @@ endif()
 
 FetchContent_Declare(
     arjun
-    GIT_REPOSITORY https://github.com/meelgroup/arjun.git
-    GIT_TAG        master
+    # GIT_REPOSITORY https://github.com/meelgroup/arjun.git
+    # GIT_TAG        master
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty/arjun-src"
 )
 FetchContent_GetProperties(arjun)
 if(NOT arjun_POPULATED)
