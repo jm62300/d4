@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_set>
 
 #include "Counter.hpp"
 #include "OptionCounter.hpp"
@@ -29,6 +30,8 @@
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/preproc/PreprocManager.hpp"
+#include <arjun/arjun.h>
+#include <gmp.h>
 
 namespace fs = std::filesystem;
 d4::MethodManager* methodRun = nullptr;
@@ -73,6 +76,127 @@ static void runPreproc(parser::Formula& formula,
   else
     formula.quantifications[0].clear();
 }  // runPreproc
+
+// Run Arjun preprocessing on the formula in place.
+static void runArjunPreproc(parser::Formula& formula,
+                            const d4::OptionCounter& optionCounter,
+                            const bipe::OptionPreproc& optionPreproc) {
+  // Check if we have variables to project/minimize
+  std::vector<uint32_t> projected;
+  if (formula.quantifications[0].size()) {
+    for (int v : formula.quantifications[0]) {
+      projected.push_back(v - 1);
+    }
+  } else {
+    for (unsigned i = 0; i < formula.nbVar; i++) {
+      projected.push_back(i);
+    }
+  }
+
+  bool all_indep = (projected.size() == formula.nbVar);
+
+  // Variables whose positive and negative literal weights differ must not be
+  // eliminated: removing them would change the weighted count.
+  std::vector<int> varProtected;
+  for (int i = 1; i <= formula.nbVar; i++) {
+    std::string w1 = formula.weightMap.find(i) != formula.weightMap.end()
+                         ? formula.weightMap[i]
+                         : "";
+    std::string w2 = formula.weightMap.find(-i) != formula.weightMap.end()
+                         ? formula.weightMap[-i]
+                         : "";
+    if (w1 != w2) varProtected.push_back(i);
+  }
+
+  // Create Arjun SimplifiedCNF and populate it
+  ArjunNS::FGenMpq fg;
+  ArjunNS::SimplifiedCNF cnf(&fg);
+  cnf.set_need_aig();
+  cnf.new_vars(formula.nbVar);
+  cnf.set_weighted(true);
+
+  for (const auto& cl : formula.clauses) {
+    std::vector<CMSat::Lit> c;
+    for (int lit : cl) {
+      uint32_t var = std::abs(lit) - 1;
+      bool sign = (lit < 0);
+      c.push_back(CMSat::Lit(var, sign));
+    }
+    cnf.add_clause(c);
+  }
+
+  cnf.set_sampl_vars(projected);
+
+  // Set weights for protected variables to prevent elimination
+  ArjunNS::FMpq w_protect(mpq_class(1, 3));
+  for (int v : varProtected) {
+    cnf.set_lit_weight(CMSat::Lit(v - 1, false), w_protect);
+  }
+
+  // Preprocess with Arjun
+  ArjunNS::Arjun arjun;
+  arjun.set_verb(optionCounter.verbosity.get());
+  arjun.set_seed(0);
+
+  // Map optionPreproc settings to Arjun
+  arjun.set_probe_based(optionPreproc.optionEliminator.probing.get());
+  arjun.set_bve_pre_simplify(optionPreproc.optionEliminator.bva.get());
+  arjun.set_distill(optionPreproc.optionEliminator.oracleVivif.get());
+  arjun.set_gauss_jordan(optionPreproc.optionEliminator.bvaStructured.get());
+  arjun.set_xor_gates_based(optionPreproc.optionEliminator.ternaryRes.get());
+
+  // Run backbone first
+  arjun.standalone_backbone(cnf);
+
+  // Run minimization
+  arjun.standalone_minimize_indep(cnf, all_indep);
+  // Propagate back to formula
+  formula.clauses.clear();
+
+  for (const auto& cl : cnf.get_clauses()) {
+    std::vector<int> c;
+    for (const auto& lit : cl) {
+      int var = lit.var() + 1;
+      int human_lit = lit.sign() ? -var : var;
+      c.push_back(human_lit);
+    }
+    formula.clauses.push_back(c);
+  }
+
+  for (const auto& cl : cnf.get_red_clauses()) {
+    std::vector<int> c;
+    for (const auto& lit : cl) {
+      int var = lit.var() + 1;
+      int human_lit = lit.sign() ? -var : var;
+      c.push_back(human_lit);
+    }
+    formula.clauses.push_back(c);
+  }
+
+  // Reflect the (possibly narrowed) projected set back into the formula
+  if (formula.quantifications.empty()) formula.quantifications.emplace_back();
+  std::vector<int> newProjected;
+  if (formula.quantifications[0].empty()) {
+    for (unsigned i = 0; i < formula.nbVar; i++) {
+      if (!cnf.defined(i)) {
+        newProjected.push_back(i + 1);
+      }
+    }
+  } else {
+    std::unordered_set<int> origProjSet(formula.quantifications[0].begin(), formula.quantifications[0].end());
+    for (unsigned i = 0; i < formula.nbVar; i++) {
+      if (origProjSet.count(i + 1) && !cnf.defined(i)) {
+        newProjected.push_back(i + 1);
+      }
+    }
+  }
+
+  if (newProjected.size() < formula.nbVar)
+    formula.quantifications[0] = newProjected;
+  else
+    formula.quantifications[0].clear();
+}
+
 
 /**
    The main function.
@@ -141,7 +265,16 @@ int main(int argc, char** argv) {
   } else {
     parser::ParserDimacs parserDimacs;
     parserDimacs.parse_DIMACS(inputPath, formula);
-    runPreproc(formula, optionPreproc);
+    if (optionCounter.preprocEngine.get() == "arjun") {
+      if (!formula.quantifications.empty() && formula.quantifications[0].size() > 0) {
+        std::cout << "c [PREPROC] Projected model counting detected. Falling back to bipe engine for correctness.\n";
+        runPreproc(formula, optionPreproc);
+      } else {
+        runArjunPreproc(formula, optionCounter, optionPreproc);
+      }
+    } else {
+      runPreproc(formula, optionPreproc);
+    }
   }
 
   counter(options, optionCounter, formula);
