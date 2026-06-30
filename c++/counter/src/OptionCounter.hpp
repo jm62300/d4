@@ -17,14 +17,16 @@ class OptionCounter : public OptionGroup {
   Option<std::string> informat{"input-format", "Input format", "cnf"};
   Option<std::string> format{"format", "Output format", "s"};
   Option<std::string> outFormat{"outFormat", "Output style", "competition"};
+  Option<std::string> preprocEngine{"preproc-engine", "Preprocessing engine (bipe or arjun)", "bipe"};
 
   std::vector<OptionBase*> getAllOptions() override {
-    return {&informat, &format, &outFormat};
+    return {&informat, &format, &outFormat, &preprocEngine};
   }
 
   friend std::ostream& operator<<(std::ostream& out, const OptionCounter& dt) {
     out << " Option Counter: input-format(" << dt.informat.get() << " format("
-        << dt.format.get() << ") outFormat(" << dt.outFormat.get() << ")\n";
+        << dt.format.get() << ") outFormat(" << dt.outFormat.get()
+        << ") preproc-engine(" << dt.preprocEngine.get() << ")\n";
     return out;
   }
 };
