@@ -77,10 +77,21 @@ static void runPreproc(parser::Formula& formula,
     formula.quantifications[0].clear();
 }  // runPreproc
 
+static bool isOptionPassed(int argc, char** argv, const std::string& optionName) {
+  for (int i = 1; i < argc; i++) {
+    std::string arg = argv[i];
+    if (arg.find(optionName) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Run Arjun preprocessing on the formula in place.
 static void runArjunPreproc(parser::Formula& formula,
                             const d4::OptionCounter& optionCounter,
-                            const bipe::OptionPreproc& optionPreproc) {
+                            const bipe::OptionPreproc& optionPreproc,
+                            int argc, char** argv) {
   // Check if we have variables to project/minimize
   std::vector<uint32_t> projected;
   if (formula.quantifications[0].size()) {
@@ -138,12 +149,37 @@ static void runArjunPreproc(parser::Formula& formula,
   arjun.set_verb(optionCounter.verbosity.get());
   arjun.set_seed(0);
 
-  // Map optionPreproc settings to Arjun
-  arjun.set_probe_based(optionPreproc.optionEliminator.probing.get());
-  arjun.set_bve_pre_simplify(optionPreproc.optionEliminator.bva.get());
-  arjun.set_distill(optionPreproc.optionEliminator.oracleVivif.get());
-  arjun.set_gauss_jordan(optionPreproc.optionEliminator.bvaStructured.get());
-  arjun.set_xor_gates_based(optionPreproc.optionEliminator.ternaryRes.get());
+  // Map optionPreproc settings to Arjun only if explicitly overridden,
+  // otherwise default to Arjun's native defaults from arjun-src/src/main.cpp
+  if (isOptionPassed(argc, argv, "--preproc.probing")) {
+    arjun.set_probe_based(optionPreproc.optionEliminator.probing.get());
+  } else {
+    arjun.set_probe_based(1);
+  }
+
+  if (isOptionPassed(argc, argv, "--preproc.bva")) {
+    arjun.set_bve_pre_simplify(optionPreproc.optionEliminator.bva.get());
+  } else {
+    arjun.set_bve_pre_simplify(1);
+  }
+
+  if (isOptionPassed(argc, argv, "--preproc.oracle-vivif")) {
+    arjun.set_distill(optionPreproc.optionEliminator.oracleVivif.get());
+  } else {
+    arjun.set_distill(1);
+  }
+
+  if (isOptionPassed(argc, argv, "--preproc.bva-structured")) {
+    arjun.set_gauss_jordan(optionPreproc.optionEliminator.bvaStructured.get());
+  } else {
+    arjun.set_gauss_jordan(0);
+  }
+
+  if (isOptionPassed(argc, argv, "--preproc.ternary-res")) {
+    arjun.set_xor_gates_based(optionPreproc.optionEliminator.ternaryRes.get());
+  } else {
+    arjun.set_xor_gates_based(1);
+  }
 
   // Run backbone first
   arjun.standalone_backbone(cnf);
@@ -270,7 +306,7 @@ int main(int argc, char** argv) {
         std::cout << "c [PREPROC] Projected model counting detected. Falling back to bipe engine for correctness.\n";
         runPreproc(formula, optionPreproc);
       } else {
-        runArjunPreproc(formula, optionCounter, optionPreproc);
+        runArjunPreproc(formula, optionCounter, optionPreproc, argc, argv);
       }
     } else {
       runPreproc(formula, optionPreproc);
