@@ -589,24 +589,44 @@ static void runArjunPreproc(parser::Formula& formula,
   arjun->standalone_minimize_indep(cnf, etof_conf.all_indep);
   arjun->standalone_elim_to_file(cnf, etof_conf, simp_conf);
 
-  // Propagate back to formula
+  // Propagate back to formula with original variable mapping
   formula.clauses.clear();
 
-  std::vector<bool> marked;
+  const auto new_to_orig_var = cnf.get_new_to_orig_var();
+
   for (const auto& cl : cnf.get_clauses()) {
     std::vector<int> c;
     for (const auto& lit : cl) {
-      int var = lit.var() + 1;
-      if (marked.size() <= lit.var()) marked.resize(lit.var() + 1, false);
-      marked[lit.var()] = true;
-
-      int human_lit = lit.sign() ? -var : var;
-      c.push_back(human_lit);
+      if (new_to_orig_var.count(lit.var())) {
+        CMSat::Lit orig_lit = new_to_orig_var.at(lit.var());
+        int var = orig_lit.var() + 1;
+        int human_lit = (lit.sign() ^ orig_lit.sign()) ? -var : var;
+        c.push_back(human_lit);
+      } else {
+        int var = lit.var() + 1;
+        int human_lit = lit.sign() ? -var : var;
+        c.push_back(human_lit);
+      }
     }
     formula.clauses.push_back(c);
   }
 
-  std::cout << "the new number of variables is " << marked.size() << '\n';
+  for (const auto& cl : cnf.get_red_clauses()) {
+    std::vector<int> c;
+    for (const auto& lit : cl) {
+      if (new_to_orig_var.count(lit.var())) {
+        CMSat::Lit orig_lit = new_to_orig_var.at(lit.var());
+        int var = orig_lit.var() + 1;
+        int human_lit = (lit.sign() ^ orig_lit.sign()) ? -var : var;
+        c.push_back(human_lit);
+      } else {
+        int var = lit.var() + 1;
+        int human_lit = lit.sign() ? -var : var;
+        c.push_back(human_lit);
+      }
+    }
+    formula.clauses.push_back(c);
+  }
 
   for (unsigned i = 0; i < formula.nbVar; i++) {
     if (cnf.defined(i)) std::cout << i + 1 << " is defined\n";
