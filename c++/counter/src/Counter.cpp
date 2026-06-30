@@ -106,9 +106,6 @@ void countModels(const OptionDpllStyleMethod& options,
   if (outFormat == "competition") {
     mpf_set_default_prec(426);  // ~128 decimal digits
     std::cout.precision(50);
-
-    // Mandatory satisfiability line, then the mandatory problem-type line
-    // (mc|pmc|wmc|pwmc|amc-complex) taken from the input "c t" header.
     std::cout << (counter->isProblemUnsat() ? "s UNSATISFIABLE\n"
                                             : "s SATISFIABLE\n");
     std::cout << "c s type " << format << "\n";
@@ -131,9 +128,7 @@ void countModels(const OptionDpllStyleMethod& options,
     assert(outFormat == "classic");
     mpf_set_default_prec(426);  // ~128 decimal digits
     std::cout.precision(50);
-
-    std::cout << format << " ";
-    std::cout << result << "\n";
+    std::cout << "s " << result << "\n";
   }
 
   delete counter;

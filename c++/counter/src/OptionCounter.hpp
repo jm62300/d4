@@ -16,7 +16,7 @@ class OptionCounter : public OptionGroup {
 
   Option<std::string> informat{"input-format", "Input format", "cnf"};
   Option<std::string> format{"format", "Output format", "s"};
-  Option<std::string> outFormat{"outFormat", "Output style", "classic"};
+  Option<std::string> outFormat{"outFormat", "Output style", "competition"};
 
   std::vector<OptionBase*> getAllOptions() override {
     return {&informat, &format, &outFormat};

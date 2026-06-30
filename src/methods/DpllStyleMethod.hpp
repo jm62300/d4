@@ -373,8 +373,6 @@ class DpllStyleMethod : public MethodManager, public Counter<T> {
     showRun(out);
     m_nbCallCall++;
 
-    // if (m_nbCallCall > 50000000) exit(0);
-
     if (!m_solver->solve(setOfVar, unitsLit)) return m_semiringOps.zero();
     m_specs->preUpdate(unitsLit);
 
