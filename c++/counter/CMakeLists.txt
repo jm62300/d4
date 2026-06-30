@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.14)
 # Set the project name
 project(counter LANGUAGES CXX)
 
+# Disable install and export commands to prevent static build export validation errors on fetched dependencies
+macro(install)
+endmacro()
+macro(export)
+endmacro()
+
 # Specify the C++ standard 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -20,6 +26,7 @@ option(BUILD_COMPETITION "Build with -O3 -march=native -flto (compile on target 
 if(BUILD_STATIC)
     # Tell CMake's find_package to strictly look for static libraries
     set(ZLIB_USE_STATIC_LIBS ON)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 
     # Tell CMake's find_library to look for .a files instead of .so files
     if(NOT MSVC)
@@ -84,26 +91,46 @@ file(MAKE_DIRECTORY "${MPFR_HELPER_DIR}/include")
 file(MAKE_DIRECTORY "${MPFR_HELPER_DIR}/lib")
 file(MAKE_DIRECTORY "${MPFR_HELPER_DIR}/lib/pkgconfig")
 
-if(NOT EXISTS "${MPFR_HELPER_DIR}/include/mpfr.h")
-    message(STATUS "Downloading mpfr.h from official INRIA Gitlab...")
-    file(DOWNLOAD 
-        "https://gitlab.inria.fr/mpfr/mpfr/-/raw/4.1.0/src/mpfr.h" 
-        "${MPFR_HELPER_DIR}/include/mpfr.h"
-        STATUS download_status
+if(BUILD_STATIC)
+    include(ExternalProject)
+    set(MPFR_STATIC_INSTALL_DIR "${CMAKE_BINARY_DIR}/mpfr-static-install")
+    ExternalProject_Add(
+        mpfr_static_build
+        URL "https://ftp.gnu.org/gnu/mpfr/mpfr-4.1.0.tar.gz"
+        PREFIX "${CMAKE_BINARY_DIR}/mpfr-static"
+        CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=${MPFR_STATIC_INSTALL_DIR} --enable-static --disable-shared --with-gmp-include=/usr/include --with-gmp-lib=/usr/lib/x86_64-linux-gnu
+        BUILD_COMMAND make
+        INSTALL_COMMAND make install
     )
-    list(GET download_status 0 status_code)
-    if(NOT status_code EQUAL 0)
-        message(FATAL_ERROR "Failed to download mpfr.h: ${download_status}")
-    endif()
-endif()
 
-if(NOT EXISTS "${MPFR_HELPER_DIR}/lib/libmpfr.so")
-    message(STATUS "Creating local libmpfr.so symlink pointing to /usr/lib/x86_64-linux-gnu/libmpfr.so.6...")
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E create_symlink 
-        "/usr/lib/x86_64-linux-gnu/libmpfr.so.6" 
-        "${MPFR_HELPER_DIR}/lib/libmpfr.so"
+    add_custom_target(
+        mpfr_static_copy ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MPFR_STATIC_INSTALL_DIR}/lib/libmpfr.a" "${MPFR_HELPER_DIR}/lib/libmpfr.a"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MPFR_STATIC_INSTALL_DIR}/include/mpfr.h" "${MPFR_HELPER_DIR}/include/mpfr.h"
+        DEPENDS mpfr_static_build
     )
+else()
+    if(NOT EXISTS "${MPFR_HELPER_DIR}/include/mpfr.h")
+        message(STATUS "Downloading mpfr.h from official INRIA Gitlab...")
+        file(DOWNLOAD 
+            "https://gitlab.inria.fr/mpfr/mpfr/-/raw/4.1.0/src/mpfr.h" 
+            "${MPFR_HELPER_DIR}/include/mpfr.h"
+            STATUS download_status
+        )
+        list(GET download_status 0 status_code)
+        if(NOT status_code EQUAL 0)
+            message(FATAL_ERROR "Failed to download mpfr.h: ${download_status}")
+        endif()
+    endif()
+
+    if(NOT EXISTS "${MPFR_HELPER_DIR}/lib/libmpfr.so")
+        message(STATUS "Creating local libmpfr.so symlink pointing to /usr/lib/x86_64-linux-gnu/libmpfr.so.6...")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E create_symlink 
+            "/usr/lib/x86_64-linux-gnu/libmpfr.so.6" 
+            "${MPFR_HELPER_DIR}/lib/libmpfr.so"
+        )
+    endif()
 endif()
 
 file(WRITE "${MPFR_HELPER_DIR}/lib/pkgconfig/mpfr.pc"
@@ -177,6 +204,17 @@ add_executable(counter ${SRCS} ${PARSER_SRCS})
 if(TARGET CopyPublicHeaders_arjun)
     add_dependencies(counter CopyPublicHeaders_arjun)
 endif()
+if(BUILD_STATIC)
+    add_dependencies(counter mpfr_static_copy)
+    if(TARGET cryptominisat5)
+        add_dependencies(cryptominisat5 mpfr_static_copy)
+    endif()
+    if(TARGET arjun)
+        add_dependencies(arjun mpfr_static_copy)
+    endif()
+endif()
+
+target_link_directories(counter PRIVATE "${MPFR_HELPER_DIR}/lib")
 
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
