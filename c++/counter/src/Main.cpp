@@ -585,8 +585,6 @@ static void runArjunPreproc(parser::Formula& formula,
   cnf.set_lit_weight(CMSat::Lit(3, false), w_protect);
   cnf.set_lit_weight(CMSat::Lit(3, true), w_protect);
 
-  cnf.set_opt_sampl_vars(cnf.get_sampl_vars());
-
   // Preprocess with Arjun
   arjun->set_verb(optionCounter.verbosity.get());
   arjun->set_seed(0);
@@ -618,8 +616,12 @@ static void runArjunPreproc(parser::Formula& formula,
     formula.clauses.push_back(c);
   }
 
-  std::vector<int> markedAsUnit(max + 1, false);
-  for (auto& l : cnf.eliminated) markedAsUnit[l.var()] = l.sign() + 1;
+  std::vector<bool> optVar(max + 1, false);
+  for (auto& v : cnf.get_opt_sampl_vars()) optVar[v] = true;
+
+  std::vector<int> markedAsUnit(max + 1, 0);
+  for (auto& l : cnf.eliminated)
+    if (optVar[l.var()]) markedAsUnit[l.var()] = l.sign() + 1;
   for (auto& l : cnf.unitsLit) markedAsUnit[l.var()] = l.sign() + 1;
 
   for (int i = 0; i < formula.nbVar; i++) {
