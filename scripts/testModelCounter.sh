@@ -10,7 +10,7 @@ $SOLVER $1 > /dev/null
 if [ $? -ne 10 ]; then exit 0; fi
 
 MODEL_COUNTER="${MODEL_COUNTER:-./d4_static -m counting -i}"
-TESTED_METHOD="${TESTED_METHOD:-../c++/counter/build/counter -i}"
+TESTED_METHOD="${TESTED_METHOD:-../c++/counter/build/counter --counter.preproc-engine arjun --counter.outFormat classic -i}"
 
 $TESTED_METHOD $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
 $MODEL_COUNTER $1 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt

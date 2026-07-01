@@ -540,7 +540,7 @@ static void runArjunPreproc(parser::Formula& formula,
     }
   }
 
-  bool all_indep = (projected.size() == formula.nbVar);
+  etof_conf.all_indep = (projected.size() == formula.nbVar);
 
   // Variables whose positive and negative literal weights differ must not be
   // eliminated: removing them would change the weighted count.
@@ -561,7 +561,6 @@ static void runArjunPreproc(parser::Formula& formula,
   set_config(arjun.get());
   ArjunNS::FGenMpq fg;
   ArjunNS::SimplifiedCNF cnf(&fg);
-  cnf.set_need_aig();
   cnf.set_sampl_vars(projected);
   cnf.new_vars(formula.nbVar);
   cnf.set_weighted(true);
@@ -582,6 +581,11 @@ static void runArjunPreproc(parser::Formula& formula,
   for (int v : varProtected) {
     cnf.set_lit_weight(CMSat::Lit(v - 1, false), w_protect);
   }
+
+  cnf.set_lit_weight(CMSat::Lit(3, false), w_protect);
+  cnf.set_lit_weight(CMSat::Lit(3, true), w_protect);
+
+  cnf.set_opt_sampl_vars(cnf.get_sampl_vars());
 
   // Preprocess with Arjun
   arjun->set_verb(optionCounter.verbosity.get());
@@ -614,31 +618,19 @@ static void runArjunPreproc(parser::Formula& formula,
     formula.clauses.push_back(c);
   }
 
-  std::cout << "----------> " << cnf.freeVars.size() << '\n';
-  std::vector<bool> isFreeVar(formula.nbVar, false);
-  for (auto v : cnf.freeVars) {
-    isFreeVar[v] = true;
-    std::cout << v << " is free\n";
-  }
+  std::vector<int> markedAsUnit(max + 1, false);
+  for (auto& l : cnf.eliminated) markedAsUnit[l.var()] = l.sign() + 1;
+  for (auto& l : cnf.unitsLit) markedAsUnit[l.var()] = l.sign() + 1;
 
   for (int i = 0; i < formula.nbVar; i++) {
-    std::cout << i + 1 << " is definied by " << cnf.get_def(i) << " "
-              << cnf.get_lit_weight(CMSat::Lit(i, 1)) << '\n';
-
-    if (cnf.defined(i) && !isFreeVar[i]) {
-      const auto def = cnf.get_def(i);
-      if (def.neg)
-        formula.clauses.push_back({-i - 1});
-      else
-        formula.clauses.push_back({i + 1});
-      if (i + 1 > max) max = i + 1;
-    }
+    if (markedAsUnit[i] == 2) formula.clauses.push_back({-i - 1});
+    if (markedAsUnit[i] == 1) formula.clauses.push_back({i + 1});
   }
 
   std::cout << "The maximum is " << max << '\n';
   formula.nbVar = max;
   std::cout << formula << '\n';
-}
+}  // runArjunPreproc
 
 /**
    The main function.
