@@ -168,22 +168,8 @@ if(NOT cadiback_POPULATED)
     add_subdirectory(${cadiback_SOURCE_DIR} ${cadiback_BINARY_DIR})
 endif()
 
-FetchContent_Declare(
-    arjun
-    GIT_REPOSITORY https://github.com/meelgroup/arjun.git
-    GIT_TAG        master
-)
-FetchContent_GetProperties(arjun)
-if(NOT arjun_POPULATED)
-    FetchContent_Populate(arjun)
-    set(ARJUN_FORMULA_H "${arjun_SOURCE_DIR}/src/formula.h")
-    if(EXISTS "${ARJUN_FORMULA_H}")
-        file(READ "${ARJUN_FORMULA_H}" ARJUN_FORMULA_CONTENT)
-        string(REPLACE "constexpr CL(" "CL(" ARJUN_FORMULA_CONTENT "${ARJUN_FORMULA_CONTENT}")
-        file(WRITE "${ARJUN_FORMULA_H}" "${ARJUN_FORMULA_CONTENT}")
-    endif()
-    add_subdirectory(${arjun_SOURCE_DIR} ${arjun_BINARY_DIR})
-endif()
+
+add_subdirectory(3rdParty/arjun)
 
 # ==============================================================================
 # --- remove namespace isolation for following targets ---
@@ -223,6 +209,7 @@ get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3r
 get_filename_component(OPTREE_INCLUDE_DIR "${SHARED_3RDPARTY_DIR}/optree-src/include" ABSOLUTE)
 
 target_include_directories(counter PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/arjun/src
     ${ROOT_INCLUDES}
     ${ROOT_INCLUDES}/src/include
     ${PARSER_DIR}

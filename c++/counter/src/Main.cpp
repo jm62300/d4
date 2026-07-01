@@ -25,13 +25,13 @@
 #include <string>
 #include <unordered_set>
 
-#include "3rdParty/arjun-src/src/argparse.hpp"
-#include "3rdParty/arjun-src/src/arjun.h"
-#include "3rdParty/arjun-src/src/config.h"
 #include "Counter.hpp"
 #include "OptionCounter.hpp"
 #include "ParserCircuit.hpp"
 #include "ParserDimacs.hpp"
+#include "argparse.hpp"
+#include "arjun.h"
+#include "config.h"
 #include "src/methods/MethodManager.hpp"
 #include "src/options/methods/OptionDpllStyleMethod.hpp"
 #include "src/preproc/PreprocManager.hpp"
@@ -594,16 +594,19 @@ static void runArjunPreproc(parser::Formula& formula,
 
   const auto new_to_orig_var = cnf.get_new_to_orig_var();
 
+  int max = formula.nbVar;
   for (const auto& cl : cnf.get_clauses()) {
     std::vector<int> c;
     for (const auto& lit : cl) {
       if (new_to_orig_var.count(lit.var())) {
         CMSat::Lit orig_lit = new_to_orig_var.at(lit.var());
         int var = orig_lit.var() + 1;
+        if (var > max) max = var;
         int human_lit = (lit.sign() ^ orig_lit.sign()) ? -var : var;
         c.push_back(human_lit);
       } else {
         int var = lit.var() + 1;
+        if (var > max) max = var;
         int human_lit = lit.sign() ? -var : var;
         c.push_back(human_lit);
       }
@@ -611,27 +614,29 @@ static void runArjunPreproc(parser::Formula& formula,
     formula.clauses.push_back(c);
   }
 
-  for (const auto& cl : cnf.get_red_clauses()) {
-    std::vector<int> c;
-    for (const auto& lit : cl) {
-      if (new_to_orig_var.count(lit.var())) {
-        CMSat::Lit orig_lit = new_to_orig_var.at(lit.var());
-        int var = orig_lit.var() + 1;
-        int human_lit = (lit.sign() ^ orig_lit.sign()) ? -var : var;
-        c.push_back(human_lit);
-      } else {
-        int var = lit.var() + 1;
-        int human_lit = lit.sign() ? -var : var;
-        c.push_back(human_lit);
-      }
+  std::cout << "----------> " << cnf.freeVars.size() << '\n';
+  std::vector<bool> isFreeVar(formula.nbVar, false);
+  for (auto v : cnf.freeVars) {
+    isFreeVar[v] = true;
+    std::cout << v << " is free\n";
+  }
+
+  for (int i = 0; i < formula.nbVar; i++) {
+    std::cout << i + 1 << " is definied by " << cnf.get_def(i) << " "
+              << cnf.get_lit_weight(CMSat::Lit(i, 1)) << '\n';
+
+    if (cnf.defined(i) && !isFreeVar[i]) {
+      const auto def = cnf.get_def(i);
+      if (def.neg)
+        formula.clauses.push_back({-i - 1});
+      else
+        formula.clauses.push_back({i + 1});
+      if (i + 1 > max) max = i + 1;
     }
-    formula.clauses.push_back(c);
   }
 
-  for (unsigned i = 0; i < formula.nbVar; i++) {
-    if (cnf.defined(i)) std::cout << i + 1 << " is defined\n";
-  }
-
+  std::cout << "The maximum is " << max << '\n';
+  formula.nbVar = max;
   std::cout << formula << '\n';
 }
 
