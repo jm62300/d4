@@ -589,6 +589,22 @@ static void runArjunPreproc(parser::Formula& formula,
   arjun->set_verb(optionCounter.verbosity.get());
   arjun->set_seed(0);
   arjun->standalone_minimize_indep(cnf, etof_conf.all_indep);
+
+  for (const auto& cl : cnf.get_clauses()) {
+    for (auto& l : cl) std::cout << l << ' ';
+    std::cout << '\n';
+  }
+
+  for (auto& v : cnf.get_sampl_vars()) {
+    std::cout << "sample var " << v + 1 << '\n';
+  }
+
+  std::vector<bool> optVar(cnf.nVars(), false);
+  for (auto& v : cnf.get_opt_sampl_vars()) {
+    optVar[v] = true;
+    std::cout << "opt var " << v + 1 << '\n';
+  }
+
   arjun->standalone_elim_to_file(cnf, etof_conf, simp_conf);
 
   // Propagate back to formula with original variable mapping
@@ -615,9 +631,6 @@ static void runArjunPreproc(parser::Formula& formula,
     }
     formula.clauses.push_back(c);
   }
-
-  std::vector<bool> optVar(max + 1, false);
-  for (auto& v : cnf.get_opt_sampl_vars()) optVar[v] = true;
 
   std::vector<int> markedAsUnit(max + 1, 0);
   for (auto& l : cnf.eliminated)
