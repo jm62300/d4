@@ -1,0 +1,183 @@
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+
+project(minisat)
+
+if(POLICY CMP0048)
+    #policy for VERSION in cmake 3.0
+    cmake_policy(SET CMP0048 NEW)
+endif()
+
+#--------------------------------------------------------------------------------------------------
+# Configurable options:
+
+option(STATIC_BINARIES "Link binaries statically." ON)
+option(USE_SORELEASE   "Use SORELEASE in shared library filename." ON)
+
+#--------------------------------------------------------------------------------------------------
+# Library version:
+
+set(MINISAT_SOMAJOR   2)
+set(MINISAT_SOMINOR   1)
+set(MINISAT_SORELEASE 0)
+
+# Compute VERSION and SOVERSION:
+if (USE_SORELEASE)
+  set(MINISAT_VERSION ${MINISAT_SOMAJOR}.${MINISAT_SOMINOR}.${MINISAT_SORELEASE})
+else()
+  set(MINISAT_VERSION ${MINISAT_SOMAJOR}.${MINISAT_SOMINOR})
+endif()
+set(MINISAT_SOVERSION ${MINISAT_SOMAJOR})
+
+include_directories(${PROJECT_SOURCE_DIR})
+
+#--------------------------------------------------------------------------------------------------
+# Compile flags:
+
+add_definitions(-D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS)
+add_cxx_flag_if_supported("-Wno-format-nonliteral")
+add_cxx_flag_if_supported("-Wno-class-memaccess")
+
+
+
+#--------------------------------------------------------------------------------------------------
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
+
+if (NOT BUILD_SHARED_LIBS)
+    if (NOT MSVC)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -static ")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+
+        # removing -rdynamic that's automatically added
+        foreach (language CXX C)
+            set(VAR_TO_MODIFY "CMAKE_SHARED_LIBRARY_LINK_${language}_FLAGS")
+            string(REGEX REPLACE "(^| )-rdynamic($| )"
+                                 " "
+                                 replacement
+                                 "${${VAR_TO_MODIFY}}")
+            #message("Original (${VAR_TO_MODIFY}) is ${${VAR_TO_MODIFY}} replacement is ${replacement}")
+            set(${VAR_TO_MODIFY} "${replacement}" CACHE STRING "Default flags for ${build_config} configuration" FORCE)
+        endforeach()
+    endif()
+else ()
+    # use, i.e. don't skip the full RPATH for the build tree
+    SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+    # when building, don't use the install RPATH already
+    # (but later on when installing)
+    SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+
+    # add the automatically determined parts of the RPATH
+    # which point to directories outside the build tree to the install RPATH
+    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+    # the RPATH to be used when installing, but only if it's not a system directory
+    LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_LIBDIR}" isSystemDir)
+    IF("${isSystemDir}" STREQUAL "-1")
+        SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+    ENDIF("${isSystemDir}" STREQUAL "-1")
+
+    if (APPLE)
+      set(CMAKE_MACOSX_RPATH ON)
+      set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
+      message(STATUS "Using RPATH for dynamic linking")
+    endif()
+endif()
+
+if (NOT MSVC)
+    add_compile_options( -g)
+    add_compile_options( -pthread )
+    add_compile_options( -fPIC )
+    add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:-O2>")
+
+    add_compile_options("$<$<CONFIG:RELEASE>:-O2>")
+    add_compile_options("$<$<CONFIG:RELEASE>:-g0>")
+
+    add_compile_options("$<$<CONFIG:DEBUG>:-O0>")
+
+    if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -O2")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -O2")
+    endif()
+else()
+    # see https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx for details
+    # /ZI = include debug info
+    # /Wall = all warnings
+
+    add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/O2>")
+    add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/ZI>")
+
+    add_compile_options("$<$<CONFIG:RELEASE>:/O2>")
+    add_compile_options("$<$<CONFIG:RELEASE>:/D>")
+    add_compile_options("$<$<CONFIG:RELEASE>:/NDEBUG>")
+
+    add_compile_options("$<$<CONFIG:DEBUG>:/Od>")
+
+    # buffers security check
+    add_compile_options(/GS)
+
+    # Proper warning level
+    add_compile_options(/W1)
+
+    # Disable STL used in DLL-boundary warning
+    add_compile_options(/wd4251)
+    add_compile_options(/D_CRT_SECURE_NO_WARNINGS)
+
+    # Wall is MSVC's Weverything, so annoying unless used from the start
+    # and with judiciously used warning disables
+    # add_compile_options(/Wall)
+
+    # /Za = only ansi C98 & C++11
+    # /Za is not recommended for use, not tested, etc.
+    # see: http://stackoverflow.com/questions/5489326/za-compiler-directive-does-not-compile-system-headers-in-vs2010
+    # add_compile_options(/Za)
+
+    add_compile_options(/fp:precise)
+
+    # exception handling. s = The exception-handling model that catches C++ exceptions only and tells the compiler to assume that functions declared as extern "C" may throw an exception.
+    # exception handling. c = If used with s (/EHsc), catches C++ exceptions only and tells the compiler to assume that functions declared as extern "C" never throw a C++ exception.
+    add_compile_options(/EHsc)
+
+    #what does this do?
+    set(DEF_INSTALL_CMAKE_DIR CMake)
+endif()
+set(MINISAT_EXPORT_NAME "minisatTargets")
+
+# -----------------------------------------------------------------------------
+# Add uninstall target for makefiles
+# -----------------------------------------------------------------------------
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY
+)
+
+add_custom_target(uninstall-minisat
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+)
+
+#--------------------------------------------------------------------------------------------------
+# Build Targets:
+
+set(MINISAT_LIB_SOURCES
+    minisat/utils/Options.cc
+    minisat/utils/System.cc
+    minisat/core/Solver.cc
+    minisat/simp/SimpSolver.cc)
+
+add_library(minisat ${MINISAT_LIB_SOURCES})
+
+add_executable(minisat_core minisat/core/Main.cc)
+add_executable(minisat_simp minisat/simp/Main.cc)
+
+target_link_libraries(minisat_core minisat)
+target_link_libraries(minisat_simp minisat)
+
+set_target_properties(minisat
+  PROPERTIES
+    OUTPUT_NAME "minisat"
+    VERSION ${MINISAT_VERSION}
+    SOVERSION ${MINISAT_SOVERSION})
+
+set_target_properties(minisat_simp       PROPERTIES OUTPUT_NAME "minisat")
