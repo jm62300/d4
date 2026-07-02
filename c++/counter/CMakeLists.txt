@@ -147,6 +147,8 @@ Cflags: -I\${includedir}
 
 set(ENV{PKG_CONFIG_PATH} "${MPFR_HELPER_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
+link_directories("${MPFR_HELPER_DIR}/lib")
+
 add_subdirectory(3rdParty/cadical)
 
 # Patch local cadiback CMakeLists.txt dynamically to strip install commands
