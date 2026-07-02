@@ -1,0 +1,20 @@
+commit 48cad694c55bb617b200c34b74b1b314359bd485
+Author: Mate Soos <mate.soos@zalando.de>
+Date:   Wed Sep 5 19:04:05 2018 +0200
+
+    Fix for Urquhart instances
+    
+    Thanks to Armin Biere for pointing this one out!
+
+diff --git a/src/searcher.cpp b/src/searcher.cpp
+index 5a04d13e..f7cf8897 100644
+--- a/src/searcher.cpp
++++ b/src/searcher.cpp
+@@ -1217,6 +1217,7 @@ lbool Searcher::search()
+         } else {
+             assert(ok);
+             #ifdef USE_GAUSS
++            check_need_restart();
+             if (!update_bogoprops) {
+                 llbool ret = Gauss_elimination();
+                 if (ret == l_Continue) {

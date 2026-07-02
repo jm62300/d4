@@ -147,28 +147,22 @@ Cflags: -I\${includedir}
 
 set(ENV{PKG_CONFIG_PATH} "${MPFR_HELPER_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
-FetchContent_Declare(
-    cadiback
-    GIT_REPOSITORY https://github.com/meelgroup/cadiback.git
-    GIT_TAG        main
-    GIT_SHALLOW    TRUE
-)
-FetchContent_GetProperties(cadiback)
-if(NOT cadiback_POPULATED)
-    FetchContent_Populate(cadiback)
-    set(CADIBACK_CMAKELIST "${cadiback_SOURCE_DIR}/CMakeLists.txt")
-    if(EXISTS "${CADIBACK_CMAKELIST}")
-        file(READ "${CADIBACK_CMAKELIST}" CADIBACK_CONTENT)
-        string(FIND "${CADIBACK_CONTENT}" "# ---- Install" INSTALL_INDEX)
-        if(NOT INSTALL_INDEX EQUAL -1)
-            string(SUBSTRING "${CADIBACK_CONTENT}" 0 ${INSTALL_INDEX} CADIBACK_CLEAN)
-            file(WRITE "${CADIBACK_CMAKELIST}" "${CADIBACK_CLEAN}")
-        endif()
+add_subdirectory(3rdParty/cadical)
+
+# Patch local cadiback CMakeLists.txt dynamically to strip install commands
+set(CADIBACK_CMAKELIST "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/cadiback/CMakeLists.txt")
+if(EXISTS "${CADIBACK_CMAKELIST}")
+    file(READ "${CADIBACK_CMAKELIST}" CADIBACK_CONTENT)
+    string(FIND "${CADIBACK_CONTENT}" "# ---- Install" INSTALL_INDEX)
+    if(NOT INSTALL_INDEX EQUAL -1)
+        string(SUBSTRING "${CADIBACK_CONTENT}" 0 ${INSTALL_INDEX} CADIBACK_CLEAN)
+        file(WRITE "${CADIBACK_CMAKELIST}" "${CADIBACK_CLEAN}")
     endif()
-    add_subdirectory(${cadiback_SOURCE_DIR} ${cadiback_BINARY_DIR})
 endif()
+add_subdirectory(3rdParty/cadiback)
 
-
+add_subdirectory(3rdParty/sbva)
+add_subdirectory(3rdParty/cryptominisat5)
 add_subdirectory(3rdParty/arjun)
 
 # ==============================================================================
