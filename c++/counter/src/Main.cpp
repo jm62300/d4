@@ -582,29 +582,10 @@ static void runArjunPreproc(parser::Formula& formula,
     cnf.set_lit_weight(CMSat::Lit(v - 1, false), w_protect);
   }
 
-  cnf.set_lit_weight(CMSat::Lit(3, false), w_protect);
-  cnf.set_lit_weight(CMSat::Lit(3, true), w_protect);
-
   // Preprocess with Arjun
   arjun->set_verb(optionCounter.verbosity.get());
   arjun->set_seed(0);
   arjun->standalone_minimize_indep(cnf, etof_conf.all_indep);
-
-  for (const auto& cl : cnf.get_clauses()) {
-    for (auto& l : cl) std::cout << l << ' ';
-    std::cout << '\n';
-  }
-
-  for (auto& v : cnf.get_sampl_vars()) {
-    std::cout << "sample var " << v + 1 << '\n';
-  }
-
-  std::vector<bool> optVar(cnf.nVars(), false);
-  for (auto& v : cnf.get_opt_sampl_vars()) {
-    optVar[v] = true;
-    std::cout << "opt var " << v + 1 << '\n';
-  }
-
   arjun->standalone_elim_to_file(cnf, etof_conf, simp_conf);
 
   // Propagate back to formula with original variable mapping
@@ -613,38 +594,87 @@ static void runArjunPreproc(parser::Formula& formula,
   const auto new_to_orig_var = cnf.get_new_to_orig_var();
 
   int max = formula.nbVar;
+  // Preprocessor-introduced vars (e.g. SBVA auxiliaries) have no entry in
+  // new_to_orig_var; give them fresh indices above the original nbVar so
+  // they never collide with an original variable.
+  std::map<uint32_t, int> auxVar;
   for (const auto& cl : cnf.get_clauses()) {
     std::vector<int> c;
     for (const auto& lit : cl) {
       if (new_to_orig_var.count(lit.var())) {
         CMSat::Lit orig_lit = new_to_orig_var.at(lit.var());
         int var = orig_lit.var() + 1;
-        if (var > max) max = var;
         int human_lit = (lit.sign() ^ orig_lit.sign()) ? -var : var;
         c.push_back(human_lit);
       } else {
-        int var = lit.var() + 1;
-        if (var > max) max = var;
-        int human_lit = lit.sign() ? -var : var;
-        c.push_back(human_lit);
+        auto [it, inserted] = auxVar.try_emplace(lit.var(), 0);
+        if (inserted) it->second = ++max;
+        c.push_back(lit.sign() ? -it->second : it->second);
       }
     }
     formula.clauses.push_back(c);
   }
 
-  std::vector<int> markedAsUnit(max + 1, 0);
-  for (auto& l : cnf.eliminated)
-    if (optVar[l.var()]) markedAsUnit[l.var()] = l.sign() + 1;
-  for (auto& l : cnf.unitsLit) markedAsUnit[l.var()] = l.sign() + 1;
+  // Classify every variable of the final formula: present in the simplified
+  // clauses, fixed/defined (pinned by a unit clause so it contributes a
+  // factor 1), or free (left absent so the counter multiplies by 2 for it).
+  std::vector<bool> present(max + 1, false);
+  for (const auto& cl : formula.clauses)
+    for (int lit : cl) present[std::abs(lit) - 1] = true;
 
-  for (int i = 0; i < formula.nbVar; i++) {
-    if (markedAsUnit[i] == 2) formula.clauses.push_back({-i - 1});
-    if (markedAsUnit[i] == 1) formula.clauses.push_back({i + 1});
+  // Priority: real backbone units > free > eliminated. A var flagged free
+  // (empty sampling var) keeps its factor 2 even if a later pass also
+  // BVE-eliminated it, while a backbone var is truly fixed.
+  std::vector<int> markedAsUnit(max + 1, 0);
+  std::vector<bool> markedFree(max + 1, false);
+  std::vector<bool> realUnit(max + 1, false);
+  for (const auto& l : cnf.eliminated)
+    if ((int)l.var() <= max) markedAsUnit[l.var()] = l.sign() + 1;
+  for (const auto& l : cnf.freeVars)
+    if ((int)l.var() <= max) markedFree[l.var()] = true;
+  for (const auto& l : cnf.unitsLit)
+    if ((int)l.var() <= max) {
+      markedAsUnit[l.var()] = l.sign() + 1;
+      realUnit[l.var()] = true;
+    }
+
+  if (getenv("ARJUN_DEBUG_CLASSIFY")) {
+    for (const auto& l : cnf.eliminated)
+      std::cout << "c o [classify] eliminated: " << l << '\n';
+    for (const auto& l : cnf.unitsLit)
+      std::cout << "c o [classify] unit: " << l << '\n';
+    for (const auto& l : cnf.freeVars)
+      std::cout << "c o [classify] free: " << l << '\n';
+    std::cout << "c o [classify] mapped-back formula, nbVar=" << max << ":\n";
+    for (const auto& cl : formula.clauses) {
+      std::cout << "c o [classify]  ";
+      for (int lit : cl) std::cout << lit << ' ';
+      std::cout << "0\n";
+    }
   }
 
-  std::cout << "The maximum is " << max << '\n';
+  const int origNbVar = formula.nbVar;
+  for (int i = 0; i < max; i++) {
+    if (present[i]) continue;
+    if (markedFree[i] && !realUnit[i]) continue;
+    if (markedAsUnit[i] == 2)
+      formula.clauses.push_back({-i - 1});
+    else if (markedAsUnit[i] == 1)
+      formula.clauses.push_back({i + 1});
+    else if (i >= origNbVar) {
+      // Numbering gap among preprocessor-introduced variables: not a real
+      // variable, pin it so it does not count as free.
+      formula.clauses.push_back({i + 1});
+    } else if (!markedFree[i]) {
+      // A count-preserving removal of a constrained variable means it is
+      // defined, so pin it; warn so untracked removal channels stay visible.
+      std::cout << "c o WARNING [arjun] untracked missing var " << i + 1
+                << ", treating it as defined\n";
+      formula.clauses.push_back({i + 1});
+    }
+  }
+
   formula.nbVar = max;
-  std::cout << formula << '\n';
 }  // runArjunPreproc
 
 /**

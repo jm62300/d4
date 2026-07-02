@@ -1,4 +1,17 @@
-p cnf 12 3
-12 11 0
--12 -3 0
--11 3 0
+c 2026-07-02 12:56:05 by qbfdd.py,v 1.2.2
+c qbfdd.py /tmp/fail_1.cnf /home/lagniez/Works/Softs/d4/scripts/testModelCounter.sh -m ddmin -g b -qS
+c 
+c mode: ddmin
+c rounds: 2
+c test runs: 520
+c time elapsed: 95.85s
+c total: clauses  : -33 (86.84%)
+c        variables: -0 (0.00%)
+c        literals : -127 (92.03%)
+c 
+p cnf 11 5
+-1 -5 0
+6 -4 0
+4 1 0
+1 -2 0
+5 2 -6 0
