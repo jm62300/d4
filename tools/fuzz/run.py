@@ -69,9 +69,11 @@ def run_headless(runners: list[SuiteRunner], workers: int) -> None:
             all_done = True
             for r in active:
                 snap = r.state.snapshot()
+                activity = f" {snap['activity']}" if snap["activity"] else ""
                 parts.append(
                     f"{r.suite.name}: tested={snap['tested']} "
                     f"bugs={snap['bug_count']} [{snap['status'].name.lower()}]"
+                    f"{activity}"
                 )
                 if snap["status"] in (Status.RUNNING, Status.PAUSED):
                     all_done = False

@@ -78,6 +78,9 @@ static void runPreproc(parser::Formula& formula,
     formula.quantifications[0] = projected;
   else
     formula.quantifications[0].clear();
+
+  // std::cout << formula << '\n';
+  // exit(0);
 }  // runPreproc
 
 static bool isOptionPassed(int argc, char** argv,
@@ -756,6 +759,10 @@ int main(int argc, char** argv) {
     } else {
       runPreproc(formula, optionPreproc);
     }
+  }
+
+  if (formula.quantifications[0].size()) {
+    options.optionSpecManager.specUpdateType = d4::SPEC_DYNAMIC_BLOCKED_SIMP;
   }
 
   counter(options, optionCounter, formula);

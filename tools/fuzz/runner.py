@@ -55,6 +55,7 @@ class SuiteState:
     no_answer: int = 0
     bugs: list[Bug] = field(default_factory=list)
     last_error: str = ""
+    activity: str = ""
 
     def snapshot(self) -> dict:
         with self.lock:
@@ -66,6 +67,7 @@ class SuiteState:
                 "bug_count":  len(self.bugs),
                 "last_bug":   self.bugs[-1].reason if self.bugs else "",
                 "last_error": self.last_error,
+                "activity":   self.activity,
             }
 
 
@@ -185,9 +187,15 @@ class SuiteRunner:
                         instance_path, queries_path
                     )
                     # Minimized copy — written alongside as bug_NNNN_minimized.cnf.
+                    def _set_activity(msg: str) -> None:
+                        with self.state.lock:
+                            self.state.activity = msg
+
                     min_path = minimize_instance(
-                        instance_path, self.suite, self.evaluated, cwd=self.cwd
+                        instance_path, self.suite, self.evaluated, cwd=self.cwd,
+                        log=_set_activity,
                     )
+                    _set_activity("")
                     if min_path != instance_path:
                         self._copy_bug_minimized(min_path, saved_instance)
                         try:

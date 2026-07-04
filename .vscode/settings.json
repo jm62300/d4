@@ -88,7 +88,8 @@
         "c++/projmc/build/_deps/bipe-src/**",
         "3rdParty/htd/include/",
         "3rdParty/htd/src/",
-        "3rdParty/optree-src/include/"
+        "3rdParty/optree-src/include/",
+        "c++/counter/3rdParty/arjun/src"
     ],
     "editor.formatOnSave": true,
     "C_Cpp.clang_format_fallbackStyle": "Google",

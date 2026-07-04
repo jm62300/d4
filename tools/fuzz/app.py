@@ -133,14 +133,15 @@ class FuzzApp(App):
     def on_mount(self) -> None:
         table = self.query_one("#suite_table", DataTable)
         for label in ("Suite", "Evaluated", "Max vars", "Status",
-                       "Tested", "Timeouts", "No answer", "Bugs", "Last bug"):
+                       "Tested", "Timeouts", "No answer", "Bugs",
+                       "Activity", "Last bug"):
             table.add_column(label, key=label)
         for r in self.runners:
             table.add_row(
                 r._suite_name,
                 r._evaluated_name,
                 str(r.suite.generator.max_vars),
-                "waiting", "0", "0", "0", "0", "",
+                "waiting", "0", "0", "0", "0", "", "",
                 key=r.display_name,
             )
         for r in self.runners:
@@ -175,6 +176,9 @@ class FuzzApp(App):
             table.update_cell(key, "No answer",
                               f"[{na_style}]{no_ans}[/{na_style}]" if na_style else str(no_ans))
             table.update_cell(key, "Bugs",     str(snap["bug_count"]))
+            activity = snap["activity"].removeprefix("[minimize] mode: ")
+            table.update_cell(key, "Activity",
+                              f"[cyan]{activity[:50]}[/cyan]" if activity else "")
             table.update_cell(key, "Last bug", snap["last_bug"][:60])
 
     def _refresh_bugs(self) -> None:

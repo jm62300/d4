@@ -4,4 +4,4 @@
 source "$(dirname "$0")/lib.sh"
 is_executable_ready
 export TESTED_METHOD="${TESTED_METHOD:-../c++/counter/build/counter -i}"
-fuzz_loop "gen_weighted_cnf 20" "$(dirname "$0")/crash_check.sh" "${1:-2}" "${2:-10}"
+fuzz_loop "gen_weighted_cnf 50" "$(dirname "$0")/crash_check.sh" "${1:-2}" "${2:-10}"

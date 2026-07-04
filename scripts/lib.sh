@@ -80,6 +80,11 @@ gen_weighted_cnf() {
     done
     local i p r
     for i in $(seq 1 "$FUZZ_NBVAR"); do
+        if [ $((RANDOM % 100)) -lt 30 ]; then
+            echo "c p weight $i 0.5 0"    >> /tmp/fuzz_test.cnf
+            echo "c p weight -$i 0.5 0"   >> /tmp/fuzz_test.cnf
+            continue
+        fi
         p=$((RANDOM % 100)); r=$((100 - p))
         [ $p -lt 10 ] && p="0$p"
         [ $r -lt 10 ] && r="0$r"

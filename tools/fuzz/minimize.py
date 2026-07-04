@@ -14,7 +14,8 @@ the weight lines would require rewriting all `c p weight N ...` lines too.
 from __future__ import annotations
 import os
 import tempfile
-from typing import Optional
+import time
+from typing import Callable, Optional
 
 
 # ---------------------------------------------------------------------------
@@ -77,10 +78,14 @@ def _write(path: str, preamble: list[str],
 # ddmin + greedy (operate on clauses; preamble and show_vars are fixed)
 # ---------------------------------------------------------------------------
 
-def _ddmin(clauses: list[list[int]], still_bugs) -> list[list[int]]:
+def _ddmin(clauses: list[list[int]], still_bugs,
+           deadline: Optional[float] = None) -> list[list[int]]:
+    def out_of_time() -> bool:
+        return deadline is not None and time.monotonic() >= deadline
+
     current = list(clauses)
     n = 2
-    while len(current) >= 2:
+    while len(current) >= 2 and not out_of_time():
         chunk_size = max(1, len(current) // n)
         chunks = [current[i:i + chunk_size]
                   for i in range(0, len(current), chunk_size)]
@@ -88,6 +93,8 @@ def _ddmin(clauses: list[list[int]], still_bugs) -> list[list[int]]:
         reduced = False
 
         for i in range(n):
+            if out_of_time():
+                return current
             complement = [c for j, cs in enumerate(chunks) for c in cs if j != i]
             if still_bugs(complement):
                 current = complement
@@ -99,6 +106,8 @@ def _ddmin(clauses: list[list[int]], still_bugs) -> list[list[int]]:
             continue
 
         for chunk in chunks:
+            if out_of_time():
+                return current
             if still_bugs(chunk):
                 current = chunk
                 n = 2
@@ -125,6 +134,46 @@ def _greedy(clauses: list[list[int]], still_bugs) -> list[list[int]]:
         else:
             i += 1
     return current
+
+
+def _elim_literals(clauses: list[list[int]], still_bugs,
+                   deadline: float) -> tuple[list[list[int]], bool]:
+    """Try dropping one literal at a time (keeping clauses non-empty)."""
+    current = [list(c) for c in clauses]
+    changed = False
+    ci = 0
+    while ci < len(current):
+        li = 0
+        while li < len(current[ci]) and len(current[ci]) > 1:
+            if time.monotonic() >= deadline:
+                return current, changed
+            reduced = current[ci][:li] + current[ci][li + 1:]
+            candidate = current[:ci] + [reduced] + current[ci + 1:]
+            if still_bugs(candidate):
+                current = candidate
+                changed = True
+            else:
+                li += 1
+        ci += 1
+    return current, changed
+
+
+def _elim_show_vars(show_vars: list[int], still_bugs_show,
+                    deadline: float) -> tuple[list[int], bool]:
+    """Try dropping projected variables from the 'c p show' line one at a time."""
+    current = list(show_vars)
+    changed = False
+    i = 0
+    while i < len(current):
+        if time.monotonic() >= deadline:
+            return current, changed
+        candidate = current[:i] + current[i + 1:]
+        if still_bugs_show(candidate):
+            current = candidate
+            changed = True
+        else:
+            i += 1
+    return current, changed
 
 
 # ---------------------------------------------------------------------------
@@ -243,14 +292,29 @@ def minimize_instance(
     suite,      # SuiteConfig
     evaluated,  # EvaluatedConfig
     cwd: Optional[str] = None,
+    phase_budget: float = 10.0,
+    log: Optional[Callable[[str], None]] = None,
 ) -> str:
-    """Minimize a failing instance via ddmin + greedy removal.
+    """Minimize a failing instance by cycling time-boxed elimination modes.
+
+    For CNF, three modes are cycled, each limited to `phase_budget` seconds:
+    clause elimination (ddmin), literal elimination, projected-variable
+    elimination. The cycle repeats while it removes something; when a full
+    cycle removes nothing, an exhaustive clause-by-clause pass runs — if it
+    removes something the cycle restarts, otherwise minimization stops.
 
     Returns the path to a new temp file with the minimized instance.
     The caller is responsible for deleting it.
     Returns the original path unchanged if minimization does not apply
     (crash suites, or if the bug cannot be reproduced).
+
+    `log` receives one message per mode switch; defaults to print (stdout).
+    Callers running inside a TUI should pass a callback that routes the
+    message to their display.
     """
+    if log is None:
+        log = lambda msg: print(msg, flush=True)
+
     if instance_path.endswith(".bc"):
         return _minimize_circuit(instance_path, suite, evaluated, cwd)
 
@@ -282,8 +346,46 @@ def minimize_instance(
         _write(tmp_path, preamble, cls, show_vars)
         return is_bug(tmp_path)
 
-    clauses = _ddmin(clauses, still_bugs)
-    clauses = _greedy(clauses, still_bugs)
+    def log_mode(mode: str) -> None:
+        log(f"[minimize] mode: {mode} "
+            f"({len(clauses)} clauses, "
+            f"{sum(len(c) for c in clauses)} literals, "
+            f"{len(show_vars)} show vars)")
+
+    while True:
+        cycle_removed = True
+        while cycle_removed:
+            cycle_removed = False
+
+            log_mode("clause elimination")
+            before = len(clauses)
+            clauses = _ddmin(clauses, still_bugs,
+                             deadline=time.monotonic() + phase_budget)
+            cycle_removed |= len(clauses) < before
+
+            log_mode("literal elimination")
+            clauses, changed = _elim_literals(
+                clauses, still_bugs, time.monotonic() + phase_budget)
+            cycle_removed |= changed
+
+            if show_vars:
+                log_mode("projected variable elimination")
+
+                def still_bugs_show(show: list[int]) -> bool:
+                    _write(tmp_path, preamble, clauses, show)
+                    return is_bug(tmp_path)
+
+                show_vars, changed = _elim_show_vars(
+                    show_vars, still_bugs_show,
+                    time.monotonic() + phase_budget)
+                cycle_removed |= changed
+
+        # Cycle removed nothing: exhaustive clause-by-clause pass.
+        log_mode("clause-by-clause elimination")
+        before = len(clauses)
+        clauses = _greedy(clauses, still_bugs)
+        if len(clauses) == before:
+            break
 
     _write(tmp_path, preamble, clauses, show_vars)
     return tmp_path

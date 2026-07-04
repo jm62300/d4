@@ -1,21 +1,27 @@
 #!/bin/bash
 
 # $1, bench
-# $2, query
+# Exit 0 when both counters agree, non-zero when they differ (bug present).
 
-ROOT_PATH=".."
-SOLVER="$ROOT_PATH/minisat"
+if [ ! -f "$1" ]; then
+    echo "usage: $0 bench.cnf" >&2
+    echo "error: missing or unreadable CNF instance argument" >&2
+    exit 2
+fi
 
-BENCH="/tmp/temp.cnf"
-cp $1 $BENCH
+BENCH=$(mktemp /tmp/projmc.XXXXXX.cnf)
+SOL1=$(mktemp /tmp/projmc.sol1.XXXXXX)
+SOL2=$(mktemp /tmp/projmc.sol2.XXXXXX)
+trap 'rm -f "$BENCH" "$SOL1" "$SOL2"' EXIT
+
+cp "$1" "$BENCH"
 # grep "^c p show" /tmp/2test.cnf >> $BENCH
 
-
 MODEL_COUNTER="${MODEL_COUNTER:-./d4_static -m counting -i}"
-TESTED_METHOD="${TESTED_METHOD:-../c++/projmc/build/projmc -i}"
+TESTED_METHOD="${TESTED_METHOD:-../c++/counter/build/counter --counter.outFormat classic -i}"
 
-$TESTED_METHOD $BENCH 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol1.txt
-$MODEL_COUNTER $BENCH 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > /tmp/sol2.txt
+$TESTED_METHOD "$BENCH" 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > "$SOL1"
+$MODEL_COUNTER "$BENCH" 2>/dev/null | grep "^s " | cut -d ' ' -f2 | sed 's/ //g' > "$SOL2"
 
-diff /tmp/sol2.txt /tmp/sol1.txt > /dev/null
+diff "$SOL2" "$SOL1" > /dev/null
 exit $?

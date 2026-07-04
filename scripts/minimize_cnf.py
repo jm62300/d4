@@ -3,16 +3,51 @@
 minimize_cnf.py — Reduce a failing CNF instance to the smallest sub-instance
 that still triggers a bug between two model counters.
 
-The script uses the ddmin algorithm (Zeller 1999) to remove clauses, followed
-by a greedy one-by-one pass for fine-grained cleanup.  It then tries to remove
-variables from the projection set (c p show) and renumbers all variables to
-produce a clean minimal output.  Use --no-reduce-show to skip the show-set
-reduction.
+ALGORITHM
+  1. Three TIME-BOXED elimination modes are cycled, each limited to
+     --phase-budget seconds (default 10) and announced on stderr when it
+     starts:
+       a. clause elimination     — ddmin (Zeller 1999), drops chunks of clauses
+       b. literal elimination    — try shrinking each remaining clause
+                                   (--no-reduce-literals to disable)
+       c. projection elimination — try dropping each 'c p show' variable
+                                   (--no-reduce-show to disable)
+     A mode interrupted by its budget keeps what it removed and resumes on
+     the next cycle (oracle results are cached, so re-scanning is cheap).
+     The cycle repeats while it makes progress.
+  2. When a full cycle removes NOTHING, an exhaustive clause-by-clause
+     removal pass runs (no time budget).  If it removes something the cycle
+     in step 1 starts again; otherwise a fixpoint is reached and the loop
+     stops.
+  3. Variables are renumbered contiguously.
 
-With --reduce-literals the script also tries to remove individual literals
-from clauses.  Whenever a literal is successfully removed the clause-removal
-passes are re-run, and this continues until no further progress is possible
-(fixpoint).
+BEST-SO-FAR CHECKPOINT (safe to kill the job)
+  Every time the oracle confirms the bug on a smaller candidate, that formula
+  is immediately written to the checkpoint file: the -o FILE if given,
+  otherwise <instance>.best.cnf.  If you kill the job (Ctrl-C, SIGTERM) you
+  keep the smallest failing formula found so far; the script also traps the
+  signal, kills any running solvers, and tells you where the file is.
+  (The checkpoint is not renumbered; renumbering only happens on normal
+  completion.)
+
+RESOURCE CONTROL
+  - On timeout or interrupt the WHOLE process group of the oracle is killed
+    (the oracle script and every solver it spawned) — no runaway counters.
+  - Unless --timeout is given, the per-call timeout is derived from a measured
+    baseline run on the original instance (3x baseline, clamped to [5, 120]s).
+  - Oracle results are cached by CNF content, so re-tested subsets are free.
+  - --mem-mb can cap the address space of the oracle and its children.
+    CAUTION: an OOM-killed counter produces no output, which the oracle may
+    report as a mismatch — the minimizer could then chase OOM crashes instead
+    of the original bug.  Off by default.
+
+PROGRESS REPORTING (all on stderr, never mixed with the CNF on stdout)
+  - Pass-level progress (sizes before/after, oracle runs used) is always shown.
+  - A live status line refreshes every 2 seconds: current phase, clause and
+    literal counts, oracle runs, cache hits, timeouts, elapsed time.
+  - -v additionally logs every successful removal.
+  - A final [stats] summary reports total oracle runs, time spent in the
+    oracle, cache hits and timeouts.
 
 ORACLE CONTRACT
   The oracle command must:
@@ -28,30 +63,28 @@ EXAMPLES
   # Run from the scripts/ directory (default oracle = bash testProjModelCounting.sh):
   python3 minimize_cnf.py /tmp/fail_1.cnf
 
-  # Save the result to a file and watch progress:
+  # Save the result (and the live best-so-far) to a file:
   python3 minimize_cnf.py -v -o /tmp/minimal.cnf /tmp/fail_1.cnf
 
   # Use a custom oracle (any command that exits non-zero on the bug):
   python3 minimize_cnf.py --oracle "bash my_check.sh" /tmp/fail_1.cnf
 
-  # Skip shrinking the projection set (c p show variables):
-  python3 minimize_cnf.py --no-reduce-show /tmp/fail_1.cnf
+  # Clause removal only (skip literal shrinking):
+  python3 minimize_cnf.py --no-reduce-literals /tmp/fail_1.cnf
 
-  # Keep original variable numbers (skip renumbering):
-  python3 minimize_cnf.py --no-renumber /tmp/fail_1.cnf
-
-  # Also shrink individual clauses by removing literals (fixpoint with clause removal):
-  python3 minimize_cnf.py --reduce-literals /tmp/fail_1.cnf
-
-  # Increase per-call timeout for slow solvers:
+  # Force a fixed per-call timeout instead of the adaptive one:
   python3 minimize_cnf.py --timeout 60 /tmp/fail_1.cnf
 """
 
 import argparse
+import hashlib
 import os
+import shlex
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -95,22 +128,8 @@ def parse_cnf(path: str):
     return clauses, show_vars
 
 
-def write_cnf(path: str, clauses: list, show_vars: list):
-    """Write a DIMACS CNF file."""
-    all_vars = {abs(lit) for clause in clauses for lit in clause}
-    all_vars.update(show_vars)
-    num_vars = max(all_vars) if all_vars else 0
-
-    with open(path, 'w') as fh:
-        fh.write(f'p cnf {num_vars} {len(clauses)}\n')
-        if show_vars:
-            fh.write('c p show ' + ' '.join(str(v) for v in show_vars) + ' 0\n')
-        for clause in clauses:
-            fh.write(' '.join(str(lit) for lit in clause) + ' 0\n')
-
-
 def cnf_to_str(clauses: list, show_vars: list) -> str:
-    """Return CNF as a string (for stdout output)."""
+    """Return CNF as a string."""
     all_vars = {abs(lit) for clause in clauses for lit in clause}
     all_vars.update(show_vars)
     num_vars = max(all_vars) if all_vars else 0
@@ -122,48 +141,180 @@ def cnf_to_str(clauses: list, show_vars: list) -> str:
     return '\n'.join(lines)
 
 
+def write_cnf(path: str, clauses: list, show_vars: list):
+    """Write a DIMACS CNF file."""
+    with open(path, 'w') as fh:
+        fh.write(cnf_to_str(clauses, show_vars) + '\n')
+
+
 # ---------------------------------------------------------------------------
 # Oracle
 # ---------------------------------------------------------------------------
 
-def check_bug(oracle_cmd: list, cnf_path: str, timeout: int) -> bool:
-    """Return True if the oracle reports a bug (non-zero exit) on cnf_path."""
-    try:
-        result = subprocess.run(
-            oracle_cmd + [cnf_path],
-            capture_output=True,
-            timeout=timeout,
+def log(msg: str):
+    print(msg, file=sys.stderr, flush=True)
+
+
+class Oracle:
+    """Runs the oracle command with caching, group-kill timeouts, stats and a
+    best-so-far checkpoint."""
+
+    def __init__(self, cmd: list, timeout: float, mem_mb: int, verbose: bool,
+                 best_path: str = None):
+        self.cmd = cmd
+        self.timeout = timeout
+        self.mem_mb = mem_mb
+        self.verbose = verbose
+        self.best_path = best_path
+        self.best_desc = None
+        self.phase = 'init'
+        self.runs = 0            # actual subprocess executions
+        self.cache_hits = 0
+        self.timeouts = 0
+        self.bugs = 0
+        self.oracle_time = 0.0   # wall time spent waiting on the oracle
+        self.start = time.monotonic()
+        self._cache = {}
+        self._last_status = 0.0
+        self._status_dirty = False
+        fd, self.tmp_path = tempfile.mkstemp(suffix='.cnf')
+        os.close(fd)
+
+    def close(self):
+        self._end_status_line()
+        try:
+            os.unlink(self.tmp_path)
+        except OSError:
+            pass
+
+    def check(self, clauses: list, show_vars: list) -> bool:
+        """Return True if the oracle reports a bug on this candidate.
+
+        Every buggy candidate is checkpointed to best_path: candidates are
+        always subsets of the current formula, so the last buggy one is the
+        smallest failing formula seen so far.
+        """
+        text = cnf_to_str(clauses, show_vars) + '\n'
+        key = hashlib.md5(text.encode()).digest()
+        if key in self._cache:
+            self.cache_hits += 1
+            result = self._cache[key]
+        else:
+            with open(self.tmp_path, 'w') as fh:
+                fh.write(text)
+            result = self._run()
+            self._cache[key] = result
+        if result:
+            self.bugs += 1
+            if self.best_path:
+                with open(self.best_path, 'w') as fh:
+                    fh.write(text)
+                self.best_desc = (f'{len(clauses)} clauses, '
+                                  f'{sum(len(c) for c in clauses)} literals, '
+                                  f'{len(show_vars)} show vars')
+        self._status(len(clauses), sum(len(c) for c in clauses))
+        return result
+
+    def _run(self) -> bool:
+        self.runs += 1
+        t0 = time.monotonic()
+
+        preexec = None
+        if self.mem_mb:
+            import resource
+            limit = self.mem_mb * 1024 * 1024
+
+            def preexec():
+                resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
+
+        # start_new_session puts the oracle and every solver it spawns into
+        # their own process group, so we can kill all of them at once.
+        proc = subprocess.Popen(
+            self.cmd + [self.tmp_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+            preexec_fn=preexec,
         )
-        if result.returncode == 127:
-            # 127 = command not found; abort rather than treating as "bug present"
-            cmd_str = ' '.join(oracle_cmd)
-            print(
+        try:
+            rc = proc.wait(timeout=self.timeout)
+        except subprocess.TimeoutExpired:
+            self._kill_group(proc)
+            self.timeouts += 1
+            self.oracle_time += time.monotonic() - t0
+            # Treat timeout as "no bug" so we don't keep timed-out instances.
+            return False
+        except BaseException:
+            # Interrupted (Ctrl-C / SIGTERM): the oracle runs in its own
+            # session and would not receive the terminal's signal, kill it.
+            self._kill_group(proc)
+            raise
+
+        self.oracle_time += time.monotonic() - t0
+
+        if rc == 127:
+            self._end_status_line()
+            cmd_str = ' '.join(self.cmd)
+            log(
                 f'ERROR: oracle command not found (exit 127): {cmd_str}\n'
                 'Make sure the oracle script path is correct for the current '
-                'working directory, or pass --oracle with an explicit path.',
-                file=sys.stderr,
+                'working directory, or pass --oracle with an explicit path.'
             )
             sys.exit(1)
-        return result.returncode != 0
-    except subprocess.TimeoutExpired:
-        # Treat timeout as "no bug" so we don't keep timed-out instances.
-        return False
-    except Exception as exc:
-        print(f'[oracle error] {exc}', file=sys.stderr)
-        return False
+        return rc != 0
+
+    @staticmethod
+    def _kill_group(proc):
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        proc.wait()
+
+    # --- progress -----------------------------------------------------------
+
+    def _status(self, n_clauses: int, n_lits: int):
+        now = time.monotonic()
+        if now - self._last_status < 2.0:
+            return
+        self._last_status = now
+        elapsed = now - self.start
+        line = (f'[{self.phase}] {n_clauses} clauses / {n_lits} lits | '
+                f'{self.runs} oracle runs, {self.cache_hits} cached, '
+                f'{self.timeouts} timeouts | {elapsed:.0f}s elapsed')
+        if sys.stderr.isatty() and not self.verbose:
+            print('\r\x1b[K' + line, file=sys.stderr, end='', flush=True)
+            self._status_dirty = True
+        else:
+            log(line)
+
+    def _end_status_line(self):
+        if self._status_dirty:
+            print(file=sys.stderr, flush=True)
+            self._status_dirty = False
+
+    def pass_report(self, msg: str):
+        """Pass-level progress, always shown."""
+        self._end_status_line()
+        log(msg)
+
+    def summary(self) -> str:
+        elapsed = time.monotonic() - self.start
+        return (f'[stats] {self.runs} oracle runs ({self.oracle_time:.1f}s in '
+                f'oracle, {elapsed:.1f}s wall), {self.cache_hits} cache hits, '
+                f'{self.timeouts} timeouts, {self.bugs} buggy candidates')
 
 
 # ---------------------------------------------------------------------------
 # Minimization
 # ---------------------------------------------------------------------------
 
-def _still_bugs(clauses, show_vars, oracle_cmd, tmp_path, timeout):
-    write_cnf(tmp_path, clauses, show_vars)
-    return check_bug(oracle_cmd, tmp_path, timeout)
+def _expired(deadline) -> bool:
+    return deadline is not None and time.monotonic() >= deadline
 
 
-def ddmin_clauses(clauses: list, show_vars: list, oracle_cmd: list,
-                  tmp_path: str, timeout: int, verbose: bool) -> list:
+def ddmin_clauses(clauses: list, show_vars: list, oracle: Oracle,
+                  deadline: float = None) -> list:
     """Apply ddmin to find a minimal failing clause subset.
 
     Classic ddmin (Zeller 1999):
@@ -173,13 +324,11 @@ def ddmin_clauses(clauses: list, show_vars: list, oracle_cmd: list,
       - If neither works, double n (finer granularity).
       - Stop when n exceeds the set size.
     """
+    oracle.phase = 'ddmin'
     current = list(clauses)
     n = 2
 
-    if verbose:
-        print(f'[ddmin] starting with {len(current)} clauses')
-
-    while len(current) >= 2:
+    while len(current) >= 2 and not _expired(deadline):
         chunk_size = max(1, len(current) // n)
         chunks = [current[i:i + chunk_size] for i in range(0, len(current), chunk_size)]
         n = len(chunks)  # actual number after ceiling division
@@ -188,14 +337,16 @@ def ddmin_clauses(clauses: list, show_vars: list, oracle_cmd: list,
 
         # --- complement test: remove one chunk ---
         for i, chunk in enumerate(chunks):
+            if _expired(deadline):
+                return current
             complement = [c for j, cs in enumerate(chunks) for c in cs if j != i]
-            if _still_bugs(complement, show_vars, oracle_cmd, tmp_path, timeout):
+            if oracle.check(complement, show_vars):
                 removed = len(current) - len(complement)
                 current = complement
                 n = max(n - 1, 2)
                 reduced = True
-                if verbose:
-                    print(f'[ddmin] removed chunk of {removed} → {len(current)} clauses')
+                if oracle.verbose:
+                    log(f'[ddmin] removed chunk of {removed} → {len(current)} clauses')
                 break
 
         if reduced:
@@ -203,9 +354,11 @@ def ddmin_clauses(clauses: list, show_vars: list, oracle_cmd: list,
 
         # --- reduction test: keep one chunk alone ---
         for chunk in chunks:
-            if _still_bugs(chunk, show_vars, oracle_cmd, tmp_path, timeout):
-                if verbose:
-                    print(f'[ddmin] reduced to chunk of {len(chunk)} clauses')
+            if _expired(deadline):
+                return current
+            if oracle.check(chunk, show_vars):
+                if oracle.verbose:
+                    log(f'[ddmin] reduced to chunk of {len(chunk)} clauses')
                 current = chunk
                 n = 2
                 reduced = True
@@ -222,78 +375,86 @@ def ddmin_clauses(clauses: list, show_vars: list, oracle_cmd: list,
     return current
 
 
-def greedy_clauses(clauses: list, show_vars: list, oracle_cmd: list,
-                   tmp_path: str, timeout: int, verbose: bool) -> list:
-    """One-by-one greedy pass: try removing each clause individually."""
-    if verbose:
-        print(f'[greedy] fine-grained pass on {len(clauses)} clauses')
+def remove_clauses(clauses: list, show_vars: list, oracle: Oracle,
+                   deadline: float = None):
+    """Try dropping each clause one by one.
 
+    Returns (new_clauses, changed).
+    """
+    oracle.phase = 'clauses'
     current = list(clauses)
+    changed = False
     i = 0
     while i < len(current):
+        if _expired(deadline):
+            break
         candidate = current[:i] + current[i + 1:]
-        if _still_bugs(candidate, show_vars, oracle_cmd, tmp_path, timeout):
+        if oracle.check(candidate, show_vars):
             current = candidate
-            if verbose:
-                print(f'[greedy] removed clause → {len(current)} remain')
+            changed = True
+            if oracle.verbose:
+                log(f'[clauses] removed clause → {len(current)} remain')
         else:
             i += 1
-    return current
+    return current, changed
 
 
-def minimize_show_vars(clauses: list, show_vars: list, oracle_cmd: list,
-                       tmp_path: str, timeout: int, verbose: bool) -> list:
-    """Greedily remove variables from the projection set."""
-    if verbose:
-        print(f'[show] trying to reduce {len(show_vars)} show vars')
-
-    current = list(show_vars)
-    i = 0
-    while i < len(current):
-        candidate = current[:i] + current[i + 1:]
-        if _still_bugs(clauses, candidate, oracle_cmd, tmp_path, timeout):
-            if verbose:
-                print(f'[show] removed var {current[i]} → {len(candidate)} show vars')
-            current = candidate
-        else:
-            i += 1
-    return current
-
-
-def greedy_literals(clauses: list, show_vars: list, oracle_cmd: list,
-                    tmp_path: str, timeout: int, verbose: bool):
+def remove_literals(clauses: list, show_vars: list, oracle: Oracle,
+                    deadline: float = None):
     """Try removing individual literals from each clause.
 
-    Unit clauses (length 1) are left intact — removing their only literal would
-    produce an empty clause that most parsers reject.
+    Unit clauses (length 1) are left intact — removing their only literal
+    would produce an empty clause that most parsers reject.
 
-    Returns (new_clauses, changed) where changed is True if at least one
-    literal was removed.
+    Returns (new_clauses, changed).
     """
-    if verbose:
-        total = sum(len(c) for c in clauses)
-        print(f'[literals] trying to shrink literals across {len(clauses)} clauses ({total} total lits)')
-
+    oracle.phase = 'literals'
     current = [list(c) for c in clauses]
     changed = False
 
     for i in range(len(current)):
         j = 0
-        while j < len(current[i]):
-            if len(current[i]) <= 1:
-                break  # never empty a clause
-            candidate = current[:i] + [current[i][:j] + current[i][j + 1:]] + current[i + 1:]
-            if _still_bugs(candidate, show_vars, oracle_cmd, tmp_path, timeout):
+        while len(current[i]) > 1 and j < len(current[i]):
+            if _expired(deadline):
+                return current, changed
+            candidate = (current[:i]
+                         + [current[i][:j] + current[i][j + 1:]]
+                         + current[i + 1:])
+            if oracle.check(candidate, show_vars):
                 removed_lit = current[i][j]
                 current[i] = candidate[i]
                 changed = True
-                if verbose:
-                    print(f'[literals] removed lit {removed_lit} from clause {i} '
-                          f'→ {len(current[i])} lits remain')
+                if oracle.verbose:
+                    log(f'[literals] removed lit {removed_lit} from clause {i} '
+                        f'→ {len(current[i])} lits remain')
                 # don't advance j — the next literal slid into position j
             else:
                 j += 1
 
+    return current, changed
+
+
+def minimize_show_vars(clauses: list, show_vars: list, oracle: Oracle,
+                       deadline: float = None):
+    """Greedily remove variables from the projection set.
+
+    Returns (new_show_vars, changed).
+    """
+    oracle.phase = 'show'
+    current = list(show_vars)
+    changed = False
+    i = 0
+    while i < len(current):
+        if _expired(deadline):
+            break
+        candidate = current[:i] + current[i + 1:]
+        if oracle.check(clauses, candidate):
+            if oracle.verbose:
+                log(f'[show] removed var {current[i]} → {len(candidate)} show vars')
+            current = candidate
+            changed = True
+        else:
+            i += 1
     return current, changed
 
 
@@ -349,7 +510,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         '-o', '--output',
         default=None,
         metavar='FILE',
-        help='Write the minimized CNF to FILE instead of stdout.',
+        help=(
+            'Write the minimized CNF to FILE instead of stdout. FILE is also '
+            'used as the live best-so-far checkpoint during the run.'
+        ),
     )
     p.add_argument(
         '--no-reduce-show',
@@ -369,31 +533,65 @@ def build_arg_parser() -> argparse.ArgumentParser:
         '--no-greedy',
         action='store_true',
         help=(
-            'Skip the final greedy one-by-one pass. ddmin alone is faster but '
-            'may not reach a 1-minimal result.'
+            'Skip the interleaved shrink passes after ddmin. Faster but the '
+            'result is usually far from 1-minimal.'
         ),
     )
     p.add_argument(
         '--reduce-literals',
+        dest='reduce_literals',
         action='store_true',
+        default=True,
+        help=argparse.SUPPRESS,  # kept for backward compatibility (now the default)
+    )
+    p.add_argument(
+        '--no-reduce-literals',
+        dest='reduce_literals',
+        action='store_false',
         help=(
-            'After clause removal, also try removing individual literals from '
-            'each clause. Whenever a literal is removed the clause-removal '
-            'passes restart; this repeats until no further progress is made '
-            '(fixpoint). Disabled by default because it is significantly slower.'
+            'Do not try to remove individual literals from clauses during the '
+            'shrink passes (literal shrinking is interleaved with clause '
+            'removal and enabled by default).'
+        ),
+    )
+    p.add_argument(
+        '--phase-budget',
+        type=float,
+        default=10.0,
+        metavar='SEC',
+        help=(
+            'Time budget for each elimination mode (clause / literal / '
+            'projection) before switching to the next one. An interrupted '
+            'mode resumes on the next cycle. Default: 10 seconds.'
         ),
     )
     p.add_argument(
         '--timeout',
-        type=int,
-        default=30,
+        type=float,
+        default=None,
         metavar='SEC',
-        help='Per-call timeout in seconds for the oracle (default: 30).',
+        help=(
+            'Per-call timeout in seconds for the oracle. Default: adaptive — '
+            '3x the time of a baseline run on the original instance, clamped '
+            'to [5, 120] seconds.'
+        ),
+    )
+    p.add_argument(
+        '--mem-mb',
+        type=int,
+        default=None,
+        metavar='MB',
+        help=(
+            'Cap the address space (RLIMIT_AS) of the oracle and its solvers. '
+            'CAUTION: an OOM-killed counter may look like a mismatch to the '
+            'oracle, steering the minimizer toward OOM crashes instead of the '
+            'original bug. Off by default.'
+        ),
     )
     p.add_argument(
         '-v', '--verbose',
         action='store_true',
-        help='Print progress information to stderr.',
+        help='Also log every successful removal (pass-level progress is always shown).',
     )
     return p
 
@@ -402,76 +600,152 @@ def main():
     parser = build_arg_parser()
     args = parser.parse_args()
 
-    oracle_cmd = args.oracle.split()
-    tmp_fd, tmp_path = tempfile.mkstemp(suffix='.cnf')
-    os.close(tmp_fd)
+    # Turn SIGTERM into KeyboardInterrupt so `kill <pid>` also leaves a clean
+    # checkpoint and no orphan solvers.
+    def _sigterm(*_):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, _sigterm)
+
+    best_path = args.output if args.output else args.instance + '.best.cnf'
+
+    oracle = Oracle(
+        cmd=shlex.split(args.oracle),
+        timeout=args.timeout if args.timeout is not None else 120.0,
+        mem_mb=args.mem_mb,
+        verbose=args.verbose,
+        best_path=best_path,
+    )
 
     try:
         # --- Parse ---
         clauses, show_vars = parse_cnf(args.instance)
-        if args.verbose:
-            print(f'[init] {len(clauses)} clauses, {len(show_vars)} show vars', file=sys.stderr)
+        n_clauses0 = len(clauses)
+        n_show0 = len(show_vars)
+        n_lits0 = sum(len(c) for c in clauses)
+        log(f'[init] {n_clauses0} clauses, {n_lits0} literals, {n_show0} show vars')
+        log(f'[init] best-so-far failing formula is kept in {best_path} '
+            '(safe to kill the job at any time)')
 
-        # --- Verify bug exists ---
-        if not _still_bugs(clauses, show_vars, oracle_cmd, tmp_path, args.timeout):
-            print(
+        # --- Verify bug exists (and measure a baseline for the timeout) ---
+        t0 = time.monotonic()
+        if not oracle.check(clauses, show_vars):
+            log(
                 'ERROR: oracle did not report a bug on the original instance.\n'
-                'Check that the oracle command is correct and exits non-zero on failure.',
-                file=sys.stderr,
+                'Check that the oracle command is correct and exits non-zero on failure.'
             )
             sys.exit(1)
-        if args.verbose:
-            print('[init] bug confirmed on original instance', file=sys.stderr)
+        baseline = time.monotonic() - t0
+        if args.timeout is None:
+            oracle.timeout = min(max(5.0, 3.0 * baseline), 120.0)
+        log(f'[init] bug confirmed in {baseline:.2f}s → per-call timeout {oracle.timeout:.1f}s')
 
-        # --- fixpoint loop: clause removal ↔ literal removal ---
-        iteration = 0
-        while True:
-            iteration += 1
-            if args.verbose and args.reduce_literals:
-                print(f'[fixpoint] iteration {iteration}', file=sys.stderr)
+        # --- time-boxed elimination modes ---
+        budget = args.phase_budget
 
-            clauses = ddmin_clauses(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+        if not args.no_greedy:
+            rnd = 0
+            while True:
+                # Cycle the time-boxed modes while they make progress.
+                cycle_changed = True
+                while cycle_changed:
+                    cycle_changed = False
+                    rnd += 1
 
-            if not args.no_greedy:
-                clauses = greedy_clauses(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+                    oracle.pass_report(
+                        f'[cycle {rnd}] >>> mode: clause elimination '
+                        f'(ddmin, {budget:.0f}s budget)')
+                    runs_before = oracle.runs
+                    n_before = len(clauses)
+                    clauses = ddmin_clauses(clauses, show_vars, oracle,
+                                            time.monotonic() + budget)
+                    cycle_changed |= len(clauses) < n_before
+                    oracle.pass_report(
+                        f'[cycle {rnd}] {len(clauses)} clauses remain '
+                        f'({oracle.runs - runs_before} oracle runs)')
 
-            if not args.reduce_literals:
-                break
+                    if args.reduce_literals:
+                        oracle.pass_report(
+                            f'[cycle {rnd}] >>> mode: literal elimination '
+                            f'({budget:.0f}s budget)')
+                        runs_before = oracle.runs
+                        clauses, ch = remove_literals(clauses, show_vars, oracle,
+                                                      time.monotonic() + budget)
+                        cycle_changed |= ch
+                        oracle.pass_report(
+                            f'[cycle {rnd}] {sum(len(c) for c in clauses)} literals remain '
+                            f'({oracle.runs - runs_before} oracle runs)')
 
-            clauses, lits_changed = greedy_literals(
-                clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
-            if not lits_changed:
-                break  # fixpoint reached
-            if args.verbose:
-                print('[fixpoint] literals removed — restarting clause reduction', file=sys.stderr)
+                    if not args.no_reduce_show and show_vars:
+                        oracle.pass_report(
+                            f'[cycle {rnd}] >>> mode: projected variable elimination '
+                            f'({budget:.0f}s budget)')
+                        runs_before = oracle.runs
+                        show_vars, ch = minimize_show_vars(clauses, show_vars, oracle,
+                                                           time.monotonic() + budget)
+                        cycle_changed |= ch
+                        oracle.pass_report(
+                            f'[cycle {rnd}] {len(show_vars)} show vars remain '
+                            f'({oracle.runs - runs_before} oracle runs)')
 
-        # --- shrink projection set ---
-        if not args.no_reduce_show and show_vars:
-            show_vars = minimize_show_vars(clauses, show_vars, oracle_cmd, tmp_path, args.timeout, args.verbose)
+                # Cycle removed nothing: exhaustive clause-by-clause pass.
+                oracle.pass_report(
+                    '[final] >>> mode: clause-by-clause elimination (exhaustive)')
+                runs_before = oracle.runs
+                clauses, ch = remove_clauses(clauses, show_vars, oracle)
+                oracle.pass_report(
+                    f'[final] {len(clauses)} clauses remain '
+                    f'({oracle.runs - runs_before} oracle runs)')
+                if not ch:
+                    oracle.pass_report('[final] fixpoint reached — minimization done')
+                    break
+                oracle.pass_report('[final] progress made — restarting mode cycle')
+        else:
+            # --no-greedy: one full ddmin pass, then reduce the projection set
+            oracle.pass_report('>>> mode: clause elimination (ddmin, no budget)')
+            runs_before = oracle.runs
+            clauses = ddmin_clauses(clauses, show_vars, oracle)
+            oracle.pass_report(
+                f'[ddmin] {len(clauses)} clauses remain '
+                f'({oracle.runs - runs_before} oracle runs)')
+            if not args.no_reduce_show and show_vars:
+                oracle.pass_report('>>> mode: projected variable elimination')
+                runs_before = oracle.runs
+                show_vars, _ = minimize_show_vars(clauses, show_vars, oracle)
+                oracle.pass_report(
+                    f'[show] {len(show_vars)} show vars remain '
+                    f'({oracle.runs - runs_before} oracle runs)')
 
         # --- renumber ---
         if not args.no_renumber:
             clauses, show_vars = renumber(clauses, show_vars)
 
         # --- output ---
-        if args.verbose:
-            print(
-                f'[done] {len(clauses)} clauses, {len(show_vars)} show vars',
-                file=sys.stderr,
-            )
+        oracle.pass_report(
+            f'[done] clauses: {n_clauses0} → {len(clauses)}, '
+            f'literals: {n_lits0} → {sum(len(c) for c in clauses)}, '
+            f'show vars: {n_show0} → {len(show_vars)}')
+        log(oracle.summary())
 
+        # Refresh the checkpoint with the final (renumbered) formula.
+        write_cnf(best_path, clauses, show_vars)
         if args.output:
-            write_cnf(args.output, clauses, show_vars)
-            if args.verbose:
-                print(f'[done] written to {args.output}', file=sys.stderr)
+            log(f'[done] written to {args.output}')
         else:
+            log(f'[done] also written to {best_path}')
             print(cnf_to_str(clauses, show_vars))
 
+    except KeyboardInterrupt:
+        oracle.pass_report('[interrupted] job stopped by user')
+        if oracle.best_desc:
+            log(f'[interrupted] smallest failing formula so far '
+                f'({oracle.best_desc}) is in {best_path}')
+        else:
+            log('[interrupted] no failing formula confirmed yet — '
+                f'{best_path} was not written')
+        log(oracle.summary())
+        sys.exit(130)
     finally:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
+        oracle.close()
 
 
 if __name__ == '__main__':
