@@ -4,7 +4,9 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 
 #if defined(_WIN32)
 #include <io.h>
@@ -376,7 +378,9 @@ const char* paceMain(unsigned nbNode,
                      std::vector<std::pair<unsigned, unsigned>>& graph,
                      int maxNbTrail, unsigned timeout, bool rageQuit,
                      int random_seed, bool verbose) {
+#ifndef _WIN32
   signal(SIGALRM, signal_handler);
+#endif
 
   best_bag_size = numeric_limits<int>::max();
   // if (best_decomposition) delete[] best_decomposition;

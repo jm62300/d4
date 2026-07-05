@@ -157,6 +157,9 @@ endif()
 
 # --- 7. Compiler Options ---
 if (MSVC)
+    # NOMINMAX must be defined before any windows.h inclusion (including via gmpxx.h)
+    # so we set it globally for all MSVC compilation units.
+    add_compile_definitions(NOMINMAX)
     target_compile_options(d4 PUBLIC /W3 /wd4477 /wd4455 /wd4018 /wd4706)
 else ()
     target_compile_options(d4 PUBLIC -Wall -Wno-strict-aliasing -Wno-format -Wno-sign-compare -Wno-parentheses -Wno-restrict)
