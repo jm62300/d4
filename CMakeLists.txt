@@ -99,9 +99,6 @@ target_include_directories(htd PUBLIC
 target_compile_options(htd PRIVATE -w)
 target_compile_definitions(htd PRIVATE NDEBUG)
 
-# ==============================================================================
-# --- optree library integration ---
-# ==============================================================================
 set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty" CACHE PATH "Directory for FetchContent" FORCE)
 include(FetchContent)
 set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
@@ -110,7 +107,7 @@ if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
 endif()
 FetchContent_Declare(
     optree
-    GIT_REPOSITORY https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git
+    GIT_REPOSITORY ${OPTREE_GIT_URL}
     GIT_TAG main
 )
 FetchContent_MakeAvailable(optree)

@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.14)
 # Set the project name
 project(maxT LANGUAGES CXX)
 
+# Disable install and export commands to prevent static build export validation errors on fetched dependencies
+macro(install)
+endmacro()
+macro(export)
+endmacro()
+
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -28,8 +34,7 @@ endif()
 # -------------------------
 
 # ==============================================================================
-# --- bipe library integration (only used here to make the shared `optree`
-# target available; this demo does not call BiPe preprocessing itself) ---
+# --- bipe library integration (renaming its cadical to bipe_cadical) ---
 # ==============================================================================
 get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
 set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
@@ -43,7 +48,31 @@ FetchContent_Declare(
     GIT_REPOSITORY ${BIPE_GIT_URL}
     GIT_TAG        main
 )
-FetchContent_MakeAvailable(bipe)
+FetchContent_GetProperties(bipe)
+if(NOT bipe_POPULATED)
+    FetchContent_Populate(bipe)
+    
+    # 1. Patch bipe-src/CMakeLists.txt to link against bipe_cadical instead of cadical
+    set(BIPE_CMAKELIST "${bipe_SOURCE_DIR}/CMakeLists.txt")
+    if(EXISTS "${BIPE_CMAKELIST}")
+        file(READ "${BIPE_CMAKELIST}" BIPE_CONTENT)
+        string(REPLACE "PUBLIC cadical" "PUBLIC bipe_cadical" BIPE_CONTENT "${BIPE_CONTENT}")
+        file(WRITE "${BIPE_CMAKELIST}" "${BIPE_CONTENT}")
+    endif()
+
+    # 2. Patch bipe-src/3rdParty/cadical/CMakeLists.txt to rename the target to bipe_cadical
+    set(BIPE_CADICAL_CMAKELIST "${bipe_SOURCE_DIR}/3rdParty/cadical/CMakeLists.txt")
+    if(EXISTS "${BIPE_CADICAL_CMAKELIST}")
+        file(READ "${BIPE_CADICAL_CMAKELIST}" BIPE_CADICAL_CONTENT)
+        string(REPLACE "add_library(cadical " "add_library(bipe_cadical " BIPE_CADICAL_CONTENT "${BIPE_CADICAL_CONTENT}")
+        string(REPLACE "target_include_directories(cadical " "target_include_directories(bipe_cadical " BIPE_CADICAL_CONTENT "${BIPE_CADICAL_CONTENT}")
+        string(REPLACE "target_compile_definitions(cadical " "target_compile_definitions(bipe_cadical " BIPE_CADICAL_CONTENT "${BIPE_CADICAL_CONTENT}")
+        string(REPLACE "target_compile_options(cadical " "target_compile_options(bipe_cadical " BIPE_CADICAL_CONTENT "${BIPE_CADICAL_CONTENT}")
+        file(WRITE "${BIPE_CADICAL_CMAKELIST}" "${BIPE_CADICAL_CONTENT}")
+    endif()
+
+    add_subdirectory(${bipe_SOURCE_DIR} ${bipe_BINARY_DIR})
+endif()
 
 # Get the absolute path to the parser directory safely
 get_filename_component(PARSER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parser" ABSOLUTE)
