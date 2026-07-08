@@ -1,9 +1,6 @@
 #include "Solver.hpp"
 
 #include <signal.h>
-#include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/multiprecision/integer.hpp>
-#include <boost/multiprecision/gmp.hpp>
 #include <cassert>
 #include <iomanip>
 #include <stdexcept>
