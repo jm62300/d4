@@ -180,8 +180,8 @@ class CompileResultImpl : public CompileResult {
     const semiring::DecDNNFSemiring& semiring = method_->getSemiring();
 
     std::stringstream ss;
-    ss.precision(std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10);
-    boost::multiprecision::mpf_float::default_precision(128);
+    ss.precision(50);
+    mpf_set_default_prec(128);
 
     if (isWeighted_) {
       mpz::mpf_float assumption_weight_product(1.0);
