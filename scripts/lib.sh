@@ -107,15 +107,15 @@ gen_complex_cnf() {
     local i pw1 pw2 nw1 nw2
     for i in $(seq 1 "$FUZZ_NBVAR"); do
         if [ $((RANDOM % 2)) -eq 0 ]; then
-            echo "c p weight $i 1.00 0.00 0"  >> /tmp/fuzz_test.cnf
-            echo "c p weight -$i 1.00 0.00 0" >> /tmp/fuzz_test.cnf
+            echo "c p weight $i 1.00+0.00i 0"  >> /tmp/fuzz_test.cnf
+            echo "c p weight -$i 1.00+0.00i 0" >> /tmp/fuzz_test.cnf
         else
             pw1=$((RANDOM % 100)); pw2=$((RANDOM % 100))
             nw1=$((RANDOM % 100)); nw2=$((RANDOM % 100))
             [ $pw1 -lt 10 ] && pw1="0$pw1"; [ $pw2 -lt 10 ] && pw2="0$pw2"
             [ $nw1 -lt 10 ] && nw1="0$nw1"; [ $nw2 -lt 10 ] && nw2="0$nw2"
-            echo "c p weight $i 0.$pw1 0.$pw2 0"  >> /tmp/fuzz_test.cnf
-            echo "c p weight -$i 0.$nw1 0.$nw2 0" >> /tmp/fuzz_test.cnf
+            echo "c p weight $i 0.$pw1+0.${pw2}i 0"  >> /tmp/fuzz_test.cnf
+            echo "c p weight -$i 0.$nw1+0.${nw2}i 0" >> /tmp/fuzz_test.cnf
         fi
     done
 }
