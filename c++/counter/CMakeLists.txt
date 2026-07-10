@@ -78,101 +78,6 @@ if(NOT bipe_POPULATED)
     add_subdirectory(${bipe_SOURCE_DIR} ${bipe_BINARY_DIR})
 endif()
 
-# ==============================================================================
-# --- isolate cadical for arjun/cryptominisat5/cadiback into CaDiCaLMeel namespace ---
-# ==============================================================================
-add_definitions(-DCaDiCaL=CaDiCaLMeel)
-
-# ==============================================================================
-# --- arjun and dependencies library integration ---
-# ==============================================================================
-set(MPFR_HELPER_DIR "${CMAKE_BINARY_DIR}/mpfr-helper")
-file(MAKE_DIRECTORY "${MPFR_HELPER_DIR}/include")
-file(MAKE_DIRECTORY "${MPFR_HELPER_DIR}/lib")
-file(MAKE_DIRECTORY "${MPFR_HELPER_DIR}/lib/pkgconfig")
-
-if(BUILD_STATIC)
-    include(ExternalProject)
-    set(MPFR_STATIC_INSTALL_DIR "${CMAKE_BINARY_DIR}/mpfr-static-install")
-    ExternalProject_Add(
-        mpfr_static_build
-        URL "https://ftp.gnu.org/gnu/mpfr/mpfr-4.1.0.tar.gz"
-        PREFIX "${CMAKE_BINARY_DIR}/mpfr-static"
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=${MPFR_STATIC_INSTALL_DIR} --enable-static --disable-shared --with-gmp-include=/usr/include --with-gmp-lib=/usr/lib/x86_64-linux-gnu
-        BUILD_COMMAND make
-        INSTALL_COMMAND make install
-    )
-
-    add_custom_target(
-        mpfr_static_copy ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MPFR_STATIC_INSTALL_DIR}/lib/libmpfr.a" "${MPFR_HELPER_DIR}/lib/libmpfr.a"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MPFR_STATIC_INSTALL_DIR}/include/mpfr.h" "${MPFR_HELPER_DIR}/include/mpfr.h"
-        DEPENDS mpfr_static_build
-    )
-else()
-    if(NOT EXISTS "${MPFR_HELPER_DIR}/include/mpfr.h")
-        message(STATUS "Downloading mpfr.h from official INRIA Gitlab...")
-        file(DOWNLOAD 
-            "https://gitlab.inria.fr/mpfr/mpfr/-/raw/4.1.0/src/mpfr.h" 
-            "${MPFR_HELPER_DIR}/include/mpfr.h"
-            STATUS download_status
-        )
-        list(GET download_status 0 status_code)
-        if(NOT status_code EQUAL 0)
-            message(FATAL_ERROR "Failed to download mpfr.h: ${download_status}")
-        endif()
-    endif()
-
-    if(NOT EXISTS "${MPFR_HELPER_DIR}/lib/libmpfr.so")
-        message(STATUS "Creating local libmpfr.so symlink pointing to /usr/lib/x86_64-linux-gnu/libmpfr.so.6...")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E create_symlink 
-            "/usr/lib/x86_64-linux-gnu/libmpfr.so.6" 
-            "${MPFR_HELPER_DIR}/lib/libmpfr.so"
-        )
-    endif()
-endif()
-
-file(WRITE "${MPFR_HELPER_DIR}/lib/pkgconfig/mpfr.pc"
-"prefix=${MPFR_HELPER_DIR}
-libdir=\${prefix}/lib
-includedir=\${prefix}/include
-
-Name: mpfr
-Description: C library for multiple-precision floating-point computations (mocked)
-Version: 4.1.0
-Libs: -L\${libdir} -lmpfr
-Cflags: -I\${includedir}
-")
-
-set(ENV{PKG_CONFIG_PATH} "${MPFR_HELPER_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
-
-link_directories("${MPFR_HELPER_DIR}/lib")
-
-add_subdirectory(3rdParty/cadical)
-
-# Patch local cadiback CMakeLists.txt dynamically to strip install commands
-set(CADIBACK_CMAKELIST "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/cadiback/CMakeLists.txt")
-if(EXISTS "${CADIBACK_CMAKELIST}")
-    file(READ "${CADIBACK_CMAKELIST}" CADIBACK_CONTENT)
-    string(FIND "${CADIBACK_CONTENT}" "# ---- Install" INSTALL_INDEX)
-    if(NOT INSTALL_INDEX EQUAL -1)
-        string(SUBSTRING "${CADIBACK_CONTENT}" 0 ${INSTALL_INDEX} CADIBACK_CLEAN)
-        file(WRITE "${CADIBACK_CMAKELIST}" "${CADIBACK_CLEAN}")
-    endif()
-endif()
-add_subdirectory(3rdParty/cadiback)
-
-add_subdirectory(3rdParty/sbva)
-add_subdirectory(3rdParty/cryptominisat5)
-add_subdirectory(3rdParty/arjun)
-
-# ==============================================================================
-# --- remove namespace isolation for following targets ---
-# ==============================================================================
-remove_definitions(-DCaDiCaL=CaDiCaLMeel)
-
-
 # Get the absolute path to the parser directory safely
 get_filename_component(PARSER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parser" ABSOLUTE)
 
@@ -183,20 +88,6 @@ file(GLOB_RECURSE PARSER_SRCS "${PARSER_DIR}/*.cpp")
 
 # Define the Executable (Now includes the parser sources!)
 add_executable(counter ${SRCS} ${PARSER_SRCS})
-if(TARGET CopyPublicHeaders_arjun)
-    add_dependencies(counter CopyPublicHeaders_arjun)
-endif()
-if(BUILD_STATIC)
-    add_dependencies(counter mpfr_static_copy)
-    if(TARGET cryptominisat5)
-        add_dependencies(cryptominisat5 mpfr_static_copy)
-    endif()
-    if(TARGET arjun)
-        add_dependencies(arjun mpfr_static_copy)
-    endif()
-endif()
-
-target_link_directories(counter PRIVATE "${MPFR_HELPER_DIR}/lib")
 
 # Include Directories
 get_filename_component(ROOT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE)
@@ -204,8 +95,7 @@ get_filename_component(D4_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../build" AB
 get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
 get_filename_component(OPTREE_INCLUDE_DIR "${SHARED_3RDPARTY_DIR}/optree-src/include" ABSOLUTE)
 
-target_include_directories(counter PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/arjun/src
+target_include_directories(counter PRIVATE
     ${ROOT_INCLUDES}
     ${ROOT_INCLUDES}/src/include
     ${PARSER_DIR}
@@ -249,7 +139,6 @@ find_library(D4_LIB
 target_link_libraries(counter PRIVATE 
     ${D4_LIB}
     bipe
-    arjun
     optree
     ${GMPXX_LIB}
     ${GMP_LIB}

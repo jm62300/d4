@@ -7,7 +7,7 @@ be exposed later through the same C shim (`shim/d4_shim.{h,cpp}`).
 ## Layout
 
 - `shim/` — C API over the C++ core (`ProblemManager` + `DpllStyleMethod`),
-  mirroring the wiring of `c++/counter`. No preprocessing (bipe/arjun) is
+  mirroring the wiring of `c++/counter`. No preprocessing (bipe) is
   involved; the raw formula is counted as given.
 - `src/ffi.rs` — raw `extern "C"` declarations.
 - `src/lib.rs` — safe API (`Problem`).

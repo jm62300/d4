@@ -82,7 +82,7 @@
         "3rdParty/cadical/src",
         "src/include",
         "build/_deps/optree-src/include",
-        "c++/counter/build/_deps/bipe-src/**",
+        "3rdParty/bipe-src/**",
         "c++/cube-counter/build/_deps/bipe-src/**",
         "c++/compiler/build/_deps/bipe-src/**",
         "c++/projmc/build/_deps/bipe-src/**",
