@@ -38,12 +38,14 @@ class OptionCompiler : public OptionGroup {
    */
   Option<std::string> queryFile{"query-file", "Output style", "/dev/null"};
 
+  Option<bool> implicant{"implicant", "Compile the implicant form.", false};
+
   /**
    * @brief Returns a list of all options contained in this group.
    * @return A vector of pointers to the internal options.
    */
   std::vector<OptionBase*> getAllOptions() override {
-    return {&dumpFile, &queryFile};
+    return {&dumpFile, &queryFile, &implicant};
   }
 
   /** @brief Overload for printing the state of the compiler options. */

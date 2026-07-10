@@ -93,6 +93,9 @@ int main(int argc, char** argv) {
   parser::ParserDimacs parserDimacs;
   parserDimacs.parse_DIMACS(inputPath, formula);
 
+  // we cannot apply stronger preprocessing there.
+  optionPreproc.optionPreprocMethod = bipe::PreprocMethod::EQUIV_FULL;
+
   // preproc.
   bipe::PreprocManager preprocManager;
   std::vector<int> projected;
@@ -103,6 +106,24 @@ int main(int argc, char** argv) {
 
   preprocManager.run(formula.nbVar, formula.clauses, projected,
                      std::vector<int>(), optionPreproc);
+
+  if (optionCompiler.implicant.get()) {
+    std::cout << "c Transform the formula to compute implicant\n";
+
+    // split the formula.
+    // rename negative literals.
+    for (auto& cl : formula.clauses) {
+      for (auto& l : cl)
+        if (l < 0) l = std::abs(l) + formula.nbVar;
+    }
+
+    // add the binary clauses.
+    for (int i = 1; i <= formula.nbVar; i++)
+      formula.clauses.push_back({-i, -(i + (int)formula.nbVar)});
+
+    // increase the number of variables.
+    formula.nbVar *= 2;
+  }
 
   // compiler.
   compiler(options, optionCompiler, formula);

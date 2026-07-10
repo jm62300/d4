@@ -1,0 +1,13 @@
+[package]
+name = "d4"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for the d4 model counter (exact, projected and weighted counting)"
+license = "GPL-3.0-or-later"
+publish = false
+
+[lib]
+name = "d4"
+
+[build-dependencies]
+cc = "1"
