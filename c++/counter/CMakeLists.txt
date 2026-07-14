@@ -14,6 +14,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if (MSVC)
+    add_compile_definitions(NOMINMAX)
+    add_compile_definitions(__GMP_LIBGMP_DLL=0)
+endif()
+
 # --- Custom Build Options ---
 # Must be set before FetchContent_MakeAvailable(bipe) below, since bipe's own
 # CMakeLists.txt calls find_package(ZLIB) and caches whatever it finds first;
@@ -107,8 +112,13 @@ target_include_directories(counter PRIVATE
 find_package(ZLIB REQUIRED)
 
 # GMP & GMPXX
+# GMP & GMPXX
 find_library(GMP_LIB NAMES gmp libgmp REQUIRED)
-find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
+if(NOT MSVC)
+    find_library(GMPXX_LIB NAMES gmpxx libgmpxx REQUIRED)
+endif()
+
+
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Adjust this path to point accurately to the 3rdParty/patoh folder from the counter directory
@@ -129,6 +139,7 @@ endif()
 find_library(D4_LIB 
     NAMES d4 libd4
     PATHS "${D4_BUILD_DIR}"
+    PATH_SUFFIXES Debug Release RelWithDebInfo MinSizeRel
     NO_DEFAULT_PATH
     REQUIRED
 )
@@ -136,14 +147,24 @@ find_library(D4_LIB
 
 
 # Link Dependencies
-target_link_libraries(counter PRIVATE 
-    ${D4_LIB}
-    bipe
-    optree
-    ${GMPXX_LIB}
-    ${GMP_LIB}
-    ZLIB::ZLIB
-)
+if(MSVC)
+    target_link_libraries(counter PRIVATE 
+        ${D4_LIB}
+        bipe
+        optree
+        ${GMP_LIB}
+        ZLIB::ZLIB
+    )
+else()
+    target_link_libraries(counter PRIVATE 
+        ${D4_LIB}
+        bipe
+        optree
+        ${GMPXX_LIB}
+        ${GMP_LIB}
+        ZLIB::ZLIB
+    )
+endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(counter PRIVATE ${PATOH_LIBRARY})

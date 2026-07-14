@@ -82,11 +82,11 @@ inline void emitLog10Estimate(std::ostream& out, const R& v,
 inline std::string complexToString(const semiring::Complex& c) {
   std::ostringstream os;
   os.precision(50);
-  os << c.real;
+  os << c.real.get_d();
   if (sgn(c.im) < 0)
-    os << c.im << "i";  // c.im already carries its leading '-'
+    os << c.im.get_d() << "i";  // c.im already carries its leading '-'
   else
-    os << "+" << c.im << "i";
+    os << "+" << c.im.get_d() << "i";
   return os.str();
 }
 
@@ -119,16 +119,21 @@ void countModels(const OptionDpllStyleMethod& options,
     } else {
       emitLog10Estimate(std::cout, result, "");
       if constexpr (std::is_same_v<T, mpz::mpf_float>)
-        std::cout << "c s exact arb float " << result << "\n";
+        std::cout << "c s exact arb float " << result.get_d() << "\n";
       else
-        std::cout << "c s exact arb int " << result << "\n";
+        std::cout << "c s exact arb int " << result.get_str() << "\n";
     }
     exit(0);  // stop faster than cleaning the memory!
   } else {
     assert(outFormat == "classic");
     mpf_set_default_prec(426);  // ~128 decimal digits
     std::cout.precision(50);
-    std::cout << "s " << result << "\n";
+    if constexpr (std::is_same_v<T, mpz::mpf_float>)
+        std::cout << "s " << result.get_d() << "\n";
+    else if constexpr (std::is_same_v<T, semiring::Complex>)
+        std::cout << "s " << result << "\n";
+    else
+        std::cout << "s " << result.get_str() << "\n";
   }
 
   delete counter;

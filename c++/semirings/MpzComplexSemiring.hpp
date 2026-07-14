@@ -101,7 +101,7 @@ class Complex {
 
   friend std::ostream& operator<<(std::ostream& os, const Complex& dt) {
     os << std::scientific << std::setprecision(8);
-    os << dt.real << " + " << dt.im << 'i';
+    os << dt.real.get_d() << " + " << dt.im.get_d() << 'i';
     os << std::defaultfloat;
     return os;
   }
