@@ -126,40 +126,35 @@ void countModels(const OptionDpllStyleMethod& options,
       std::cout << "c s exact arb float " << complexToString(result) << "\n";
     } else {
       emitLog10Estimate(std::cout, result, "");
+#ifdef _WIN32
       if constexpr (std::is_same_v<T, mpz::mpf_float>) {
-#ifdef _WIN32
         std::cout << "c s exact arb float " << result.get_d() << "\n";
-#else
-        std::cout << "c s exact arb float " << result << "\n";
-#endif
       } else {
-#ifdef _WIN32
         std::cout << "c s exact arb int " << result.get_str() << "\n";
+      }
 #else
+      if constexpr (std::is_same_v<T, mpz::mpf_float>)
+        std::cout << "c s exact arb float " << result << "\n";
+      else
         std::cout << "c s exact arb int " << result << "\n";
 #endif
-      }
     }
     exit(0);  // stop faster than cleaning the memory!
   } else {
     assert(outFormat == "classic");
     mpf_set_default_prec(426);  // ~128 decimal digits
     std::cout.precision(50);
-    if constexpr (std::is_same_v<T, mpz::mpf_float>) {
 #ifdef _WIN32
+    if constexpr (std::is_same_v<T, mpz::mpf_float>) {
         std::cout << "s " << result.get_d() << "\n";
-#else
-        std::cout << "s " << result << "\n";
-#endif
     } else if constexpr (std::is_same_v<T, semiring::Complex>) {
         std::cout << "s " << result << "\n";
     } else {
-#ifdef _WIN32
         std::cout << "s " << result.get_str() << "\n";
-#else
-        std::cout << "s " << result << "\n";
-#endif
     }
+#else
+    std::cout << "s " << result << "\n";
+#endif
   }
 
   delete counter;
