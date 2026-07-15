@@ -101,7 +101,11 @@ class Complex {
 
   friend std::ostream& operator<<(std::ostream& os, const Complex& dt) {
     os << std::scientific << std::setprecision(8);
+#ifdef _WIN32
+    os << dt.real.get_d() << " + " << dt.im.get_d() << 'i';
+#else
     os << dt.real << " + " << dt.im << 'i';
+#endif
     os << std::defaultfloat;
     return os;
   }

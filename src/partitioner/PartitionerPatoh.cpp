@@ -21,7 +21,9 @@
 #include <iostream>
 #include <vector>
 
+#ifdef USE_PATOH
 #include "3rdParty/patoh/patoh.h"
+#endif
 #include "src/exceptions/OptionException.hpp"
 
 namespace d4 {
@@ -31,6 +33,7 @@ namespace d4 {
  */
 PartitionerPatoh::PartitionerPatoh(const InfoHyperGraph &infoHyperGraph,
                                    std::ostream &out) {
+#ifdef USE_PATOH
   // allocate the memory
   m_pins = new int[infoHyperGraph.sumEdgeSizes];
   m_partweights = new int[2];
@@ -44,27 +47,37 @@ PartitionerPatoh::PartitionerPatoh(const InfoHyperGraph &infoHyperGraph,
 
   m_mapNodes.resize(infoHyperGraph.maxNbNodes + 3, false);
   m_markedNodes.resize(infoHyperGraph.maxNbNodes + 3, false);
+#else
+  m_pins = nullptr;
+  m_partweights = nullptr;
+  m_xpins = nullptr;
+  m_partvec = nullptr;
+  m_cwghts = nullptr;
+#endif
 }  // constructor
 
 /**
    Destructor.
  */
 PartitionerPatoh::~PartitionerPatoh() {
+#ifdef USE_PATOH
   delete[] m_pins;
   delete[] m_partweights;
   delete[] m_xpins;
   delete[] m_partvec;
   delete[] m_cwghts;
+#endif
 }  // destructor
 
 /**
  * @brief Get a partition from the hypergraph.
  *
  * @param[in] hypergraph is the graph we search for a partition.
- * @param[out] parition is the resulting partition.
+ * @param[out] partition is the resulting partition.
  */
 void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
                                         std::vector<int> &partition) {
+#ifdef USE_PATOH
   std::vector<unsigned> elts;
 
   // graph initialization and shift the hypergraph
@@ -106,7 +119,7 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
       PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_QUALITY);
       break;
     default:
-      throw(OptionException("Wrong option given to the partioner.", __FILE__,
+      throw(OptionException("Wrong option given to the partitioner.", __FILE__,
                             __LINE__));
   }
 
@@ -122,6 +135,9 @@ void PartitionerPatoh::computePartition(HyperGraph &hypergraph, Level level,
   partition.resize(maxVal + 1);
   for (unsigned i = 0; i < elts.size(); i++) partition[elts[i]] = m_partvec[i];
   PaToH_Free();
+#else
+  throw(OptionException("PaToH partitioner is disabled on Windows.", __FILE__, __LINE__));
+#endif
 }  // computePartition
 
 }  // namespace d4
