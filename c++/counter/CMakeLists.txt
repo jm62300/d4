@@ -48,11 +48,14 @@ include(FetchContent)
 # ==============================================================================
 get_filename_component(SHARED_3RDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty" ABSOLUTE)
 set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for FetchContent" FORCE)
-set(BIPE_GIT_URL "git@github.com:jm62300/bipe.git")
+set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
+if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
+    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/bipe.git")
+endif()
 FetchContent_Declare(
     bipe
     GIT_REPOSITORY ${BIPE_GIT_URL}
-    GIT_TAG        v1.0.0
+    GIT_TAG        main
 )
 FetchContent_GetProperties(bipe)
 if(NOT bipe_POPULATED)
