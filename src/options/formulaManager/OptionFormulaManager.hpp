@@ -1,0 +1,82 @@
+/*
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+ */
+#pragma once
+
+#include <string>
+#include <map>
+
+#include "src/exceptions/FactoryException.hpp"
+#include "src/options/Option.hpp"
+#include "src/options/OptionGroup.hpp"
+#include "src/options/OptionRegistry.hpp"
+#include "src/options/EnumMetadata.hpp"
+
+namespace d4 {
+enum SpecUpdateType {
+  SPEC_DYNAMIC,
+  SPEC_DYNAMIC_BLOCKED_SIMP,
+  SPEC_DYNAMIC_PURE_SIMP
+};
+
+enum CircuitManagerType { CIRC_WITH_CNF, CIRC_DYNAMIC };
+
+template <>
+struct EnumMetadata<CircuitManagerType> {
+  static std::string name() { return "CircuitManagerType"; }
+  static std::map<int, std::string> mapping() {
+    return {{CIRC_WITH_CNF, "withCnf"}, {CIRC_DYNAMIC, "dynamic"}};
+  }
+};
+
+template <>
+struct EnumMetadata<SpecUpdateType> {
+  static std::string name() { return "SpecUpdateType"; }
+  static std::map<int, std::string> mapping() {
+    return {
+        {SPEC_DYNAMIC, "dynamic"},
+        {SPEC_DYNAMIC_BLOCKED_SIMP, "dynamicBlockedSimp"},
+        {SPEC_DYNAMIC_PURE_SIMP, "dynamicPureSimp"}};
+  }
+};
+
+class OptionSpecManager : public OptionGroup {
+ public:
+  OptionSpecManager(const std::string& name = "spec", const std::string& description = "Formula manager options")
+      : OptionGroup(name, description) {}
+
+  Option<SpecUpdateType> specUpdateType{"specUpdateType", "The occurrence manager used", SPEC_DYNAMIC};
+  Option<bool> removeGates{"removeGates", "If some gates can be removed during the search", false};
+  Option<bool> needFastNotSatisfied{"needFastNotSatisfied", "If we need fast not satisfied", false};
+  Option<CircuitManagerType> circuitManagerType{
+      "circuitManagerType", "The circuit formula manager used", CIRC_WITH_CNF};
+
+  std::vector<OptionBase*> getAllOptions() override {
+    return {(OptionBase*)&specUpdateType, (OptionBase*)&removeGates,
+            (OptionBase*)&needFastNotSatisfied, (OptionBase*)&circuitManagerType};
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, const OptionSpecManager& dt) {
+    out << " Option Formula Manager:" << " update mode("
+        << dt.specUpdateType.getValueAsString() << ") rm-gates("
+        << dt.removeGates.get() << ") need-not-satisfied(" << dt.needFastNotSatisfied.get()
+        << ") circuit-manager(" << dt.circuitManagerType.getValueAsString() << ") ";
+    return out;
+  }
+};
+}  // namespace d4

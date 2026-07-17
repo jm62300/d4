@@ -1,0 +1,237 @@
+c BC-S1.0
+T root
+I khonduras_asia
+I kspain_asia
+I kkosovo_bangladesh
+I ktanzania_bangladesh
+I koceania_mozambique
+I kmozambique_lesotho
+I kpapua_new_guinea_mozambique
+I kisrael_bangladesh
+I knicaragua_honduras
+I kpapua_new_guinea_nicaragua
+I klesotho_bangladesh
+I kisrael_asia
+I klesotho_france
+I kguinea_algeria
+I kindonesia_bolivia
+I ktanzania_eastern_europe
+I ksouthern_africa_lesotho
+I ksouthern_africa_israel
+I kisrael_indonesia
+I khonduras_algeria
+I kbolivia_algeria
+I koceania_indonesia
+I kbolivia_bangladesh
+I klesotho_eastern_europe
+I kivory_coast_bolivia
+I kkosovo_algeria
+I ksouthern_africa_guinea
+I kspain_indonesia
+I koceania_eastern_europe
+I knicaragua_kosovo
+I knicaragua_bolivia
+I klesotho_algeria
+I kneighborOf_locatedIn
+I ksouthern_africa_honduras
+I kniger_asia
+I kspain_ivory_coast
+I kpapua_new_guinea_france
+I kpapua_new_guinea_asia
+I kfrance_bolivia
+I ksouthern_africa_oceania
+I koceania_ivory_coast
+I krr3_locatedIn
+I kkosovo_indonesia
+I khonduras_france
+I kbolivia_argentina
+I kkosovo_asia
+I koceania_argentina
+I kbolivia_asia
+I kniger_algeria
+I kpapua_new_guinea_bangladesh
+I kmozambique_bolivia
+I ktanzania_asia
+I khonduras_argentina
+I kisrael_algeria
+I kisrael_eastern_europe
+I ktanzania_ivory_coast
+I klesotho_indonesia
+I kguinea_eastern_europe
+I kpapua_new_guinea_eastern_europe
+I khonduras_bangladesh
+I kniger_nicaragua
+I koceania_asia
+I kspain_eastern_europe
+I ksouthern_africa_bolivia
+I kpapua_new_guinea_algeria
+I kisrael_france
+I kspain_algeria
+I knicaragua_lesotho
+I knicaragua_israel
+I kspain_mozambique
+I ksouthern_africa_papua_new_guinea
+I kkosovo_france
+I ktanzania_nicaragua
+I ktanzania_mozambique
+I klesotho_ivory_coast
+I kivory_coast_honduras
+I kniger_indonesia
+I ktanzania_indonesia
+I kkosovo_argentina
+I ktanzania_argentina
+I krr3_neighborOf
+I ktanzania_france
+I kpapua_new_guinea_ivory_coast
+I ktanzania_southern_africa
+I kisrael_argentina
+I kguinea_asia
+I klesotho_asia
+I kniger_bangladesh
+I koceania_nicaragua
+I kkosovo_eastern_europe
+I kindonesia_guinea
+I klesotho_argentina
+I kniger_ivory_coast
+I kivory_coast_guinea
+I kspain_france
+I koceania_algeria
+I knicaragua_guinea
+I kmozambique_kosovo
+I khonduras_eastern_europe
+I koceania_france
+I kspain_southern_africa
+I kmozambique_israel
+I kindonesia_honduras
+I kniger_mozambique
+I kguinea_bangladesh
+I kivory_coast_israel
+I kkosovo_ivory_coast
+I kspain_argentina
+I kmozambique_guinea
+I kniger_argentina
+I kguinea_france
+I kguinea_argentina
+I kpapua_new_guinea_indonesia
+I ksouthern_africa_kosovo
+I krr2_locatedIn
+I kpapua_new_guinea_argentina
+I ksouthern_africa_niger
+I kspain_bangladesh
+I kmozambique_honduras
+I ktanzania_algeria
+I kspain_nicaragua
+I keastern_europe_bolivia
+I kniger_eastern_europe
+I kniger_france
+G o1 := A ktanzania_bangladesh koceania_mozambique kneighborOf_locatedIn
+G o2 := A koceania_eastern_europe kkosovo_bangladesh
+G o3 := A koceania_indonesia kpapua_new_guinea_bangladesh kneighborOf_locatedIn
+G o4 := A koceania_asia kisrael_bangladesh
+G o5 := A kspain_bangladesh kneighborOf_locatedIn koceania_france
+G o6 := A khonduras_bangladesh koceania_nicaragua kneighborOf_locatedIn
+G o7 := A koceania_algeria kneighborOf_locatedIn kniger_bangladesh
+G o8 := A koceania_argentina kneighborOf_locatedIn kbolivia_bangladesh
+G o9 := A kguinea_bangladesh kneighborOf_locatedIn koceania_ivory_coast
+G o10 := A ksouthern_africa_oceania klesotho_bangladesh
+G o11 := A ktanzania_mozambique koceania_mozambique ktanzania_bangladesh krr2_locatedIn krr3_neighborOf
+G o12 := A koceania_eastern_europe kmozambique_kosovo ktanzania_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o13 := A koceania_indonesia kpapua_new_guinea_mozambique ktanzania_bangladesh krr2_locatedIn krr3_neighborOf
+G o14 := A krr2_locatedIn ktanzania_bangladesh krr3_locatedIn koceania_asia krr3_neighborOf kmozambique_israel
+G o15 := A koceania_france kspain_mozambique ktanzania_bangladesh krr2_locatedIn krr3_neighborOf
+G o16 := A kmozambique_honduras ktanzania_bangladesh krr2_locatedIn krr3_neighborOf koceania_nicaragua
+G o17 := A koceania_algeria ktanzania_bangladesh kniger_mozambique krr2_locatedIn krr3_neighborOf
+G o18 := A kmozambique_bolivia koceania_argentina ktanzania_bangladesh krr2_locatedIn krr3_neighborOf
+G o19 := A koceania_ivory_coast ktanzania_bangladesh krr2_locatedIn kmozambique_guinea krr3_neighborOf
+G o20 := A kmozambique_lesotho ksouthern_africa_oceania ktanzania_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o21 := A ktanzania_eastern_europe kkosovo_bangladesh koceania_mozambique krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o22 := A koceania_eastern_europe kkosovo_bangladesh krr3_locatedIn krr2_locatedIn kkosovo_eastern_europe
+G o23 := A koceania_indonesia kkosovo_bangladesh krr3_locatedIn krr2_locatedIn kpapua_new_guinea_eastern_europe krr3_neighborOf
+G o24 := A krr2_locatedIn kkosovo_bangladesh krr3_locatedIn koceania_asia kisrael_eastern_europe
+G o25 := A kspain_eastern_europe kkosovo_bangladesh koceania_france krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o26 := A kkosovo_bangladesh krr3_locatedIn krr2_locatedIn khonduras_eastern_europe krr3_neighborOf koceania_nicaragua
+G o27 := A koceania_algeria kkosovo_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf kniger_eastern_europe
+G o28 := A keastern_europe_bolivia kkosovo_bangladesh koceania_argentina krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o29 := A kguinea_eastern_europe koceania_ivory_coast kkosovo_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o30 := A kkosovo_bangladesh ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn klesotho_eastern_europe
+G o31 := A kpapua_new_guinea_bangladesh ktanzania_indonesia koceania_mozambique krr2_locatedIn krr3_neighborOf
+G o32 := A kpapua_new_guinea_bangladesh koceania_eastern_europe kkosovo_indonesia krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o33 := A kpapua_new_guinea_bangladesh kpapua_new_guinea_indonesia koceania_indonesia krr2_locatedIn krr3_neighborOf
+G o34 := A krr2_locatedIn kpapua_new_guinea_bangladesh krr3_locatedIn koceania_asia krr3_neighborOf kisrael_indonesia
+G o35 := A kspain_indonesia kpapua_new_guinea_bangladesh koceania_france krr2_locatedIn krr3_neighborOf
+G o36 := A kpapua_new_guinea_bangladesh krr2_locatedIn krr3_neighborOf koceania_nicaragua kindonesia_honduras
+G o37 := A koceania_algeria kpapua_new_guinea_bangladesh kniger_indonesia krr2_locatedIn krr3_neighborOf
+G o38 := A kpapua_new_guinea_bangladesh kindonesia_bolivia koceania_argentina krr2_locatedIn krr3_neighborOf
+G o39 := A kpapua_new_guinea_bangladesh kindonesia_guinea koceania_ivory_coast krr2_locatedIn krr3_neighborOf
+G o40 := A kpapua_new_guinea_bangladesh klesotho_indonesia ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o41 := A ktanzania_asia kisrael_bangladesh koceania_mozambique krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o42 := A kkosovo_asia kisrael_bangladesh koceania_eastern_europe krr3_locatedIn krr2_locatedIn
+G o43 := A kisrael_bangladesh koceania_indonesia kpapua_new_guinea_asia krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o44 := A krr2_locatedIn kisrael_bangladesh kisrael_asia krr3_locatedIn koceania_asia
+G o45 := A kspain_asia kisrael_bangladesh koceania_france krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o46 := A kisrael_bangladesh krr3_locatedIn krr2_locatedIn khonduras_asia krr3_neighborOf koceania_nicaragua
+G o47 := A koceania_algeria krr2_locatedIn kisrael_bangladesh krr3_locatedIn kniger_asia krr3_neighborOf
+G o48 := A kisrael_bangladesh koceania_argentina krr3_neighborOf krr3_locatedIn krr2_locatedIn kbolivia_asia
+G o49 := A kisrael_bangladesh koceania_ivory_coast kguinea_asia krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o50 := A klesotho_asia kisrael_bangladesh ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn
+G o51 := A koceania_mozambique krr2_locatedIn krr3_neighborOf kspain_bangladesh ktanzania_france
+G o52 := A koceania_eastern_europe kkosovo_france krr3_locatedIn krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o53 := A koceania_indonesia kpapua_new_guinea_france krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o54 := A krr2_locatedIn krr3_locatedIn koceania_asia krr3_neighborOf kspain_bangladesh kisrael_france
+G o55 := A kspain_france koceania_france krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o56 := A khonduras_france krr2_locatedIn krr3_neighborOf koceania_nicaragua kspain_bangladesh
+G o57 := A koceania_algeria kniger_france krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o58 := A kfrance_bolivia koceania_argentina krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o59 := A koceania_ivory_coast kguinea_france krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o60 := A klesotho_france ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn krr3_neighborOf kspain_bangladesh
+G o61 := A khonduras_bangladesh ktanzania_nicaragua koceania_mozambique krr2_locatedIn krr3_neighborOf
+G o62 := A koceania_eastern_europe khonduras_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf knicaragua_kosovo
+G o63 := A kpapua_new_guinea_nicaragua koceania_indonesia khonduras_bangladesh krr2_locatedIn krr3_neighborOf
+G o64 := A knicaragua_israel krr2_locatedIn khonduras_bangladesh krr3_locatedIn koceania_asia krr3_neighborOf
+G o65 := A kspain_nicaragua khonduras_bangladesh koceania_france krr2_locatedIn krr3_neighborOf
+G o66 := A knicaragua_honduras khonduras_bangladesh krr2_locatedIn krr3_neighborOf koceania_nicaragua
+G o67 := A koceania_algeria khonduras_bangladesh krr2_locatedIn kniger_nicaragua krr3_neighborOf
+G o68 := A koceania_argentina khonduras_bangladesh krr2_locatedIn krr3_neighborOf knicaragua_bolivia
+G o69 := A knicaragua_guinea koceania_ivory_coast khonduras_bangladesh krr2_locatedIn krr3_neighborOf
+G o70 := A khonduras_bangladesh ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn krr3_neighborOf knicaragua_lesotho
+G o71 := A ktanzania_algeria koceania_mozambique kniger_bangladesh krr2_locatedIn krr3_neighborOf
+G o72 := A koceania_eastern_europe kkosovo_algeria krr3_locatedIn krr2_locatedIn krr3_neighborOf kniger_bangladesh
+G o73 := A koceania_indonesia kpapua_new_guinea_algeria kniger_bangladesh krr2_locatedIn krr3_neighborOf
+G o74 := A krr2_locatedIn kisrael_algeria krr3_locatedIn koceania_asia krr3_neighborOf kniger_bangladesh
+G o75 := A koceania_france kniger_bangladesh krr2_locatedIn krr3_neighborOf kspain_algeria
+G o76 := A khonduras_algeria kniger_bangladesh krr2_locatedIn krr3_neighborOf koceania_nicaragua
+G o77 := A koceania_algeria kniger_bangladesh krr2_locatedIn krr3_neighborOf kniger_algeria
+G o78 := A koceania_argentina kbolivia_algeria kniger_bangladesh krr2_locatedIn krr3_neighborOf
+G o79 := A koceania_ivory_coast kguinea_algeria kniger_bangladesh krr2_locatedIn krr3_neighborOf
+G o80 := A klesotho_algeria ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn krr3_neighborOf kniger_bangladesh
+G o81 := A ktanzania_argentina koceania_mozambique kbolivia_bangladesh krr2_locatedIn krr3_neighborOf
+G o82 := A kkosovo_argentina koceania_eastern_europe kbolivia_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o83 := A koceania_indonesia kbolivia_bangladesh krr2_locatedIn krr3_neighborOf kpapua_new_guinea_argentina
+G o84 := A krr2_locatedIn kbolivia_bangladesh krr3_locatedIn koceania_asia krr3_neighborOf kisrael_argentina
+G o85 := A koceania_france kspain_argentina kbolivia_bangladesh krr2_locatedIn krr3_neighborOf
+G o86 := A khonduras_argentina kbolivia_bangladesh krr2_locatedIn krr3_neighborOf koceania_nicaragua
+G o87 := A koceania_algeria kniger_argentina kbolivia_bangladesh krr2_locatedIn krr3_neighborOf
+G o88 := A koceania_argentina kbolivia_argentina kbolivia_bangladesh krr2_locatedIn krr3_neighborOf
+G o89 := A kguinea_argentina koceania_ivory_coast kbolivia_bangladesh krr2_locatedIn krr3_neighborOf
+G o90 := A klesotho_argentina ksouthern_africa_oceania kbolivia_bangladesh krr3_locatedIn krr2_locatedIn krr3_neighborOf
+G o91 := A krr2_locatedIn koceania_mozambique krr3_neighborOf kguinea_bangladesh ktanzania_ivory_coast
+G o92 := A kkosovo_ivory_coast krr2_locatedIn koceania_eastern_europe krr3_locatedIn kguinea_bangladesh krr3_neighborOf
+G o93 := A krr2_locatedIn koceania_indonesia kpapua_new_guinea_ivory_coast kguinea_bangladesh krr3_neighborOf
+G o94 := A koceania_asia krr2_locatedIn krr3_neighborOf krr3_locatedIn kguinea_bangladesh kivory_coast_israel
+G o95 := A krr2_locatedIn kspain_ivory_coast koceania_france kguinea_bangladesh krr3_neighborOf
+G o96 := A krr2_locatedIn kivory_coast_honduras kguinea_bangladesh krr3_neighborOf koceania_nicaragua
+G o97 := A koceania_algeria krr2_locatedIn kguinea_bangladesh krr3_neighborOf kniger_ivory_coast
+G o98 := A krr2_locatedIn koceania_argentina kivory_coast_bolivia kguinea_bangladesh krr3_neighborOf
+G o99 := A krr2_locatedIn koceania_ivory_coast kivory_coast_guinea kguinea_bangladesh krr3_neighborOf
+G o100 := A krr2_locatedIn klesotho_ivory_coast ksouthern_africa_oceania krr3_locatedIn kguinea_bangladesh krr3_neighborOf
+G o101 := A ktanzania_southern_africa koceania_mozambique krr3_locatedIn krr2_locatedIn krr3_neighborOf klesotho_bangladesh
+G o102 := A koceania_eastern_europe krr3_locatedIn krr2_locatedIn ksouthern_africa_kosovo klesotho_bangladesh
+G o103 := A koceania_indonesia ksouthern_africa_papua_new_guinea krr3_locatedIn krr2_locatedIn krr3_neighborOf klesotho_bangladesh
+G o104 := A krr2_locatedIn ksouthern_africa_israel krr3_locatedIn koceania_asia klesotho_bangladesh
+G o105 := A koceania_france kspain_southern_africa krr3_locatedIn krr2_locatedIn krr3_neighborOf klesotho_bangladesh
+G o106 := A ksouthern_africa_honduras krr3_locatedIn krr2_locatedIn krr3_neighborOf koceania_nicaragua klesotho_bangladesh
+G o107 := A koceania_algeria ksouthern_africa_niger krr3_locatedIn krr2_locatedIn krr3_neighborOf klesotho_bangladesh
+G o108 := A koceania_argentina ksouthern_africa_bolivia krr3_locatedIn krr2_locatedIn krr3_neighborOf klesotho_bangladesh
+G o109 := A koceania_ivory_coast ksouthern_africa_guinea krr3_locatedIn krr2_locatedIn krr3_neighborOf klesotho_bangladesh
+G o110 := A ksouthern_africa_lesotho ksouthern_africa_oceania krr3_locatedIn krr2_locatedIn klesotho_bangladesh
+G root := O o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 o11 o12 o13 o14 o15 o16 o17 o18 o19 o20 o21 o22 o23 o24 o25 o26 o27 o28 o29 o30 o31 o32 o33 o34 o35 o36 o37 o38 o39 o40 o41 o42 o43 o44 o45 o46 o47 o48 o49 o50 o51 o52 o53 o54 o55 o56 o57 o58 o59 o60 o61 o62 o63 o64 o65 o66 o67 o68 o69 o70 o71 o72 o73 o74 o75 o76 o77 o78 o79 o80 o81 o82 o83 o84 o85 o86 o87 o88 o89 o90 o91 o92 o93 o94 o95 o96 o97 o98 o99 o100 o101 o102 o103 o104 o105 o106 o107 o108 o109 o110

@@ -1,0 +1,490 @@
+/*
+ * d4
+ * Copyright (C) 2020  Univ. Artois & CNRS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+ */
+
+#include "CnfManager.hpp"
+
+#include <algorithm>  // std::sort
+#include <iostream>
+#include <span>
+
+#include "CnfManagerDyn.hpp"
+#include "FormulaStoreCnfCl.hpp"
+#include "FormulaStoreCnfCombi.hpp"
+#include "FormulaStoreCnfIndex.hpp"
+#include "FormulaStoreCnfSym.hpp"
+#include "src/exceptions/FactoryException.hpp"
+#include "src/problem/ProblemTypes.hpp"
+
+namespace d4 {
+namespace {
+/**
+   Get the root of v applying path halving.
+*/
+inline Var findRoot(std::vector<InfoCluster>& infoCluster, Var v) {
+  while (v != infoCluster[v].parent) {
+    infoCluster[v].parent = infoCluster[infoCluster[v].parent].parent;
+    v = infoCluster[v].parent;
+  }
+  return v;
+}
+}  // namespace
+
+/**
+   Constructor.
+*/
+CnfManager::CnfManager(const ProblemManager& p) : FormulaManager(p.getNbVar()) {
+  // get the clauses, stored contiguously (CSR layout).
+  const auto& gates = p.getGates();
+  unsigned nbClause = gates.size();
+
+  unsigned count = 0;
+  for (const auto& g : gates) {
+    assert(g.gateType == BcGateType::CLAUSE);
+    count += g.input.size();
+  }
+
+  m_infoClauses.resize(nbClause);
+  m_clauseData.reserve(count);
+
+  // store the not binary clauses.
+  m_maxSizeClause = 0;
+  std::vector<std::vector<int>> occurrence((m_nbVar + 1) << 1);
+  for (unsigned i = 0; i < nbClause; i++) {
+    const std::vector<Lit>& cl = gates[i].input;
+    m_infoClauses[i].first = m_clauseData.size();
+    m_infoClauses[i].size = cl.size();
+    m_clauseData.insert(m_clauseData.end(), cl.begin(), cl.end());
+
+    if (cl.size() > 2) m_clausesNotBin.push_back(i);
+    for (auto& l : cl) occurrence[l.intern()].push_back(i);
+
+    if (cl.size() > m_maxSizeClause) m_maxSizeClause = cl.size();
+  }
+
+  // reserve the memory to store the occurrence lists.
+  m_occurrence.resize((m_nbVar + 1) << 1, {NULL, NULL, 0, 0});
+  m_dataOccurrenceMemory = new int[count];
+
+  // construct the occurrence list.
+  int* ptr = m_dataOccurrenceMemory;
+  for (unsigned i = 0; i < occurrence.size(); i++) {
+    std::vector<int>& occList = occurrence[i];
+
+    unsigned posNotBin = occList.size() - 1;
+    for (auto const& idx : occList) {
+      if (m_infoClauses[idx].size == 2)
+        ptr[m_occurrence[i].nbBin++] = idx;
+      else
+        ptr[posNotBin--] = idx;
+    }
+
+    m_occurrence[i].bin = ptr;
+    m_occurrence[i].notBin = &ptr[posNotBin + 1];
+    m_occurrence[i].nbNotBin = occList.size() - m_occurrence[i].nbBin;
+    ptr = &ptr[occList.size()];
+  }
+
+  // variables:
+  m_inCurrentComponent.resize(m_nbVar + 1, false);
+  m_idxComponent.resize(m_nbVar + 1, 0);
+
+  // clauses:
+  m_markView.resize(nbClause, 0);
+  m_stampMarkView = 0;
+
+  // set the info about xorLitBin.
+  for (unsigned i = 0; i < nbClause; i++) {
+    if (m_infoClauses[i].size == 2) {
+      Lit* cl = &m_clauseData[m_infoClauses[i].first];
+      m_infoClauses[i].xorLitBin = cl[0].intern() ^ cl[1].intern();
+    }
+  }
+
+  m_infoCluster.resize(p.getNbVar() + 1, {0, 0, -1});
+  m_clauseMark.resize(nbClause, {0, 0});
+  m_activeVariables = new Var[p.getNbVar() + 1];
+
+  m_occInitSizeNotBin.resize((p.getNbVar() + 1) << 1, 0);
+  assert(m_occInitSizeNotBin.size() == m_occurrence.size());
+  for (unsigned i = 0; i < m_occurrence.size(); i++)
+    m_occInitSizeNotBin[i] = m_occurrence[i].nbNotBin;
+}  // construtor
+
+/**
+ * @brief Destroy the Spec Manager Cnf:: Spec Manager Cnf object
+ *
+ */
+CnfManager::~CnfManager() { delete[] m_dataOccurrenceMemory; }  // destructor
+
+/**
+   Look all the formula in order to compute the connected component
+   of the formula (union find algorithm).
+
+   @param[out] varCo, the different connected components found
+   @param[in] setOfVar, the current set of variables
+   @param[out] freeVar, the set of variables that are present in setOfVar but
+   not in the problem anymore
+
+   \return the number of component found
+*/
+int CnfManager::computeConnectedComponent(std::vector<std::vector<Var>>& varCo,
+                                          std::span<Var> setOfVar,
+                                          std::vector<Var>& freeVar) {
+  incrementStampMarkView();
+
+  Var *lastVar = m_activeVariables, *currentVar = m_activeVariables;
+  for (auto v : setOfVar) {
+    assert(v < (Var)m_infoCluster.size());
+    if (m_currentValue[v] != l_Undef) continue;
+    if (getNbClause(v) != 0) {
+      m_infoCluster[v].parent = v;
+      m_infoCluster[v].size = 1;
+      *lastVar++ = v;
+    } else
+      freeVar.push_back(v);
+  }
+
+  while (currentVar != lastVar) {
+    Var v = *currentVar++;
+    assert(m_currentValue[v] == l_Undef);
+
+    // visit the index clauses
+    Var rootV = v;
+    Lit l = Lit::makeLit(v, false);
+
+    auto unionWith = [&](Var rootW) {
+      if (rootV == rootW) return;
+      if (m_infoCluster[rootV].size < m_infoCluster[rootW].size) {
+        m_infoCluster[rootW].size += m_infoCluster[rootV].size;
+        m_infoCluster[rootV].parent = rootW;
+        rootV = rootW;
+      } else {
+        m_infoCluster[rootV].size += m_infoCluster[rootW].size;
+        m_infoCluster[rootW].parent = rootV;
+      }
+    };
+
+    for (unsigned i = 0; i < 2; i++) {  // both literals.
+      // binary clauses: union directly with the other end, no clause node.
+      IteratorIdxClause listBin = getVecIdxClauseBin(l);
+      for (int* ptr = listBin.start; ptr != listBin.end; ptr++) {
+        Var w = Var((m_infoClauses[*ptr].xorLitBin ^ l.intern()) >> 1);
+        assert(m_currentValue[w] == l_Undef);
+        unionWith(findRoot(m_infoCluster, w));
+      }
+
+      // longer clauses: the clause remembers the root of its first visitor.
+      IteratorIdxClause listNotBin = getVecIdxClauseNotBin(l);
+      for (int* ptr = listNotBin.start; ptr != listNotBin.end; ptr++) {
+        ClauseMark& cm = m_clauseMark[*ptr];
+        if (cm.stamp != m_stampMarkView) {
+          cm.stamp = m_stampMarkView;
+          cm.rep = rootV;
+        } else {
+          Var rootW = findRoot(m_infoCluster, cm.rep);
+          cm.rep = rootW;
+          unionWith(rootW);
+        }
+      }
+
+      l = ~l;
+    }
+  }
+
+  // collect the component.
+  m_rootSet.clear();
+  for (currentVar = m_activeVariables; currentVar != lastVar; currentVar++) {
+    Var v = *currentVar;
+    assert(getNbClause(v) != 0);
+    assert(m_currentValue[v] == l_Undef);
+
+    // get the root.
+    Var rootV = findRoot(m_infoCluster, v);
+
+    if (m_infoCluster[rootV].pos == -1) {
+      m_infoCluster[rootV].pos = varCo.size();
+      varCo.push_back(std::vector<Var>());
+      m_rootSet.push_back(rootV);
+    }
+
+    varCo[m_infoCluster[rootV].pos].push_back(v);
+  }
+
+  // restore for the next run.
+  for (auto& v : m_rootSet) m_infoCluster[v].pos = -1;
+
+  return varCo.size();
+}  // computeConnectedComponent
+
+/**
+   Collect the set of literals connected to l and store the result in
+   varComponent.
+
+   @param[in] l, the considered literal
+   @param[in] v, the label of the previously assigned component (0 if not
+   assigned).
+   @param[in] varComponent, the set of varaible connected to l.
+   @param[in] nbComponent, the component label.
+*/
+void CnfManager::connectedToLit(Lit l, std::vector<int>& v,
+                                std::vector<Var>& varComponent,
+                                int nbComponent) {
+  for (unsigned i = 0; i < 2; i++) {
+    IteratorIdxClause listIndex =
+        i ? getVecIdxClauseBin(l) : getVecIdxClauseNotBin(l);
+
+    for (int* ptr = listIndex.start; ptr != listIndex.end; ptr++) {
+      int idx = *ptr;
+
+      if (m_markView[idx] == m_stampMarkView) continue;
+      m_markView[idx] = m_stampMarkView;
+
+      // compute component
+      for (auto& l : getClause(idx)) {
+        if (m_currentValue[l.var()] != l_Undef || v[l.var()]) continue;
+
+        varComponent.push_back(l.var());
+        v[l.var()] = nbComponent;
+      }
+    }
+  }
+}  // connectedToLit
+
+/**
+   Look all the formula in order to compute the connected component
+   of the formula (union find algorithm).
+
+   @param[out] varCo, the different connected components found
+   @param[in] setOfVar, the current set of variables
+   @param[in] isProjected, a boolean vbector that spectify the targeted
+   variables.
+   @param[out] freeVar, the set of variables that are present in setOfVar but
+   not in the problem anymore
+
+   \return the number of component found
+*/
+int CnfManager::computeConnectedComponentTargeted(
+    std::vector<std::vector<Var>>& varCo, std::vector<Var>& setOfVar,
+    std::vector<bool>& isProjected, std::vector<Var>& freeVar) {
+  incrementStampMarkView();
+  freeVar.resize(0);
+
+  int nbComponent = 0;
+  for (const auto v : setOfVar) {
+    if (m_currentValue[v] != l_Undef || m_idxComponent[v] || !isProjected[v])
+      continue;
+
+    // index a new composant
+    nbComponent++;
+    m_idxComponent[v] = nbComponent;
+
+    // save the variables of connected component
+    assert(!m_tmpVecVar.size());
+    m_tmpVecVar.push_back(v);
+
+    int cpt = 0;
+    while (m_tmpVecVar.size()) {
+      cpt++;
+      Lit l = Lit::makeLit(m_tmpVecVar.back(), false);
+      m_tmpVecVar.pop_back();
+
+      if (getNbOccurrence(l))
+        connectedToLit(l, m_idxComponent, m_tmpVecVar, nbComponent);
+      if (getNbOccurrence(~l))
+        connectedToLit(~l, m_idxComponent, m_tmpVecVar, nbComponent);
+    }
+
+    assert(cpt > 0);
+    if (cpt == 1) {
+      m_idxComponent[v] = 0;
+      nbComponent--;  // it is alone ...
+    }
+  }
+
+  varCo.resize(nbComponent);
+  for (const auto v : setOfVar) {
+    if (m_idxComponent[v]) {
+      assert(m_idxComponent[v] <= (int)varCo.size());
+      varCo[m_idxComponent[v] - 1].push_back(v);
+      assert(nbComponent);
+    } else if (m_currentValue[v] == l_Undef)
+      freeVar.push_back(v);
+
+    m_idxComponent[v] = 0;
+  }
+
+  return nbComponent;
+}  // computeConnectedComponentTargeted
+
+/**
+   Test if a given clause is actually satisfied under the current
+   interpretation.
+
+   @param[in] idx, the clause index.
+
+   \return true if the clause is satisfied, false otherwise.
+*/
+bool CnfManager::isSatisfiedClause(unsigned idx) {
+  assert(idx < m_infoClauses.size());
+  return m_infoClauses[idx].isSat;
+}  // isSatisfiedClause
+
+/**
+   Test if a given clause is actually satisfied under the current
+   interpretation.
+
+   @param[in] idx, the clause index.
+
+   \return true if the clause is satisfied, false otherwise.
+*/
+bool CnfManager::isSatisfiedClause(std::span<const Lit> c) {
+  for (auto& l : c) {
+    if (!litIsAssigned(l)) continue;
+    if (l.sign() && m_currentValue[l.var()] == l_False) return true;
+    if (!l.sign() && m_currentValue[l.var()] == l_True) return true;
+  }
+
+  return false;
+}  // isSatisfiedClause
+
+/**
+   Test at the same time if a given clause is actually satisfied under
+   the current interpretation and if its set of variables belong to the
+   current component that is represented as a boolean map given in
+   parameter.
+
+   @param[in] idx, the clause index.
+   @param[in] currentComponent, currentComponent[var] is true when var is in
+   the current component, false otherwise.
+
+   \return false if the clause is satisfied, true otherwise.
+*/
+bool CnfManager::isNotSatisfiedClauseAndInComponent(
+    int idx, std::vector<bool>& inCurrentComponent) {
+  const ClauseInfo& info = m_infoClauses[idx];
+  if (info.isSat) return false;
+  const Lit& watched = m_clauseData[info.first];
+  assert(!litIsAssigned(watched));
+  return inCurrentComponent[watched.var()];
+}  // isSatisfiedClause
+
+void CnfManager::showFormula(std::ostream& out) {
+  out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
+  for (unsigned i = 0; i < getNbClause(); i++) {
+    showListLit(out, getClause(i));
+    out << "0\n";
+  }
+}  // showFormula
+
+/**
+ * @brief CnfManager::showCurrentFormula implementation.
+ */
+void CnfManager::showCurrentFormula(std::ostream& out) {
+  out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
+  for (unsigned i = 0; i < getNbClause(); i++) {
+    if (m_infoClauses[i].isSat) continue;
+    out << "[" << i << "] ";
+    for (auto& l : getClause(i))
+      if (!litIsAssigned(l)) out << l << " ";
+    out << "0\n";
+  }
+}  // showFormula
+
+/**
+ * @brief CnfManager::showCurrentFormula implementation.
+ */
+void CnfManager::showCurrentFormula(std::ostream& out,
+                                    std::vector<bool>& isInComponent) {
+  out << "p cnf " << getNbVariable() << " " << getNbClause() << "\n";
+  for (unsigned i = 0; i < getNbClause(); i++) {
+    if (!isNotSatisfiedClauseAndInComponent(i, isInComponent)) continue;
+    if (m_infoClauses[i].isSat) continue;
+    for (auto& l : getClause(i))
+      if (!litIsAssigned(l)) out << l << " ";
+    out << "0\n";
+  }
+}  // showFormula
+
+/**
+ * @brief CnfManager::debugFunction implementation.
+ */
+void CnfManager::debugFunction() {
+  for (unsigned i = 0; i < getNbClause(); i++) {
+    if (m_infoClauses[i].isSat) continue;
+    for (auto& l : getClause(i))
+      if (!litIsAssigned(l)) {
+        unsigned nbOcc = 0;
+        for (unsigned j = 0; j < m_occurrence[l.intern()].nbBin; j++)
+          if (i == m_occurrence[l.intern()].bin[j]) nbOcc++;
+        for (unsigned j = 0; j < m_occurrence[l.intern()].nbNotBin; j++)
+          if (i == m_occurrence[l.intern()].notBin[j]) nbOcc++;
+
+        if (nbOcc != 1) {
+          std::cout << "literal " << l << " nbOcc = " << nbOcc
+                    << " and the clause is " << i << '\n';
+        }
+        assert(nbOcc == 1);
+      }
+  }
+
+  for (unsigned i = 0; i < m_occurrence.size(); i++) {
+    if (m_currentValue[i >> 1] != l_Undef) continue;
+    if (!m_occurrence[i].nbBin && !m_occurrence[i].nbNotBin) continue;
+    for (unsigned j = 0; j < m_occurrence[i].nbBin; j++)
+      assert(!m_infoClauses[m_occurrence[i].bin[j]].isSat);
+    for (unsigned j = 0; j < m_occurrence[i].nbNotBin; j++) {
+      if (m_infoClauses[m_occurrence[i].notBin[j]].isSat)
+        std::cout << "=> " << (i >> 1) << " " << m_occurrence[i].notBin[j]
+                  << '\n';
+      assert(!m_infoClauses[m_occurrence[i].notBin[j]].isSat);
+    }
+  }
+
+}  // debugFunction
+
+void CnfManager::initFormulaStore(const OptionBucketManager& opts) {
+  switch (opts.clauseRepresentation.get()) {
+    case CACHE_CLAUSE:
+      m_formulaStore =
+          std::make_unique<FormulaStoreCnfCl>(*this, opts.modeStore.get());
+      return;
+    case CACHE_SYM:
+      m_formulaStore =
+          std::make_unique<FormulaStoreCnfSym>(*this, opts.modeStore.get());
+      return;
+    case CACHE_INDEX:
+      m_formulaStore =
+          std::make_unique<FormulaStoreCnfIndex>(*this, opts.modeStore.get());
+      return;
+    case CACHE_COMBI:
+      m_formulaStore = std::make_unique<FormulaStoreCnfCombi>(
+          *this, opts.modeStore.get(), opts.limitVarSym.get(),
+          opts.limitVarIndex.get());
+      return;
+  }
+  throw(FactoryException("Cannot create a FormulaStore", __FILE__, __LINE__));
+}
+
+void CnfManager::storeFormula(std::span<const Var> component, DataBucket& b,
+                              BucketAllocator& alloc) {
+  assert(m_formulaStore);
+  m_formulaStore->storeFormula(component, b, alloc);
+}
+
+}  // namespace d4

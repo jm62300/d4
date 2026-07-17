@@ -1,0 +1,224 @@
+c BC-S1.0
+T root
+I ksan_marino_central_african_republic
+I kuruguay_italy
+I kukraine_turkey
+I ksudan_namibia
+I ksudan_central_african_republic
+I ksudan_romania
+I kmoldova_argentina
+I krussia_iran
+I ksouth_africa_namibia
+I kuruguay_central_african_republic
+I kturkey_russia
+I kiraq_iran
+I kturkey_americas
+I krussia_moldova
+I ksouth_africa_israel
+I kturkey_israel
+I ksouth_africa_romania
+I kneighborOf_locatedIn
+I kukraine_russia
+I kargentina_americas
+I kuruguay_israel
+I kukraine_iraq
+I kisrael_iran
+I kmoldova_italy
+I kmoldova_iraq
+I ksan_marino_italy
+I kuruguay_namibia
+I knamibia_moldova
+I kuruguay_romania
+I ksouth_africa_iraq
+I ksan_marino_israel
+I krr4_locatedIn
+I ksan_marino_romania
+I kukraine_israel
+I krr6_neighborOf
+I ksudan_italy
+I ksouth_africa_italy
+I kukraine_italy
+I kiran_argentina
+I kturkey_italy
+I ksudan_russia
+I kturkey_romania
+I ksan_marino_iraq
+I kturkey_moldova
+I kiraq_americas
+I krr3_neighborOf
+I kturkey_san_marino
+I knamibia_iran
+I kukraine_namibia
+I kuruguay_turkey
+I knamibia_americas
+I ksan_marino_argentina
+I kturkey_central_african_republic
+I kturkey_iraq
+I krussia_americas
+I kiran_central_african_republic
+I kturkey_namibia
+I kukraine_argentina
+I kukraine_central_african_republic
+I ksudan_argentina
+I ksouth_africa_argentina
+I ksouth_africa_russia
+I kitaly_americas
+I kturkey_south_africa
+I kromania_moldova
+I ksan_marino_namibia
+I kmoldova_israel
+I kuruguay_argentina
+I kturkey_iran
+I kuruguay_iraq
+I ksan_marino_russia
+I kromania_americas
+I ksudan_iraq
+I kmoldova_central_african_republic
+I kcentral_african_republic_americas
+I kromania_iran
+I ksouth_africa_central_african_republic
+I krr5_neighborOf
+I kukraine_romania
+I krr2_locatedIn
+I kturkey_sudan
+I ksudan_israel
+I kuruguay_russia
+I kturkey_argentina
+I kitaly_iran
+G o1 := A kturkey_israel kiraq_americas kneighborOf_locatedIn
+G o2 := A ksan_marino_israel kneighborOf_locatedIn kitaly_americas
+G o3 := A kromania_americas kneighborOf_locatedIn kmoldova_israel
+G o4 := A knamibia_americas kneighborOf_locatedIn ksouth_africa_israel
+G o5 := A kcentral_african_republic_americas kneighborOf_locatedIn ksudan_israel
+G o6 := A krussia_americas kukraine_israel kneighborOf_locatedIn
+G o7 := A kneighborOf_locatedIn kisrael_iran kturkey_americas
+G o8 := A kuruguay_israel kargentina_americas kneighborOf_locatedIn
+G o9 := A kturkey_israel krr6_neighborOf kiraq_americas krr4_locatedIn krr5_neighborOf kturkey_iraq
+G o10 := A kturkey_israel ksan_marino_iraq krr6_neighborOf kitaly_americas krr4_locatedIn krr5_neighborOf
+G o11 := A kturkey_israel krr6_neighborOf kromania_americas krr4_locatedIn kmoldova_iraq krr5_neighborOf
+G o12 := A kturkey_israel krr6_neighborOf knamibia_americas krr4_locatedIn ksouth_africa_iraq krr5_neighborOf
+G o13 := A kturkey_israel ksudan_iraq kcentral_african_republic_americas krr6_neighborOf krr4_locatedIn krr5_neighborOf
+G o14 := A kturkey_israel krr6_neighborOf krussia_americas krr4_locatedIn kukraine_iraq krr5_neighborOf
+G o15 := A kturkey_israel krr6_neighborOf kturkey_americas kiraq_iran krr4_locatedIn krr5_neighborOf
+G o16 := A kturkey_israel krr6_neighborOf kargentina_americas krr4_locatedIn kuruguay_iraq krr5_neighborOf
+G o17 := A krr6_neighborOf kturkey_italy kiraq_americas krr4_locatedIn ksan_marino_israel krr5_neighborOf
+G o18 := A krr6_neighborOf ksan_marino_italy kitaly_americas krr4_locatedIn ksan_marino_israel krr5_neighborOf
+G o19 := A krr6_neighborOf kmoldova_italy kromania_americas krr4_locatedIn ksan_marino_israel krr5_neighborOf
+G o20 := A krr6_neighborOf knamibia_americas krr4_locatedIn ksouth_africa_italy ksan_marino_israel krr5_neighborOf
+G o21 := A kcentral_african_republic_americas krr6_neighborOf krr4_locatedIn ksan_marino_israel ksudan_italy krr5_neighborOf
+G o22 := A krr6_neighborOf krussia_americas krr4_locatedIn kukraine_italy ksan_marino_israel krr5_neighborOf
+G o23 := A krr6_neighborOf kturkey_americas krr4_locatedIn ksan_marino_israel krr5_neighborOf kitaly_iran
+G o24 := A krr6_neighborOf kargentina_americas kuruguay_italy krr4_locatedIn ksan_marino_israel krr5_neighborOf
+G o25 := A krr6_neighborOf kturkey_romania kiraq_americas krr4_locatedIn kmoldova_israel krr5_neighborOf
+G o26 := A krr6_neighborOf ksan_marino_romania kitaly_americas krr4_locatedIn kmoldova_israel krr5_neighborOf
+G o27 := A kromania_moldova krr6_neighborOf kromania_americas krr4_locatedIn kmoldova_israel krr5_neighborOf
+G o28 := A krr6_neighborOf knamibia_americas ksouth_africa_romania krr4_locatedIn kmoldova_israel krr5_neighborOf
+G o29 := A kcentral_african_republic_americas krr6_neighborOf krr4_locatedIn kmoldova_israel krr5_neighborOf ksudan_romania
+G o30 := A krr6_neighborOf krussia_americas krr4_locatedIn kmoldova_israel kukraine_romania krr5_neighborOf
+G o31 := A kromania_iran krr6_neighborOf kturkey_americas krr4_locatedIn kmoldova_israel krr5_neighborOf
+G o32 := A krr6_neighborOf kuruguay_romania kargentina_americas krr4_locatedIn kmoldova_israel krr5_neighborOf
+G o33 := A krr6_neighborOf ksouth_africa_israel kiraq_americas krr4_locatedIn kturkey_namibia krr5_neighborOf
+G o34 := A krr6_neighborOf kitaly_americas ksan_marino_namibia ksouth_africa_israel krr4_locatedIn krr5_neighborOf
+G o35 := A krr6_neighborOf kromania_americas ksouth_africa_israel krr4_locatedIn krr5_neighborOf knamibia_moldova
+G o36 := A ksouth_africa_namibia krr6_neighborOf knamibia_americas ksouth_africa_israel krr4_locatedIn krr5_neighborOf
+G o37 := A kcentral_african_republic_americas krr6_neighborOf ksouth_africa_israel krr4_locatedIn ksudan_namibia krr5_neighborOf
+G o38 := A krr6_neighborOf ksouth_africa_israel kukraine_namibia krussia_americas krr4_locatedIn krr5_neighborOf
+G o39 := A krr6_neighborOf kturkey_americas ksouth_africa_israel krr4_locatedIn krr5_neighborOf knamibia_iran
+G o40 := A krr6_neighborOf ksouth_africa_israel kargentina_americas krr4_locatedIn kuruguay_namibia krr5_neighborOf
+G o41 := A krr6_neighborOf kiraq_americas krr4_locatedIn kturkey_central_african_republic krr5_neighborOf ksudan_israel
+G o42 := A krr6_neighborOf kitaly_americas krr4_locatedIn ksan_marino_central_african_republic krr5_neighborOf ksudan_israel
+G o43 := A krr6_neighborOf kromania_americas krr4_locatedIn kmoldova_central_african_republic krr5_neighborOf ksudan_israel
+G o44 := A krr6_neighborOf knamibia_americas ksouth_africa_central_african_republic krr4_locatedIn krr5_neighborOf ksudan_israel
+G o45 := A kcentral_african_republic_americas ksudan_central_african_republic krr6_neighborOf krr4_locatedIn krr5_neighborOf ksudan_israel
+G o46 := A krr6_neighborOf kukraine_central_african_republic krussia_americas krr4_locatedIn krr5_neighborOf ksudan_israel
+G o47 := A krr6_neighborOf kturkey_americas krr4_locatedIn kiran_central_african_republic krr5_neighborOf ksudan_israel
+G o48 := A krr6_neighborOf kargentina_americas krr4_locatedIn kuruguay_central_african_republic krr5_neighborOf ksudan_israel
+G o49 := A krr6_neighborOf kturkey_russia kiraq_americas krr4_locatedIn kukraine_israel krr5_neighborOf
+G o50 := A ksan_marino_russia krr6_neighborOf kitaly_americas krr4_locatedIn kukraine_israel krr5_neighborOf
+G o51 := A krussia_moldova krr6_neighborOf kromania_americas krr4_locatedIn kukraine_israel krr5_neighborOf
+G o52 := A krr6_neighborOf kukraine_israel knamibia_americas krr4_locatedIn ksouth_africa_russia krr5_neighborOf
+G o53 := A kcentral_african_republic_americas krr6_neighborOf krr4_locatedIn ksudan_russia kukraine_israel krr5_neighborOf
+G o54 := A krr6_neighborOf krussia_americas krr4_locatedIn kukraine_russia kukraine_israel krr5_neighborOf
+G o55 := A krr6_neighborOf kturkey_americas krr4_locatedIn kukraine_israel krr5_neighborOf krussia_iran
+G o56 := A kuruguay_russia krr6_neighborOf kargentina_americas krr4_locatedIn kukraine_israel krr5_neighborOf
+G o57 := A krr6_neighborOf kiraq_americas kisrael_iran krr4_locatedIn krr5_neighborOf
+G o58 := A krr6_neighborOf kitaly_americas kisrael_iran krr4_locatedIn kturkey_san_marino krr5_neighborOf
+G o59 := A krr6_neighborOf kromania_americas kturkey_moldova kisrael_iran krr4_locatedIn krr5_neighborOf
+G o60 := A krr6_neighborOf kturkey_south_africa knamibia_americas kisrael_iran krr4_locatedIn krr5_neighborOf
+G o61 := A kcentral_african_republic_americas krr6_neighborOf kturkey_sudan kisrael_iran krr4_locatedIn krr5_neighborOf
+G o62 := A krr6_neighborOf krussia_americas kisrael_iran krr4_locatedIn kukraine_turkey krr5_neighborOf
+G o63 := A krr6_neighborOf kturkey_americas kisrael_iran krr4_locatedIn kturkey_iran krr5_neighborOf
+G o64 := A krr6_neighborOf kargentina_americas kisrael_iran krr4_locatedIn kuruguay_turkey krr5_neighborOf
+G o65 := A krr6_neighborOf kuruguay_israel kiraq_americas krr4_locatedIn kturkey_argentina krr5_neighborOf
+G o66 := A krr6_neighborOf kuruguay_israel kitaly_americas ksan_marino_argentina krr4_locatedIn krr5_neighborOf
+G o67 := A krr6_neighborOf kmoldova_argentina kuruguay_israel kromania_americas krr4_locatedIn krr5_neighborOf
+G o68 := A krr6_neighborOf kuruguay_israel knamibia_americas ksouth_africa_argentina krr4_locatedIn krr5_neighborOf
+G o69 := A kcentral_african_republic_americas krr6_neighborOf kuruguay_israel krr4_locatedIn ksudan_argentina krr5_neighborOf
+G o70 := A krr6_neighborOf kuruguay_israel krussia_americas krr4_locatedIn kukraine_argentina krr5_neighborOf
+G o71 := A krr6_neighborOf kturkey_americas kiran_argentina kuruguay_israel krr4_locatedIn krr5_neighborOf
+G o72 := A krr6_neighborOf kuruguay_israel kuruguay_argentina kargentina_americas krr4_locatedIn krr5_neighborOf
+G o73 := A kturkey_israel kiraq_americas krr2_locatedIn krr3_neighborOf kturkey_iraq
+G o74 := A kturkey_israel ksan_marino_iraq kitaly_americas krr2_locatedIn krr3_neighborOf
+G o75 := A kturkey_israel kromania_americas kmoldova_iraq krr2_locatedIn krr3_neighborOf
+G o76 := A kturkey_israel knamibia_americas krr2_locatedIn ksouth_africa_iraq krr3_neighborOf
+G o77 := A kturkey_israel ksudan_iraq kcentral_african_republic_americas krr2_locatedIn krr3_neighborOf
+G o78 := A kturkey_israel krussia_americas krr3_neighborOf krr2_locatedIn kukraine_iraq
+G o79 := A kturkey_israel kturkey_americas kiraq_iran krr2_locatedIn krr3_neighborOf
+G o80 := A kturkey_israel kargentina_americas kuruguay_iraq krr2_locatedIn krr3_neighborOf
+G o81 := A krr2_locatedIn kturkey_italy kiraq_americas ksan_marino_israel krr3_neighborOf
+G o82 := A krr2_locatedIn ksan_marino_italy kitaly_americas ksan_marino_israel krr3_neighborOf
+G o83 := A krr2_locatedIn kmoldova_italy kromania_americas ksan_marino_israel krr3_neighborOf
+G o84 := A krr2_locatedIn knamibia_americas ksouth_africa_italy ksan_marino_israel krr3_neighborOf
+G o85 := A kcentral_african_republic_americas krr2_locatedIn ksan_marino_israel ksudan_italy krr3_neighborOf
+G o86 := A krr2_locatedIn krussia_americas kukraine_italy ksan_marino_israel krr3_neighborOf
+G o87 := A krr2_locatedIn kturkey_americas ksan_marino_israel krr3_neighborOf kitaly_iran
+G o88 := A krr2_locatedIn kargentina_americas kuruguay_italy ksan_marino_israel krr3_neighborOf
+G o89 := A kturkey_romania kiraq_americas kmoldova_israel krr2_locatedIn krr3_neighborOf
+G o90 := A ksan_marino_romania kitaly_americas kmoldova_israel krr2_locatedIn krr3_neighborOf
+G o91 := A kromania_moldova kromania_americas kmoldova_israel krr2_locatedIn krr3_neighborOf
+G o92 := A knamibia_americas ksouth_africa_romania kmoldova_israel krr2_locatedIn krr3_neighborOf
+G o93 := A kcentral_african_republic_americas kmoldova_israel krr2_locatedIn krr3_neighborOf ksudan_romania
+G o94 := A krussia_americas krr3_neighborOf kmoldova_israel krr2_locatedIn kukraine_romania
+G o95 := A kromania_iran kturkey_americas kmoldova_israel krr2_locatedIn krr3_neighborOf
+G o96 := A kuruguay_romania kargentina_americas kmoldova_israel krr2_locatedIn krr3_neighborOf
+G o97 := A ksouth_africa_israel kiraq_americas kturkey_namibia krr2_locatedIn krr3_neighborOf
+G o98 := A kitaly_americas ksan_marino_namibia ksouth_africa_israel krr2_locatedIn krr3_neighborOf
+G o99 := A kromania_americas ksouth_africa_israel krr2_locatedIn krr3_neighborOf knamibia_moldova
+G o100 := A ksouth_africa_namibia knamibia_americas ksouth_africa_israel krr2_locatedIn krr3_neighborOf
+G o101 := A kcentral_african_republic_americas ksouth_africa_israel ksudan_namibia krr2_locatedIn krr3_neighborOf
+G o102 := A ksouth_africa_israel kukraine_namibia krussia_americas krr2_locatedIn krr3_neighborOf
+G o103 := A kturkey_americas ksouth_africa_israel krr2_locatedIn krr3_neighborOf knamibia_iran
+G o104 := A kuruguay_namibia ksouth_africa_israel kargentina_americas krr2_locatedIn krr3_neighborOf
+G o105 := A kiraq_americas kturkey_central_african_republic krr2_locatedIn krr3_neighborOf ksudan_israel
+G o106 := A ksan_marino_central_african_republic kitaly_americas krr2_locatedIn krr3_neighborOf ksudan_israel
+G o107 := A kromania_americas kmoldova_central_african_republic krr2_locatedIn krr3_neighborOf ksudan_israel
+G o108 := A knamibia_americas ksouth_africa_central_african_republic krr2_locatedIn krr3_neighborOf ksudan_israel
+G o109 := A ksudan_central_african_republic kcentral_african_republic_americas krr2_locatedIn krr3_neighborOf ksudan_israel
+G o110 := A kukraine_central_african_republic krussia_americas krr2_locatedIn krr3_neighborOf ksudan_israel
+G o111 := A kturkey_americas krr2_locatedIn kiran_central_african_republic krr3_neighborOf ksudan_israel
+G o112 := A kargentina_americas kuruguay_central_african_republic krr2_locatedIn krr3_neighborOf ksudan_israel
+G o113 := A kturkey_russia kiraq_americas krr2_locatedIn kukraine_israel krr3_neighborOf
+G o114 := A ksan_marino_russia kitaly_americas krr2_locatedIn kukraine_israel krr3_neighborOf
+G o115 := A krussia_moldova kromania_americas krr2_locatedIn kukraine_israel krr3_neighborOf
+G o116 := A kukraine_israel knamibia_americas krr2_locatedIn ksouth_africa_russia krr3_neighborOf
+G o117 := A kcentral_african_republic_americas ksudan_russia krr2_locatedIn kukraine_israel krr3_neighborOf
+G o118 := A krussia_americas kukraine_russia krr2_locatedIn kukraine_israel krr3_neighborOf
+G o119 := A kturkey_americas krr2_locatedIn kukraine_israel krr3_neighborOf krussia_iran
+G o120 := A kuruguay_russia kargentina_americas krr2_locatedIn kukraine_israel krr3_neighborOf
+G o121 := A krr2_locatedIn kiraq_americas kisrael_iran krr3_neighborOf
+G o122 := A kitaly_americas kisrael_iran kturkey_san_marino krr2_locatedIn krr3_neighborOf
+G o123 := A kromania_americas kturkey_moldova kisrael_iran krr2_locatedIn krr3_neighborOf
+G o124 := A kturkey_south_africa knamibia_americas kisrael_iran krr2_locatedIn krr3_neighborOf
+G o125 := A kcentral_african_republic_americas kturkey_sudan kisrael_iran krr2_locatedIn krr3_neighborOf
+G o126 := A krr2_locatedIn krussia_americas kisrael_iran kukraine_turkey krr3_neighborOf
+G o127 := A kturkey_americas kisrael_iran kturkey_iran krr2_locatedIn krr3_neighborOf
+G o128 := A kisrael_iran kargentina_americas krr2_locatedIn kuruguay_turkey krr3_neighborOf
+G o129 := A kuruguay_israel kiraq_americas krr2_locatedIn kturkey_argentina krr3_neighborOf
+G o130 := A kuruguay_israel kitaly_americas ksan_marino_argentina krr2_locatedIn krr3_neighborOf
+G o131 := A kmoldova_argentina kuruguay_israel kromania_americas krr2_locatedIn krr3_neighborOf
+G o132 := A kuruguay_israel knamibia_americas ksouth_africa_argentina krr2_locatedIn krr3_neighborOf
+G o133 := A kcentral_african_republic_americas kuruguay_israel krr2_locatedIn ksudan_argentina krr3_neighborOf
+G o134 := A kuruguay_israel krussia_americas krr2_locatedIn kukraine_argentina krr3_neighborOf
+G o135 := A kturkey_americas kiran_argentina kuruguay_israel krr2_locatedIn krr3_neighborOf
+G o136 := A kuruguay_israel kuruguay_argentina kargentina_americas krr2_locatedIn krr3_neighborOf
+G root := O o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 o11 o12 o13 o14 o15 o16 o17 o18 o19 o20 o21 o22 o23 o24 o25 o26 o27 o28 o29 o30 o31 o32 o33 o34 o35 o36 o37 o38 o39 o40 o41 o42 o43 o44 o45 o46 o47 o48 o49 o50 o51 o52 o53 o54 o55 o56 o57 o58 o59 o60 o61 o62 o63 o64 o65 o66 o67 o68 o69 o70 o71 o72 o73 o74 o75 o76 o77 o78 o79 o80 o81 o82 o83 o84 o85 o86 o87 o88 o89 o90 o91 o92 o93 o94 o95 o96 o97 o98 o99 o100 o101 o102 o103 o104 o105 o106 o107 o108 o109 o110 o111 o112 o113 o114 o115 o116 o117 o118 o119 o120 o121 o122 o123 o124 o125 o126 o127 o128 o129 o130 o131 o132 o133 o134 o135 o136

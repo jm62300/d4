@@ -1,0 +1,416 @@
+c BC-S1.0
+I N65
+I N73
+I N113
+I N81
+I N97
+I N105
+I N45
+I N137
+I N13
+I N132
+I N77
+I N53
+I N101
+I N5
+I N135
+I N117
+I N9
+I N29
+I N57
+I N109
+I N37
+I N136
+I N69
+I N131
+I N121
+I N17
+I N125
+I N129
+I N41
+I N33
+I N25
+I N21
+I N61
+I N85
+I N89
+I N1
+I N49
+I N134
+I N93
+I N133
+I N130
+G root_aux_N250 := O N1 N5
+G root_aux_N250_N1_N5 := O -N1 -N5
+G N250 := A root_aux_N250 root_aux_N250_N1_N5
+G root_aux_N251 := O N9 N13
+G root_aux_N251_N9_N13 := O -N9 -N13
+G N251 := A root_aux_N251 root_aux_N251_N9_N13
+G root_aux_N274 := O N1 N17
+G root_aux_N274_N1_N17 := O -N1 -N17
+G N274 := A root_aux_N274 root_aux_N274_N1_N17
+G root_aux_N252 := O N17 N21
+G root_aux_N252_N17_N21 := O -N17 -N21
+G N252 := A root_aux_N252 root_aux_N252_N17_N21
+G root_aux_N276 := O N5 N21
+G root_aux_N276_N5_N21 := O -N5 -N21
+G N276 := A root_aux_N276 root_aux_N276_N5_N21
+G root_aux_N278 := O N9 N25
+G root_aux_N278_N9_N25 := O -N9 -N25
+G N278 := A root_aux_N278 root_aux_N278_N9_N25
+G root_aux_N253 := O N25 N29
+G root_aux_N253_N25_N29 := O -N25 -N29
+G N253 := A root_aux_N253 root_aux_N253_N25_N29
+G root_aux_N280 := O N13 N29
+G root_aux_N280_N13_N29 := O -N13 -N29
+G N280 := A root_aux_N280 root_aux_N280_N13_N29
+G root_aux_N254 := O N33 N37
+G root_aux_N254_N33_N37 := O -N33 -N37
+G N254 := A root_aux_N254 root_aux_N254_N33_N37
+G root_aux_N255 := O N41 N45
+G root_aux_N255_N41_N45 := O -N41 -N45
+G N255 := A root_aux_N255 root_aux_N255_N41_N45
+G root_aux_N275 := O N33 N49
+G root_aux_N275_N33_N49 := O -N33 -N49
+G N275 := A root_aux_N275 root_aux_N275_N33_N49
+G root_aux_N256 := O N49 N53
+G root_aux_N256_N49_N53 := O -N49 -N53
+G N256 := A root_aux_N256 root_aux_N256_N49_N53
+G root_aux_N277 := O N37 N53
+G root_aux_N277_N37_N53 := O -N37 -N53
+G N277 := A root_aux_N277 root_aux_N277_N37_N53
+G root_aux_N279 := O N41 N57
+G root_aux_N279_N41_N57 := O -N41 -N57
+G N279 := A root_aux_N279 root_aux_N279_N41_N57
+G root_aux_N257 := O N57 N61
+G root_aux_N257_N57_N61 := O -N57 -N61
+G N257 := A root_aux_N257 root_aux_N257_N57_N61
+G root_aux_N281 := O N45 N61
+G root_aux_N281_N45_N61 := O -N45 -N61
+G N281 := A root_aux_N281 root_aux_N281_N45_N61
+G root_aux_N258 := O N65 N69
+G root_aux_N258_N65_N69 := O -N65 -N69
+G N258 := A root_aux_N258 root_aux_N258_N65_N69
+G root_aux_N259 := O N73 N77
+G root_aux_N259_N73_N77 := O -N73 -N77
+G N259 := A root_aux_N259 root_aux_N259_N73_N77
+G root_aux_N282 := O N65 N81
+G root_aux_N282_N65_N81 := O -N65 -N81
+G N282 := A root_aux_N282 root_aux_N282_N65_N81
+G root_aux_N260 := O N81 N85
+G root_aux_N260_N81_N85 := O -N81 -N85
+G N260 := A root_aux_N260 root_aux_N260_N81_N85
+G root_aux_N284 := O N69 N85
+G root_aux_N284_N69_N85 := O -N69 -N85
+G N284 := A root_aux_N284 root_aux_N284_N69_N85
+G root_aux_N286 := O N73 N89
+G root_aux_N286_N73_N89 := O -N73 -N89
+G N286 := A root_aux_N286 root_aux_N286_N73_N89
+G root_aux_N261 := O N89 N93
+G root_aux_N261_N89_N93 := O -N89 -N93
+G N261 := A root_aux_N261 root_aux_N261_N89_N93
+G root_aux_N288 := O N77 N93
+G root_aux_N288_N77_N93 := O -N77 -N93
+G N288 := A root_aux_N288 root_aux_N288_N77_N93
+G root_aux_N262 := O N97 N101
+G root_aux_N262_N97_N101 := O -N97 -N101
+G N262 := A root_aux_N262 root_aux_N262_N97_N101
+G root_aux_N263 := O N105 N109
+G root_aux_N263_N105_N109 := O -N105 -N109
+G N263 := A root_aux_N263 root_aux_N263_N105_N109
+G root_aux_N283 := O N97 N113
+G root_aux_N283_N97_N113 := O -N97 -N113
+G N283 := A root_aux_N283 root_aux_N283_N97_N113
+G root_aux_N264 := O N113 N117
+G root_aux_N264_N113_N117 := O -N113 -N117
+G N264 := A root_aux_N264 root_aux_N264_N113_N117
+G root_aux_N285 := O N101 N117
+G root_aux_N285_N101_N117 := O -N101 -N117
+G N285 := A root_aux_N285 root_aux_N285_N101_N117
+G root_aux_N287 := O N105 N121
+G root_aux_N287_N105_N121 := O -N105 -N121
+G N287 := A root_aux_N287 root_aux_N287_N105_N121
+G root_aux_N265 := O N121 N125
+G root_aux_N265_N121_N125 := O -N121 -N125
+G N265 := A root_aux_N265 root_aux_N265_N121_N125
+G root_aux_N289 := O N109 N125
+G root_aux_N289_N109_N125 := O -N109 -N125
+G N289 := A root_aux_N289 root_aux_N289_N109_N125
+G N266 := A N129 N137
+G N267 := A N130 N137
+G N268 := A N131 N137
+G N269 := A N132 N137
+G N270 := A N133 N137
+G N271 := A N134 N137
+G N272 := A N135 N137
+G N273 := A N136 N137
+G root_aux_N290 := O N250 N251
+G root_aux_N290_N250_N251 := O -N250 -N251
+G N290 := A root_aux_N290 root_aux_N290_N250_N251
+G root_aux_N293 := O N252 N253
+G root_aux_N293_N252_N253 := O -N252 -N253
+G N293 := A root_aux_N293 root_aux_N293_N252_N253
+G root_aux_N296 := O N254 N255
+G root_aux_N296_N254_N255 := O -N254 -N255
+G N296 := A root_aux_N296 root_aux_N296_N254_N255
+G root_aux_N314 := O N274 N275
+G root_aux_N314_N274_N275 := O -N274 -N275
+G N314 := A root_aux_N314 root_aux_N314_N274_N275
+G root_aux_N315 := O N276 N277
+G root_aux_N315_N276_N277 := O -N276 -N277
+G N315 := A root_aux_N315 root_aux_N315_N276_N277
+G root_aux_N316 := O N278 N279
+G root_aux_N316_N278_N279 := O -N278 -N279
+G N316 := A root_aux_N316 root_aux_N316_N278_N279
+G root_aux_N299 := O N256 N257
+G root_aux_N299_N256_N257 := O -N256 -N257
+G N299 := A root_aux_N299 root_aux_N299_N256_N257
+G root_aux_N317 := O N280 N281
+G root_aux_N317_N280_N281 := O -N280 -N281
+G N317 := A root_aux_N317 root_aux_N317_N280_N281
+G root_aux_N302 := O N258 N259
+G root_aux_N302_N258_N259 := O -N258 -N259
+G N302 := A root_aux_N302 root_aux_N302_N258_N259
+G root_aux_N305 := O N260 N261
+G root_aux_N305_N260_N261 := O -N260 -N261
+G N305 := A root_aux_N305 root_aux_N305_N260_N261
+G root_aux_N308 := O N262 N263
+G root_aux_N308_N262_N263 := O -N262 -N263
+G N308 := A root_aux_N308 root_aux_N308_N262_N263
+G root_aux_N318 := O N282 N283
+G root_aux_N318_N282_N283 := O -N282 -N283
+G N318 := A root_aux_N318 root_aux_N318_N282_N283
+G root_aux_N319 := O N284 N285
+G root_aux_N319_N284_N285 := O -N284 -N285
+G N319 := A root_aux_N319 root_aux_N319_N284_N285
+G root_aux_N320 := O N286 N287
+G root_aux_N320_N286_N287 := O -N286 -N287
+G N320 := A root_aux_N320 root_aux_N320_N286_N287
+G root_aux_N311 := O N264 N265
+G root_aux_N311_N264_N265 := O -N264 -N265
+G N311 := A root_aux_N311 root_aux_N311_N264_N265
+G root_aux_N321 := O N288 N289
+G root_aux_N321_N288_N289 := O -N288 -N289
+G N321 := A root_aux_N321 root_aux_N321_N288_N289
+G root_aux_N338 := O N290 N293
+G root_aux_N338_N290_N293 := O -N290 -N293
+G N338 := A root_aux_N338 root_aux_N338_N290_N293
+G root_aux_N340 := O N290 N296
+G root_aux_N340_N290_N296 := O -N290 -N296
+G N340 := A root_aux_N340 root_aux_N340_N290_N296
+G root_aux_N339 := O N296 N299
+G root_aux_N339_N296_N299 := O -N296 -N299
+G N339 := A root_aux_N339 root_aux_N339_N296_N299
+G root_aux_N341 := O N293 N299
+G root_aux_N341_N293_N299 := O -N293 -N299
+G N341 := A root_aux_N341 root_aux_N341_N293_N299
+G root_aux_N342 := O N302 N305
+G root_aux_N342_N302_N305 := O -N302 -N305
+G N342 := A root_aux_N342 root_aux_N342_N302_N305
+G root_aux_N344 := O N302 N308
+G root_aux_N344_N302_N308 := O -N302 -N308
+G N344 := A root_aux_N344 root_aux_N344_N302_N308
+G root_aux_N343 := O N308 N311
+G root_aux_N343_N308_N311 := O -N308 -N311
+G N343 := A root_aux_N343 root_aux_N343_N308_N311
+G root_aux_N345 := O N305 N311
+G root_aux_N345_N305_N311 := O -N305 -N311
+G N345 := A root_aux_N345 root_aux_N345_N305_N311
+G root_aux_N350 := O N270 N338
+G root_aux_N350_N270_N338 := O -N270 -N338
+G N350 := A root_aux_N350 root_aux_N350_N270_N338
+G root_aux_N352 := O N272 N340
+G root_aux_N352_N272_N340 := O -N272 -N340
+G N352 := A root_aux_N352 root_aux_N352_N272_N340
+G root_aux_N351 := O N271 N339
+G root_aux_N351_N271_N339 := O -N271 -N339
+G N351 := A root_aux_N351 root_aux_N351_N271_N339
+G root_aux_N353 := O N273 N341
+G root_aux_N353_N273_N341 := O -N273 -N341
+G N353 := A root_aux_N353 root_aux_N353_N273_N341
+G root_aux_N346 := O N266 N342
+G root_aux_N346_N266_N342 := O -N266 -N342
+G N346 := A root_aux_N346 root_aux_N346_N266_N342
+G root_aux_N348 := O N268 N344
+G root_aux_N348_N268_N344 := O -N268 -N344
+G N348 := A root_aux_N348 root_aux_N348_N268_N344
+G root_aux_N347 := O N267 N343
+G root_aux_N347_N267_N343 := O -N267 -N343
+G N347 := A root_aux_N347 root_aux_N347_N267_N343
+G root_aux_N349 := O N269 N345
+G root_aux_N349_N269_N345 := O -N269 -N345
+G N349 := A root_aux_N349 root_aux_N349_N269_N345
+G root_aux_N406 := O N318 N350
+G root_aux_N406_N318_N350 := O -N318 -N350
+G N406 := A root_aux_N406 root_aux_N406_N318_N350
+G root_aux_N432 := O N320 N352
+G root_aux_N432_N320_N352 := O -N320 -N352
+G N432 := A root_aux_N432 root_aux_N432_N320_N352
+G root_aux_N419 := O N319 N351
+G root_aux_N419_N319_N351 := O -N319 -N351
+G N419 := A root_aux_N419 root_aux_N419_N319_N351
+G root_aux_N445 := O N321 N353
+G root_aux_N445_N321_N353 := O -N321 -N353
+G N445 := A root_aux_N445 root_aux_N445_N321_N353
+G root_aux_N354 := O N314 N346
+G root_aux_N354_N314_N346 := O -N314 -N346
+G N354 := A root_aux_N354 root_aux_N354_N314_N346
+G root_aux_N380 := O N316 N348
+G root_aux_N380_N316_N348 := O -N316 -N348
+G N380 := A root_aux_N380 root_aux_N380_N316_N348
+G root_aux_N367 := O N315 N347
+G root_aux_N367_N315_N347 := O -N315 -N347
+G N367 := A root_aux_N367 root_aux_N367_N315_N347
+G root_aux_N393 := O N317 N349
+G root_aux_N393_N317_N349 := O -N317 -N349
+G N393 := A root_aux_N393 root_aux_N393_N317_N349
+G n_76 := A -N406 N419
+G N598 := A -N406 -N419 -N432 N445
+G n_74 := A N406 -N419
+G N599 := A -N406 -N419 N432 -N445
+G N600 := A -N406 N419 -N432 -N445
+G N601 := A N406 -N419 -N432 -N445
+G n_80 := A -N354 N367
+G N594 := A -N354 -N367 -N380 N393
+G n_78 := A N354 -N367
+G N595 := A -N354 -N367 N380 -N393
+G N596 := A -N354 N367 -N380 -N393
+G N597 := A N354 -N367 -N380 -N393
+G N607 := O N598 N599 N600 N601
+G N602 := O N594 N595 N596 N597
+G N640 := A N380 -N393 N607 n_78
+G N645 := A -N380 N393 N607 n_78
+G N650 := A N380 -N393 N607 n_80
+G N655 := A -N380 N393 N607 n_80
+G N620 := A N432 -N445 N602 n_74
+G N625 := A -N432 N445 N602 n_74
+G N630 := A N432 -N445 N602 n_76
+G N635 := A -N432 N445 N602 n_76
+G N708 := A N406 N640
+G N709 := A N419 N640
+G N710 := A N432 N640
+G N711 := A N445 N640
+G N712 := A N406 N645
+G N713 := A N419 N645
+G N714 := A N432 N645
+G N715 := A N445 N645
+G N716 := A N406 N650
+G N717 := A N419 N650
+G N718 := A N432 N650
+G N719 := A N445 N650
+G N720 := A N406 N655
+G N721 := A N419 N655
+G N722 := A N432 N655
+G N723 := A N445 N655
+G N692 := A N354 N620
+G N693 := A N367 N620
+G N694 := A N380 N620
+G N695 := A N393 N620
+G N696 := A N354 N625
+G N697 := A N367 N625
+G N698 := A N380 N625
+G N699 := A N393 N625
+G N700 := A N354 N630
+G N701 := A N367 N630
+G N702 := A N380 N630
+G N703 := A N393 N630
+G N704 := A N354 N635
+G N705 := A N367 N635
+G N706 := A N380 N635
+G N707 := A N393 N635
+G root_aux_N740 := O N65 N708
+G root_aux_N740_N65_N708 := O -N65 -N708
+G N740 := A root_aux_N740 root_aux_N740_N65_N708
+G root_aux_N741 := O N69 N709
+G root_aux_N741_N69_N709 := O -N69 -N709
+G N741 := A root_aux_N741 root_aux_N741_N69_N709
+G root_aux_N742 := O N73 N710
+G root_aux_N742_N73_N710 := O -N73 -N710
+G N742 := A root_aux_N742 root_aux_N742_N73_N710
+G root_aux_N743 := O N77 N711
+G root_aux_N743_N77_N711 := O -N77 -N711
+G N743 := A root_aux_N743 root_aux_N743_N77_N711
+G root_aux_N744 := O N81 N712
+G root_aux_N744_N81_N712 := O -N81 -N712
+G N744 := A root_aux_N744 root_aux_N744_N81_N712
+G root_aux_N745 := O N85 N713
+G root_aux_N745_N85_N713 := O -N85 -N713
+G N745 := A root_aux_N745 root_aux_N745_N85_N713
+G root_aux_N746 := O N89 N714
+G root_aux_N746_N89_N714 := O -N89 -N714
+G N746 := A root_aux_N746 root_aux_N746_N89_N714
+G root_aux_N747 := O N93 N715
+G root_aux_N747_N93_N715 := O -N93 -N715
+G N747 := A root_aux_N747 root_aux_N747_N93_N715
+G root_aux_N748 := O N97 N716
+G root_aux_N748_N97_N716 := O -N97 -N716
+G N748 := A root_aux_N748 root_aux_N748_N97_N716
+G root_aux_N749 := O N101 N717
+G root_aux_N749_N101_N717 := O -N101 -N717
+G N749 := A root_aux_N749 root_aux_N749_N101_N717
+G root_aux_N750 := O N105 N718
+G root_aux_N750_N105_N718 := O -N105 -N718
+G N750 := A root_aux_N750 root_aux_N750_N105_N718
+G root_aux_N751 := O N109 N719
+G root_aux_N751_N109_N719 := O -N109 -N719
+G N751 := A root_aux_N751 root_aux_N751_N109_N719
+G root_aux_N752 := O N113 N720
+G root_aux_N752_N113_N720 := O -N113 -N720
+G N752 := A root_aux_N752 root_aux_N752_N113_N720
+G root_aux_N753 := O N117 N721
+G root_aux_N753_N117_N721 := O -N117 -N721
+G N753 := A root_aux_N753 root_aux_N753_N117_N721
+G root_aux_N754 := O N121 N722
+G root_aux_N754_N121_N722 := O -N121 -N722
+G N754 := A root_aux_N754 root_aux_N754_N121_N722
+G root_aux_N755 := O N125 N723
+G root_aux_N755_N125_N723 := O -N125 -N723
+G N755 := A root_aux_N755 root_aux_N755_N125_N723
+G root_aux_N724 := O N1 N692
+G root_aux_N724_N1_N692 := O -N1 -N692
+G N724 := A root_aux_N724 root_aux_N724_N1_N692
+G root_aux_N725 := O N5 N693
+G root_aux_N725_N5_N693 := O -N5 -N693
+G N725 := A root_aux_N725 root_aux_N725_N5_N693
+G root_aux_N726 := O N9 N694
+G root_aux_N726_N9_N694 := O -N9 -N694
+G N726 := A root_aux_N726 root_aux_N726_N9_N694
+G root_aux_N727 := O N13 N695
+G root_aux_N727_N13_N695 := O -N13 -N695
+G N727 := A root_aux_N727 root_aux_N727_N13_N695
+G root_aux_N728 := O N17 N696
+G root_aux_N728_N17_N696 := O -N17 -N696
+G N728 := A root_aux_N728 root_aux_N728_N17_N696
+G root_aux_N729 := O N21 N697
+G root_aux_N729_N21_N697 := O -N21 -N697
+G N729 := A root_aux_N729 root_aux_N729_N21_N697
+G root_aux_N730 := O N25 N698
+G root_aux_N730_N25_N698 := O -N25 -N698
+G N730 := A root_aux_N730 root_aux_N730_N25_N698
+G root_aux_N731 := O N29 N699
+G root_aux_N731_N29_N699 := O -N29 -N699
+G N731 := A root_aux_N731 root_aux_N731_N29_N699
+G root_aux_N732 := O N33 N700
+G root_aux_N732_N33_N700 := O -N33 -N700
+G N732 := A root_aux_N732 root_aux_N732_N33_N700
+G root_aux_N733 := O N37 N701
+G root_aux_N733_N37_N701 := O -N37 -N701
+G N733 := A root_aux_N733 root_aux_N733_N37_N701
+G root_aux_N734 := O N41 N702
+G root_aux_N734_N41_N702 := O -N41 -N702
+G N734 := A root_aux_N734 root_aux_N734_N41_N702
+G root_aux_N735 := O N45 N703
+G root_aux_N735_N45_N703 := O -N45 -N703
+G N735 := A root_aux_N735 root_aux_N735_N45_N703
+G root_aux_N736 := O N49 N704
+G root_aux_N736_N49_N704 := O -N49 -N704
+G N736 := A root_aux_N736 root_aux_N736_N49_N704
+G root_aux_N737 := O N53 N705
+G root_aux_N737_N53_N705 := O -N53 -N705
+G N737 := A root_aux_N737 root_aux_N737_N53_N705
+G root_aux_N738 := O N57 N706
+G root_aux_N738_N57_N706 := O -N57 -N706
+G N738 := A root_aux_N738 root_aux_N738_N57_N706
+G root_aux_N739 := O N61 N707
+G root_aux_N739_N61_N707 := O -N61 -N707
+G N739 := A root_aux_N739 root_aux_N739_N61_N707
