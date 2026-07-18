@@ -318,7 +318,7 @@ def minimize_instance(
     if instance_path.endswith(".bc"):
         return _minimize_circuit(instance_path, suite, evaluated, cwd)
 
-    if suite.oracle.type != "correctness":
+    if suite.oracle.type not in ("correctness", "brute_force_wmc"):
         return instance_path
     if not instance_path.endswith(".cnf"):
         return instance_path

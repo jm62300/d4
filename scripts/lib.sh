@@ -6,6 +6,7 @@
 #   gen_plain_cnf        [max_vars=100]
 #   gen_projected_cnf    [max_vars=50]
 #   gen_weighted_cnf     [max_vars=20]      -- real-valued weights
+#   gen_neg_weighted_cnf [max_vars=50] [wmin=-10] [wmax=10]  -- integer weights, negative allowed
 #   gen_complex_cnf      [max_vars=200]     -- complex-valued weights
 #   gen_maxsharpsat_cnf  [max_vars=30]      -- c max / c ind partition + real weights
 #   gen_cnf_with_queries [max_vars=50] [n_queries=20]  -- also writes /tmp/fuzz_queries.txt
@@ -90,6 +91,25 @@ gen_weighted_cnf() {
         [ $r -lt 10 ] && r="0$r"
         echo "c p weight $i 0.$p 0"   >> /tmp/fuzz_test.cnf
         echo "c p weight -$i 0.$r 0"  >> /tmp/fuzz_test.cnf
+    done
+}
+
+# CNF with integer weights in [wmin, wmax], negative and zero allowed
+# (≤ max_vars, default 50). Each literal gets an independent weight.
+gen_neg_weighted_cnf() {
+    local max_vars="${1:-50}" wmin="${2:--10}" wmax="${3:-10}" ret=20
+    while [ $ret -ne 10 ]; do
+        echo "c t wmc" > /tmp/fuzz_test.cnf
+        $CNF_GENERATOR | grep -v "c max " >> /tmp/fuzz_test.cnf
+        FUZZ_NBVAR=$(grep "p cnf" /tmp/fuzz_test.cnf | cut -d ' ' -f3)
+        [ "${FUZZ_NBVAR:-0}" -gt "$max_vars" ] && continue
+        $SOLVER /tmp/fuzz_test.cnf > /dev/null 2>/dev/null
+        ret=$?
+    done
+    local i span=$((wmax - wmin + 1))
+    for i in $(seq 1 "$FUZZ_NBVAR"); do
+        echo "c p weight $i $((RANDOM % span + wmin)) 0"  >> /tmp/fuzz_test.cnf
+        echo "c p weight -$i $((RANDOM % span + wmin)) 0" >> /tmp/fuzz_test.cnf
     done
 }
 

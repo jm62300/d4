@@ -11,6 +11,7 @@ import re
 import subprocess
 import tempfile
 from dataclasses import dataclass
+from fractions import Fraction
 from typing import Optional
 
 from generators import bcs_file_to_cnf
@@ -64,6 +65,71 @@ def _approx_equal(a: str, b: str, tol: float) -> bool:
         return abs(ca - cb) <= tol * max(abs(ca), abs(cb), 1e-300)
     except ValueError:
         return a == b
+
+
+def _brute_force_wmc(path: str, max_brute_vars: int = 16) -> Optional[Fraction]:
+    """Exact weighted model count by full enumeration (independent of d4).
+
+    Weights default to 1 per literal. Returns None when the instance has too
+    many variables to enumerate. Exact rational arithmetic, so negative and
+    zero weights are handled with no rounding.
+    """
+    n_vars = 0
+    clauses: list[list[int]] = []
+    weights: dict[int, Fraction] = {}
+
+    with open(path) as f:
+        for raw in f:
+            line = raw.strip()
+            if not line:
+                continue
+            if line.startswith("p cnf"):
+                n_vars = int(line.split()[2])
+            elif line.startswith("c p weight"):
+                toks = line.split()
+                weights[int(toks[3])] = Fraction(toks[4])
+            elif line.startswith(("c", "p")):
+                continue
+            else:
+                cur: list[int] = []
+                for tok in line.split():
+                    v = int(tok)
+                    if v == 0:
+                        if cur:
+                            clauses.append(cur)
+                            cur = []
+                    else:
+                        cur.append(v)
+                if cur:
+                    clauses.append(cur)
+
+    if n_vars > max_brute_vars:
+        return None
+
+    masks = []
+    for cl in clauses:
+        pos = neg = 0
+        for l in cl:
+            if l > 0:
+                pos |= 1 << (l - 1)
+            else:
+                neg |= 1 << (-l - 1)
+        masks.append((pos, neg))
+
+    w_pos = [weights.get(i, Fraction(1)) for i in range(1, n_vars + 1)]
+    w_neg = [weights.get(-i, Fraction(1)) for i in range(1, n_vars + 1)]
+
+    total = Fraction(0)
+    full = (1 << n_vars) - 1
+    for m in range(1 << n_vars):
+        inv = full & ~m
+        if any(not (m & pos) and not (inv & neg) for pos, neg in masks):
+            continue
+        prod = Fraction(1)
+        for i in range(n_vars):
+            prod *= w_pos[i] if (m >> i) & 1 else w_neg[i]
+        total += prod
+    return total
 
 
 def run_oracle(
@@ -121,6 +187,40 @@ def run_oracle(
             return OracleResult(
                 passed=False,
                 reason=f"mismatch: oracle={ref_ans!r} evaluated={tst_ans!r}",
+            )
+        return OracleResult(passed=True)
+
+    if ora.type == "brute_force_wmc":
+        # Ground truth computed in Python by full enumeration — independent of
+        # any d4 binary, so a bug shared by counter and d4_static still shows.
+        tst_out, tst_code, tst_to = _run(evaluated.command, instance_path,
+                                         queries_path, timeout, cwd)
+        if tst_to:
+            return OracleResult(passed=True, timed_out=True)
+        if tst_code != 0:
+            return OracleResult(passed=False, reason=f"crash (exit {tst_code})")
+
+        try:
+            ref = _brute_force_wmc(instance_path)
+        except Exception as e:
+            return OracleResult(passed=True, no_answer=True,
+                                reason=f"brute force failed: {e}")
+        if ref is None:
+            return OracleResult(passed=True, no_answer=True,
+                                reason="too many variables for brute force")
+
+        tst_ans = _extract(tst_out, tst_pat)
+        if tst_ans == "":
+            return OracleResult(passed=True, no_answer=True,
+                                reason=f"no answer line in evaluated (pattern={tst_pat!r})")
+
+        ref_ans = (str(ref.numerator) if ref.denominator == 1
+                   else repr(float(ref)))
+        tol = ora.tolerance if ora.tolerance > 0 else 1e-9
+        if not _approx_equal(ref_ans, tst_ans, tol):
+            return OracleResult(
+                passed=False,
+                reason=f"mismatch: brute-force={ref_ans!r} evaluated={tst_ans!r}",
             )
         return OracleResult(passed=True)
 

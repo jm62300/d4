@@ -69,7 +69,34 @@
         {
           "name": "counter",
           "command": "c++/counter/build/counter -i",
-          "result_pattern": "^s (.+)",
+          "result_pattern": "^c s exact arb float (.+)",
+          "timeout": 10
+        }
+      ],
+      "max_bugs": 10,
+      "enabled": true
+    },
+    {
+      "name": "negative_weighted_counting",
+      "description": "Weighted counting with integer weights in [-10, 10] (negative/zero allowed); oracle: exact brute-force enumeration in Python",
+      "generator": {
+        "type": "cnf_weighted",
+        "max_vars": 14,
+        "extra": {
+          "weight_mode": "int",
+          "weight_min": -10,
+          "weight_max": 10
+        }
+      },
+      "oracle": {
+        "type": "brute_force_wmc",
+        "tolerance": 1e-06
+      },
+      "evaluated": [
+        {
+          "name": "counter",
+          "command": "c++/counter/build/counter -i",
+          "result_pattern": "^c s exact arb float (.+)",
           "timeout": 10
         }
       ],

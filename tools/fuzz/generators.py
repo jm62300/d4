@@ -291,16 +291,27 @@ def gen_projected_cnf(max_vars: int = 50) -> tuple[str, None]:
     return _write_tmp("\n".join(new_lines) + "\n"), None
 
 
-def gen_weighted_cnf(max_vars: int = 20) -> tuple[str, None]:
+def gen_weighted_cnf(max_vars: int = 20, weight_mode: str = "proba",
+                     weight_min: int = -10, weight_max: int = 10) -> tuple[str, None]:
+    """
+    Weight modes:
+      proba — w(l) in (0,1) with w(l) + w(¬l) = 1 (probabilities, default)
+      int   — w(l) independent random integer in [weight_min, weight_max];
+              negative and zero weights allowed (stress-tests sign handling)
+    """
     text, n_vars = _gen_cnf(max_vars)
     lines = text.splitlines()
     header = lines[0]          # p cnf N M — must come first
     clauses = lines[1:]
     weight_lines = ["c t wmc"]
     for i in range(1, n_vars + 1):
-        p = random.random()
-        weight_lines.append(f"c p weight {i} {p:.6f} 0")
-        weight_lines.append(f"c p weight -{i} {1-p:.6f} 0")
+        if weight_mode == "int":
+            weight_lines.append(f"c p weight {i} {random.randint(weight_min, weight_max)} 0")
+            weight_lines.append(f"c p weight -{i} {random.randint(weight_min, weight_max)} 0")
+        else:
+            p = random.random()
+            weight_lines.append(f"c p weight {i} {p:.6f} 0")
+            weight_lines.append(f"c p weight -{i} {1-p:.6f} 0")
     return _write_tmp("\n".join([header] + weight_lines + clauses) + "\n"), None
 
 
@@ -429,7 +440,10 @@ def generate(gen_cfg, _scripts_dir: str = "", _fuzz_dir: str = "") -> tuple[str,
     if t == "cnf_projected":
         return gen_projected_cnf(mv)
     if t == "cnf_weighted":
-        return gen_weighted_cnf(mv)
+        return gen_weighted_cnf(mv,
+                                weight_mode=ex.get("weight_mode", "proba"),
+                                weight_min=ex.get("weight_min", -10),
+                                weight_max=ex.get("weight_max", 10))
     if t == "cnf_complex":
         return gen_complex_cnf(mv)
     if t == "cnf_maxsharpsat":

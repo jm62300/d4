@@ -225,8 +225,6 @@ class BufferRead {
    */
   inline std::string nextWord() {
     skipSpace();
-    bool sign = currentChar() == '-';
-    if (sign) consumeChar();
 
     std::string cur = "";
     while (!eof() && (currentChar() != ' ' && currentChar() != '\n' &&
@@ -245,8 +243,6 @@ class BufferRead {
    */
   inline std::string lineWord() {
     skipSpace();
-    bool sign = currentChar() == '-';
-    if (sign) consumeChar();
 
     std::string cur = "";
     while (!eof() && currentChar() != '\n') {
