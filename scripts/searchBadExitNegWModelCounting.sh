@@ -4,4 +4,4 @@
 # Usage: [TESTED_METHOD="..."] searchBadExitNegWModelCounting.sh [timeout=5] [max_bugs=10]
 source "$(dirname "$0")/lib.sh"
 is_executable_ready
-fuzz_loop "gen_neg_weighted_cnf 50" "$(dirname "$0")/testNegWModelCounter.sh" "${1:-5}" "${2:-10}"
+fuzz_loop "gen_neg_weighted_cnf 200" "$(dirname "$0")/testNegWModelCounter.sh" "${1:-5}" "${2:-10}"
