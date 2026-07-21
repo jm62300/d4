@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 
 #include <nlohmann/json.hpp>
+#include <boost/multiprecision/gmp.hpp>
 
 // D4 Solver headers
 #include "src/problem/ProblemTypes.hpp"
