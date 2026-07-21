@@ -23,6 +23,7 @@
 #include "src/preproc/PreprocManager.hpp"
 #include "ParserDimacs.hpp"
 #include "api/solver/Solver.hpp"
+#include "src/utils/MpzTypes.hpp"
 #include <optree/Option.hpp>
 
 using json = nlohmann::json;
@@ -387,15 +388,15 @@ void handle_client(int csocket) {
                 if (output_format == 0) { // decimal (text string)
                     result_data = result->getResult();
                 } else if (output_format == 3) { // bigint (raw big-endian bytes)
-                    boost::multiprecision::mpz_int int_res = result->getIntResult();
+                    d4MpzTypes::mpz_int int_res = result->getIntResult();
                     if (int_res == 0) {
                         result_data.push_back(0x00);
                     } else {
                         size_t count = 0;
-                        size_t num_bits = mpz_sizeinbase(int_res.backend().data(), 2);
+                        size_t num_bits = mpz_sizeinbase(int_res.get_mpz_t(), 2);
                         size_t max_bytes = (num_bits + 7) / 8;
                         std::vector<char> buffer(max_bytes);
-                        mpz_export(buffer.data(), &count, 1, 1, 1, 0, int_res.backend().data());
+                        mpz_export(buffer.data(), &count, 1, 1, 1, 0, int_res.get_mpz_t());
                         if (count > 0) {
                             result_data.assign(buffer.data(), count);
                         } else {
