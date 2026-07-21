@@ -101,14 +101,11 @@ target_compile_definitions(htd PRIVATE NDEBUG)
 
 set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty" CACHE PATH "Directory for FetchContent" FORCE)
 include(FetchContent)
-set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
-if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
-    set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git")
-endif()
+set(OPTREE_GIT_URL "https://github.com/jm62300/optree.git")
 FetchContent_Declare(
     optree
     GIT_REPOSITORY ${OPTREE_GIT_URL}
-    GIT_TAG main
+    GIT_TAG v1.0.0
 )
 FetchContent_MakeAvailable(optree)
 

@@ -35,26 +35,20 @@ set(FETCHCONTENT_BASE_DIR "${SHARED_3RDPARTY_DIR}" CACHE PATH "Directory for Fet
 
 # Fetch optree (header-only library)
 include(FetchContent)
-set(OPTREE_GIT_URL "https://gitlab.univ-artois.fr/logical/optree.git")
-if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
-    set(OPTREE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/optree.git")
-endif()
+set(OPTREE_GIT_URL "https://github.com/jm62300/optree.git")
 FetchContent_Declare(
     optree
     GIT_REPOSITORY ${OPTREE_GIT_URL}
-    GIT_TAG        main
+    GIT_TAG        v1.0.0
 )
 FetchContent_MakeAvailable(optree)
 
 # Integrated BiPe Library
-set(BIPE_GIT_URL "https://gitlab.univ-artois.fr/logical/bipe.git")
-if(DEFINED ENV{GITLAB_TOKEN_LOGICAL})
-    set(BIPE_GIT_URL "https://oauth2:$ENV{GITLAB_TOKEN_LOGICAL}@gitlab.univ-artois.fr/logical/bipe.git")
-endif()
+set(BIPE_GIT_URL "https://github.com/jm62300/bipe.git")
 FetchContent_Declare(
     bipe
     GIT_REPOSITORY ${BIPE_GIT_URL}
-    GIT_TAG        main
+    GIT_TAG        v1.0.0
 )
 FetchContent_MakeAvailable(bipe)
 
